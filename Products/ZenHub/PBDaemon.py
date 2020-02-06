@@ -730,7 +730,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def connect(self):
         pingInterval = self.options.zhPingInterval
-        factory = ReconnectingPBClientFactory(connectTimeout=60, pingPerspective=self.options.pingPerspective,
+        factory = ReconnectingPBClientFactory(connectTimeout=self.options.hubLoginTimeout,
+                                              pingPerspective=self.options.pingPerspective,
                                               pingInterval=pingInterval, pingtimeout=pingInterval * 5)
         self.log.info("Connecting to %s:%d" % (self.options.hubhost, self.options.hubport))
         factory.connectTCP(self.options.hubhost, self.options.hubport)
@@ -1175,6 +1176,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                default=30,
                                help='Initial time to wait for a ZenHub '
                                     'connection')
+        self.parser.add_option('--hubLoginTimeout',
+                               dest='hubLoginTimeout',
+                               type='int',
+                               default=60,
+                               help='Hub login timeout.  Default is 60(seconds)')
         self.parser.add_option('--allowduplicateclears',
                                dest='allowduplicateclears',
                                default=False,

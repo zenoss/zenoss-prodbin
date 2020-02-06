@@ -17,7 +17,7 @@ from collections import OrderedDict
 from itertools import chain
 
 log = logging.getLogger("zen.migrate")
-sm.require("1.1.14")
+sm.require("1.1.13")
 
 
 class EditServicesStartUp(Migrate.Step):
