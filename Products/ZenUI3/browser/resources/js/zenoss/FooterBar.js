@@ -121,15 +121,31 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                     listeners: {
                         click: function() {
                             var itemName = options.onGetItemName();
-                            new Zenoss.dialog.SimpleMessageDialog({
-                                message: options.onGetDeleteMessage(itemName),
+                            new Zenoss.SmartFormDialog({
                                 buttonAlign: 'center',
                                 title: Ext.String.format(_t('Delete {0}'), options.onGetItemName()),
+                                formId: 'confDevClsForm',
+                                items: [{
+                                    xtype: 'panel',
+                                    html: options.onGetDeleteMessage(itemName)
+                                },{
+                                    xtype: 'textfield',
+                                    name: 'devCls',
+                                    anchor:'80%',
+                                    allowBlank: false,
+                                    margin: '10 0 0 0'
+                                }],
                                 buttons: [{
                                     xtype: 'DialogButton',
                                     text: _t('OK'),
-                                    handler: function(){
-                                        footerBar.fireEvent('buttonClick', 'delete');
+                                    handler: function(values){
+                                        var devCls = Ext.getCmp('confDevClsForm').getForm().findField('devCls').getValue();
+                                        var node = Ext.getCmp('devices').getSelectionModel().getSelectedNode();
+                                        if (devCls === '/' + node.data.path) {
+                                            footerBar.fireEvent('buttonClick', 'delete');
+                                        } else {
+                                            Zenoss.message.warning(_t("The device class for deletion isn't confirmed"));
+                                        }
                                     }
                                 }, {
                                     xtype: 'DialogButton',
