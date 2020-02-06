@@ -151,7 +151,7 @@ class ZingDatamapHandler(object):
                 if f.is_valid():
                     yield f
                 # organizers and impact relationships facts for the component
-                comp_uuid = f.metadata.get(ZFact.FactKeys.CONTEXT_UUID_KEY, "")
+                comp_uuid = f.metadata.get(ZFact.DimensionKeys.CONTEXT_UUID_KEY, "")
                 if comp_uuid:
                     comp_groups = []
                     for component in device.getDeviceComponents():
@@ -160,7 +160,7 @@ class ZingDatamapHandler(object):
                             break
                     # organizers fact for the component
                     if comp_uuid not in zing_tx_state.already_generated_organizer_facts:
-                        comp_meta = f.metadata.get(ZFact.FactKeys.META_TYPE_KEY, "")
+                        comp_meta = f.metadata.get(ZFact.DimensionKeys.META_TYPE_KEY, "")
                         comp_fact = ZFact.organizer_fact_from_device_component(device_organizers_fact, comp_uuid, comp_meta, comp_groups)
                         if comp_fact.is_valid():
                             zing_tx_state.already_generated_organizer_facts.add(comp_uuid)
@@ -202,10 +202,10 @@ class ZingDatamapHandler(object):
     def fact_from_device(self, device):
         f = ZFact.Fact()
         ctx = ObjectMapContext(device)
-        f.metadata[ZFact.FactKeys.CONTEXT_UUID_KEY] = ctx.uuid
-        f.metadata[ZFact.FactKeys.META_TYPE_KEY] = ctx.meta_type
-        f.metadata[ZFact.FactKeys.PLUGIN_KEY] = ctx.meta_type
-        f.data[ZFact.FactKeys.NAME_KEY] = ctx.name
+        f.metadata[ZFact.DimensionKeys.CONTEXT_UUID_KEY] = ctx.uuid
+        f.metadata[ZFact.DimensionKeys.META_TYPE_KEY] = ctx.meta_type
+        f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = ctx.meta_type
+        f.data[ZFact.MetadataKeys.NAME_KEY] = ctx.name
         return f
 
     def fact_from_object_map(self, om, parent_device=None, relationship=None, context=None, dm_plugin=None):
@@ -228,7 +228,7 @@ class ZingDatamapHandler(object):
             f.metadata["relationship"] = relationship
         plugin_name = getattr(om, PLUGIN_NAME_ATTR, None) or dm_plugin
         if plugin_name:
-            f.metadata[ZFact.FactKeys.PLUGIN_KEY] = plugin_name
+            f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = plugin_name
 
         # Hack in whatever extra stuff we need.
         om_context = (context or {}).get(om)
@@ -236,10 +236,10 @@ class ZingDatamapHandler(object):
             self.apply_extra_fields(om_context, f)
 
         # FIXME temp solution until we are sure all zenpacks send the plugin
-        if not f.metadata.get(ZFact.FactKeys.PLUGIN_KEY):
+        if not f.metadata.get(ZFact.DimensionKeys.PLUGIN_KEY):
             log.warn("Found fact without plugin information: {}".format(f.metadata))
-            if f.metadata.get(ZFact.FactKeys.META_TYPE_KEY):
-                f.metadata[ZFact.FactKeys.PLUGIN_KEY] = f.metadata[ZFact.FactKeys.META_TYPE_KEY]
+            if f.metadata.get(ZFact.DimensionKeys.META_TYPE_KEY):
+                f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = f.metadata[ZFact.DimensionKeys.META_TYPE_KEY]
         return f
 
     def fact_from_incremental_map(self, idm, context=None):
@@ -263,7 +263,7 @@ class ZingDatamapHandler(object):
         if idm.relname:
             f.metadata["relationship"] = idm.relname
         if getattr(idm, PLUGIN_NAME_ATTR, None):
-            f.metadata[ZFact.FactKeys.PLUGIN_KEY] = idm.plugin_name
+            f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = idm.plugin_name
         try:
             f.metadata["parent"] = idm.parent.getUUID()
         except Exception:
@@ -275,10 +275,10 @@ class ZingDatamapHandler(object):
             self.apply_extra_fields(om_context, f)
 
         # FIXME temp solution until we are sure all zenpacks send the plugin
-        if not f.metadata.get(ZFact.FactKeys.PLUGIN_KEY):
+        if not f.metadata.get(ZFact.DimensionKeys.PLUGIN_KEY):
             log.warn("Found fact without plugin information: {}".format(f.metadata))
-            if f.metadata.get(ZFact.FactKeys.META_TYPE_KEY):
-                f.metadata[ZFact.FactKeys.PLUGIN_KEY] = f.metadata[ZFact.FactKeys.META_TYPE_KEY]
+            if f.metadata.get(ZFact.DimensionKeys.META_TYPE_KEY):
+                f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = f.metadata[ZFact.DimensionKeys.META_TYPE_KEY]
         return f
 
     def facts_from_datamap(self, device, dm, context):
@@ -308,13 +308,13 @@ class ZingDatamapHandler(object):
         adapters are added to facts.
 
         """
-        f.metadata[ZFact.FactKeys.CONTEXT_UUID_KEY] = om_context.uuid
-        f.metadata[ZFact.FactKeys.META_TYPE_KEY] = om_context.meta_type
-        f.data[ZFact.FactKeys.NAME_KEY] = om_context.name
+        f.metadata[ZFact.DimensionKeys.CONTEXT_UUID_KEY] = om_context.uuid
+        f.metadata[ZFact.DimensionKeys.META_TYPE_KEY] = om_context.meta_type
+        f.data[ZFact.MetadataKeys.NAME_KEY] = om_context.name
 
         if om_context.is_device:
             if om_context.mem_capacity is not None:
-                f.data[ZFact.FactKeys.MEM_CAPACITY_KEY] = om_context.mem_capacity
+                f.data[ZFact.MetadataKeys.MEM_CAPACITY_KEY] = om_context.mem_capacity
 
         if om_context.dimensions:
             f.metadata.update(om_context.dimensions)

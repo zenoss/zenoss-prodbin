@@ -27,10 +27,13 @@ DEVICE_INFO_FACT_PLUGIN = 'zen_device_info'
 DELETION_FACT_PLUGIN = 'zen_deletion'
 
 
-class FactKeys(object):
+class DimensionKeys(object):
     CONTEXT_UUID_KEY = "contextUUID"
     META_TYPE_KEY = "meta_type"
     PLUGIN_KEY = "plugin"
+
+
+class MetadataKeys(object):
     NAME_KEY = "name"
     MEM_CAPACITY_KEY = "mem_capacity"
     LOCATION_KEY = "location"
@@ -46,20 +49,20 @@ class Fact(object):
         if not f_id:
             f_id = shortid()
         self.id = f_id
-        self.metadata = {}
-        self.data = {}
+        self.metadata = {}  # corresponds to "dimensions" in zing
+        self.data = {}  # corresponds to "metadata" in zing
 
     def update(self, other):
         self.data.update(other)
 
     def is_valid(self):
-        return self.metadata.get(FactKeys.CONTEXT_UUID_KEY) is not None
+        return self.metadata.get(DimensionKeys.CONTEXT_UUID_KEY) is not None
 
     def set_context_uuid_from_object(self, obj):
-        self.metadata[FactKeys.CONTEXT_UUID_KEY] = get_context_uuid(obj)
+        self.metadata[DimensionKeys.CONTEXT_UUID_KEY] = get_context_uuid(obj)
 
     def set_meta_type_from_object(self, obj):
-        self.metadata[FactKeys.META_TYPE_KEY] = obj.meta_type
+        self.metadata[DimensionKeys.META_TYPE_KEY] = obj.meta_type
 
 
 def get_context_uuid(obj):
@@ -73,9 +76,9 @@ def get_context_uuid(obj):
 
 def deletion_fact(obj_uuid):
     f = Fact()
-    f.metadata[FactKeys.CONTEXT_UUID_KEY] = obj_uuid
-    f.metadata[FactKeys.PLUGIN_KEY] = DELETION_FACT_PLUGIN
-    f.data[FactKeys.DELETED_KEY] = True
+    f.metadata[DimensionKeys.CONTEXT_UUID_KEY] = obj_uuid
+    f.metadata[DimensionKeys.PLUGIN_KEY] = DELETION_FACT_PLUGIN
+    f.data[MetadataKeys.DELETED_KEY] = True
     return f
 
 
@@ -86,9 +89,9 @@ def device_info_fact(device):
     f = Fact()
     f.set_context_uuid_from_object(device)
     f.set_meta_type_from_object(device)
-    f.metadata[FactKeys.PLUGIN_KEY] = DEVICE_INFO_FACT_PLUGIN
-    f.data[FactKeys.NAME_KEY] = device.titleOrId()
-    f.data[FactKeys.PROD_STATE_KEY] = device.getProductionStateString()
+    f.metadata[DimensionKeys.PLUGIN_KEY] = DEVICE_INFO_FACT_PLUGIN
+    f.data[MetadataKeys.NAME_KEY] = device.titleOrId()
+    f.data[MetadataKeys.PROD_STATE_KEY] = device.getProductionStateString()
     return f
 
 
@@ -99,12 +102,12 @@ def organizer_fact_from_device(device):
     device_fact = Fact()
     device_fact.set_context_uuid_from_object(device)
     device_fact.set_meta_type_from_object(device)
-    device_fact.metadata[FactKeys.PLUGIN_KEY] = ORGANIZERS_FACT_PLUGIN
-    device_fact.data[FactKeys.DEVICE_CLASS_KEY] = device.getDeviceClassName()
+    device_fact.metadata[DimensionKeys.PLUGIN_KEY] = ORGANIZERS_FACT_PLUGIN
+    device_fact.data[MetadataKeys.DEVICE_CLASS_KEY] = device.getDeviceClassName()
     location = device.getLocationName()
-    device_fact.data[FactKeys.LOCATION_KEY] = [location] if location else []
-    device_fact.data[FactKeys.SYSTEMS_KEY] = device.getSystemNames()
-    device_fact.data[FactKeys.GROUPS_KEY] = device.getDeviceGroupNames()
+    device_fact.data[MetadataKeys.LOCATION_KEY] = [location] if location else []
+    device_fact.data[MetadataKeys.SYSTEMS_KEY] = device.getSystemNames()
+    device_fact.data[MetadataKeys.GROUPS_KEY] = device.getDeviceGroupNames()
     return device_fact
 
 
@@ -114,9 +117,9 @@ def organizer_fact_from_device_component(device_fact, comp_uuid, comp_meta_type,
     @param device_fact: organizers fact for device
     """
     comp_fact = copy.deepcopy(device_fact)
-    comp_fact.metadata[FactKeys.CONTEXT_UUID_KEY] = comp_uuid
-    comp_fact.metadata[FactKeys.META_TYPE_KEY] = comp_meta_type
-    comp_fact.data[FactKeys.COMPONENT_GROUPS_KEY] = comp_groups
+    comp_fact.metadata[DimensionKeys.CONTEXT_UUID_KEY] = comp_uuid
+    comp_fact.metadata[DimensionKeys.META_TYPE_KEY] = comp_meta_type
+    comp_fact.data[MetadataKeys.COMPONENT_GROUPS_KEY] = comp_groups
     comp_fact.id = shortid()
     return comp_fact
 
@@ -149,6 +152,7 @@ def impact_relationships_fact_if_needed(tx_state, uuid, mark_as_generated=True):
         if mark_as_generated and mark:
             tx_state.already_generated_impact_facts.add(uuid)
     return impact_fact
+
 
 class _FactEncoder(JSONEncoder):
 

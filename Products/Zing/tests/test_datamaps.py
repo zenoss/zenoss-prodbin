@@ -125,7 +125,7 @@ class TestIncrementalDataMapHandler(TestCase):
         )
         t.assertEqual(
             {
-                ZFact.FactKeys.PLUGIN_KEY: 'test_plugin_name',
+                ZFact.DimensionKeys.PLUGIN_KEY: 'test_plugin_name',
                 'meta_type': t.target.meta_type,
                 'contextUUID': t.target.getUUID.return_value,
                 'parent': t.parent.getUUID.return_value,
@@ -149,7 +149,7 @@ class TestIncrementalDataMapHandler(TestCase):
         )
         t.assertEqual(
             {
-                ZFact.FactKeys.PLUGIN_KEY: 'zen_organizers',
+                ZFact.DimensionKeys.PLUGIN_KEY: 'zen_organizers',
                 'contextUUID': t.target.getUUID.return_value,
                 'meta_type': t.target.meta_type,
             },
@@ -164,7 +164,7 @@ class TestIncrementalDataMapHandler(TestCase):
         )
         t.assertEqual(
             {
-                ZFact.FactKeys.PLUGIN_KEY: 'zen_device_info',
+                ZFact.DimensionKeys.PLUGIN_KEY: 'zen_device_info',
                 'contextUUID': t.target.getUUID.return_value,
                 'meta_type': t.target.meta_type,
             },
@@ -209,7 +209,7 @@ class TestIncrementalDataMapHandler(TestCase):
 
         t.assertEqual(
             {
-                ZFact.FactKeys.PLUGIN_KEY: 'test_plugin_name',
+                ZFact.DimensionKeys.PLUGIN_KEY: 'test_plugin_name',
                 'meta_type': t.target.meta_type,
                 'contextUUID': t.target.getUUID.return_value,
                 'relationship': t.relname,
@@ -315,7 +315,7 @@ class TestZingDatamapHandler(TestCase):
         )
         t.assertEqual(
             {
-                ZFact.FactKeys.PLUGIN_KEY: 'test_plugin_name',
+                ZFact.DimensionKeys.PLUGIN_KEY: 'test_plugin_name',
                 'meta_type': 'Device',
                 'contextUUID': 'dummy_uuid',
                 'dimension1': 'device d1',
@@ -337,7 +337,7 @@ class TestZingDatamapHandler(TestCase):
         )
         t.assertEqual(
             {
-                ZFact.FactKeys.PLUGIN_KEY: 'zen_organizers',
+                ZFact.DimensionKeys.PLUGIN_KEY: 'zen_organizers',
                 'contextUUID': 'dummy_uuid',
                 'meta_type': 'Device',
             },
@@ -352,7 +352,7 @@ class TestZingDatamapHandler(TestCase):
         )
         t.assertEqual(
             {
-                ZFact.FactKeys.PLUGIN_KEY: 'zen_device_info',
+                ZFact.DimensionKeys.PLUGIN_KEY: 'zen_device_info',
                 'contextUUID': 'dummy_uuid',
                 'meta_type': 'Device',
             },
