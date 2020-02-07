@@ -19,7 +19,7 @@ import logging
 from twisted.internet import reactor, task
 from twisted.internet.defer import inlineCallbacks
 
-from zope.component import getUtility, adapts, provideUtility
+from zope.component import getUtility, adapts, provideUtility, adapter
 from zope.event import notify
 from zope.interface import implements
 
@@ -45,7 +45,8 @@ from Products.ZenHub.interfaces import (
     IHubHeartBeatCheck,
     IParserReadyForOptionsEvent,
 )
-from Products.ZenHub.metricmanager import MetricManager
+
+from Products.ZenHub.metricmanager import MetricManager, IMetricManager
 from Products.ZenHub.invalidationmanager import InvalidationManager
 from Products.ZenHub.server import (
     config as server_config,
@@ -288,7 +289,9 @@ class ZenHub(ZCmdBase):
         """
         seconds = 30
         evt = EventHeartbeat(
-            self.options.monitor, self.name, self.options.heartbeatTimeout,
+            self.options.monitor,  # hub name for device
+            self.name,  # 'zenhub' for component
+            self.options.heartbeatTimeout,
         )
         self.zem.sendEvent(evt)
         self.niceDoggie(seconds)
@@ -402,6 +405,19 @@ class ParserReadyForOptionsEvent(object):  # noqa: D101
 
     def __init__(self, parser):
         self.parser = parser
+
+
+@adapter(EventHeartbeat)
+def handle_reactor_delayed_calls_metric(event):
+    deferred_count = len(reactor.getDelayedCalls())
+    writer = getUtility(IMetricManager).metric_writer
+
+    writer.write_metric(
+        'zenhub.reactor.delayedcalls',
+        deferred_count,
+        int(event.timestamp * 1000),  # to milliseconds
+        {'monitor': event.device, 'name': event.component},
+    )
 
 
 if __name__ == '__main__':
