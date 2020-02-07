@@ -121,6 +121,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                     listeners: {
                         click: function() {
                             var itemName = options.onGetItemName();
+                            var nodePath = '/' + Ext.getCmp('devices').getSelectionModel().getSelectedNode().data.path;
                             new Zenoss.SmartFormDialog({
                                 buttonAlign: 'center',
                                 title: Ext.String.format(_t('Delete {0}'), options.onGetItemName()),
@@ -133,15 +134,16 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                                     name: 'devCls',
                                     anchor:'80%',
                                     allowBlank: false,
+                                    emptyText: nodePath,
                                     margin: '10 0 0 0'
                                 }],
                                 buttons: [{
                                     xtype: 'DialogButton',
-                                    text: _t('OK'),
+                                    text: _t('Delete'),
                                     handler: function(values){
                                         var devCls = Ext.getCmp('confDevClsForm').getForm().findField('devCls').getValue();
-                                        var node = Ext.getCmp('devices').getSelectionModel().getSelectedNode();
-                                        if (devCls === '/' + node.data.path) {
+
+                                        if (devCls === nodePath) {
                                             footerBar.fireEvent('buttonClick', 'delete');
                                         } else {
                                             Zenoss.message.warning(_t("The device class for deletion isn't confirmed"));
