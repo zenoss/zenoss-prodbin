@@ -12,7 +12,7 @@ import servicemigration as sm
 import Migrate
 
 log = logging.getLogger("zen.migrate")
-sm.require("1.1.13")
+sm.require("1.1.14")
 
 
 class MarkHubServices(Migrate.Step):
