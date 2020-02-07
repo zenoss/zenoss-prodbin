@@ -27,6 +27,10 @@ from Products.ZenHub.zenhub import (
     stop_server,
     server_config,
     IHubServerConfig,
+    handle_reactor_delayed_calls_metric,
+    EventHeartbeat,
+    IMetricManager,
+    reactor,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -586,3 +590,38 @@ class ParserReadyForOptionsEventTest(TestCase):
         verifyObject(IParserReadyForOptionsEvent, event)
 
         t.assertEqual(event.parser, parser)
+
+
+class ReactorDelayedCallsMetricTest(TestCase):
+
+    def setUp(t):
+        _patchables = (
+            ("getUtility", Mock(spec=[])),
+        )
+        for name, value in _patchables:
+            patcher = patch(
+                "{src}.{name}".format(src=PATH["src"], name=name),
+                new=value,
+            )
+            setattr(t, name, patcher.start())
+            t.addCleanup(patcher.stop)
+
+    def test_handle_reactor_delayed_calls_metric(t):
+        zenhub_monitor = 'zenhub.options.monitor'
+        zenhub_name = 'zenhub.name'
+        zenhub_heartbeat_timeout = 'zenhub.options.heartbeatTimeout'
+        writer = t.getUtility.return_value.metric_writer
+        event = EventHeartbeat(
+            zenhub_monitor, zenhub_name, zenhub_heartbeat_timeout
+        )
+        event.timestamp = 111.0
+
+        handle_reactor_delayed_calls_metric(event)
+
+        t.getUtility.assert_called_once_with(IMetricManager)
+        writer.write_metric.assert_called_once_with(
+            'zenhub.reactor.delayedcalls',
+            len(reactor.getDelayedCalls()),
+            event.timestamp * 1000,
+            {'monitor': zenhub_monitor, 'name': zenhub_name},
+        )
