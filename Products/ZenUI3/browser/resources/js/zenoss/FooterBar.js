@@ -143,7 +143,10 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                                 }],
                                 buttons: [{
                                     xtype: 'DialogButton',
-                                    text: _t('Delete')
+                                    text: _t('Delete'),
+                                    handler: function(){
+                                        footerBar.fireEvent('buttonClick', 'delete');
+                                    }
                                 }, {
                                     xtype: 'DialogButton',
                                     text: _t('Cancel')
