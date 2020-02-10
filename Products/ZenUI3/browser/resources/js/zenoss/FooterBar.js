@@ -135,20 +135,15 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                                     anchor:'80%',
                                     allowBlank: false,
                                     emptyText: nodePath,
-                                    margin: '10 0 0 0'
+                                    margin: '10 0 0 0',
+                                    isValid: function() {
+                                        var devCls = Ext.getCmp('confDevClsForm').getForm().findField('devCls').getValue();
+                                        return (devCls === nodePath);
+                                    }
                                 }],
                                 buttons: [{
                                     xtype: 'DialogButton',
-                                    text: _t('Delete'),
-                                    handler: function(values){
-                                        var devCls = Ext.getCmp('confDevClsForm').getForm().findField('devCls').getValue();
-
-                                        if (devCls === nodePath) {
-                                            footerBar.fireEvent('buttonClick', 'delete');
-                                        } else {
-                                            Zenoss.message.warning(_t("The device class for deletion isn't confirmed"));
-                                        }
-                                    }
+                                    text: _t('Delete')
                                 }, {
                                     xtype: 'DialogButton',
                                     text: _t('Cancel')
