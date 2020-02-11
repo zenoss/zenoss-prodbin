@@ -1,5 +1,6 @@
 
 import logging
+import sys
 
 from unittest import TestCase
 from mock import Mock, patch, create_autospec, call, sentinel
@@ -875,6 +876,9 @@ class PBDaemonTest(TestCase):
             setattr(t, target, patcher.start())
             t.addCleanup(patcher.stop)
 
+        # Required commandline options
+        sys.argv = ['Start', ]
+
         t.name = 'pb_daemon_name'
         t.pbd = PBDaemon(name=t.name)
 
@@ -1621,6 +1625,8 @@ class PBDaemonTest(TestCase):
         t.pbd.noopts = True
         t.pbd.inputArgs = None
 
+        # Given no commandline options
+        sys.argv = []
         t.pbd.buildOptions()
         t.pbd.parseOptions()
 

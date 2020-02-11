@@ -9,6 +9,7 @@
 
 import unittest
 
+import logging
 import ujson as json
 
 from Products.ZenHub.metricpublisher.publisher import RedisListPublisher, HttpPostPublisher, BasePublisher
@@ -53,6 +54,12 @@ class RedisPublisherTestCase(unittest.TestCase):
 
 
 class UtilsTestCase(unittest.TestCase):
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
+
+    def tearDown(self):
+        logging.disable(logging.NOTSET)
+
     def test_sanitized_float(self):
         # The result of float() and sanitized_float() should match for
         # these.
