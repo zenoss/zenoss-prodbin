@@ -114,8 +114,6 @@ class EventDEventletWorker(ZCmdBase):
                 self._pubsub.run()
             except (socket.error, AMQPConnectionException) as e:
                 log.warn("RabbitMQ Connection error %s" % e)
-            except KeyboardInterrupt:
-                keepTrying = False
             finally:
                 if self._pubsub:
                     self._pubsub.shutdown()

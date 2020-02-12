@@ -362,8 +362,6 @@ class ZDeviceLoader(ZenModelItem, SimpleItem):
                                             priority=priority,
                                             title=title
                                         ))
-        except (SystemExit, KeyboardInterrupt):
-            raise
         except ZentinelException as e:
             log.info(e)
             if xmlrpc:
