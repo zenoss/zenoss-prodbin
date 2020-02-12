@@ -34,4 +34,4 @@ def do_command_byname(selenium, command, name):
            i += 1
        except Exception as data:
            if "ndex out of range" in data[0]: _flag = False
-           else: raise Exception, data
+           else: raise Exception(data)

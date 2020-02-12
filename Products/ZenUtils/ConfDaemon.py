@@ -131,7 +131,6 @@ class ConfDaemon(CmdBase):
             try:
                 self.loadConfig()
                 return
-            except SystemExit: raise
             except Exception:
                 if self.validConfig():
                     self.log.exception(

@@ -84,11 +84,16 @@ class RelCopyContainer(CopyContainer):
         """
         pathres = getattr(object, 'relationshipManagerPathRestriction', None)
         if (pathres and '/'.join(self.getPhysicalPath()).find(pathres) == -1):
-            raise CopyError, MessageDialog(title='Not Supported',
-                  message='The object <EM>%s</EM> can not be pasted into' \
-                          ' the path <EM>%s</EM>' % 
-                           (object.id, '/'.join(self.getPhysicalPath())),
-                  action='manage_main')
+            raise CopyError(
+                MessageDialog(
+                    title='Not Supported',
+                    message='The object <EM>%s</EM> can not be pasted into'
+                    ' the path <EM>%s</EM>' % (
+                        object.id, '/'.join(self.getPhysicalPath())
+                    ),
+                    action='manage_main',
+                )
+            )
         # We don't need this it checks for meta_type permissions
         # the check messes up zenhubs ability to rename devices
         # CopyContainer._verifyObjectPaste(self,object,validate_src)
@@ -124,11 +129,13 @@ class RelCopyContainer(CopyContainer):
                 'the context of the container into which you are '
                 'pasting, thus you are not able to perform '
                 'this operation.')
-            raise CopyError, MessageDialog(title = 'Insufficient Privileges',
-                                message = message, action = 'manage_main')
-                
-
-
+            raise CopyError(
+                MessageDialog(
+                    title='Insufficient Privileges',
+                    message=message,
+                    action='manage_main',
+                )
+            )
 
     def _getSourceObjects(self, cb_copy_data, REQUEST):
         """get the source objects to link"""
@@ -139,10 +146,10 @@ class RelCopyContainer(CopyContainer):
             if REQUEST and REQUEST.has_key('__cp'):
                 cp=REQUEST['__cp']
         if cp is None:
-            raise CopyError, eNoData
+            raise CopyError(eNoData)
         
         try:    cp=_cb_decode(cp)
-        except Exception: raise CopyError, eInvalid
+        except Exception: raise CopyError(eInvalid)
 
         oblist=[]
         app = self.getPhysicalRoot()
@@ -150,7 +157,7 @@ class RelCopyContainer(CopyContainer):
         for mdata in cp[1]:
             m = Moniker.loadMoniker(mdata)
             try: ob = m.bind(app)
-            except Exception: raise CopyError, eNotFound
+            except Exception: raise CopyError(eNotFound)
             self._verifyObjectLink() 
             oblist.append(ob)
         return oblist

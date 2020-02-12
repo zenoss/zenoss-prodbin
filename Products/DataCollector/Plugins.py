@@ -99,8 +99,6 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
                 pluginClass = self.importer.importPlugin(self.package,
                                                          self.modPath)
                 return pluginClass()
-            except (SystemExit, KeyboardInterrupt):
-                raise
             except Exception:
                 import traceback
                 log.debug(traceback.format_exc())
