@@ -950,6 +950,7 @@ class DeviceRouter(TreeRouter):
             else:
                 return DirectResponse.succeed('Changed collector to %s for %s devices.' %
                                       (collector, len(uids)))
+        except Exception as e:
             if log.isEnabledFor(logging.DEBUG):
                 log.exception(e)
             else:

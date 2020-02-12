@@ -123,7 +123,6 @@ class CollectorConfigService(HubService, ThresholdMixin):
         """
         try:
             return functor(*args, **kwargs)
-        except (SystemExit, KeyboardInterrupt): raise
         except Exception as ex:
             msg = 'Unhandled exception in zenhub service %s: %s' % (
                       self.__class__, str(ex))

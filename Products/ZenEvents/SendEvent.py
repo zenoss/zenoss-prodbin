@@ -48,7 +48,5 @@ class SendEvent(object):
         event.update(kwargs)
         try:
             self.server.sendEvent(event)
-        except SystemExit: raise
         except Exception:
             raise
-            logging.exception("Event notification failed url %s", self.url)

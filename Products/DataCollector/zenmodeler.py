@@ -255,11 +255,6 @@ class ZenModeler(PBDaemon):
                 self.log.debug( "Loaded plugin %s" % plugin.name() )
                 plugins.append( plugin )
                 valid_loaders.append( loader )
-
-            except (SystemExit, KeyboardInterrupt) as ex:
-                self.log.info( "Interrupted by external signal (%s)" % str(ex) )
-                raise
-
             except Plugins.PluginImportError as import_error:
                 import socket
                 component, _ = os.path.splitext( os.path.basename( sys.argv[0] ) )
@@ -364,8 +359,6 @@ class ZenModeler(PBDaemon):
             if not client or not plugins:
                 self.log.warn("WMI collector creation failed")
                 return
-        except (SystemExit, KeyboardInterrupt):
-            raise
         except Exception:
             self.log.exception("Error opening WMI collector")
         self.addClient(client, timeout, 'WMI', device.id)
@@ -395,7 +388,6 @@ class ZenModeler(PBDaemon):
             if not client or not plugins:
                 self.log.warn("Python client creation failed")
                 return
-        except (SystemExit, KeyboardInterrupt): raise
         except Exception:
             self.log.exception("Error opening pythonclient")
         self.addClient(client, timeout, 'python', device.id)
@@ -466,7 +458,6 @@ class ZenModeler(PBDaemon):
             else:
                 self.log.info("plugins: %s",
                     ", ".join(map(lambda p: p.name(), plugins)))
-        except (SystemExit, KeyboardInterrupt): raise
         except Exception:
             self.log.exception("Error opening command collector")
         self.addClient(client, timeout, clientType, device.id)
@@ -508,7 +499,6 @@ class ZenModeler(PBDaemon):
             if not client or not plugins:
                 self.log.warn("SNMP collector creation failed")
                 return
-        except (SystemExit, KeyboardInterrupt): raise
         except Exception:
             self.log.exception("Error opening the SNMP collector")
         self.addClient(client, timeout, 'SNMP', device.id)
@@ -598,7 +588,6 @@ class ZenModeler(PBDaemon):
             if not client or not plugins:
                 self.log.warn("Portscan collector creation failed")
                 return
-        except (SystemExit, KeyboardInterrupt): raise
         except Exception:
             self.log.exception("Error opening portscan collector")
         self.addClient(client, timeout, 'portscan', device.id)
@@ -669,13 +658,6 @@ class ZenModeler(PBDaemon):
                             datamaps = plugin.process(device, results, self.log)
                         if datamaps:
                             pluginStats.setdefault(plugin.name(), plugin.weight)
-
-                    except (SystemExit, KeyboardInterrupt) as ex:
-                        self.log.info( "Plugin %s terminated due to external"
-                                      " signal (%s)" % (plugin.name(), str(ex) )
-                                      )
-                        continue
-
                     except Exception as ex:
                         # NB: don't discard the plugin, as it might be a
                         #     temporary issue

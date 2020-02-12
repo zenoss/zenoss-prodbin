@@ -171,7 +171,7 @@ def findCommunity(context, ip, devicePath,
                 goodcommunity = session.community
                 goodversion = version
                 break
-            except (SystemExit, KeyboardInterrupt, POSError): raise
+            except POSError: raise
             except Exception: pass #keep trying until we run out
         if goodcommunity:
                 break

@@ -241,14 +241,6 @@ def getObjByPath(base, path, restricted=0):
                 next = guarded_getattr(obj, name, marker)
             else:
                 next = _getattr(obj, name, marker)
-                ## Below this is a change from the standard traverse from zope
-                ## it allows a path to use acquisition which is not what
-                ## we want.  Our version will fail if one element of the
-                ## path doesn't exist. -EAD
-                #if hasattr(aq_base(obj), name):
-                #    next = _getattr(obj, name, marker)
-                #else:
-                #    raise NotFound, name
             if next is marker:
                 try:
                     next=obj[name]
@@ -1233,9 +1225,6 @@ def executeCommand(cmd, REQUEST, write=None):
                 write(s)
             else:
                 log.info(s)
-    except (SystemExit, KeyboardInterrupt):
-        if xmlrpc: return 1
-        raise
     except ZentinelException as e:
         if xmlrpc: return 1
         log.critical(e)
