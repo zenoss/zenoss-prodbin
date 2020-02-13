@@ -1,8 +1,9 @@
 
 import logging
+import sys
 
 from unittest import TestCase
-from mock import Mock, patch, create_autospec, call
+from mock import Mock, patch, create_autospec, call, sentinel
 
 from zope.interface.verify import verifyObject
 
@@ -30,7 +31,6 @@ from Products.ZenHub.PBDaemon import (
     defer,
     PBDaemon,
 )
-from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
 PATH = {'src': 'Products.ZenHub.PBDaemon'}
 
@@ -876,6 +876,9 @@ class PBDaemonTest(TestCase):
             setattr(t, target, patcher.start())
             t.addCleanup(patcher.stop)
 
+        # Required commandline options
+        sys.argv = ['Start', ]
+
         t.name = 'pb_daemon_name'
         t.pbd = PBDaemon(name=t.name)
 
@@ -906,6 +909,7 @@ class PBDaemonTest(TestCase):
             patch.object(PBDaemon, 'options', create=True),
             patch.object(PBDaemon, 'log', create=True),
         ]
+
         for patcher in t.pbdaemon_patchers:
             patcher.start()
             t.addCleanup(patcher.stop)
@@ -1011,8 +1015,9 @@ class PBDaemonTest(TestCase):
         ret = t.pbd.internalPublisher()
 
         t.assertEqual(ret, t.publisher.HttpPostPublisher.return_value)
-        t.publisher.HttpPostPublisher.assert_called_with(username, password, url)
-
+        t.publisher.HttpPostPublisher.assert_called_with(
+            username, password, url,
+        )
         t.assertEqual(t.pbd._internal_publisher, ret)
 
     @patch('{src}.os'.format(**PATH), autospec=True)
@@ -1265,6 +1270,8 @@ class PBDaemonTest(TestCase):
         t.pbd.rrdStats = Mock(spec_set=t.pbd.rrdStats)
         t.pbd.connect = create_autospec(t.pbd.connect)
         t.pbd._customexitcode = 99
+        t.pbd.options = Mock(name='options', cycle=True)
+        t.pbd._metric_writer = sentinel._metric_writer
 
         t.pbd.run()
 
@@ -1612,13 +1619,14 @@ class PBDaemonTest(TestCase):
         t.init_patcher.start()
         t.addCleanup(t.init_patcher.stop)
 
-
         t.pbd = PBDaemon()
         t.pbd.parser = None
         t.pbd.usage = "%prog [options]"
         t.pbd.noopts = True
         t.pbd.inputArgs = None
 
+        # Given no commandline options
+        sys.argv = []
         t.pbd.buildOptions()
         t.pbd.parseOptions()
 
@@ -1641,15 +1649,6 @@ class PBDaemonTest(TestCase):
         t.assertEqual(t.pbd.options.queueHighWaterMark, 0.75)
         t.assertEqual(t.pbd.options.zhPingInterval, 120)
         t.assertEqual(t.pbd.options.deduplicate_events, True)
-
-        global_conf = getGlobalConfiguration()
-        if "redis-url" in global_conf:
-            expected_redisurl = global_conf["redis-url"]
-        else:
-            expected_redisurl = \
-                'redis://localhost:%s/0' % t.publisher.defaultRedisPort
-        t.assertEqual(t.pbd.options.redisUrl, expected_redisurl)
-
         t.assertEqual(
             t.pbd.options.redisUrl,
             'redis://localhost:{default}/0'.format(
