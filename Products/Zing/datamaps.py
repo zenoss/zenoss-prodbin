@@ -153,10 +153,15 @@ class ZingDatamapHandler(object):
                 # organizers and impact relationships facts for the component
                 comp_uuid = f.metadata.get(ZFact.FactKeys.CONTEXT_UUID_KEY, "")
                 if comp_uuid:
+                    comp_groups = []
+                    for component in device.getDeviceComponents():
+                        if component.getUUID() == comp_uuid:
+                            comp_groups = component.getComponentGroupNames()
+                            break
                     # organizers fact for the component
                     if comp_uuid not in zing_tx_state.already_generated_organizer_facts:
                         comp_meta = f.metadata.get(ZFact.FactKeys.META_TYPE_KEY, "")
-                        comp_fact = ZFact.organizer_fact_from_device_component(device_organizers_fact, comp_uuid, comp_meta)
+                        comp_fact = ZFact.organizer_fact_from_device_component(device_organizers_fact, comp_uuid, comp_meta, comp_groups)
                         if comp_fact.is_valid():
                             zing_tx_state.already_generated_organizer_facts.add(comp_uuid)
                             yield comp_fact
