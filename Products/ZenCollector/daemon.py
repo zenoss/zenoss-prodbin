@@ -140,6 +140,9 @@ class CollectorDaemon(RRDDaemon):
 
     _frameworkFactoryName = ""
 
+    # So users (subclasses) can check for metric tag support without inspect.
+    metricExtraTags = True
+
     @property
     def preferences(self):
         """
@@ -205,52 +208,52 @@ class CollectorDaemon(RRDDaemon):
                                       self.preferences.collectorName)
 
         super(CollectorDaemon, self).__init__(name=self.preferences.collectorName)
-
-        # setup daemon statistics (deprecated names)
         self._statService = StatisticsService()
-        self._statService.addStatistic("devices", "GAUGE")
-        self._statService.addStatistic("dataPoints", "DERIVE")
-        self._statService.addStatistic("runningTasks", "GAUGE")
-        self._statService.addStatistic("taskCount", "GAUGE")
-        self._statService.addStatistic("queuedTasks", "GAUGE")
-        self._statService.addStatistic("missedRuns", "GAUGE")
-
-        # namespace these a bit so they can be used in ZP monitoring.
-        # prefer these stat names and metrology in future refs
-        self._dataPointsMetric = Metrology.meter("collectordaemon.dataPoints")
-        daemon = self
-        class DeviceGauge(Gauge):
-            @property
-            def value(self):
-                return len(daemon._devices)
-        Metrology.gauge('collectordaemon.devices', DeviceGauge())
-
-        # Scheduler statistics
-        class RunningTasks(Gauge):
-            @property
-            def value(self):
-                return daemon._scheduler._executor.running
-        Metrology.gauge('collectordaemon.runningTasks', RunningTasks())
-
-        class TaskCount(Gauge):
-            @property
-            def value(self):
-                return daemon._scheduler.taskCount
-        Metrology.gauge('collectordaemon.taskCount', TaskCount())
-
-        class QueuedTasks(Gauge):
-            @property
-            def value(self):
-                return daemon._scheduler._executor.queued
-        Metrology.gauge('collectordaemon.queuedTasks', QueuedTasks())
-
-        class MissedRuns(Gauge):
-            @property
-            def value(self):
-                return daemon._scheduler.missedRuns
-        Metrology.gauge('collectordaemon.missedRuns', MissedRuns())
-
         zope.component.provideUtility(self._statService, IStatisticsService)
+
+        if self.options.cycle:
+            # setup daemon statistics (deprecated names)
+            self._statService.addStatistic("devices", "GAUGE")
+            self._statService.addStatistic("dataPoints", "DERIVE")
+            self._statService.addStatistic("runningTasks", "GAUGE")
+            self._statService.addStatistic("taskCount", "GAUGE")
+            self._statService.addStatistic("queuedTasks", "GAUGE")
+            self._statService.addStatistic("missedRuns", "GAUGE")
+
+            # namespace these a bit so they can be used in ZP monitoring.
+            # prefer these stat names and metrology in future refs
+            self._dataPointsMetric = Metrology.meter("collectordaemon.dataPoints")
+            daemon = self
+            class DeviceGauge(Gauge):
+                @property
+                def value(self):
+                    return len(daemon._devices)
+            Metrology.gauge('collectordaemon.devices', DeviceGauge())
+
+            # Scheduler statistics
+            class RunningTasks(Gauge):
+                @property
+                def value(self):
+                    return daemon._scheduler._executor.running
+            Metrology.gauge('collectordaemon.runningTasks', RunningTasks())
+
+            class TaskCount(Gauge):
+                @property
+                def value(self):
+                    return daemon._scheduler.taskCount
+            Metrology.gauge('collectordaemon.taskCount', TaskCount())
+
+            class QueuedTasks(Gauge):
+                @property
+                def value(self):
+                    return daemon._scheduler._executor.queued
+            Metrology.gauge('collectordaemon.queuedTasks', QueuedTasks())
+
+            class MissedRuns(Gauge):
+                @property
+                def value(self):
+                    return daemon._scheduler.missedRuns
+            Metrology.gauge('collectordaemon.missedRuns', MissedRuns())
 
         self._deviceGuids = {}
         self._devices = set()
@@ -423,10 +426,21 @@ class CollectorDaemon(RRDDaemon):
 
 
     @defer.inlineCallbacks
-    def writeMetric(self, contextKey, metric, value, metricType, contextId,
-                    timestamp='N', min='U', max='U',
-                    threshEventData={}, deviceId=None, contextUUID=None,
-                    deviceUUID=None):
+    def writeMetric(
+            self,
+            contextKey,
+            metric,
+            value,
+            metricType,
+            contextId,
+            timestamp='N',
+            min='U',
+            max='U',
+            threshEventData=None,
+            deviceId=None,
+            contextUUID=None,
+            deviceUUID=None,
+            extraTags=None):
 
         """
         Writes the metric to the metric publisher.
@@ -468,6 +482,9 @@ class CollectorDaemon(RRDDaemon):
 
         # check for threshold breaches and send events when needed
         if value is not None:
+            if extraTags:
+                tags.update(extraTags)
+
             # write the  metric to Redis
             try:
                 yield defer.maybeDeferred(self._metric_writer.write_metric, metric_name, value, timestamp, tags)
@@ -476,8 +493,17 @@ class CollectorDaemon(RRDDaemon):
             yield defer.maybeDeferred(self._threshold_notifier.notify, contextUUID, contextId, metric,
                     timestamp, value, threshEventData)
 
-    def writeMetricWithMetadata(self, metric, value, metricType, timestamp='N',
-            min='U', max='U', threshEventData={}, metadata=None):
+    def writeMetricWithMetadata(
+            self,
+            metric,
+            value,
+            metricType,
+            timestamp='N',
+            min='U',
+            max='U',
+            threshEventData=None,
+            metadata=None,
+            extraTags=None):
 
         metadata = metadata or {}
         try:
@@ -491,10 +517,21 @@ class CollectorDaemon(RRDDaemon):
                 metric_name = metric
         except KeyError as e:
             raise Exception("Missing necessary metadata: %s" % e.message)
-        deviceUUID = metadata.get('deviceUUID')
-        return self.writeMetric(key, metric_name, value, metricType, contextId,
-                timestamp, min, max, threshEventData, deviceId, contextUUID,
-                deviceUUID)
+
+        return self.writeMetric(
+            key,
+            metric_name,
+            value,
+            metricType,
+            contextId,
+            timestamp=timestamp,
+            min=min,
+            max=max,
+            threshEventData=threshEventData,
+            deviceId=deviceId,
+            contextUUID=contextUUID,
+            deviceUUID=metadata.get('deviceUUID'),
+            extraTags=extraTags)
 
     @deprecated
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,

@@ -276,7 +276,7 @@ class ConfiguredPrioritiesTest(TestCase):
     """Test the ServiceCallPriority enumeration."""
 
     def test_has_required_priority_names(self):
-        expected = {"OTHER", "EVENTS", "SINGLE_MODELING", "MODELING"}
+        expected = {"OTHER", "EVENTS", "SINGLE_MODELING", "MODELING", "CONFIG"}
         actual = {p.name for p in ServiceCallPriority}
         self.assertSetEqual(actual, expected)
 
@@ -285,6 +285,7 @@ class ConfiguredPrioritiesTest(TestCase):
             ServiceCallPriority.EVENTS,
             ServiceCallPriority.SINGLE_MODELING,
             ServiceCallPriority.OTHER,
+            ServiceCallPriority.CONFIG,
             ServiceCallPriority.MODELING,
         ]
         actual = sorted(ServiceCallPriority)
@@ -304,6 +305,10 @@ class ConfiguredServiceCallPriorityMapTest(TestCase):
                 ServiceCallPriority.SINGLE_MODELING,
             ("Package.ServiceOne", "doThis"): ServiceCallPriority.OTHER,
             ("Package.ServiceTwo", "doThat"): ServiceCallPriority.OTHER,
+            ("Package.ServiceOne", "getDeviceConfigs"):
+                ServiceCallPriority.CONFIG,
+            ("Package.ServiceOne", "getDeviceConfig"):
+                ServiceCallPriority.CONFIG,
         }
         for mesg, expected in expected_mapping.iteritems():
             actual = servicecall_priority_map.get(mesg)
@@ -313,3 +318,7 @@ class ConfiguredServiceCallPriorityMapTest(TestCase):
                     mesg, expected.name, actual.name,
                 ),
             )
+        # Catch to ensure this test is updated for new priorities
+        available = set(ServiceCallPriority)
+        used = set(expected_mapping.values())
+        self.assertSetEqual(available - used, set())

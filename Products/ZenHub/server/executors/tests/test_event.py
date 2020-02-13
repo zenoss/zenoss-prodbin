@@ -48,6 +48,11 @@ class SendEventExecutorTest(TestCase):
         self.name = "event"
         self.executor = SendEventExecutor(self.name)
 
+    def test_create(self):
+        result = SendEventExecutor.create("test")
+        self.assertIsInstance(result, SendEventExecutor)
+        self.assertEqual(result.name, "test")
+
     def test_initialization(self):
         self.getUtility.assert_called_once_with(IDataRootFactory)
         self.assertEqual(self.name, self.executor.name)

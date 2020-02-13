@@ -98,6 +98,7 @@ priorities = {
         "EVENTS",
         "SINGLE_MODELING",
         "OTHER",
+        "CONFIG",
         "MODELING",
     ),
 
@@ -108,6 +109,8 @@ priorities = {
         "EventService:sendEvents": "EVENTS",
         "*:singleApplyDataMaps": "SINGLE_MODELING",
         "*:*": "OTHER",
+        "*:getDeviceConfigs": "CONFIG",
+        "*:getDeviceConfig": "CONFIG",
         "*:applyDataMaps": "MODELING",
     },
 

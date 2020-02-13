@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2011, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -23,13 +23,13 @@ class NotifyItem(object):
     """These items are held in the BatchNotifier's queue. They contain all the
     context needed to process the subdevices of a specific device class. This
     context includes...
-    
+
         device class UID: e.g. /zport/dmd/Devices/Server/Linux)
         subdevices: an iterator over the device classes subdevices)
         notify_functions: a dictionary mapping Service UID to notifyAll
-                          function. An example Service UID is 
+                          function. An example Service UID is
                                      ('CommandPerformanceConfig', 'localhost')
-        d: the deferred for this item. Always has the following callback 
+        d: the deferred for this item. Always has the following callback
            chain:
              Slot          Callback                    Errback
                1    BatchNotifier._callback             None
