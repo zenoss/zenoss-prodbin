@@ -157,6 +157,7 @@ class ZingDatamapHandler(object):
                     for component in device.getDeviceComponents():
                         if component.getUUID() == comp_uuid:
                             comp_groups = component.getComponentGroupNames()
+                            break
                     # organizers fact for the component
                     if comp_uuid not in zing_tx_state.already_generated_organizer_facts:
                         comp_meta = f.metadata.get(ZFact.FactKeys.META_TYPE_KEY, "")
