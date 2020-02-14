@@ -11,6 +11,7 @@ import argparse
 import logging
 import subprocess
 import time
+from collections import Counter
 
 from gather import MetricGatherer, ServiceMetrics
 
@@ -37,7 +38,6 @@ class StorageMetricGatherer(MetricGatherer):
         MetricGatherer.__init__(self)
         self.name = name
 
-
     def get_metrics(self):
         metrics = []
         ts = time.time()
@@ -59,7 +59,50 @@ class StorageMetricGatherer(MetricGatherer):
             metrics.append(self.build_metric(table_size, size, ts, tags))
             metrics.append(self.build_metric(table_free, free, ts, tags))
         metrics.append(self.build_metric('zenoss.%s.total.size' % self.name, total_size, ts, tags))
+
+        total, byscript = _get_connection_info()
+        metrics.append(self.build_metric('zenoss.%s.connection_info.total' % self.name, total, ts, tags))
+        for k, v in byscript.items():
+            tgk = {'zenoss_daemon': k}
+            tgk.update(tags)
+            metrics.append(self.build_metric('zenoss.%s.connection_info.rate' % self.name, v, ts, tgk))
+
         return metrics
+
+
+def _get_connection_info():
+    """
+    Get the info field from connection_info table for recent time (see connection_info.sh),
+    Get name of the script that caused the connection to the DB from the traceback (info field).
+    :return:
+        total: the total number of new connections for last n min.
+        counter: it's a dictionary where the key is the name of the script that caused the connection to DB, value is the number of connections.
+    """
+    try:
+        response = subprocess.check_output("/opt/zenoss/bin/metrics/connection_info.sh")
+    except Exception as e:
+        log.error("Error gathering mysql connection info: %s" % e)
+        return 0, {}
+
+    total = 0
+    counter = Counter()
+
+    for line in response.split('\n'):
+        if not line: continue
+        lines = line.split()
+        try:
+            ind = lines.index("File")
+        except ValueError:
+            continue
+
+        script_name = lines[ind+1]
+        slash = script_name.rfind('/')
+        point = script_name.rfind('.')
+        if slash >= 0 and point >= 0:
+            script_name = script_name[slash+1:point]
+        total += 1
+        counter[script_name] += 1
+    return total, counter
 
 
 if __name__ == '__main__':
