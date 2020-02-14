@@ -20,4 +20,6 @@
     <adapter factory=".zenhub.DefaultConfProvider"/>
     <adapter factory=".zenhub.DefaultHubHeartBeatCheck"/>
 
+    <subscriber handler=".zenhub.handle_reactor_delayed_calls_metric"/>
+
 </configure>

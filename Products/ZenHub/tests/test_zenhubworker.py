@@ -8,6 +8,7 @@
 ##############################################################################
 
 from __future__ import absolute_import
+import sys
 
 from unittest import TestCase
 from mock import patch, sentinel, call, Mock, create_autospec, ANY, MagicMock
@@ -362,6 +363,8 @@ class ZenHubWorkerTest(TestCase):
         # parser expected to be added by CmdBase.buildParser
         from optparse import OptionParser
         t.zhw.parser = OptionParser()
+        # Given no command line arguments
+        sys.argv = []
 
         t.zhw.buildOptions()
         t.zhw.options, args = t.zhw.parser.parse_args()

@@ -149,9 +149,27 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertEqual(len(self.pool), 0)
 
         dfr = self.pool.hire()
-        hired_worker = dfr.result
+        # The deferred returned from the pool has not been called
+        self.assertFalse(dfr.called)
 
-        self.assertIsNone(hired_worker)
+    def test_wait_for_available_worker(self):
+        self.assertEqual(self.pool.available, 0)
+        self.assertEqual(len(self.pool), 0)
+
+        ret = self.pool.hire()
+        # The deferred returned from the pool has not been called
+        self.assertFalse(ret.called)
+
+        # a worker becomes available
+        worker = Mock(workerId=1)
+        self.pool.add(worker)
+
+        # the deferred is called, and the worker_reference_object is its result
+        self.assertTrue(ret.called)
+        worker_ref = ret.result
+        self.assertIsInstance(worker_ref, WorkerRef)
+        # the reference object contains the worker
+        self.assertIs(worker_ref.ref, worker)
 
     def test_hire_no_available_workers(self):
         with patch.object(WorkerPool, "available", return_value=0)\
@@ -164,9 +182,7 @@ class WorkerPoolTest(TestCase):  # noqa: D101
             self.assertEqual(len(pool), 1)
 
             dfr = self.pool.hire()
-            hired_worker = dfr.result
-
-            self.assertIsNone(hired_worker)
+            self.assertFalse(dfr.called)
 
             available.pop.assert_not_called()
 
@@ -210,6 +226,17 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.pool.layoff(hired_worker)
         self.assertEqual(self.pool.available, 1)
         self.assertEqual(len(self.pool), 1)
+
+    def test_handleReportStatus(self):
+        worker_1 = Mock(name='worker_1')
+        worker_2 = Mock(name='worker_2')
+        self.pool.add(worker_1)
+        self.pool.add(worker_2)
+
+        ret = self.pool.handleReportStatus(event=None)
+
+        worker_1.callRemote.assert_called_with("reportStatus")
+        worker_2.callRemote.assert_called_with("reportStatus")
 
 
 class RemoteServiceRegistryTest(TestCase):  # noqa: D101
