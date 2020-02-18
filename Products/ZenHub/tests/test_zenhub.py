@@ -27,8 +27,7 @@ from Products.ZenHub.zenhub import (
     stop_server,
     server_config,
     IHubServerConfig,
-    handle_reactor_delayed_calls_metric,
-    EventHeartbeat,
+    report_reactor_delayed_calls,
     IMetricManager,
     reactor,
 )
@@ -269,9 +268,12 @@ class ZenHubTest(TestCase):
             t.reactor, t.make_server_factory.return_value,
         )
 
-        LoopingCall.assert_called_once_with(
-            t.zh._invalidation_manager.process_invalidations,
-        )
+        LoopingCall.assert_has_calls([
+            call(t.zh._invalidation_manager.process_invalidations),
+            call().start(sentinel.inval_poll),
+            call(report_reactor_delayed_calls),
+            call().start(t.zh),
+        ])
         t.assertEqual(
             LoopingCall.return_value, t.zh.process_invalidations_task,
         )
@@ -596,7 +598,7 @@ class ReactorDelayedCallsMetricTest(TestCase):
 
     def setUp(t):
         _patchables = (
-            ("getUtility", Mock(spec=[])),
+            ('getUtility', Mock(spec=[])),
         )
         for name, value in _patchables:
             patcher = patch(
@@ -606,22 +608,18 @@ class ReactorDelayedCallsMetricTest(TestCase):
             setattr(t, name, patcher.start())
             t.addCleanup(patcher.stop)
 
-    def test_handle_reactor_delayed_calls_metric(t):
-        zenhub_monitor = 'zenhub.options.monitor'
-        zenhub_name = 'zenhub.name'
-        zenhub_heartbeat_timeout = 'zenhub.options.heartbeatTimeout'
+    @patch('{src}.time'.format(**PATH))
+    def test_report_reactor_delayed_calls(t, time):
+        time.return_value = 555
         writer = t.getUtility.return_value.metric_writer
-        event = EventHeartbeat(
-            zenhub_monitor, zenhub_name, zenhub_heartbeat_timeout
-        )
-        event.timestamp = 111.0
+        hub = Mock(name="ZenHub")
 
-        handle_reactor_delayed_calls_metric(event)
+        report_reactor_delayed_calls(hub)
 
         t.getUtility.assert_called_once_with(IMetricManager)
         writer.write_metric.assert_called_once_with(
             'zenhub.reactor.delayedcalls',
             len(reactor.getDelayedCalls()),
-            event.timestamp * 1000,
-            {'monitor': zenhub_monitor, 'name': zenhub_name},
+            time.return_value * 1000,
+            {'monitor': hub.options.monitor, 'name': hub.options.component},
         )
