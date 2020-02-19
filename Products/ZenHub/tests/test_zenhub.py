@@ -271,8 +271,10 @@ class ZenHubTest(TestCase):
         LoopingCall.assert_has_calls([
             call(t.zh._invalidation_manager.process_invalidations),
             call().start(sentinel.inval_poll),
-            call(report_reactor_delayed_calls),
-            call().start(t.zh),
+            call(
+                report_reactor_delayed_calls, t.zh.options.monitor, t.zh.name
+            ),
+            call().start(30),
         ])
         t.assertEqual(
             LoopingCall.return_value, t.zh.process_invalidations_task,
@@ -614,12 +616,12 @@ class ReactorDelayedCallsMetricTest(TestCase):
         writer = t.getUtility.return_value.metric_writer
         hub = Mock(name="ZenHub")
 
-        report_reactor_delayed_calls(hub)
+        report_reactor_delayed_calls(hub.options.monitor, hub.name)
 
         t.getUtility.assert_called_once_with(IMetricManager)
         writer.write_metric.assert_called_once_with(
             'zenhub.reactor.delayedcalls',
             len(reactor.getDelayedCalls()),
             time.return_value * 1000,
-            {'monitor': hub.options.monitor, 'name': hub.options.component},
+            {'monitor': hub.options.monitor, 'name': hub.name},
         )

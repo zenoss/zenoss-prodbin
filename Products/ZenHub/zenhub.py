@@ -219,9 +219,9 @@ class ZenHub(ZCmdBase):
 
         # Start tracking reactor metrics
         self.report_reactor_delayed_calls_task = task.LoopingCall(
-            report_reactor_delayed_calls,
+            report_reactor_delayed_calls, self.options.monitor, self.name
         )
-        self.report_reactor_delayed_calls_task.start(self)
+        self.report_reactor_delayed_calls_task.start(30)
 
         reactor.run()
 
@@ -414,7 +414,7 @@ class ParserReadyForOptionsEvent(object):  # noqa: D101
         self.parser = parser
 
 
-def report_reactor_delayed_calls(hub):
+def report_reactor_delayed_calls(monitor, name):
     try:
         deferred_count = len(reactor.getDelayedCalls())
         writer = getUtility(IMetricManager).metric_writer
@@ -423,7 +423,7 @@ def report_reactor_delayed_calls(hub):
             'zenhub.reactor.delayedcalls',
             deferred_count,
             int(time() * 1000),  # to milliseconds
-            {'monitor': hub.options.monitor, 'name': hub.options.component},
+            {'monitor': monitor, 'name': name},
         )
     except Exception:
         log.exception('Failure in report_reactor_delayed_calls')
