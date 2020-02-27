@@ -85,7 +85,6 @@ class HubAvatar(pb.Avatar):
         :param str worklistId: The worker will work jobs from this worklist
         :rtype: None
         """
-        worker.busy = False
         worker.workerId = workerId
         worker.sessionId = uuid4()
         pool = self.__pools.get(worklistId)
