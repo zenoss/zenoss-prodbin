@@ -1124,8 +1124,7 @@ class ZenModeler(PBDaemon):
             self.log.critical(
                 "%s is not a valid organizer.", self.options.path
             )
-            reactor.running = False
-            sys.exit(1)
+            reactor.stop()
 
         d.addErrback(handle)
         return d
