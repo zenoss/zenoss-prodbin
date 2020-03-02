@@ -236,6 +236,8 @@ class EventsRouter(DirectRouter):
         be a global roled user
         """
         user = self.context.dmd.ZenUsers.getUserSettings()
+        if not user.hasNoGlobalRoles():
+            return True
         # make sure they have view permission on something
         if len(user.getAllAdminRoles()) > 0:
             self.use_permissions = True

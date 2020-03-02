@@ -369,20 +369,22 @@ class ZepFacade(ZuulFacade):
         if use_permissions:
             user = getSecurityManager().getUser()
             userSettings = self._dmd.ZenUsers._getOb(user.getId())
-            # get guids for the objects user has permission to access
-            # and add to filter
-            guids = userSettings.getAllAdminGuids(returnChildrenForRootObj=True)
-            if guids:
-                if filter is None:
-                    filter = EventFilter()
-                tf = filter.tag_filter.add()
-                tf.tag_uuids.extend(guids)
-            else:
-                # no permission to see events, return 0
-                result =  {
-                    'total' : 0,
-                    'events' : [],
-                }
+            hasGlobalRoles = not userSettings.hasNoGlobalRoles()
+            if not hasGlobalRoles:
+                # get guids for the objects user has permission to access
+                # and add to filter
+                guids = userSettings.getAllAdminGuids(returnChildrenForRootObj=True)
+                if guids:
+                    if filter is None:
+                        filter = EventFilter()
+                    tf = filter.tag_filter.add()
+                    tf.tag_uuids.extend(guids)
+                else:
+                    # no permission to see events, return 0
+                    result =  {
+                        'total' : 0,
+                        'events' : [],
+                    }
 
         if not result:
             result = self._getEventSummaries(source=partial(client_fn,
