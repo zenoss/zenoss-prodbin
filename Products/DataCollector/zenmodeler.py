@@ -1080,21 +1080,6 @@ class ZenModeler(PBDaemon):
         d.addCallback(self.checkStop)
         d.addErrback(self.fillError)
 
-    def reactorLoop(self):
-        """
-        Twisted main loop
-        """
-        reactor.startRunning()
-        while reactor.running:
-            try:
-                while reactor.running:
-                    reactor.runUntilCurrent()
-                    timeout = reactor.timeout()
-                    reactor.doIteration(timeout)
-            except Exception:
-                if reactor.running:
-                    self.log.exception("Unexpected error in main loop.")
-
     def getDeviceList(self):
         """
         Get the list of devices for which we are collecting:
@@ -1124,8 +1109,7 @@ class ZenModeler(PBDaemon):
             self.log.critical(
                 "%s is not a valid organizer.", self.options.path
             )
-            reactor.running = False
-            sys.exit(1)
+            reactor.stop()
 
         d.addErrback(handle)
         return d
@@ -1208,5 +1192,4 @@ class ZenModeler(PBDaemon):
 if __name__ == '__main__':
     dc = ZenModeler()
     dc.processOptions()
-    reactor.run = dc.reactorLoop
     dc.run()
