@@ -72,6 +72,12 @@ class ZenModelBase(object):
             newpath = INewPath(self)
             self.REQUEST.response.redirect(newpath)
 
+    def __repr__(self):
+        """Return a short string describing the object."""
+        return "<{0} at {1}>".format(
+            self.__class__.__name__, '/'.join(self.getPhysicalPath()),
+        )
+
     index_html = None  # This special value informs ZPublisher to use __call__
 
 
