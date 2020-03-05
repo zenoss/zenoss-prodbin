@@ -146,8 +146,10 @@ class ZingConnectorClient(object):
     @param fact_gen: generator of facts to send to zing connector
     @param batch_size: doh
     """
-    def send_fact_generator_in_batches(self, fact_gen, batch_size=DEFAULT_BATCH_SIZE):
-        log.debug("Sending facts to zing-connector in batches of {}".format(batch_size))
+    def send_fact_generator_in_batches(self, fact_gen, batch_size=DEFAULT_BATCH_SIZE, external_log=None):
+        if external_log is None:
+            external_log = log
+        external_log.debug("Sending facts to zing-connector in batches of {}".format(batch_size))
         ts = time.time()
         count = 0
         if not self.ping():
@@ -165,8 +167,7 @@ class ZingConnectorClient(object):
             success = success and self.send_facts(batch, ping=False)
         if count > 0:
             elapsed = time.time() - ts
-            # FIXME set this to debug
-            log.info("send_fact_generator_in_batches sent {} facts in {} seconds".format(count, elapsed))
+            external_log.debug("send_fact_generator_in_batches sent {} facts in {} seconds".format(count, elapsed))
         return success == True
 
     def ping(self):
@@ -218,8 +219,8 @@ class ZingConnectorProxy(object):
     def send_facts_in_batches(self, facts, batch_size=DEFAULT_BATCH_SIZE):
         return self.client.send_facts_in_batches(facts, batch_size)
 
-    def send_fact_generator_in_batches(self, fact_gen, batch_size=DEFAULT_BATCH_SIZE):
-        return self.client.send_fact_generator_in_batches(fact_gen, batch_size)
+    def send_fact_generator_in_batches(self, fact_gen, batch_size=DEFAULT_BATCH_SIZE, external_log=None):
+        return self.client.send_fact_generator_in_batches(fact_gen, batch_size, external_log)
 
     def ping(self):
         return self.client.ping()
