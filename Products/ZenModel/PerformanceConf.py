@@ -652,7 +652,7 @@ class PerformanceConf(Monitor, StatusColor):
         cmd = [binPath(daemon)]
         deviceName = self._escapeParentheses(deviceName)
         options = [
-            'run', '-d', deviceName, '--monitor', performanceMonitor,
+            'run', '-d', '"{}"'.format(deviceName), '--monitor', performanceMonitor,
             parameter, value
         ]
         cmd.extend(options)
