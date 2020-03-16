@@ -25,6 +25,7 @@ log = logging.getLogger("zen.zing.fact")
 ORGANIZERS_FACT_PLUGIN = 'zen_organizers'
 DEVICE_INFO_FACT_PLUGIN = 'zen_device_info'
 DELETION_FACT_PLUGIN = 'zen_deletion'
+DYNAMIC_SERVICE_FACT_PLUGIN = 'zen_impact_dynamic_service'
 
 
 class DimensionKeys(object):
@@ -43,6 +44,8 @@ class MetadataKeys(object):
     PROD_STATE_KEY = "prod_state"
     DELETED_KEY = "_zen_deleted_entity"
     COMPONENT_GROUPS_KEY = "component_groups"
+    IMPACT_DS_ORG_KEY = "impact_ds_organizer"
+    IMPACT_DS_IMPACTERS_KEY = "dynamic_service_impacters"
 
 class Fact(object):
     def __init__(self, f_id=None):

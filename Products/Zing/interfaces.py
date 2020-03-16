@@ -23,7 +23,7 @@ class IZingConnectorClient(Interface):
         Sends a list of facts to zing-connector in batches. Returns boolean indicating if the requests succeeded
         """
 
-    def send_fact_generator_in_batches(self, fact_gen, batch_size):
+    def send_fact_generator_in_batches(self, fact_gen, batch_size, external_log=None):
         """
         Sends facts given by the passed generator to zing-connector. Returns boolean indicating if the requests succeeded
         """

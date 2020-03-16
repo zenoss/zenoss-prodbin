@@ -388,7 +388,8 @@ class Auth0(BasePlugin):
         if not sessionInfo.roles:
             log.debug('No roles in Auth0 session - not returning roles')
             return ()
-        return set(sessionInfo.roles)
+        # to avoid the issue in ZEN-31732 - CZ-only users can still see all the events
+        return set(sessionInfo.roles) - set(["Delegate to Collection Zone"])
 
     def getPropertiesForUser(self, user, request=None):
         """ ImplementesPluggableAuthService  IPropertiesPlugin interface.
