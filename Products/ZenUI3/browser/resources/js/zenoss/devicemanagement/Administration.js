@@ -424,7 +424,29 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
             keys: {}
         };
 
-
+        var nodePath = '/' + Ext.getCmp('devices').getSelectionModel().getSelectedNode().data.path;
+        if (nodePath === "/Devices") {
+            new Zenoss.dialog.SimpleMessageDialog({
+                                title: _t('Create Maintenance Window'),
+                                message: Ext.String.format(_t('Are you sure you want to create Maintenance Window at root class "/Devices"?'), data.name),
+                                buttons: [{
+                                    xtype: 'DialogButton',
+                                    text: _t('OK'),
+                                    handler: function() {
+                                        if (grid.uid) {
+                                            Zenoss.remote.DeviceManagementRouter.deleteMaintWindow({uid:grid.uid, id:data.name}, function(response){
+                                                if (response.success) {
+                                                    grid.refresh();
+                                                }
+                                            });
+                                        }
+                                    }
+                                }, {
+                                    xtype: 'DialogButton',
+                                    text: _t('Cancel')
+                                }]
+                            }).show();
+        }
         if (Zenoss.Security.hasPermission('Manage Device')) {
             dialog = new Zenoss.SmartFormDialog(config);
             dialog.show();
