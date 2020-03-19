@@ -59,9 +59,9 @@ class MysqlStatsGatherer(MetricGatherer):
         with open(self.global_config, 'r') as fp:
             lines = fp.readlines()
             for line in lines:
-                option = line.lower().split(' ')
-                if len(option) == 2 and option[0] in config:
-                    config[option[0]] = option[1].strip('\n')
+                option = line.split(' ')
+                if len(option) == 2 and option[0].lower() in config:
+                    config[option[0].lower()] = option[1].strip('\n')
             log.debug("Configuration is: %s" % config)
             return config
 
