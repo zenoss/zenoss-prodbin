@@ -101,375 +101,380 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                     xtype: 'DialogButton',
                     text: _t('OK'),
                     handler: function () {
-                        var addhandler, config, dialog, newEntry;
-                        var labelmargin = '5px 5px 0 0';
-                        newEntry = (data === "");
-
-                        addhandler = function () {
-                            var c = dialog.getForm().getForm().getValues();
-                            var padZero = function (num) {
-                                if (num === "") {
-                                    return 0;
-                                }
-                                if (num.length === 1) {
-                                    return "0" + num;
-                                }
-                                return num;
-                            };
-                            if (c.duration_days === 0 && c.duration_hrs === 0 && c.duration_mins === 0) { // if they didn't enter anything
-                                c.duration_mins = "1"; // have to have at least 1 minute
-                            }
-
-                            var params = {
-                                uid: grid.uid,
-                                id: c.id,
-                                name: c.name,
-                                startDateTime: c.startdatetime,
-                                durationDays: c.duration_days,
-                                durationHours: padZero(c.duration_hrs),
-                                durationMinutes: padZero(c.duration_mins),
-                                repeat: c.repeat,
-                                startProductionState: c.start_state,
-                                enabled: c.enabled,
-                                days: c.days,
-                                occurrence: c.occurrence
-                            };
-
-                            if (newEntry) {
-                                Zenoss.remote.DeviceManagementRouter.addMaintWindow({params: params}, function (response) {
-                                    if (response.success) {
-                                        grid.refresh();
-                                    }
-                                });
-                            } else {
-                                Zenoss.remote.DeviceManagementRouter.editMaintWindow({params: params}, function (response) {
-                                    if (response.success) {
-                                        grid.refresh();
-                                    }
-                                });
-                            }
-                        };
-
-                        // form config
-                        config = {
-                            submitHandler: addhandler,
-                            minHeight: 340,
-                            width: 400,
-                            id: 'addDialog',
-                            title: _t("Add New Maintenance Window"),
-                            listeners: {
-                                'afterrender': function (e) {
-                                    if (!newEntry) { // this window will be used to EDIT the values instead of create from scratch
-                                        e.setTitle(_t("Edit Maintenance Window"));
-                                        var fields = e.getForm().getForm().getFields();
-                                        var prodState = Zenoss.devicemanagement.getProdStateValue(data.startProdState);
-                                        var duration = Zenoss.devicemanagement.getDuration(data.duration_data); // returns object with days,hrs,mins
-                                        fields.findBy(
-                                            function (record) {
-                                                switch (record.getName()) {
-                                                    case "start_state"    :
-                                                        record.setValue(prodState);
-                                                        break;
-                                                    case "startdatetime"  :
-                                                        record.setValue(data.start);
-                                                        break;
-                                                    case "name"           :
-                                                        record.setValue(data.name);
-                                                        break;
-                                                    case "id"             :
-                                                        record.setValue(data.name);
-                                                        break;
-                                                    case "duration_days"  :
-                                                        record.setValue(duration.days);
-                                                        break;
-                                                    case "duration_hrs"   :
-                                                        record.setValue(duration.hrs);
-                                                        break;
-                                                    case "duration_mins"  :
-                                                        record.setValue(duration.mins);
-                                                        break;
-                                                    case "repeat"         :
-                                                        record.setValue(data.repeat);
-                                                        break;
-                                                    case "enabled"        :
-                                                        record.setValue(data.enabled);
-                                                        break;
-                                                    case "days"           :
-                                                        record.setValue(data.days);
-                                                        break;
-                                                    case "occurrence"     :
-                                                        record.setValue(data.occurrence);
-                                                        break;
-                                                }
-                                            }
-                                        );
-                                    }
-                                }
-                            },
-                            items: [
-                                {
-                                    xtype: 'panel',
-                                    layout: 'hbox',
-                                    margin: '0 0 30px 0',
-                                    items: [
-                                        {
-                                            xtype: 'textfield',
-                                            name: 'name',
-                                            disabled: !newEntry,
-                                            fieldLabel: _t('Name'),
-                                            margin: '0 10px 0 0',
-                                            width: 220,
-                                            regex: Zenoss.env.textMasks.allowedNameText,
-                                            regexText: Zenoss.env.textMasks.allowedNameTextFeedback,
-                                            allowBlank: false
-                                        }, {
-                                            xtype: 'hiddenfield',
-                                            name: 'id'
-                                        }, {
-                                            xtype: 'panel',
-                                            layout: 'hbox',
-                                            margin: '18px 0 0 34px',
-                                            items: [
-                                                {
-                                                    xtype: 'label',
-                                                    text: _t('Enabled?'),
-                                                    margin: labelmargin
-                                                }, {
-                                                    xtype: 'checkbox',
-                                                    name: 'enabled',
-                                                    checked: newEntry && true
-                                                }
-                                            ]
-                                        }
-                                    ]
-
-                                }, {
-                                    xtype: 'panel',
-                                    layout: 'hbox',
-                                    margin: '0 0 30px 0',
-                                    items: [
-                                        {
-                                            xtype: 'zendatetimefield',
-                                            allowBlank: false,
-                                            name: 'startdatetime',
-                                            fieldLabel: _t('Start Date and Time')
-                                        }
-                                    ]
-                                }, {
-                                    xtype: 'panel',
-                                    layout: 'hbox',
-                                    margin: '30px 0 30px 0px',
-                                    items: [
-                                        {
-                                            xtype: 'panel',
-                                            layout: 'hbox',
-                                            items: [
-                                                {
-                                                    xtype: 'label',
-                                                    text: _t('Duration in Days:'),
-                                                    margin: labelmargin
-                                                }, {
-                                                    xtype: 'numberfield',
-                                                    name: 'duration_days',
-                                                    width: 50,
-                                                    value: 0,
-                                                    minValue: 0,
-                                                    maxValue: 999,
-                                                    margin: '0 14px 0 0',
-                                                    allowDecimals: false,
-                                                    allowBlank: false
-                                                }
-                                            ]
-                                        }, {
-                                            xtype: 'panel',
-                                            layout: 'hbox',
-                                            items: [
-                                                {
-                                                    xtype: 'label',
-                                                    text: _t('Hrs:'),
-                                                    margin: labelmargin
-                                                }, {
-                                                    xtype: 'numberfield',
-                                                    name: 'duration_hrs',
-                                                    width: 50,
-                                                    value: 0,
-                                                    maxValue: 23,
-                                                    minValue: 0,
-                                                    margin: '0 13px 0 0',
-                                                    allowDecimals: false,
-                                                    allowBlank: false
-                                                }
-                                            ]
-                                        }, {
-                                            xtype: 'panel',
-                                            layout: 'hbox',
-                                            items: [
-                                                {
-                                                    xtype: 'label',
-                                                    text: _t('Mins:'),
-                                                    margin: labelmargin
-                                                }, {
-                                                    xtype: 'numberfield',
-                                                    name: 'duration_mins',
-                                                    value: 0,
-                                                    maxValue: 59,
-                                                    minValue: 0,
-                                                    allowDecimals: false,
-                                                    width: 50,
-                                                    allowBlank: false
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                }, {
-                                    xtype: 'panel',
-                                    layout: 'hbox',
-                                    margin: '0 0 30px 0',
-                                    items: [
-                                        {
-                                            xtype: 'combo',
-                                            name: 'repeat',
-                                            id: 'repeat-combo',
-                                            ref: 'repeat',
-                                            margin: '0 20px 0 0',
-                                            valueField: 'name',
-                                            value: 'Never',
-                                            width: 160,
-                                            displayField: 'name',
-                                            typeAhead: false,
-                                            forceSelection: true,
-                                            triggerAction: 'all',
-                                            fieldLabel: _t('Repeat'),
-                                            listeners: {
-                                                'select': function (field, value) {
-                                                    var cmb_occ = Ext.getCmp('occurrence-combo');
-                                                    var cmb_days = Ext.getCmp('days-combo');
-                                                    if (value && value[0].index === 5) {
-                                                        cmb_occ.enable();
-                                                        cmb_days.enable();
-                                                    } else {
-                                                        cmb_occ.disable();
-                                                        cmb_days.disable();
-                                                    }
-                                                }
-                                            },
-                                            listConfig: {
-                                                maxWidth: 160
-                                            },
-                                            store: new Ext.data.ArrayStore({
-                                                model: 'Zenoss.model.Name',
-                                                data: [
-                                                    ['Never'], ['Daily'], ['Every Weekday'], ['Weekly'],
-                                                    ['Monthly: day of month'], ['Monthly: day of week']
-                                                ]
-                                            })
-                                        }, {
-                                            xtype: 'combo',
-                                            disabled: true,
-                                            name: 'occurrence',
-                                            id: 'occurrence-combo',
-                                            ref: 'occurrence',
-                                            margin: '0 20px 0 0',
-                                            valueField: 'name',
-                                            value: '1st',
-                                            width: 70,
-                                            displayField: 'name',
-                                            typeAhead: false,
-                                            forceSelection: true,
-                                            triggerAction: 'all',
-                                            fieldLabel: _t('Occurrence'),
-                                            listConfig: {
-                                                maxWidth: 70
-                                            },
-                                            store: new Ext.data.ArrayStore({
-                                                model: 'Zenoss.model.Name',
-                                                data: [
-                                                    ['1st'], ['2nd'], ['3rd'], ['4th'], ['5th'], ['Last']
-                                                ]
-                                            })
-                                        }, {
-                                            xtype: 'combo',
-                                            disabled: true,
-                                            name: 'days',
-                                            id: 'days-combo',
-                                            ref: 'days',
-                                            margin: '0 20px 0 0',
-                                            valueField: 'name',
-                                            value: 'Sunday',
-                                            width: 95,
-                                            displayField: 'name',
-                                            typeAhead: false,
-                                            forceSelection: true,
-                                            triggerAction: 'all',
-                                            fieldLabel: _t('Days'),
-                                            listConfig: {
-                                                maxWidth: 95
-                                            },
-                                            store: new Ext.data.ArrayStore({
-                                                model: 'Zenoss.model.Name',
-                                                data: [
-                                                    ['Monday'], ['Tuesday'], ['Wednesday'],
-                                                    ['Thursday'], ['Friday'], ['Saturday'],
-                                                    ['Sunday']
-                                                ]
-                                            })
-                                        }
-                                    ]
-                                }, {
-                                    xtype: 'panel',
-                                    layout: 'hbox',
-                                    margin: '0 0 30px 0',
-                                    items: [
-                                        {
-                                            xtype: 'combo',
-                                            name: 'start_state',
-                                            ref: 'start_state',
-                                            id: 'start_state',
-                                            valueField: 'value',
-                                            displayField: 'name',
-                                            queryMode: 'local',
-                                            typeAhead: false,
-                                            forceSelection: true,
-                                            triggerAction: 'all',
-                                            fieldLabel: _t('Window Production State'),
-                                            listConfig: {
-                                                maxWidth: 185
-                                            },
-                                            listeners: {
-                                                'afterrender': function (combo) {
-                                                    if (newEntry) {
-                                                        combo.setValue(combo.store.findRecord('name', 'Maintenance'));
-                                                    }
-                                                }
-                                            },
-                                            store: Ext.create('Ext.data.Store', {
-                                                fields: ['value', 'name'],
-                                                data: Zenoss.env.PRODUCTION_STATES
-                                            })
-                                        }
-
-                                    ]
-                                }
-                            ],
-                            // explicitly do not allow enter to submit the dialog
-                            keys: {}
-                        };
-
-                        if (Zenoss.Security.hasPermission('Manage Device')) {
-                            dialog = new Zenoss.SmartFormDialog(config);
-                            dialog.show();
-                        } else {
-                            return false;
-                        }
+                        createMaintDialog(grid, data);
                     }
                 }, {
                     xtype: 'DialogButton',
                     text: _t('Cancel')
                 }]
             }).show();
+        } else {
+            createMaintDialog(grid, data);
         }
     }
 
+    function createMaintDialog(grid, data) {
+        var addhandler, config, dialog, newEntry;
+        var labelmargin = '5px 5px 0 0';
+        newEntry = (data === "");
+
+        addhandler = function () {
+            var c = dialog.getForm().getForm().getValues();
+            var padZero = function (num) {
+                if (num === "") {
+                    return 0;
+                }
+                if (num.length === 1) {
+                    return "0" + num;
+                }
+                return num;
+            };
+            if (c.duration_days === 0 && c.duration_hrs === 0 && c.duration_mins === 0) { // if they didn't enter anything
+                c.duration_mins = "1"; // have to have at least 1 minute
+            }
+
+            var params = {
+                uid: grid.uid,
+                id: c.id,
+                name: c.name,
+                startDateTime: c.startdatetime,
+                durationDays: c.duration_days,
+                durationHours: padZero(c.duration_hrs),
+                durationMinutes: padZero(c.duration_mins),
+                repeat: c.repeat,
+                startProductionState: c.start_state,
+                enabled: c.enabled,
+                days: c.days,
+                occurrence: c.occurrence
+            };
+
+            if (newEntry) {
+                Zenoss.remote.DeviceManagementRouter.addMaintWindow({params: params}, function (response) {
+                    if (response.success) {
+                        grid.refresh();
+                    }
+                });
+            } else {
+                Zenoss.remote.DeviceManagementRouter.editMaintWindow({params: params}, function (response) {
+                    if (response.success) {
+                        grid.refresh();
+                    }
+                });
+            }
+        };
+
+        // form config
+        config = {
+            submitHandler: addhandler,
+            minHeight: 340,
+            width: 400,
+            id: 'addDialog',
+            title: _t("Add New Maintenance Window"),
+            listeners: {
+                'afterrender': function (e) {
+                    if (!newEntry) { // this window will be used to EDIT the values instead of create from scratch
+                        e.setTitle(_t("Edit Maintenance Window"));
+                        var fields = e.getForm().getForm().getFields();
+                        var prodState = Zenoss.devicemanagement.getProdStateValue(data.startProdState);
+                        var duration = Zenoss.devicemanagement.getDuration(data.duration_data); // returns object with days,hrs,mins
+                        fields.findBy(
+                            function (record) {
+                                switch (record.getName()) {
+                                    case "start_state"    :
+                                        record.setValue(prodState);
+                                        break;
+                                    case "startdatetime"  :
+                                        record.setValue(data.start);
+                                        break;
+                                    case "name"           :
+                                        record.setValue(data.name);
+                                        break;
+                                    case "id"             :
+                                        record.setValue(data.name);
+                                        break;
+                                    case "duration_days"  :
+                                        record.setValue(duration.days);
+                                        break;
+                                    case "duration_hrs"   :
+                                        record.setValue(duration.hrs);
+                                        break;
+                                    case "duration_mins"  :
+                                        record.setValue(duration.mins);
+                                        break;
+                                    case "repeat"         :
+                                        record.setValue(data.repeat);
+                                        break;
+                                    case "enabled"        :
+                                        record.setValue(data.enabled);
+                                        break;
+                                    case "days"           :
+                                        record.setValue(data.days);
+                                        break;
+                                    case "occurrence"     :
+                                        record.setValue(data.occurrence);
+                                        break;
+                                }
+                            }
+                        );
+                    }
+                }
+            },
+            items: [
+                {
+                    xtype: 'panel',
+                    layout: 'hbox',
+                    margin: '0 0 30px 0',
+                    items: [
+                        {
+                            xtype: 'textfield',
+                            name: 'name',
+                            disabled: !newEntry,
+                            fieldLabel: _t('Name'),
+                            margin: '0 10px 0 0',
+                            width: 220,
+                            regex: Zenoss.env.textMasks.allowedNameText,
+                            regexText: Zenoss.env.textMasks.allowedNameTextFeedback,
+                            allowBlank: false
+                        }, {
+                            xtype: 'hiddenfield',
+                            name: 'id'
+                        }, {
+                            xtype: 'panel',
+                            layout: 'hbox',
+                            margin: '18px 0 0 34px',
+                            items: [
+                                {
+                                    xtype: 'label',
+                                    text: _t('Enabled?'),
+                                    margin: labelmargin
+                                }, {
+                                    xtype: 'checkbox',
+                                    name: 'enabled',
+                                    checked: newEntry && true
+                                }
+                            ]
+                        }
+                    ]
+
+                }, {
+                    xtype: 'panel',
+                    layout: 'hbox',
+                    margin: '0 0 30px 0',
+                    items: [
+                        {
+                            xtype: 'zendatetimefield',
+                            allowBlank: false,
+                            name: 'startdatetime',
+                            fieldLabel: _t('Start Date and Time')
+                        }
+                    ]
+                }, {
+                    xtype: 'panel',
+                    layout: 'hbox',
+                    margin: '30px 0 30px 0px',
+                    items: [
+                        {
+                            xtype: 'panel',
+                            layout: 'hbox',
+                            items: [
+                                {
+                                    xtype: 'label',
+                                    text: _t('Duration in Days:'),
+                                    margin: labelmargin
+                                }, {
+                                    xtype: 'numberfield',
+                                    name: 'duration_days',
+                                    width: 50,
+                                    value: 0,
+                                    minValue: 0,
+                                    maxValue: 999,
+                                    margin: '0 14px 0 0',
+                                    allowDecimals: false,
+                                    allowBlank: false
+                                }
+                            ]
+                        }, {
+                            xtype: 'panel',
+                            layout: 'hbox',
+                            items: [
+                                {
+                                    xtype: 'label',
+                                    text: _t('Hrs:'),
+                                    margin: labelmargin
+                                }, {
+                                    xtype: 'numberfield',
+                                    name: 'duration_hrs',
+                                    width: 50,
+                                    value: 0,
+                                    maxValue: 23,
+                                    minValue: 0,
+                                    margin: '0 13px 0 0',
+                                    allowDecimals: false,
+                                    allowBlank: false
+                                }
+                            ]
+                        }, {
+                            xtype: 'panel',
+                            layout: 'hbox',
+                            items: [
+                                {
+                                    xtype: 'label',
+                                    text: _t('Mins:'),
+                                    margin: labelmargin
+                                }, {
+                                    xtype: 'numberfield',
+                                    name: 'duration_mins',
+                                    value: 0,
+                                    maxValue: 59,
+                                    minValue: 0,
+                                    allowDecimals: false,
+                                    width: 50,
+                                    allowBlank: false
+                                }
+                            ]
+                        }
+                    ]
+                }, {
+                    xtype: 'panel',
+                    layout: 'hbox',
+                    margin: '0 0 30px 0',
+                    items: [
+                        {
+                            xtype: 'combo',
+                            name: 'repeat',
+                            id: 'repeat-combo',
+                            ref: 'repeat',
+                            margin: '0 20px 0 0',
+                            valueField: 'name',
+                            value: 'Never',
+                            width: 160,
+                            displayField: 'name',
+                            typeAhead: false,
+                            forceSelection: true,
+                            triggerAction: 'all',
+                            fieldLabel: _t('Repeat'),
+                            listeners: {
+                                'select': function (field, value) {
+                                    var cmb_occ = Ext.getCmp('occurrence-combo');
+                                    var cmb_days = Ext.getCmp('days-combo');
+                                    if (value && value[0].index === 5) {
+                                        cmb_occ.enable();
+                                        cmb_days.enable();
+                                    } else {
+                                        cmb_occ.disable();
+                                        cmb_days.disable();
+                                    }
+                                }
+                            },
+                            listConfig: {
+                                maxWidth: 160
+                            },
+                            store: new Ext.data.ArrayStore({
+                                model: 'Zenoss.model.Name',
+                                data: [
+                                    ['Never'], ['Daily'], ['Every Weekday'], ['Weekly'],
+                                    ['Monthly: day of month'], ['Monthly: day of week']
+                                ]
+                            })
+                        }, {
+                            xtype: 'combo',
+                            disabled: true,
+                            name: 'occurrence',
+                            id: 'occurrence-combo',
+                            ref: 'occurrence',
+                            margin: '0 20px 0 0',
+                            valueField: 'name',
+                            value: '1st',
+                            width: 70,
+                            displayField: 'name',
+                            typeAhead: false,
+                            forceSelection: true,
+                            triggerAction: 'all',
+                            fieldLabel: _t('Occurrence'),
+                            listConfig: {
+                                maxWidth: 70
+                            },
+                            store: new Ext.data.ArrayStore({
+                                model: 'Zenoss.model.Name',
+                                data: [
+                                    ['1st'], ['2nd'], ['3rd'], ['4th'], ['5th'], ['Last']
+                                ]
+                            })
+                        }, {
+                            xtype: 'combo',
+                            disabled: true,
+                            name: 'days',
+                            id: 'days-combo',
+                            ref: 'days',
+                            margin: '0 20px 0 0',
+                            valueField: 'name',
+                            value: 'Sunday',
+                            width: 95,
+                            displayField: 'name',
+                            typeAhead: false,
+                            forceSelection: true,
+                            triggerAction: 'all',
+                            fieldLabel: _t('Days'),
+                            listConfig: {
+                                maxWidth: 95
+                            },
+                            store: new Ext.data.ArrayStore({
+                                model: 'Zenoss.model.Name',
+                                data: [
+                                    ['Monday'], ['Tuesday'], ['Wednesday'],
+                                    ['Thursday'], ['Friday'], ['Saturday'],
+                                    ['Sunday']
+                                ]
+                            })
+                        }
+                    ]
+                }, {
+                    xtype: 'panel',
+                    layout: 'hbox',
+                    margin: '0 0 30px 0',
+                    items: [
+                        {
+                            xtype: 'combo',
+                            name: 'start_state',
+                            ref: 'start_state',
+                            id: 'start_state',
+                            valueField: 'value',
+                            displayField: 'name',
+                            queryMode: 'local',
+                            typeAhead: false,
+                            forceSelection: true,
+                            triggerAction: 'all',
+                            fieldLabel: _t('Window Production State'),
+                            listConfig: {
+                                maxWidth: 185
+                            },
+                            listeners: {
+                                'afterrender': function (combo) {
+                                    if (newEntry) {
+                                        combo.setValue(combo.store.findRecord('name', 'Maintenance'));
+                                    }
+                                }
+                            },
+                            store: Ext.create('Ext.data.Store', {
+                                fields: ['value', 'name'],
+                                data: Zenoss.env.PRODUCTION_STATES
+                            })
+                        }
+
+                    ]
+                }
+            ],
+            // explicitly do not allow enter to submit the dialog
+            keys: {}
+        };
+
+        if (Zenoss.Security.hasPermission('Manage Device')) {
+            dialog = new Zenoss.SmartFormDialog(config);
+            dialog.show();
+        } else {
+            return false;
+        }
+    }
 
     function commandsDialog(grid, data) {
         if (!Ext.isDefined(data)) {
