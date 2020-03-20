@@ -66,7 +66,6 @@ class CommandPerformanceConfig(CollectorConfigService):
             dpc.rrdMax = dp.rrdmax
             dpc.data = parser.dataForParser(comp, dp)
             dpc.metadata = comp.getMetricMetadata(device)
-            dpc.tags = dp.getTags(comp)
             points.append(dpc)
 
         return points
@@ -195,9 +194,8 @@ class CommandPerformanceConfig(CollectorConfigService):
         """
         pass
 
-    def _createDeviceProxy(self, device, proxy=None):
-        proxy = CollectorConfigService._createDeviceProxy(
-            self, device, proxy=proxy)
+    def _createDeviceProxy(self, device):
+        proxy = CollectorConfigService._createDeviceProxy(self, device)
 
         # Framework expects a default value but zencommand uses cycles per datasource instead
         proxy.configCycleInterval = 0

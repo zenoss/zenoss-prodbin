@@ -43,7 +43,6 @@ class ProcessProxy(pb.Copyable, pb.RemoteCopy):
     cycleTime = None
     processClass = None
     metadata = None
-    tags = None
 
     def __init__(self):
         pass
@@ -74,16 +73,14 @@ class ProcessConfig(CollectorConfigService):
 
         return include
 
-    def _createDeviceProxy(self, device, proxy=None):
+    def _createDeviceProxy(self, device):
         procs = device.getMonitoredComponents(collector='zenprocess')
         if not procs:
             log.debug("Device %s has no monitored processes -- ignoring",
                       device.titleOrId())
             return None
 
-        proxy = CollectorConfigService._createDeviceProxy(
-            self, device, proxy=proxy)
-
+        proxy = CollectorConfigService._createDeviceProxy(self, device)
         proxy.configCycleInterval = self._prefs.processCycleInterval
 
         proxy.name = device.id
@@ -91,22 +88,15 @@ class ProcessConfig(CollectorConfigService):
         proxy.thresholds = []
         proxy.processes = {}
         proxy.snmpConnInfo = device.getSnmpConnInfo()
+        devuuid = device.getUUID()
         for p in procs:
-            tags = {}
-
             # Find out which datasources are responsible for this process
             # if SNMP is not responsible, then do not add it to the list
             snmpMonitored = False
             for rrdTpl in p.getRRDTemplates():
-                for datasource in rrdTpl.getRRDDataSources("SNMP"):
+                if len(rrdTpl.getRRDDataSources("SNMP")) > 0:
                     snmpMonitored = True
-
-                    # zenprocess doesn't consider each datapoint's
-                    # configuration. It assumes a static list of datapoints. So
-                    # we will combine tags from all datapoints and use them for
-                    # all datapoints.
-                    for datapoint in datasource.getRRDDataPoints():
-                        tags.update(datapoint.getTags(p))
+                    break
 
             # In case the process is not SNMP monitored
             if not snmpMonitored:
@@ -144,7 +134,6 @@ class ProcessConfig(CollectorConfigService):
 
             proc = ProcessProxy()
             proc.metadata = p.getMetricMetadata()
-            proc.tags = tags
             proc.includeRegex = includeRegex
             proc.excludeRegex = excludeRegex
             proc.replaceRegex = replaceRegex

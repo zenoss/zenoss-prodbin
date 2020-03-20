@@ -140,9 +140,6 @@ class CollectorDaemon(RRDDaemon):
 
     _frameworkFactoryName = ""
 
-    # So users (subclasses) can check for metric tag support without inspect.
-    metricExtraTags = True
-
     @property
     def preferences(self):
         """
@@ -426,21 +423,10 @@ class CollectorDaemon(RRDDaemon):
 
 
     @defer.inlineCallbacks
-    def writeMetric(
-            self,
-            contextKey,
-            metric,
-            value,
-            metricType,
-            contextId,
-            timestamp='N',
-            min='U',
-            max='U',
-            threshEventData=None,
-            deviceId=None,
-            contextUUID=None,
-            deviceUUID=None,
-            extraTags=None):
+    def writeMetric(self, contextKey, metric, value, metricType, contextId,
+                    timestamp='N', min='U', max='U',
+                    threshEventData={}, deviceId=None, contextUUID=None,
+                    deviceUUID=None):
 
         """
         Writes the metric to the metric publisher.
@@ -482,9 +468,6 @@ class CollectorDaemon(RRDDaemon):
 
         # check for threshold breaches and send events when needed
         if value is not None:
-            if extraTags:
-                tags.update(extraTags)
-
             # write the  metric to Redis
             try:
                 yield defer.maybeDeferred(self._metric_writer.write_metric, metric_name, value, timestamp, tags)
@@ -493,17 +476,8 @@ class CollectorDaemon(RRDDaemon):
             yield defer.maybeDeferred(self._threshold_notifier.notify, contextUUID, contextId, metric,
                     timestamp, value, threshEventData)
 
-    def writeMetricWithMetadata(
-            self,
-            metric,
-            value,
-            metricType,
-            timestamp='N',
-            min='U',
-            max='U',
-            threshEventData=None,
-            metadata=None,
-            extraTags=None):
+    def writeMetricWithMetadata(self, metric, value, metricType, timestamp='N',
+            min='U', max='U', threshEventData={}, metadata=None):
 
         metadata = metadata or {}
         try:
@@ -517,21 +491,10 @@ class CollectorDaemon(RRDDaemon):
                 metric_name = metric
         except KeyError as e:
             raise Exception("Missing necessary metadata: %s" % e.message)
-
-        return self.writeMetric(
-            key,
-            metric_name,
-            value,
-            metricType,
-            contextId,
-            timestamp=timestamp,
-            min=min,
-            max=max,
-            threshEventData=threshEventData,
-            deviceId=deviceId,
-            contextUUID=contextUUID,
-            deviceUUID=metadata.get('deviceUUID'),
-            extraTags=extraTags)
+        deviceUUID = metadata.get('deviceUUID')
+        return self.writeMetric(key, metric_name, value, metricType, contextId,
+                timestamp, min, max, threshEventData, deviceId, contextUUID,
+                deviceUUID)
 
     @deprecated
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,

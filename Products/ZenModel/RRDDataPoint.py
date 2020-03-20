@@ -18,9 +18,6 @@ and builds the nessesary DEF and CDEF statements for it.
 import logging
 log = logging.getLogger('zen.RRDDatapoint')
 
-import itertools
-import types
-
 import Globals
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenossSecurity import ZEN_VIEW, ZEN_MANAGE_DMD
@@ -32,15 +29,7 @@ from ZenPackable import ZenPackable
 
 from Products.ZenUtils.Utils import unused, getDisplayType
 from Products.ZenUtils.deprecated import deprecated
-from Products.ZenUtils.ZenTales import talesEvalStr
 from Products.ZenModel.RRDDataPointAlias import manage_addDataPointAlias
-
-
-# Constants for metric tagging.
-NO_FORWARD_KEY = "no-forward"
-NO_STORE_KEY = "no-store"
-TRUTH_STRING = "true"
-
 
 @deprecated
 def manage_addRRDDataPoint(context, id, REQUEST = None):
@@ -106,9 +95,6 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
     isrow = True
     rrdmin = None
     rrdmax = None
-    store = True
-    forward = True
-    tags = None
 
     ## These attributes can be removed post 2.1
     ## They should remain in 2.1 so the migrate script works correctly
@@ -127,9 +113,6 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         {'id':'isrow', 'type':'boolean', 'mode':'w'},
         {'id':'rrdmin', 'type':'string', 'mode':'w'},
         {'id':'rrdmax', 'type':'string', 'mode':'w'},
-        {'id':'store', 'type':'boolean', 'mode':'w'},
-        {'id':'forward', 'type':'boolean', 'mode':'w'},
-        {'id':'tags', 'type':'lines', 'mode':'w'},
         {'id':'description', 'type':'string', 'mode':'w'},
         )
 
@@ -215,95 +198,6 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
     def isCounter(self):
         # rrdmin is defined as a string above
         return self.rrdtype == 'COUNTER' or (self.rrdtype =='DERIVE' and str(self.rrdmin) == '0')
-
-    def getTags(self, context):
-        """Return dict of evaluated tags for given context.
-
-        This includes tags that are the result of setting the store, forward,
-        and other properties that should influence the metric tags for this
-        datapoint.
-
-        """
-        tags = {}
-
-        if self.store is False:
-            tags[NO_STORE_KEY] = TRUTH_STRING
-
-        if self.forward is False:
-            tags[NO_FORWARD_KEY] = TRUTH_STRING
-
-        if not self.tags:
-            return tags
-
-        # We may not need extra context. So don't get it yet.
-        extra_context = None
-
-        if isinstance(self.tags, types.StringTypes):
-            lines = self.tags.splitlines()
-        elif isinstance(self.tags, list):
-            lines = itertools.chain.from_iterable(
-                x.splitlines() for x in self.tags)
-        else:
-            log.warning(
-                "tags not a string or list for %s",
-                context.getPrimaryId())
-
-            return tags
-
-        for line in lines:
-            if not line:
-                continue
-
-            if "${" in line:
-                # Get the context once now that we know we need it.
-                extra_context = extra_context or self.getExtraContext(context)
-
-                try:
-                    line = talesEvalStr(line, context, extra=extra_context)
-                except Exception as e:
-                    log.warning(
-                        "failed evaluating tag %r for %s: %s",
-                        line,
-                        context.getPrimaryId(),
-                        e)
-
-                    continue
-
-            try:
-                key, value = line.split(":", 1)
-            except Exception:
-                log.warning(
-                    "failed getting key:value from tag %r for %s",
-                    line,
-                    context.getPrimaryId())
-
-                continue
-
-            tags[key.strip()] = value.strip()
-
-        return tags
-
-    def getExtraContext(self, context):
-        """Return "extra" context dict for TALES evaluation with context."""
-        try:
-            device = context.device()
-        except Exception as e:
-            device = None
-
-        try:
-            datasource = self.datasource()
-        except Exception as e:
-            datasource = None
-
-        return {
-            "device": device,
-            "dev": device,
-            "devname": getattr(device, "id", "unknown"),
-            "datasource": datasource,
-            "ds": datasource,
-            "datapoint": self,
-            "dp": self,
-        }
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addDataPointAlias')
     def manage_addDataPointAlias(self, id, formula, REQUEST=None ):
