@@ -92,6 +92,28 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
         if (!Ext.isDefined(data)) {
             data = "";
         }
+        var nodePath = '/' + Ext.getCmp('devices').getSelectionModel().getSelectedNode().data.path;
+        if (nodePath === "/Devices") {
+            new Zenoss.dialog.SimpleMessageDialog({
+                title: _t('Create Maintenance Window'),
+                message: Ext.String.format(_t('Are you sure you want to create Maintenance Window at root class "/Devices"?'), data.name),
+                buttons: [{
+                    xtype: 'DialogButton',
+                    text: _t('OK'),
+                    handler: function () {
+                        createMaintDialog(grid, data);
+                    }
+                }, {
+                    xtype: 'DialogButton',
+                    text: _t('Cancel')
+                }]
+            }).show();
+        } else {
+            createMaintDialog(grid, data);
+        }
+    }
+
+    function createMaintDialog(grid, data) {
         var addhandler, config, dialog, newEntry;
         var labelmargin = '5px 5px 0 0';
         newEntry = (data === "");
