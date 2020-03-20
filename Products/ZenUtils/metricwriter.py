@@ -219,7 +219,7 @@ class ThresholdNotifier(object):
         self._thresholds.updateList(thresholds)
 
     @defer.inlineCallbacks
-    def notify(self, context_uuid, context_id, metric, timestamp, value, thresh_event_data=None):
+    def notify(self, context_uuid, context_id, metric, timestamp, value, thresh_event_data={}):
         """
         Check the specified value against thresholds and send any generated
         events
@@ -233,7 +233,6 @@ class ThresholdNotifier(object):
         @return:
         """
         if self._thresholds and value is not None:
-            thresh_event_data = thresh_event_data or {}
             if 'eventKey' in thresh_event_data:
                 eventKeyPrefix = [thresh_event_data['eventKey']]
             else:
