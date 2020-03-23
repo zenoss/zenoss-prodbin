@@ -12,7 +12,8 @@ from Products.ZenEvents.zeneventd import (
     time
 )
 from Products.ZenEvents.events2.processing import EventProcessorPipe
-from zenoss.protocols.protobufs.zep_pb2 import EventActor
+from zenoss.protocols.protobufs.zep_pb2 import EventActor, EventSeverity
+from zenoss.protocols.protobufs.model_pb2 import ModelElementType
 
 
 PATH = {'zeneventd': 'Products.ZenEvents.zeneventd'}
@@ -39,14 +40,14 @@ class EventPipelineProcessorTest(TestCase):
             created_time=1523044529575,
             event_class="/ZenossRM",
             actor=EventActor(
-                element_type_id=10,
+                element_type_id=ModelElementType.DEVICE,
                 element_uuid="575bcf2d-8ca0-47d9-8e63-b4f2c1242ef3",
                 element_identifier="device.loc",
-                element_sub_type_id=100,
+                element_sub_type_id=ModelElementType.COMPONENT,
                 element_sub_identifier="zeneventd",
             ),
             summary='Event Summary',
-            severity=1,
+            severity=EventSeverity.SEVERITY_DEBUG,
             event_key="RMMonitor.collect.docker",
             agent="zenpython",
             monitor="localhost",

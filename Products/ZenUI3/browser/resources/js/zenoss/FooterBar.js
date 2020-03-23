@@ -121,13 +121,29 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                     listeners: {
                         click: function() {
                             var itemName = options.onGetItemName();
-                            new Zenoss.dialog.SimpleMessageDialog({
-                                message: options.onGetDeleteMessage(itemName),
+                            var nodePath = '/' + Ext.getCmp('devices').getSelectionModel().getSelectedNode().data.path;
+                            new Zenoss.SmartFormDialog({
                                 buttonAlign: 'center',
                                 title: Ext.String.format(_t('Delete {0}'), options.onGetItemName()),
+                                formId: 'confDevClsForm',
+                                items: [{
+                                    xtype: 'panel',
+                                    html: options.onGetDeleteMessage(itemName)
+                                },{
+                                    xtype: 'textfield',
+                                    name: 'devCls',
+                                    anchor:'80%',
+                                    allowBlank: false,
+                                    emptyText: nodePath,
+                                    margin: '10 0 0 0',
+                                    isValid: function() {
+                                        var devCls = Ext.getCmp('confDevClsForm').getForm().findField('devCls').getValue();
+                                        return (devCls === nodePath);
+                                    }
+                                }],
                                 buttons: [{
                                     xtype: 'DialogButton',
-                                    text: _t('OK'),
+                                    text: _t('Delete'),
                                     handler: function(){
                                         footerBar.fireEvent('buttonClick', 'delete');
                                     }

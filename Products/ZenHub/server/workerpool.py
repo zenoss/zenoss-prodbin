@@ -34,9 +34,10 @@ class WorkerPool(
 
         :param str name: Name of the "queue" associated with this pool.
         """
-        self.__available = []  # Workers (by ID) available for work
-        self.__workers = {}  # Worker refs by worker ID
-        self.__services = {}  # Service refs by worker
+        # __available contains workers (by ID) available for work
+        self.__available = WorkerAvailabilityQueue()
+        self.__workers = {}  # Worker refs by worker.sessionId
+        self.__services = {}  # Service refs by worker.sessionId
         self.__name = name
         self.__log = getLogger(self)
         # Declare a handler for ReportWorkerStatus events
@@ -49,65 +50,72 @@ class WorkerPool(
     def add(self, worker):
         """Add a worker to the pool.
 
-        Note: the worker is expected to have a 'workerId' attribute.
+        Note: the worker is expected to have both 'workerId' and
+        'sessionId' attributes.
 
         @param worker {RemoteReference} A reference to the remote worker
         """
-        assert type(worker) is not WorkerRef, "worker may not be a WorkerRef"
-        wId = worker.workerId
-        if self.__workers.get(wId) is worker:
-            self.__log.debug("Worker already registered worker=%s", wId)
+        assert not isinstance(worker, WorkerRef), \
+            "worker may not be a WorkerRef"
+        sessionId = worker.sessionId
+        if sessionId in self.__workers:
+            self.__log.debug(
+                "Worker already registered worker=%s", worker.workerId,
+            )
             return
-        self.__workers[wId] = worker
-        self.__services[wId] = RemoteServiceRegistry(worker)
-        if wId not in self.__available:
-            self.__available.append(wId)
+        self.__workers[sessionId] = worker
+        self.__services[sessionId] = RemoteServiceRegistry(worker)
+        self.__available.add(sessionId)
         self.__log.debug(
             "Worker registered worker=%s total-workers=%s",
-            wId, len(self.__workers),
+            worker.workerId, len(self.__workers),
         )
 
     def remove(self, worker):
         """Remove a worker from the pool.
 
-        Note: the worker is expected to have the 'workerId' and
+        Note: the worker is expected to have both 'workerId' and
         'sessionId' attributes.
 
         @param worker {RemoteReference} A reference to the remote worker
         """
-        assert type(worker) is not WorkerRef, "worker may not be a WorkerRef"
-        wId = worker.workerId
-        if wId not in self.__workers:
-            self.__log.debug("Worker not registered worker=%s", wId)
+        assert not isinstance(worker, WorkerRef), \
+            "worker may not be a WorkerRef"
+        sessionId = worker.sessionId
+        self.__remove(sessionId, worker=worker)
+
+    def __remove(self, sessionId, worker=None):
+        if sessionId not in self.__workers:
+            self.__log.debug(
+                "Worker not registered worker=%s", worker.workerId,
+            )
             return
-        if self.__workers[wId].sessionId != worker.sessionId:
-            self.__log.debug("Worker already unregistered worker=%s", wId)
-            return  # Stale worker, already removed
-        del self.__workers[wId]
-        del self.__services[wId]
-        if wId in self.__available:
-            self.__available.remove(wId)
+        if worker is None:
+            worker = self.__workers[sessionId]
+        del self.__workers[sessionId]
+        del self.__services[sessionId]
+        self.__available.discard(sessionId)
         self.__log.debug(
             "Worker unregistered worker=%s total-workers=%s",
-            wId, len(self.__workers),
+            worker.workerId, len(self.__workers),
         )
 
     def __contains__(self, worker):
         """Return True if worker is registered, else False is returned.
 
-        Note: the worker is expected to have a 'workerId' attribute.
+        Note: the worker is expected to have a 'sessionId' attribute.
 
         @param worker {RemoteReference} A reference to the remote worker
         """
-        return self.__workers.get(worker.workerId) is worker
+        return self.__workers.get(worker.sessionId) is worker
 
     def __len__(self):
         return len(self.__workers)
 
     def __iter__(self):
         return (
-            self.__makeref(wId)
-            for wId, worker in self.__workers.iteritems()
+            self.__makeref(worker)
+            for worker in self.__workers.itervalues()
             if worker is not None
         )
 
@@ -119,7 +127,7 @@ class WorkerPool(
         completed reporting their status.
         """
         deferreds = []
-        for worker in self.__workers.values():
+        for worker in self.__workers.viewvalues():
             dfr = worker.callRemote("reportStatus")
             dfr.addErrback(
                 lambda ex: self.__log.error(
@@ -139,47 +147,47 @@ class WorkerPool(
     def hire(self):
         """Return a valid worker.
 
-        If no worker is available for hire, None is returned.
+        This method blocks until a worker is available.
         """
-        while len(self.__available):
-            wId = self.__available.pop(0)
+        while True:
+            sessionId = yield self.__available.pop()
             try:
-                worker = self.__workers[wId]
+                worker = self.__workers[sessionId]
+                # Ping the worker to test whether it still exists
                 yield worker.callRemote("ping")
-
-                # Validate that the worker is the same instance before
-                # returning it.
-                worker_p = self.__workers.get(wId)
-                if worker_p and worker_p.sessionId == worker.sessionId:
-                    self.__log.debug("Worker hired worker=%s", wId)
-                    defer.returnValue(self.__makeref(wId))
-                else:
-                    self.__log.debug(
-                        "Worker retired (session ID mismatch) worker=%s", wId,
-                    )
-            except pb.PBConnectionLost:
-                self.__log.debug("Worker failed ping test worker=%s", wId)
-                pass
-        else:
-            defer.returnValue(None)
+            except (pb.PBConnectionLost, pb.DeadReferenceError) as ex:
+                msg = _bad_worker_messages.get(type(ex))
+                self.__log.error(msg, worker.workerId)
+                self.__remove(sessionId, worker=worker)
+            except Exception:
+                self.__log.exception("Unexpected error")
+                self.__remove(sessionId)
+            else:
+                self.__log.debug("Worker hired worker=%s", worker.workerId)
+                defer.returnValue(self.__makeref(worker))
 
     def layoff(self, workerref):
         """Make the worker available for hire."""
         worker = workerref.ref
         # Verify the worker is the same instance before making it
         # available for hire again.
-        worker_p = self.__workers.get(worker.workerId)
-        if worker_p and worker_p.sessionId == worker.sessionId:
+        worker_p = self.__workers.get(worker.sessionId)
+        if worker_p:
             self.__log.debug("Worker layed off worker=%s", worker.workerId)
-            self.__available.append(worker.workerId)
+            self.__available.add(worker.sessionId)
         else:
-            self.__log.debug(
-                "Worker retired (session ID mismatch) worker=%s",
-                worker.workerId,
-            )
+            self.__log.debug("Worker retired worker=%s", worker.workerId)
 
-    def __makeref(self, workerId):
-        return WorkerRef(self.__workers[workerId], self.__services[workerId])
+    def __makeref(self, worker):
+        return WorkerRef(worker, self.__services[worker.sessionId])
+
+
+_bad_worker_messages = {
+    pb.PBConnectionLost:
+        "Worker failed ping test worker=%s",
+    pb.DeadReferenceError:
+        "Worker no longer available (dead reference) worker=%s",
+}
 
 
 class RemoteServiceRegistry(object):
@@ -289,3 +297,21 @@ class WorkerRef(object):
                     self.__worker.workerId, ex.__class__.__name__, ex,
                 )
             raise
+
+
+class WorkerAvailabilityQueue(defer.DeferredQueue):
+    """Extends defer.DeferredQueue with more set-like behavior."""
+
+    def __len__(self):
+        return len(self.pending)
+
+    # Alias pop to get -- DeferredQueue.get removes the value from the queue.
+    pop = defer.DeferredQueue.get
+
+    def add(self, item):
+        if item not in self.pending:
+            self.put(item)
+
+    def discard(self, item):
+        if item in self.pending:
+            self.pending.remove(item)

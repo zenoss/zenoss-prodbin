@@ -9,6 +9,7 @@
 
 from unittest import TestCase
 from mock import Mock, patch, create_autospec, call, sentinel
+import sys
 
 from zope.interface.verify import verifyObject
 from zope.component import adaptedBy
@@ -23,6 +24,12 @@ from Products.ZenHub.zenhub import (
     DefaultConfProvider, IHubConfProvider,
     DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
     IEventPublisher,
+    stop_server,
+    server_config,
+    IHubServerConfig,
+    report_reactor_delayed_calls,
+    IMetricManager,
+    reactor,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -261,9 +268,14 @@ class ZenHubTest(TestCase):
             t.reactor, t.make_server_factory.return_value,
         )
 
-        LoopingCall.assert_called_once_with(
-            t.zh._invalidation_manager.process_invalidations,
-        )
+        LoopingCall.assert_has_calls([
+            call(t.zh._invalidation_manager.process_invalidations),
+            call().start(sentinel.inval_poll),
+            call(
+                report_reactor_delayed_calls, t.zh.options.monitor, t.zh.name
+            ),
+            call().start(30),
+        ])
         t.assertEqual(
             LoopingCall.return_value, t.zh.process_invalidations_task,
         )
@@ -271,9 +283,10 @@ class ZenHubTest(TestCase):
         t.assertEqual(t.zh.metricreporter, t.zh._metric_manager.metricreporter)
         t.zh._metric_manager.start.assert_called_with()
         # trigger to shut down metric reporter before zenhub exits
-        t.reactor.addSystemEventTrigger.assert_called_with(
-            'before', 'shutdown', t.zh._metric_manager.stop,
-        )
+        t.reactor.addSystemEventTrigger.assert_has_calls([
+            call('before', 'shutdown', t.zh._metric_manager.stop),
+            call('before', 'shutdown', stop_server),
+        ])
         # After the reactor stops:
         t.zh.profiler.stop.assert_called_with()
         # Closes IEventPublisher, which breaks old integration tests
@@ -418,6 +431,8 @@ class ZenHubTest(TestCase):
         # parser expected to be added by CmdBase.buildParser
         from optparse import OptionParser
         t.zh.parser = OptionParser()
+        # Given no commandline options
+        sys.argv = []
 
         t.zh.buildOptions()
         t.zh.options, args = t.zh.parser.parse_args()
@@ -434,6 +449,27 @@ class ZenHubTest(TestCase):
         t.assertEqual(t.zh.options.modeling_pause_timeout, 3600)
         # delay before actually parsing the options
         notify.assert_called_with(ParserReadyForOptionsEvent(t.zh.parser))
+
+    @patch('{src}.server_config.ModuleObjectConfig'.format(**PATH))
+    @patch('{src}.provideUtility'.format(**PATH))
+    @patch('{src}.super'.format(**PATH))
+    def test_parseOptions(t, super, provideUtility, ModuleObjectConfig):
+        t.zh.parseOptions()
+
+        super.assert_called_with(ZenHub, t.zh)
+        super.return_value.parseOptions.assert_called_with()
+
+        t.assertEqual(
+            server_config.modeling_pause_timeout,
+            int(t.zh.options.modeling_pause_timeout)
+        )
+        t.assertEqual(server_config.xmlrpcport, int(t.zh.options.xmlrpcport))
+        t.assertEqual(server_config.pbport, int(t.zh.options.pbport))
+
+        ModuleObjectConfig.assert_called_with(server_config)
+        provideUtility.assert_called_with(
+            ModuleObjectConfig.return_value, IHubServerConfig
+        )
 
 
 class DefaultConfProviderTest(TestCase):
@@ -558,3 +594,34 @@ class ParserReadyForOptionsEventTest(TestCase):
         verifyObject(IParserReadyForOptionsEvent, event)
 
         t.assertEqual(event.parser, parser)
+
+
+class ReactorDelayedCallsMetricTest(TestCase):
+
+    def setUp(t):
+        _patchables = (
+            ('getUtility', Mock(spec=[])),
+        )
+        for name, value in _patchables:
+            patcher = patch(
+                "{src}.{name}".format(src=PATH["src"], name=name),
+                new=value,
+            )
+            setattr(t, name, patcher.start())
+            t.addCleanup(patcher.stop)
+
+    @patch('{src}.time'.format(**PATH))
+    def test_report_reactor_delayed_calls(t, time):
+        time.return_value = 555
+        writer = t.getUtility.return_value.metric_writer
+        hub = Mock(name="ZenHub")
+
+        report_reactor_delayed_calls(hub.options.monitor, hub.name)
+
+        t.getUtility.assert_called_once_with(IMetricManager)
+        writer.write_metric.assert_called_once_with(
+            'zenhub.reactor.delayedcalls',
+            len(reactor.getDelayedCalls()),
+            time.return_value * 1000,
+            {'monitor': hub.options.monitor, 'name': hub.name},
+        )

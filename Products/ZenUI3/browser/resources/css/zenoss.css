@@ -1856,6 +1856,10 @@ div.europagraph {
 /*****************************************************************************
  * Styles to handle graph footers
  */
+.zenchart {
+  height: 313px !important;
+}
+
 .zenfooter_content {
   margin-left: auto;
   margin-right: auto;
