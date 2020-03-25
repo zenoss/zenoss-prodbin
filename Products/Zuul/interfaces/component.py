@@ -105,7 +105,7 @@ class IIpInterfaceInfo(IComponentInfo):
 
     ifindex = schema.TextLine(
         title=_t(u"SNMP Index"), group="Details",
-        order=13
+        order=13)
 
 class IFileSystemInfo(IComponentInfo):
     """
