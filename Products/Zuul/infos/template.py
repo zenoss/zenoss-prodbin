@@ -407,9 +407,6 @@ class DataPointInfo(InfoBase):
         self._object = dataPoint
 
     description = ProxyProperty('description')
-    store = ProxyProperty('store')
-    forward = ProxyProperty('forward')
-    tags = ProxyProperty('tags')
 
     @property
     def name(self):

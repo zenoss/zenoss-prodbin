@@ -120,9 +120,6 @@ class IDataPointInfo(IInfo):
     createCmd = schema.Text(title=_t(u'Create Command'))
     rrdmin = schema.TextLine(title=_t(u'RRD Minimum'))
     rrdmax = schema.TextLine(title=_t(u'RRD Maximum'))
-    store = schema.Bool(title=_t(u'Store in CZ'))
-    forward = schema.Bool(title=_t(u'Forward to Cloud'))
-    tags = schema.Text(title=_t(u'Extra Tags'))
     aliases = schema.TextLine(title=_t(u'Alias'),
                               xtype='alias')
 
