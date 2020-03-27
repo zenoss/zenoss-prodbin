@@ -18,7 +18,9 @@ from ZODB.utils import u64
 import Globals  # required to import zenoss Products
 from Products.ZenUtils.Utils import unused
 
-from Products.ZenRelations.PrimaryPathObjectManager import PrimaryPathObjectManager
+from Products.ZenRelations.PrimaryPathObjectManager import (
+    PrimaryPathObjectManager,
+)
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenUtils.Utils import giveTimeToReactor
 from .interfaces import IInvalidationProcessor, IHubCreatedEvent
@@ -104,7 +106,7 @@ class InvalidationProcessor(object):
         for i, oid in enumerate(oids):
             ioid = u64(oid)
             # Try pushing it into the queue, which is an IITreeSet.
-            #  If it inserted successfully it returns 1, else 0.
+            # If it inserted successfully it returns 1, else 0.
             if queue.insert(ioid):
                 # Get the deferred that does the notification
                 d = self._dispatch(self._hub.dmd, oid, ioid, queue)

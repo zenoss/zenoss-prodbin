@@ -165,7 +165,8 @@ class DeviceClassInvalidationFilter(BaseOrganizerFilter):
             md5_checksum.update(s.getvalue())
         # Include z/c properties from base class
         super(
-            DeviceClassInvalidationFilter, self
+            DeviceClassInvalidationFilter,
+            self
         ).generateChecksum(organizer, md5_checksum)
 
 
@@ -204,5 +205,6 @@ class OSProcessClassFilter(BaseOrganizerFilter):
             )
         # Include z/c properties from base class
         super(
-            OSProcessClassFilter, self
+            OSProcessClassFilter,
+            self
         ).generateChecksum(organizer, md5_checksum)

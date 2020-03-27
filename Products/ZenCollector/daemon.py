@@ -205,52 +205,52 @@ class CollectorDaemon(RRDDaemon):
                                       self.preferences.collectorName)
 
         super(CollectorDaemon, self).__init__(name=self.preferences.collectorName)
-
-        # setup daemon statistics (deprecated names)
         self._statService = StatisticsService()
-        self._statService.addStatistic("devices", "GAUGE")
-        self._statService.addStatistic("dataPoints", "DERIVE")
-        self._statService.addStatistic("runningTasks", "GAUGE")
-        self._statService.addStatistic("taskCount", "GAUGE")
-        self._statService.addStatistic("queuedTasks", "GAUGE")
-        self._statService.addStatistic("missedRuns", "GAUGE")
-
-        # namespace these a bit so they can be used in ZP monitoring.
-        # prefer these stat names and metrology in future refs
-        self._dataPointsMetric = Metrology.meter("collectordaemon.dataPoints")
-        daemon = self
-        class DeviceGauge(Gauge):
-            @property
-            def value(self):
-                return len(daemon._devices)
-        Metrology.gauge('collectordaemon.devices', DeviceGauge())
-
-        # Scheduler statistics
-        class RunningTasks(Gauge):
-            @property
-            def value(self):
-                return daemon._scheduler._executor.running
-        Metrology.gauge('collectordaemon.runningTasks', RunningTasks())
-
-        class TaskCount(Gauge):
-            @property
-            def value(self):
-                return daemon._scheduler.taskCount
-        Metrology.gauge('collectordaemon.taskCount', TaskCount())
-
-        class QueuedTasks(Gauge):
-            @property
-            def value(self):
-                return daemon._scheduler._executor.queued
-        Metrology.gauge('collectordaemon.queuedTasks', QueuedTasks())
-
-        class MissedRuns(Gauge):
-            @property
-            def value(self):
-                return daemon._scheduler.missedRuns
-        Metrology.gauge('collectordaemon.missedRuns', MissedRuns())
-
         zope.component.provideUtility(self._statService, IStatisticsService)
+
+        if self.options.cycle:
+            # setup daemon statistics (deprecated names)
+            self._statService.addStatistic("devices", "GAUGE")
+            self._statService.addStatistic("dataPoints", "DERIVE")
+            self._statService.addStatistic("runningTasks", "GAUGE")
+            self._statService.addStatistic("taskCount", "GAUGE")
+            self._statService.addStatistic("queuedTasks", "GAUGE")
+            self._statService.addStatistic("missedRuns", "GAUGE")
+
+            # namespace these a bit so they can be used in ZP monitoring.
+            # prefer these stat names and metrology in future refs
+            self._dataPointsMetric = Metrology.meter("collectordaemon.dataPoints")
+            daemon = self
+            class DeviceGauge(Gauge):
+                @property
+                def value(self):
+                    return len(daemon._devices)
+            Metrology.gauge('collectordaemon.devices', DeviceGauge())
+
+            # Scheduler statistics
+            class RunningTasks(Gauge):
+                @property
+                def value(self):
+                    return daemon._scheduler._executor.running
+            Metrology.gauge('collectordaemon.runningTasks', RunningTasks())
+
+            class TaskCount(Gauge):
+                @property
+                def value(self):
+                    return daemon._scheduler.taskCount
+            Metrology.gauge('collectordaemon.taskCount', TaskCount())
+
+            class QueuedTasks(Gauge):
+                @property
+                def value(self):
+                    return daemon._scheduler._executor.queued
+            Metrology.gauge('collectordaemon.queuedTasks', QueuedTasks())
+
+            class MissedRuns(Gauge):
+                @property
+                def value(self):
+                    return daemon._scheduler.missedRuns
+            Metrology.gauge('collectordaemon.missedRuns', MissedRuns())
 
         self._deviceGuids = {}
         self._devices = set()

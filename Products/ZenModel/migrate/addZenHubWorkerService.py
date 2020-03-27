@@ -105,7 +105,7 @@ class AddZenHubWorkerService(Migrate.Step):
             return
 
         # Make sure the zenhubworker service hasn't already been deployed
-        count = sum((1 for s in ctx.services if s.name == "zenhubworker"), 0)
+        count = sum((1 for s in ctx.services if s.name.startswith("zenhubworker")), 0)
         if count > 0:
             log.info("zenhubworker already deployed.  Skipping this step.")
             return
