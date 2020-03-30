@@ -10,6 +10,7 @@
 from __future__ import absolute_import
 
 from collections import deque
+from twisted.internet import defer
 
 
 class ZenHubWorklist(object):
@@ -39,10 +40,16 @@ class ZenHubWorklist(object):
             priority: deque() for priority in self.__selection.priorities
         }
 
+        # Queue of pending requests for data
+        self.__waiting = []
+
     def __len__(self):
         return sum(len(v) for v in self.__queues.itervalues())
 
-    def pop(self):
+    def __cancel_pop(self, d):
+        self.__waiting.remove(d)
+
+    def __pop(self):
         """Return the next item by priority.
 
         If no items are available, None is returned.
@@ -56,6 +63,18 @@ class ZenHubWorklist(object):
             if len(queue):
                 return queue.popleft()
 
+    def pop(self):
+        """Return a deferred which fires when an item is available.
+
+        :rtype: defer.Deferred
+        """
+        item = self.__pop()
+        if item is not None:
+            return defer.succeed(item)
+        d = defer.Deferred(canceller=self.__cancel_pop)
+        self.__waiting.append(d)
+        return d
+
     def push(self, priority, item):
         """Add item to the worklist.
 
@@ -64,6 +83,7 @@ class ZenHubWorklist(object):
         :type priority: Sortable[T]
         """
         self.__queues[priority].append(item)
+        self.__notify_waiting_request()
 
     def pushfront(self, priority, item):
         """Add item to the front of the worklist.
@@ -75,3 +95,11 @@ class ZenHubWorklist(object):
         :type priority: Sortable[T]
         """
         self.__queues[priority].appendleft(item)
+        self.__notify_waiting_request()
+
+    def __notify_waiting_request(self):
+        if not self.__waiting:
+            return
+        item = self.__pop()
+        if item is not None:
+            self.__waiting.pop(0).callback(item)

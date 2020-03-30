@@ -16,7 +16,9 @@ from twisted.python.failure import Failure
 
 from Products.ZenHub.server.service import ServiceCall
 
-from ..workerpool import RemoteServiceRegistry, WorkerPool, WorkerRef
+from ..workerpool import (
+    RemoteServiceRegistry, WorkerPool, WorkerRef, WorkerAvailabilityQueue,
+)
 
 PATH = {'src': 'Products.ZenHub.server.workerpool'}
 
@@ -31,8 +33,8 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertEqual(self.queue, self.pool.name)
 
     def test_add_workers(self):
-        worker1 = Mock(workerId=1)
-        worker2 = Mock(workerId=2)
+        worker1 = Mock(workerId=1, sessionId="1")
+        worker2 = Mock(workerId=2, sessionId="2")
 
         self.pool.add(worker1)
         self.assertIn(worker1, self.pool)
@@ -41,7 +43,7 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertIn(worker2, self.pool)
 
     def test_add_WorkerRef(self):
-        worker = Mock(workerId=1)
+        worker = Mock(workerId=1, sessionId="1")
         services = Mock()
         workerref = WorkerRef(worker, services)
 
@@ -49,7 +51,7 @@ class WorkerPoolTest(TestCase):  # noqa: D101
             self.pool.add(workerref)
 
     def test_add_worker_twice(self):
-        worker = Mock(workerId=1)
+        worker = Mock(workerId=1, sessionId="1")
 
         self.pool.add(worker)
         self.assertIn(worker, self.pool)
@@ -59,19 +61,19 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertEqual(len(self.pool), 1)
 
     def test_add_duplicate_worker(self):
-        worker = Mock(workerId=1)
-        worker_dup = Mock(workerId=1)
+        worker = Mock(workerId=1, sessionId="1")
+        worker_dup = Mock(workerId=1, sessionId="2")
 
         self.pool.add(worker)
         self.assertIn(worker, self.pool)
 
         self.pool.add(worker_dup)
         self.assertIn(worker_dup, self.pool)
-        self.assertNotIn(worker, self.pool)
+        self.assertIn(worker, self.pool)
 
     def test_remove_worker(self):
-        worker1 = Mock(workerId=1)
-        worker2 = Mock(workerId=2)
+        worker1 = Mock(workerId=1, sessionId="1")
+        worker2 = Mock(workerId=2, sessionId="2")
         self.pool.add(worker1)
         self.pool.add(worker2)
         self.assertEqual(len(self.pool), 2)
@@ -87,7 +89,7 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertEqual(len(self.pool), 0)
 
     def test_remove_WorkerRef(self):
-        worker = Mock(workerId=1)
+        worker = Mock(workerId=1, sessionId="1")
         services = Mock()
         workerref = WorkerRef(worker, services)
 
@@ -95,7 +97,7 @@ class WorkerPoolTest(TestCase):  # noqa: D101
             self.pool.add(workerref)
 
     def test_available(self):
-        worker = Mock(workerId=1)
+        worker = Mock(workerId=1, sessionId="1")
         self.assertEqual(self.pool.available, 0)
 
         self.pool.add(worker)
@@ -108,7 +110,7 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         w = next(iter(self.pool), None)
         self.assertIsNone(w)
 
-        worker = Mock(workerId=1)
+        worker = Mock(workerId=1, sessionId="1")
         self.pool.add(worker)
         w = next(iter(self.pool), None)
         self.assertIsNotNone(w)
@@ -116,11 +118,16 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertIs(w.ref, worker)
 
     def test_hire(self):
-        worker = Mock(workerId=1, sessionId=1)
+        worker = Mock(workerId=1, sessionId="1")
+        worker.callRemote.return_value = defer.succeed("pong")
+
         self.pool.add(worker)
 
         self.assertEqual(self.pool.available, 1)
         self.assertEqual(len(self.pool), 1)
+
+        def assign(x, v):
+            x.value = v
 
         dfr = self.pool.hire()
         hired_worker = dfr.result
@@ -131,7 +138,7 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertEqual(len(self.pool), 1)
 
     def test_remove_after_hire(self):
-        worker = Mock(workerId=1)
+        worker = Mock(workerId=1, sessionId="1")
         self.pool.add(worker)
 
         self.assertEqual(self.pool.available, 1)
@@ -149,29 +156,46 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertEqual(len(self.pool), 0)
 
         dfr = self.pool.hire()
-        hired_worker = dfr.result
+        # The deferred returned from the pool has not been called
+        self.assertFalse(dfr.called)
 
-        self.assertIsNone(hired_worker)
+    def test_wait_for_available_worker(self):
+        self.assertEqual(self.pool.available, 0)
+        self.assertEqual(len(self.pool), 0)
+
+        dfr = self.pool.hire()
+        # The deferred returned from the pool has not been called
+        self.assertFalse(dfr.called)
+
+        # a worker becomes available
+        worker = Mock(workerId=1, sessionId="1")
+        worker.callRemote.return_value = defer.succeed("pong")
+        self.pool.add(worker)
+
+        # the deferred is called, and the worker_reference_object is its result
+        self.assertTrue(dfr.called)
+        worker_ref = dfr.result
+        self.assertIsInstance(worker_ref, WorkerRef)
+        # the reference object contains the worker
+        self.assertIs(worker_ref.ref, worker)
 
     def test_hire_no_available_workers(self):
         with patch.object(WorkerPool, "available", return_value=0)\
                 as available:
             pool = WorkerPool(self.queue)
-            worker = Mock(workerId=1)
+            worker = Mock(workerId=1, sessionId="1")
             pool.add(worker)
 
             available.__len__.return_value = 0
             self.assertEqual(len(pool), 1)
 
             dfr = self.pool.hire()
-            hired_worker = dfr.result
-
-            self.assertIsNone(hired_worker)
+            self.assertFalse(dfr.called)
 
             available.pop.assert_not_called()
 
     def test_layoff(self):
-        worker = Mock(workerId=1, sessionId=1)
+        worker = Mock(workerId=1, sessionId="1")
         self.pool.add(worker)
 
         self.assertEqual(self.pool.available, 1)
@@ -189,7 +213,7 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertEqual(len(self.pool), 1)
 
     def test_layoff_retired_worker(self):
-        worker = Mock(workerId=1, sessionId=1)
+        worker = Mock(workerId=1, sessionId="1")
         self.pool.add(worker)
 
         self.assertEqual(self.pool.available, 1)
@@ -201,7 +225,7 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertEqual(self.pool.available, 0)
         self.assertEqual(len(self.pool), 1)
 
-        worker2 = Mock(workerId=1, sessionId=2)
+        worker2 = Mock(workerId=1, sessionId="2")
         self.pool.remove(worker)
         self.pool.add(worker2)
         self.assertEqual(self.pool.available, 1)
@@ -211,11 +235,22 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertEqual(self.pool.available, 1)
         self.assertEqual(len(self.pool), 1)
 
+    def test_handleReportStatus(self):
+        worker_1 = Mock(name='worker_1')
+        worker_2 = Mock(name='worker_2')
+        self.pool.add(worker_1)
+        self.pool.add(worker_2)
+
+        self.pool.handleReportStatus(event=None)
+
+        worker_1.callRemote.assert_called_with("reportStatus")
+        worker_2.callRemote.assert_called_with("reportStatus")
+
 
 class RemoteServiceRegistryTest(TestCase):  # noqa: D101
 
     def setUp(self):
-        self.worker = Mock(workerId=1)
+        self.worker = Mock(workerId=1, sessionId="1")
         self.registry = RemoteServiceRegistry(self.worker)
 
     def test_api(self):
@@ -253,7 +288,7 @@ class WorkerRefTest(TestCase):  # noqa: D101
         self.getLogger = self.getLogger_patcher.start()
         self.addCleanup(self.getLogger_patcher.stop)
         self.logger = self.getLogger.return_value
-        self.worker = Mock(workerId=1)
+        self.worker = Mock(workerId=1, sessionId="1")
         self.services = Mock(spec=RemoteServiceRegistry)
         self.ref = WorkerRef(self.worker, self.services)
 
@@ -367,3 +402,48 @@ class WorkerRefTest(TestCase):  # noqa: D101
             call.service, call.method, call.id.hex, 1,
             "ValueError", expected_error,
         )
+
+
+class WorkerAvailabilityQueueTest(TestCase):
+    """Test the WorkerAvailabilityQueue class."""
+
+    def setUp(t):
+        t.queue = WorkerAvailabilityQueue()
+
+    def test_initial_state(t):
+        q = WorkerAvailabilityQueue()
+        t.assertEqual(0, len(q))
+        t.assertTrue(hasattr(q, "pop"))
+
+    def test_add(t):
+        value = 10
+        t.queue.add(value)
+        t.assertEqual(1, len(t.queue))
+
+    def test_add_and_pop(t):
+        value = 10
+        t.queue.add(value)
+        dfr = t.queue.pop()
+        t.assertEqual(dfr.result, value)
+
+    def test_pop_empty(t):
+        dfr = t.queue.pop()
+        t.assertFalse(dfr.called)
+
+    def test_deferred_pop(t):
+        dfr = t.queue.pop()
+        value = 10
+        t.queue.add(value)
+        t.assertTrue(dfr.called)
+        t.assertEqual(dfr.result, value)
+
+    def test_discard(t):
+        value = 10
+        t.queue.add(value)
+        t.queue.discard(value)
+        t.assertEqual(0, len(t.queue))
+
+    def test_discard_empty(t):
+        value = 10
+        t.queue.discard(value)
+        t.assertEqual(0, len(t.queue))

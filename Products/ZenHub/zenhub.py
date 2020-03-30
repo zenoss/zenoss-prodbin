@@ -14,6 +14,7 @@
 import signal
 import sys
 import logging
+from time import time
 
 # 3rd party
 from twisted.internet import reactor, task
@@ -45,7 +46,8 @@ from Products.ZenHub.interfaces import (
     IHubHeartBeatCheck,
     IParserReadyForOptionsEvent,
 )
-from Products.ZenHub.metricmanager import MetricManager
+
+from Products.ZenHub.metricmanager import MetricManager, IMetricManager
 from Products.ZenHub.invalidationmanager import InvalidationManager
 from Products.ZenHub.server import (
     config as server_config,
@@ -55,6 +57,7 @@ from Products.ZenHub.server import (
     make_server_factory,
     make_service_manager,
     start_server,
+    stop_server,
     register_legacy_worklist_metrics,
     ReportWorkerStatus,
     StatsMonitor,
@@ -119,6 +122,7 @@ class ZenHub(ZCmdBase):
         self.shutdown = False
 
         super(ZenHub, self).__init__()
+        logging.getLogger("zen.zenhub.server").setLevel(logging.DEBUG)
 
         load_config("hub.zcml", ZENHUB_MODULE)
         notify(HubWillBeCreatedEvent(self))
@@ -198,6 +202,9 @@ class ZenHub(ZCmdBase):
 
         # Start ZenHub services server
         start_server(reactor, self._server_factory)
+        reactor.addSystemEventTrigger(
+            "before", "shutdown", stop_server,
+        )
 
         # Start XMLRPC server
         self._xmlrpc_manager.start(reactor)
@@ -209,6 +216,12 @@ class ZenHub(ZCmdBase):
         self.process_invalidations_task.start(
             self.options.invalidation_poll_interval,
         )
+
+        # Start tracking reactor metrics
+        self.report_reactor_delayed_calls_task = task.LoopingCall(
+            report_reactor_delayed_calls, self.options.monitor, self.name
+        )
+        self.report_reactor_delayed_calls_task.start(30)
 
         reactor.run()
 
@@ -283,7 +296,9 @@ class ZenHub(ZCmdBase):
         """
         seconds = 30
         evt = EventHeartbeat(
-            self.options.monitor, self.name, self.options.heartbeatTimeout,
+            self.options.monitor,  # hub name for device
+            self.name,  # 'zenhub' for component
+            self.options.heartbeatTimeout,
         )
         self.zem.sendEvent(evt)
         self.niceDoggie(seconds)
@@ -397,6 +412,21 @@ class ParserReadyForOptionsEvent(object):  # noqa: D101
 
     def __init__(self, parser):
         self.parser = parser
+
+
+def report_reactor_delayed_calls(monitor, name):
+    try:
+        deferred_count = len(reactor.getDelayedCalls())
+        writer = getUtility(IMetricManager).metric_writer
+
+        writer.write_metric(
+            'zenhub.reactor.delayedcalls',
+            deferred_count,
+            int(time() * 1000),  # to milliseconds
+            {'monitor': monitor, 'name': name},
+        )
+    except Exception:
+        log.exception('Failure in report_reactor_delayed_calls')
 
 
 if __name__ == '__main__':

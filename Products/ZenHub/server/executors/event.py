@@ -54,6 +54,9 @@ class SendEventExecutor(object):
     def start(self, reactor):
         pass
 
+    def stop(self):
+        pass
+
     def submit(self, call):
         """Submit a ServiceCall for execution.
 
