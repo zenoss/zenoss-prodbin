@@ -1,10 +1,9 @@
 #!/bin/bash
 
-if [ $1 = "mariadb-model" ]
-  then
-     DB="zodb"
-  else
-    DB="zep"
+if [[ $1 = "mariadb-model" ]]; then
+  DB="zodb"
+else
+  DB="zep"
 fi
 
 # Use "/usr/bin/python" rather than "/opt/zenoss/bin/python" because the latter is
