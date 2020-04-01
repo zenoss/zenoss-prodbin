@@ -317,13 +317,12 @@ class ZingDatamapHandler(object):
         f.metadata[ZFact.DimensionKeys.META_TYPE_KEY] = om_context.meta_type
         f.data[ZFact.MetadataKeys.NAME_KEY] = om_context.name
 
-        if om_context.is_device:
+        if om_context.is_device_component:
+            f.data[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "DeviceComponent"
+        elif om_context.is_device:
             f.data[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "Device"
             if om_context.mem_capacity is not None:
                 f.data[ZFact.MetadataKeys.MEM_CAPACITY_KEY] = om_context.mem_capacity
-
-        if om_context.is_device_component:
-            f.data[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "DeviceComponent"
 
         if om_context.dimensions:
             f.metadata.update(om_context.dimensions)
