@@ -1,10 +1,10 @@
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2018, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2018-2020, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 from .shortid import shortid
@@ -46,6 +46,7 @@ class MetadataKeys(object):
     COMPONENT_GROUPS_KEY = "component_groups"
     IMPACT_DS_ORG_KEY = "impact_ds_organizer"
     IMPACT_DS_IMPACTERS_KEY = "dynamic_service_impacters"
+    ZEN_SCHEMA_TAGS_KEY = "zen_schema_tags"
 
 class Fact(object):
     def __init__(self, f_id=None):

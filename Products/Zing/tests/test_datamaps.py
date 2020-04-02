@@ -310,6 +310,7 @@ class TestZingDatamapHandler(TestCase):
                 'metadata4': {'key3': 'omcp1 value4', 'key4': 'omcp2 value4'},
                 'metadata5': 'omcp1 value5',
                 'metadata6': 'omcp2 value6',
+                'zen_schema_tags': 'Device',
             },
             facts[0].data,
         )

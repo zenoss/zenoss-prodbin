@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2018, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2018-2020, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -51,6 +51,7 @@ class ObjectMapContext(object):
         self.name = None
         self.mem_capacity = None
         self.is_device = False
+        self.is_device_component = False
         self.dimensions = {}
         self.metadata = {}
         self._extract_relevant_fields(obj)
@@ -77,6 +78,10 @@ class ObjectMapContext(object):
                 self.mem_capacity = obj.hw.totalMemory
             except Exception:
                 pass
+
+        from Products.ZenModel.DeviceComponent import DeviceComponent
+        if isinstance(obj, DeviceComponent):
+            self.is_device_component = True
 
         # Get extra context from IObjectMapContextProvider adapters.
         for provider in subscribers([obj], IObjectMapContextProvider):
@@ -312,7 +317,10 @@ class ZingDatamapHandler(object):
         f.metadata[ZFact.DimensionKeys.META_TYPE_KEY] = om_context.meta_type
         f.data[ZFact.MetadataKeys.NAME_KEY] = om_context.name
 
-        if om_context.is_device:
+        if om_context.is_device_component:
+            f.data[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "DeviceComponent"
+        elif om_context.is_device:
+            f.data[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "Device"
             if om_context.mem_capacity is not None:
                 f.data[ZFact.MetadataKeys.MEM_CAPACITY_KEY] = om_context.mem_capacity
 
