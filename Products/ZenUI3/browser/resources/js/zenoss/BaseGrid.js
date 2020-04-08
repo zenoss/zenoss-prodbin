@@ -384,7 +384,7 @@
          **/
         isValid: function () {
             var isValid = true;
-            this.eachColumn(function (col) {
+            this.eachFilterColumn(function (col) {
                 if (col.filterField.isValid) {
                     isValid = isValid && col.filterField.isValid();
                 }
