@@ -39,6 +39,8 @@ def resolveException(failure):
         try:
             failure.raiseException()
         except Exception as err:
+            if "exceptions must be old-style classes" in str(err):
+                return Exception(failure.value)
             return err
 
     except Exception:

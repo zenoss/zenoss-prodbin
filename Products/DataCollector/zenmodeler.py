@@ -19,13 +19,13 @@ import Globals
 # any other libraries that might possibly use twisted. This will ensure that
 # the proper WmiReactor is installed before anyone else grabs a reference to
 # the wrong reactor.
-try:
-    import pysamba.twisted.reactor
-    from ZenPacks.zenoss.WindowsMonitor.WMIClient import WMIClient
-    from ZenPacks.zenoss.WindowsMonitor.utils import addNTLMv2Option, setNTLMv2Auth
-    USE_WMI = True
-except ImportError:
-    USE_WMI = False
+# try:
+#     import pysamba.twisted.reactor
+#     from ZenPacks.zenoss.WindowsMonitor.WMIClient import WMIClient
+#     from ZenPacks.zenoss.WindowsMonitor.utils import addNTLMv2Option, setNTLMv2Auth
+#     USE_WMI = True
+# except ImportError:
+USE_WMI = False
 
 import zope.component
 

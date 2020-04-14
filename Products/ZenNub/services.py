@@ -1,0 +1,544 @@
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2020, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
+import logging
+import time
+from pprint import pformat
+
+from twisted.spread import pb
+
+from Products.ZenHub.PBDaemon import translateError
+from Products.DataCollector.DeviceProxy import DeviceProxy
+
+from .utils import replace_prefix, all_parent_dcs
+from .applydatamapper import ApplyDataMapper
+from .db import get_nub_db
+log = logging.getLogger('zen.hub')
+
+class NubService(pb.Referenceable):
+
+    def __init__(self):
+        self.log = log
+        self.listeners = []
+        self.listenerOptions = {}
+        self.callTime = 0
+        self.db = get_nub_db()
+
+    def remoteMessageReceived(self, broker, message, args, kw):
+        self.log.debug("Servicing %s in %s", message, self.name())
+        now = time.time()
+        try:
+            return pb.Referenceable.remoteMessageReceived(
+                self, broker, message, args, kw
+            )
+        finally:
+            secs = time.time() - now
+            self.log.debug("Time in %s: %.2f", message, secs)
+            self.callTime += secs
+
+    def name(self):
+        return self.__class__.__name__
+
+    def addListener(self, remote, options=None):
+        remote.notifyOnDisconnect(self.removeListener)
+        self.log.debug(
+            "adding listener for %s", self.name()
+        )
+        self.listeners.append(remote)
+        if options:
+            self.listenerOptions[remote] = options
+
+    def removeListener(self, listener):
+        self.log.debug(
+            "removing listener for %s", self.name()
+        )
+        try:
+            self.listeners.remove(listener)
+        except ValueError:
+            self.warning("Unable to remove listener... ignoring")
+
+        self.listenerOptions.pop(listener, None)
+
+    def sendEvents(self, events):
+        return
+
+    def sendEvent(self, event, **kw):
+        return
+
+    @translateError
+    def remote_propertyItems(self):
+        return [
+            ('eventlogCycleInterval', 60),
+            ('processCycleInterval', 180),
+            ('statusCycleInterval', 60),
+            ('winCycleInterval', 60),
+            ('wmibatchSize', 10),
+            ('wmiqueryTimeout', 100),
+            ('configCycleInterval', 360),
+            ('zenProcessParallelJobs', 10),
+            ('pingTimeOut', 1.5),
+            ('pingTries', 2),
+            ('pingChunk', 75),
+            ('pingCycleInterval', 60),
+            ('maxPingFailures', 1440),
+            ('modelerCycleInterval', 720),
+            ('discoveryNetworks', ()),
+            ('ccBacked', 1),
+            ('description', ''),
+            ('poolId', 'default'),
+            ('iprealm', 'default'),
+            ('renderurl', '/zport/RenderServer'),
+            ('defaultRRDCreateCommand', (
+                'RRA:AVERAGE:0.5:1:600',
+                'RRA:AVERAGE:0.5:6:600',
+                'RRA:AVERAGE:0.5:24:600',
+                'RRA:AVERAGE:0.5:288:600',
+                'RRA:MAX:0.5:6:600',
+                'RRA:MAX:0.5:24:600',
+                'RRA:MAX:0.5:288:600')
+            )
+        ]
+class EventService(NubService):
+
+    def remote_sendEvent(self, evt):
+        pass
+
+    def remote_sendEvents(self, evts):
+        pass
+
+    def remote_getDevicePingIssues(self, *args, **kwargs):
+        return None
+
+    def remote_getDeviceIssues(self, *args, **kwargs):
+        return None
+
+    def remote_getDefaultPriority(self):
+        return 3
+
+
+class ModelerService(NubService):
+
+    @translateError
+    def remote_getThresholdClasses(self):
+        return []
+
+    @translateError
+    def remote_getCollectorThresholds(self):
+        return []
+
+    @translateError
+    def remote_getClassCollectorPlugins(self):
+        result = []
+        for dc_name, dc in self.db.device_classes.iteritems():
+            localPlugins = dc.zProperties.get('zCollectorPlugins', False)
+            if not localPlugins: continue
+            result.append((dc_name, localPlugins))
+        return result
+
+    @translateError
+    def remote_getDeviceConfig(self, names, checkStatus=False):
+        result = []
+        for deviceId in names:
+            device = self.db.devices.get(deviceId)
+            if not device:
+                continue
+
+            proxy = DeviceProxy()
+            proxy.id = deviceId
+            proxy.skipModelMsg = ''
+            proxy.manageIp = device.manageIp
+            proxy.plugins = []
+            proxy._snmpLastCollection = 0
+
+            plugin_ids = device.getProperty('zCollectorPlugins')
+            if plugin_ids is None:
+                import pdb; pdb.set_trace()
+            for plugin_id in plugin_ids:
+                plugin = self.db.modelerplugin.get(plugin_id)
+                if not plugin:
+                    continue
+
+                proxy.plugins.append(plugin.pluginLoader)
+                for id in plugin.deviceProperties:
+                    # zproperties
+                    if device.hasProperty(id):
+                        setattr(proxy, id, device.getProperty(id))
+
+                    # modeled properties (TODO)
+                    elif hasattr(device, id):
+                        setattr(proxy, id, getattr(device, id))
+
+                    else:
+                        self.log.error("device property %s not found on %s", id, deviceId)
+
+            result.append(proxy)
+
+        return result
+
+    @translateError
+    def remote_getDeviceListByMonitor(self, monitor=None):
+        return [x.deviceId for x in self.db.devices]
+
+
+    @translateError
+    def remote_getDeviceListByOrganizer(self, organizer, monitor=None, options=None):
+        dc = replace_prefix(organizer, "/Devices", "/")
+        if dc not in self.db.device_classes:
+            return []
+        return [x.deviceId for x in self.db.child_devices[dc]]
+
+
+    @translateError
+    def remote_applyDataMaps(self, device, maps, devclass=None, setLastCollection=False):
+        mapper = self.db.get_mapper(device)
+
+        adm = ApplyDataMapper(mapper)
+        changed = False
+        for datamap in maps:
+            if adm.applyDataMap(device, datamap):
+                changed = True
+
+        self.log.debug("ApplyDataMaps Completed: Changed=%s, New DataMapper: %s", changed, pformat(mapper.objects))
+
+        return False
+
+    @translateError
+    def remote_setSnmpLastCollection(self, device):
+        return
+
+    @translateError
+    def remote_setSnmpConnectionInfo(self, device, version, port, community):
+        return
+
+BASE_ATTRIBUTES = ('id',
+                   'manageIp',
+                   )
+
+class CollectorConfigService(NubService):
+    def __init__(self, deviceProxyAttributes=()):
+        """
+        Constructs a new CollectorConfig instance.
+
+        Subclasses must call this __init__ method but cannot do so with
+        the super() since parents of this class are not new-style classes.
+
+        @param deviceProxyAttributes: a tuple of names for device attributes
+               that should be copied to every device proxy created
+        @type deviceProxyAttributes: tuple
+        """
+        NubService.__init__(self)
+
+        self._deviceProxyAttributes = ('id', 'manageIp',) + deviceProxyAttributes
+        self.db = get_nub_db()
+
+
+    def _wrapFunction(self, functor, *args, **kwargs):
+        """
+        Call the functor using the arguments, and trap any unhandled exceptions.
+
+        @parameter functor: function to call
+        @type functor: method
+        @parameter args: positional arguments
+        @type args: array of arguments
+        @parameter kwargs: keyword arguments
+        @type kwargs: dictionary
+        @return: result of functor(*args, **kwargs) or None if failure
+        @rtype: result of functor
+        """
+        try:
+            return functor(*args, **kwargs)
+        except (SystemExit, KeyboardInterrupt): raise
+        except Exception, ex:
+            msg = 'Unhandled exception in zenhub service %s: %s' % (
+                      self.__class__, str(ex))
+            self.log.exception(msg)
+
+        return None
+
+    @translateError
+    def remote_getConfigProperties(self):
+        return self.remote_propertyItems()
+
+    @translateError
+    def remote_getDeviceNames(self, options=None):
+        # (note, this should be filtered by _filterDevices)
+        return [x.deviceId for x in self.db.devices]
+
+    @translateError
+    def remote_getDeviceConfigs(self, deviceNames=None, options=None):
+        # (note, the device list should be filtered)
+
+        if deviceNames is None or len(deviceNames) == 0:
+            deviceNames = self.db.devices.keys()
+
+        deviceConfigs = []
+        for deviceName in deviceNames:
+            device = self.db.devices.get(deviceName, None)
+            if device is None:
+                log.error("Device ID %s not found", deviceName)
+                continue
+
+            proxies = self._wrapFunction(self._createDeviceProxies, device)
+            if proxies:
+                deviceConfigs.extend(proxies)
+
+        return deviceConfigs
+
+    @translateError
+    def remote_getEncryptionKey(self):
+        # if we actually use it, this should be persisted, not changed
+        # every time.
+        from cryptography.fernet import Fernet
+        import hashlib
+        import base64
+
+        key = Fernet.generate_key()
+
+          # Hash the key with the daemon identifier to get unique key per collector daemon
+        s = hashlib.sha256()
+        s.update(key)
+        s.update(self.__class__.__name__)
+        return base64.urlsafe_b64encode(s.digest())
+
+    @translateError
+    def remote_getThresholdClasses(self):
+        return []
+
+    @translateError
+    def remote_getCollectorThresholds(self):
+        return []
+
+    def _createDeviceProxies(self, device):
+        proxy = self._createDeviceProxy(device)
+        return (proxy,) if (proxy is not None) else ()
+
+    def _createDeviceProxy(self, device, proxy=None):
+        """
+        Creates a device proxy object that may be copied across the network.
+
+        Subclasses should override this method, call it for a basic DeviceProxy
+        instance, and then add any additional data to the proxy as their needs
+        require.
+
+        @param device: the regular device object to create a proxy from
+        @return: a new device proxy object, or None if no proxy can be created
+        @rtype: DeviceProxy
+        """
+        proxy = proxy if (proxy is not None) else DeviceProxy()
+
+        # copy over all the attributes requested
+        for attrName in self._deviceProxyAttributes:
+            setattr(proxy, attrName, getattr(device, attrName, None))
+
+        return proxy
+
+
+class CommandPerformanceConfig(CollectorConfigService):
+    dsType = 'COMMAND'
+
+    def __init__(self):
+        deviceProxyAttributes = ('zCommandPort',
+                                 'zCommandUsername',
+                                 'zCommandPassword',
+                                 'zCommandLoginTimeout',
+                                 'zCommandCommandTimeout',
+                                 'zKeyPath',
+                                 'zSshConcurrentSessions',
+                                )
+        CollectorConfigService.__init__(self, deviceProxyAttributes)
+
+
+    def _createDeviceProxy(self, device, proxy=None):
+        proxy = CollectorConfigService._createDeviceProxy(
+            self, device, proxy=proxy)
+
+        # Framework expects a default value but zencommand uses cycles per datasource instead
+        proxy.configCycleInterval = 0
+
+        proxy.name = device.deviceId
+        proxy.device = device.deviceId
+        proxy.lastmodeltime = "n/a"
+        proxy.lastChangeTime = float(0)
+
+        commands = set()
+
+        # First for the device....
+        proxy.thresholds = []
+        device_datum = self.db.get_mapper(device.deviceId).get(device.deviceId)
+        self._safeGetComponentConfig(device_datum, device, commands)
+
+        # And now for its components
+        for comp in device.getMonitoredComponents(collector='zencommand'):
+            self._safeGetComponentConfig(comp, device, commands)
+
+        if commands:
+            proxy.datasources = list(commands)
+            return proxy
+        return None
+
+    def _safeGetComponentConfig(self, comp, device, commands):
+        """
+        Catchall wrapper for things not caught at previous levels
+        """
+
+        try:
+            self._getComponentConfig(comp, device, commands)
+        except Exception:
+            msg = "Unable to process %s datasource(s) for device %s -- skipping" % (
+                              self.dsType, device.deviceId)
+            log.exception(msg)
+
+    def component_getRRDTemplates(self, device, component_datum):
+        clsname = component_datum["type"]
+        rrdTemplateName = self.db.classmodel[clsname].default_rrd_template_name
+        seen = set()
+        templates = []
+
+        for dc in all_parent_dcs(device.device_class):
+            for template_name, template in self.db.device_classes[dc].rrdTemplates.iteritems():
+                if template_name in seen:
+                    # lower level templates with the same name take precendence
+                    continue
+                seen.add(template_name)
+
+                # this really should use getRRDTemplateName per instance,
+                # but that is not available to us without zodb.   So we
+                # use a single value that was determined by update_zenpacks.py
+                if template_name == rrdTemplateName:
+                    templates.append(template)
+
+        return templates
+
+
+    def _getComponentConfig(self, comp, device, cmds):
+        # comp is a mapper datum.  device is a Device model object.model
+
+        for templ in self.component_getRRDTemplates(device, comp):
+            for ds in templ.getRRDDataSources(self.dsType):
+                import pdb; pdb.set_trace()
+                if not ds.enabled:
+                    continue
+
+                # Ignore SSH datasources if no username set
+                useSsh = getattr(ds, 'usessh', False)
+                if useSsh and not device.zCommandUsername:
+                    log.warning("Username not set on device %s" % device)
+                    continue
+
+                parserName = getattr(ds, "parser", "Auto")
+                ploader = getParserLoader(self.dmd, parserName)
+                if ploader is None:
+                    log.error("Could not load %s plugin", parserName)
+                    continue
+
+                cmd = Cmd()
+                cmd.useSsh = useSsh
+                cmd.name = "%s/%s" % (templ.id, ds.id)
+                cmd.cycleTime = self._getDsCycleTime(comp, templ, ds)
+                cmd.component = ds.getComponent(comp, device=device)
+                cmd.eventClass = ds.eventClass
+                cmd.eventKey = ds.eventKey or ds.id
+                cmd.severity = ds.severity
+                cmd.parser = ploader
+                cmd.ds = ds.titleOrId()
+                cmd.points = self._getDsDatapoints(device, comp, ds, ploader, perfServer)
+
+                if isinstance(comp, OSProcess):
+                    # save off the regex's specified in the UI to later run
+                    # against the processes running on the device
+                    cmd.includeRegex = comp.includeRegex
+                    cmd.excludeRegex = comp.excludeRegex
+                    cmd.replaceRegex = comp.replaceRegex
+                    cmd.replacement  = comp.replacement
+                    cmd.primaryUrlPath = comp.processClassPrimaryUrlPath()
+                    cmd.generatedId = comp.id
+                    cmd.displayName = comp.displayName
+                    cmd.sequence = comp.osProcessClass().sequence
+
+                # If the datasource supports an environment dictionary, use it
+                cmd.env = getattr(ds, 'env', None)
+
+                try:
+                    # Since 5.2.3 (ZEN-26606) we pass the device to avoid calling
+                    # device() on the component all the time. This can break some
+                    # zenpacks (ZEN-27076). To avoid having to update a bunch of zps
+                    # we use inpect to figure out if the method accepts the device
+                    # as argument
+                    if "device" in getargspec(ds.getCommand).args:
+                        cmd.command = ds.getCommand(comp, device=device)
+                    else:
+                        cmd.command = ds.getCommand(comp)
+                except Exception as ex: # TALES error
+                    msg = "TALES error for device %s datasource %s" % (
+                               device.deviceId, ds.id)
+                    details = dict(
+                           template=templ.id,
+                           datasource=ds.id,
+                           affected_device=device.deviceId,
+                           affected_component=comp.id,
+                           tb_exception=str(ex),
+                           resolution='Could not create a command to send to zencommand' \
+                                      ' because TALES evaluation failed.  The most likely' \
+                                      ' cause is unescaped special characters in the command.' \
+                                      ' eg $ or %')
+                    # This error might occur many, many times
+                    log.warning("Event: %s", str(details))
+                    continue
+
+                cmds.add(cmd)
+
+
+
+    # Use case: create a dummy device to act as a placeholder to execute commands
+    #           So don't filter out devices that don't have IP addresses.
+
+    def _getDsDatapoints(self, device, comp, ds, ploader, perfServer):
+        """
+        Given a component a data source, gather its data points
+        """
+        parser = ploader.create()
+        points = []
+        component_name = ds.getComponent(comp, device=device)
+        for dp in ds.getRRDDataPoints():
+            dpc = DataPointConfig()
+            dpc.id = dp.id
+            dpc.component = component_name
+            dpc.dpName = dp.name()
+            dpc.rrdType = dp.rrdtype
+            dpc.rrdCreateCommand = dp.getRRDCreateCommand(perfServer)
+            dpc.rrdMin = dp.rrdmin
+            dpc.rrdMax = dp.rrdmax
+            dpc.data = parser.dataForParser(comp, dp)
+            dpc.metadata = comp.getMetricMetadata(device)
+            dpc.tags = dp.getTags(comp)
+            points.append(dpc)
+
+        return points
+
+    def _getDsCycleTime(self, comp, templ, ds):
+        cycleTime = 300
+        try:
+            cycleTime = int(ds.getCycleTime(comp))
+        except ValueError:
+            message = "Unable to convert the cycle time '%s' to an " \
+                          "integer for %s/%s on %s" \
+                          " -- setting to 300 seconds" % (
+                          ds.cycletime, templ.id, ds.id, comp.device().id)
+            log.error(message)
+            component = ds.getPrimaryUrlPath()
+            dedupid = "Unable to convert cycletime for %s" % component
+            self.sendEvent(dict(
+                    device=comp.device().id, component=component,
+                    eventClass='/Cmd', severity=Warning, summary=message,
+                    dedupid=dedupid,
+            ))
+        return cycleTime
+
+
+

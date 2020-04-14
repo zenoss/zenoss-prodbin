@@ -92,13 +92,13 @@ class ZCmdBase(ZenDaemon):
         self.dataroot = None
         self.app = app
         self.db = None
-        if not app:
-            self.zodbConnect()
+        # if not app:
+        #     self.zodbConnect()
         self.poollock = Lock()
-        self.getDataRoot()
-        self.login()
-
-        setDescriptors(self.dmd)
+        # self.getDataRoot()
+        # self.login()
+        self.dmd = None
+        # setDescriptors(self.dmd)
 
     def zodbConnect(self):
         connectionFactory = getUtility(IZodbFactoryLookup).get()
@@ -136,7 +136,7 @@ class ZCmdBase(ZenDaemon):
 
 
     def opendb(self):
-        if self.app: return 
+        if self.app: return
         self.connection=self.db.open()
         root=self.connection.root()
         app=root['Application']
