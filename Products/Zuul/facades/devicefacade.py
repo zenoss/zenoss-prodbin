@@ -759,6 +759,19 @@ class DeviceFacade(TreeFacade):
         else:
             rrdTemplates = object.getRRDTemplates()
 
+        def isReplaced(tmpl, tmpls):
+            replacement = tmpl.id + '-replacement'
+            for t in tmpls:
+                if replacement == t.id:
+                    return True
+            return False
+
+        filteredTemplates = []
+        for template in rrdTemplates:
+            if not isReplaced(template, rrdTemplates):
+                filteredTemplates.append(template)
+        rrdTemplates = filteredTemplates
+
         # used to sort the templates
         def byTitleOrId(left, right):
             return cmp(left.titleOrId().lower(), right.titleOrId().lower())
