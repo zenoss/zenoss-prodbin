@@ -761,7 +761,21 @@ class DeviceFacade(TreeFacade):
         if isinstance(object, Device):
             rrdTemplates = object.getAvailableTemplates()
         else:
-            rrdTemplates = object.getRRDTemplates()        
+            rrdTemplates = object.getRRDTemplates()
+
+        #fix for zen-32703
+        def isReplaced(tmpl, tmpls):
+            replacement = tmpl.id + '-replacement'
+            for t in tmpls:
+                if replacement == t.id:
+                    return True
+            return False
+
+        filteredTemplates = []
+        for template in rrdTemplates:
+            if not isReplaced(template, rrdTemplates):
+                filteredTemplates.append(template)
+        rrdTemplates = filteredTemplates
 
         # used to sort the templates
         def byTitleOrId(left, right):
