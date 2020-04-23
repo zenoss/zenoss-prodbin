@@ -18,6 +18,13 @@ def zenpack_names():
     for pkg in pkg_resources.iter_entry_points('zenoss.zenpacks'):
         yield pkg.module_name
 
+def zenpack_directory(zenpack_name, in_module=True):
+    file_name = '.'
+    if in_module:
+        file_name = zenpack_name.replace('.', '/') + "/" + file_name
+
+    return os.path.normpath(pkg_resources.resource_filename(Requirement(zenpack_name), file_name))
+
 def zenpack_has_file(zenpack_name, file_name, in_module=True):
     if in_module:
         file_name = zenpack_name.replace('.', '/') + "/" + file_name

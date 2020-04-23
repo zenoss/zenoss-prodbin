@@ -12,14 +12,19 @@
 # templates.
 
 import logging
+import os
+import pickle
 
-from .model import Device, ModelerPlugin, DeviceClass, RRDTemplate, ClassModel
+from .model import Device, ModelerPlugin, ParserPlugin, DeviceClass, RRDTemplate, ClassModel
 from .config.deviceclasses import load_yaml as load_dc_yaml
 from .config.devices import load_yaml as load_device_yaml
 from .config.modelerplugins import load_yaml as load_modelerplugin_yaml
+from .config.parserplugins import load_yaml as load_parserplugin_yaml
 from .config.classmodels import load_yaml as load_classmodel_yaml
 from .utils import all_parent_dcs
 from .mapper import DataMapper
+
+SNAPSHOT_DIR="/opt/zenoss/etc/nub/snapshot"
 
 log = logging.getLogger('zen.zennub.db')
 _DB = None
@@ -38,6 +43,7 @@ class DB(object):
         self.device_classes = {}
         self.devices = {}
         self.modelerplugin = {}
+        self.parserplugin = {}
         self.mappers = {}
         self.classmodel = {}
 
@@ -48,8 +54,10 @@ class DB(object):
         # Load the contents of the on-disk YAML files into the db.
 
         log.info("Loading device classes and monitoring templates..")
-        for id_, dc in load_dc_yaml().iteritems():
-            dc['deviceClassId'] = id_
+        dc_yaml, mt_yaml = load_dc_yaml()
+        for id_, dc in dc_yaml.iteritems():
+            dc['id'] = id_
+            dc.update(mt_yaml[id_])
             try:
                 self.store_deviceclass(DeviceClass(**dc))
             except ValueError, e:
@@ -57,17 +65,32 @@ class DB(object):
 
         log.info("Loading devices")
         for id_, d in load_device_yaml().iteritems():
-            d['deviceId'] = id_
+            d['id'] = id_
             try:
                 self.store_device(Device(**d))
             except ValueError, e:
                 log.error("Unable to load device %s: %s", id_, e)
 
+            # quick check for unnecessary zProp settings in devices.yaml
+            # that could be removed.
+            if id_ in self.devices:
+                for zProp, value in self.devices[id_].zProperties.iteritems():
+                    if self.devices[id_].getPropertyDefault(zProp) == value:
+                        print "   Note: device %s zProperty %s is already its default" % (id_, zProp)
+
         log.info("Loading modeler plugin info")
         for id_, d in load_modelerplugin_yaml().iteritems():
-            d['pluginId'] = id_
+            d['id'] = d['pluginName']
             try:
                 self.store_modelerplugin(ModelerPlugin(**d))
+            except ValueError, e:
+                log.error("Unable to load modelerplugin %s: %s", id_, e)
+
+        log.info("Loading parser plugin info")
+        for id_, d in load_parserplugin_yaml().iteritems():
+            d['id'] = d['modPath']
+            try:
+                self.store_parserplugin(ParserPlugin(**d))
             except ValueError, e:
                 log.error("Unable to load modelerplugin %s: %s", id_, e)
 
@@ -84,26 +107,56 @@ class DB(object):
 
         log.info("Loading complete")
 
-    def get_mapper(self, deviceId):
-        if deviceId not in self.mappers:
-            mapper = DataMapper("zennub")
-            log.debug("Creating DataMapper for device %s" % deviceId)
-            self.mappers[deviceId] = mapper
-            device = mapper.get(deviceId, create_if_missing=True)
-            device["type"] = self.devices[deviceId].getProperty("zPythonClass")
-            log.debug("  Setting device type to %s" % device["type"])
-            mapper.update({deviceId: device})
+    def get_mapper(self, id):
+        if id not in self.mappers:
+            filename = "%s/%s.pickle" % (SNAPSHOT_DIR, id)
+            if os.path.exists(filename):
+                try:
+                    log.debug("Reading DataMapper for device %s from last snapshot.", id)
+                    with open(filename, "r") as f:
+                        self.mappers[id] = pickle.load(f)
+                    return self.mappers[id]
+                except Exception, e:
+                    log.error("Error reading DataMapper snapshot from %s: %s", filename, e)
 
-        return self.mappers[deviceId]
+            mapper = DataMapper("zennub")
+            log.debug("Creating new DataMapper for device %s" % id)
+            self.mappers[id] = mapper
+            device = mapper.get(id, create_if_missing=True)
+            device["type"] = self.devices[id].getProperty("zPythonClass")
+            log.debug("  Setting device type to %s" % device["type"])
+            mapper.update({id: device})
+
+
+
+        return self.mappers[id]
+
+    def snapshot(self):
+        for id in self.mappers:
+            self.snapshot_device(id)
+
+    def snapshot_device(self, id):
+        if id not in self.mappers:
+            log.error("No mapper found for %s", id)
+            return
+
+        filename = "%s/%s.pickle" % (SNAPSHOT_DIR, id)
+        log.debug("Writing %s", filename)
+        with open(filename, "w") as f:
+            pickle.dump(self.mappers[id], f)
+
 
     def store_device(self, device):
-        self.devices[device.deviceId] = device
+        self.devices[device.id] = device
 
     def store_deviceclass(self, deviceclass):
-        self.device_classes[deviceclass.deviceClassId] = deviceclass
+        self.device_classes[deviceclass.id] = deviceclass
 
     def store_modelerplugin(self, modelerplugin):
-        self.modelerplugin[modelerplugin.pluginId] = modelerplugin
+        self.modelerplugin[modelerplugin.id] = modelerplugin
+
+    def store_parserplugin(self, parserplugin):
+        self.parserplugin[parserplugin.id] = parserplugin
 
     def store_classmodel(self, classmodel):
         self.classmodel[classmodel.module] = classmodel
@@ -115,7 +168,7 @@ class DB(object):
         for device in self.devices.values():
             for dc in all_parent_dcs(device.device_class):
                 if dc not in self.device_classes:
-                    self.store_deviceclass(DeviceClass(deviceClassId=dc))
+                    self.store_deviceclass(DeviceClass(id=dc))
                 self.child_devices.setdefault(dc, [])
                 self.child_devices[dc].append(device)
 

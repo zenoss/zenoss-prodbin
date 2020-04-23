@@ -14,7 +14,11 @@ from pprint import pformat
 from twisted.spread import pb
 
 from Products.ZenHub.PBDaemon import translateError
-from Products.DataCollector.DeviceProxy import DeviceProxy
+from Products.ZenModel.OSProcess import OSProcess
+from Products.ZenRRD.zencommand import Cmd, DataPointConfig
+from Products.DataCollector.DeviceProxy import DeviceProxy as ModelDeviceProxy
+from Products.ZenCollector.services.config import DeviceProxy
+
 
 from .utils import replace_prefix, all_parent_dcs
 from .applydatamapper import ApplyDataMapper
@@ -144,21 +148,19 @@ class ModelerService(NubService):
     @translateError
     def remote_getDeviceConfig(self, names, checkStatus=False):
         result = []
-        for deviceId in names:
-            device = self.db.devices.get(deviceId)
+        for id in names:
+            device = self.db.devices.get(id)
             if not device:
                 continue
 
-            proxy = DeviceProxy()
-            proxy.id = deviceId
+            proxy = ModelDeviceProxy()
+            proxy.id = id
             proxy.skipModelMsg = ''
             proxy.manageIp = device.manageIp
             proxy.plugins = []
             proxy._snmpLastCollection = 0
 
             plugin_ids = device.getProperty('zCollectorPlugins')
-            if plugin_ids is None:
-                import pdb; pdb.set_trace()
             for plugin_id in plugin_ids:
                 plugin = self.db.modelerplugin.get(plugin_id)
                 if not plugin:
@@ -175,7 +177,7 @@ class ModelerService(NubService):
                         setattr(proxy, id, getattr(device, id))
 
                     else:
-                        self.log.error("device property %s not found on %s", id, deviceId)
+                        self.log.error("device property %s not found on %s", id, id)
 
             result.append(proxy)
 
@@ -183,7 +185,7 @@ class ModelerService(NubService):
 
     @translateError
     def remote_getDeviceListByMonitor(self, monitor=None):
-        return [x.deviceId for x in self.db.devices]
+        return [x.id for x in self.db.devices]
 
 
     @translateError
@@ -191,7 +193,7 @@ class ModelerService(NubService):
         dc = replace_prefix(organizer, "/Devices", "/")
         if dc not in self.db.device_classes:
             return []
-        return [x.deviceId for x in self.db.child_devices[dc]]
+        return [x.id for x in self.db.child_devices[dc]]
 
 
     @translateError
@@ -204,9 +206,14 @@ class ModelerService(NubService):
             if adm.applyDataMap(device, datamap):
                 changed = True
 
-        self.log.debug("ApplyDataMaps Completed: Changed=%s, New DataMapper: %s", changed, pformat(mapper.objects))
+        self.log.debug("ApplyDataMaps Completed: New DataMapper: %s", pformat(mapper.objects))
+        self.log.debug("ApplyDataMaps Changed: %s", changed)
 
-        return False
+        self.db.snapshot_device(device)
+
+        return changed
+
+    remote_singleApplyDataMaps = remote_applyDataMaps
 
     @translateError
     def remote_setSnmpLastCollection(self, device):
@@ -268,7 +275,7 @@ class CollectorConfigService(NubService):
     @translateError
     def remote_getDeviceNames(self, options=None):
         # (note, this should be filtered by _filterDevices)
-        return [x.deviceId for x in self.db.devices]
+        return [x.id for x in self.db.devices]
 
     @translateError
     def remote_getDeviceConfigs(self, deviceNames=None, options=None):
@@ -334,7 +341,10 @@ class CollectorConfigService(NubService):
 
         # copy over all the attributes requested
         for attrName in self._deviceProxyAttributes:
-            setattr(proxy, attrName, getattr(device, attrName, None))
+            if hasattr(device, attrName):
+                setattr(proxy, attrName, getattr(device, attrName, None))
+            elif device.hasProperty(attrName):
+                setattr(proxy, attrName, device.getProperty(attrName))
 
         return proxy
 
@@ -353,7 +363,6 @@ class CommandPerformanceConfig(CollectorConfigService):
                                 )
         CollectorConfigService.__init__(self, deviceProxyAttributes)
 
-
     def _createDeviceProxy(self, device, proxy=None):
         proxy = CollectorConfigService._createDeviceProxy(
             self, device, proxy=proxy)
@@ -361,8 +370,8 @@ class CommandPerformanceConfig(CollectorConfigService):
         # Framework expects a default value but zencommand uses cycles per datasource instead
         proxy.configCycleInterval = 0
 
-        proxy.name = device.deviceId
-        proxy.device = device.deviceId
+        proxy.name = device.id
+        proxy.device = device.id
         proxy.lastmodeltime = "n/a"
         proxy.lastChangeTime = float(0)
 
@@ -370,28 +379,29 @@ class CommandPerformanceConfig(CollectorConfigService):
 
         # First for the device....
         proxy.thresholds = []
-        device_datum = self.db.get_mapper(device.deviceId).get(device.deviceId)
-        self._safeGetComponentConfig(device_datum, device, commands)
+
+        device_datum = self.db.get_mapper(device.id).get(device.id)
+        self._safeGetComponentConfig(device.id, device_datum, device, commands)
 
         # And now for its components
-        for comp in device.getMonitoredComponents(collector='zencommand'):
-            self._safeGetComponentConfig(comp, device, commands)
+        for compId, comp in device.getMonitoredComponents(collector='zencommand'):
+            self._safeGetComponentConfig(compId, comp, device, commands)
 
         if commands:
             proxy.datasources = list(commands)
             return proxy
         return None
 
-    def _safeGetComponentConfig(self, comp, device, commands):
+    def _safeGetComponentConfig(self, compId, comp, device, commands):
         """
         Catchall wrapper for things not caught at previous levels
         """
 
         try:
-            self._getComponentConfig(comp, device, commands)
+            self._getComponentConfig(compId, comp, device, commands)
         except Exception:
             msg = "Unable to process %s datasource(s) for device %s -- skipping" % (
-                              self.dsType, device.deviceId)
+                              self.dsType, device.id)
             log.exception(msg)
 
     def component_getRRDTemplates(self, device, component_datum):
@@ -416,72 +426,65 @@ class CommandPerformanceConfig(CollectorConfigService):
         return templates
 
 
-    def _getComponentConfig(self, comp, device, cmds):
+    def _getComponentConfig(self, compId, comp, device, cmds):
         # comp is a mapper datum.  device is a Device model object.model
 
         for templ in self.component_getRRDTemplates(device, comp):
             for ds in templ.getRRDDataSources(self.dsType):
-                import pdb; pdb.set_trace()
-                if not ds.enabled:
-                    continue
 
                 # Ignore SSH datasources if no username set
                 useSsh = getattr(ds, 'usessh', False)
-                if useSsh and not device.zCommandUsername:
+                if useSsh and not device.getProperty('zCommandUsername'):
                     log.warning("Username not set on device %s" % device)
                     continue
 
                 parserName = getattr(ds, "parser", "Auto")
-                ploader = getParserLoader(self.dmd, parserName)
-                if ploader is None:
-                    log.error("Could not load %s plugin", parserName)
+                plugin = self.db.parserplugin.get(parserName)
+                if plugin is None:
+                    log.error("Could not find %s parser plugin", parserName)
                     continue
+                ploader = plugin.pluginLoader
 
                 cmd = Cmd()
                 cmd.useSsh = useSsh
                 cmd.name = "%s/%s" % (templ.id, ds.id)
-                cmd.cycleTime = self._getDsCycleTime(comp, templ, ds)
-                cmd.component = ds.getComponent(comp, device=device)
-                cmd.eventClass = ds.eventClass
-                cmd.eventKey = ds.eventKey or ds.id
-                cmd.severity = ds.severity
-                cmd.parser = ploader
-                cmd.ds = ds.titleOrId()
-                cmd.points = self._getDsDatapoints(device, comp, ds, ploader, perfServer)
+                cmd.cycleTime = self._getDsCycleTime(device, templ, ds)
+                cmd.component = comp.get('title') or compId
 
-                if isinstance(comp, OSProcess):
-                    # save off the regex's specified in the UI to later run
-                    # against the processes running on the device
-                    cmd.includeRegex = comp.includeRegex
-                    cmd.excludeRegex = comp.excludeRegex
-                    cmd.replaceRegex = comp.replaceRegex
-                    cmd.replacement  = comp.replacement
-                    cmd.primaryUrlPath = comp.processClassPrimaryUrlPath()
-                    cmd.generatedId = comp.id
-                    cmd.displayName = comp.displayName
-                    cmd.sequence = comp.osProcessClass().sequence
+                # TODO: events are not supported currently.
+                # cmd.eventClass = ds.eventClass
+                # cmd.eventKey = ds.eventKey or ds.id
+                # cmd.severity = ds.severity
+                cmd.parser = ploader
+                cmd.ds = ds.id
+                cmd.points = self._getDsDatapoints(device, compId, comp, ds, ploader)
+
+                # TODO: OSProcess component monitoring isn't supported currently.
+                # if isinstance(comp, OSProcess):
+                #     # save off the regex's specified in the UI to later run
+                #     # against the processes running on the device
+                #     cmd.includeRegex = comp.includeRegex
+                #     cmd.excludeRegex = comp.excludeRegex
+                #     cmd.replaceRegex = comp.replaceRegex
+                #     cmd.replacement  = comp.replacement
+                #     cmd.primaryUrlPath = comp.processClassPrimaryUrlPath()
+                #     cmd.generatedId = comp.id
+                #     cmd.displayName = comp.displayName
+                #     cmd.sequence = comp.osProcessClass().sequence
 
                 # If the datasource supports an environment dictionary, use it
                 cmd.env = getattr(ds, 'env', None)
 
                 try:
-                    # Since 5.2.3 (ZEN-26606) we pass the device to avoid calling
-                    # device() on the component all the time. This can break some
-                    # zenpacks (ZEN-27076). To avoid having to update a bunch of zps
-                    # we use inpect to figure out if the method accepts the device
-                    # as argument
-                    if "device" in getargspec(ds.getCommand).args:
-                        cmd.command = ds.getCommand(comp, device=device)
-                    else:
-                        cmd.command = ds.getCommand(comp)
+                    cmd.command = ds.getCommand(comp, device=device)
                 except Exception as ex: # TALES error
                     msg = "TALES error for device %s datasource %s" % (
-                               device.deviceId, ds.id)
+                               device.id, ds.id)
                     details = dict(
                            template=templ.id,
                            datasource=ds.id,
-                           affected_device=device.deviceId,
-                           affected_component=comp.id,
+                           affected_device=device.id,
+                           affected_component=compId,
                            tb_exception=str(ex),
                            resolution='Could not create a command to send to zencommand' \
                                       ' because TALES evaluation failed.  The most likely' \
@@ -498,46 +501,51 @@ class CommandPerformanceConfig(CollectorConfigService):
     # Use case: create a dummy device to act as a placeholder to execute commands
     #           So don't filter out devices that don't have IP addresses.
 
-    def _getDsDatapoints(self, device, comp, ds, ploader, perfServer):
+    def _getDsDatapoints(self, device, compId, comp, ds, ploader):
         """
         Given a component a data source, gather its data points
         """
         parser = ploader.create()
         points = []
-        component_name = ds.getComponent(comp, device=device)
-        for dp in ds.getRRDDataPoints():
+        component_name = comp.get('title') or compId
+        for dp_id, dp in ds.datapoints.iteritems():
             dpc = DataPointConfig()
-            dpc.id = dp.id
+            dpc.id = dp_id
             dpc.component = component_name
-            dpc.dpName = dp.name()
+            dpc.dpName = dp_id
             dpc.rrdType = dp.rrdtype
-            dpc.rrdCreateCommand = dp.getRRDCreateCommand(perfServer)
+            dpc.rrdCreateCommand = None
             dpc.rrdMin = dp.rrdmin
             dpc.rrdMax = dp.rrdmax
-            dpc.data = parser.dataForParser(comp, dp)
-            dpc.metadata = comp.getMetricMetadata(device)
-            dpc.tags = dp.getTags(comp)
+            dpc.data = self._dataForParser(parser, compId, comp, dp_id, dp)
+            # dpc.metadata = comp.getMetricMetadata(device)
+            # dpc.tags = dp.getTags(comp)
             points.append(dpc)
 
         return points
 
-    def _getDsCycleTime(self, comp, templ, ds):
+    def _dataForParser(self, parser, compId, comp, dpId, dp):
+        # LIMIT: Normally, this is a method on the parser, and its behavior
+        # can be overridden to supply arbitrary model information to the parser
+
+        if hasattr(parser, 'componentScanValue'):
+            if parser.componentScanValue == 'id':
+                return {'componentScanValue': compId}
+            else:
+                return {'componentScanValue': comp['properties'].get(parser.componentScanValue)}
+
+        return {}
+
+    def _getDsCycleTime(self, device, templ, ds):
         cycleTime = 300
         try:
-            cycleTime = int(ds.getCycleTime(comp))
+            cycleTime = int(ds.getCycleTime(device))
         except ValueError:
             message = "Unable to convert the cycle time '%s' to an " \
                           "integer for %s/%s on %s" \
                           " -- setting to 300 seconds" % (
-                          ds.cycletime, templ.id, ds.id, comp.device().id)
+                          ds.cycletime, templ.id, ds.id, device.id)
             log.error(message)
-            component = ds.getPrimaryUrlPath()
-            dedupid = "Unable to convert cycletime for %s" % component
-            self.sendEvent(dict(
-                    device=comp.device().id, component=component,
-                    eventClass='/Cmd', severity=Warning, summary=message,
-                    dedupid=dedupid,
-            ))
         return cycleTime
 
 

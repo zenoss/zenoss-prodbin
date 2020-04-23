@@ -7,11 +7,16 @@
 #
 ##############################################################################
 
+from DateTime import DateTime
+from Products.ZenUtils.Utils import binPath
+from Products.ZenNub.utils.tales import talesCompile, talesEvalStr
+
 from .utils import all_parent_dcs
+from .utils.zenpack import zenpack_names, zenpack_directory
 
 class Device(object):
-    def __init__(self, deviceId=None, title=None, manageIp=None, device_class=None, zProperties=None):
-        if deviceId is None:
+    def __init__(self, id=None, title=None, manageIp=None, device_class=None, zProperties=None):
+        if id is None:
             raise ValueError("Device.device_class is required")
 
         if device_class is None:
@@ -23,7 +28,7 @@ class Device(object):
         if zProperties is None:
             zProperties = {}
 
-        self.deviceId = deviceId
+        self.id = id
         self.title = title
         self.manageIp = manageIp
         self.device_class = device_class
@@ -41,8 +46,9 @@ class Device(object):
             return True
 
         for dc in all_parent_dcs(self.device_class):
-            if zProp in self.db.device_classes[dc].zProperties:
-                return True
+            if dc in self.db.device_classes:
+                if zProp in self.db.device_classes[dc].zProperties:
+                    return True
 
         return False
 
@@ -51,95 +57,75 @@ class Device(object):
             return self.zProperties[zProp]
 
         for dc in all_parent_dcs(self.device_class):
-            if zProp in self.db.device_classes[dc].zProperties:
-                return self.db.device_classes[dc].zProperties[zProp]
+            if dc in self.db.device_classes:
+                if zProp in self.db.device_classes[dc].zProperties:
+                    return self.db.device_classes[dc].zProperties[zProp]
+
+    def getPropertyDefault(self, zProp):
+        for dc in all_parent_dcs(self.device_class):
+            if dc in self.db.device_classes:
+                if zProp in self.db.device_classes[dc].zProperties:
+                    return self.db.device_classes[dc].zProperties[zProp]
+
+    def getAllProperties(self):
+        props = {}
+        for zProp, value in self.zProperties.iteritems():
+            props.setdefault(zProp, value)
+
+        for dc in all_parent_dcs(self.device_class):
+            for zProp, value in self.db.device_classes[dc].zProperties.iteritems():
+                props.setdefault(zProp, value)
+
+        return props
+
 
     def getMonitoredComponents(self, collector=None):
-        mapper = self.db.get_mapper(self.deviceId)
+        mapper = self.db.get_mapper(self.id)
         for object_id, obj in mapper.all():
             if mapper.get_object_type(object_id).device:
                 continue
 
             # should filter based on monitored status, but we don't have
             # such a thing.  So just return all components.
-            yield obj
-
-    # def getRRDTemplates(self):
-    #     """
-    #     Returns all the templates bound to this Device
-
-    #     @rtype: list
-
-    #     """
-    #     if not self.hasProperty('zDeviceTemplates'):
-    #         default = self.getRRDTemplateByName(self.getRRDTemplateName())
-    #         if not default:
-    #             return []
-    #         return [default]
-
-    #     result = []
-    #     for name in self.getProperty('zDeviceTemplates'):
-    #         template = self.getRRDTemplateByName(name)
-    #         if template:
-    #             result.append(template)
-    #     return result
-
-    # def getRRDTemplateName(self):
-    #     """Return the target type name of this component.  By default meta_type.
-    #     Override to create custom type selection.
-    #     """
-    #     clsname =
-    #     return self.db.classmodel[clsname]["meta_type"]
-
-    # def getRRDTemplates(self):
-    #     default = self.getRRDTemplateByName(self.getRRDTemplateName())
-    #     if not default:
-    #         return []
-    #     return [default]
-
-    # def getRRDTemplate(self):
-    #     try:
-    #         return self.getRRDTemplates()[0]
-    #     except IndexError:
-    #         return None
-
-    # def getRRDTemplateByName(self, name):
-    #     "Return the template of the given name."
-    #     try:
-    #         return self._getOb(name)
-    #     except AttributeError:
-    #         pass
-    #     for obj in aq_chain(self):
-    #         try:
-    #             return obj.rrdTemplates._getOb(name)
-    #         except AttributeError:
-    #             pass
-    #     return None
-
-
+            yield object_id, obj
 
 
 class ModelerPlugin(object):
-    def __init__(self, pluginId=None, deviceProperties=None, pluginLoader=None):
+    def __init__(self, id=None, deviceProperties=None, pluginLoader=None, pluginName=None, modPath=None):
         if deviceProperties is None:
             deviceProperties = []
 
-        self.pluginId = pluginId
+        self.id = id
         self.deviceProperties = deviceProperties
+        self.pluginName = pluginName
+        self.modPath = modPath
 
         # the only reason we store the pluginLoader is that the current
         # zenmodeler wants to be handed loader objects, not just plugin names.
         # This could be changed.
         self.pluginLoader = pluginLoader
 
+
+class ParserPlugin(object):
+    def __init__(self, id=None, pluginLoader=None, pluginName=None, modPath=None):
+        self.id = id
+        self.pluginName = pluginName
+        self.modPath = modPath
+
+        # the only reason we store the pluginLoader is that the current
+        # zenmodeler wants to be handed loader objects, not just plugin names.
+        # This could be changed.
+        self.pluginLoader = pluginLoader
+
+
 class DeviceClass(object):
-    def __init__(self, deviceClassId=None, zProperties=None, rrdTemplates=None):
+    def __init__(self, id=None, zProperties=None, rrdTemplates=None):
         if zProperties is None:
             zProperties = {}
         if rrdTemplates is None:
             rrdTemplates = {}
 
-        self.deviceClassId = deviceClassId
+        self.id = id
         self.rrdTemplates = {}
         self.zProperties = {}
 
@@ -153,11 +139,12 @@ class DeviceClass(object):
             self.rrdTemplates[tname] = RRDTemplate(**tdict)
 
 class RRDTemplate(object):
-    def __init__(self, datasources=None, targetPythonClass=None):
+    def __init__(self, id=None, datasources=None, targetPythonClass=None):
         self.datasources = {}
         if datasources is None:
             datasources = {}
 
+        self.id = id
         self.targetPythonClass = targetPythonClass
 
         if not isinstance(datasources, dict):
@@ -166,22 +153,24 @@ class RRDTemplate(object):
             self.datasources[dsname] = RRDDataSource(**dsdict)
 
     def getRRDDataSources(self, dsType=None):
-        if dsType is None: return self.datasources
+        if dsType is None: return self.datasources.values()
 
-        return [ds for ds in self.datasources
+        return [ds for ds in self.datasources.values()
                 if ds.sourcetype == dsType]
 
 class RRDDataSource(object):
-    def __init__(self, component=None, commandTemplate=None, datapoints=None,
-                sourcetype=None,
+    def __init__(self, id=None, component=None, commandTemplate=None, datapoints=None,
+                cycletime=None, sourcetype=None,
                  **kwargs):
         if datapoints is None:
             datapoints = {}
 
+        self.id = id
         self.component = component
         self.commandTemplate = commandTemplate
         self.sourcetype = sourcetype
         self.datapoints = {}
+        self.cycletime = cycletime
 
         if not isinstance(datapoints, dict):
             raise TypeError("datapoints must be a dict")
@@ -190,6 +179,90 @@ class RRDDataSource(object):
 
         for k, v in kwargs.iteritems():
             setattr(self, k, v)
+
+    def talesEval(self, text, context):
+        if text is None:
+            return
+
+        if not isinstance(context, Device):
+            raise ValueError("RRDDataSource TALES context must be a ZenNub Device object")
+
+        zprops = context.getAllProperties()
+        extra = {
+            'here': zprops,
+            'device': zprops,
+            'dev': zprops,
+            'devname': context.id,
+            'datasource': self,
+            'ds': self
+        }
+
+        return talesEvalStr(str(text), {}, extra=extra)
+
+
+    def getCycleTime(self, context):
+        return int(self.talesEval(self.cycletime, context))
+
+    def getCommand(self, context, cmd=None, device=None):
+        """Return localized command target.
+        """
+        # Perform a TALES eval on the expression using self
+        if cmd is None:
+            cmd = self.commandTemplate
+        if not cmd.startswith('string:') and not cmd.startswith('python:'):
+            cmd = 'string:%s' % cmd
+        compiled = talesCompile(cmd)
+
+        zprops = device.getAllProperties()
+        packs = []
+
+        # Provide a minimal zenpackmanager->zenpack object that just has the path method.
+        class _zenpack(object):
+            def __init__(self, modulePath):
+                self._modulePath = modulePath
+            def path(self, *parts):
+                return os.path.join(self._modulePath, *[p.strip('/') for p in parts])
+        for zenpack in zenpack_names():
+            packs.append({zenpack: _zenpack(modulePath=zenpack_directory(zenpack))})
+
+        zprops['ZenPackManager'] = {
+            'packs': packs
+        }
+        zprops['title'] = context.get('title')
+
+        extra = {
+            'here': zprops,
+            'context': zprops,
+            'device': zprops,
+            'devname': device.id,
+            'dev': zprops,
+            'datasource': self,
+            'ds': self,
+            'nothing' : None,
+            'now' : DateTime()
+        }
+
+        res = talesEvalStr(str(cmd), {}, extra=extra)
+
+        return self.checkCommandPrefix(device, res)
+
+    def checkCommandPrefix(self, device, cmd):
+        zCommandPath = device.getProperty('zCommandPath')
+
+        if not cmd.startswith('/') and not cmd.startswith('$'):
+            if zCommandPath and not cmd.startswith(zCommandPath):
+                cmd = os.path.join(zCommandPath, cmd)
+            elif binPath(cmd.split(" ",1)[0]):
+                #if we get here it is because cmd is not absolute, doesn't
+                #start with $, zCommandPath is not set and we found cmd in
+                #one of the zenoss bin dirs
+                cmdList = cmd.split(" ",1) #split into command and args
+                cmd = binPath(cmdList[0])
+                if len(cmdList) > 1:
+                    cmd = "%s %s" % (cmd, cmdList[1])
+
+        return cmd
+
 
 class RRDDataPoint(object):
     def __init__(self, rrdtype=None, createCmd=None, isrow=None,

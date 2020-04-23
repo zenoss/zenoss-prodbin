@@ -24,11 +24,16 @@ class ApplyDataMapper(object):
         self.mapper = mapper
 
     def applyDataMap(self, base_id, datamap):
+        changed = False
+
         if isinstance(datamap, RelationshipMap):
-            self.apply_relationshipmap(base_id, datamap)
+            changed = self.apply_relationshipmap(base_id, datamap)
 
         if isinstance(datamap, ObjectMap):
-            self.apply_objectmap(base_id, datamap)
+            changed = self.apply_objectmap(base_id, datamap)
+
+        log.debug("applyDataMap complete.  changed=%s", changed)
+        return changed
 
     def apply_objectmap(self, base_id, objmap):
         fields = ("compname", "relname", "modname", "id",)
@@ -42,6 +47,8 @@ class ApplyDataMapper(object):
         if "compname" not in om and "relname" not in om:
             target = self.mapper.get(base_id)
             changed = self._update_properties(objmap, target)
+            log.debug("ObjectMap [1] base_id=%s, compname=, relname=, target_id=%s",
+                base_id, base_id)
             self.mapper.update({base_id: target})
 
             return changed
@@ -58,6 +65,7 @@ class ApplyDataMapper(object):
             target = self.mapper.get(target_id, create_if_missing=_add)
             if target is None:
                 # if _add=False, we don't create the object if it's not there.
+                log.debug("ObjectMap [2] not creating target_id=%s (_add=False)", target_id)
                 return None
             changed = self._update_properties(objmap, target)
 
@@ -70,6 +78,8 @@ class ApplyDataMapper(object):
                 # temporary workaround- we'll have to fix this later.
                 target["type"] = "unknown type"
 
+            log.debug("ObjectMap [2] base_id=%s, compname=%s, relname=, target_id=%s",
+                base_id, objmap.compname, target_id)
             self.mapper.update({target_id: target})
 
             # Create link to target component if it's not already known
@@ -99,6 +109,7 @@ class ApplyDataMapper(object):
             # compname/relname as described above and just delete it by ID
             # instead.
             if "id" in om:
+                log.debug("remove id=%s", objmap.id)
                 self.mapper.remove(objmap.id)
                 return True
             else:
@@ -116,12 +127,16 @@ class ApplyDataMapper(object):
         #       'modname': 'ZenPacks.example.PackName.WidgetBag',
         #       'shape': 'squiggle',
         #   }),
-        if "compname" in om and "relname" in om and "modname" in om:
+        if "id" in om and "relname" in om and "modname" in om:
             target_id = objmap.id
             target = self.mapper.get(target_id, create_if_missing=_add)
             if target is None:
                 # if _add=False, we don't create the object if it's not there.
+                log.debug("ObjectMap [3] not creating target_id=%s (_add=False)", target_id)
                 return False
+
+            log.debug("ObjectMap [3] base_id=%s, compname=%s, relname=%s, target_id=%s",
+                base_id, objmap.compname, objmap.relname, target_id)
 
             changed = self._update_properties(objmap, target)
             self.mapper.update({target_id: target})
@@ -157,13 +172,17 @@ class ApplyDataMapper(object):
             target = self.mapper.get(target_id, create_if_missing=_add)
             changed = self._update_properties(objmap, target)
 
+            log.debug("ObjectMap [4] base_id=%s, compname=%s, relname=%s, target_id=%s",
+                base_id, objmap.compname, objmap.relname, target_id)
+
             self.mapper.update({target_id: target})
 
             return changed
 
     def _update_properties(self, objmap, target):
         changed = False
-        if target["type"] != objmap.modname:
+
+        if objmap.modname is not None and objmap.modname != "" and target["type"] != objmap.modname:
             target["type"] = objmap.modname
             changed = True
 
@@ -229,11 +248,16 @@ class ApplyDataMapper(object):
         target = self.mapper.get(target_id)
         if target is None:
             log.error("When applying relationship map (compname=%s), target was not found.", compname)
+            return False
+
+        log.debug("RelationshipMap [1] base_id=%s, compname=%s, relname=%s, target_id=%s",
+            base_id, compname, relmap.relname, target_id)
 
         current_objids = target["links"][relmap.relname]
         new_objids = set([om.id for om in relmap])
 
         rmodname = getattr(relmap, "modname", None)
+        changed = False
         for objmap in relmap:
             # objmaps inherit the modname from the relmap if they haven't
             # specified one.
@@ -242,16 +266,22 @@ class ApplyDataMapper(object):
                 objmap.modname = relmap.modname
 
             objmap.relname = relmap.relname
-            self.apply_objectmap(target_id, objmap)
+            changed = changed or self.apply_objectmap(target_id, objmap)
 
         # Remove any existing objects that were't included in the relationshipmap
         for objid in current_objids:
             if objid not in new_objids:
                 self.mapper.remove(objid)
+                changed = True
+
+        return changed
 
 
 
     def _traverse_compname(self, base_id, compname):
+        if compname == '':
+            return base_id
+
         path = compname.split("/")
         current_id = base_id
 
@@ -266,6 +296,7 @@ class ApplyDataMapper(object):
             if component is None:
                 log.error("While traversing %s:%s, object %s was not found",
                     base_id, compname, current_id)
+
                 return None
 
             # A "to one" relationship, "os"

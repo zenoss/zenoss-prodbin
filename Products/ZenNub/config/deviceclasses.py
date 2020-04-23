@@ -12,7 +12,12 @@ import yaml
 
 # This file is built by update_zenpacks.py and includes all of the zenpack-
 # defined device classes, monitoring templates, etc.
-ZENPACK_DEVICECLASS_YAML = "/opt/zenoss/etc/nub/system/zenpack_deviceclasses.yaml"
+DEVICECLASS_YAML = "/opt/zenoss/etc/nub/system/deviceclasses.yaml"
+MONITORINGTEMPLATE_YAML = "/opt/zenoss/etc/nub/system/monitoringtemplates.yaml"
 
 def load_yaml():
-    return yaml.load(file(ZENPACK_DEVICECLASS_YAML, 'r'))
+    return (
+        yaml.load(file(DEVICECLASS_YAML, 'r')),
+        yaml.load(file(MONITORINGTEMPLATE_YAML, 'r')),
+    )
+

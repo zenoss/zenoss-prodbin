@@ -158,7 +158,6 @@ class DataMapper(object):
     def add_link(self, object_id, object_type, link_name, remote_ids):
         link_type = object_type.get_link_type(link_name)
         if not link_type:
-            import pdb; pdb.set_trace()
             raise Exception(
                 "invalid link name for {}: {}".format(
                     object_id, link_name))
