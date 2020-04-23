@@ -69,10 +69,9 @@ class ApplyDataMapper(object):
                 return None
             changed = self._update_properties(objmap, target)
 
-            if objmap.compname == "hw":
-                target["type"] = "Products.ZenModel.DeviceHW"
-            if objmap.compname == "os":
-                target["type"] = "Products.ZenModel.OperatingSystem"
+            if objmap.compname in ("hw", "os"):
+                obj_type = self.mapper.get_object_type(base_id)
+                target["type"] = obj_type.get_link_type(objmap.compname).remote_class
 
             if not target["type"]:
                 # temporary workaround- we'll have to fix this later.

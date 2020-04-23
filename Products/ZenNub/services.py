@@ -13,7 +13,6 @@ from pprint import pformat
 
 from twisted.spread import pb
 
-from Products.ZenHub.PBDaemon import translateError
 from Products.ZenModel.OSProcess import OSProcess
 from Products.ZenRRD.zencommand import Cmd, DataPointConfig
 from Products.DataCollector.DeviceProxy import DeviceProxy as ModelDeviceProxy
@@ -24,6 +23,30 @@ from .utils import replace_prefix, all_parent_dcs
 from .applydatamapper import ApplyDataMapper
 from .db import get_nub_db
 log = logging.getLogger('zen.hub')
+
+def translateError(callable):
+    """
+    Decorator function to wrap remote exceptions into something
+    understandable by our daemon.
+
+    @parameter callable: function to wrap
+    @type callable: function
+    @return: function's return or an exception
+    @rtype: various
+    """
+    def inner(*args, **kw):
+        """
+        Interior decorator
+        """
+        try:
+            return callable(*args, **kw)
+        except Exception, ex:
+            log.exception(ex)
+            raise RemoteException(
+                'Remote exception: %s: %s' % (ex.__class__, ex),
+                traceback.format_exc())
+    return inner
+
 
 class NubService(pb.Referenceable):
 

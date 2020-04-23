@@ -23,6 +23,8 @@ import networkx
 # Zenoss Imports
 from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
 from Products.ZenModel.Device import Device
+from Products.ZenModel.OperatingSystem import OperatingSystem
+from Products.ZenModel.DeviceHW import DeviceHW
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenUtils.Utils import importClass
 
@@ -471,15 +473,29 @@ class ObjectType(object):
             for k, v in class_._relations}
 
         if self.device:
-            self.link_types['os'] = LinkType('os', ToOne(ToOne, "Products.ZenModel.OperatingSystem", "device"))
-            self.link_types['hw'] = LinkType('hw', ToOne(ToOne, "Products.ZenModel.DeviceHW", "device"))
+
+            # Figure out what type the os and hw relationships should be
+            # (supporting patching of these objects with subclasses, by
+            # __init__, as is done in some zenpacks such as StorageBase
+            # and EMC.base)
+            o = class_('dummy')
+            os_class = o.os.__module__
+            hw_class = o.hw.__module__
+
+            if not issubclass(o.os.__class__, OperatingSystem):
+                raise Exception("%s: os object is not a subclass of OperatingSystem" % self.name)
+            if not issubclass(o.hw.__class__, DeviceHW):
+                raise Exception("%s: os object is not a subclass of OperatingSystem" % self.name)
+
+            self.link_types['os'] = LinkType('os', ToOne(ToOne, os_class, "device"))
+            self.link_types['hw'] = LinkType('hw', ToOne(ToOne, hw_class, "device"))
             self.link_types['os'].local_containing = True
             self.link_types['hw'].local_containing = True
 
-        if name == 'Products.ZenModel.OperatingSystem':
+        if issubclass(class_, OperatingSystem):
             self.link_types['device'] = LinkType('device', ToOne(ToOne, "Products.ZenModel.Device", "os"))
 
-        if name == 'Products.ZenModel.DeviceHW':
+        if issubclass(class_, DeviceHW):
             self.link_types['device'] = LinkType('device', ToOne(ToOne, "Products.ZenModel.Device", "hw"))
 
     def get_property(self, name):
@@ -496,6 +512,7 @@ class ObjectType(object):
 class LinkType(object):
     local_name = None
     remote_name = None
+    remote_class = None
     local_containing = None
     remote_containing = None
     local_many = None
@@ -504,6 +521,7 @@ class LinkType(object):
     def __init__(self, name, relschema):
         self.local_name = name
         self.remote_name = relschema.remoteName
+        self.remote_class = relschema.remoteClass
 
         if isinstance(relschema, ToManyCont):
             self.local_containing = True
