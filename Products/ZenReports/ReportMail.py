@@ -11,7 +11,7 @@ import sys
 import os
 import urllib2
 from HTMLParser import HTMLParser
-from urlparse import urlparse, urlunparse, parse_qs, urlsplit, urlunsplit
+from urlparse import urlparse, urlunparse, parse_qsl, urlsplit, urlunsplit
 from email.MIMEMultipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 import Globals
@@ -82,7 +82,6 @@ class ReportMail(ZenScriptBase):
             sys.exit(1)
         page = Page(o.user, o.passwd)
         url = self.mangleUrl(o.url)
-
         reportFileType = self.determineFileFormat(o.reportFileType)
         reportFileName = "report_screenshot." + reportFileType
         page.generateScreenShot(url, reportFileName)
@@ -132,7 +131,7 @@ class ReportMail(ZenScriptBase):
             urlSplit = url.split('/zport/dmd/reports#reporttree:')
             url = urlSplit[0] + urlSplit[1].replace('.', '/')
         parsed = urlsplit(url)
-        q_params = parse_qs(parsed.query)
+        q_params = dict(parse_qsl(parsed.query))
         # remove a cache buster query param
         q_params.pop('_dc', None)
         q_params['adapt'] = 'false'
@@ -181,6 +180,7 @@ class ReportMail(ZenScriptBase):
                                dest='fromAddress',
                                default='zenoss@localhost',
                                help='Origination address')
+
 
 if __name__ == '__main__':
     ReportMail().run()
