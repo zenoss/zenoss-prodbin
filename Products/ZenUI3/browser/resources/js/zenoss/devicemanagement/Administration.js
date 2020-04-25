@@ -92,8 +92,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
         if (!Ext.isDefined(data)) {
             data = "";
         }
-        var nodePath = '/' + Ext.getCmp('devices').getSelectionModel().getSelectedNode().data.path;
-        if (nodePath === "/Devices") {
+        if (grid.uid === "/zport/dmd/Devices") {
             new Zenoss.dialog.SimpleMessageDialog({
                 title: _t('Create Maintenance Window'),
                 message: Ext.String.format(_t('Are you sure you want to create Maintenance Window at root class ' +
