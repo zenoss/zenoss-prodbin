@@ -11,7 +11,7 @@ import sys
 import os
 import urllib2
 from HTMLParser import HTMLParser
-from urlparse import urlparse, urlunparse, parse_qs, urlsplit, urlunsplit
+from urlparse import urlparse, urlunparse, parse_qsl, urlsplit, urlunsplit
 from email.MIMEMultipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 import Globals
@@ -37,9 +37,17 @@ class Page(HTMLParser):
         self.user = user
         self.passwd = passwd
 
-    def generateScreenShot(self, url, reportFileName):
+    def generateScreenShot(self, url, reportFileName, ignoreSslErrors, enableDebug):
         fullFileName = "/tmp/" + reportFileName
         command = ["/opt/zenoss/bin/phantomjs", "/opt/zenoss/Products/ZenReports/rasterize.js", url, self.user, self.passwd, fullFileName]
+        if ignoreSslErrors:
+            # insert after "/opt/zenoss/bin/phantomjs"
+            command.insert(1, "--ignore-ssl-errors=yes")
+            command.insert(2, "--ssl-protocol=any")
+        if enableDebug:
+            # insert after "/opt/zenoss/bin/phantomjs"
+            command.insert(1, "--debug=true")
+
         print "Running: %s" % " ".join(command)
         phanomjsProcess = subprocess.Popen(command)
         phanomjsProcessRC = phanomjsProcess.wait()
@@ -82,10 +90,11 @@ class ReportMail(ZenScriptBase):
             sys.exit(1)
         page = Page(o.user, o.passwd)
         url = self.mangleUrl(o.url)
-
+        ignoreSslErrors = o.ignoreSslErrors
+        enableDebug = o.enableDebug
         reportFileType = self.determineFileFormat(o.reportFileType)
         reportFileName = "report_screenshot." + reportFileType
-        page.generateScreenShot(url, reportFileName)
+        page.generateScreenShot(url, reportFileName, ignoreSslErrors, enableDebug)
         msg = page.mail(reportFileName)
 
         # we aren't actually parsing any HTML so rely on the last "segment"
@@ -132,7 +141,7 @@ class ReportMail(ZenScriptBase):
             urlSplit = url.split('/zport/dmd/reports#reporttree:')
             url = urlSplit[0] + urlSplit[1].replace('.', '/')
         parsed = urlsplit(url)
-        q_params = parse_qs(parsed.query)
+        q_params = dict(parse_qsl(parsed.query))
         # remove a cache buster query param
         q_params.pop('_dc', None)
         q_params['adapt'] = 'false'
@@ -181,6 +190,15 @@ class ReportMail(ZenScriptBase):
                                dest='fromAddress',
                                default='zenoss@localhost',
                                help='Origination address')
+        self.parser.add_option('--debug', '-d',
+                               dest='enableDebug',
+                               action="store_true",
+                               help='Enable debug mode')
+        self.parser.add_option('--ignore-ssl-errors', '-i',
+                               dest='ignoreSslErrors',
+                               action="store_true",
+                               help='Ignore SSL errors')
+
 
 if __name__ == '__main__':
     ReportMail().run()
