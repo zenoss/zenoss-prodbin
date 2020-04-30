@@ -15,6 +15,7 @@
 
 
 import logging
+import os.path
 import site
 import sys
 import yaml
@@ -26,9 +27,11 @@ from Products.ZenNub.config.deviceclasses import DEVICECLASS_YAML, MONITORINGTEM
 from Products.ZenNub.config.modelerplugins import MODELER_PLUGIN_YAML
 from Products.ZenNub.config.parserplugins import PARSER_PLUGIN_YAML
 from Products.ZenNub.config.classmodels import CLASS_MODEL_YAML
+from Products.ZenNub.config.datasources import DATASOURCE_YAML
 from Products.ZenUtils.Utils import importClass
 from DateTime import DateTime
 
+from Products.ZenModel.RRDDataSource import RRDDataSource
 
 # This file contains a list of all the ZPL yaml files in each zenpack, along
 # with any other metadata that is expensive to obtain.
@@ -39,6 +42,11 @@ log = logging.getLogger('zen.nub.update_zenpacks')
 
 noalias_dumper = yaml.dumper.Dumper
 noalias_dumper.ignore_aliases = lambda self, data: True
+
+
+def all_subclasses(cls):
+    return set(cls.__subclasses__()).union(
+        [s for c in cls.__subclasses__() for s in all_subclasses(c)])
 
 
 def update_zenpack_yaml_index():
@@ -257,7 +265,7 @@ def read_xmlfiles(device_classes, monitoring_templates, xmlfiles):
                     # oops, it's a sub-object. (datapoint, etc)
                     continue
 
-                if ds['properties']['enabled'] != 'True':
+                if str(ds['properties']['enabled']) != 'True':
                     continue
 
                 tout['datasources'].setdefault(dsname, {})
@@ -269,7 +277,7 @@ def read_xmlfiles(device_classes, monitoring_templates, xmlfiles):
                 dsout['cycletime'] = ds['properties'].get("cycletime", "${here/zCommandCollectionInterval}")
 
                 for k, v in ds['properties'].iteritems():
-                    if k not in ('enabled' 'sourcetype', 'component', 'eventClass', 'severity', 'cycletime', 'plugin_classname', 'warning', 'clear'):
+                    if k not in ('enabled' 'sourcetype', 'component', 'eventClass', 'severity', 'cycletime', 'warning', 'clear'):
                         dsout[k] = v
 
                 dsout['datapoints'] = {}
@@ -327,7 +335,7 @@ def read_xml(filename, data):
                 except ValueError:
                     pass
                 value = DateTime(value)
-            elif ptype not in ( 'selection', 'string', 'text', 'password' ):
+            elif ptype not in ('selection', 'string', 'text', 'password'):
                 try:
                     value = eval(value)
                 except NameError:
@@ -430,17 +438,27 @@ def update_parser_yaml():
 
 def update_classmodel_yaml():
     # this yaml file stores any relevant info about the model.  For now,
-    # it's just class -> meta_type, and lavels, but we could store relationship
+    # it's just class -> meta_type, and labels, but we could store relationship
     # schema here too.
 
     model = {}
     from Products.ZenModel.ZenModelRM import ZenModelRM
+
     for zenpack in zenpack_names():
         __import__(zenpack)
 
-    def all_subclasses(cls):
-        return set(cls.__subclasses__()).union(
-            [s for c in cls.__subclasses__() for s in all_subclasses(c)])
+        # While loading the zenpack will pull in all the ZPL defined classes,
+        # for non-zpl ones, we need to load the explicitly to find them.
+        # So, brute force it is, then.
+        for f in zenpack_listdir(zenpack, '.'):
+            f = os.path.basename(f)
+            if f.endswith(".py") and f[0].isupper():
+                module = "%s.%s" % (zenpack, f[0:-3])
+                try:
+                    __import__(module)
+                except Exception:
+                    pass
+
     for cls in all_subclasses(ZenModelRM):
         if cls.__module__.endswith(".schema"):
             # ignore intermediate ZPL classes
@@ -470,6 +488,41 @@ def update_classmodel_yaml():
     print "Updated %s" % CLASS_MODEL_YAML
 
 
+def update_datasource_yaml():
+    print "Scanning zenpacks for custom datasources"
+
+    for zenpack in zenpack_names():
+        if not zenpack_has_directory(zenpack, "datasources"):
+            continue
+
+        zp_dir = zenpack_directory(zenpack)
+        datasource_dir = zenpack_directory(zenpack) + "/datasources"
+
+        for path, dirs, files in os.walk(datasource_dir):
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            for f in files:
+                if not f.startswith('.') and f.endswith('.py'):
+                    subPath = path[len(zp_dir):]
+                    parts = subPath.strip('/').split('/')
+                    parts.append(f[:f.rfind('.')])
+                    modName = '.'.join([zenpack] + parts)
+                    importClass(modName)
+
+    data = {}
+    for cls in all_subclasses(RRDDataSource):
+        for sourcetype in cls.sourcetypes:
+
+            modname = cls.__module__
+            if modname.endswith(".__init__"):
+                modname = modname[0:0 - len(".__init__")]
+            data[sourcetype] = {
+                "modulename": modname,
+                "classname": cls.__name__
+            }
+
+    yaml.dump(data, file(DATASOURCE_YAML, 'w'), default_flow_style=False, Dumper=noalias_dumper)
+    print "Updated %s" % DATASOURCE_YAML
+
 
 if __name__ == '__main__':
     update_zenpack_yaml_index()
@@ -477,4 +530,5 @@ if __name__ == '__main__':
     update_modeler_yaml()
     update_parser_yaml()
     update_classmodel_yaml()
+    update_datasource_yaml()
 

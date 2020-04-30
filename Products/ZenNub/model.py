@@ -14,6 +14,7 @@ from Products.ZenNub.utils.tales import talesCompile, talesEvalStr
 from .utils import all_parent_dcs
 from .utils.zenpack import zenpack_names, zenpack_directory
 
+
 class Device(object):
     def __init__(self, id=None, title=None, manageIp=None, device_class=None, zProperties=None):
         if id is None:
@@ -280,9 +281,17 @@ class RRDDataPoint(object):
         for k, v in kwargs.iteritems():
             setattr(self, k, v)
 
+
 class ClassModel(object):
     def __init__(self, module=None, meta_type=None, class_label=None, default_rrd_template_name=None):
         self.module = module
         self.meta_type = meta_type
         self.class_label = class_label
         self.default_rrd_template_name = default_rrd_template_name
+
+
+class DataSource(object):
+    def __init__(self, id=None, modulename=None, classname=None):
+        self.id = id
+        self.modulename = modulename
+        self.classname = classname

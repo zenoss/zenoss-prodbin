@@ -10,18 +10,25 @@
 import logging
 import time
 from pprint import pformat
+import traceback
 
 from twisted.spread import pb
 
 from Products.ZenModel.OSProcess import OSProcess
 from Products.ZenRRD.zencommand import Cmd, DataPointConfig
+from Products.ZenUtils.Utils import importClass
 from Products.DataCollector.DeviceProxy import DeviceProxy as ModelDeviceProxy
 from Products.ZenCollector.services.config import DeviceProxy
+from Products.ZenHub.PBDaemon import RemoteException
 
+from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
+    import PythonDataSource
 
 from .utils import replace_prefix, all_parent_dcs
 from .applydatamapper import ApplyDataMapper
 from .db import get_nub_db
+from .adapters import ZODBishAdapter
+
 log = logging.getLogger('zen.hub')
 
 def translateError(callable):
@@ -371,6 +378,31 @@ class CollectorConfigService(NubService):
 
         return proxy
 
+    def component_getRRDTemplates(self, device, component_datum):
+        clsname = component_datum["type"]
+        if clsname not in self.db.classmodel:
+            log.error("Unable to locate monitoring templates for components of unrecognized class %s", clsname)
+            return []
+
+        rrdTemplateName = self.db.classmodel[clsname].default_rrd_template_name
+        seen = set()
+        templates = []
+
+        for dc in all_parent_dcs(device.device_class):
+            for template_name, template in self.db.device_classes[dc].rrdTemplates.iteritems():
+                if template_name in seen:
+                    # lower level templates with the same name take precendence
+                    continue
+                seen.add(template_name)
+
+                # this really should use getRRDTemplateName per instance,
+                # but that is not available to us without zodb.   So we
+                # use a single value that was determined by update_zenpacks.py
+                if template_name == rrdTemplateName:
+                    templates.append(template)
+
+        return templates
+
 
 class CommandPerformanceConfig(CollectorConfigService):
     dsType = 'COMMAND'
@@ -426,28 +458,6 @@ class CommandPerformanceConfig(CollectorConfigService):
             msg = "Unable to process %s datasource(s) for device %s -- skipping" % (
                               self.dsType, device.id)
             log.exception(msg)
-
-    def component_getRRDTemplates(self, device, component_datum):
-        clsname = component_datum["type"]
-        rrdTemplateName = self.db.classmodel[clsname].default_rrd_template_name
-        seen = set()
-        templates = []
-
-        for dc in all_parent_dcs(device.device_class):
-            for template_name, template in self.db.device_classes[dc].rrdTemplates.iteritems():
-                if template_name in seen:
-                    # lower level templates with the same name take precendence
-                    continue
-                seen.add(template_name)
-
-                # this really should use getRRDTemplateName per instance,
-                # but that is not available to us without zodb.   So we
-                # use a single value that was determined by update_zenpacks.py
-                if template_name == rrdTemplateName:
-                    templates.append(template)
-
-        return templates
-
 
     def _getComponentConfig(self, compId, comp, device, cmds):
         # comp is a mapper datum.  device is a Device model object.model
@@ -571,5 +581,146 @@ class CommandPerformanceConfig(CollectorConfigService):
             log.error(message)
         return cycleTime
 
+
+class PythonConfig(CollectorConfigService):
+
+    def __init__(self, modelerService):
+        CollectorConfigService.__init__(self)
+        self.modelerService = modelerService
+        self.python_sourcetypes = set()
+        for sourcetype, dsinfo in self.db.datasource.iteritems():
+            dsClass = importClass(dsinfo.modulename, dsinfo.classname)
+            if issubclass(dsClass, PythonDataSource):
+                self.python_sourcetypes.add(sourcetype)
+
+    def _createDeviceProxy(self, device):
+        proxy = CollectorConfigService._createDeviceProxy(self, device)
+        proxy.datasources = list(self.device_datasources(device))
+
+        for compId, _ in device.getMonitoredComponents():
+            proxy.datasources += list(
+                self.component_datasources(device, compId))
+
+        if len(proxy.datasources) > 0:
+            return proxy
+
+        return None
+
+    def device_datasources(self, device):
+        return self._datasources(device, device.id, None)
+
+    def component_datasources(self, device, compId):
+        return self._datasources(device, device.id, compId)
+
+    def _datasources(self, deviceModel, deviceId, componentId):
+        mapper = self.db.get_mapper(deviceId)
+        datum = mapper.get(deviceId)
+        datumId = deviceId
+        if componentId is not None:
+            datum = mapper.get(componentId)
+            datumId = componentId
+
+        deviceOrComponent = ZODBishAdapter(deviceModel, datumId, datum)
+
+        for template in self.component_getRRDTemplates(deviceModel, datum):
+            # Get all enabled datasources that are PythonDataSource or
+            # subclasses thereof.
+            datasources = [
+                ds for ds in template.getRRDDataSources() \
+                    if ds.sourcetype in self.python_sourcetypes]
+
+            device = deviceOrComponent.device()
+
+            for ds in datasources:
+                datapoints = []
+
+                try:
+                    ds_plugin_class = ds.getPluginClass()
+                except Exception as e:
+                    log.error(
+                        "Failed to load plugin %r for %s/%s: %s",
+                        ds.plugin_classname,
+                        template.id,
+                        ds.titleOrId(),
+                        e)
+
+                    continue
+
+                for dp in ds.datapoints():
+                    dp_config = DataPointConfig()
+                    dp_config.id = dp.id
+                    dp_config.dpName = dp.name()
+                    dp_config.component = componentId
+                    dp_config.rrdPath = '/'.join((deviceOrComponent.rrdPath(), dp.name()))
+                    dp_config.rrdType = dp.rrdtype
+                    dp_config.rrdCreateCommand = dp.getRRDCreateCommand(collector)
+                    dp_config.rrdMin = dp.rrdmin
+                    dp_config.rrdMax = dp.rrdmax
+
+                    # MetricMixin.getMetricMetadata() added in Zenoss 5.
+                    if hasattr(deviceOrComponent, 'getMetricMetadata'):
+                        dp_config.metadata = deviceOrComponent.getMetricMetadata()
+
+                    # Support for RRDDataPoint.tags added in Zenoss 7.
+                    if dp.aqBaseHasAttr("getTags"):
+                        dp_config.tags = dp.getTags(deviceOrComponent)
+                    else:
+                        dp_config.tags = {}
+
+                    # Attach unknown properties to the dp_config
+                    for key in dp.propdict().keys():
+                        if key in known_point_properties:
+                            continue
+                        try:
+                            value = getattr(dp, key)
+                            if isinstance(value, basestring) and '$' in value:
+                                extra = {
+                                    'device': device,
+                                    'dev': device,
+                                    'devname': device.id,
+                                    'datasource': ds,
+                                    'ds': ds,
+                                    'datapoint': dp,
+                                    'dp': dp,
+                                    }
+
+                                value = talesEvalStr(
+                                    value,
+                                    deviceOrComponent,
+                                    extra=extra)
+
+                            setattr(dp_config, key, value)
+                        except Exception:
+                            pass
+
+                    datapoints.append(dp_config)
+
+                ds_config = PythonDataSourceConfig()
+                ds_config.device = deviceId
+                ds_config.manageIp = deviceOrComponent.getManageIp()
+                ds_config.component = componentId
+                ds_config.plugin_classname = ds.plugin_classname
+                ds_config.template = template.id
+                ds_config.datasource = ds.titleOrId()
+                ds_config.config_key = ds.getConfigKey(deviceOrComponent)
+                ds_config.params = ds.getParams(deviceOrComponent)
+                ds_config.cycletime = ds.getCycleTime(deviceOrComponent)
+                ds_config.eventClass = ds.eventClass
+                ds_config.eventKey = ds.eventKey
+                ds_config.severity = ds.severity
+                ds_config.points = datapoints
+
+                # Populate attributes requested by plugin.
+                for attr in ds_plugin_class.proxy_attributes:
+                    value = getattr(deviceOrComponent, attr, None)
+                    if callable(value):
+                        value = value()
+
+                    setattr(ds_config, attr, value)
+
+                yield ds_config
+
+    def remote_applyDataMaps(self, device, datamaps):
+        return self.modelerService.remote_applyDataMaps(device, datamaps)
 
 

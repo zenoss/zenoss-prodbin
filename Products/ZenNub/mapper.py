@@ -201,6 +201,9 @@ class DataMapper(object):
             return
 
         link_type = object_type.get_link_type(link_name)
+        if not link_type:
+            return
+
         remote_name = link_type.remote_name
         for remote_id in list(remote_ids):
             if link_type.local_containing:

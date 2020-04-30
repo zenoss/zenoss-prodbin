@@ -15,12 +15,13 @@ import logging
 import os
 import pickle
 
-from .model import Device, ModelerPlugin, ParserPlugin, DeviceClass, RRDTemplate, ClassModel
+from .model import Device, ModelerPlugin, ParserPlugin, DeviceClass, RRDTemplate, ClassModel, DataSource
 from .config.deviceclasses import load_yaml as load_dc_yaml
 from .config.devices import load_yaml as load_device_yaml
 from .config.modelerplugins import load_yaml as load_modelerplugin_yaml
 from .config.parserplugins import load_yaml as load_parserplugin_yaml
 from .config.classmodels import load_yaml as load_classmodel_yaml
+from .config.datasources import load_yaml as load_datasource_yaml
 from .utils import all_parent_dcs
 from .mapper import DataMapper
 
@@ -46,6 +47,7 @@ class DB(object):
         self.parserplugin = {}
         self.mappers = {}
         self.classmodel = {}
+        self.datasource = {}
 
         # device class -> any device below it in the hierarchy
         self.child_devices = {}
@@ -102,6 +104,14 @@ class DB(object):
             except ValueError, e:
                 log.error("Unable to load class model %s: %s", id_, e)
 
+        log.info("Loading datasources")
+        for id_, d in load_datasource_yaml().iteritems():
+            d['id'] = id_
+            try:
+                self.store_datasource(DataSource(**d))
+            except ValueError, e:
+                log.error("Unable to load datasource %s: %s", id_, e)
+
         log.info("Indexing")
         self.index()
 
@@ -127,8 +137,6 @@ class DB(object):
             log.debug("  Setting device type to %s" % device["type"])
             mapper.update({id: device})
 
-
-
         return self.mappers[id]
 
     def snapshot(self):
@@ -145,7 +153,6 @@ class DB(object):
         with open(filename, "w") as f:
             pickle.dump(self.mappers[id], f)
 
-
     def store_device(self, device):
         self.devices[device.id] = device
 
@@ -160,6 +167,9 @@ class DB(object):
 
     def store_classmodel(self, classmodel):
         self.classmodel[classmodel.module] = classmodel
+
+    def store_datasource(self, datasource):
+        self.datasource[datasource.id] = datasource
 
     def index(self):
 

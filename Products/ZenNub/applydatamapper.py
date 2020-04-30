@@ -86,6 +86,8 @@ class ApplyDataMapper(object):
             if objmap.compname not in device["links"]:
                 device["links"][objmap.compname].add(target_id)
                 self.mapper.update({base_id: device})
+                log.debug("  Added new component (%s) under %s (%s)", target_id, base_id, objmap.compname)
+
 
             return changed
 
@@ -143,6 +145,7 @@ class ApplyDataMapper(object):
             # Link from device to this component if it's new.
             device = self.mapper.get(base_id)
             if target_id not in device["links"][objmap.relname]:
+                log.debug("  Added new component (%s) under %s (%s)", target_id, base_id, objmap.relname)
                 device["links"][objmap.relname].add(target_id)
                 self.mapper.update({base_id: device})
 
@@ -185,10 +188,13 @@ class ApplyDataMapper(object):
             target["type"] = objmap.modname
             changed = True
 
+        if hasattr(objmap, "title"):
+            target["title"] = objmap.title
+
         for k, v in objmap.iteritems():
             if k.startswith("set"):
                 continue
-            if k in ['parentId', 'relname', 'id', '_add', '_remove']:
+            if k in ['parentId', 'relname', 'id', '_add', '_remove', 'title']:
                 continue
 
             if k not in target["properties"] or target["properties"][k] != v:
@@ -265,7 +271,9 @@ class ApplyDataMapper(object):
                 objmap.modname = relmap.modname
 
             objmap.relname = relmap.relname
-            changed = changed or self.apply_objectmap(target_id, objmap)
+
+            if self.apply_objectmap(target_id, objmap):
+                changed = True
 
         # Remove any existing objects that were't included in the relationshipmap
         for objid in current_objids:
@@ -276,47 +284,76 @@ class ApplyDataMapper(object):
         return changed
 
 
+    def _traverse_compname(self, base_id, base_compname, current_id=None, compname=None):
+        if current_id is None:
+            current_id = base_id
+            compname = base_compname
 
-    def _traverse_compname(self, base_id, compname):
         if compname == '':
-            return base_id
+            return current_id
 
-        path = compname.split("/")
-        current_id = base_id
+        current_component = self.mapper.get(current_id)
+        if current_component is None:
+            log.error("While traversing %s:%s, object %s was not found",
+                current_id, compname, current_id)
 
-        while len(path):
-            linkname = path.pop(0)
-            try:
-                next_id = path.pop(0)
-            except Exception, e:
-                next_id = None
+            return None
 
-            component = self.mapper.get(current_id)
-            if component is None:
-                log.error("While traversing %s:%s, object %s was not found",
-                    base_id, compname, current_id)
+        if '/' in compname:
+            next_element, compname = compname.split('/', 1)
+        else:
+            next_element, compname = compname, ''
 
+        object_type = self.mapper.get_object_type(current_id)
+        if object_type.device and next_element in ('hw', 'os', ):
+            # Directly contained object
+            next_id = next_element
+            self._autovivify_direct(current_id, next_element, next_element)
+
+        elif next_element in current_component['links']:
+            linkname = next_element
+            # Normal containment- relationship name, then id
+            if '/' in compname:
+                next_id, compname = compname.split('/', 1)
+            else:
+                next_id, compname = compname, ''
+
+            if linkname not in current_component['links']:
+                log.error("While traversing %s:%s at %s no %s related objects were found" ,
+                base_id, base_compname, current_id, linkname)
                 return None
 
-            # A "to one" relationship, "os"
-            if next_id is None:
-                links = list(component["links"][linkname])
-                if len(links) == 1:
-                    return links[0]
-                else:
-                    log.error("While traversing %s:%s, no %s related objects were found" ,
-                    base_id, compname, linkname)
-                    return None
 
-            # A "to many" relationship, "interfaces/interface1"
-            if next_id not in component["links"][linkname]:
-                log.error("While traversing %s:%s, object %s was not found in the %s links of %s",
-                    base_id, compname, next_id, linkname, current_id)
+            if next_id not in current_component['links'][linkname]:
+                if compname == '':
+                    # If this is the last element in the compname, it's ok if it
+                    # doesn't exist.
+                    return next_id
+
+                log.error("While traversing %s:%s at %s, object %s was not found in the %s links",
+                    base_id, base_compname, current_id, next_id, linkname)
                 return None
 
-            current_id = next_id
+        return self._traverse_compname(base_id, base_compname, next_id, compname)
 
-        return current_id
+    def _autovivify_direct(self, parent_id, relname, new_id):
+        # For directly contained objects (os, hw), it is sometimes necessary
+        # to create them implicitly.
 
+        parent = self.mapper.get(parent_id)
+        if new_id in parent['links'].get(relname, set()):
+            # already exists
+            return None
 
+        obj_type = self.mapper.get_object_type(parent_id)
+        link_type = obj_type.get_link_type(relname)
+
+        datum = self.mapper.get(new_id, create_if_missing=True)
+        datum['type'] = link_type.remote_class
+        self.mapper.update({new_id: datum})
+
+        parent["links"][relname].add(new_id)
+        self.mapper.update({parent_id: parent})
+
+        log.info("Auto-created %s (%s) component", new_id, datum['type'])
 

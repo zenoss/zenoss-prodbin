@@ -55,7 +55,12 @@ from Products.ZenHub.server import (
     start_server,
 )
 
-from Products.ZenNub.services import ModelerService, EventService, CommandPerformanceConfig
+from Products.ZenNub.services import (
+    ModelerService,
+    EventService,
+    CommandPerformanceConfig,
+    PythonConfig
+)
 from Products.ZenNub.db import get_nub_db
 
 
@@ -108,7 +113,23 @@ class ZenNub(ZCmdBase):
             self.profiler = ContinuousProfiler('zenhub', log=self.log)
             self.profiler.start()
 
+        # Load database
+        log.info("Loading database")
         self.db = get_nub_db();
+        self.db.load()
+
+
+        # self.db.load()
+        # device = self.db.devices['qa-88-host-57']
+        # dId = 'lv-centos_root'
+        # mapper = self.db.get_mapper(device.id)
+        # datum = mapper.get(dId)
+        # from Products.ZenNub.adapters import ZODBishAdapter
+        # component = ZODBishAdapter(device, dId, datum)
+        # component.device()
+        # component.device()
+        # import pdb; pdb.set_trace()
+
 
         self._service_manager = ServiceManager()
         avatar = NubAvatar(self._service_manager)
@@ -137,10 +158,6 @@ class ZenNub(ZCmdBase):
 
         # Begin listening
         dfr = pb_server.listen(self._server_factory)
-
-        # Load database
-        log.info("Loading database")
-        self.db.load()
 
         # set the keep-alive config on the server's listening socket
         dfr.addCallback(lambda listener: setKeepAlive(listener.socket))
@@ -289,11 +306,11 @@ class ServiceManager(object):
     def __init__(self):
         """Initialize a ServiceManager instance.
         """
-        self._services = {
-            'EventService': EventService(),
-            'ModelerService': ModelerService(),
-            'Products.ZenHub.services.CommandPerformanceConfig': CommandPerformanceConfig()
-        }
+        self._services = {}
+        self._services['EventService'] = EventService()
+        self._services['ModelerService'] = ModelerService()
+        self._services['Products.ZenHub.services.CommandPerformanceConfig'] = CommandPerformanceConfig()
+        self._services['ZenPacks.zenoss.PythonCollector.services.PythonConfig'] = PythonConfig(self._services['ModelerService'])
 
     def getService(self, name, monitor):
         """Return (a Referenceable to) the named service."""
