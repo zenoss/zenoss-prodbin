@@ -22,19 +22,24 @@ import yaml
 import xml.etree.ElementTree as ET
 
 import Globals
+
 from Products.ZenNub.utils.zenpack import *
-from Products.ZenNub.config.deviceclasses import DEVICECLASS_YAML, MONITORINGTEMPLATE_YAML
-from Products.ZenNub.config.modelerplugins import MODELER_PLUGIN_YAML
-from Products.ZenNub.config.parserplugins import PARSER_PLUGIN_YAML
-from Products.ZenNub.config.classmodels import CLASS_MODEL_YAML
-from Products.ZenNub.config.datasources import DATASOURCE_YAML
+from Products.ZenNub.yamlconfig import (
+    DEVICECLASS_YAML,
+    MONITORINGTEMPLATE_YAML,
+    MODELER_PLUGIN_YAML,
+    PARSER_PLUGIN_YAML,
+    CLASS_MODEL_YAML,
+    DATASOURCE_YAML
+)
+
 from Products.ZenUtils.Utils import importClass
 from DateTime import DateTime
 
 from Products.ZenModel.RRDDataSource import RRDDataSource
 
-# This file contains a list of all the ZPL yaml files in each zenpack, along
-# with any other metadata that is expensive to obtain.
+# This file is used as a cache, and contains a list of all the ZPL yaml files
+# in each zenpack, along with any other metadata that is expensive to obtain.
 ZENPACK_YAML_INDEX = "/opt/zenoss/etc/nub/system/zenpack_index.yaml"
 
 logging.basicConfig(level=logging.ERROR)
@@ -211,11 +216,11 @@ def update_system_deviceclasses_yaml():
         except ImportError:
             print "  (unable to load ZenPack class from %s)" % zenpack
 
-
     yaml.dump(device_classes, file(DEVICECLASS_YAML, 'w'), default_flow_style=False, Dumper=noalias_dumper)
     print "Updated %s" % DEVICECLASS_YAML
     yaml.dump(monitoring_templates, file(MONITORINGTEMPLATE_YAML, 'w'), default_flow_style=False, Dumper=noalias_dumper)
     print "Updated %s" % MONITORINGTEMPLATE_YAML
+
 
 def read_xmlfiles(device_classes, monitoring_templates, xmlfiles):
     xmldata = {}
@@ -268,6 +273,12 @@ def read_xmlfiles(device_classes, monitoring_templates, xmlfiles):
                 if str(ds['properties']['enabled']) != 'True':
                     continue
 
+                # set default values, which are omitted from the XML
+                dummy = importClass(ds['module'], ds['class'])("dummy")
+                for propname in [x['id'] for x in dummy._properties]:
+                    if propname not in ds['properties']:
+                        ds['properties'][propname] = getattr(dummy, propname)
+
                 tout['datasources'].setdefault(dsname, {})
                 dsout = tout['datasources'][dsname]
                 dsout['id'] = dsname
@@ -277,7 +288,7 @@ def read_xmlfiles(device_classes, monitoring_templates, xmlfiles):
                 dsout['cycletime'] = ds['properties'].get("cycletime", "${here/zCommandCollectionInterval}")
 
                 for k, v in ds['properties'].iteritems():
-                    if k not in ('enabled' 'sourcetype', 'component', 'eventClass', 'severity', 'cycletime', 'warning', 'clear'):
+                    if k not in ('enabled' 'sourcetype', 'component', 'eventClass', 'severity', 'cycletime'):
                         dsout[k] = v
 
                 dsout['datapoints'] = {}
@@ -396,6 +407,7 @@ def update_modeler_yaml():
     yaml.dump(modeler_data, file(MODELER_PLUGIN_YAML, 'w'), default_flow_style=False, Dumper=noalias_dumper)
     print "Updated %s" % MODELER_PLUGIN_YAML
 
+
 def update_parser_yaml():
     # I found that I needed to load these first due to conflicts with 'zenoss'
     # namespaces in zenpacks.  There's probably a better way.
@@ -408,8 +420,10 @@ def update_parser_yaml():
         def __init__(self, moduleName, modulePath):
             self._moduleName = moduleName
             self._modulePath = modulePath
+
         def moduleName(self):
             return self._moduleName
+
         def path(self, *parts):
             return os.path.join(self._modulePath, *[p.strip('/') for p in parts])
 
@@ -422,7 +436,7 @@ def update_parser_yaml():
     loaders = MonitoringManager.getInstance().getPluginLoaders(packs)
     for loader in loaders:
         try:
-            plugin = loader.create()
+            loader.create()
             parser_data[loader.modPath] = {
                 'pluginName': loader.pluginName,
                 'modPath': loader.modPath,
@@ -433,7 +447,6 @@ def update_parser_yaml():
 
     yaml.dump(parser_data, file(PARSER_PLUGIN_YAML, 'w'), default_flow_style=False, Dumper=noalias_dumper)
     print "Updated %s" % PARSER_PLUGIN_YAML
-
 
 
 def update_classmodel_yaml():

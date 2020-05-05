@@ -14,14 +14,16 @@
 import logging
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
 
+from Products.ZenNub.adapters import METHOD_MAP, ZDevice, ZDeviceComponent
 
 log = logging.getLogger("zen.applydatamapper")
 
 
 class ApplyDataMapper(object):
 
-    def __init__(self, mapper):
+    def __init__(self, mapper, deviceModel):
         self.mapper = mapper
+        self.deviceModel = deviceModel
 
     def applyDataMap(self, base_id, datamap):
         changed = False
@@ -46,9 +48,9 @@ class ApplyDataMapper(object):
         #   ObjectMap({'rackSlot': 'near-the-top'}),
         if "compname" not in om and "relname" not in om:
             target = self.mapper.get(base_id)
-            changed = self._update_properties(objmap, target)
+            changed = self._update_properties(objmap, target, base_id)
             log.debug("ObjectMap [1] base_id=%s, compname=, relname=, target_id=%s",
-                base_id, base_id)
+                      base_id, base_id)
             self.mapper.update({base_id: target})
 
             return changed
@@ -67,7 +69,7 @@ class ApplyDataMapper(object):
                 # if _add=False, we don't create the object if it's not there.
                 log.debug("ObjectMap [2] not creating target_id=%s (_add=False)", target_id)
                 return None
-            changed = self._update_properties(objmap, target)
+            changed = self._update_properties(objmap, target, target_id)
 
             if objmap.compname in ("hw", "os"):
                 obj_type = self.mapper.get_object_type(base_id)
@@ -78,7 +80,7 @@ class ApplyDataMapper(object):
                 target["type"] = "unknown type"
 
             log.debug("ObjectMap [2] base_id=%s, compname=%s, relname=, target_id=%s",
-                base_id, objmap.compname, target_id)
+                      base_id, objmap.compname, target_id)
             self.mapper.update({target_id: target})
 
             # Create link to target component if it's not already known
@@ -87,7 +89,6 @@ class ApplyDataMapper(object):
                 device["links"][objmap.compname].add(target_id)
                 self.mapper.update({base_id: device})
                 log.debug("  Added new component (%s) under %s (%s)", target_id, base_id, objmap.compname)
-
 
             return changed
 
@@ -137,9 +138,9 @@ class ApplyDataMapper(object):
                 return False
 
             log.debug("ObjectMap [3] base_id=%s, compname=%s, relname=%s, target_id=%s",
-                base_id, objmap.compname, objmap.relname, target_id)
+                      base_id, objmap.compname, objmap.relname, target_id)
 
-            changed = self._update_properties(objmap, target)
+            changed = self._update_properties(objmap, target, target_id)
             self.mapper.update({target_id: target})
 
             # Link from device to this component if it's new.
@@ -172,16 +173,16 @@ class ApplyDataMapper(object):
                 return None
 
             target = self.mapper.get(target_id, create_if_missing=_add)
-            changed = self._update_properties(objmap, target)
+            changed = self._update_properties(objmap, target, target_id)
 
             log.debug("ObjectMap [4] base_id=%s, compname=%s, relname=%s, target_id=%s",
-                base_id, objmap.compname, objmap.relname, target_id)
+                      base_id, objmap.compname, objmap.relname, target_id)
 
             self.mapper.update({target_id: target})
 
             return changed
 
-    def _update_properties(self, objmap, target):
+    def _update_properties(self, objmap, target, target_id):
         changed = False
 
         if objmap.modname is not None and objmap.modname != "" and target["type"] != objmap.modname:
@@ -201,8 +202,26 @@ class ApplyDataMapper(object):
                 target["properties"][k] = v
                 changed = True
 
-        return changed
+        if target["type"] in METHOD_MAP:
+            setters_to_call = set()
+            for k, v in objmap.iteritems():
+                if k.startswith("set") and k in METHOD_MAP[target["type"]]["method"]:
+                    # If the setter has been allowed by METHOD_MAP, invoke it.
+                    setters_to_call.add(k)
 
+            isDevice = self.mapper.get_object_type(target_id).device
+            if isDevice:
+                adapted = ZDevice(self.deviceModel, target_id, target)
+            else:
+                adapted = ZDeviceComponent(self.deviceModel, target_id, target)
+
+            for k, v in objmap.iteritems():
+                if k in setters_to_call:
+                    log.debug("Invoking setter %s on %s", k, target_id)
+                    getattr(adapted, k)(v)
+
+
+        return changed
 
     def apply_relationshipmap(self, base_id, relmap):
         target_id = base_id
@@ -256,7 +275,7 @@ class ApplyDataMapper(object):
             return False
 
         log.debug("RelationshipMap [1] base_id=%s, compname=%s, relname=%s, target_id=%s",
-            base_id, compname, relmap.relname, target_id)
+                  base_id, compname, relmap.relname, target_id)
 
         current_objids = target["links"][relmap.relname]
         new_objids = set([om.id for om in relmap])
@@ -283,7 +302,6 @@ class ApplyDataMapper(object):
 
         return changed
 
-
     def _traverse_compname(self, base_id, base_compname, current_id=None, compname=None):
         if current_id is None:
             current_id = base_id
@@ -295,7 +313,7 @@ class ApplyDataMapper(object):
         current_component = self.mapper.get(current_id)
         if current_component is None:
             log.error("While traversing %s:%s, object %s was not found",
-                current_id, compname, current_id)
+                      current_id, compname, current_id)
 
             return None
 
@@ -319,10 +337,9 @@ class ApplyDataMapper(object):
                 next_id, compname = compname, ''
 
             if linkname not in current_component['links']:
-                log.error("While traversing %s:%s at %s no %s related objects were found" ,
-                base_id, base_compname, current_id, linkname)
+                log.error("While traversing %s:%s at %s no %s related objects were found",
+                          base_id, base_compname, current_id, linkname)
                 return None
-
 
             if next_id not in current_component['links'][linkname]:
                 if compname == '':
@@ -331,7 +348,7 @@ class ApplyDataMapper(object):
                     return next_id
 
                 log.error("While traversing %s:%s at %s, object %s was not found in the %s links",
-                    base_id, base_compname, current_id, next_id, linkname)
+                          base_id, base_compname, current_id, next_id, linkname)
                 return None
 
         return self._traverse_compname(base_id, base_compname, next_id, compname)
@@ -356,4 +373,3 @@ class ApplyDataMapper(object):
         self.mapper.update({parent_id: parent})
 
         log.info("Auto-created %s (%s) component", new_id, datum['type'])
-

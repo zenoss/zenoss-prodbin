@@ -16,12 +16,15 @@ import os
 import pickle
 
 from .model import Device, ModelerPlugin, ParserPlugin, DeviceClass, RRDTemplate, ClassModel, DataSource
-from .config.deviceclasses import load_yaml as load_dc_yaml
-from .config.devices import load_yaml as load_device_yaml
-from .config.modelerplugins import load_yaml as load_modelerplugin_yaml
-from .config.parserplugins import load_yaml as load_parserplugin_yaml
-from .config.classmodels import load_yaml as load_classmodel_yaml
-from .config.datasources import load_yaml as load_datasource_yaml
+from .yamlconfig import (
+    load_deviceclass_yaml,
+    load_device_yaml,
+    load_modelerplugin_yaml,
+    load_parserplugin_yaml,
+    load_classmodel_yaml,
+    load_datasource_yaml
+)
+
 from .utils import all_parent_dcs
 from .mapper import DataMapper
 
@@ -29,6 +32,7 @@ SNAPSHOT_DIR="/opt/zenoss/etc/nub/snapshot"
 
 log = logging.getLogger('zen.zennub.db')
 _DB = None
+
 
 # return a singleton for the database
 def get_nub_db():
@@ -56,7 +60,7 @@ class DB(object):
         # Load the contents of the on-disk YAML files into the db.
 
         log.info("Loading device classes and monitoring templates..")
-        dc_yaml, mt_yaml = load_dc_yaml()
+        dc_yaml, mt_yaml = load_deviceclass_yaml()
         for id_, dc in dc_yaml.iteritems():
             dc['id'] = id_
             dc.update(mt_yaml[id_])

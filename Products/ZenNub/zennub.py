@@ -115,7 +115,7 @@ class ZenNub(ZCmdBase):
 
         # Load database
         log.info("Loading database")
-        self.db = get_nub_db();
+        self.db = get_nub_db()
         self.db.load()
 
 
@@ -124,8 +124,8 @@ class ZenNub(ZCmdBase):
         # dId = 'lv-centos_root'
         # mapper = self.db.get_mapper(device.id)
         # datum = mapper.get(dId)
-        # from Products.ZenNub.adapters import ZODBishAdapter
-        # component = ZODBishAdapter(device, dId, datum)
+        # from Products.ZenNub.adapters import ZDeviceComponent
+        # component = ZDeviceComponent(device, dId, datum)
         # component.device()
         # component.device()
         # import pdb; pdb.set_trace()

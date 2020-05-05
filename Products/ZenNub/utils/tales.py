@@ -13,17 +13,20 @@ from DateTime import DateTime
 
 log = logging.getLogger("zen.nub.utils.tales")
 
+
 class InvalidTalesException(Exception):
     pass
 
 
 _compiled = {}
 
+
 def talesEvalStr(expression, context, extra=None, skipfails=False):
     return talesEval('string:%s' % expression, context, extra, skipfails)
 
 
 def talesEval(express, context, extra=None, skipfails=False):
+
     """Perform a TALES eval on the express using context.
     """
     try:
@@ -31,11 +34,12 @@ def talesEval(express, context, extra=None, skipfails=False):
     except Exception as e:
         compiled = talesCompile("string:%s" % express)
 
-    contextDict = { 'context':context,
-                    'here':context,
-                    'nothing':None,
-                    'now': DateTime(),
-                    }
+    contextDict = {
+        'context': context,
+        'here': context,
+        'nothing': None,
+        'now': DateTime(),
+    }
     if isinstance(extra, dict):
         contextDict.update(extra)
 
@@ -54,6 +58,7 @@ def talesEval(express, context, extra=None, skipfails=False):
     if isinstance(res, Exception):
         raise res
     return res
+
 
 def talesCompile(express):
     compiled = _compiled.get(express, None)

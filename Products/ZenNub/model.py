@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+import os
+
 from DateTime import DateTime
 from Products.ZenUtils.Utils import binPath
 from Products.ZenNub.utils.tales import talesCompile, talesEvalStr
@@ -79,7 +81,6 @@ class Device(object):
 
         return props
 
-
     def getMonitoredComponents(self, collector=None):
         mapper = self.db.get_mapper(self.id)
         for object_id, obj in mapper.all():
@@ -139,6 +140,7 @@ class DeviceClass(object):
         for tname, tdict in rrdTemplates.iteritems():
             self.rrdTemplates[tname] = RRDTemplate(**tdict)
 
+
 class RRDTemplate(object):
     def __init__(self, id=None, datasources=None, targetPythonClass=None):
         self.datasources = {}
@@ -151,17 +153,19 @@ class RRDTemplate(object):
         if not isinstance(datasources, dict):
             raise TypeError("datasources must be a dict")
         for dsname, dsdict in datasources.iteritems():
-            self.datasources[dsname] = RRDDataSource(**dsdict)
+            self.datasources[dsname] = RRDDataSource(rrdTemplate=self, **dsdict)
 
     def getRRDDataSources(self, dsType=None):
-        if dsType is None: return self.datasources.values()
+        if dsType is None:
+            return self.datasources.values()
 
         return [ds for ds in self.datasources.values()
                 if ds.sourcetype == dsType]
 
+
 class RRDDataSource(object):
     def __init__(self, id=None, component=None, commandTemplate=None, datapoints=None,
-                cycletime=None, sourcetype=None,
+                 cycletime=None, sourcetype=None, rrdTemplate=None,
                  **kwargs):
         if datapoints is None:
             datapoints = {}
@@ -172,6 +176,7 @@ class RRDDataSource(object):
         self.sourcetype = sourcetype
         self.datapoints = {}
         self.cycletime = cycletime
+        self._rrdTemplate = rrdTemplate
 
         if not isinstance(datapoints, dict):
             raise TypeError("datapoints must be a dict")
@@ -181,25 +186,40 @@ class RRDDataSource(object):
         for k, v in kwargs.iteritems():
             setattr(self, k, v)
 
+    def rrdTemplate(self):
+        return self._rrdTemplate
+
     def talesEval(self, text, context):
+        from Products.ZenNub.adapters import ZDevice, ZDeviceComponent
+
         if text is None:
             return
 
-        if not isinstance(context, Device):
-            raise ValueError("RRDDataSource TALES context must be a ZenNub Device object")
-
-        zprops = context.getAllProperties()
-        extra = {
-            'here': zprops,
-            'device': zprops,
-            'dev': zprops,
-            'devname': context.id,
-            'datasource': self,
-            'ds': self
-        }
+        if isinstance(context, Device):
+            # Probably should switch over to using the adapter everywhere, but
+            # for now..
+            zprops = context.getAllProperties()
+            extra = {
+                'here': zprops,
+                'device': zprops,
+                'dev': zprops,
+                'devname': context.id,
+                'datasource': self,
+                'ds': self
+            }
+        elif isinstance(context, ZDevice) or isinstance(context, ZDeviceComponent):
+            extra = {
+                'here': context,
+                'device': context.device(),
+                'dev': context.device(),
+                'devname': context.device().id,
+                'datasource': self,
+                'ds': self
+            }
+        else:
+            raise ValueError("Context must be a Device Model or ZDeviceOrComponent object")
 
         return talesEvalStr(str(text), {}, extra=extra)
-
 
     def getCycleTime(self, context):
         return int(self.talesEval(self.cycletime, context))
@@ -212,7 +232,7 @@ class RRDDataSource(object):
             cmd = self.commandTemplate
         if not cmd.startswith('string:') and not cmd.startswith('python:'):
             cmd = 'string:%s' % cmd
-        compiled = talesCompile(cmd)
+        talesCompile(cmd)
 
         zprops = device.getAllProperties()
         packs = []
@@ -221,8 +241,10 @@ class RRDDataSource(object):
         class _zenpack(object):
             def __init__(self, modulePath):
                 self._modulePath = modulePath
+
             def path(self, *parts):
                 return os.path.join(self._modulePath, *[p.strip('/') for p in parts])
+
         for zenpack in zenpack_names():
             packs.append({zenpack: _zenpack(modulePath=zenpack_directory(zenpack))})
 
@@ -239,8 +261,8 @@ class RRDDataSource(object):
             'dev': zprops,
             'datasource': self,
             'ds': self,
-            'nothing' : None,
-            'now' : DateTime()
+            'nothing': None,
+            'now': DateTime()
         }
 
         res = talesEvalStr(str(cmd), {}, extra=extra)
@@ -253,11 +275,11 @@ class RRDDataSource(object):
         if not cmd.startswith('/') and not cmd.startswith('$'):
             if zCommandPath and not cmd.startswith(zCommandPath):
                 cmd = os.path.join(zCommandPath, cmd)
-            elif binPath(cmd.split(" ",1)[0]):
-                #if we get here it is because cmd is not absolute, doesn't
-                #start with $, zCommandPath is not set and we found cmd in
-                #one of the zenoss bin dirs
-                cmdList = cmd.split(" ",1) #split into command and args
+            elif binPath(cmd.split(" ", 1)[0]):
+                # if we get here it is because cmd is not absolute, doesn't
+                # start with $, zCommandPath is not set and we found cmd in
+                # one of the zenoss bin dirs
+                cmdList = cmd.split(" ", 1)  # split into command and args
                 cmd = binPath(cmdList[0])
                 if len(cmdList) > 1:
                     cmd = "%s %s" % (cmd, cmdList[1])
@@ -280,7 +302,6 @@ class RRDDataPoint(object):
 
         for k, v in kwargs.iteritems():
             setattr(self, k, v)
-
 
 class ClassModel(object):
     def __init__(self, module=None, meta_type=None, class_label=None, default_rrd_template_name=None):

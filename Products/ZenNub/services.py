@@ -10,11 +10,12 @@
 import logging
 import time
 from pprint import pformat
+import sys
 import traceback
+import importlib
 
 from twisted.spread import pb
 
-from Products.ZenModel.OSProcess import OSProcess
 from Products.ZenRRD.zencommand import Cmd, DataPointConfig
 from Products.ZenUtils.Utils import importClass
 from Products.DataCollector.DeviceProxy import DeviceProxy as ModelDeviceProxy
@@ -23,13 +24,18 @@ from Products.ZenHub.PBDaemon import RemoteException
 
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSource
+from ZenPacks.zenoss.PythonCollector.services.PythonConfig \
+    import PythonDataSourceConfig
 
 from .utils import replace_prefix, all_parent_dcs
+from .utils.tales import talesEvalStr
 from .applydatamapper import ApplyDataMapper
 from .db import get_nub_db
-from .adapters import ZODBishAdapter
+from .adapters import ZDeviceComponent, ZDevice
+
 
 log = logging.getLogger('zen.hub')
+
 
 def translateError(callable):
     """
@@ -135,9 +141,10 @@ class NubService(pb.Referenceable):
                 'RRA:AVERAGE:0.5:288:600',
                 'RRA:MAX:0.5:6:600',
                 'RRA:MAX:0.5:24:600',
-                'RRA:MAX:0.5:288:600')
-            )
+                'RRA:MAX:0.5:288:600'))
         ]
+
+
 class EventService(NubService):
 
     def remote_sendEvent(self, evt):
@@ -171,7 +178,8 @@ class ModelerService(NubService):
         result = []
         for dc_name, dc in self.db.device_classes.iteritems():
             localPlugins = dc.zProperties.get('zCollectorPlugins', False)
-            if not localPlugins: continue
+            if not localPlugins:
+                continue
             result.append((dc_name, localPlugins))
         return result
 
@@ -217,7 +225,6 @@ class ModelerService(NubService):
     def remote_getDeviceListByMonitor(self, monitor=None):
         return [x.id for x in self.db.devices]
 
-
     @translateError
     def remote_getDeviceListByOrganizer(self, organizer, monitor=None, options=None):
         dc = replace_prefix(organizer, "/Devices", "/")
@@ -225,12 +232,11 @@ class ModelerService(NubService):
             return []
         return [x.id for x in self.db.child_devices[dc]]
 
-
     @translateError
     def remote_applyDataMaps(self, device, maps, devclass=None, setLastCollection=False):
         mapper = self.db.get_mapper(device)
 
-        adm = ApplyDataMapper(mapper)
+        adm = ApplyDataMapper(mapper, self.db.devices[device])
         changed = False
         for datamap in maps:
             if adm.applyDataMap(device, datamap):
@@ -253,9 +259,6 @@ class ModelerService(NubService):
     def remote_setSnmpConnectionInfo(self, device, version, port, community):
         return
 
-BASE_ATTRIBUTES = ('id',
-                   'manageIp',
-                   )
 
 class CollectorConfigService(NubService):
     def __init__(self, deviceProxyAttributes=()):
@@ -274,7 +277,6 @@ class CollectorConfigService(NubService):
         self._deviceProxyAttributes = ('id', 'manageIp',) + deviceProxyAttributes
         self.db = get_nub_db()
 
-
     def _wrapFunction(self, functor, *args, **kwargs):
         """
         Call the functor using the arguments, and trap any unhandled exceptions.
@@ -290,10 +292,11 @@ class CollectorConfigService(NubService):
         """
         try:
             return functor(*args, **kwargs)
-        except (SystemExit, KeyboardInterrupt): raise
+        except (SystemExit, KeyboardInterrupt):
+            raise
         except Exception, ex:
             msg = 'Unhandled exception in zenhub service %s: %s' % (
-                      self.__class__, str(ex))
+                self.__class__, str(ex))
             self.log.exception(msg)
 
         return None
@@ -337,7 +340,7 @@ class CollectorConfigService(NubService):
 
         key = Fernet.generate_key()
 
-          # Hash the key with the daemon identifier to get unique key per collector daemon
+        # Hash the key with the daemon identifier to get unique key per collector daemon
         s = hashlib.sha256()
         s.update(key)
         s.update(self.__class__.__name__)
@@ -408,14 +411,15 @@ class CommandPerformanceConfig(CollectorConfigService):
     dsType = 'COMMAND'
 
     def __init__(self):
-        deviceProxyAttributes = ('zCommandPort',
-                                 'zCommandUsername',
-                                 'zCommandPassword',
-                                 'zCommandLoginTimeout',
-                                 'zCommandCommandTimeout',
-                                 'zKeyPath',
-                                 'zSshConcurrentSessions',
-                                )
+        deviceProxyAttributes = (
+            'zCommandPort',
+            'zCommandUsername',
+            'zCommandPassword',
+            'zCommandLoginTimeout',
+            'zCommandCommandTimeout',
+            'zKeyPath',
+            'zSshConcurrentSessions',
+        )
         CollectorConfigService.__init__(self, deviceProxyAttributes)
 
     def _createDeviceProxy(self, device, proxy=None):
@@ -456,7 +460,7 @@ class CommandPerformanceConfig(CollectorConfigService):
             self._getComponentConfig(compId, comp, device, commands)
         except Exception:
             msg = "Unable to process %s datasource(s) for device %s -- skipping" % (
-                              self.dsType, device.id)
+                self.dsType, device.id)
             log.exception(msg)
 
     def _getComponentConfig(self, compId, comp, device, cmds):
@@ -510,29 +514,22 @@ class CommandPerformanceConfig(CollectorConfigService):
 
                 try:
                     cmd.command = ds.getCommand(comp, device=device)
-                except Exception as ex: # TALES error
-                    msg = "TALES error for device %s datasource %s" % (
-                               device.id, ds.id)
+                except Exception as ex:  # TALES error
                     details = dict(
-                           template=templ.id,
-                           datasource=ds.id,
-                           affected_device=device.id,
-                           affected_component=compId,
-                           tb_exception=str(ex),
-                           resolution='Could not create a command to send to zencommand' \
-                                      ' because TALES evaluation failed.  The most likely' \
-                                      ' cause is unescaped special characters in the command.' \
-                                      ' eg $ or %')
+                        template=templ.id,
+                        datasource=ds.id,
+                        affected_device=device.id,
+                        affected_component=compId,
+                        tb_exception=str(ex),
+                        resolution='Could not create a command to send to zencommand' +
+                                   ' because TALES evaluation failed.  The most likely' +
+                                   ' cause is unescaped special characters in the command.' +
+                                   ' eg $ or %')
                     # This error might occur many, many times
                     log.warning("Event: %s", str(details))
                     continue
 
                 cmds.add(cmd)
-
-
-
-    # Use case: create a dummy device to act as a placeholder to execute commands
-    #           So don't filter out devices that don't have IP addresses.
 
     def _getDsDatapoints(self, device, compId, comp, ds, ploader):
         """
@@ -575,8 +572,8 @@ class CommandPerformanceConfig(CollectorConfigService):
             cycleTime = int(ds.getCycleTime(device))
         except ValueError:
             message = "Unable to convert the cycle time '%s' to an " \
-                          "integer for %s/%s on %s" \
-                          " -- setting to 300 seconds" % (
+                      "integer for %s/%s on %s" \
+                      " -- setting to 300 seconds" % (
                           ds.cycletime, templ.id, ds.id, device.id)
             log.error(message)
         return cycleTime
@@ -613,21 +610,25 @@ class PythonConfig(CollectorConfigService):
         return self._datasources(device, device.id, compId)
 
     def _datasources(self, deviceModel, deviceId, componentId):
+        known_point_properties = (
+            'isrow', 'rrdmax', 'description', 'rrdmin', 'rrdtype', 'createCmd', 'tags')
+
         mapper = self.db.get_mapper(deviceId)
-        datum = mapper.get(deviceId)
-        datumId = deviceId
-        if componentId is not None:
+        if componentId is None:
+            datum = mapper.get(deviceId)
+            datumId = deviceId
+            deviceOrComponent = ZDevice(deviceModel, datumId, datum)
+        else:
             datum = mapper.get(componentId)
             datumId = componentId
-
-        deviceOrComponent = ZODBishAdapter(deviceModel, datumId, datum)
+            deviceOrComponent = ZDeviceComponent(deviceModel, datumId, datum)
+            device = deviceOrComponent.device()
 
         for template in self.component_getRRDTemplates(deviceModel, datum):
             # Get all enabled datasources that are PythonDataSource or
             # subclasses thereof.
-            datasources = [
-                ds for ds in template.getRRDDataSources() \
-                    if ds.sourcetype in self.python_sourcetypes]
+            datasources = [ds for ds in template.getRRDDataSources()
+                           if ds.sourcetype in self.python_sourcetypes]
 
             device = deviceOrComponent.device()
 
@@ -635,40 +636,42 @@ class PythonConfig(CollectorConfigService):
                 datapoints = []
 
                 try:
-                    ds_plugin_class = ds.getPluginClass()
+                    ds_plugin_class = self._getPluginClass(ds)
                 except Exception as e:
                     log.error(
                         "Failed to load plugin %r for %s/%s: %s",
                         ds.plugin_classname,
                         template.id,
-                        ds.titleOrId(),
+                        ds.id,
                         e)
 
                     continue
 
-                for dp in ds.datapoints():
+                for dp_id, dp in ds.datapoints.iteritems():
                     dp_config = DataPointConfig()
-                    dp_config.id = dp.id
-                    dp_config.dpName = dp.name()
-                    dp_config.component = componentId
-                    dp_config.rrdPath = '/'.join((deviceOrComponent.rrdPath(), dp.name()))
-                    dp_config.rrdType = dp.rrdtype
-                    dp_config.rrdCreateCommand = dp.getRRDCreateCommand(collector)
-                    dp_config.rrdMin = dp.rrdmin
-                    dp_config.rrdMax = dp.rrdmax
 
-                    # MetricMixin.getMetricMetadata() added in Zenoss 5.
-                    if hasattr(deviceOrComponent, 'getMetricMetadata'):
-                        dp_config.metadata = deviceOrComponent.getMetricMetadata()
+                    dp_config.id = dp_id
+                    dp_config.dpName = dp_id
 
-                    # Support for RRDDataPoint.tags added in Zenoss 7.
-                    if dp.aqBaseHasAttr("getTags"):
-                        dp_config.tags = dp.getTags(deviceOrComponent)
-                    else:
-                        dp_config.tags = {}
+                    # TODO: add this to commandservice as well
+                    dp_config.rrdPath = '/'.join((deviceOrComponent.rrdPath(), dp_id))
+                    dp_config.metadata = deviceOrComponent.getMetricMetadata()
+
+                    # This might get moved down into the metric publisher so that
+                    # it can be more consistent
+                    dp_config.tags = {
+                        'dimensions': {
+                            # TODO: make source configurable
+                            'source': 'zennub.0',
+                            'device': device.id,
+                            'component': deviceOrComponent.id
+                        },
+                        'metadata': {
+                        }
+                    }
 
                     # Attach unknown properties to the dp_config
-                    for key in dp.propdict().keys():
+                    for key in dp.__dict__.keys():
                         if key in known_point_properties:
                             continue
                         try:
@@ -682,7 +685,7 @@ class PythonConfig(CollectorConfigService):
                                     'ds': ds,
                                     'datapoint': dp,
                                     'dp': dp,
-                                    }
+                                }
 
                                 value = talesEvalStr(
                                     value,
@@ -697,17 +700,18 @@ class PythonConfig(CollectorConfigService):
 
                 ds_config = PythonDataSourceConfig()
                 ds_config.device = deviceId
-                ds_config.manageIp = deviceOrComponent.getManageIp()
+                ds_config.manageIp = deviceModel.manageIp
                 ds_config.component = componentId
                 ds_config.plugin_classname = ds.plugin_classname
                 ds_config.template = template.id
-                ds_config.datasource = ds.titleOrId()
-                ds_config.config_key = ds.getConfigKey(deviceOrComponent)
-                ds_config.params = ds.getParams(deviceOrComponent)
+                ds_config.datasource = ds.id
+                ds_config.config_key = self._getConfigKey(ds, deviceOrComponent)
+                ds_config.params = self._getParams(ds, deviceOrComponent)
                 ds_config.cycletime = ds.getCycleTime(deviceOrComponent)
-                ds_config.eventClass = ds.eventClass
-                ds_config.eventKey = ds.eventKey
-                ds_config.severity = ds.severity
+                # ds_config.eventClass = ds.eventClass
+                # ds_config.eventKey = ds.eventKey
+                ds_config.eventKey = ""
+                # ds_config.severity = ds.severity
                 ds_config.points = datapoints
 
                 # Populate attributes requested by plugin.
@@ -719,6 +723,36 @@ class PythonConfig(CollectorConfigService):
                     setattr(ds_config, attr, value)
 
                 yield ds_config
+
+    def _getPluginClass(self, ds):
+        """Return plugin class referred to by self.plugin_classname."""
+
+        class_parts = ds.plugin_classname.split('.')
+        module_name = '.'.join(class_parts[:-1])
+        class_name = class_parts[-1]
+        if module_name not in sys.modules:
+            importlib.import_module(module_name)
+
+        return getattr(sys.modules[module_name], class_name)
+
+    def _getConfigKey(self, ds, context):
+        """Returns a tuple to be used to split configs at the collector."""
+        if not ds.plugin_classname:
+            return [context.id]
+
+        return self._getPluginClass(ds).config_key(ds, context)
+
+    def _getParams(self, ds, context):
+        """Returns extra parameters needed for collecting this datasource."""
+        if not ds.plugin_classname:
+            return {}
+
+        try:
+            params = self._getPluginClass(ds).params(ds, context)
+        except Exception:
+            import pdb; pdb.set_trace()
+            params = {}
+        return params
 
     def remote_applyDataMaps(self, device, datamaps):
         return self.modelerService.remote_applyDataMaps(device, datamaps)
