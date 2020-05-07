@@ -62,6 +62,12 @@ class CloudPublisher(BasePublisher):
         self._apiKey = apiKey
         self._source = source
 
+        if source is None:
+            raise Exception("zenoss-source must be specified.")
+
+        if address is None:
+            raise Exception("zenoss-address must be specified.")
+
         scheme = 'https' if useHTTPS else 'http'
         self._url = "{scheme}://{address}/v1/data-receiver/metrics".format(
             scheme=scheme, address=address)
@@ -71,12 +77,9 @@ class CloudPublisher(BasePublisher):
     def build_metric(self, metric, value, timestamp, tags):
         metric = super(CloudPublisher, self).build_metric(metric, value, timestamp, tags)
 
-        # TODO: Need to get this from config!
-        source = 'zennub.0'
-
         # For internal metrics, include all tags.
         if tags.get('internal', False):
-            metric['tags']['source'] = source
+            metric['tags']['source'] = self._source
             return metric
 
         # Set the metric name correctly.

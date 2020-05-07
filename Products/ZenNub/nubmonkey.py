@@ -24,7 +24,7 @@ def publisher(self):
             self.options.zenossAddress,
             self.options.zenossApiKey,
             self.options.zenossHTTPS,
-            self.options.zenossCloudSource,
+            self.options.zenossSource,
             self.options.metricBufferSize
         )
     return self._publisher
@@ -50,8 +50,8 @@ def buildOptions(self):
                        default=None,
                        help='Zenoss Cloud API Key')
 
-    self.parser.add_option('--zenoss-cloud-source',
-                       dest='zenossCloudSource',
+    self.parser.add_option('--zenoss-source',
+                       dest='zenossSource',
                        type='string',
                        default=None,
                        help='Source tag data sent to Zenoss Cloud')

@@ -535,6 +535,13 @@ class CommandPerformanceConfig(CollectorConfigService):
         """
         Given a component a data source, gather its data points
         """
+
+        if compId is None:
+            deviceDatum = self.db.get(device.id)
+            deviceOrComponent = ZDevice(device, device.id, deviceDatum)
+        else:
+            deviceOrComponent = ZDeviceComponent(device, compId, comp)
+
         parser = ploader.create()
         points = []
         component_name = comp.get('title') or compId
@@ -543,13 +550,17 @@ class CommandPerformanceConfig(CollectorConfigService):
             dpc.id = dp_id
             dpc.component = component_name
             dpc.dpName = dp_id
-            dpc.rrdType = dp.rrdtype
-            dpc.rrdCreateCommand = None
-            dpc.rrdMin = dp.rrdmin
-            dpc.rrdMax = dp.rrdmax
             dpc.data = self._dataForParser(parser, compId, comp, dp_id, dp)
-            # dpc.metadata = comp.getMetricMetadata(device)
-            # dpc.tags = dp.getTags(comp)
+
+            dpc.rrdPath = '/'.join((deviceOrComponent.rrdPath(), dp_id))
+            dpc.metadata = deviceOrComponent.getMetricMetadata()
+            # by default, metrics have the format <device id>/<metric name>.
+            # Setting this to the datasource id, gives us ds/dp, which
+            # the cloud metric publisher turns into ds_dp.  So it's important
+            # for each collector daemon / config service to make sure that
+            # its metrics do get formatted that way.
+            dpc.metadata['metricPrefix'] = ds.id
+
             points.append(dpc)
 
         return points
@@ -653,7 +664,6 @@ class PythonConfig(CollectorConfigService):
                     dp_config.id = dp_id
                     dp_config.dpName = dp_id
 
-                    # TODO: add this to commandservice as well
                     dp_config.rrdPath = '/'.join((deviceOrComponent.rrdPath(), dp_id))
                     dp_config.metadata = deviceOrComponent.getMetricMetadata()
 
