@@ -260,16 +260,11 @@ class ZManagedObject(object):
         return {
             'type': 'METRIC_DATA',
 
-            # we don't use these, but there is code that expects them
-            # to have a value.
             'deviceId': dev.id,
             'contextId': self.id,
-            'deviceUUID': "deviceUUID",
-            'contextUUID': "contextUUID",
-            'contextKey': "contextKey"
-
-            # The real dimensions/metadata are added in the hub services as
-            # 'tags'.
+            'deviceUUID': dev.id,
+            'contextUUID': self.id,
+            'contextKey': self.id
         }
 
 

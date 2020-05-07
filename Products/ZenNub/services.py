@@ -657,18 +657,12 @@ class PythonConfig(CollectorConfigService):
                     dp_config.rrdPath = '/'.join((deviceOrComponent.rrdPath(), dp_id))
                     dp_config.metadata = deviceOrComponent.getMetricMetadata()
 
-                    # This might get moved down into the metric publisher so that
-                    # it can be more consistent
-                    dp_config.tags = {
-                        'dimensions': {
-                            # TODO: make source configurable
-                            'source': 'zennub.0',
-                            'device': device.id,
-                            'component': deviceOrComponent.id
-                        },
-                        'metadata': {
-                        }
-                    }
+                    # by default, metrics have the format <device id>/<metric name>.
+                    # Setting this to the datasource id, gives us ds/dp, which
+                    # the cloud metric publisher turns into ds_dp.  So it's important
+                    # for each collector daemon / config service to make sure that
+                    # its metrics do get formatted that way.
+                    dp_config.metadata['metricPrefix'] = ds.id
 
                     # Attach unknown properties to the dp_config
                     for key in dp.__dict__.keys():

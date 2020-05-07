@@ -75,3 +75,5 @@ def safeTuple(arg):
         return tuple(arg) if hasattr(arg, '__iter__') else (arg,)
     else:
         return ()
+
+from Products.ZenNub import nubmonkey
