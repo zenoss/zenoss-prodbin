@@ -66,8 +66,6 @@ function getMysqlConnectionArgs()
     local arg
     arg+=" "$(getConfValue "$config" "$dbname-admin-user" "--user=")
     arg+=" "$(getConfValue "$config" "$dbname-admin-password" "--password=")
-    arg+=" "$(getConfValue "$config" "$dbname-host" "--host=")
-    arg+=" "$(getConfValue "$config" "$dbname-port" "--port=")
     arg+=" "$(getConfValue "$config" "$dbname-db" "--database=")
     [[ $arg =~ "--user=" ]] || die "required $dbname-admin-user not found in $config"
     [[ $arg =~ "--database=" ]] || die "required $dbname-db not found in $config"
