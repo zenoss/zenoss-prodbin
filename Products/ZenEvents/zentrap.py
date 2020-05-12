@@ -293,7 +293,7 @@ class TrapTask(BaseTask, CaptureReplay):
         """
         if hasattr(pdu, "fake"):  # Replaying a packet
             return pdu.variables
-        return netsnmp.getResult(pdu)
+        return netsnmp.getResult(pdu, self.log)
 
     def getCommunity(self, pdu):
         """
@@ -325,7 +325,7 @@ class TrapTask(BaseTask, CaptureReplay):
         packet.version = pdu.version
         packet.host = addr[0]
         packet.port = addr[1]
-        packet.variables = netsnmp.getResult(pdu)
+        packet.variables = netsnmp.getResult(pdu, self.log)
         packet.community = ''
         packet.enterprise_length = pdu.enterprise_length
 
