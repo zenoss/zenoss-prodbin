@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -29,10 +29,10 @@ USE_WMI = False
 
 import zope.component
 
+from Products.ZenUtils.Utils import unused, atomicWrite, zenPath
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon, HubDown
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive, driveLater
-from Products.ZenUtils.Utils import unused, atomicWrite, zenPath
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
 from Products.Zuul.utils import safe_hasattr as hasattr
 from Products.ZenUtils.metricwriter import ThresholdNotifier
@@ -166,7 +166,7 @@ class ZenModeler(PBDaemon):
         d.addCallback(self.heartbeat)
         d.addErrback(self.reportError)
 
-    
+
     def _checkConfigLoad(self):
         """
         Looping call to check whether zenmodeler got configuration
@@ -179,7 +179,7 @@ class ZenModeler(PBDaemon):
             )
             reactor.callLater(_CONFIG_PULLING_TIMEOUT, self._checkConfigLoad)
 
-    
+
     def configure(self):
         """
         Get our configuration from zenhub
@@ -952,7 +952,7 @@ class ZenModeler(PBDaemon):
 
         curtime = time.localtime()
         # match minutes, hours, date, and month fields
-        if all(match_entity(self.startat[a],curtime[b]) 
+        if all(match_entity(self.startat[a],curtime[b])
                    for a,b in ((0,4),(1,3),(2,2),(3,1))):
             dayofweek = curtime[6]+1
             if (match_entity(self.startat[4], dayofweek) or

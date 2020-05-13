@@ -91,10 +91,10 @@ class CloudPublisher(BasePublisher):
             if 'device' in tags and metric['metric'].startswith(tags['device']):
                 log.debug("Warning: metric name %s appears to start with a device id, rather than a datasource name", metric['metric'])
 
-            metric['metric'].replace('/', '_', 1)
+            metric['metric'] = metric['metric'].replace('/', '_', 1)
 
         metric['tags'] = {
-            'source': source,
+            'source': self._source,
             'device': tags.get('device', ''),
             'component': tags.get('contextUUID', '')
         }
@@ -143,7 +143,7 @@ class CloudPublisher(BasePublisher):
             log.debug('no metrics to send')
             return defer.succeed(None)
 
-        serialized_metrics = json.dumps([metrics])
+        serialized_metrics = json.dumps([metrics], indent=4)
         body_writer = StringProducer(serialized_metrics)
 
         headers = Headers({

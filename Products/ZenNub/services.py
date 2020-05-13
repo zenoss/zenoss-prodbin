@@ -21,6 +21,8 @@ from Products.ZenUtils.Utils import importClass
 from Products.DataCollector.DeviceProxy import DeviceProxy as ModelDeviceProxy
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.PBDaemon import RemoteException
+from Products.ZenUtils.debugtools import profile
+
 
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSource
@@ -601,6 +603,7 @@ class PythonConfig(CollectorConfigService):
             if issubclass(dsClass, PythonDataSource):
                 self.python_sourcetypes.add(sourcetype)
 
+    # @profile
     def _createDeviceProxy(self, device):
         proxy = CollectorConfigService._createDeviceProxy(self, device)
         proxy.datasources = list(self.device_datasources(device))

@@ -40,15 +40,22 @@ class Device(object):
         from .db import get_nub_db
         self.db = get_nub_db()
 
+        self._all_parent_dcs = None
+
         if not isinstance(zProperties, dict):
             raise TypeError("zProperties must be a dict")
         self.zProperties = zProperties
+
+    def all_parent_dcs(self):
+        if self._all_parent_dcs is None:
+            self._all_parent_dcs = list(all_parent_dcs(self.device_class))
+        return self._all_parent_dcs
 
     def hasProperty(self, zProp):
         if zProp in self.zProperties:
             return True
 
-        for dc in all_parent_dcs(self.device_class):
+        for dc in self.all_parent_dcs():
             if dc in self.db.device_classes:
                 if zProp in self.db.device_classes[dc].zProperties:
                     return True
@@ -59,13 +66,13 @@ class Device(object):
         if zProp in self.zProperties:
             return self.zProperties[zProp]
 
-        for dc in all_parent_dcs(self.device_class):
+        for dc in self.all_parent_dcs():
             if dc in self.db.device_classes:
                 if zProp in self.db.device_classes[dc].zProperties:
                     return self.db.device_classes[dc].zProperties[zProp]
 
     def getPropertyDefault(self, zProp):
-        for dc in all_parent_dcs(self.device_class):
+        for dc in self.all_parent_dcs():
             if dc in self.db.device_classes:
                 if zProp in self.db.device_classes[dc].zProperties:
                     return self.db.device_classes[dc].zProperties[zProp]
@@ -75,7 +82,7 @@ class Device(object):
         for zProp, value in self.zProperties.iteritems():
             props.setdefault(zProp, value)
 
-        for dc in all_parent_dcs(self.device_class):
+        for dc in self.all_parent_dcs():
             for zProp, value in self.db.device_classes[dc].zProperties.iteritems():
                 props.setdefault(zProp, value)
 

@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -20,7 +20,7 @@ from Products.CMFCore.utils import ProductsPath
 from Products.ZenUtils.PkgResources import pkg_resources
 
 
-
+print "Loading zenpacks.."
 # Iterate over all ZenPack eggs and load them
 for zpkg  in pkg_resources.iter_entry_points('zenoss.zenpacks'):
     try:
@@ -40,3 +40,5 @@ for zpkg  in pkg_resources.iter_entry_points('zenoss.zenpacks'):
         logging.basicConfig()
         log.exception("Error encountered while processing %s",
                       zpkg.module_name)
+
+print "..done"

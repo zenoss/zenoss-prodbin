@@ -118,19 +118,6 @@ class ZenNub(ZCmdBase):
         self.db = get_nub_db()
         self.db.load()
 
-
-        # self.db.load()
-        # device = self.db.devices['qa-88-host-57']
-        # dId = 'lv-centos_root'
-        # mapper = self.db.get_mapper(device.id)
-        # datum = mapper.get(dId)
-        # from Products.ZenNub.adapters import ZDeviceComponent
-        # component = ZDeviceComponent(device, dId, datum)
-        # component.device()
-        # component.device()
-        # import pdb; pdb.set_trace()
-
-
         self._service_manager = ServiceManager()
         avatar = NubAvatar(self._service_manager)
         realm = NubRealm(avatar)

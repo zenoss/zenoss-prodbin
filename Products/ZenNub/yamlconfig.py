@@ -9,6 +9,10 @@
 ##############################################################################
 
 import yaml
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
 
 ##############################################################################
 # User-maintained Files                                                      #
@@ -41,30 +45,30 @@ CLASS_MODEL_YAML = "/opt/zenoss/etc/nub/system/classmodels.yaml"
 
 
 def load_device_yaml():
-    return yaml.load(file(DEVICE_YAML, 'r'))
+    return yaml.load(file(DEVICE_YAML, 'r'), Loader=Loader)
 
 
 def load_deviceclass_yaml():
     return (
-        yaml.load(file(DEVICECLASS_YAML, 'r')),
-        yaml.load(file(MONITORINGTEMPLATE_YAML, 'r')),
+        yaml.load(file(DEVICECLASS_YAML, 'r'), Loader=Loader),
+        yaml.load(file(MONITORINGTEMPLATE_YAML, 'r'), Loader=Loader),
     )
 
 
 def load_modelerplugin_yaml():
-    return yaml.load(file(MODELER_PLUGIN_YAML, 'r'))
+    return yaml.load(file(MODELER_PLUGIN_YAML, 'r'), Loader=Loader)
 
 
 def load_parserplugin_yaml():
-    return yaml.load(file(PARSER_PLUGIN_YAML, 'r'))
+    return yaml.load(file(PARSER_PLUGIN_YAML, 'r'), Loader=Loader)
 
 
 def load_datasource_yaml():
-    return yaml.load(file(DATASOURCE_YAML, 'r'))
+    return yaml.load(file(DATASOURCE_YAML, 'r'), Loader=Loader)
 
 
 def load_classmodel_yaml():
-    return yaml.load(file(CLASS_MODEL_YAML, 'r'))
+    return yaml.load(file(CLASS_MODEL_YAML, 'r'), Loader=Loader)
 
 
 
