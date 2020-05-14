@@ -28,11 +28,11 @@ from Products.ZenHub.metricpublisher.publisher import (
 from Products.ZenUtils.MetricServiceRequest import getPool
 
 
-API_KEY_FIELD     = "zenoss-api-key";
-SOURCE_FIELD      = "source";
-SOURCE_TYPE_FIELD = "source-type";
+API_KEY_FIELD     = "zenoss-api-key"
+SOURCE_FIELD      = "source"
+SOURCE_TYPE_FIELD = "source-type"
 
-SOURCE_TYPE       = "zenoss/zennub";
+SOURCE_TYPE       = "zenoss/zennub"
 
 BATCHSIZE = 100
 
@@ -76,6 +76,9 @@ class CloudPublisher(BasePublisher):
 
     def build_metric(self, metric, value, timestamp, tags):
         metric = super(CloudPublisher, self).build_metric(metric, value, timestamp, tags)
+
+        # Fix timestamp units
+        metric['timestamp'] = long(metric['timestamp'] * 1000)
 
         # For internal metrics, include all tags.
         if tags.get('internal', False):
@@ -143,7 +146,7 @@ class CloudPublisher(BasePublisher):
             log.debug('no metrics to send')
             return defer.succeed(None)
 
-        serialized_metrics = json.dumps([metrics], indent=4)
+        serialized_metrics = json.dumps({"taggedMetrics": metrics}, indent=4)
         body_writer = StringProducer(serialized_metrics)
 
         headers = Headers({
