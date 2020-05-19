@@ -1474,6 +1474,25 @@ Zenoss.util.sanitizeHtml = function(input) {
     return resultElement.innerHTML;
 }
 
+/**
+ * Helper fn to get Ext component by 'itemId' starting from some target component.
+ * We move up in Ext cmp hierarchy and search ('down') for cmp by it's 'itemId'.
+ * @param itemId
+ * @param targetCmp
+ * @returns {*}
+ */
+Zenoss.getCmp = function(itemId, targetCmp) {
+    var cmp = null, target;
+    if (itemId) {
+        while (!cmp && targetCmp) {
+            target = targetCmp.down ? targetCmp : targetCmp.getEl();
+            cmp = target.down('#'+itemId);
+            targetCmp = targetCmp.up();
+        }
+    }
+    return cmp;
+};
+
 // Force checkbox to fire valid
 var oldcbsetvalue = Ext.form.Checkbox.prototype.setValue;
 Ext.override(Ext.form.Checkbox, {
