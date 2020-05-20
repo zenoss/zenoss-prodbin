@@ -10,33 +10,17 @@
 
 (function(){
 
-var router, dataSourcesId, graphsId, resetCombo,
-    addMetricToGraph, showAddToGraphDialog, editDataSourcesId, treeId,
-    editingReSelectId;
+var router, dataSourcesId, resetCombo,
+    addMetricToGraph, editDataSourcesId, treeId;
 
 Ext.ns('Zenoss');
 
 router = Zenoss.remote.TemplateRouter;
 dataSourcesId = 'dataSourceTreeGrid';
-graphsId = 'graphGrid';
 editDataSourcesId = "editDataSource";
 
 // NOTE: this must match the tree id from the template.js file
 treeId = 'templateTree';
-
-/**
- *@returns the currently selected Data Source or Data Point, or none if nothing is selected
- **/
-function getSelectedDataSourceOrPoint() {
-    return Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();
-}
-
-resetCombo = function(combo, uid) {
-    combo.clearValue();
-    combo.getStore().setBaseParam('uid', uid);
-    delete combo.lastQuery;
-    combo.doQuery(combo.allQuery, true);
-};
 
 addMetricToGraph = function(dataPointUid, graphUid) {
     var params, callback;
@@ -67,170 +51,6 @@ Ext.define("Zenoss.GraphStore", {
 });
 
 
-showAddToGraphDialog = function(node, templateUid) {
-    var nodeDataSource, metricName, html, combo;
-    nodeDataSource = node;
-    if ( nodeDataSource && nodeDataSource.isLeaf() ) {
-        metricName = nodeDataSource.data.name;
-        html = '<div>Data Point</div>';
-        html += '<div>' + metricName + '</div><br/>';
-
-        Ext.create('Zenoss.dialog.BaseWindow', {
-            id: 'addToGraphDialog',
-            width: 400,
-            height: 250,
-            title: _t('Add Data Point to Graph'),
-            items: [
-                {
-                    xtype: 'panel',
-                    id: 'addToGraphMetricPanel'
-                }, {
-                    xtype: 'combo',
-                    id: 'graphCombo',
-                    fieldLabel: _t('Graph'),
-                    displayField: 'name',
-                    valueField: 'uid',
-                    width:300,
-                    minChars: 999, // only do an all query
-                    resizeable: true,
-                    editable: false,
-                    emptyText: 'Select a graph...',
-                    store: new Zenoss.GraphStore({}),
-                    listeners: {select: function(){
-                        Ext.getCmp('addToGraphDialog').submit.enable();
-                    }}
-                }],
-            buttons: [
-                {
-                    xtype: 'DialogButton',
-                    ref: '../submit',
-                    text: _t('Submit'),
-                    disabled: true,
-                    handler: function() {
-                        var node, datapointUid, graphUid;
-                        node = Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();
-                        datapointUid = node.data.uid;
-                        graphUid = Ext.getCmp('graphCombo').getValue();
-                        addMetricToGraph(datapointUid, graphUid);
-                    }
-                }, {
-                    xtype: 'DialogButton',
-                    text: _t('Cancel')
-                }]
-        }).show();
-
-        Ext.getCmp('addToGraphMetricPanel').body.update(html);
-        combo = Ext.getCmp('graphCombo');
-        resetCombo(combo, templateUid);
-        Ext.getCmp('addToGraphDialog').submit.disable();
-    } else {
-        new Zenoss.dialog.ErrorDialog({message: _t('You must select a Data Point.')});
-    }
-};
-
-
-/**********************************************************************
- *
- * Add Data Point
- *
- **/
-
-/**
- * Causes the DataSources Grid to refresh from the server
- *
- **/
-function refreshDataSourceGrid(selectedId) {
-    var grid = Ext.getCmp(dataSourcesId);
-    if (selectedId) {
-        grid.refresh(function(){
-            grid.getRootNode().cascade(function(node){
-                if (node.data.id === selectedId) {
-                    node.expand();
-                    node.select();
-                }
-            });
-        });
-    }else{
-        grid.refresh();
-    }
-}
-
-
-Ext.define('Zenoss.templates.AddDataPointDialog', {
-    alias: ['widget.addDpDialog'],
-    extend: 'Zenoss.dialog.BaseWindow',
-    constructor: function(config) {
-        config = config || {};
-        Ext.applyIf(config, {
-            title: _t('Add Data Point'),
-            height: 160,
-            width: 310,
-            listeners: {
-                validitychange: function(form, isValid) {
-                    this.ownerCt.query('DialogButton')[0].setDisabled(!isValid);
-                }
-            },
-            items:{
-                xtype: 'form',
-                buttonAlign: 'left',
-                items: [{
-                    xtype: 'idfield',
-                    ref: 'metricName',
-                    fieldLabel: _t('Name'),
-                    allowBlank: false,
-                    regex: Zenoss.env.textMasks.allowedNameTextDash,
-                    regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDash,
-                    blankText: _t('Name is a required field')
-                }],
-                buttons: [{
-                    xtype: 'DialogButton',
-                    ref: '../submitNewDataPoint',
-                    text: _t('Submit'),
-                    formBind: true,
-                    handler: function() {
-                        var parameters = {
-                            name: this.refOwner.metricName.getValue(),
-                            dataSourceUid: config.dataSourceUid
-                        };
-                        return router.addDataPoint(parameters, function() {
-                            if (config.selectedId) {
-                                refreshDataSourceGrid(config.dataSourceId);
-                            } else {
-                                refreshDataSourceGrid();
-                            }
-                        });
-                    }
-                },{
-                    xtype: 'DialogButton',
-                    text: _t('Cancel')
-                }]
-            }
-        });
-        this.callParent(arguments);
-    }
-});
-
-/**
- * Displays the Add Data Point dialog and saves the inputted infomation
- * back to the server
- **/
-function showAddDataPointDialog() {
-    var grid = Ext.getCmp(dataSourcesId),
-        selectedNode = grid.getSelectionModel().getSelectedNode();
-
-    // make sure they selected a node
-    if (!selectedNode) {
-        new Zenoss.dialog.ErrorDialog({message: _t('You must select a data source.')});
-        return;
-    }
-
-    // display the name dialog
-    Ext.create('Zenoss.templates.AddDataPointDialog', {
-        dataSourceUid: selectedNode.data.uid,
-        dataSourceId: selectedNode.data.id
-    }).show();
-}
-
 /**********************************************************************
  *
  * Add Data Source
@@ -249,330 +69,6 @@ Ext.define('Zenoss.templates.DataSourceTypeModel',  {
         {name: 'type'}
     ]
 });
-
-Ext.define('Zenoss.templates.AddDataSourceDialog', {
-    alias: ['widget.addDsDialog'],
-    extend: 'Zenoss.dialog.BaseWindow',
-    constructor: function(config) {
-        config = config || {};
-        Ext.applyIf(config, {
-            title: _t('Add Data Source'),
-            height: 180,
-            width: 350,
-            items:{
-                xtype:'form',
-                buttonAlign: 'left',
-                listeners: {
-                    validitychange: function(form, isValid) {
-                        if (isValid) {
-                            this.ownerCt.query('button')[0].enable();
-                        } else {
-                            this.ownerCt.query('button')[0].disable();
-                        }
-                    }
-                },
-                items:[{
-                    xtype: 'idfield',
-                    ref: 'dataSourceName',
-                    fieldLabel: _t('Name'),
-                    allowBlank: false,
-                    regex: Zenoss.env.textMasks.allowedNameTextDash,
-                    regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDash,
-                    blankText: _t('Name is a required field')
-                }, {
-                    xtype: 'combo',
-                    ref: 'dataSourceTypeCombo',
-                    allowBlank: false,
-                    displayField: 'type',
-                    fieldLabel: _t('Type'),
-                    editable: false,
-                    value: 'SNMP',
-                    triggerAction: 'all',
-                    store:  {
-                        type: 'directcombo',
-                        model: 'Zenoss.templates.DataSourceTypeModel',
-                        root: 'data',
-                        directFn: router.getDataSourceTypes
-                    }
-                }],
-                buttons:[{
-                    xtype: 'DialogButton',
-                    ref: '../submitNewDataSource',
-                    disabled: true,
-                    text: _t('Submit'),
-                    handler: function() {
-                        var parameters = {
-                            name: this.refOwner.dataSourceName.getValue(),
-                            type: this.refOwner.dataSourceTypeCombo.getValue(),
-                            templateUid: config.templateUid
-                        };
-                        return router.addDataSource(parameters, refreshDataSourceGrid);
-                    }
-                },Zenoss.dialog.CANCEL
-                ]
-            }
-        });
-        this.callParent(arguments);
-    }
-});
-
-/**
- * Shows the Add Data Source dialog and saves the inputted information
- * back to the server
- **/
-function showAddDataSourceDialog() {
-    var cmp = Ext.getCmp(treeId),
-        selectedNode = cmp.getSelectionModel().getSelectedNode(),
-        templateUid;
-
-    // make sure they selected a node
-    if (!selectedNode) {
-        new Zenoss.dialog.ErrorDialog({message: _t('You must select a template.')});
-        return;
-    }
-    templateUid = selectedNode.data.uid;
-    Ext.create('Zenoss.templates.AddDataSourceDialog', {templateUid: templateUid}).show();
-}
-
-/**********************************************************************
- *
- * Delete DataSource
- *
- */
-
-/**
- * Creates the dynamic delete message and shows the dialog
- **/
-function showDeleteDataSourceDialog() {
-    var msg, name, html, dialog;
-    if (getSelectedDataSourceOrPoint()) {
-        // set up the custom delete message
-        msg = _t("Are you sure you want to remove {0}? There is no undo.");
-        name = getSelectedDataSourceOrPoint().data.name;
-        html = Ext.String.format(msg, name);
-
-        // show the dialog
-        dialog = Ext.getCmp('deleteDataSourceDialog');
-        dialog.setText(html);
-        dialog.show();
-    }else{
-        new Zenoss.dialog.ErrorDialog({message: _t('You must select a Data Source or Data Point.')});
-    }
-}
-
-new Zenoss.MessageDialog({
-    id: 'deleteDataSourceDialog',
-    title: _t('Delete'),
-    // msg is generated dynamically
-    okHandler: function(){
-        var params, node = getSelectedDataSourceOrPoint(),
-        selectedId, callback;
-        params = {
-            uid: getSelectedDataSourceOrPoint().get("uid")
-        };
-        callback = function() {
-            refreshDataSourceGrid(selectedId);
-        };
-        // data points are always leafs
-        if (getSelectedDataSourceOrPoint().data.leaf) {
-            selectedId = node.parentNode.data.id;
-
-            router.deleteDataPoint(params, callback);
-        }else {
-            router.deleteDataSource(params, refreshDataSourceGrid);
-        }
-    }
-});
-
-/**********************************************************************
- *
- * Edit DataSource/DataPoint
- *
- */
-
-/**
- * Closes the edit dialog and updates the store of the datasources.
- * This is called after the router request to save the edit dialog
- **/
-function closeEditDialog(response) {
-    if (!response.success) {
-        return;
-    }
-    var dialog = Ext.getCmp(editDataSourcesId);
-    refreshDataSourceGrid(editingReSelectId);
-
-    // hide the dialog
-    if (dialog) {
-        dialog.hide();
-    }
-}
-
-/**
- * Event handler for when a user wants to test a datasource
- * against a specific device.
- **/
-function monitorDataSource() {
-    var cmp = Ext.getCmp(editDataSourcesId),
-        values = cmp.editForm.form.getValues(),
-        win, testDevice;
-
-    testDevice = values.testDevice;
-
-    win = new Zenoss.CommandWindow({
-        uids: testDevice,
-        title: _t('Monitor Data Source'),
-        data: values,
-        target: values.uid + '/monitor_datasource'
-    });
-
-    win.show();
-}
-
-/**
- * Used when we save the data grid, it needs to
- * explicitly get the "Alias" value and turn it into a
- * list before going back to the server
- **/
-function submitDataPointForm (values, callback) {
-    // will always have only one alias form
-    var aliases = Ext.getCmp(editDataSourcesId).query('alias'),
-        alias;
-    // assert that we have one exactly one alias form
-    if (aliases.length < 1) {
-        throw "The DataPoint form does not have an alias field, it should have only one";
-    }
-
-    alias = aliases[0];
-    values.aliases = alias.getValue();
-    router.setInfo(values, callback);
-}
-
-/**
- * Event handler for editing a specific datasource or
- * datapoint.
- **/
-function editDataSourceOrPoint() {
-    var cmp = Ext.getCmp(dataSourcesId),
-        selectedNode = cmp.getSelectionModel().getSelectedNode(),
-        data,
-        isDataPoint = false,
-        params;
-
-    // make sure they selected something
-    if (!selectedNode) {
-        new Zenoss.dialog.ErrorDialog({message: _t('You must select a Data Source or Data Point.')});
-        return;
-    }
-    data = selectedNode.data;
-
-    // find out if we are editing a datasource or a datapoint
-    if (data.leaf) {
-        isDataPoint = true;
-        editingReSelectId = selectedNode.parentNode.data.id;
-    }else{
-        editingReSelectId = data.id;
-    }
-
-    // parameters for the router call
-    params = {
-        uid: data.uid
-    };
-
-    function findSubObject(keyObj, array) {
-        var p, key, val, ret;
-        for (p in keyObj) {
-            if (keyObj.hasOwnProperty(p)) {
-                key = p;
-                val = keyObj[p];
-            }
-        }
-        for (p in array) {
-            if (p == key) {
-                if (array[p] == val) {
-                    return array;
-                }
-            } else if (array[p] instanceof Object) {
-                if (array.hasOwnProperty(p)) {
-                    ret = findSubObject(keyObj, array[p]);
-                    if (ret) {
-                        return ret;
-                    }
-                }
-            }
-        }
-        return null;
-    };
-
-    // callback for the router request
-    function displayEditDialog(response) {
-        var win, newId, config = {};
-
-        config.record = response.record;
-        config.items = response.form;
-        config.id = editDataSourcesId;
-        config.isDataPoint = isDataPoint;
-        config.title = _t('Edit Data Source');
-        config.directFn = router.setInfo;
-        config.width = 800;
-
-        newId = findSubObject({name:"newId"}, config)
-        if (newId) {
-            newId.inputAttrTpl = null;
-            newId.regex = Zenoss.env.textMasks.allowedNameTextDash;
-            newId.regexText = Zenoss.env.textMasks.allowedNameTextFeedbackDash;
-        }
-
-        if (isDataPoint) {
-            config.title = _t('Edit Data Point');
-            config.directFn = submitDataPointForm;
-            config.singleColumn = true;
-        } else if (Zenoss.Security.hasPermission('Change Device')){
-            // add the test against device panel
-            config.items.items.push({
-                xtype:'panel',
-                columnWidth: 0.5,
-                baseCls: 'test-against-device',
-                hidden: Zenoss.Security.doesNotHavePermission('Run Commands'),
-                title: _t('Monitor Against a Device'),
-                items:[{
-                    xtype: 'textfield',
-                    fieldLabel: _t('Device Name'),
-                    id: 'testDevice',
-                    width: 300,
-                    name: 'testDevice'
-                },{
-                    xtype: 'hidden',
-                    name: 'uid',
-                    value: response.record.id
-                },{
-                    xtype: 'button',
-                    text: _t('Monitor'),
-                    id: 'testDeviceButton',
-                    handler: monitorDataSource
-                }]});
-
-        }
-
-        config.saveHandler = closeEditDialog;
-        win = new Zenoss.form.DataSourceEditDialog(config);
-        var cmdField = win.editForm.form.findField('commandTemplate');
-        if (cmdField !== null) {
-            cmdField.addListener('dirtychange', function() {
-                Ext.getCmp('testDeviceButton').disable();
-                var devField = Ext.getCmp('testDevice');
-                devField.setValue(_t("Save and reopen this dialog to test."));
-                devField.disable();
-            });
-        }
-        win.show();
-    }
-    // get the details
-    if (isDataPoint) {
-        router.getDataPointDetails(params, displayEditDialog);
-    }else{
-        router.getDataSourceDetails(params, displayEditDialog);
-    }
-}
 
 
 /**
@@ -632,60 +128,63 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
     alias: ['widget.DataSourceTreeGrid'],
 
     constructor: function(config) {
-        var tbarItems = config.tbarItems || [],
-            dsAddHandler = config.dsAddHandler || showAddDataSourceDialog,
-            dsDelHandler = config.dsDelHandler || showDeleteDataSourceDialog,
-            addToGraphHandler = config.addToGraphHandler || showAddToGraphDialog,
-            dpAddHandler = config.dpAddHandler || showAddDataPointDialog,
-            editEitherHandler = config.editEitherHandler || editDataSourceOrPoint,
-            me = this;
+        var me = this,
+            tbarItems = config.tbarItems || [],
+            dsAddHandler = config.dsAddHandler || me.showAddDataSourceDialog,
+            dsDelHandler = config.dsDelHandler || me.showDeleteDataSourceDialog,
+            addToGraphHandler = config.addToGraphHandler || me.showAddToGraphDialog,
+            dpAddHandler = config.dpAddHandler || me.showAddDataPointDialog,
+            editEitherHandler = config.editEitherHandler || me.editDataSourceOrPoint;
             //dsDelHandler = config.dsDelHandler || showDeleteDataSourceDialog,
             //dsEditMenu = config.dsEditMenu || dataSourceMenu;
         Ext.applyIf(config, {
             useArrows: true,
             cls: 'x-tree-noicon',
             rootVisible: false,
-            id: dataSourcesId,
+            useTemplateSource: false,
+            itemId: dataSourcesId,
             title: _t('Data Sources'),
             listeners: {
                 // when they doubleclick we will open up the tree and
                 // display the dialog
-                beforeitemdblclick: editDataSourceOrPoint
+                beforeitemdblclick: me.editDataSourceOrPoint
             },
             store: Ext.create('Zenoss.templates.DataSourceStore', {}),
             tbar: tbarItems.concat([{
                     xtype: 'button',
                     iconCls: 'add',
-                    id:'datasourceAddButton',
+                    itemId:'datasourceAddButton',
                     ref: '../addButton',
                     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: dsAddHandler,
+                    scope: me,
                     listeners: {
-                        render: function() {
-                            Zenoss.registerTooltipFor('datasourceAddButton');
+                        render: function(t) {
+                            Zenoss.registerTooltipFor('datasourceAddButton', t);
                         }
                     }
             }, {
                 xtype: 'button',
                 iconCls: 'delete',
                 ref: '../deleteButton',
-                id: 'datasourceDeleteButton',
-                disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                itemId: 'datasourceDeleteButton',
+                disabled: true, //Zenoss.Security.doesNotHavePermission('Manage DMD'),
                 listeners: {
-                    render: function() {
-                        Zenoss.registerTooltipFor('datasourceDeleteButton');
+                    render: function(t) {
+                        Zenoss.registerTooltipFor('datasourceDeleteButton', t);
                     }
                 },
+                scope: me,
                 handler: dsDelHandler
             },{
                 xtype: 'button',
-                id: 'datasourceEditButton',
+                itemId: 'datasourceEditButton',
                 iconCls: 'customize',
                 ref: '../customizeButton',
-                disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                disabled: true, //Zenoss.Security.doesNotHavePermission('Manage DMD'),
                 listeners: {
-                    render: function() {
-                        Zenoss.registerTooltipFor('datasourceEditButton');
+                    render: function(t) {
+                        Zenoss.registerTooltipFor('datasourceEditButton', t);
                     }
                 },
                 menu: new Ext.menu.Menu({
@@ -693,19 +192,19 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
                         xtype: 'menuitem',
                         text: _t('Add Data Point To Graph'),
                         disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-                        handler: function() {
-                            var node = me.getSelectionModel().getSelectedNode();
-                            addToGraphHandler(node, me.uid);
-                        }
+                        scope: me,
+                        handler: addToGraphHandler
                     },{
                         xtype: 'menuitem',
                         text: _t('Add Data Point'),
                         disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                        scope: me,
                         handler: dpAddHandler
                     },{
                         xtype: 'menuitem',
                         text: _t('View and Edit Details'),
                         disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                        scope: me,
                         handler: editEitherHandler
                     }]
                 })
@@ -731,10 +230,19 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
                 width: 90
             }],
             selModel: Ext.create('Zenoss.TreeSelectionModel', {
-                mode: 'SINGLE'
+                mode: 'SINGLE',
+                listeners: {
+                    selectionchange: me.onSelectionChange,
+                    scope: me
+                }
             })
         });
         this.callParent(arguments);
+    },
+    onSelectionChange: function(t, records) {
+        var disable = !records.length && !Zenoss.Security.hasPermission('Manage DMD');
+        this.deleteButton.setDisabled(disable);
+        this.customizeButton.setDisabled(disable);
     },
     disableToolBarButtons: function(bool) {
         this.addButton.setDisabled(bool && Zenoss.Security.hasPermission('Manage DMD'));
@@ -761,6 +269,454 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
             this.getStore().load();
         }
 
+    },
+
+    /**
+     * Creates the dynamic delete message and shows the dialog
+     **/
+    showDeleteDataSourceDialog: function() {
+        var msg, name, html, dialog,
+            node = this.getSelectionModel().getSelectedNode(),
+            me = this;
+        if (node) {
+            // set up the custom delete message
+            msg = _t("Are you sure you want to remove {0}? There is no undo.");
+            name = node.data.name;
+            html = Ext.String.format(msg, name);
+
+            // show the dialog
+            dialog = new Zenoss.MessageDialog({
+                // id: 'deleteDataSourceDialog',
+                title: _t('Delete'),
+                // msg is generated dynamically
+                okHandler: function(){
+                    var params,
+                        selectedId = node.data.leaf ? node.parentNode.data.id : null,
+                        callback;
+                    params = {
+                        uid: node.get("uid")
+                    };
+                    callback = function() {
+                        me.refreshDataSourceGrid(selectedId);
+                    };
+                    router.deleteDataSource(params, me.refreshDataSourceGrid.bind(me, selectedId));
+                }
+            });
+            dialog.setText(html);
+            dialog.show();
+        }else{
+            new Zenoss.dialog.ErrorDialog({message: _t('You must select a Data Source or Data Point.')});
+        }
+    },
+    /**
+     * Displays the Add Data Point dialog and saves the inputted infomation
+     * back to the server
+     **/
+    showAddDataPointDialog: function() {
+        var selectedNode = this.getSelectionModel().getSelectedNode(),
+            me = this, nodeId;
+
+        // make sure they selected a node
+        if (!selectedNode) {
+            new Zenoss.dialog.ErrorDialog({message: _t('You must select a data source.')});
+            return;
+        }
+        nodeId = selectedNode.data.id;
+
+        // display the name dialog
+        var win = Ext.create('Zenoss.dialog.BaseWindow', {
+            title: _t('Add Data Point'),
+            height: 160,
+            width: 310,
+            listeners: {
+                validitychange: function(form, isValid) {
+                    this.ownerCt.query('DialogButton')[0].setDisabled(!isValid);
+                }
+            },
+            items:{
+                xtype: 'form',
+                buttonAlign: 'left',
+                items: [{
+                    xtype: 'idfield',
+                    ref: 'metricName',
+                    fieldLabel: _t('Name'),
+                    allowBlank: false,
+                    regex: Zenoss.env.textMasks.allowedNameTextDash,
+                    regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDash,
+                    blankText: _t('Name is a required field')
+                }],
+                buttons: [{
+                    xtype: 'DialogButton',
+                    ref: '../submitNewDataPoint',
+                    text: _t('Submit'),
+                    formBind: true,
+                    handler: function() {
+                        var parameters = {
+                            name: this.refOwner.metricName.getValue(),
+                            dataSourceUid: selectedNode.data.uid
+                        };
+                        return router.addDataPoint(parameters, function() {
+                            if (nodeId) {
+                                me.refreshDataSourceGrid(nodeId);
+                            } else {
+                                me.refreshDataSourceGrid();
+                            }
+                        });
+                    }
+                },{
+                    xtype: 'DialogButton',
+                    text: _t('Cancel')
+                }]
+            }
+        });
+        win.show();
+    },
+    /**
+     * Shows the Add Data Source dialog and saves the inputted information
+     * back to the server
+     **/
+    showAddDataSourceDialog: function() {
+        var cmp = Zenoss.getCmp(treeId, this),
+            selectedNode = cmp.getSelectionModel().getSelectedNode(),
+            templateUid,
+            me = this;
+
+        if (me.useTemplateSource) {
+            templateUid = me.ownerCt.getContext();
+            if (!templateUid) {
+                new Zenoss.dialog.ErrorDialog({message: _t('There is no template to which to add a datasource.')});
+                return;
+            }
+        } else {
+            // make sure they selected a node
+            if (!selectedNode) {
+                new Zenoss.dialog.ErrorDialog({message: _t('You must select a template.')});
+                return;
+            }
+            templateUid = selectedNode.data.uid;
+        }
+
+        var win = Ext.create('Zenoss.dialog.BaseWindow', {
+            title: _t('Add Data Source'),
+            height: 180,
+            width: 350,
+            items:[{
+                xtype: 'form',
+                buttonAlign: 'left',
+                listeners: {
+                    validitychange: function (form, isValid) {
+                        if (isValid) {
+                            this.ownerCt.query('button')[0].enable();
+                        } else {
+                            this.ownerCt.query('button')[0].disable();
+                        }
+                    }
+                },
+                items: [{
+                    xtype: 'idfield',
+                    ref: 'dataSourceName',
+                    fieldLabel: _t('Name'),
+                    allowBlank: false,
+                    regex: Zenoss.env.textMasks.allowedNameTextDash,
+                    regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDash,
+                    blankText: _t('Name is a required field')
+                }, {
+                    xtype: 'combo',
+                    ref: 'dataSourceTypeCombo',
+                    allowBlank: false,
+                    displayField: 'type',
+                    fieldLabel: _t('Type'),
+                    editable: false,
+                    value: 'SNMP',
+                    triggerAction: 'all',
+                    store: {
+                        type: 'directcombo',
+                        model: 'Zenoss.templates.DataSourceTypeModel',
+                        root: 'data',
+                        directFn: router.getDataSourceTypes
+                    }
+                }],
+                buttons: [{
+                    xtype: 'DialogButton',
+                    ref: '../submitNewDataSource',
+                    disabled: true,
+                    text: _t('Submit'),
+                    handler: function () {
+                        var parameters = {
+                            name: this.refOwner.dataSourceName.getValue(),
+                            type: this.refOwner.dataSourceTypeCombo.getValue(),
+                            templateUid: templateUid
+                        };
+                        return router.addDataSource(parameters, me.refreshDataSourceGrid.bind(me));
+                    }
+                }, Zenoss.dialog.CANCEL]
+            }]
+        });
+        win.show();
+    },
+    showAddToGraphDialog: function() {
+        var me = this,
+            templateUid = me.uid,
+            node = me.getSelectionModel().getSelectedNode(),
+            metricName, html;
+
+        if ( node && node.isLeaf() ) {
+            metricName = node.data.name;
+            html = '<div>Data Point</div>';
+            html += '<div>' + metricName + '</div><br/>';
+            var graphStore = new Zenoss.GraphStore({});
+            graphStore.setBaseParam('uid', templateUid);
+
+            var win = Ext.create('Zenoss.dialog.BaseWindow', {
+                width: 400,
+                height: 250,
+                title: _t('Add Data Point to Graph'),
+                closeAction: 'destroy',
+                items: [{
+                    xtype: 'panel',
+                    ref: 'addToGraphMetricPanel'
+                }, {
+                    xtype: 'combo',
+                    ref: 'graphCombo',
+                    fieldLabel: _t('Graph'),
+                    displayField: 'name',
+                    valueField: 'uid',
+                    width:300,
+                    minChars: 999, // only do an all query
+                    resizeable: true,
+                    editable: false,
+                    emptyText: 'Select a graph...',
+                    store: graphStore,
+                    listeners: {
+                        change: function(t, newVal, oldVal){
+                            t.refOwner.submit.setDisabled(!newVal);
+                        }
+                    }
+                }],
+                buttons: [{
+                    xtype: 'DialogButton',
+                    ref: '../submit',
+                    text: _t('Submit'),
+                    disabled: true,
+                    handler: function(t) {
+                        var datapointUid, graphUid;
+                        datapointUid = node.data.uid;
+                        graphUid = t.refOwner.graphCombo.getValue();
+                        addMetricToGraph(datapointUid, graphUid);
+                    }
+                }, {
+                    xtype: 'DialogButton',
+                    text: _t('Cancel')
+                }]
+            });
+            win.show();
+
+            win.addToGraphMetricPanel.body.update(html);
+        } else {
+            new Zenoss.dialog.ErrorDialog({message: _t('You must select a Data Point.')});
+        }
+    },
+    /**
+     * Event handler for editing a specific datasource or
+     * datapoint.
+     **/
+    editDataSourceOrPoint: function() {
+        var me = this,
+            selectedNode = me.getSelectionModel().getSelectedNode(),
+            data,
+            isDataPoint = false,
+            params, editingReSelectId;
+
+        // make sure they selected something
+        if (!selectedNode) {
+            new Zenoss.dialog.ErrorDialog({message: _t('You must select a Data Source or Data Point.')});
+            return;
+        }
+        data = selectedNode.data;
+
+        // find out if we are editing a datasource or a datapoint
+        if (data.leaf) {
+            isDataPoint = true;
+            editingReSelectId = selectedNode.parentNode.data.id;
+        }else{
+            editingReSelectId = data.id;
+        }
+
+        // parameters for the router call
+        params = {
+            uid: data.uid
+        };
+
+        function findSubObject(keyObj, array) {
+            var p, key, val, ret;
+            for (p in keyObj) {
+                if (keyObj.hasOwnProperty(p)) {
+                    key = p;
+                    val = keyObj[p];
+                }
+            }
+            for (p in array) {
+                if (p == key) {
+                    if (array[p] == val) {
+                        return array;
+                    }
+                } else if (array[p] instanceof Object) {
+                    if (array.hasOwnProperty(p)) {
+                        ret = findSubObject(keyObj, array[p]);
+                        if (ret) {
+                            return ret;
+                        }
+                    }
+                }
+            }
+            return null;
+        };
+
+        // callback for the router request
+        function displayEditDialog(response) {
+            var win, newId, config = {};
+
+            config.record = response.record;
+            config.items = response.form;
+            config.id = editDataSourcesId;
+            config.isDataPoint = isDataPoint;
+            config.title = _t('Edit Data Source');
+            config.directFn = router.setInfo;
+            config.width = 800;
+
+            newId = findSubObject({name:"newId"}, config)
+            if (newId) {
+                newId.inputAttrTpl = null;
+                newId.regex = Zenoss.env.textMasks.allowedNameTextDash;
+                newId.regexText = Zenoss.env.textMasks.allowedNameTextFeedbackDash;
+            }
+
+            if (isDataPoint) {
+                config.title = _t('Edit Data Point');
+                config.directFn = me.submitDataPointForm;
+                config.singleColumn = true;
+            } else if (config.record.testable &&
+                       Zenoss.Security.hasPermission('Change Device')){
+                // add the test against device panel
+                config.items.items.push({
+                    xtype:'panel',
+                    columnWidth: 0.5,
+                    baseCls: 'test-against-device',
+                    hidden: Zenoss.Security.doesNotHavePermission('Run Commands'),
+                    title: _t('Test Against a Device'),
+                    items:[{
+                        xtype: 'textfield',
+                        fieldLabel: _t('Device Name'),
+                        ref: '../testDevice',
+                        width: 300,
+                        name: 'testDevice'
+                    },{
+                        xtype: 'hidden',
+                        name: 'uid',
+                        value: response.record.id
+                    },{
+                        xtype: 'button',
+                        text: _t('Test'),
+                        ref: '../testDeviceButton',
+                        handler: me.testDataSource
+                    }]});
+
+            }
+
+            config.saveHandler = me.closeEditDialog.bind(me, editingReSelectId);
+            win = new Zenoss.form.DataSourceEditDialog(config);
+            var cmdField = win.editForm.form.findField('commandTemplate');
+            if (cmdField !== null) {
+                cmdField.addListener('dirtychange', function() {
+                    // win.testDeviceButto.disable();
+                    var devField = win.testDevice;
+                    devField.setValue(_t("Save and reopen this dialog to test."));
+                    devField.disable();
+                });
+            }
+            win.show();
+        }
+        // get the details
+        if (isDataPoint) {
+            router.getDataPointDetails(params, displayEditDialog);
+        }else{
+            router.getDataSourceDetails(params, displayEditDialog);
+        }
+    },
+    /**
+     * Used when we save the data grid, it needs to
+     * explicitly get the "Alias" value and turn it into a
+     * list before going back to the server
+     **/
+    submitDataPointForm: function(values, callback) {
+        // will always have only one alias form
+        var aliases = Ext.getCmp(editDataSourcesId).query('alias'),
+            alias;
+        // assert that we have one exactly one alias form
+        if (aliases.length < 1) {
+            throw "The DataPoint form does not have an alias field, it should have only one";
+        }
+
+        alias = aliases[0];
+        values.aliases = alias.getValue();
+        router.setInfo(values, callback);
+    },
+    /**
+     * Closes the edit dialog and updates the store of the datasources.
+     * This is called after the router request to save the edit dialog
+     **/
+    closeEditDialog: function(nodeId, response) {
+        if (!response.success) {
+            return;
+        }
+        var dialog = Ext.getCmp(editDataSourcesId);
+        this.refreshDataSourceGrid(nodeId);
+
+        // hide the dialog
+        if (dialog) {
+            dialog.hide();
+        }
+    },
+    /**
+     * Event handler for when a user wants to test a datasource
+     * against a specific device.
+     **/
+    testDataSource: function() {
+        var cmp = Ext.getCmp(editDataSourcesId),
+            values = cmp.editForm.form.getValues(),
+            win, testDevice;
+
+        testDevice = values.testDevice;
+
+        win = new Zenoss.CommandWindow({
+            uids: testDevice,
+            title: _t('Test Data Source'),
+            data: values,
+            target: Zenoss.render.link(null, values.uid) + '/test_datasource'
+        });
+
+        win.show();
+    },
+    /**
+     * Causes the DataSources Grid to refresh from the server
+     *
+     **/
+    refreshDataSourceGrid: function(selectedId) {
+        var grid = this,
+            node = grid.getSelectionModel().getSelectedNode();
+        selectedId = node && node.data.id || selectedId;
+        if (selectedId) {
+            grid.refresh(function(){
+                grid.getRootNode().cascade(function(node){
+                    if (node.data.id === selectedId) {
+                        node.expand();
+                        node.select();
+                    }
+                });
+            });
+        }else{
+            this.refresh();
+        }
     }
 
 });
