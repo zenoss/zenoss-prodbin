@@ -28,12 +28,14 @@ from zope.event import notify
 from zope.interface import implementer
 
 # Prevent Products.ZenossStartup from loading all of the zenpacks.
-sys.modules['Products.ZenossStartup'] = types.ModuleType('Zenoss.ZenossStartup')
+# sys.modules['Products.ZenossStartup'] = types.ModuleType('Zenoss.ZenossStartup')
 
 import Globals  # noqa: F401
 
 from OFS.Application import import_products
 import_products()
+from Zope2.App.zcml import load_site
+load_site()
 
 from Products.ZenUtils.GlobalConfig import applyGlobalConfToParser
 from Products.ZenUtils.Utils import zenPath, load_config
@@ -117,6 +119,13 @@ class ZenNub(ZCmdBase):
         log.info("Loading database")
         self.db = get_nub_db()
         self.db.load()
+
+        obo = self.db.get_zobject('emc-smi-s-87-01.zenoss.loc')
+        obo = self.db.get_zobject('emc-smi-s-87-01.zenoss.loc')
+        from Products.ZenNub.impact import test_impact
+        test_impact(self.db)
+        import pdb; pdb.set_trace()
+
 
         self._service_manager = ServiceManager()
         avatar = NubAvatar(self._service_manager)

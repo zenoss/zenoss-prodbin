@@ -197,7 +197,7 @@ class RRDDataSource(object):
         return self._rrdTemplate
 
     def talesEval(self, text, context):
-        from Products.ZenNub.adapters import ZDevice, ZDeviceComponent
+        from Products.ZenNub.zobject import ZDevice, ZDeviceComponent
 
         if text is None:
             return

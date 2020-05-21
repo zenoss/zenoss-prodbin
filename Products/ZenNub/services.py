@@ -33,7 +33,7 @@ from .utils import replace_prefix, all_parent_dcs
 from .utils.tales import talesEvalStr
 from .applydatamapper import ApplyDataMapper
 from .db import get_nub_db
-from .adapters import ZDeviceComponent, ZDevice
+from .zobject import ZDeviceComponent, ZDevice
 
 
 log = logging.getLogger('zen.hub')
@@ -540,9 +540,11 @@ class CommandPerformanceConfig(CollectorConfigService):
 
         if compId is None:
             deviceDatum = self.db.get(device.id)
-            deviceOrComponent = ZDevice(device, device.id, deviceDatum)
+            mapper = self.db.get_mapper(device.id)
+            deviceOrComponent = ZDevice(self.db, device, device.id)
         else:
-            deviceOrComponent = ZDeviceComponent(device, compId, comp)
+            mapper = self.db.get_mapper(device.id)
+            deviceOrComponent = ZDeviceComponent(self.db, device, compId)
 
         parser = ploader.create()
         points = []
@@ -631,11 +633,11 @@ class PythonConfig(CollectorConfigService):
         if componentId is None:
             datum = mapper.get(deviceId)
             datumId = deviceId
-            deviceOrComponent = ZDevice(deviceModel, datumId, datum)
+            deviceOrComponent = ZDevice(self.db, deviceModel, datumId)
         else:
             datum = mapper.get(componentId)
             datumId = componentId
-            deviceOrComponent = ZDeviceComponent(deviceModel, datumId, datum)
+            deviceOrComponent = ZDeviceComponent(self.db, deviceModel, datumId)
             device = deviceOrComponent.device()
 
         for template in self.component_getRRDTemplates(deviceModel, datum):
@@ -754,11 +756,8 @@ class PythonConfig(CollectorConfigService):
         if not ds.plugin_classname:
             return {}
 
-        try:
-            params = self._getPluginClass(ds).params(ds, context)
-        except Exception:
-            import pdb; pdb.set_trace()
-            params = {}
+        params = self._getPluginClass(ds).params(ds, context)
+
         return params
 
     def remote_applyDataMaps(self, device, datamaps):

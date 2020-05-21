@@ -14,8 +14,10 @@
 import logging
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
 
-from Products.ZenNub.adapters import METHOD_MAP, ZDevice, ZDeviceComponent
+from Products.ZenNub.zobject import METHOD_MAP, ZDevice, ZDeviceComponent
+from Products.ZenNub.db import get_nub_db
 
+db = get_nub_db()
 log = logging.getLogger("zen.applydatamapper")
 
 
@@ -211,9 +213,9 @@ class ApplyDataMapper(object):
 
             isDevice = self.mapper.get_object_type(target_id).device
             if isDevice:
-                adapted = ZDevice(self.deviceModel, target_id, target)
+                adapted = ZDevice(db, self.deviceModel, target_id)
             else:
-                adapted = ZDeviceComponent(self.deviceModel, target_id, target)
+                adapted = ZDeviceComponent(db, self.deviceModel, target_id)
 
             for k, v in objmap.iteritems():
                 if k in setters_to_call:

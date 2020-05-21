@@ -15,12 +15,12 @@
 
 from Products.ZenUtils.Utils import monkeypatch
 from Products.ZenHub.PBDaemon import PBDaemon
-from Products.ZenNub.metricpublisher import CloudPublisher
+from Products.ZenNub.cloudpublisher import CloudMetricPublisher
 
 @monkeypatch(PBDaemon)
 def publisher(self):
     if not self._publisher:
-        self._publisher = CloudPublisher(
+        self._publisher = CloudMetricPublisher(
             self.options.zenossAddress,
             self.options.zenossApiKey,
             self.options.zenossHTTPS,

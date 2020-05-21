@@ -27,6 +27,7 @@ from .yamlconfig import (
 
 from .utils import all_parent_dcs
 from .mapper import DataMapper
+from .zobject import ZDevice, ZDeviceComponent
 
 SNAPSHOT_DIR="/opt/zenoss/etc/nub/snapshot"
 
@@ -142,6 +143,23 @@ class DB(object):
             mapper.update({id: device})
 
         return self.mappers[id]
+
+    def get_zobject(self, device=None, component=None):
+        # return a ZDevice or ZDeviceComponent based on a set of dimensions
+        # (device and component)
+        if device not in self.devices:
+            return None
+
+        mapper = self.get_mapper(device)
+
+        if component is None or component == device:
+            return ZDevice(self, self.devices[device], device)
+
+        if mapper.get(component) is None:
+            return None
+
+        return ZDeviceComponent(self, self.devices[device], component)
+
 
     def snapshot(self):
         for id in self.mappers:

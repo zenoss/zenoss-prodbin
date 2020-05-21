@@ -1,0 +1,19 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:meta="http://namespaces.zope.org/meta">
+
+    <meta:provides feature="guid"/>
+
+    <adapter
+        for="Products.ZenNub.zobject.ZObject"
+        provides="Products.ZenUtils.guid.interfaces.IGlobalIdentifier"
+        factory=".guid.GlobalIdentifier"
+        />
+
+    <adapter
+        for="Products.ZenNub.zobject.ZDummyDmd"
+        provides="Products.ZenUtils.guid.interfaces.IGUIDManager"
+        factory=".guid.GUIDManager"
+        />
+
+</configure>

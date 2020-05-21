@@ -21,11 +21,15 @@ import sys
 import types
 
 from Products.ZenUtils.Utils import importClass
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenRelations.RelSchema import ToMany, ToManyCont
 
-from .db import get_nub_db
+from zope.component import getGlobalSiteManager, provideSubscriptionAdapter, provideAdapter
+from zope.interface import implementedBy
+from ZenPacks.zenoss.Impact.impactd.interfaces import IRelationshipDataProvider
+from ZenPacks.zenoss.DynamicView.interfaces import IRelationsProvider, IRelatable
 
-_MODULE = None
-
+_DMD = None
 
 # Normally, the adapted versions of components only contain relationships,
 # modeled properties, and zProperties.
@@ -86,50 +90,71 @@ METHOD_MAP = {
 }
 
 
-def get_module():
-    global _MODULE
-    if _MODULE is not None:
-        return _MODULE
+def get_submodule(parent_module, new_module_name):
+    if hasattr(parent_module, new_module_name):
+        return getattr(parent_module, new_module_name)
 
-    parent_module = importlib.import_module(ZManagedObject.__module__)
-    module_name = ZManagedObject.__module__ + ".adapted"
-    module = imp.new_module(module_name)
+    module_name = parent_module.__name__ + "." + new_module_name
+
+    module = imp.new_module(new_module_name)
     module.__name__ = module_name
+
     sys.modules[module_name] = module
-    setattr(parent_module, 'adapted', module)
+    setattr(parent_module, new_module_name, module)
 
-    _MODULE = importlib.import_module(module_name)
-    return _MODULE
+    return module
+
+def adapted_base_module():
+    base_module = importlib.import_module(ZObject.__module__)
+    return get_submodule(base_module, "adapted")
+
+def get_adapted_class(typename, zobject_cls):
+    class_name = typename.split('.')[-1]
+    adapted_modname = ZObject.__module__ + ".adapted."
+    adapted_modname += ".".join(typename.split('.')[0:-2])
+
+    module = adapted_base_module()
+    for modname in typename.split('.')[0:-2]:
+        module = get_submodule(module, modname)
+
+    module = importlib.import_module(adapted_modname)
+
+    adapted_class = getattr(module, class_name, None)
+    if not adapted_class:
+        class_factory = type(zobject_cls)
+        adapted_class = class_factory(class_name, (zobject_cls,), {})
+        adapted_class.__module__ = module.__name__
+        setattr(module, class_name, adapted_class)
+
+        # Store a reference to the original zenoss type that this adapter is
+        # replicating.
+        adapted_class._orig_class = importClass(typename)
+
+        # And do any other one-time initialization
+        adapted_class.__cls_init__()
+
+    return adapted_class
 
 
-class ZManagedObject(object):
-    def __init__(self, device, datumId, datum):
+
+
+class ZObject(object):
+    _orig_class = None
+
+    def __init__(self, db, device, datumId):
         global METHOD_MAP
-
+        self._db = db
         self._device = device
         self._datumId = datumId
-        self._datum = datum
-
-        db = get_nub_db()
-        self._mapper = db.get_mapper(device.id)
+        mawp = db.get_mapper(device.id)
+        self._mapper = mawp
+        self._datum = self._mapper.get(datumId)
+        datum = self._datum
         isDevice = self._mapper.get_object_type(datumId).device
 
-        # Create a subclass for each component type, if it doesn't already exist
-        try:
-            class_name = datum['type'].split('.')[-1]
-        except Exception:
-            raise ValueError("Unable to determine type for %s" % datumId)
-        module = get_module()
-
-        new_class = getattr(module, class_name, None)
-        if not new_class:
-            class_factory = type(self.__class__)
-            new_class = class_factory(class_name, (self.__class__,), {})
-            new_class.__module__ = module.__name__
-            setattr(module, class_name, new_class)
-
-        # Change our class to this subclass.
-        self.__class__ = new_class
+        # Change our class to a dynamically created subclass that has
+        # the right @properties on it.
+        self.__class__ =  get_adapted_class(datum['type'], self.__class__)
 
         # Load the custom subclass with "property" methods that pull the
         # data in from its source.  Doing it this way makes dir, hasattr,
@@ -181,23 +206,33 @@ class ZManagedObject(object):
         # Install accessor methods for the related objects, wrapping them in
         # ZDeviceOrComponents as well.
         new_links = set()
-        for name in datum['links']:
-            if hasattr(self, name):
+
+        for rel in self._orig_class._relations:
+            name = rel[0]
+            toMany = isinstance(rel[1], ToMany) or isinstance(rel[1], ToManyCont)
+
+            if hasattr(self, name) or hasattr(self.__class__, name):
                 continue
 
-            if self._relname_is_tomany(name):
+            if toMany:
                 def ToManyGetter(name=name):
-                    return [ZDeviceComponent(device, dId, self._mapper.get(dId))
+                    if name not in datum['links']:
+                        return []
+                    return [ZDeviceComponent(db, device, dId)
                             for dId in datum['links'][name]]
                 setattr(self, name, ToManyGetter)
             else:
                 def ToOneGetter(name=name):
+                    if name not in datum['links']:
+                        return None
                     if len(datum['links'][name]) == 0:
                         return None
                     dId = list(datum['links'][name])[0]
-                    return ZDeviceComponent(device, dId, self._mapper.get(dId))
+                    return ZDeviceComponent(db, device, dId)
                 setattr(self, name, ToOneGetter)
-            new_links.add(name)
+
+            if name in datum['links']:
+                new_links.add(name)
 
         # If we just added 'os' or 'hw' accessor methods to a device,
         # change them out for properties, because those objects are directly
@@ -211,36 +246,57 @@ class ZManagedObject(object):
                     if len(datum['links'][name]) == 0:
                         return None
                     dId = list(datum['links'][name])[0]
-                    return ZDeviceComponent(device, dId, self._mapper.get(dId))
+                    return ZDeviceComponent(db, device, dId)
 
                 delattr(self, name)
                 setattr(self.__class__, name, property(DirectGetter))
 
         # Proxy specific methods to the original wrapped class as specified by METHOD_MAP
         if datum['type'] in METHOD_MAP:
-            orig_class = importClass(datum['type'])
-
             # Regular methods.  (if necessary, we can add support for classmethod, etc- for now
             # this is all that is supported)
+
+            orig_class = self._orig_class
             if 'method' in METHOD_MAP[datum['type']]:
                 for from_method_name, to_method_name in METHOD_MAP[datum['type']]['method'].iteritems():
+                    if not hasattr(orig_class, to_method_name):
+                        raise ValueError("%s is not a valid method on %s (%s).  Check METHOD_MAP." % (
+                            to_method_name, datum['type'], orig_class))
                     to_method = getattr(orig_class, to_method_name)
-                    if to_method is None:
-                        raise ValueError("%s is not a valid method on %s.  Check METHOD_MAP." % (
-                            to_method, datum['type']))
                     to_func = to_method.__func__
                     setattr(self.__class__, from_method_name, types.MethodType(to_func, self, self.__class__))
 
-    def _relname_is_tomany(self, relname):
-        # is the specified relationship (link) a toMany relationship?
+    @classmethod
+    def __cls_init__(cls):
+        # called when each ZObject subclass is created- one-time
+        # initialization steps can happen here.
 
-        otype = self._mapper.get_object_type(self._datumId)
-        ltype = otype.get_link_type(relname)
+        gsm = getGlobalSiteManager()
 
-        if ltype is None:
-            raise ValueError("Invalid relname (%s) for %s" % (relname, self._datumId))
+        # Copy all registered IRelationshipDataProviders (impact) registered for the
+        # original zope class over to this adapted version.
+        for adapter in gsm.adapters.subscriptions([implementedBy(cls._orig_class)], IRelationshipDataProvider):
+            print "Registering %s for %s" % (adapter, cls)
+            provideSubscriptionAdapter(adapter, [cls], IRelationshipDataProvider)
 
-        return ltype.local_many
+        # Copy all registered IRelationshipDataProviders and IRelatables (dynamic view) registered for the
+        # original zope class over to this adapted version.
+        for adapter in gsm.adapters.subscriptions([implementedBy(cls._orig_class)], IRelationsProvider):
+            print "Registering %s for %s" % (adapter, cls)
+            provideSubscriptionAdapter(adapter, [cls], IRelationsProvider)
+        adapter = gsm.adapters.lookup([implementedBy(cls._orig_class)], IRelatable)
+        if adapter:
+            print "Registering %s for %s" % (adapter, cls)
+            provideAdapter(adapter, [cls], IRelatable)
+
+    def getDmd(self):
+        global _DMD
+        if _DMD is None:
+            _DMD = ZDummyDmd()
+        return _DMD
+
+    def getPrimaryId(self):
+        return IGlobalIdentifier(self).guid
 
     def __repr__(self):
         return "<%s for %s %s of Device %s>" % (
@@ -267,12 +323,24 @@ class ZManagedObject(object):
             'contextKey': self.id
         }
 
+    def dimensions(self):
+        dimensions = {
+            'device': self._device.id,
+            'component': self._datumId
+        }
+        if dimensions['component'] == dimensions['device']:
+            del dimensions['component']
 
-class ZDevice(ZManagedObject):
+        return dimensions
+
+class ZDummyDmd(object):
+    pass
+
+class ZDevice(ZObject):
     def device(self):
         return self
 
 
-class ZDeviceComponent(ZManagedObject):
+class ZDeviceComponent(ZObject):
     def device(self):
-        return ZDevice(self._device, self._device.id, self._mapper.get(self._device.id))
+        return ZDevice(self._db, self._device, self._device.id)
