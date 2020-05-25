@@ -260,7 +260,7 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
         """
         try:
             return ConfmonPropManager.manage_editProperties(self, REQUEST)
-        except IpAddressError, e:
+        except IpAddressError as e:
             return   MessageDialog(
                 title = "Input Error",
                 message = e.args[0],

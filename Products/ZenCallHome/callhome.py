@@ -61,7 +61,7 @@ class CallHomeCollector(object):
                             stats[key] = [stats[key], val]
                     else:
                         stats[key] = val
-            except Exception, e:
+            except Exception as e:
                 errorObject = dict(
                                 source=utilClass.__name__,
                                 key=name,
@@ -143,7 +143,7 @@ class CallHomeData(object):
                         errors.extend(chData[ERROR_KEY])
                         del chData[ERROR_KEY]
                     data.update(chData)
-            except Exception, e:
+            except Exception as e:
                 errorObject = dict(
                                   callhome_collector=utilClass.__name__,
                                   name=name,
@@ -161,7 +161,7 @@ class CallHomeData(object):
                             errors.extend(chData[ERROR_KEY])
                             del chData[ERROR_KEY]
                         data.update(chData)
-                except Exception, e:
+                except Exception as e:
                     errorObject = dict(
                                       callhome_collector=utilClass.__name__,
                                       name=name,
@@ -175,7 +175,7 @@ class CallHomeData(object):
                                        IVersionHistoryCallHomeCollector):
                 try:
                     utilClass().addVersionHistory(self._dmd, data)
-                except Exception, e:
+                except Exception as e:
                     errorObject = dict(
                                       callhome_collector=utilClass.__name__,
                                       name=name,

@@ -208,7 +208,7 @@ def getZProperties(context):
 def _translateZPropertyValue(zProp, translate, value):
     try:
         return translate(value)
-    except Exception, e:
+    except Exception as e:
         args = zProp, value, e.__class__.__name__, e
         raise Exception('Unable to translate %s "%s" (%s: %s)' % args)
 

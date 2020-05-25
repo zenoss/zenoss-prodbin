@@ -47,7 +47,7 @@ class HoistPerfData(Migrate.Step):
                         if os.path.isdir(newname): continue
                         os.renames(oldname, newname)
                         self.renames.append( (oldname, newname) )
-                except OSError, err:
+                except OSError as err:
                     import errno
                     n, msg = err.args
                     if n != errno.ENOENT:

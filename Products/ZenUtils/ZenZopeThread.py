@@ -42,5 +42,5 @@ class ZenZopeThread(Thread):
             import transaction
             transaction.abort()
             self.conn.close() 
-        except:
+        except Exception:
             pass

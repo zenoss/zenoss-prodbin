@@ -57,7 +57,7 @@ def exec_worker(worker_id=None):
     try:
         log.info("starting worker process")
         os.execvp(argv[0], argv)
-    except:
+    except Exception:
         log.exception("Failed to start process")
 
 class ProcessWorkers(object):
