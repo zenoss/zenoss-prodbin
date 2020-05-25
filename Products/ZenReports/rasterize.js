@@ -1,6 +1,6 @@
 var page = require('webpage').create(),
     system = require('system'),
-    address, output, size, username, password, outputFile, forcedRenderTimeout, maxRenderWait = 7200000,
+    address, output, size, username, password, outputFile, forcedRenderTimeout, maxRenderWait = 7200000, pageLoaded = false,
     pageZoomFactor, pageFormat;
 
 function doRender() {
@@ -25,9 +25,17 @@ if (system.args.length < 5 || system.args.length > 7) {
     page.settings.resourceTimeout = 1800000;
 
     page.onLoadFinished = function(status) {
+        pageLoaded = true;
         forcedRenderTimeout = setTimeout(function () {
             doRender();
         }, 10000);
+    };
+
+    page.onResourceRequested = function(requestData, networkRequest) {
+        // prevent resource requests after the page loads
+        if (pageLoaded) {
+            networkRequest.abort();
+        }
     };
 
     // use the provided username and password if they were provided
