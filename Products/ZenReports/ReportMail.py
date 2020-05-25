@@ -38,8 +38,7 @@ class Page(HTMLParser):
         self.passwd = passwd
 
     def generateScreenShot(self, url, reportFileName, ignoreSslErrors, enableDebug):
-        fullFileName = "/tmp/" + reportFileName
-        command = ["/opt/zenoss/bin/phantomjs", "/opt/zenoss/Products/ZenReports/rasterize.js", url, self.user, self.passwd, fullFileName]
+        command = ["/opt/zenoss/bin/phantomjs", "/opt/zenoss/Products/ZenReports/rasterize.js", url, self.user, self.passwd, reportFileName]
         if ignoreSslErrors:
             # insert after "/opt/zenoss/bin/phantomjs"
             command.insert(1, "--ignore-ssl-errors=yes")
@@ -55,15 +54,15 @@ class Page(HTMLParser):
             sys.stderr.write(" ##### ERROR: phantomjs process return code: %s \n" % phanomjsProcessRC)
             sys.exit(phanomjsProcessRC)
         else:
-            print "file created: %s" % fullFileName
+            print "file created: %s" % reportFileName
 
     def mail(self, reportFileName):
         msg = MIMEMultipart('related')
         msg.preamble = 'This is a multi-part message in MIME format'
 
         # Attaching PDF screenshot
-        part = MIMEApplication(open("/tmp/" + reportFileName,"rb").read())
-        part.add_header('Content-Disposition', 'attachment', filename=reportFileName)
+        part = MIMEApplication(open(reportFileName,"rb").read())
+        part.add_header('Content-Disposition', 'attachment', filename=reportFileName.split('/')[-1])
         msg.attach(part)
 
         return msg
@@ -93,7 +92,7 @@ class ReportMail(ZenScriptBase):
         ignoreSslErrors = o.ignoreSslErrors
         enableDebug = o.enableDebug
         reportFileType = self.determineFileFormat(o.reportFileType)
-        reportFileName = "report_screenshot." + reportFileType
+        reportFileName = "{}.{}".format(o.outputFilePath, reportFileType)
         page.generateScreenShot(url, reportFileName, ignoreSslErrors, enableDebug)
         msg = page.mail(reportFileName)
 
@@ -167,6 +166,10 @@ class ReportMail(ZenScriptBase):
                                dest='reportFileType',
                                default='PDF',
                                help='report file type (%s)' % "|".join(gValidReportFileTypes))
+        self.parser.add_option('--outputFilePath', '-o',
+                               dest='outputFilePath',
+                               default='/tmp/report_screenshot',
+                               help='Path for generated report. For example, /tmp/report_screenshot')
         self.parser.add_option('--user', '-U',
                                dest='user',
                                default='admin',
