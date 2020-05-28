@@ -99,14 +99,7 @@ def getPingBackend():
     buildOptions doesn't get called until later.
     """
 
-    monitor = getCmdOption('monitor', 'localhost')
-
-    configFiles = ['global.conf']
-    if monitor == 'localhost':
-        configFiles.append("zenping.conf")
-    else:
-        configFiles.append("%s_zenping.conf" % monitor)
-
+    configFiles = ['global.conf', 'zenping.conf']
     backend = 'nmap'
     for configFile in configFiles:
         backend = getConfigOption(zenPath('etc', configFile), 'ping-backend', backend)
