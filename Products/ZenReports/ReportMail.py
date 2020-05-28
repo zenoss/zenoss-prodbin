@@ -115,10 +115,6 @@ class ReportMail(ZenScriptBase):
                                            self.dmd.smtpUser,
                                            self.dmd.smtpPass)
 
-        # delete the file so we don't resend it with the next failing request
-        if os.path.isfile(reportFileName):
-            os.remove(reportFileName)
-
         if result:
             print "sent email: %s to:%s" % ( msg.as_string(), o.addresses)
         else:
