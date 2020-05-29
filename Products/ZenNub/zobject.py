@@ -17,10 +17,11 @@
 import importlib
 import imp
 import json
+import logging
 import sys
 import types
 
-from Products.ZenUtils.Utils import importClass
+from Products.ZenUtils.Utils import importClass, monkeypatch
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenRelations.RelSchema import ToMany, ToManyCont
 
@@ -30,6 +31,8 @@ from ZenPacks.zenoss.Impact.impactd.interfaces import IRelationshipDataProvider
 from ZenPacks.zenoss.DynamicView.interfaces import IRelationsProvider, IRelatable
 
 _DMD = None
+log = logging.getLogger("zen.cloudpublisher")
+
 
 # Normally, the adapted versions of components only contain relationships,
 # modeled properties, and zProperties.
@@ -277,6 +280,14 @@ class ZObject(object):
         # Copy all registered IRelationshipDataProviders and IRelatables (dynamic view) registered for the
         # original zope class over to this adapted version.
         for adapter in gsm.adapters.subscriptions([implementedBy(cls._orig_class)], IRelationsProvider):
+            @monkeypatch(adapter)
+            def relations(self, **kwargs):
+                try:
+                    for relation in original(self, **kwargs):
+                        yield relation
+                except Exception, e:
+                    log.error("Error processing %s impact adapter: %s", adapter, e)
+
             provideSubscriptionAdapter(adapter, [cls], IRelationsProvider)
         adapter = gsm.adapters.lookup([implementedBy(cls._orig_class)], IRelatable)
         if adapter:
