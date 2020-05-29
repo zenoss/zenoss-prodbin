@@ -64,7 +64,8 @@ from Products.ZenNub.services import (
     PythonConfig
 )
 from Products.ZenNub.db import get_nub_db
-
+from Products.ZenNub.impact import update_all_impacts
+from Products.ZenNub.cloudpublisher import CloudModelPublisher
 
 log = logging.getLogger('zen.zennub')
 
@@ -120,12 +121,21 @@ class ZenNub(ZCmdBase):
         self.db = get_nub_db()
         self.db.load()
 
-        obo = self.db.get_zobject('emc-smi-s-87-01.zenoss.loc')
-        obo = self.db.get_zobject('emc-smi-s-87-01.zenoss.loc')
-        from Products.ZenNub.impact import test_impact
-        test_impact(self.db)
-        import pdb; pdb.set_trace()
+        # This technically shouldn't be necessary, because the impact
+        # adapter would have been called whenever the applydatamap occurs.
+        # So if it's time/resource consuming at all, we can likely remove it
+        # from the startup.
+        log.info("Updating all impacts")
+        update_all_impacts()
+        self.db.snapshot()
 
+        self.db.set_model_publisher(CloudModelPublisher(
+                self.options.zenossAddress,
+                self.options.zenossApiKey,
+                self.options.zenossHTTPS,
+                self.options.zenossSource,
+                self.options.modelBufferSize
+        ))
 
         self._service_manager = ServiceManager()
         avatar = NubAvatar(self._service_manager)
@@ -157,7 +167,8 @@ class ZenNub(ZCmdBase):
 
         # set the keep-alive config on the server's listening socket
         dfr.addCallback(lambda listener: setKeepAlive(listener.socket))
-        log.debug("Started server, reactor time.")
+        log.debug("Started server.")
+
         reactor.run()
 
         self.shutdown = True
@@ -193,6 +204,36 @@ class ZenNub(ZCmdBase):
             '--profiling', dest='profiling',
             action='store_true', default=False,
             help="Run with profiling on")
+
+        self.parser.add_option('--zenoss-address',
+                           dest='zenossAddress',
+                           type='string',
+                           default='api.zenoss.io:443',
+                           help='Zenoss Cloud API URL, default: %default')
+
+        self.parser.add_option('--zenoss-http',
+                           dest='zenossHTTPS',
+                           action="store_false",
+                           default=True,
+                           help='Use http rather than https for Zenoss Cloud API, default: %default')
+
+        self.parser.add_option('--zenoss-api-key',
+                           dest='zenossApiKey',
+                           type='string',
+                           default=None,
+                           help='Zenoss Cloud API Key')
+
+        self.parser.add_option('--zenoss-source',
+                           dest='zenossSource',
+                           type='string',
+                           default=None,
+                           help='Source tag data sent to Zenoss Cloud')
+
+        self.parser.add_option('--modelBufferSize',
+                               dest='modelBufferSize',
+                               type='int',
+                               default=4096,
+                               help='Number of model updates to buffer if unable to contact the cloud')
 
     def parseOptions(self):
         # Override parseOptions to initialize and install the

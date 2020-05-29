@@ -10,6 +10,7 @@
 from collections import deque
 import json
 import logging
+import numbers
 import os
 import sys
 
@@ -30,14 +31,23 @@ from Products.ZenHub.metricpublisher.publisher import (
 from Products.ZenUtils.MetricServiceRequest import getPool
 
 
-API_KEY_FIELD     = "zenoss-api-key"
-SOURCE_FIELD      = "source"
-SOURCE_TYPE_FIELD = "source-type"
-
-SOURCE_TYPE       = "zenoss/zennub"
-
 BATCHSIZE = 100
 
+def sanitize_field(value):
+    # ensure that a value is suitable for use in a metadataField, that is,
+    # that it is a scalar or list of scalars
+
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, numbers.Number):
+        return value
+    if isinstance(value, basestring):
+        return value
+    if isinstance(value, list):
+        return [sanitize_field(x) for x in value]
+
+    # Not a valid type for a metadata field, so force it into a string
+    return unicode(value)
 
 class NoVerificationPolicy(BrowserLikePolicyForHTTPS):
     # disable certificate validation completely.    Maybe not the best idea.
@@ -251,23 +261,34 @@ class CloudMetricPublisher(CloudPublisher):
         in the buffer when fired
         """
 
-        message = self.build_taggedmetric(metric, value, timestamp, tags)
+        message = self.build_metric(metric, value, timestamp, tags)
         return super(CloudMetricPublisher, self).put(message)
 
 
-    def build_taggedmetric(self, metricName, value, timestamp, tags):
+    def build_metric(self, metricName, value, timestamp, tags):
         metric = {
             "metric": metricName,
             "value": sanitized_float(value),
-            "timestamp": long(timestamp * 1000)
+            "timestamp": long(timestamp * 1000),
+            "dimensions": {
+                'device': tags.get('device', ''),
+                'component': tags.get('contextUUID', ''),
+                'source': self._source
+            },
+            "metadataFields": {
+                'source-type': "zenoss.nub"
+            }
         }
 
         # For internal metrics, include all tags.
         if tags.get('internal', False):
-            metric['tags'] = {}
+            del metric["dimensions"]["device"]
+            del metric["dimensions"]["component"]
+            metric["dimensions"]["daemon"] = tags.get('daemon', '')
             for t, v in tags.iteritems():
-                metric['tags'][t] = str(v)
-            metric['tags']['source'] = self._source
+                if t == 'daemon':
+                    continue
+                metric['metadataFields'][t] = sanitize_field(v)
             return metric
 
         # Set the metric name correctly.
@@ -281,20 +302,12 @@ class CloudMetricPublisher(CloudPublisher):
 
             metric['metric'] = metricName.replace('/', '_', 1)
 
-        metric['tags'] = {
-            'source': self._source,
-            'device': tags.get('device', ''),
-            'component': tags.get('contextUUID', '')
-        }
-
-        if metric['tags']['device'] == metric['tags']['component']:
-            # no need for this.
-            del metric['tags']['component']
-
         return metric
 
     def serialize_messages(self, messages):
-        return json.dumps({"taggedMetrics": messages}, indent=4)
+        return json.dumps({
+            "detailedResponse": True,
+            "metrics": messages}, indent=4)
 
 
 class CloudModelPublisher(CloudPublisher):
@@ -312,5 +325,7 @@ class CloudModelPublisher(CloudPublisher):
             self._modellog = logging.getLogger("zen.cloudpublisher.model")
         return self._modellog
 
-
-
+    def serialize_messages(self, messages):
+        return json.dumps({
+            "detailedResponse": True,
+            "models": messages}, indent=4)

@@ -237,18 +237,14 @@ class ZObject(object):
         # If we just added 'os' or 'hw' accessor methods to a device,
         # change them out for properties, because those objects are directly
         # contained.
-        if self._mapper.get_object_type(datumId).device:
+        if isDevice:
             for name in ('os', 'hw', ):
-                if name not in new_links:
-                    continue
-
                 def DirectGetter(self, name=name):
                     if len(datum['links'][name]) == 0:
                         return None
                     dId = list(datum['links'][name])[0]
                     return ZDeviceComponent(db, device, dId)
 
-                delattr(self, name)
                 setattr(self.__class__, name, property(DirectGetter))
 
         # Proxy specific methods to the original wrapped class as specified by METHOD_MAP
@@ -276,17 +272,14 @@ class ZObject(object):
         # Copy all registered IRelationshipDataProviders (impact) registered for the
         # original zope class over to this adapted version.
         for adapter in gsm.adapters.subscriptions([implementedBy(cls._orig_class)], IRelationshipDataProvider):
-            print "Registering %s for %s" % (adapter, cls)
             provideSubscriptionAdapter(adapter, [cls], IRelationshipDataProvider)
 
         # Copy all registered IRelationshipDataProviders and IRelatables (dynamic view) registered for the
         # original zope class over to this adapted version.
         for adapter in gsm.adapters.subscriptions([implementedBy(cls._orig_class)], IRelationsProvider):
-            print "Registering %s for %s" % (adapter, cls)
             provideSubscriptionAdapter(adapter, [cls], IRelationsProvider)
         adapter = gsm.adapters.lookup([implementedBy(cls._orig_class)], IRelatable)
         if adapter:
-            print "Registering %s for %s" % (adapter, cls)
             provideAdapter(adapter, [cls], IRelatable)
 
     def getDmd(self):
@@ -297,6 +290,9 @@ class ZObject(object):
 
     def getPrimaryId(self):
         return IGlobalIdentifier(self).guid
+
+    def aqBaseHasAttr(self, attrname):
+        return hasattr(self, attrname)
 
     def __repr__(self):
         return "<%s for %s %s of Device %s>" % (

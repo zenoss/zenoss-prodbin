@@ -11,9 +11,14 @@
 # In-memory database holding all devices, device classes, and monitoring
 # templates.
 
+import datetime
 import logging
 import os
 import pickle
+
+from zope.component import getUtility
+
+from Products.ZenHub.server import IHubServerConfig
 
 from .model import Device, ModelerPlugin, ParserPlugin, DeviceClass, RRDTemplate, ClassModel, DataSource
 from .yamlconfig import (
@@ -22,18 +27,23 @@ from .yamlconfig import (
     load_modelerplugin_yaml,
     load_parserplugin_yaml,
     load_classmodel_yaml,
-    load_datasource_yaml
+    load_datasource_yaml,
 )
 
 from .utils import all_parent_dcs
 from .mapper import DataMapper
 from .zobject import ZDevice, ZDeviceComponent
+from .cloudpublisher import CloudModelPublisher, sanitize_field
 
 SNAPSHOT_DIR="/opt/zenoss/etc/nub/snapshot"
 
 log = logging.getLogger('zen.zennub.db')
 _DB = None
+EPOCH = datetime.datetime.utcfromtimestamp(0)
 
+def datetime_millis(dt):
+    """Return POSIX timestamp in milliseconds as int."""
+    return int((dt - EPOCH).total_seconds() * 1000)
 
 # return a singleton for the database
 def get_nub_db():
@@ -56,6 +66,9 @@ class DB(object):
 
         # device class -> any device below it in the hierarchy
         self.child_devices = {}
+
+        # The model publisher (set with set_model_publisher before using)
+        self.model_publisher = None
 
     def load(self):
         # Load the contents of the on-disk YAML files into the db.
@@ -130,6 +143,11 @@ class DB(object):
                     log.debug("Reading DataMapper for device %s from last snapshot.", id)
                     with open(filename, "r") as f:
                         self.mappers[id] = pickle.load(f)
+
+                    # Clear out stored schema, in case it's changed and is
+                    # no longer compatible.  It will be recreated as necessary
+                    self.mappers[id].object_types = {}
+
                     return self.mappers[id]
                 except Exception, e:
                     log.error("Error reading DataMapper snapshot from %s: %s", filename, e)
@@ -204,5 +222,52 @@ class DB(object):
                 self.child_devices.setdefault(dc, [])
                 self.child_devices[dc].append(device)
 
+    def set_model_publisher(self, publisher):
+        self.model_publisher = publisher
 
+    def publish_model(self, device=None, component=None):
+        if self.model_publisher is None:
+            raise Exception("publish_model can not be called before set_model_publisher")
 
+        mapper = self.get_mapper(device)
+        model = {
+            'timestamp': datetime_millis(datetime.datetime.utcnow()),
+            'dimensions': {
+                'device': device,
+                'component': component,
+                'source': self.model_publisher._source
+            },
+            'metadataFields': {
+                'source-type': "zenoss.nub"
+            }
+        }
+
+        if component is None or component == device:
+            datum = mapper.get(device)
+            datum['title'] = device
+        else:
+            datum = mapper.get(component)
+
+        mdf = model['metadataFields']
+
+        if datum is None:
+            # Need to delete the component.
+            mdf['_zen_deleted_entity'] = True
+        else:
+            # Otherwise, update it.
+            mdf['name'] = sanitize_field(datum['title'])
+            try:
+                mdf['type'] = sanitize_field(self.classmodel[datum['type']].meta_type)
+            except Exception:
+                mdf['type'] = sanitize_field(datum['type'])
+
+            for k, v in datum['properties'].iteritems():
+                mdf[k] = sanitize_field(v)
+
+            # Add source dimension to impact relationships
+            for i, _ in enumerate(mdf.get('impactFromDimensions', [])):
+                mdf['impactFromDimensions'][i] += ",source=" + model['dimensions']['source']
+            for i, _ in enumerate(mdf.get('impactToDimensions', [])):
+                mdf['impactToDimensions'][i] += ",source=" + model['dimensions']['source']
+
+        self.model_publisher.put(model)

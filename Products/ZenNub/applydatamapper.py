@@ -13,13 +13,16 @@
 
 import logging
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
+from Products.DataCollector.ApplyDataMap import isSameData
 
 from Products.ZenNub.zobject import METHOD_MAP, ZDevice, ZDeviceComponent
 from Products.ZenNub.db import get_nub_db
+from Products.ZenNub.impact import update_impact
 
 db = get_nub_db()
 log = logging.getLogger("zen.applydatamapper")
 
+FULL_MODEL_SENT = set()
 
 class ApplyDataMapper(object):
 
@@ -28,18 +31,49 @@ class ApplyDataMapper(object):
         self.deviceModel = deviceModel
 
     def applyDataMap(self, base_id, datamap):
+        global FULL_MODEL_SENT
+
         changed = False
+        deviceId = self.deviceModel.id
 
         if isinstance(datamap, RelationshipMap):
-            changed = self.apply_relationshipmap(base_id, datamap)
+            changed_ids = self.apply_relationshipmap(base_id, datamap)
 
         if isinstance(datamap, ObjectMap):
-            changed = self.apply_objectmap(base_id, datamap)
+            changed_ids = self.apply_objectmap(base_id, datamap)
 
-        log.debug("applyDataMap complete.  changed=%s", changed)
+        changed_object_count = len(changed_ids)
+        changed = changed_object_count > 0
+
+        log.info("applyDataMap to %s complete.  changed=%s", deviceId, changed)
+
+        log.debug("Updating impact relationships on %d modified objects" % changed_object_count)
+        for compId in changed_ids:
+            update_impact(device=deviceId, component=compId)
+
+        if deviceId not in FULL_MODEL_SENT:
+            # The first ADM call for a device after this process is restarted
+            # will send models for all components to the cloud.
+            #
+            # Note: there is no way currently to purge objects from the cloud
+            # without knowing their dimensions in advance, so if objects were
+            # deleted from the targets while we were not running, we can't
+            # remove them.
+
+            FULL_MODEL_SENT.add(deviceId)
+            changed_ids = [x[0] for x in db.get_mapper(deviceId).all()]
+            changed_object_count = len(changed_ids)
+            log.debug("Publishing full model")
+
+        log.debug("Publishing %d model updates" % changed_object_count)
+        for compId in changed_ids:
+            db.publish_model(device=deviceId, component=compId)
+
         return changed
 
     def apply_objectmap(self, base_id, objmap):
+        changed_ids = set()
+
         fields = ("compname", "relname", "modname", "id",)
         om = set([f for f in fields if hasattr(objmap, f) and getattr(objmap, f, "") != ""])
         _add = getattr(objmap, "_add", True)
@@ -50,12 +84,14 @@ class ApplyDataMapper(object):
         #   ObjectMap({'rackSlot': 'near-the-top'}),
         if "compname" not in om and "relname" not in om:
             target = self.mapper.get(base_id)
-            changed = self._update_properties(objmap, target, base_id)
+            if self._update_properties(objmap, target, base_id):
+                self.mapper.update({base_id: target})
+                changed_ids.add(base_id)
+
             log.debug("ObjectMap [1] base_id=%s, compname=, relname=, target_id=%s",
                       base_id, base_id)
-            self.mapper.update({base_id: target})
 
-            return changed
+            return changed_ids
 
         # An ObjectMap with a compname, but no relname will be
         # applied to a static object that's always a child of the
@@ -71,7 +107,8 @@ class ApplyDataMapper(object):
                 # if _add=False, we don't create the object if it's not there.
                 log.debug("ObjectMap [2] not creating target_id=%s (_add=False)", target_id)
                 return None
-            changed = self._update_properties(objmap, target, target_id)
+            if self._update_properties(objmap, target, target_id):
+                changed_ids.add(target_id)
 
             if objmap.compname in ("hw", "os"):
                 obj_type = self.mapper.get_object_type(base_id)
@@ -90,9 +127,10 @@ class ApplyDataMapper(object):
             if objmap.compname not in device["links"]:
                 device["links"][objmap.compname].add(target_id)
                 self.mapper.update({base_id: device})
+                changed_ids.add(base_id)
                 log.debug("  Added new component (%s) under %s (%s)", target_id, base_id, objmap.compname)
 
-            return changed
+            return changed_ids
 
         # A special _remove key can a be added to an ObjectMap's data
         # to cause the identified component to be deleted. If a
@@ -115,10 +153,11 @@ class ApplyDataMapper(object):
             if "id" in om:
                 log.debug("remove id=%s", objmap.id)
                 self.mapper.remove(objmap.id)
-                return True
+                changed_ids.add(objmap.id)
+                return changed_ids
             else:
                 log.error("Unable to process _remove directive without id")
-                return False
+                return set()
 
         # An ObjectMap with an id, relname, and modname will be
         # applied to a component of the device. The component's
@@ -137,13 +176,14 @@ class ApplyDataMapper(object):
             if target is None:
                 # if _add=False, we don't create the object if it's not there.
                 log.debug("ObjectMap [3] not creating target_id=%s (_add=False)", target_id)
-                return False
+                return set()
 
             log.debug("ObjectMap [3] base_id=%s, compname=%s, relname=%s, target_id=%s",
                       base_id, objmap.compname, objmap.relname, target_id)
 
-            changed = self._update_properties(objmap, target, target_id)
-            self.mapper.update({target_id: target})
+            if self._update_properties(objmap, target, target_id):
+                self.mapper.update({target_id: target})
+                changed_ids.add(target_id)
 
             # Link from device to this component if it's new.
             device = self.mapper.get(base_id)
@@ -151,8 +191,9 @@ class ApplyDataMapper(object):
                 log.debug("  Added new component (%s) under %s (%s)", target_id, base_id, objmap.relname)
                 device["links"][objmap.relname].add(target_id)
                 self.mapper.update({base_id: device})
+                changed_ids.add(base_id)
 
-            return changed
+            return changed_ids
 
         # Components nested beneath other components can be updated
         # by using both compname to identify the relative path to the
@@ -175,14 +216,14 @@ class ApplyDataMapper(object):
                 return None
 
             target = self.mapper.get(target_id, create_if_missing=_add)
-            changed = self._update_properties(objmap, target, target_id)
+            if self._update_properties(objmap, target, target_id):
+                self.mapper.update({target_id: target})
+                changed_ids.add(target_id)
 
             log.debug("ObjectMap [4] base_id=%s, compname=%s, relname=%s, target_id=%s",
                       base_id, objmap.compname, objmap.relname, target_id)
 
-            self.mapper.update({target_id: target})
-
-            return changed
+            return changed_ids
 
     def _update_properties(self, objmap, target, target_id):
         changed = False
@@ -200,7 +241,7 @@ class ApplyDataMapper(object):
             if k in ['parentId', 'relname', 'id', '_add', '_remove', 'title']:
                 continue
 
-            if k not in target["properties"] or target["properties"][k] != v:
+            if k not in target["properties"] or not isSameData(target["properties"][k], v):
                 target["properties"][k] = v
                 changed = True
 
@@ -221,11 +262,13 @@ class ApplyDataMapper(object):
                 if k in setters_to_call:
                     log.debug("Invoking setter %s on %s", k, target_id)
                     getattr(adapted, k)(v)
+                    changed = True
 
 
         return changed
 
     def apply_relationshipmap(self, base_id, relmap):
+        changed_ids = set()
         target_id = base_id
 
         # A RelationshipMap is used to update all of the components
@@ -283,7 +326,6 @@ class ApplyDataMapper(object):
         new_objids = set([om.id for om in relmap])
 
         rmodname = getattr(relmap, "modname", None)
-        changed = False
         for objmap in relmap:
             # objmaps inherit the modname from the relmap if they haven't
             # specified one.
@@ -293,16 +335,16 @@ class ApplyDataMapper(object):
 
             objmap.relname = relmap.relname
 
-            if self.apply_objectmap(target_id, objmap):
-                changed = True
+            changed_ids.update(self.apply_objectmap(target_id, objmap))
+
 
         # Remove any existing objects that were't included in the relationshipmap
         for objid in current_objids:
             if objid not in new_objids:
                 self.mapper.remove(objid)
-                changed = True
+                changed_ids.add(objid)
 
-        return changed
+        return changed_ids
 
     def _traverse_compname(self, base_id, base_compname, current_id=None, compname=None):
         if current_id is None:
