@@ -262,7 +262,10 @@ class CloudMetricPublisher(CloudPublisher):
         """
 
         message = self.build_metric(metric, value, timestamp, tags)
-        return super(CloudMetricPublisher, self).put(message)
+        if message:
+            return super(CloudMetricPublisher, self).put(message)
+        else:
+            return defer.succeed(len(self._mq))
 
 
     def build_metric(self, metricName, value, timestamp, tags):
@@ -282,6 +285,10 @@ class CloudMetricPublisher(CloudPublisher):
 
         # For internal metrics, include all tags.
         if tags.get('internal', False):
+
+            # Temporarily disable internal metrics for now.
+            return None
+
             del metric["dimensions"]["device"]
             del metric["dimensions"]["component"]
             metric["dimensions"]["daemon"] = tags.get('daemon', '')

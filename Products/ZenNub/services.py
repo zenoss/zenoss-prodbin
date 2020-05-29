@@ -668,6 +668,7 @@ class PythonConfig(CollectorConfigService):
 
                     dp_config.id = dp_id
                     dp_config.dpName = dp_id
+                    dp_config.rrdType = dp.rrdtype
 
                     dp_config.rrdPath = '/'.join((deviceOrComponent.rrdPath(), dp_id))
                     dp_config.metadata = deviceOrComponent.getMetricMetadata()

@@ -72,9 +72,6 @@ def update_impact(device=None, component=None):
         zobj.impactToDimensions = impacting_dims
         changed = True
 
-    if component == 'emc-vnx1_CLARiiON_APM00141704021_SP_A':
-        import pdb; pdb.set_trace()
-
     return changed
 
 def impacts_for(thing):
