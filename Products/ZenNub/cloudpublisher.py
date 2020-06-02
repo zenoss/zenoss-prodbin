@@ -8,6 +8,7 @@
 ##############################################################################
 
 from collections import deque
+import datetime
 import json
 import logging
 import numbers
@@ -29,6 +30,8 @@ from Products.ZenHub.metricpublisher.publisher import (
     sanitized_float
 )
 from Products.ZenUtils.MetricServiceRequest import getPool
+
+from .utils import datetime_millis
 
 
 BATCHSIZE = 100
@@ -76,6 +79,7 @@ class CloudPublisher(object):
 
         self._agent = Agent(reactor, NoVerificationPolicy(), pool=getPool())
         self._address = address
+        self._useHTTPS = useHTTPS
         self._apiKey = apiKey
         self._source = source
 
@@ -233,6 +237,19 @@ class CloudPublisher(object):
 
 
 class CloudMetricPublisher(CloudPublisher):
+    def __init__(self,
+                 address,
+                 apiKey,
+                 useHTTPS=True,
+                 source=None,
+                 buflen=defaultMetricBufferSize,
+                 pubfreq=defaultPublishFrequency):
+        super(CloudMetricPublisher, self).__init__(
+            address, apiKey, useHTTPS, source, buflen, pubfreq)
+
+        self._sent_daemon_model = False
+        self._model_publisher = None
+
 
     def get_url(self, scheme, address):
         return "{scheme}://{address}/v1/data-receiver/metrics".format(
@@ -267,6 +284,27 @@ class CloudMetricPublisher(CloudPublisher):
         else:
             return defer.succeed(len(self._mq))
 
+    def model_publisher(self):
+        if not self._model_publisher:
+            self._model_publisher = CloudModelPublisher(
+                self._address,
+                self._apiKey,
+                self._useHTTPS,
+                self._source,
+                self._buflen)
+
+        return self._model_publisher
+
+    def publish_model(self, name, dimensions, metadataFields):
+        model = {
+            'timestamp': datetime_millis(datetime.datetime.utcnow()),
+            'dimensions': dimensions,
+            'metadataFields': metadataFields
+        }
+        model['metadataFields']['name'] = name
+
+        self.model_publisher().put(model)
+
 
     def build_metric(self, metricName, value, timestamp, tags):
         metric = {
@@ -286,16 +324,23 @@ class CloudMetricPublisher(CloudPublisher):
         # For internal metrics, include all tags.
         if tags.get('internal', False):
 
-            # Temporarily disable internal metrics for now.
-            return None
-
             del metric["dimensions"]["device"]
             del metric["dimensions"]["component"]
             metric["dimensions"]["daemon"] = tags.get('daemon', '')
+
             for t, v in tags.iteritems():
                 if t == 'daemon':
                     continue
                 metric['metadataFields'][t] = sanitize_field(v)
+
+            # publish a model as well, the first tim we're called.
+            if self._sent_daemon_model is False:
+                self.publish_model(
+                    metric["dimensions"]["daemon"],
+                    metric['dimensions'],
+                    metric['metadataFields'])
+                self._sent_daemon_model = True
+
             return metric
 
         # Set the metric name correctly.

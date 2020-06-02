@@ -30,7 +30,7 @@ from .yamlconfig import (
     load_datasource_yaml,
 )
 
-from .utils import all_parent_dcs
+from .utils import all_parent_dcs, datetime_millis
 from .mapper import DataMapper
 from .zobject import ZDevice, ZDeviceComponent
 from .cloudpublisher import CloudModelPublisher, sanitize_field
@@ -39,11 +39,7 @@ SNAPSHOT_DIR="/opt/zenoss/etc/nub/snapshot"
 
 log = logging.getLogger('zen.zennub.db')
 _DB = None
-EPOCH = datetime.datetime.utcfromtimestamp(0)
 
-def datetime_millis(dt):
-    """Return POSIX timestamp in milliseconds as int."""
-    return int((dt - EPOCH).total_seconds() * 1000)
 
 # return a singleton for the database
 def get_nub_db():

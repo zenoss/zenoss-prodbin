@@ -1,3 +1,8 @@
+import datetime
+
+EPOCH = datetime.datetime.utcfromtimestamp(0)
+
+
 def remove_prefix(s, prefix):
     if s.startswith(prefix):
         return s[len(prefix):]
@@ -21,3 +26,7 @@ def all_parent_dcs(path):
     yield path
     for parent in parent_dcs(path):
         yield parent
+
+def datetime_millis(dt):
+    """Return POSIX timestamp in milliseconds as int."""
+    return int((dt - EPOCH).total_seconds() * 1000)
