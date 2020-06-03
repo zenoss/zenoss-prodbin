@@ -241,9 +241,8 @@ class TrapTask(BaseTask, CaptureReplay):
                 listening_address = '%s:%d' % (listening_protocol, trapPort)
                 fileno = -1
             self._pre_parse_callback = _pre_parse_factory(self._pre_parse)
-            debug = self.log.isEnabledFor(logging.DEBUG)
             self.session.awaitTraps(
-                listening_address, fileno, self._pre_parse_callback, debug
+                listening_address, fileno, self._pre_parse_callback, debug=True
             )
             self.session.callback = self.receiveTrap
             twistedsnmp.updateReactor()
