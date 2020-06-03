@@ -538,6 +538,12 @@ def update_datasource_yaml():
 
 
 if __name__ == '__main__':
+    try:
+        import ZenPacks.zenoss.ZenPackLib
+    except ImportError:
+        log.error("ZenPackLib is not currently installed.  Unable to continue with update_zenpacks.py.")
+        sys.exit(0)
+
     update_zenpack_yaml_index()
     update_system_deviceclasses_yaml()
     update_modeler_yaml()
