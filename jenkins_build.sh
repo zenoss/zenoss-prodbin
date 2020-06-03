@@ -51,7 +51,7 @@ cleanup() {
     RC="$?"
     if [[ $RC == 0 ]]; then
         zendev drop ${ZENDEV_ENV}
-        docker rmi zendev/devimg:${ZENDEV_ENV} zendev/devimg-base:${ZENDEV_ENV}
+#        docker rmi zendev/devimg:${ZENDEV_ENV} zendev/devimg-base:${ZENDEV_ENV}
     fi
 }
 
