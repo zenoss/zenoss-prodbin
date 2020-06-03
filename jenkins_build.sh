@@ -105,17 +105,17 @@ echo Use ${ZENDEV_ENV} zendev environment
 rm -rf ${REPO_PATH}
 cp -r $WORKSPACE/${REPO_NAME} ${REPO_PATH}
 
-echo Creating a devimg...
-zendev devimg --clean
-
-# Copy contents of the bin directory as those scripts may differ between
-# the base branch and the PR branch.  Exclude the metrics directory because
-# that directory is symlinked back into the source repo.
-echo Copying zenoss-prodbin/bin/ to zenhome/bin
-rsync -av --exclude=metrics/ ${REPO_PATH}/bin/ ${ZENDEV_ROOT}/zenhome/bin
-
-echo Running the tests...
-zendev test --no-tty -- --no-zenpacks
+#echo Creating a devimg...
+#zendev devimg --clean
+#
+## Copy contents of the bin directory as those scripts may differ between
+## the base branch and the PR branch.  Exclude the metrics directory because
+## that directory is symlinked back into the source repo.
+#echo Copying zenoss-prodbin/bin/ to zenhome/bin
+#rsync -av --exclude=metrics/ ${REPO_PATH}/bin/ ${ZENDEV_ROOT}/zenhome/bin
+#
+#echo Running the tests...
+#zendev test --no-tty -- --no-zenpacks
 
 echo Building the artifacts...
 cdz ${REPO_NAME};make clean build
