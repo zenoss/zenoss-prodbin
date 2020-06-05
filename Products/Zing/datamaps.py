@@ -228,7 +228,7 @@ class ZingDatamapHandler(object):
                 d[k] = v.args
         f.update(d)
         if parent_device is not None:
-            f.metadata["parent"] = parent_device.getUUID()
+            f.metadata[ZFact.DimensionKeys.PARENT_KEY] = parent_device.getUUID()
         if relationship is not None:
             f.metadata["relationship"] = relationship
         plugin_name = getattr(om, PLUGIN_NAME_ATTR, None) or dm_plugin
@@ -270,7 +270,7 @@ class ZingDatamapHandler(object):
         if getattr(idm, PLUGIN_NAME_ATTR, None):
             f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = idm.plugin_name
         try:
-            f.metadata["parent"] = idm.parent.getUUID()
+            f.metadata[ZFact.DimensionKeys.PARENT_KEY] = idm.parent.getUUID()
         except Exception:
             log.debug('parent UUID not found')
 
