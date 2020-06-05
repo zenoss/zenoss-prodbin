@@ -33,6 +33,7 @@ class DimensionKeys(object):
     META_TYPE_KEY = "meta_type"
     PLUGIN_KEY = "plugin"
     PARENT_KEY = "parent"
+    RELATION_KEY = "relationship"
 
 
 class MetadataKeys(object):
@@ -48,6 +49,8 @@ class MetadataKeys(object):
     IMPACT_DS_ORG_KEY = "impact_ds_organizer"
     IMPACT_DS_IMPACTERS_KEY = "dynamic_service_impacters"
     ZEN_SCHEMA_TAGS_KEY = "zen_schema_tags"
+    ID_KEY = "id"
+    TITLE_KEY = "title"
 
 
 class Fact(object):
@@ -103,8 +106,9 @@ def device_info_fact(device):
          if device.isLocal(propId) and propdict.get('type', None) in ('string', 'int', 'boolean',
                                                                       'long', 'float', 'text',
                                                                       'lines'):
-            data_key = "PROP_{}".format(propId)
-            f.data[data_key] = device.getProperty(propId) or ""
+            f.data[propId] = device.getProperty(propId) or ""
+    f.data[MetadataKeys.ID_KEY] = device.id
+    f.data[MetadataKeys.TITLE_KEY] = device.title
     return f
 
 

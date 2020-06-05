@@ -230,7 +230,7 @@ class ZingDatamapHandler(object):
         if parent_device is not None:
             f.metadata[ZFact.DimensionKeys.PARENT_KEY] = parent_device.getUUID()
         if relationship is not None:
-            f.metadata["relationship"] = relationship
+            f.metadata[ZFact.DimensionKeys.RELATION_KEY] = relationship
         plugin_name = getattr(om, PLUGIN_NAME_ATTR, None) or dm_plugin
         if plugin_name:
             f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = plugin_name
@@ -266,7 +266,7 @@ class ZingDatamapHandler(object):
         f.update(objectmap)
 
         if idm.relname:
-            f.metadata["relationship"] = idm.relname
+            f.metadata[ZFact.DimensionKeys.RELATION_KEY] = idm.relname
         if getattr(idm, PLUGIN_NAME_ATTR, None):
             f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = idm.plugin_name
         try:
