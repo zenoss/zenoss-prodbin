@@ -51,6 +51,8 @@ class MetadataKeys(object):
     ZEN_SCHEMA_TAGS_KEY = "zen_schema_tags"
     ID_KEY = "id"
     TITLE_KEY = "title"
+    DEVICE_UUID_KEY = "device_uuid"
+    DEVICE_KEY = "device"
 
 
 class Fact(object):
@@ -60,6 +62,9 @@ class Fact(object):
         self.id = f_id
         self.metadata = {}  # corresponds to "dimensions" in zing
         self.data = {}  # corresponds to "metadata" in zing
+
+    def __str__(self):
+        return "ZING.fact {}   metadata: {!r}  data: {!r}".format(self.id, self.metadata, self.data)
 
     def update(self, other):
         self.data.update(other)
@@ -101,14 +106,19 @@ def device_info_fact(device):
     f.metadata[DimensionKeys.PLUGIN_KEY] = DEVICE_INFO_FACT_PLUGIN
     f.data[MetadataKeys.NAME_KEY] = device.titleOrId()
     f.data[MetadataKeys.PROD_STATE_KEY] = device.getProductionStateString()
-     for propdict in device._propertyMap():
-         propId = propdict.get('id')
-         if device.isLocal(propId) and propdict.get('type', None) in ('string', 'int', 'boolean',
-                                                                      'long', 'float', 'text',
-                                                                      'lines'):
+    for propdict in device._propertyMap():
+        propId = propdict.get('id')
+        if device.isLocal(propId) and propdict.get('type', None) in ('string', 'int', 'boolean',
+                                                                     'long', 'float', 'text',
+                                                                     'lines'):
             f.data[propId] = device.getProperty(propId) or ""
     f.data[MetadataKeys.ID_KEY] = device.id
     f.data[MetadataKeys.TITLE_KEY] = device.title
+    try:
+        f.data[MetadataKeys.DEVICE_UUID_KEY] = get_context_uuid(device.device())
+        f.data[MetadataKeys.DEVICE_KEY] = device.device().id
+    except Exception:
+        pass
     return f
 
 
