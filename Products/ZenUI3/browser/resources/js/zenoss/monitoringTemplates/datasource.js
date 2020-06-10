@@ -603,7 +603,7 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
                     columnWidth: 0.5,
                     baseCls: 'test-against-device',
                     hidden: Zenoss.Security.doesNotHavePermission('Run Commands'),
-                    title: _t('Test Against a Device'),
+                    title: _t('Monitor Against a Device'),
                     items:[{
                         xtype: 'textfield',
                         fieldLabel: _t('Device Name'),
@@ -616,9 +616,9 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
                         value: response.record.id
                     },{
                         xtype: 'button',
-                        text: _t('Test'),
+                        text: _t('Monitor'),
                         ref: '../testDeviceButton',
-                        handler: me.testDataSource
+                        handler: me.monitorDataSource
                     }]});
 
             }
@@ -681,7 +681,7 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
      * Event handler for when a user wants to test a datasource
      * against a specific device.
      **/
-    testDataSource: function() {
+    monitorDataSource: function() {
         var cmp = Ext.getCmp(editDataSourcesId),
             values = cmp.editForm.form.getValues(),
             win, testDevice;
@@ -690,9 +690,9 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
 
         win = new Zenoss.CommandWindow({
             uids: testDevice,
-            title: _t('Test Data Source'),
+            title: _t('Monitor Data Source'),
             data: values,
-            target: Zenoss.render.link(null, values.uid) + '/test_datasource'
+            target: Zenoss.render.link(null, values.uid) + '/monitor_datasource'
         });
 
         win.show();
