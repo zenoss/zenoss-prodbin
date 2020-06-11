@@ -28,8 +28,6 @@ from ..workers import (
     ServiceCallPriority,
     ServiceCallTask,
     WorkerPoolExecutor,
-    ServiceCallTask,
-    WorkerPoolExecutor,
     _Running,
 )
 
