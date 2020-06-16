@@ -26,7 +26,7 @@ from ipaddr import IPAddress
 from struct import unpack
 
 from pynetsnmp import netsnmp, twistedsnmp
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 from twisted.python.failure import Failure
 from zope.component import queryUtility, getUtility, provideUtility
 from zope.interface import implementer
@@ -241,9 +241,8 @@ class TrapTask(BaseTask, CaptureReplay):
                 listening_address = '%s:%d' % (listening_protocol, trapPort)
                 fileno = -1
             self._pre_parse_callback = _pre_parse_factory(self._pre_parse)
-            debug = self.log.isEnabledFor(logging.DEBUG)
             self.session.awaitTraps(
-                listening_address, fileno, self._pre_parse_callback, debug
+                listening_address, fileno, self._pre_parse_callback, debug=True
             )
             self.session.callback = self.receiveTrap
             twistedsnmp.updateReactor()
@@ -293,7 +292,7 @@ class TrapTask(BaseTask, CaptureReplay):
         """
         if hasattr(pdu, "fake"):  # Replaying a packet
             return pdu.variables
-        return netsnmp.getResult(pdu)
+        return netsnmp.getResult(pdu, self.log)
 
     def getCommunity(self, pdu):
         """
@@ -325,7 +324,7 @@ class TrapTask(BaseTask, CaptureReplay):
         packet.version = pdu.version
         packet.host = addr[0]
         packet.port = addr[1]
-        packet.variables = netsnmp.getResult(pdu)
+        packet.variables = netsnmp.getResult(pdu, self.log)
         packet.community = ''
         packet.enterprise_length = pdu.enterprise_length
 
@@ -935,7 +934,7 @@ class TrapDaemon(CollectorDaemon):
             d.addCallback(self._createUsers)
 
     def remote_createUser(self, user):
-        self._createUsers([user])
+        reactor.callInThread(self._createUsers, [user])
 
     def _createUsers(self, users):
         fmt = 'TrapDaemon._createUsers {0} users'

@@ -28,6 +28,7 @@ from twisted.spread import pb
 from zope.component import getGlobalSiteManager
 
 import Globals  # noqa: F401
+import Products.ZenHub as ZENHUB_MODULE
 
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT
@@ -40,7 +41,7 @@ from Products.ZenHub.PBDaemon import RemoteBadMonitor
 from Products.ZenUtils.debugtools import ContinuousProfiler
 from Products.ZenUtils.PBUtil import setKeepAlive
 from Products.ZenUtils.Time import isoDateTime
-from Products.ZenUtils.Utils import zenPath, atomicWrite
+from Products.ZenUtils.Utils import zenPath, atomicWrite, load_config
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 IDLE = "None/None"
@@ -61,7 +62,7 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
     def __init__(self, reactor):
         """Initialize a ZenHubWorker instance."""
         ZCmdBase.__init__(self)
-
+        load_config("hubworker.zcml", ZENHUB_MODULE)
         self.__reactor = reactor
 
         if self.options.profiling:
@@ -92,7 +93,8 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         )
         endpoint = clientFromString(reactor, endpointDescriptor)
         self.__client = ZenHubClient(
-            reactor, endpoint, creds, self, 10.0, self.worklistId,
+            reactor, endpoint, creds, self,
+            self.options.hub_response_timeout, self.worklistId,
         )
 
         # Setup Metric Reporting
@@ -298,6 +300,12 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         self.parser.add_option(
             '--hubpassword', dest='hubpassword', default='zenoss',
             help="password to use when connecting to ZenHub",
+        )
+        self.parser.add_option(
+            '--hub-response-timeout', dest='hub_response_timeout',
+            default=30, type='int',
+            help="ZenHub response timeout interval (in seconds) "
+            "default: %default",
         )
         self.parser.add_option(
             '--call-limit', dest='call_limit', type='int', default=200,

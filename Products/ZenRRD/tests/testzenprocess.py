@@ -7,11 +7,11 @@
 # 
 ##############################################################################
 
-
 import logging
 import pprint
 import sys
 from md5 import md5
+from unittest import TestCase
 
 log = logging.getLogger('zen.testzenprocess')
 
@@ -59,7 +59,7 @@ class ProcessResults(object):
     orderedKeys = (PROCESSES,AFTERBYCONFIG, AFTERPIDTOPS, BEFOREBYCONFIG, NEW, RESTARTED, DEAD, MISSING)
     resultKeys = (AFTERBYCONFIG, AFTERPIDTOPS, BEFOREBYCONFIG, NEW, RESTARTED, DEAD, MISSING)
 
-class TestZenprocess(BaseTestCase):
+class TestZenprocess(TestCase):
 
     def getFileData(self, filename):
         base = zenPath('Products/ZenRRD/tests/zenprocess_data')
@@ -461,19 +461,16 @@ class TestZenprocess(BaseTestCase):
         <                              '.1.3.6.1.2.1.25.4.2.1.2.8470': 'python',
         ---
         >                              '.1.3.6.1.2.1.25.4.2.1.2.8478': 'vim',
-        >                              '.1.3.6.1.2.1.25.4.2.1.2.8501': 'pyraw',
         """
         procDefs = {}
         self.updateProcDefs(procDefs, 'url_python', 'python', 'nothing')
-        self.updateProcDefs(procDefs, 'url_pyraw', '.*zenping.py.*', 'nothing')
         self.updateProcDefs(procDefs, 'url_java', '.*zeneventserver.*', 'nothing')
         task = self.makeTask(procDefs)
 
         expectedStats = self.expected(
-            PROCESSES=136,
+            PROCESSES=135,
             AFTERBYCONFIG={
                 'url_python': [1004, 32073, 32075, 32076, 3736, 6948, 8447, 8450, 8470],
-                'url_pyraw': [32209],
                 'url_java': [31948],
             },
             AFTERPIDTOPS={
@@ -484,7 +481,6 @@ class TestZenprocess(BaseTestCase):
                 32073: 'url_python',
                 32075: 'url_python',
                 32076: 'url_python',
-                32209: 'url_pyraw',
                 8447: 'url_python',
                 8450: 'url_python',
                 8470: 'url_python'
@@ -500,15 +496,13 @@ class TestZenprocess(BaseTestCase):
 
         procDefs = {}
         self.updateProcDefs(procDefs, 'url_python', 'python', 'nothing')
-        self.updateProcDefs(procDefs, 'url_pyraw', '.*zenping.py.*', 'nothing')
         self.updateProcDefs(procDefs, 'url_java', '.*zeneventserver.*', 'nothing')
         self.updateProcDefs(procDefs, 'url_vim', '.*zenprocess.py.*', 'nothing')
 
         expectedStats = self.expected(
-            PROCESSES=134,
+            PROCESSES=132,
             AFTERBYCONFIG={
                 'url_python': [1004, 32073, 32075, 32076, 3736, 8447],
-                'url_pyraw': [32209],
                 'url_java': [31948],
                 'url_vim': [8478]
             },
@@ -521,11 +515,9 @@ class TestZenprocess(BaseTestCase):
                 32073: 'url_python',
                 32075: 'url_python',
                 32076: 'url_python',
-                32209: 'url_pyraw'
             },
             BEFOREBYCONFIG={
                 'url_python': [1004, 32073, 32075, 32076, 3736, 6948, 8447, 8450, 8470],
-                'url_pyraw': [32209],
                 'url_java': [31948],
             },
             NEW=set([8478]),
@@ -700,18 +692,6 @@ class TestZenprocess(BaseTestCase):
         
         self.compareTestData(data, task, expectedStats)
     
-    # TODO: get timeouts working, to protect against catastrophic backtracking.
-    # def testEvilRegex(self):
-    #     n = 30
-    #     procDefs = {}
-    #     self.updateProcDefs(procDefs, "evil", "a?"*n + "a"*n, 'nothing', '.*', "evil")
-    #     task = self.makeTask(procDefs)
-
-    #     data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'a'*n},
-    #             '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/blah/blah/' + 'a'*n},
-    #             '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments'}}
-    #     self.compareTestData(data, task, self.expected(PROCESSES=0, AFTERBYCONFIG=1, MISSING=1))
-
     def testSingleNameCaptureGroupSingleProcesses(self):
         procDefs = {}
         self.updateProcDefs(procDefs, 'myapp', 'myapp[^\/]*\/', 'nothing', '.*(myapp[^\/]*)\/.*', "\\1")

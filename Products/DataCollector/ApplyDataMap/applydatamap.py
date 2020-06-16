@@ -18,6 +18,7 @@ from Products.ZenUtils.Utils import importClass
 from Products.ZenUtils.deprecated import deprecated
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
 from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenUtils.Utils import NotFound
 
 from .incrementalupdate import (
     IncrementalDataMap,
@@ -32,7 +33,6 @@ from .events import DatamapAddEvent
 
 
 log = logging.getLogger("zen.ApplyDataMap")
-log.setLevel(logging.DEBUG)
 
 CLASSIFIER_CLASS = '/Classifier'
 
@@ -305,10 +305,13 @@ def _get_relmap_target(device, relmap):
             return _get_object_by_pid(device, pid)
 
     path = getattr(relmap, 'compname', None)
-    if path:
-        return device.getObjByPath(relmap.compname)
+    if not path:
+        return device
 
-    return device
+    try:
+        return device.getObjByPath(relmap.compname)
+    except NotFound:
+        return None
 
 
 # Used by relmap add
@@ -372,7 +375,7 @@ def _process_relationshipmap(relmap, base_device):
     if parent:
         relmap._parent = parent
     else:
-        log.warn('relationship map parent device not found. relmap=%s', relmap)
+        log.warn('parent device for relationship not found. relmap=%s', relmap)
         return False
 
     if not hasattr(relmap._parent, relname):

@@ -48,9 +48,25 @@ class SendEventExecutorTest(TestCase):
         self.name = "event"
         self.executor = SendEventExecutor(self.name)
 
+    def test_create(self):
+        result = SendEventExecutor.create("test")
+        self.assertIsInstance(result, SendEventExecutor)
+        self.assertEqual(result.name, "test")
+
     def test_initialization(self):
         self.getUtility.assert_called_once_with(IDataRootFactory)
         self.assertEqual(self.name, self.executor.name)
+
+    def test_start(self):
+        '''noop, required for interface
+        '''
+        reactor = Mock(name='reactor')
+        self.executor.start(reactor)
+
+    def test_stop(self):
+        '''noop, required for interface
+        '''
+        self.executor.stop()
 
     def test_wrong_method(self):
         servicecall = ServiceCall(

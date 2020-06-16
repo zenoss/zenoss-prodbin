@@ -1533,7 +1533,8 @@ table {
 .x-window-body, .x-window-body .x-form-item-label, .x-window-body .x-form-cb-label{
     color:#fafafa;
 }
-.white-background-panel, .white-background-panel .x-form-item-label, .white-background-panel .x-form-cb-label{
+.white-background-panel, .white-background-panel .x-form-item-label, .white-background-panel .x-form-cb-label,
+.white-background-panel .graph-panel .x-form-display-field{
     color:black;
 }
 

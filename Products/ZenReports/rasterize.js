@@ -1,7 +1,12 @@
 var page = require('webpage').create(),
     system = require('system'),
-    address, output, size, username, password, outputFile,
+    address, output, size, username, password, outputFile, forcedRenderTimeout, maxRenderWait = 7200000, pageLoaded = false,
     pageZoomFactor, pageFormat;
+
+function doRender() {
+    page.render(outputFile);
+    phantom.exit(0);
+}
 
 //phantomjs rasterize.js URL USERNAME PASSWORD PDF
 if (system.args.length < 5 || system.args.length > 7) {
@@ -17,7 +22,21 @@ if (system.args.length < 5 || system.args.length > 7) {
     pageZoomFactor = system.args[6] || 1;
 
     page.settings.localToRemoteUrlAccessEnabled = true;
-    page.settings.resourceTimeout = 10000;
+    page.settings.resourceTimeout = 1800000;
+
+    page.onLoadFinished = function(status) {
+        pageLoaded = true;
+        forcedRenderTimeout = setTimeout(function () {
+            doRender();
+        }, 10000);
+    };
+
+    page.onResourceRequested = function(requestData, networkRequest) {
+        // prevent resource requests after the page loads
+        if (pageLoaded) {
+            networkRequest.abort();
+        }
+    };
 
     // use the provided username and password if they were provided
     if (username != "nil" && password != "nil") {
@@ -45,10 +64,9 @@ if (system.args.length < 5 || system.args.length > 7) {
                 page.viewportSize = { width: 1000, height: parseInt(report.style.height)+110 };
             }
             page.open(address, function (status) {
-                window.setTimeout(function () {
-                   page.render(outputFile);
-                   phantom.exit(0);
-                }, 10000);
+                forcedRenderTimeout = setTimeout(function () {
+                    doRender();
+                }, maxRenderWait);
             });
         }
     });

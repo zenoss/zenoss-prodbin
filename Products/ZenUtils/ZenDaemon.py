@@ -20,6 +20,7 @@ import pwd
 import socket
 import logging
 
+from twisted.internet import defer
 from twisted.python import log as twisted_log
 from twisted.logger import globalLogBeginner
 
@@ -67,7 +68,7 @@ class ZenDaemon(CmdBase):
             if self.options.daemon:
                 self.changeUser()
                 self.becomeDaemon()
-            if self.options.daemon or self.options.watchdogPath:
+            if self.options.pidfile or self.options.daemon or self.options.watchdogPath:
                 try:
                     self.writePidFile()
                 except OSError:
@@ -130,11 +131,15 @@ class ZenDaemon(CmdBase):
         """
         Write the PID file to disk
         """
-        myname = sys.argv[0].split(os.sep)[-1]
-        if myname.endswith('.py'):
-            myname = myname[:-3]
-        monitor = getattr(self.options, 'monitor', 'localhost')
-        myname = "%s-%s.pid" % (myname, monitor)
+        pidfile = getattr(self.options, 'pidfile', '')
+        if pidfile:
+            myname = pidfile
+        else:
+            myname = sys.argv[0].split(os.sep)[-1]
+            if myname.endswith('.py'):
+                myname = myname[:-3]
+            monitor = getattr(self.options, 'monitor', 'localhost')
+            myname = "%s-%s.pid" % (myname, monitor)
         if self.options.watchdog and not self.options.watchdogPath:
             self.pidfile = zenPath("var", 'watchdog-%s' % myname)
         else:
@@ -234,6 +239,7 @@ class ZenDaemon(CmdBase):
                 logging.getLevelName(self.options.logseverity) or "unknown",
                 self.options.logseverity)
             try:
+                defer.setDebugging(False)
                 getTwistedLogger().stop()
             except ValueError:  # Twisted logging is somewhat broken
                 log.info("Unable to remove Twisted logger -- "
@@ -241,6 +247,7 @@ class ZenDaemon(CmdBase):
         else:
             setLogLevel(logging.DEBUG, "zen")
             log.info("Setting logging level to DEBUG")
+            defer.setDebugging(True)
             getTwistedLogger().start()
         dump_threads(signum, frame)
         self._sigUSR1_called(signum, frame)
@@ -438,3 +445,6 @@ class ZenDaemon(CmdBase):
                 type='int',
                 help="Set a heartbeat timeout in seconds for a daemon",
                 default=900)
+        self.parser.add_option('--pidfile', dest='pidfile', default="",
+                help='pidfile to save a pid number of a process')
+        
