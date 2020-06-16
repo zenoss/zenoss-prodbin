@@ -12,7 +12,6 @@ import logging
 import servicemigration as sm
 import Migrate
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.1.14")
@@ -21,7 +20,7 @@ sm.require("1.1.14")
 class AllowGracefulShutdownForWriter(Migrate.Step):
     """Modify opentsdb-writer service def for graceful shutdown."""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 5, 0)
 
     def cutover(self, dmd):
         try:
