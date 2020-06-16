@@ -12,7 +12,6 @@ import servicemigration as sm
 import Migrate
 
 from string import Template
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 log = logging.getLogger("zen.migrate")
@@ -28,7 +27,7 @@ _svc_dbname_map = {
 class UpdateMariadbConfigForSupervisord(Migrate.Step):
     """Allow supervisord to manage mariadb completely."""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 5, 0)
 
     def cutover(self, dmd):
         try:
