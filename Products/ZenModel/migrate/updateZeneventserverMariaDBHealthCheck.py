@@ -9,7 +9,6 @@
 
 import logging
 import Migrate
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 import servicemigration as sm
 
 log = logging.getLogger("zen.migrate")
@@ -17,7 +16,7 @@ sm.require("1.0.0")
 
 
 class UpdateZeneventserverMariaDBHealthCheck(Migrate.Step):
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 5, 0)
 
     def cutover(self, dmd):
         try:
