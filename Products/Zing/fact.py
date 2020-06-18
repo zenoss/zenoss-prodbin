@@ -113,12 +113,16 @@ def device_info_fact(device):
                                                                      'lines'):
             # Some of the device properties can be methods, so we have to call them and get values
             if callable(device.getProperty(propId)):
+                log.warn("Callable: {}".format(device.getProperty(propId)))
                 try:
-                    f.data[propId] = device.getProperty(propId).__call__()
+                    value = device.getProperty(propId).__call__()
                 except TypeError as e:
                     log.exception("Unable to call property: {}. Exception {}".format(device.getProperty(propId), e))
             else:
-                f.data[propId] = device.getProperty(propId) or ""
+                value = device.getProperty(propId)
+            if value is None:
+                value = ""
+            f.data[propId] = value
     f.data[MetadataKeys.ID_KEY] = device.id
     f.data[MetadataKeys.TITLE_KEY] = device.title
     try:
