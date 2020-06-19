@@ -48,6 +48,10 @@ def update_all_impacts():
 
 def update_impact(device=None, component=None):
     zobj = db.get_zobject(device=device, component=component)
+    if zobj is None:
+        log.info("Not updating impacts for %s / %s  (not found)", device, component)
+        return False
+
     impacted_by, impacting = impacts_for(zobj)
     impacted_dims = []
     for i in impacted_by:

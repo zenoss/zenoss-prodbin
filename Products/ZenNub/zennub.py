@@ -11,13 +11,15 @@
 """Server that provides access to the Model databases."""
 
 # std lib
-import sys
+import hashlib
 import logging
+import os
+import sys
 import time
 import types
 
 # 3rd party
-from twisted.internet import reactor
+from twisted.internet import reactor, task
 from twisted.internet.defer import inlineCallbacks
 from twisted.spread import pb
 from twisted.cred import portal
@@ -66,6 +68,7 @@ from Products.ZenNub.services import (
 from Products.ZenNub.db import get_nub_db
 from Products.ZenNub.impact import update_all_impacts
 from Products.ZenNub.cloudpublisher import CloudModelPublisher
+from Products.ZenNub.yamlconfig import DEVICE_YAML
 
 log = logging.getLogger('zen.zennub')
 
@@ -90,6 +93,7 @@ class ZenNub(ZCmdBase):
     totalEvents = 0
     totalCallTime = 0.
     mname = name = 'zennub'
+    devices_yaml_info = (None, None)
 
     def __init__(self, noopts=0, args=None, should_log=None):
         self.shutdown = False
@@ -167,13 +171,45 @@ class ZenNub(ZCmdBase):
 
         # set the keep-alive config on the server's listening socket
         dfr.addCallback(lambda listener: setKeepAlive(listener.socket))
-        log.debug("Started server.")
+        log.info("Started server.")
+
+        # watch the devices.xml file for changes (checking every few seconds)
+        l = task.LoopingCall(self.checkDevicesXML)
+
+        def err(reason):
+            log.error("Error in checkDevicesXML LoopingCall: %s" % reason)
+        l.start(10.0).addErrback(err)
 
         reactor.run()
 
         self.shutdown = True
         if self.options.profiling:
             self.profiler.stop()
+
+    def checkDevicesXML(self):
+        modified = False
+        last_mtime, last_md5hash = self.devices_yaml_info
+
+        mtime = os.stat(DEVICE_YAML).st_mtime
+        if mtime != last_mtime:
+            md5 = hashlib.md5()
+            with open(DEVICE_YAML, 'rb') as f:
+                while True:
+                    data = f.read(65536)
+                    if not data:
+                        break
+                    md5.update(data)
+
+            md5hash = md5.hexdigest()
+
+            if md5hash != last_md5hash and last_md5hash is not None:
+                modified = True
+
+            self.devices_yaml_info = (mtime, md5hash)
+
+        if modified:
+            log.info("Change detected in %s.  Reloading.", DEVICE_YAML)
+            self.db.reload_devices()
 
     def stop(self):
         self.shutdown = True

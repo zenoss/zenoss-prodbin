@@ -15,14 +15,16 @@ import traceback
 import importlib
 
 from twisted.spread import pb
+from twisted.internet import defer, task
+from twisted.internet.threads import deferToThread
 
 from Products.ZenRRD.zencommand import Cmd, DataPointConfig
 from Products.ZenUtils.Utils import importClass
 from Products.DataCollector.DeviceProxy import DeviceProxy as ModelDeviceProxy
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.PBDaemon import RemoteException
+from Products.ZenHub.services.Procrastinator import Procrastinate
 from Products.ZenUtils.debugtools import profile
-
 
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSource
@@ -34,7 +36,7 @@ from .utils.tales import talesEvalStr
 from .applydatamapper import ApplyDataMapper
 from .db import get_nub_db
 from .zobject import ZDeviceComponent, ZDevice
-
+from .modelevents import onNubDeviceUpdate, onNubDeviceAdd, onNubDeviceDelete
 
 log = logging.getLogger('zen.hub')
 
@@ -89,7 +91,7 @@ class NubService(pb.Referenceable):
 
     def addListener(self, remote, options=None):
         remote.notifyOnDisconnect(self.removeListener)
-        self.log.debug(
+        self.log.info(
             "adding listener for %s", self.name()
         )
         self.listeners.append(remote)
@@ -97,7 +99,7 @@ class NubService(pb.Referenceable):
             self.listenerOptions[remote] = options
 
     def removeListener(self, listener):
-        self.log.debug(
+        self.log.info(
             "removing listener for %s", self.name()
         )
         try:
@@ -237,6 +239,7 @@ class ModelerService(NubService):
     @translateError
     def remote_applyDataMaps(self, device, maps, devclass=None, setLastCollection=False):
         mapper = self.db.get_mapper(device)
+        schemaversion = mapper.schemaversion
 
         adm = ApplyDataMapper(mapper, self.db.devices[device])
         changed = False
@@ -246,6 +249,7 @@ class ModelerService(NubService):
 
         self.log.debug("ApplyDataMaps Completed: New DataMapper: %s", pformat(mapper.objects))
         self.log.debug("ApplyDataMaps Changed: %s", changed)
+        self.log.debug("ApplyDataMaps  schemaversion: %d -> %d", schemaversion, mapper.schemaversion)
 
         self.db.snapshot_device(device)
 
@@ -278,6 +282,15 @@ class CollectorConfigService(NubService):
 
         self._deviceProxyAttributes = ('id', 'manageIp',) + deviceProxyAttributes
         self.db = get_nub_db()
+        self.procrastinator = Procrastinate(self.pushConfig)
+        self.last_schemaversion = {}
+
+        # push configs down to the collectors when the models change.
+        # (every 15 minutes)
+        l = task.LoopingCall(self.pushConfigsIfNeeded)
+        def err(reason):
+            log.error("Error in pushConfigsIfNeeded LoopingCall: %s" % reason)
+        l.start(15*60, now=False).addErrback(err)
 
     def _wrapFunction(self, functor, *args, **kwargs):
         """
@@ -407,6 +420,54 @@ class CollectorConfigService(NubService):
                     templates.append(template)
 
         return templates
+
+    @onNubDeviceDelete(str)
+    def deviceDeleted(self, deviceId, event):
+        self.procrastinator.doLater(deviceId) # -> pushConfig
+
+    @onNubDeviceAdd(str)
+    def deviceAdded(self, deviceId, event):
+        self.procrastinator.doLater(deviceId) # -> pushConfig
+
+    @onNubDeviceUpdate(str)
+    def deviceUpdated(self, deviceId, event):
+        self.procrastinator.doLater(deviceId) # -> pushConfig
+
+    @defer.inlineCallbacks
+    def pushConfig(self, deviceId):
+        deferreds = []
+        log.info("pushConfig self=%s, deviceId=%s, listeners=%s", self, deviceId, self.listeners)
+        device = self.db.devices.get(deviceId, None)
+        if device is None:
+            for listener in self.listeners:
+                log.info('  Performing remote call to delete device %s', deviceId)
+                deferreds.append(listener.callRemote('deleteDevice', deviceId))
+        else:
+            proxy = yield deferToThread(self._createDeviceProxy, device)
+
+            for listener in self.listeners:
+                log.info('  Performing remote call to update device %s (proxy=%s)', deviceId, proxy)
+                deferreds.append(listener.callRemote('updateDeviceConfig', proxy))
+
+        yield defer.DeferredList(deferreds)
+
+    def pushConfigsIfNeeded(self):
+        log.info("Checking for model changes on %s" % self)
+        deferreds = []
+        for deviceId in self.db.devices:
+            mapper = self.db.get_mapper(deviceId)
+
+            # If components have been added, removed, or links between
+            # them changed, the mapper schemaversion is incremented, and
+            # we know that it is time to regenerate the config.
+            last_schemaversion = self.last_schemaversion.get(deviceId)
+            if mapper and mapper.schemaversion != last_schemaversion:
+                self.last_schemaversion[deviceId] = mapper.schemaversion
+                log.info("  Model for %s has changed.  Pushing new configs", deviceId)
+
+                deferreds.append(self.pushConfig(deviceId))
+
+        return defer.DeferredList(deferreds)
 
 
 class CommandPerformanceConfig(CollectorConfigService):

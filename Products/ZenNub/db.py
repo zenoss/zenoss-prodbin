@@ -15,8 +15,10 @@ import datetime
 import logging
 import os
 import pickle
+import time
 
 from zope.component import getUtility
+from zope.event import notify
 
 from Products.ZenHub.server import IHubServerConfig
 
@@ -28,14 +30,17 @@ from .yamlconfig import (
     load_parserplugin_yaml,
     load_classmodel_yaml,
     load_datasource_yaml,
+    DEVICE_YAML,
 )
 
 from .utils import all_parent_dcs, datetime_millis
 from .mapper import DataMapper
 from .zobject import ZDevice, ZDeviceComponent
 from .cloudpublisher import CloudModelPublisher, sanitize_field
+from .modelevents import NubDeletedDeviceEvent, NubAddedDeviceEvent, NubUpdatedDeviceEvent
 
-SNAPSHOT_DIR="/opt/zenoss/etc/nub/snapshot"
+
+SNAPSHOT_DIR="/data/snapshot"
 
 log = logging.getLogger('zen.zennub.db')
 _DB = None
@@ -67,6 +72,10 @@ class DB(object):
         self.model_publisher = None
 
     def load(self):
+        # create snapshot directory if it is missing
+        if not os.path.exists(SNAPSHOT_DIR):
+            os.mkdir(SNAPSHOT_DIR)
+
         # Load the contents of the on-disk YAML files into the db.
 
         log.info("Loading device classes and monitoring templates..")
@@ -80,6 +89,13 @@ class DB(object):
                 log.error("Unable to load deviceclass %s: %s", id_, e)
 
         log.info("Loading devices")
+
+        # The devices.yaml file is written out by zdatamon.  If it doesn't exist
+        # yet, wait for it.
+        while not os.path.exists(DEVICE_YAML):
+            log.info("  waiting for %s" % DEVICE_YAML)
+            time.sleep(3)
+
         for id_, d in load_device_yaml().iteritems():
             d['id'] = id_
             try:
@@ -125,6 +141,42 @@ class DB(object):
                 self.store_datasource(DataSource(**d))
             except ValueError, e:
                 log.error("Unable to load datasource %s: %s", id_, e)
+
+        log.info("Indexing")
+        self.index()
+
+        log.info("Loading complete")
+
+    def reload_devices(self):
+        log.info("Reloading %s", DEVICE_YAML)
+        while not os.path.exists(DEVICE_YAML):
+            log.info("  waiting for %s" % DEVICE_YAML)
+            time.sleep(3)
+
+        device_yaml = load_device_yaml()
+
+        old_devices = set(self.devices.keys())
+        new_devices = set(device_yaml.keys())
+
+        for deviceId in old_devices - new_devices:
+            notify(NubDeletedDeviceEvent(deviceId))
+            self.delete_device(deviceId)
+
+        for deviceId in new_devices - old_devices:
+            notify(NubAddedDeviceEvent(deviceId))
+
+        changed_devices = set()
+
+        for id_, d in device_yaml.iteritems():
+            d['id'] = id_
+            try:
+                if self.store_device(Device(**d)):
+                    changed_devices.add(id_)
+            except ValueError, e:
+                log.error("Unable to reload device %s: %s", id_, e)
+
+        for deviceId in changed_devices:
+            notify(NubUpdatedDeviceEvent(deviceId))
 
         log.info("Indexing")
         self.index()
@@ -190,7 +242,25 @@ class DB(object):
             pickle.dump(self.mappers[id], f)
 
     def store_device(self, device):
-        self.devices[device.id] = device
+        if device.id in self.devices:
+            if device != self.devices[device.id]:
+                self.devices[device.id] = device
+                return True
+        else:
+            self.devices[device.id] = device
+            return True
+
+        # no change
+        return False
+
+    def delete_device(self, deviceId):
+        log.info("Removing device %s" % deviceId)
+
+        mapper = self.get_mapper(deviceId)
+        mapper.remove(deviceId)
+        self.publish_model(device=deviceId)
+        del self.devices[deviceId]
+        del self.mappers[deviceId]
 
     def store_deviceclass(self, deviceclass):
         self.device_classes[deviceclass.id] = deviceclass
@@ -211,6 +281,7 @@ class DB(object):
 
         # store a list of devices that are in each device class (or a subclass)
         # creates blank intermediate DCs where needed
+        self.child_devices = {}
         for device in self.devices.values():
             for dc in all_parent_dcs(device.device_class):
                 if dc not in self.device_classes:
@@ -240,7 +311,8 @@ class DB(object):
 
         if component is None or component == device:
             datum = mapper.get(device)
-            datum['title'] = device
+            if datum is not None:
+                datum['title'] = device
         else:
             datum = mapper.get(component)
 
@@ -267,3 +339,4 @@ class DB(object):
                 mdf['impactToDimensions'][i] += ",source=" + model['dimensions']['source']
 
         self.model_publisher.put(model)
+

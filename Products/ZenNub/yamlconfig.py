@@ -18,7 +18,7 @@ except ImportError:
 # User-maintained Files                                                      #
 
 # User-maintained file with devices to moniotor
-DEVICE_YAML = "/opt/zenoss/etc/nub/user/devices.yaml"
+DEVICE_YAML = "/cfg/devices.yaml"
 
 
 ##############################################################################

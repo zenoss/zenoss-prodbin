@@ -46,6 +46,28 @@ class Device(object):
             raise TypeError("zProperties must be a dict")
         self.zProperties = zProperties
 
+    def __eq__(self, other):
+        if self.id != other.id:
+            return False
+        if self.title != other.title:
+            return False
+        if self.manageIp != other.manageIp:
+            return False
+        if self.device_class != other.device_class:
+            return False
+
+        zps = set(self.zProperties.keys())
+        zps.update(other.zProperties.keys())
+        for k in zps:
+            if k not in self.zProperties or k not in other.zProperties:
+                return False
+            if self.zProperties[k] != other.zProperties[k]:
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self == other
+
     def all_parent_dcs(self):
         if self._all_parent_dcs is None:
             self._all_parent_dcs = list(all_parent_dcs(self.device_class))

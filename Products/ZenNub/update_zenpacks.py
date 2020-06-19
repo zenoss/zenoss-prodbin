@@ -40,7 +40,7 @@ from Products.ZenModel.RRDDataSource import RRDDataSource
 
 # This file is used as a cache, and contains a list of all the ZPL yaml files
 # in each zenpack, along with any other metadata that is expensive to obtain.
-ZENPACK_YAML_INDEX = "/opt/zenoss/etc/nub/system/zenpack_index.yaml"
+ZENPACK_YAML_INDEX = "/tmp/zenpack_index.yaml"
 
 logging.basicConfig(level=logging.ERROR)
 log = logging.getLogger('zen.nub.update_zenpacks')

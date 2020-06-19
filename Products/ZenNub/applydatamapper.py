@@ -322,7 +322,7 @@ class ApplyDataMapper(object):
         log.debug("RelationshipMap [1] base_id=%s, compname=%s, relname=%s, target_id=%s",
                   base_id, compname, relmap.relname, target_id)
 
-        current_objids = target["links"][relmap.relname]
+        current_objids = set(target["links"][relmap.relname])
         new_objids = set([om.id for om in relmap])
 
         rmodname = getattr(relmap, "modname", None)

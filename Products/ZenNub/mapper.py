@@ -40,7 +40,15 @@ class DataMapper(object):
         self.delayed_oms = []
         self.objects_by_type = collections.defaultdict(set)
 
+        # This value is increased whenever a structural change is
+        # made to the graph- adding or removing objects or links between
+        # them.  It will not change if a property is modified.
+        self.schemaversion = 0
+
     def add(self, object_id, datum):
+        if object_id not in self.objects:
+            self.schemaversion += 1
+
         obj = self.stub(object_id)
 
         object_type = self.get_object_type(object_id, datum)
@@ -104,6 +112,7 @@ class DataMapper(object):
                     remote_ids)
 
         self.objects.pop(object_id)
+        self.schemaversion += 1
 
     def by_type(self, type_name):
         for object_id in list(self.objects_by_type.get(type_name, ())):
@@ -160,6 +169,11 @@ class DataMapper(object):
             remote_ids = [remote_ids]
 
         local_links = self.objects[object_id]["links"]
+
+        # bump the schemaversion if the links are changed
+        if set(local_links[link_type.local_name]) != set(remote_ids):
+            self.schemaversion += 1
+
         local_links[link_type.local_name].update(remote_ids)
 
         if not link_type.local_many:
@@ -193,6 +207,9 @@ class DataMapper(object):
         link_type = object_type.get_link_type(link_name)
         if not link_type:
             return
+
+        # bump the schemaversion, since we're removing a link.
+        self.schemaversion += 1
 
         remote_name = link_type.remote_name
         for remote_id in list(remote_ids):
