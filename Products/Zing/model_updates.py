@@ -57,12 +57,14 @@ class ZingObjectUpdateHandler(object):
             obj_fact.metadata[ZFact.DimensionKeys.PARENT_KEY] = parent.getUUID()
             obj_fact.metadata[ZFact.DimensionKeys.RELATION_KEY] = obj.getPrimaryParent().id
             if isinstance(obj, DeviceComponent):
+                obj_fact.metadata[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "DeviceComponent"
                 device_org_fact = ZFact.organizer_fact_from_device(obj.device())
                 comp_org_fact = ZFact.organizer_fact_from_device_component(device_org_fact,
                                                                            uuid, obj.meta_type,
                                                                            obj.getComponentGroupNames)
                 tx_state.need_organizers_fact[uuid] = comp_org_fact
             else:
+                obj_fact.metadata[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "Device"
                 device_org_fact = ZFact.organizer_fact_from_device(obj)
                 tx_state.need_organizers_fact[uuid] = device_org_fact
             tx_state.need_device_info_fact[uuid] = obj_fact
