@@ -98,7 +98,7 @@ def deletion_fact(obj_uuid):
 
 def device_info_fact(device):
     """
-    Given a device, generates its device info fact
+    Given a device or component, generates its device info fact
     """
     f = Fact()
     f.set_context_uuid_from_object(device)
@@ -155,7 +155,6 @@ def organizer_fact_from_device_component(device_fact, comp_uuid, comp_meta_type,
     @param device_fact: organizers fact for device
     """
     comp_fact = copy.deepcopy(device_fact)
-    comp_fact.metadata[DimensionKeys.PARENT_KEY] = device_fact.metadata[DimensionKeys.CONTEXT_UUID_KEY]
     comp_fact.metadata[DimensionKeys.CONTEXT_UUID_KEY] = comp_uuid
     comp_fact.metadata[DimensionKeys.META_TYPE_KEY] = comp_meta_type
     comp_fact.data[MetadataKeys.COMPONENT_GROUPS_KEY] = comp_groups

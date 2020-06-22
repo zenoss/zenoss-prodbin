@@ -155,10 +155,10 @@ class ZingDatamapHandler(object):
             for f in facts:
                 # return datamap fact
                 if f.is_valid():
+                    comp_uuid = f.metadata.get(ZFact.DimensionKeys.CONTEXT_UUID_KEY, "")
+                    zing_tx_state.already_generated_device_info_facts.add(comp_uuid)
                     yield f
-                # organizers and impact relationships facts for the component
-                comp_uuid = f.metadata.get(ZFact.DimensionKeys.CONTEXT_UUID_KEY, "")
-                if comp_uuid:
+                    # organizers and impact relationships facts for the component
                     comp_groups = []
                     for component in device.getDeviceComponents():
                         if component.getUUID() == comp_uuid:
