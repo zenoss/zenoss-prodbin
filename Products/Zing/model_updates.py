@@ -16,6 +16,7 @@ from zope.interface import implements
 
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceComponent import DeviceComponent
+from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.Zing import fact as ZFact
 from Products.Zing.interfaces import IZingObjectUpdateHandler
 from Products.Zing.tx_state import ZingTxStateManager
@@ -38,36 +39,55 @@ class ZingObjectUpdateHandler(object):
             uuid = obj.getUUID()
         except Exception:
             pass
-        return uuid and (isinstance(obj, Device) or isinstance(obj, DeviceComponent))
+        return uuid and (
+            isinstance(obj, Device) or
+            isinstance(obj, DeviceComponent) or
+            isinstance(obj, DeviceOrganizer))
 
     def _get_zing_tx_state(self):
         """ """
         return self.zing_tx_state_manager.get_zing_tx_state(self.context)
 
     def _update_object(self, obj, idxs=None):
-        if self.is_object_relevant(obj):
-            tx_state = self._get_zing_tx_state()
-            uuid = obj.getUUID()
-            tx_state.need_deletion_fact.pop(uuid, None)
-            log.debug("buffering object update for {}".format(uuid))
-            obj_fact = ZFact.device_info_fact(obj)
+        if not self.is_object_relevant(obj):
+            return
+
+        tx_state = self._get_zing_tx_state()
+        uuid = obj.getUUID()
+        tx_state.need_deletion_fact.pop(uuid, None)
+        log.debug("buffering object update for {}".format(uuid))
+
+        if isinstance(obj, DeviceOrganizer):
+            fact = ZFact.device_organizer_info_fact(obj)
+            tx_state.need_device_organizer_info_fact[uuid] = fact
+
+        elif isinstance(obj, Device):
+            parent = obj.getPrimaryParent().getPrimaryParent()
+
+            device_fact = ZFact.device_info_fact(obj)
+            device_fact.metadata[ZFact.DimensionKeys.PARENT_KEY] = parent.getUUID()
+            device_fact.metadata[ZFact.DimensionKeys.RELATION_KEY] = obj.getPrimaryParent().id
+            device_fact.metadata[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "Device"
+            tx_state.need_device_info_fact[uuid] = device_fact
+
+            device_org_fact = ZFact.organizer_fact_from_device(obj)
+            tx_state.need_organizers_fact[uuid] = device_org_fact
+
+        elif isinstance(obj, DeviceComponent):
             parent = obj.getPrimaryParent().getPrimaryParent()
             if parent.id in ('os', 'hw'):
                 parent = parent.device()
-            obj_fact.metadata[ZFact.DimensionKeys.PARENT_KEY] = parent.getUUID()
-            obj_fact.metadata[ZFact.DimensionKeys.RELATION_KEY] = obj.getPrimaryParent().id
-            if isinstance(obj, DeviceComponent):
-                obj_fact.metadata[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "DeviceComponent"
-                device_org_fact = ZFact.organizer_fact_from_device(obj.device())
-                comp_org_fact = ZFact.organizer_fact_from_device_component(device_org_fact,
-                                                                           uuid, obj.meta_type,
-                                                                           obj.getComponentGroupNames)
-                tx_state.need_organizers_fact[uuid] = comp_org_fact
-            else:
-                obj_fact.metadata[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "Device"
-                device_org_fact = ZFact.organizer_fact_from_device(obj)
-                tx_state.need_organizers_fact[uuid] = device_org_fact
-            tx_state.need_device_info_fact[uuid] = obj_fact
+
+            comp_fact = ZFact.device_info_fact(obj)
+            comp_fact.metadata[ZFact.DimensionKeys.PARENT_KEY] = parent.getUUID()
+            comp_fact.metadata[ZFact.DimensionKeys.RELATION_KEY] = obj.getPrimaryParent().id
+            comp_fact.metadata[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "DeviceComponent"
+            tx_state.need_device_info_fact[uuid] = comp_fact
+
+            device_org_fact = ZFact.organizer_fact_from_device(obj.device())
+            comp_org_fact = ZFact.organizer_fact_from_device_component(
+                device_org_fact, uuid, obj.meta_type, obj.getComponentGroupNames)
+            tx_state.need_organizers_fact[uuid] = comp_org_fact
 
     def _delete_object(self, obj):
         if self.is_object_relevant(obj):
@@ -122,6 +142,11 @@ class ZingObjectUpdateHandler(object):
             log.info("Processing {} device info updates".format(len(tx_state.need_device_info_fact)))
             fact_generators.append(self._generate_facts(tx_state.need_device_info_fact,
                                    tx_state.already_generated_device_info_facts, tx_state))
+        if tx_state.need_device_organizer_info_fact:
+            # TODO set this to debug
+            log.info("Processing {} device organizer info updates".format(len(tx_state.need_device_organizer_info_fact)))
+            fact_generators.append(self._generate_facts(tx_state.need_device_organizer_info_fact,
+                                   tx_state.already_generated_device_organizer_info_facts))
         if tx_state.need_organizers_fact:
             # TODO set this to debug
             log.info("Processing {} organizers updates".format(len(tx_state.need_organizers_fact)))

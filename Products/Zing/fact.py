@@ -14,6 +14,7 @@ import copy
 import time
 import logging
 
+from Products.ZenModel.Location import Location
 from zope.component.interfaces import ComponentLookupError
 from zope.component import getUtility
 
@@ -24,6 +25,7 @@ log = logging.getLogger("zen.zing.fact")
 
 ORGANIZERS_FACT_PLUGIN = 'zen_organizers'
 DEVICE_INFO_FACT_PLUGIN = 'zen_device_info'
+DEVICE_ORGANIZER_INFO_FACT_PLUGIN = 'zen_device_organizer_info'
 DELETION_FACT_PLUGIN = 'zen_deletion'
 DYNAMIC_SERVICE_FACT_PLUGIN = 'zen_impact_dynamic_service'
 
@@ -93,6 +95,26 @@ def deletion_fact(obj_uuid):
     f.metadata[DimensionKeys.CONTEXT_UUID_KEY] = obj_uuid
     f.metadata[DimensionKeys.PLUGIN_KEY] = DELETION_FACT_PLUGIN
     f.data[MetadataKeys.DELETED_KEY] = True
+    return f
+
+
+def device_organizer_info_fact(device_organizer):
+    """
+    Given a DeviceOrganizer, generates its fact
+    """
+    f = Fact()
+    f.set_context_uuid_from_object(device_organizer)
+    f.set_meta_type_from_object(device_organizer)
+    f.metadata[DimensionKeys.PLUGIN_KEY] = DEVICE_ORGANIZER_INFO_FACT_PLUGIN
+    f.data[MetadataKeys.NAME_KEY] = device_organizer.getOrganizerName()
+
+    if isinstance(device_organizer, Location):
+        if device_organizer.address:
+            f.data["z.map.address"] = device_organizer.address
+
+        if device_organizer.latlong:
+            f.data["z.map.latlong"] = device_organizer.latlong
+
     return f
 
 
