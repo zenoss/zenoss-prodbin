@@ -17,6 +17,8 @@ import signal
 import time
 from itertools import imap
 from Products.ZenMessaging.audit import audit
+from Products.ZenUI3.security.security import permissionsForContext
+from Products.ZenModel.ZenossSecurity import ZEN_RUN_COMMANDS
 from Products.ZenUI3.browser.streaming import StreamingView, StreamClosed
 from Products.ZenUtils.jsonutils import unjson
 from Products.Zuul import getFacade
@@ -36,7 +38,10 @@ class CommandView(StreamingView):
         if command:
             for uid in data['uids']:
                 target = self.context.unrestrictedTraverse(uid)
-                self.execute(command, target)
+                if permissionsForContext(target)[ZEN_RUN_COMMANDS.lower()]:
+                    self.execute(command, target)
+                else:
+                    self.write('==== No permissions to run command %s for %s, skipping ===='.format(command, target))
 
     def _get_printable_command(self, raw_command, compiled_command, target):
         """
