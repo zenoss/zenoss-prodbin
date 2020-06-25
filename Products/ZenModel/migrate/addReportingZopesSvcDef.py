@@ -57,7 +57,7 @@ class AddReportingZopesSvcDef(Migrate.Step):
             try:
                 user_interface_svc = filter(lambda x: x.name == "User Interface", ctx.services)[0]
                 ctx.deployService(zenreports_jsonfile.read(), user_interface_svc)
-            except Exception, e:
+            except Exception as e:
                 log.error("Error deploying zenreports service definition: {}".format(e))
                 return False
 

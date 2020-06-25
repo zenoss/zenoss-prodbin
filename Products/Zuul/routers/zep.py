@@ -926,7 +926,7 @@ class EventsRouter(DirectRouter):
             # currently running.
             msg = 'Queued event. Check zeneventd status on <a href="/zport/dmd/daemons">Services</a>'
             return DirectResponse.succeed(msg, sticky=True)
-        except PublishException, e:
+        except PublishException as e:
             # This occurs if there is a failure publishing the event to the queue.
             log.exception("Failed creating event")
             return DirectResponse.exception(e, "Failed to create event")

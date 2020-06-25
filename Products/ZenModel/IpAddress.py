@@ -108,7 +108,7 @@ class IpAddress(ManagedEntity, IpAddressIndexable):
         try:
             data = socket.gethostbyaddr(ipunwrap(self.id))
             if data: self.ptrName = data[0]
-        except socket.error, e:
+        except socket.error as e:
             self.ptrName = ""
             log.warn("%s: %s", self.title, e)
 

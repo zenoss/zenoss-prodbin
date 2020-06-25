@@ -108,7 +108,7 @@ class System(DeviceOrganizer, ZenPackable):
         try:
             status = self.netcool.getPingStatus(system=self.getOrganizerName())
             status = self.convertStatus(status)
-        except: pass
+        except Exception: pass
         return status
    
 
@@ -121,7 +121,7 @@ class System(DeviceOrganizer, ZenPackable):
                    systemName=self.getOrganizerName(),
                    where=" Class=100 and Severity=5 and Node like '.*cmts.*'")
             status = self.convertStatus(status)
-        except: pass
+        except Exception: pass
         return status
 
 
@@ -132,7 +132,7 @@ class System(DeviceOrganizer, ZenPackable):
         try:
             status = self.netcool.getSnmpStatus(system=self.getOrganizerName())
             status = self.convertStatus(status)
-        except: pass
+        except Exception: pass
         return status
 
 
@@ -143,7 +143,7 @@ class System(DeviceOrganizer, ZenPackable):
         try:
             status = self.netcool.getXmlRpcStatus(system=self.getOrganizerName())
             status = self.convertStatus(status)
-        except: pass
+        except Exception: pass
         return status
 
 
@@ -153,7 +153,7 @@ class System(DeviceOrganizer, ZenPackable):
         status = 0 
         try:
             status = self.netcool.getEventCount(system=self.getOrganizerName())
-        except: pass
+        except Exception: pass
         return status
 
 

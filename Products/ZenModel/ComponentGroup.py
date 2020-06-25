@@ -56,7 +56,7 @@ class ComponentGroup(ComponentOrganizer):
         for brain in brains:
             try:
                 children.append(brain.getObject())
-            except:
+            except Exception:
                 pass
         return children
 

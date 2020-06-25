@@ -42,7 +42,7 @@ class Chain:
             self.callable(next).addCallbacks(self.success, self.failure)
         except StopIteration:
             self.defer.callback(self.results)
-        except Exception, ex:
+        except Exception as ex:
             self.failure(ex)
 
     def success(self, result):

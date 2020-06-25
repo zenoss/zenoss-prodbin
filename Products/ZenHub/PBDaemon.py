@@ -121,11 +121,11 @@ def translateError(callable):
         """
         try:
             return callable(*args, **kw)
-        except ConflictError, ex:
+        except ConflictError as ex:
             raise RemoteConflictError(
                 'Remote exception: %s: %s' % (ex.__class__, ex),
                 traceback.format_exc())
-        except Exception, ex:
+        except Exception as ex:
             raise RemoteException(
                 'Remote exception: %s: %s' % (ex.__class__, ex),
                 traceback.format_exc())

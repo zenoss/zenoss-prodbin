@@ -226,7 +226,7 @@ class SelTestBase(unittest.TestCase):
                 devname = getattr(self, "devname", TARGET)
             self.goToDevice(devname)
             self.waitForElement("link=Delete Device...", deviceWait)
-        except Exception, e:
+        except Exception as e:
             if not expectedToBePresent:
                 return
             else:

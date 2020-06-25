@@ -43,7 +43,7 @@ def _loadQjs(pack_path):
             try:
                 with open(fullpath) as f:
                     schemas.append(json.load(f))
-            except:
+            except Exception:
                 logging.basicConfig()
                 log = logging.getLogger('zen.ZenMessaging')
                 log.exception("Failed to load qjs schema from ZenPack: %s", fullpath)
@@ -60,7 +60,7 @@ def _getZenPackSchemas():
             # Load any queue schema files
             schemas.extend(_loadQjs(pkg_path))
 
-        except Exception, e:
+        except Exception as e:
             # This messes up logging a bit, but if we need to report
             # an error, this saves hours of trying to find out what's going on
             logging.basicConfig()
@@ -138,7 +138,7 @@ def removeZenPackQueuesExchanges(path):
         try:
             log.info("Removing queue %s", name)
             channel.queue_delete(name)
-        except Exception, e:
+        except Exception as e:
             # the queue might already be deleted etc, do not fail if we can't
             # remove it
             log.debug(e)
@@ -150,7 +150,7 @@ def removeZenPackQueuesExchanges(path):
         try:
             log.info("Removing exchange %s", name)
             channel.exchange_delete(name)
-        except Exception, e:
+        except Exception as e:
             # the queue might already be deleted etc, do not fail if we can't
             # remove it
             log.debug(e)

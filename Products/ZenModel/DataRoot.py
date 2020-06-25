@@ -583,7 +583,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             devid = objid
             if not devid.endswith('*'): devid += '*'
             obj = self.Devices.findDevice(devid)
-        except:
+        except Exception:
             obj=None
         if not obj:
             try:
@@ -605,7 +605,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             devid = objid
             if not devid.endswith('*'): devid += '*'
             obj = self.Networks.getNet(objid)
-        except: obj=None
+        except Exception: obj=None
         if not obj:
             obj = self.Devices.findDevice(devid)
         if not obj:

@@ -347,7 +347,7 @@ class EventClass(EventClassPropertyMixin, Organizer,
         try:
             if self.transform:
                 compile(self.transform, "<string>", "exec")
-        except:
+        except Exception:
             return "color:#FF0000;"
 
     security.declareProtected(

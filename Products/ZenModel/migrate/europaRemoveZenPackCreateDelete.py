@@ -26,7 +26,7 @@ class EuropaRemoveZenPackCreateDelete(Migrate.Step):
             if menu.zenMenuItems._getOb(menuId, None):
                 try:
                     menu.zenMenuItems._delObject(menuId)
-                except Exception, e:
+                except Exception as e:
                     log.error("Unable to remove menu %s" % menuId)
                     log.exception(e)
         pass

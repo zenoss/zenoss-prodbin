@@ -277,7 +277,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         """
         try:
             checkValidId(self, id)
-        except:
+        except Exception:
             raise
         else:
             return True

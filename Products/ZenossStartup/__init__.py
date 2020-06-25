@@ -34,7 +34,7 @@ for zpkg  in pkg_resources.iter_entry_points('zenoss.zenpacks'):
         module = resolve(zpkg.module_name)
         setattr(Products, zpkg.module_name, module)
 
-    except Exception, e:
+    except Exception as e:
         # This messes up logging a bit, but if we need to report
         # an error, this saves hours of trying to find out what's going on
         logging.basicConfig()

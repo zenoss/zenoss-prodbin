@@ -150,7 +150,7 @@ class IncrementalDataMap(object):
                 self._relationship = getattr(self.parent, self.relname)
             except TypeError:
                 msg = ('requires relationship, no relname given or found')
-                raise InvalidIncrementalDataMapError, msg, sys.exc_info()[2]
+                raise InvalidIncrementalDataMapError(msg, sys.exc_info()[2])
 
         return self._relationship
 

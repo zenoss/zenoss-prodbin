@@ -468,7 +468,7 @@ class SshPerformanceCollectionTask(BaseTask):
                     severity=Clear,
                 )
             yield self._fetchPerf()
-        except Exception, e:
+        except Exception as e:
             self.state = TaskStates.STATE_PAUSED
             log.error(
                 "Pausing task %s as %s [%s] connection failure: %s",

@@ -171,7 +171,7 @@ def findCommunity(context, ip, devicePath,
                 goodcommunity = session.community
                 goodversion = version
                 break
-            except (SystemExit, KeyboardInterrupt, POSError): raise
+            except POSError: raise
             except Exception: pass #keep trying until we run out
         if goodcommunity:
                 break
@@ -1708,7 +1708,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if otherLinks:
                 linksHtml += '<br/>'.join(otherLinks)
             return linksHtml
-        except Exception, ex:
+        except Exception as ex:
             import cgi
             return "<i class='errortitle'>%s</i>" % cgi.escape(str(ex))
 

@@ -194,7 +194,7 @@ class PerformanceConfig(HubService, ThresholdMixin):
             try:
                 listener.callRemote('updateThresholdClasses',
                                     self.remote_getThresholdClasses())
-            except Exception, ex:
+            except Exception as ex:
                 self.log.warning("Error notifying a listener of new classes")
 
     @onUpdate(Device)

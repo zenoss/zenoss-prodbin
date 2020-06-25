@@ -15,6 +15,7 @@ import logging
 import Queue
 import errno
 import signal
+import six
 import subprocess
 import socket
 from datetime import datetime
@@ -310,7 +311,7 @@ class Job(Task):
                         "Dependent job(s) %s aborted",
                         ', '.join(link.options['task_id'] for link in links)
                     )
-                raise cls, instance, tb
+                raise six.reraise(cls, instance, exc_traceback=tb)
 
             return result
         except Queue.Empty:

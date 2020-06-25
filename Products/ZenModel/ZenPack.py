@@ -185,7 +185,7 @@ class DirectoryConfigContents(object):
     def __getitem__(self, key):
         try:
             return open(os.path.join(self._path, key.lstrip('/'))).read()
-        except:
+        except Exception:
             raise KeyError(key)
 
 
@@ -480,7 +480,7 @@ class ZenPack(ZenModelRM):
                             instances.append(c())
                         finally:
                             sys.path.remove(p)
-                    except ImportError, ex:
+                    except ImportError as ex:
                         log.exception("Problem loading migration step %s", path)
         # sort them by version number
         instances.sort(key = lambda x: x.version)
@@ -495,7 +495,7 @@ class ZenPack(ZenModelRM):
                 if instance.version >= migrateCutoff:
                     recover.append(instance)
                     instance.migrate(self)
-        except Exception, ex:
+        except Exception as ex:
             # give the pack a chance to recover from problems
             recover.reverse()
             for r in recover:

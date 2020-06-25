@@ -258,7 +258,7 @@ class SshRunner(object):
 
             try:
                 connection = yield connection.run()
-            except Exception, e:
+            except Exception as e:
                 deferredList = self._pool.get(self._poolkey, [])
                 self.cleanUpPool(connection)
                 for d in deferredList:

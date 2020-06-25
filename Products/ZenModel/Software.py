@@ -89,7 +89,7 @@ class Software(MEProduct):
         if name == 'installDate':
             return self._installDate.getDate()
         else:
-            raise AttributeError, name
+            raise AttributeError(name)
 
     
     def _setPropValue(self, id, value):

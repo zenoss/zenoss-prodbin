@@ -76,10 +76,10 @@ def registerSkin(self, base, positionAfter='custom'):
                         path.append(layer)
             path = ','.join(path)
             skinstool.addSkinSelection(skin, path)
-    except ImportError, e:
+    except ImportError as e:
         if "Products.CMFCore.utils" in e.args: pass
         else: raise
-    except AttributeError, e:
+    except AttributeError as e:
         if "portal_skin" in e.args: pass
         else: raise
 
@@ -101,9 +101,9 @@ def unregisterSkin(self, base, positionAfter='custom'):
         obs = skinstool._objects
         goodlayers = filter(lambda x:getattr(skinstool, x['id'], False), obs)
         skinstool._objects = tuple(goodlayers)
-    except ImportError, e:
+    except ImportError as e:
         if "Products.CMFCore.utils" in e.args: pass
         else: raise
-    except AttributeError, e:
+    except AttributeError as e:
         if "portal_skin" in e.args: pass
         else: raise
