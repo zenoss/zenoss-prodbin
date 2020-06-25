@@ -1143,8 +1143,20 @@
                             });
                         }
                     }
+                    // If we don't have global role then set context explicitly for each selection 
+                    if (!_has_global_roles()) {
+                        if (selectionmodel.hasSelection() && selectionmodel.selectState !=='All') {
+                            var selection = selectionmodel.getSelection();
+                            selection.forEach(function(sel) {
+                                Zenoss.Security.setContext(sel.data.device.uid)
+                            });
+                        }
+                    }
                 });
-
+                Zenoss.Security.onPermissionsChange(function() {
+                    var tbar = this.grid.tbar;
+                    tbar.getComponent('event-commands-menu').setDisabled(!Zenoss.Security.hasPermission("Run Commands"));
+                }, this);
 
             },
             getGrid: function() {
