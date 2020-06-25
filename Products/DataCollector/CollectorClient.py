@@ -96,9 +96,7 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
             defaultSearchPath = options.searchPath
             defaultExistanceTest = options.existenceTest
 
-        if (
-            device
-        ):  # if we are in Zope look for parameters in the acquisition path
+        if device:
             self.username = getattr(
                 device, "zCommandUsername", defaultUsername
             )
