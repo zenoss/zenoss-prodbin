@@ -663,7 +663,7 @@ class CommandChannel(channel.SSHChannel):
         @type dataType: integer
         """
         message = (
-            "The command %s returned stderr data (%d) from the device: %s"
+            "The command %s returned stderr data (%d) from the device: %r"
             % (self.command, dataType, data)
         )
         log.warn("%s channel %s %s", self.targetIp, self.id, message)
