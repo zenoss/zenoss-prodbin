@@ -203,7 +203,6 @@ class ZenDaemon(CmdBase):
 
             for handler in (h for h in rootLog.handlers
                     if isinstance(h, logging.StreamHandler)):
-                handler.setLevel(self.options.logseverity)
                 handler.setFormatter(formatter)
 
         self.log = logging.getLogger('zen.%s' % self.logname)
