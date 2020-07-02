@@ -17,6 +17,7 @@ import logging
 import time
 import traceback
 
+from collections import defaultdict
 from copy import copy
 from datetime import datetime, timedelta
 from functools import partial
@@ -46,17 +47,10 @@ from Products.ZenCollector.tasks import (
 )
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Clear, Cmd_Fail
-from Products.ZenRRD.CommandParser import ParsedResults
 from Products.ZenRRD import runner
-from Products.ZenUtils.Executor import TwistedExecutor
+from Products.ZenRRD.CommandParser import ParsedResults
+from Products.ZenUtils.Executor import makeExecutor
 from Products.ZenUtils.Utils import getExitMessage
-
-from Products.DataCollector import Plugins  # noqa F401
-
-# We retrieve our configuration data remotely via a Twisted PerspectiveBroker
-# connection. To do so, we need to import the class that will be used by the
-# configuration service to send the data over, i.e. DeviceProxy.
-from Products.ZenCollector.services.config import DeviceProxy  # noqa F401
 
 # The following classes were refactored into the runner module after the
 # 4.2 release. ZenPacks were importing those classes from here, so they
@@ -79,9 +73,7 @@ log = logging.getLogger("zen.zencommand")
 class SshPerformanceCollectionPreferences(object):
 
     def __init__(self):
-        """
-        Constructs a new SshPerformanceCollectionPreferences instance and
-        provides default values for needed attributes.
+        """Initialize a SshPerformanceCollectionPreferences instance.
         """
         self.collectorName = COLLECTOR_NAME
         self.configCycleInterval = 20  # minutes
@@ -163,6 +155,9 @@ class MySshClient(SshClient):
         self.close_defer = None
         self.command_defers = {}
 
+        # If True, the connection is closed at the end of the collection cycle.
+        self.timed_out = False
+
         self.description = "%s:*****@%s:%s" % (
             self.username,
             self.ip,
@@ -201,8 +196,8 @@ class MySshClient(SshClient):
         d = self.command_defers.pop(command, None)
         if d is None:
             log.error(
-                "Internal error where deferred object not in dictionary for "
-                "%s. Command='%s' Data='%s' Code='%s' Stderr='%s'",
+                "Internal error where deferred object not in dictionary  "
+                "description=%s command=%r data=%r code=%s stderr=%r",
                 self.description,
                 command.split()[0],
                 data,
@@ -215,7 +210,7 @@ class MySshClient(SshClient):
     def clientConnectionLost(self, connector, reason):
         # Connection was lost, but could be because we just closed it. Not
         # necessarily cause for concern.
-        msg = "Connection %s lost" % self.description
+        msg = "Connection lost  description=%s" % self.description
         log.debug(msg)
         if self.connect_defer and not self.connect_defer.called:
             self.connect_defer.errback(reason)
@@ -264,7 +259,6 @@ class DataPointConfig(pb.Copyable, pb.RemoteCopy):
     rrdMin = None
     rrdMax = None
     metadata = None
-    tags = None
 
     def __init__(self):
         self.data = {}
@@ -278,49 +272,55 @@ pb.setUnjellyableForClass(DataPointConfig, DataPointConfig)
 
 class Cmd(pb.Copyable, pb.RemoteCopy):
     """
-    Holds the config of every command to be run
+    The configuration for collecting the performance data from one datasource.
     """
 
-    device = ""
-    command = None
-    ds = ""
+    # Attributes populated by the CommandPerformanceConfig service
     useSsh = False
+    name = ""
     cycleTime = None
+    component = None
     eventClass = None
     eventKey = None
     severity = 3
+    parser = None
+    ds = None
+    points = None  # DataPointConfigs ...?
+    env = None
+    command = None
+
+    # Attributes populated if Cmd is for an OSProcess component.
+    includeRegex = None
+    excludeRegex = None
+    replaceRegex = None
+    replacement = None
+    primaryUrlPath = None
+    generatedId = None
+    displayName = None
+    sequence = None
+
+    # Attributes populated when the command is run.
     lastStart = 0
     lastStop = 0
-    result = None
-    env = None
 
     def __init__(self):
         self.points = []
 
-    def processCompleted(self, pr):
-        """
-        Return back the datasource with the ProcessRunner/SshRunner stored in
-        the the 'result' attribute.
-        """
-        self.result = pr
+    def processCompleted(self, result):
         self.lastStop = time.time()
 
-        # Check for a condition that could cause zencommand to stop cycling.
-        #   http://dev.zenoss.org/trac/ticket/4936
+        # Ensure that the lastStop and lastStart values are sane.
         if self.lastStop < self.lastStart:
             log.debug("System clock went back?")
             self.lastStop = self.lastStart
 
-        if isinstance(pr, Failure):
-            return pr
+        if not isinstance(result, Failure):
+            if result.output is None:
+                result.output = ""
+            if result.stderr is None:
+                result.stderr = ""
 
-        log.debug(
-            "Process %s stopped (%s), %.2f seconds elapsed",
-            self.name,
-            pr.exitCode,
-            self.lastStop - self.lastStart,
-        )
-        return self
+        return result
 
     def getEventKey(self, point):
         # get datapoint name and add it to the event key
@@ -334,7 +334,7 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
         return self.eventKey + "|" + dpName
 
     def commandKey(self):
-        "Provide a value that establishes the uniqueness of this command"
+        """Provide a value that establishes the uniqueness of this command"""
         return "%".join(
             map(
                 str, [self.useSsh, self.cycleTime, self.severity, self.command]
@@ -395,9 +395,11 @@ class SshPerformanceCollectionTask(BaseTask):
         self._device = taskConfig
         self._devId = taskConfig.id
         self._manageIp = taskConfig.manageIp
+
+        # NOTE: taskConfig.datasources is a list of Cmd objects.
         self._datasources = taskConfig.datasources
 
-        self._useSsh = taskConfig.datasources[0].useSsh
+        self._useSsh = any(ds.useSsh for ds in self._datasources)
         client = MySshClient if self._useSsh else None
         self._runner = partial(runner.getRunner, taskConfig, client)
         self._connector = self._runner()
@@ -410,7 +412,13 @@ class SshPerformanceCollectionTask(BaseTask):
         self._showfullcommand = preferences.options.showfullcommand
         self._chosenDatasource = preferences.options.datasource
 
-        self._executor = TwistedExecutor(taskConfig.zSshConcurrentSessions)
+        # Associate commands to datasources.
+        # Set _commandMap *after* _chosenDatasource has been set.
+        self._commandMap = _groupCommands(
+            self.getDatasources(), self._device,
+        )
+
+        self._executor = makeExecutor(limit=taskConfig.zSshConcurrentSessions)
 
         self.executed = 0
         self._lastErrorMsg = ""
@@ -445,6 +453,7 @@ class SshPerformanceCollectionTask(BaseTask):
         @return: Deferred actions to run against a device configuration
         @rtype: Twisted deferred object
         """
+        log.debug("Starting collection task  device=%s", self._devId)
         self._doTask_start = datetime.now()
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
         try:
@@ -468,11 +477,24 @@ class SshPerformanceCollectionTask(BaseTask):
                     component=COLLECTOR_NAME,
                     severity=Clear,
                 )
-            yield self._fetchPerf()
+
+            raw = yield self._fetchPerf()
+            parsed = self._parseResults(raw)
+            yield self._storeResults(parsed)
+
+            # If a channel timed out, close the connection.
+            if self._connector.connection:
+                if self._connector.connection.timed_out:
+                    self._connector.close()
+                    log.info(
+                        "Connection closed  device=%s reason=%s",
+                        self._devId, "timeout",
+                    )
+
         except Exception as e:
             self.state = TaskStates.STATE_PAUSED
-            log.error(
-                "Pausing task %s as %s [%s] connection failure: %s",
+            log.exception(
+                "Task paused  name=%s device-id=%s ip=%s message=%s",
                 self.name,
                 self._devId,
                 self._manageIp,
@@ -496,55 +518,83 @@ class SshPerformanceCollectionTask(BaseTask):
                 for ds in self._datasources
                 if ds.name == self._chosenDatasource
             ]
-        else:
-            return self._datasources
 
-    def _addDatasource(self, datasource):
+        return self._datasources
+
+    def _fetchFromDatasource(self, datasource):
+        """Creates a new IRunner instance to run the datasource command.
+
+        A Deferred is returned which returns the datasource populated with
+        the command's results, or the Failure if the command failed or
+        timed out.
+
+        @type datasource: Products.ZenRRD.zencommand.Cmd
+        @rtype: twisted.internet.defer.Deferred
         """
-        Add a new instantiation of ProcessRunner or SshRunner
-        for every datasource.
-        """
+        d = self._runner(self._connector.connection).send(datasource)
         if self._showfullcommand:
             log.info(
-                "Datasource %s command: %s",
-                datasource.name,
-                datasource.command,
+                "Datasource added  name=%s command=%r",
+                datasource.name, datasource.command,
             )
-
-        d = self._runner(self._connector.connection).send(datasource)
         datasource.lastStart = time.time()
         d.addBoth(datasource.processCompleted)
         return d
 
     @defer.inlineCallbacks
-    def _fetchPerf(self, ignored=None):
-        """
-        Get performance data for all the monitored components on a device
+    def _fetchPerf(self):
+        """Retrieve the performance data from the device.
 
-        @parameter ignored: required to keep Twisted's callback chain happy
-        @type ignored: result of previous callback
+        Sends commands to run the monitored device then waits for and
+        processes the results.
         """
+        log.debug("Fetching data  device=%s", self._devId)
         self.state = SshPerformanceCollectionTask.STATE_FETCH_DATA
 
-        # The keys are the datasource commands, which are by definition unique
-        # to the command run.
-        cacheableDS = {}
+        try:
+            # Collect the Deferred objects into this list.
+            pending = []
 
-        # Bundle up the list of tasks
-        deferredCmds = []
-        for datasource in self.getDatasources():
-            datasource.deviceConfig = self._device
-            if datasource.command in cacheableDS:
-                cacheableDS[datasource.command].append(datasource)
-            else:
-                cacheableDS[datasource.command] = []
-                task = self._executor.submit(self._addDatasource, datasource)
-                deferredCmds.append(task)
+            # Submit the commands to the executor.
+            for command, datasources in self._commandMap.items():
+                first_ds = datasources[0]
+                call = partial(self._fetchFromDatasource, first_ds)
+                # Note: 'd' is not the same deferred object returned from
+                # the _fetchFromDatasource method.
+                d = self._executor.submit(
+                    call, timeout=self._device.zCommandCommandTimeout,
+                )
+                d.addCallback(self._handle_completion, command)
+                d.addErrback(self._handle_error, command)
+                pending.append(d)
 
-        # Run the tasks
-        resultList = yield defer.DeferredList(deferredCmds, consumeErrors=True)
-        parsedResults = self._parseResults(resultList, cacheableDS)
-        self._storeResults(parsedResults)
+            # Wait for all the results to return.
+            results = yield defer.DeferredList(pending)
+
+            # Restructure the results data from
+            # (success, (success, command, runner/failure))
+            # to
+            # (success, command, runner/failure)
+            results = tuple(data for _, data in results)
+
+            defer.returnValue(results)
+        except Exception:
+            log.exception("Problem while fetching data")
+            raise
+
+    def _handle_completion(self, response, command):
+        # This callback method detects whether the command succeeded or
+        # failed on the remote device.  If the command failed, the response
+        # is converted into an error that's handled by _parse_error.
+        # If the command succeeded, the response is kept has a success
+        # and will be handled by _parse_result.
+        success = bool(response.exitCode == 0)
+        return (success, (command, response))
+
+    def _handle_error(self, failure, command):
+        # This callback method is called for any error resulting from the
+        # command being unable to complete, e.g. timeouts.
+        return (False, (command, failure))
 
     def _process_os_processes_results_in_sequence(
         self, process_datasources, collection_result
@@ -562,135 +612,201 @@ class SshPerformanceCollectionTask(BaseTask):
 
         # Now we process datasources in sequence order
         for datasource in process_datasources:
-            results = ParsedResults()
+            parsed = ParsedResults()
             datasource.result = copy(collection_result)
             datasource.already_matched_cmdAndArgs = already_matched
-            self._processDatasourceResults(datasource, results)
+            self._processDatasourceResults(datasource, parsed)
             already_matched = datasource.already_matched_cmdAndArgs[:]
             del datasource.already_matched_cmdAndArgs
-            process_parseable_results.append((datasource, results))
+            process_parseable_results.append(
+                (datasource, collection_result, parsed),
+            )
 
         return process_parseable_results
 
-    def _parseResults(self, resultList, cacheableDS):
+    def _parseResults(self, resultList):
         """
         Interpret the results retrieved from the commands and pass on
         the datapoint values and events.
 
         @parameter resultList: results of running the commands
-        @type resultList: array of (boolean, datasource)
-        @parameter cacheableDS: other datasources that can use the same results
-        @type cacheableDS: dictionary of arrays of datasources
+        @type resultList: array of (boolean, (str, IRunner|Failure))
+        @parameter commands: other datasources that can use the same results
+        @type commands: dictionary of arrays of datasources
         """
+        log.debug("Parsing fetched data  device=%s", self._devId)
         self.state = SshPerformanceCollectionTask.STATE_PARSE_DATA
+
+        parsed_results = []
+        for success, (command, result) in resultList:
+            parse = self._parse_result if success else self._parse_error
+            datasources = self._commandMap.get(command)
+            parsed_results.extend(parse(datasources, result))
+        return parsed_results
+
+    def _parse_error(self, datasources, failure):
+        if not isinstance(failure, Failure):
+            return self._process_command_error(datasources, failure)
+
+        if failure.check(defer.TimeoutError):
+            if self._connector.connection:
+                self._connector.connection.timed_out = True
+            log.warn(
+                "Connection flagged for closure  "
+                "device=%s datasources=%s reason=%s",
+                self._devId,
+                ",".join(ds.name for ds in datasources),
+                "timeout",
+            )
+            results = []
+            for ds in datasources:
+                parsedResults = ParsedResults()
+                parsedResults.events.append(
+                    makeCmdTimeoutEvent(self._devId, ds),
+                )
+                results.append((ds, failure, parsedResults))
+            return results
+
+        log.error(
+            "Command failed  device=%s datasource=%s error=%s reason=%s",
+            self._devId, datasources[0].name, failure.type, failure.value,
+        )
+        return [(ds, failure, ParsedResults()) for ds in datasources]
+
+    def _parse_result(self, datasources, response):
+        ds = datasources[0]
+        log.debug(
+            "Command succeeded  device=%s datasource=%s elapsed-seconds=%.2f",
+            self._devId,
+            ",".join(ds.name for ds in datasources),
+            ds.lastStop - ds.lastStart,
+        )
+
+        # Process all OSProcess/ps datasources to avoid more than one
+        # OSProcess matching the same process
+        if ds.name == "OSProcess/ps":
+            return self._process_os_processes_results_in_sequence(
+                datasources, response,
+            )
+
         results = []
-        for success, datasource in resultList:
+        for ds in datasources:
             parsedResults = ParsedResults()
 
-            if not success:
-                # In this case, our datasource is actually a defer.Failure
-                reason = datasource
-                (datasource,) = reason.value.args
-                msg = "Datasource %s command timed out" % datasource.name
-                event = self._makeCmdEvent(
-                    datasource, msg, event_key="Timeout"
-                )
-            else:
-                # clear our timeout event
-                msg = "Datasource %s command timed out" % datasource.name
-                event = self._makeCmdEvent(
-                    datasource, msg, severity=Clear, event_key="Timeout"
-                )
-                # Re-use our results for any similar datasources
-                cache = cacheableDS.get(datasource.command, [])
-                if datasource.name == "OSProcess/ps":
-                    # We need to process all OSProcess in a special way to
-                    # avoid more than one OSProcess matching the same process
-                    process_datasources = [datasource]
-                    process_datasources.extend(cache)
-                    process_parseable_results = \
-                        self._process_os_processes_results_in_sequence(
-                            process_datasources, datasource.result
-                        )
-                    results.extend(process_parseable_results)
-                    continue
-                for ds in cache:
-                    ds.result = copy(datasource.result)
-                    self._processDatasourceResults(ds, parsedResults)
-                    results.append((ds, parsedResults))
-                    parsedResults = ParsedResults()
+            # clear any timeout event
+            parsedResults.events.append(
+                makeCmdTimeoutEvent(self._devId, ds, severity=Clear),
+            )
 
-                self._processDatasourceResults(datasource, parsedResults)
-            parsedResults.events.append(event)
-            results.append((datasource, parsedResults))
+            self._processDatasourceResults(ds, response, parsedResults)
+            results.append((ds, response, parsedResults))
+
         return results
 
-    def _processDatasourceResults(self, datasource, results):
+    def _processDatasourceResults(self, datasource, response, parsed):
         """
         Process a single datasource's results
 
-        @parameter datasource: datasource containg information
+        @parameter datasource: Data about datasource
         @type datasource: Cmd object
-        @parameter results: empty results object
-        @type results: ParsedResults object
+        @parameter response: Result of the datasource command
+        @type response: an IRunner object (SshRunner)
+        @parameter parsed: Parsed results are added to this object.
+        @type parsed: ParsedResults object
         """
-        if datasource.result.output is None:
-            datasource.result.output = ""
-        if datasource.result.stderr is None:
-            datasource.result.stderr = ""
+        datasource.result = copy(response)
+        output = response.output.strip()
+        stderr = response.stderr.strip()
 
-        exitCode = datasource.result.exitCode
-        output = datasource.result.output.strip()
-        stderr = datasource.result.stderr.strip()
-
-        if exitCode == 0 and not output:
+        if not output:
             msg = "No data returned for command"
             if self._showfullcommand:
                 msg += ": %s" % datasource.command
             log.warn("%s %s %s", self.name, datasource.name, msg)
 
-            event = self._makeCmdEvent(datasource, msg)
+            event = makeCmdEvent(self._devId, datasource, msg)
             if self._showfullcommand:
                 event["command"] = datasource.command
-            results.events.append(event)
-        else:
-            try:
-                operation = "Creating Parser"
-                parser = datasource.parser.create()
+            if stderr:
+                event["stderr"] = stderr
+            parsed.events.append(event)
+            return
 
-                operation = "Running Parser"
-                parser.preprocessResults(datasource, log)
-                parser.processResults(datasource, results)
+        try:
+            operation = "Creating Parser"
+            parser = datasource.parser.create()
 
-                if (
-                    not results.events
-                    and parser.createDefaultEventUsingExitCode
-                ):
-                    # If there is no event, send one based on the exit code
-                    if exitCode == 0:
-                        msg = ""
-                        severity = Clear
-                    else:
-                        msg = "Datasource: %s - Code: %s - Msg: %s" % (
-                            datasource.name,
-                            exitCode,
-                            getExitMessage(exitCode),
-                        )
-                        severity = datasource.severity
-                    event = self._makeCmdEvent(datasource, msg, severity)
-                    results.events.append(event)
-                if stderr:
-                    # Add the stderr output to the error events
-                    for event in results.events:
-                        if event["severity"] not in ("Clear", "Info", "Debug"):
-                            event["stderr"] = stderr
-            except Exception:
-                msg = "Error %s %s" % (operation, datasource.parser)
-                log.exception(msg)
-                event = self._makeCmdEvent(datasource, msg)
-                event["message"] = traceback.format_exc()
-                event["output"] = output
-                results.events.append(event)
+            operation = "Running Parser"
+            parser.preprocessResults(datasource, log)
+            parser.processResults(datasource, parsed)
+
+            if (
+                not parsed.events
+                and parser.createDefaultEventUsingExitCode
+            ):
+                event = makeCmdEvent(self._devId, datasource, "", Clear)
+                parsed.events.append(event)
+            if stderr:
+                # Add the stderr output to the error events.
+                # Note: although the command succeeded, the parser may put an
+                # error event into the results.
+                for event in parsed.events:
+                    if event["severity"] not in ("Clear", "Info", "Debug"):
+                        event["stderr"] = stderr
+        except Exception:
+            msg = "Error %s %s" % (operation, datasource.parser)
+            log.exception(msg)
+            event = makeCmdEvent(self._devId, datasource, msg)
+            event["message"] = traceback.format_exc()
+            event["output"] = output
+            if stderr:
+                event["stderr"] = stderr
+            parsed.events.append(event)
+
+    def _process_command_error(self, datasources, response):
+        if not runner.IRunner.providedBy(response):
+            log.error(
+                "Command failed with unexpected result  "
+                "device=%s datasources=%s failure=%s",
+                self._devId,
+                ",".join(ds.name for ds in datasources),
+                response,
+            )
+            return [
+                (ds, response, ParsedResults())
+                for ds in datasources
+            ]
+
+        log.error(
+            "Command returned an error  "
+            "device=%s datasources=%s exit-code=%s",
+            self._devId,
+            ",".join(ds.name for ds in datasources),
+            response.exitCode,
+        )
+        results = []
+        exit_message = getExitMessage(response.exitCode)
+        for ds in datasources:
+            event = makeCmdEvent(
+                self._devId,
+                ds,
+                "Datasource: %s - Code: %s - Msg: %s" % (
+                    ds.name,
+                    response.exitCode,
+                    exit_message,
+                ),
+                severity=ds.severity,
+            )
+            if (
+                response.stderr
+                and ds.severity not in ("Clear", "Info", "Debug")
+            ):
+                # Add the stderr output to the error events
+                event["stderr"] = response.stderr
+            parsed = ParsedResults()
+            parsed.events.append(event)
+            results.append((ds, response, parsed))
+        return results
 
     @defer.inlineCallbacks
     def _storeResults(self, resultList):
@@ -698,97 +814,95 @@ class SshPerformanceCollectionTask(BaseTask):
         Store the values in RRD files
 
         @parameter resultList: results of running the commands
-        @type resultList: array of (datasource, dictionary)
+        @type resultList: array of tuples which have the following layout:
+           (Cmd object, IRunner object, ParsedResults object)
         """
+        log.debug("Store parsed data  device=%s", self._devId)
         self.state = SshPerformanceCollectionTask.STATE_STORE_PERF
-        if self._chosenDatasource:
-            log.info(
-                "Values would be stored for datasource %s",
-                self._chosenDatasource,
-            )
-        for datasource, results in resultList:
-            for dp, value in results.values:
-                threshData = {
-                    "eventKey": datasource.getEventKey(dp),
-                    "component": dp.component,
-                }
-                try:
-                    if self._chosenDatasource:
-                        log.info(
-                            "Component: %s >> DataPoint: %s %s",
-                            dp.metadata["contextKey"],
+
+        try:
+            # Note:
+            #   'response' is an IRunner object.
+            #   'results' is a ParsedResults object.
+            for datasource, response, results in resultList:
+                log.debug("Store values  datasource=%s", datasource.name)
+                for dp, value in results.values:
+                    log.debug("Store datapoint  datapoint=%s", dp.dpName)
+                    threshData = {
+                        "eventKey": datasource.getEventKey(dp),
+                        "component": dp.component,
+                    }
+                    try:
+                        if self._chosenDatasource:
+                            log.info(
+                                "Component: %s >> DataPoint: %s %s",
+                                dp.metadata["contextKey"],
+                                dp.dpName,
+                                value,
+                            )
+                        yield self._dataService.writeMetricWithMetadata(
                             dp.dpName,
                             value,
+                            dp.rrdType,
+                            min=dp.rrdMin,
+                            max=dp.rrdMax,
+                            threshEventData=threshData,
+                            metadata=dp.metadata,
+                            extraTags=getattr(dp, "tags", {}),
                         )
-                    yield self._dataService.writeMetricWithMetadata(
-                        dp.dpName,
-                        value,
-                        dp.rrdType,
-                        min=dp.rrdMin,
-                        max=dp.rrdMax,
-                        threshEventData=threshData,
-                        metadata=dp.metadata,
-                        extraTags=getattr(dp, "tags", {}),
-                    )
-                except Exception as e:
-                    log.exception(
-                        "Failed to write to metric service: %s %s",
-                        dp.metadata, e,
-                    )
+                    except Exception as e:
+                        log.exception(
+                            "Failed to write to metric service  "
+                            "metadata=%s type=%s message=%s",
+                            dp.metadata, e.__class__.__name__, e,
+                        )
 
-            eventList = results.events
-            exitCode = getattr(datasource.result, "exitCode", -1)
-            output = None
-            if not isinstance(datasource.result, Failure):
-                output = datasource.result.output.strip()
-            if exitCode == 0 and output:
-                # Ensure a CLEAR event is sent for any command that
-                # successfully completes
-                clearEvents = next(
-                    (
-                        event
-                        for event in eventList
-                        if event["severity"] == Clear
-                    ),
-                    None,
-                )
-                if not clearEvents:
-                    msg = "Datasource %s command completed successfully" % (
-                        datasource.name
-                    )
-                    event = self._makeCmdEvent(datasource, msg, severity=Clear)
-                    eventList.append(event)
+                if response.output.strip():
+                    # Ensure a CLEAR event is sent for any command that
+                    # successfully completes.  This means non-empty output
+                    # (and an exit code == 0).
+                    # The eventKey is checked because the clear timeout
+                    # event is already present.
+                    hasClearEvent = any((
+                        (
+                            event["severity"] == Clear
+                            and event["eventKey"] == datasource.eventKey
+                        )
+                        for event in results.events
+                    ))
+                    if not hasClearEvent:
+                        event = makeCmdEvent(
+                            self._devId,
+                            datasource,
+                            "Datasource %s command completed successfully"
+                            % datasource.name,
+                            severity=Clear,
+                        )
+                        results.events.append(event)
 
-            # Send accumulated events
-            for event in eventList:
-                self._eventService.sendEvent(event, device=self._devId)
-        doTask_end = datetime.now()
-        duration = doTask_end - self._doTask_start
-        if duration > timedelta(seconds=self.interval):
-            log.warn(
-                "Collection for %s took %s seconds; "
-                "cycle interval is %s seconds.",
-                self.configId, duration.total_seconds(), self.interval,
+                # Send accumulated events
+                for event in results.events:
+                    self._eventService.sendEvent(event, device=self._devId)
+
+            doTask_end = datetime.now()
+            duration = doTask_end - self._doTask_start
+            max_duration = timedelta(seconds=self.interval)
+            if duration <= max_duration:
+                logf = log.debug
+                adjective = "Nominal"
+            else:
+                logf = log.warn
+                adjective = "Excessive"
+            logf(
+                "%s collection run time  "
+                "config-id=%s duration=%.1f cycle-interval=%s",
+                adjective,
+                self.configId,
+                duration.total_seconds(),
+                self.interval,
             )
-        else:
-            log.debug(
-                "Collection time for %s was %s seconds; "
-                "cycle interval is %s seconds.",
-                self.configId, duration.total_seconds(), self.interval,
-            )
-
-    def _makeCmdEvent(self, datasource, msg, severity=None, event_key=None):
-        """
-        Create an event using the info in the Cmd object.
-        """
-        return dict(
-            device=self._devId,
-            component=datasource.component,
-            eventClass=datasource.eventClass,
-            eventKey=datasource.eventKey if event_key is None else event_key,
-            severity=severity if severity is not None else datasource.severity,
-            summary=msg,
-        )
+        except Exception:
+            log.exception("Problem while storing data")
 
     def displayStatistics(self):
         """
@@ -805,6 +919,53 @@ class SshPerformanceCollectionTask(BaseTask):
 
     def resume(self):
         pass
+
+
+def _groupCommands(datasources, config):
+    # Map commands to datasources.  The same command may be used by
+    # different datasources.  There's no reason to run the same command
+    # multiple times.
+    commands = defaultdict(list)
+    for datasource in datasources:
+        # 'deviceConfig' is required by some command output parsers.
+        datasource.deviceConfig = config
+        commands[datasource.command].append(datasource)
+    return commands
+
+
+def makeCmdTimeoutEvent(deviceId, datasource, severity=None):
+    """Return a new command timed out event.
+
+    @param deviceId: The ID of the device where the command timed out.
+    @type deviceId: str
+
+    @param datasource: The datasource associated with the command.
+    @type datasource: Products.ZenRRD.zencommand.Cmd
+
+    @param severity: The event's severity level
+    @type severity: int
+    """
+    return makeCmdEvent(
+        deviceId,
+        datasource,
+        "Datasource %s command timed out" % datasource.name,
+        severity=severity,
+        eventKey="CommandTimeout",
+    )
+
+
+def makeCmdEvent(deviceId, datasource, msg, severity=None, eventKey=None):
+    """
+    Create an event using the info in the Cmd object.
+    """
+    return {
+        "device": deviceId,
+        "component": datasource.component,
+        "eventClass": datasource.eventClass,
+        "eventKey": datasource.eventKey if eventKey is None else eventKey,
+        "severity": severity if severity is not None else datasource.severity,
+        "summary": msg,
+    }
 
 
 if __name__ == "__main__":
