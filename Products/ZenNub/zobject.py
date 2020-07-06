@@ -21,6 +21,9 @@ import logging
 import sys
 import types
 
+from DateTime import DateTime
+from Products.ZenUtils import Time
+
 from Products.ZenUtils.Utils import importClass, monkeypatch
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenRelations.RelSchema import ToMany, ToManyCont
@@ -29,6 +32,8 @@ from zope.component import getGlobalSiteManager, provideSubscriptionAdapter, pro
 from zope.interface import implementedBy
 from ZenPacks.zenoss.Impact.impactd.interfaces import IRelationshipDataProvider
 from ZenPacks.zenoss.DynamicView.interfaces import IRelationsProvider, IRelatable
+
+from .utils import all_parent_dcs
 
 _DMD = None
 log = logging.getLogger("zen.cloudpublisher")
@@ -170,6 +175,22 @@ class ZObject(object):
         if datum['type'] in db.classmodel:
             setattr(self.__class__, 'meta_type', db.classmodel[datum['type']].meta_type)
 
+        # collectors (where applicable)
+        if hasattr(self._orig_class, 'collectors'):
+            setattr(self.__class__, 'collectors', self._orig_class.collectors)
+
+        # add device_class and manageIp if it's a device.
+        if isDevice:
+            setattr(self.__class__, 'device_class', device.device_class)
+
+            def ManageIpGetter(self):
+                return device.manageIp
+
+            def ManageIpSetter(self, v):
+                device.manageIp = v
+
+            setattr(self.__class__, 'manageIp', property(ManageIpGetter, ManageIpSetter))
+
         # zproperties
         for zProp in device.getAllProperties():
             if hasattr(self, zProp):
@@ -293,6 +314,9 @@ class ZObject(object):
         if adapter:
             provideAdapter(adapter, [cls], IRelatable)
 
+    def titleOrId(self):
+        return getattr(self, 'title', self.id)
+
     def getDmd(self):
         global _DMD
         if _DMD is None:
@@ -340,14 +364,93 @@ class ZObject(object):
 
         return dimensions
 
+    def getSubComponents(self):
+        isDevice = self._mapper.get_object_type(self._datumId).device
+        directly_contained = []
+
+        if isDevice:
+            if self.os:
+                directly_contained.append(self.os)
+            if self.hw:
+                directly_contained.append(self.hw)
+
+        for rel in self._orig_class._relations:
+            if isinstance(rel[1], ToManyCont):
+                for contained_component in getattr(self, rel[0])():
+                    directly_contained.append(contained_component)
+
+        for component in directly_contained:
+            yield component
+
+            for subcomponent in component.getSubComponents():
+                yield subcomponent
+
 class ZDummyDmd(object):
     pass
 
-class ZDevice(ZObject):
+class ZDeviceOrComponent(ZObject):
+    def getRRDTemplates(self):
+        clsname = self._datum["type"]
+        if clsname not in self._db.classmodel:
+            log.error("Unable to locate monitoring templates for components of unrecognized class %s", clsname)
+            return []
+
+        rrdTemplateName = self._db.classmodel[clsname].default_rrd_template_name
+        seen = set()
+        templates = []
+
+        for dc in all_parent_dcs(self.device().device_class):
+            for template_name, template in self._db.device_classes[dc].rrdTemplates.iteritems():
+                if template_name in seen:
+                    # lower level templates with the same name take precendence
+                    continue
+                seen.add(template_name)
+
+                # this really should use getRRDTemplateName per instance,
+                # but that is not available to us without zodb.   So we
+                # use a single value that was determined by update_zenpacks.py
+                if template_name == rrdTemplateName:
+                    templates.append(template)
+
+        return templates
+
+    def getMonitoredComponents(self, collector=None):
+        # should filter based on monitored status, but we don't have
+        # such a thing.  So just return all components.
+        for component in self.getSubComponents():
+            if collector is not None:
+                if collector in getattr(component, 'collectors', []):
+                    yield component
+            else:
+                yield component
+
+    def snmpIgnore(self):
+        # Ignore interface that are administratively down.
+        if hasattr(self, "adminStatus"):
+            return self.adminStatus > 1
+
+        return False
+
+class ZDevice(ZDeviceOrComponent):
     def device(self):
         return self
 
+    def getDeviceComponents(self, collector=None):
+        for component in self.getSubComponents():
+            if collector is not None:
+                if collector in getattr(component, 'collectors', []):
+                    yield component
+            else:
+                yield component
 
-class ZDeviceComponent(ZObject):
+    def getLastChange(self):
+        return DateTime(float(self._device._lastChange))
+
+    def getLastChangeString(self):
+        return Time.LocalDateTimeSecsResolution(float(self._device._lastChange))
+
+class ZDeviceComponent(ZDeviceOrComponent):
     def device(self):
         return ZDevice(self._db, self._device, self._device.id)
+
+

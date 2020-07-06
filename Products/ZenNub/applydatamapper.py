@@ -12,6 +12,8 @@
 
 
 import logging
+import time
+
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
 from Products.DataCollector.ApplyDataMap import isSameData
 
@@ -68,6 +70,9 @@ class ApplyDataMapper(object):
         log.debug("Publishing %d model updates" % changed_object_count)
         for compId in changed_ids:
             db.publish_model(device=deviceId, component=compId)
+
+        if changed:
+            self.deviceModel._lastChange = float(time.time())
 
         return changed
 
@@ -172,6 +177,8 @@ class ApplyDataMapper(object):
         #   }),
         if "id" in om and "relname" in om and "modname" in om:
             target_id = objmap.id
+            target_is_new = self.mapper.get(target_id) is None
+
             target = self.mapper.get(target_id, create_if_missing=_add)
             if target is None:
                 # if _add=False, we don't create the object if it's not there.
@@ -187,7 +194,8 @@ class ApplyDataMapper(object):
 
             # Link from device to this component if it's new.
             device = self.mapper.get(base_id)
-            if target_id not in device["links"][objmap.relname]:
+            # if target_id not in device["links"][objmap.relname]:
+            if target_is_new:
                 log.debug("  Added new component (%s) under %s (%s)", target_id, base_id, objmap.relname)
                 device["links"][objmap.relname].add(target_id)
                 self.mapper.update({base_id: device})

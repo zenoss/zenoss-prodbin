@@ -7,12 +7,13 @@
 #
 ##############################################################################
 
-import logging
-import time
-from pprint import pformat
-import sys
-import traceback
 import importlib
+import logging
+from pprint import pformat
+import re
+import sys
+import time
+import traceback
 
 from twisted.spread import pb
 from twisted.internet import defer, task
@@ -31,11 +32,13 @@ from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
 from ZenPacks.zenoss.PythonCollector.services.PythonConfig \
     import PythonDataSourceConfig
 
+from Products.ZenHub.services.SnmpPerformanceConfig import SnmpDeviceProxy, get_component_manage_ip
+from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
+
 from .utils import replace_prefix, all_parent_dcs
 from .utils.tales import talesEvalStr
 from .applydatamapper import ApplyDataMapper
 from .db import get_nub_db
-from .zobject import ZDeviceComponent, ZDevice
 from .modelevents import onNubDeviceUpdate, onNubDeviceAdd, onNubDeviceDelete
 
 log = logging.getLogger('zen.hub')
@@ -209,17 +212,17 @@ class ModelerService(NubService):
                     continue
 
                 proxy.plugins.append(plugin.pluginLoader)
-                for id in plugin.deviceProperties:
+                for pid in plugin.deviceProperties:
                     # zproperties
-                    if device.hasProperty(id):
-                        setattr(proxy, id, device.getProperty(id))
+                    if device.hasProperty(pid):
+                        setattr(proxy, pid, device.getProperty(pid))
 
                     # modeled properties (TODO)
-                    elif hasattr(device, id):
-                        setattr(proxy, id, getattr(device, id))
+                    elif hasattr(device, pid):
+                        setattr(proxy, pid, getattr(device, pid))
 
                     else:
-                        self.log.error("device property %s not found on %s", id, id)
+                        self.log.error("device property %s not found on %s", pid, id)
 
             result.append(proxy)
 
@@ -334,7 +337,7 @@ class CollectorConfigService(NubService):
 
         deviceConfigs = []
         for deviceName in deviceNames:
-            device = self.db.devices.get(deviceName, None)
+            device = self.db.get_zobject(device=deviceName)
             if device is None:
                 log.error("Device ID %s not found", deviceName)
                 continue
@@ -381,7 +384,7 @@ class CollectorConfigService(NubService):
         instance, and then add any additional data to the proxy as their needs
         require.
 
-        @param device: the regular device object to create a proxy from
+        @param device: the regular device zobject to create a proxy from
         @return: a new device proxy object, or None if no proxy can be created
         @rtype: DeviceProxy
         """
@@ -395,31 +398,6 @@ class CollectorConfigService(NubService):
                 setattr(proxy, attrName, device.getProperty(attrName))
 
         return proxy
-
-    def component_getRRDTemplates(self, device, component_datum):
-        clsname = component_datum["type"]
-        if clsname not in self.db.classmodel:
-            log.error("Unable to locate monitoring templates for components of unrecognized class %s", clsname)
-            return []
-
-        rrdTemplateName = self.db.classmodel[clsname].default_rrd_template_name
-        seen = set()
-        templates = []
-
-        for dc in all_parent_dcs(device.device_class):
-            for template_name, template in self.db.device_classes[dc].rrdTemplates.iteritems():
-                if template_name in seen:
-                    # lower level templates with the same name take precendence
-                    continue
-                seen.add(template_name)
-
-                # this really should use getRRDTemplateName per instance,
-                # but that is not available to us without zodb.   So we
-                # use a single value that was determined by update_zenpacks.py
-                if template_name == rrdTemplateName:
-                    templates.append(template)
-
-        return templates
 
     @onNubDeviceDelete(str)
     def deviceDeleted(self, deviceId, event):
@@ -502,34 +480,31 @@ class CommandPerformanceConfig(CollectorConfigService):
         # First for the device....
         proxy.thresholds = []
 
-        device_datum = self.db.get_mapper(device.id).get(device.id)
-        self._safeGetComponentConfig(device.id, device_datum, device, commands)
+        self._safeGetComponentConfig(device, commands)
 
         # And now for its components
-        for compId, comp in device.getMonitoredComponents(collector='zencommand'):
-            self._safeGetComponentConfig(compId, comp, device, commands)
+        for component in device.getMonitoredComponents(collector='zencommand'):
+            self._safeGetComponentConfig(component, commands)
 
         if commands:
             proxy.datasources = list(commands)
             return proxy
         return None
 
-    def _safeGetComponentConfig(self, compId, comp, device, commands):
+    def _safeGetComponentConfig(self, deviceOrComponent, commands):
         """
         Catchall wrapper for things not caught at previous levels
         """
 
         try:
-            self._getComponentConfig(compId, comp, device, commands)
+            self._getComponentConfig(deviceOrComponent, commands)
         except Exception:
             msg = "Unable to process %s datasource(s) for device %s -- skipping" % (
-                self.dsType, device.id)
+                self.dsType, deviceOrComponent.device().id)
             log.exception(msg)
 
-    def _getComponentConfig(self, compId, comp, device, cmds):
-        # comp is a mapper datum.  device is a Device model object.model
-
-        for templ in self.component_getRRDTemplates(device, comp):
+    def _getComponentConfig(self, deviceOrComponent, cmds):
+        for templ in deviceOrComponent.getRRDTemplates():
             for ds in templ.getRRDDataSources(self.dsType):
 
                 # Ignore SSH datasources if no username set
@@ -549,7 +524,7 @@ class CommandPerformanceConfig(CollectorConfigService):
                 cmd.useSsh = useSsh
                 cmd.name = "%s/%s" % (templ.id, ds.id)
                 cmd.cycleTime = self._getDsCycleTime(device, templ, ds)
-                cmd.component = comp.get('title') or compId
+                cmd.component = deviceOrComponent.titleOrId()
 
                 # TODO: events are not supported currently.
                 # cmd.eventClass = ds.eventClass
@@ -557,32 +532,32 @@ class CommandPerformanceConfig(CollectorConfigService):
                 # cmd.severity = ds.severity
                 cmd.parser = ploader
                 cmd.ds = ds.id
-                cmd.points = self._getDsDatapoints(device, compId, comp, ds, ploader)
+                cmd.points = self._getDsDatapoints(deviceOrComponent, ds, ploader)
 
                 # TODO: OSProcess component monitoring isn't supported currently.
                 # if isinstance(comp, OSProcess):
                 #     # save off the regex's specified in the UI to later run
                 #     # against the processes running on the device
-                #     cmd.includeRegex = comp.includeRegex
-                #     cmd.excludeRegex = comp.excludeRegex
-                #     cmd.replaceRegex = comp.replaceRegex
-                #     cmd.replacement  = comp.replacement
-                #     cmd.primaryUrlPath = comp.processClassPrimaryUrlPath()
-                #     cmd.generatedId = comp.id
-                #     cmd.displayName = comp.displayName
-                #     cmd.sequence = comp.osProcessClass().sequence
+                #     cmd.includeRegex = component.includeRegex
+                #     cmd.excludeRegex = component.excludeRegex
+                #     cmd.replaceRegex = component.replaceRegex
+                #     cmd.replacement  = component.replacement
+                #     cmd.primaryUrlPath = component.processClassPrimaryUrlPath()
+                #     cmd.generatedId = component.id
+                #     cmd.displayName = component.displayName
+                #     cmd.sequence = component.osProcessClass().sequence
 
                 # If the datasource supports an environment dictionary, use it
                 cmd.env = getattr(ds, 'env', None)
 
                 try:
-                    cmd.command = ds.getCommand(comp, device=device)
+                    cmd.command = ds.getCommand(deviceOrComponent)
                 except Exception as ex:  # TALES error
                     details = dict(
                         template=templ.id,
                         datasource=ds.id,
-                        affected_device=device.id,
-                        affected_component=compId,
+                        affected_device=deviceOrComponent.device().id,
+                        affected_component=deviceOrComponent.id,
                         tb_exception=str(ex),
                         resolution='Could not create a command to send to zencommand' +
                                    ' because TALES evaluation failed.  The most likely' +
@@ -594,28 +569,18 @@ class CommandPerformanceConfig(CollectorConfigService):
 
                 cmds.add(cmd)
 
-    def _getDsDatapoints(self, device, compId, comp, ds, ploader):
+    def _getDsDatapoints(self, deviceOrComponent, ds, ploader):
         """
         Given a component a data source, gather its data points
         """
-
-        if compId is None:
-            deviceDatum = self.db.get(device.id)
-            mapper = self.db.get_mapper(device.id)
-            deviceOrComponent = ZDevice(self.db, device, device.id)
-        else:
-            mapper = self.db.get_mapper(device.id)
-            deviceOrComponent = ZDeviceComponent(self.db, device, compId)
-
         parser = ploader.create()
         points = []
-        component_name = comp.get('title') or compId
         for dp_id, dp in ds.datapoints.iteritems():
             dpc = DataPointConfig()
             dpc.id = dp_id
-            dpc.component = component_name
+            dpc.component = deviceOrComponent.titleOrId()
             dpc.dpName = dp_id
-            dpc.data = self._dataForParser(parser, compId, comp, dp_id, dp)
+            dpc.data = self._dataForParser(parser, deviceOrComponent, dp_id, dp)
 
             dpc.rrdPath = '/'.join((deviceOrComponent.rrdPath(), dp_id))
             dpc.metadata = deviceOrComponent.getMetricMetadata()
@@ -630,15 +595,15 @@ class CommandPerformanceConfig(CollectorConfigService):
 
         return points
 
-    def _dataForParser(self, parser, compId, comp, dpId, dp):
+    def _dataForParser(self, parser, comp, dpId, dp):
         # LIMIT: Normally, this is a method on the parser, and its behavior
         # can be overridden to supply arbitrary model information to the parser
 
         if hasattr(parser, 'componentScanValue'):
             if parser.componentScanValue == 'id':
-                return {'componentScanValue': compId}
+                return {'componentScanValue': comp.id}
             else:
-                return {'componentScanValue': comp['properties'].get(parser.componentScanValue)}
+                return {'componentScanValue': getattr(comp, parser.componentScanValue)}
 
         return {}
 
@@ -669,45 +634,28 @@ class PythonConfig(CollectorConfigService):
     # @profile
     def _createDeviceProxy(self, device):
         proxy = CollectorConfigService._createDeviceProxy(self, device)
-        proxy.datasources = list(self.device_datasources(device))
+        proxy.datasources = list(self._datasources(device))
 
-        for compId, _ in device.getMonitoredComponents():
+        for component in device.getMonitoredComponents():
             proxy.datasources += list(
-                self.component_datasources(device, compId))
+                self._datasources(component))
 
         if len(proxy.datasources) > 0:
             return proxy
 
         return None
 
-    def device_datasources(self, device):
-        return self._datasources(device, device.id, None)
-
-    def component_datasources(self, device, compId):
-        return self._datasources(device, device.id, compId)
-
-    def _datasources(self, deviceModel, deviceId, componentId):
+    def _datasources(self, deviceOrComponent):
         known_point_properties = (
             'isrow', 'rrdmax', 'description', 'rrdmin', 'rrdtype', 'createCmd', 'tags')
 
-        mapper = self.db.get_mapper(deviceId)
-        if componentId is None:
-            datum = mapper.get(deviceId)
-            datumId = deviceId
-            deviceOrComponent = ZDevice(self.db, deviceModel, datumId)
-        else:
-            datum = mapper.get(componentId)
-            datumId = componentId
-            deviceOrComponent = ZDeviceComponent(self.db, deviceModel, datumId)
-            device = deviceOrComponent.device()
+        device = deviceOrComponent.device()
 
-        for template in self.component_getRRDTemplates(deviceModel, datum):
+        for template in deviceOrComponent.getRRDTemplates():
             # Get all enabled datasources that are PythonDataSource or
             # subclasses thereof.
             datasources = [ds for ds in template.getRRDDataSources()
                            if ds.sourcetype in self.python_sourcetypes]
-
-            device = deviceOrComponent.device()
 
             for ds in datasources:
                 datapoints = []
@@ -770,9 +718,9 @@ class PythonConfig(CollectorConfigService):
                     datapoints.append(dp_config)
 
                 ds_config = PythonDataSourceConfig()
-                ds_config.device = deviceId
+                ds_config.device = device.id
                 ds_config.manageIp = deviceModel.manageIp
-                ds_config.component = componentId
+                ds_config.component = deviceOrComponent.id
                 ds_config.plugin_classname = ds.plugin_classname
                 ds_config.template = template.id
                 ds_config.datasource = ds.id
@@ -824,5 +772,164 @@ class PythonConfig(CollectorConfigService):
 
     def remote_applyDataMaps(self, device, datamaps):
         return self.modelerService.remote_applyDataMaps(device, datamaps)
+
+
+class SnmpPerformanceConfig(CollectorConfigService):
+    def __init__(self):
+        deviceProxyAttributes = (
+            'zMaxOIDPerRequest',
+            'zSnmpMonitorIgnore',
+            'zSnmpAuthPassword',
+            'zSnmpAuthType',
+            'zSnmpCommunity',
+            'zSnmpPort',
+            'zSnmpPrivPassword',
+            'zSnmpPrivType',
+            'zSnmpSecurityName',
+            'zSnmpTimeout',
+            'zSnmpTries',
+            'zSnmpVer',
+            'zSnmpCollectionInterval',
+        )
+        CollectorConfigService.__init__(self, deviceProxyAttributes)
+
+    # def _filterDevice(self, device):
+    #     include = CollectorConfigService._filterDevice(self, device)
+
+    #     if getattr(device, 'zSnmpMonitorIgnore', False):
+    #         self.log.debug("Device %s skipped because zSnmpMonitorIgnore is True",
+    #                        device.id)
+    #         include = False
+
+    #     if not device.getManageIp():
+    #         self.log.debug("Device %s skipped because its management IP address is blank.",
+    #                        device.id)
+    #         include = False
+
+    #     return include
+
+
+    def _transform_oid(self, oid, comp):
+        """lookup the index"""
+        index = None
+        snmpindex_dct = getattr(comp, "snmpindex_dct", None)
+        if snmpindex_dct is not None:
+            for prefix, index_ in snmpindex_dct.iteritems():
+                if oid.startswith(prefix):
+                    index = index_
+                    break
+        if index is None:
+            index = getattr(comp, "ifindex", comp.snmpindex)
+        return "{0}.{1}".format(oid, index) if index else oid
+
+
+    def _getComponentConfig(self, comp, oids):
+        """
+        SNMP components can build up the actual OID based on a base OID and
+        the snmpindex of the component.
+        """
+        if comp.snmpIgnore():
+            return None
+
+        validOID = re.compile(r'(?:\.?\d+)+$')
+        metadata = comp.getMetricMetadata()
+        for templ in comp.getRRDTemplates():
+            for ds in templ.getRRDDataSources("SNMP"):
+                if not ds.oid:
+                    continue
+
+                oid = self._transform_oid(ds.oid.strip("."), comp)
+                if not oid:
+                    log.warn("The data source %s OID is blank -- ignoring", ds.id)
+                    continue
+                elif not validOID.match(oid):
+                    oldOid = oid
+                    oid = self.dmd.Mibs.name2oid(oid)
+                    if not oid:
+                        msg =  "The OID %s is invalid -- ignoring" % oldOid
+                        self.sendEvent(dict(
+                            device=comp.device().id, component=ds.getPrimaryUrlPath(),
+                            eventClass='/Status/Snmp', severity=Warning, summary=msg,
+                        ))
+                        continue
+
+                for dp_id, dp in ds.datapoints.iteritems():
+                    cname = comp.id
+                    dp_metadata = dict(metadata)
+                    # by default, metrics have the format <device id>/<metric name>.
+                    # Setting this to the datasource id, gives us ds/dp, which
+                    # the cloud metric publisher turns into ds_dp.  So it's important
+                    # for each collector daemon / config service to make sure that
+                    # its metrics do get formatted that way.
+                    dp_metadata['metricPrefix'] = ds.id
+
+                    oidData = (
+                        cname,
+                        dp_id,
+                        dp.rrdtype,
+                        '',
+                        dp.rrdmin,
+                        dp.rrdmax,
+                        dp_metadata,
+                        {})
+
+                    # An OID can appear in multiple data sources/data points
+                    oids.setdefault(oid, []).append(oidData)
+
+        # return comp.getThresholdInstances('SNMP')
+        return []
+
+
+    def _createDeviceProxies(self, device):
+        manage_ips = {device.manageIp: ([], False)}
+
+        components = device.os.getMonitoredComponents(collector="zenperfsnmp")
+        for component in components:
+            manage_ip = get_component_manage_ip(component, device.manageIp)
+            if manage_ip not in manage_ips:
+                log.debug("Adding manage IP %s from %r" % (manage_ip, component))
+                manage_ips[manage_ip] = ([], True)
+            manage_ips[manage_ip][0].append(component)
+        proxies = []
+        for manage_ip, (components, components_only) in manage_ips.items():
+            proxy = self._createDeviceProxy(device, manage_ip, components, components_only)
+            if proxy is not None:
+                proxies.append(proxy)
+        return proxies
+
+    def _createDeviceProxy(self, device, manage_ip=None, components=(), components_only=False):
+        proxy = SnmpDeviceProxy()
+        proxy = CollectorConfigService._createDeviceProxy(self, device, proxy)
+        proxy.snmpConnInfo = SnmpConnInfo(device)
+        if manage_ip is not None and manage_ip != device.manageIp:
+            proxy._config_id = device.id + "_" + manage_ip
+            proxy.snmpConnInfo.manageIp = manage_ip
+
+        # framework expects a value for this attr but snmp task uses cycleInterval defined below
+        proxy.configCycleInterval = getattr(device, 'zSnmpCollectionInterval', 300)
+        # this is the attr zenperfsnmp actually uses
+        proxy.cycleInterval = proxy.configCycleInterval
+
+        proxy.name = device.id
+        proxy.device = device.id
+        proxy.lastmodeltime = device.getLastChangeString()
+        proxy.lastChangeTime = float(device.getLastChange())
+
+        # Gather the datapoints to retrieve
+        proxy.oids = {}
+        proxy.thresholds = []
+        if not components_only:
+            # First for the device....
+            threshs = self._getComponentConfig(device, proxy.oids)
+            if threshs:
+                proxy.thresholds.extend(threshs)
+        # And now for its components
+        for comp in components:
+            threshs = self._getComponentConfig(comp, proxy.oids)
+            if threshs:
+                proxy.thresholds.extend(threshs)
+
+        if proxy.oids:
+            return proxy
 
 

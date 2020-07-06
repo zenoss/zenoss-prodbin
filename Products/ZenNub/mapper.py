@@ -132,7 +132,6 @@ class DataMapper(object):
                 return None
 
 
-
     # Private Methods
 
     def stub(self, object_id):
@@ -148,7 +147,7 @@ class DataMapper(object):
     def add_property(self, object_id, object_type, name, value):
         object_property = object_type.get_property(name)
         if not object_property:
-            print("invalid property name for {}: {}".format(object_id, name))
+            print("invalid property name for {} ({}): {}".format(object_id, object_type.name, name))
             # raise Exception(
             #     "invalid property name for {}: {}".format(
             #         object_id, name))
@@ -160,8 +159,8 @@ class DataMapper(object):
         link_type = object_type.get_link_type(link_name)
         if not link_type:
             raise Exception(
-                "invalid link name for {}: {}".format(
-                    object_id, link_name))
+                "invalid link name for {} ({}): {}".format(
+                    object_id, object_type.name, link_name))
 
         if remote_ids is None:
             remote_ids = []

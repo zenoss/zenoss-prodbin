@@ -350,7 +350,7 @@ class CloudMetricPublisher(CloudPublisher):
         # name from <device id>/<dp id> to <ds id>/<dp_id>
         if '/' in metricName:
             if 'device' in tags and metricName.startswith(tags['device']):
-                log.debug("Warning: metric name %s appears to start with a device id, rather than a datasource name", metric['metric'])
+                self.log.warning("Metric name %s appears to start with a device id, rather than a datasource name", metric['metric'])
 
             metric['metric'] = metricName.replace('/', '_', 1)
 

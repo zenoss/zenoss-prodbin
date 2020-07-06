@@ -63,7 +63,8 @@ from Products.ZenNub.services import (
     ModelerService,
     EventService,
     CommandPerformanceConfig,
-    PythonConfig
+    PythonConfig,
+    SnmpPerformanceConfig
 )
 from Products.ZenNub.db import get_nub_db
 from Products.ZenNub.impact import update_all_impacts
@@ -384,6 +385,8 @@ class ServiceManager(object):
         self._services['ModelerService'] = ModelerService()
         self._services['Products.ZenHub.services.CommandPerformanceConfig'] = CommandPerformanceConfig()
         self._services['ZenPacks.zenoss.PythonCollector.services.PythonConfig'] = PythonConfig(self._services['ModelerService'])
+        self._services['Products.ZenHub.services.SnmpPerformanceConfig'] = SnmpPerformanceConfig()
+
 
     def getService(self, name, monitor):
         """Return (a Referenceable to) the named service."""

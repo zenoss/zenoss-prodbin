@@ -15,6 +15,7 @@ import datetime
 import logging
 import os
 import pickle
+import re
 import time
 
 from zope.component import getUtility
@@ -77,7 +78,19 @@ class DB(object):
             os.mkdir(SNAPSHOT_DIR)
 
         # Load the contents of the on-disk YAML files into the db.
+        self.load_deviceclasses()
+        self.load_devices()
+        self.load_modelerplugins()
+        self.load_parserplugins()
+        self.load_classmodels()
+        self.load_datasources()
 
+        log.info("Indexing")
+        self.index()
+
+        log.info("Loading complete")
+
+    def load_deviceclasses(self):
         log.info("Loading device classes and monitoring templates..")
         dc_yaml, mt_yaml = load_deviceclass_yaml()
         for id_, dc in dc_yaml.iteritems():
@@ -88,6 +101,7 @@ class DB(object):
             except ValueError, e:
                 log.error("Unable to load deviceclass %s: %s", id_, e)
 
+    def load_devices(self):
         log.info("Loading devices")
 
         # The devices.yaml file is written out by zdatamon.  If it doesn't exist
@@ -110,6 +124,7 @@ class DB(object):
                     if self.devices[id_].getPropertyDefault(zProp) == value:
                         print "   Note: device %s zProperty %s is already its default" % (id_, zProp)
 
+    def load_modelerplugins(self):
         log.info("Loading modeler plugin info")
         for id_, d in load_modelerplugin_yaml().iteritems():
             d['id'] = d['pluginName']
@@ -118,6 +133,7 @@ class DB(object):
             except ValueError, e:
                 log.error("Unable to load modelerplugin %s: %s", id_, e)
 
+    def load_parserplugins(self):
         log.info("Loading parser plugin info")
         for id_, d in load_parserplugin_yaml().iteritems():
             d['id'] = d['modPath']
@@ -126,6 +142,7 @@ class DB(object):
             except ValueError, e:
                 log.error("Unable to load modelerplugin %s: %s", id_, e)
 
+    def load_classmodels(self):
         log.info("Loading class model")
         for id_, d in load_classmodel_yaml().iteritems():
             d['module'] = id_
@@ -134,6 +151,7 @@ class DB(object):
             except ValueError, e:
                 log.error("Unable to load class model %s: %s", id_, e)
 
+    def load_datasources(self):
         log.info("Loading datasources")
         for id_, d in load_datasource_yaml().iteritems():
             d['id'] = id_
@@ -141,11 +159,6 @@ class DB(object):
                 self.store_datasource(DataSource(**d))
             except ValueError, e:
                 log.error("Unable to load datasource %s: %s", id_, e)
-
-        log.info("Indexing")
-        self.index()
-
-        log.info("Loading complete")
 
     def reload_devices(self):
         log.info("Reloading %s", DEVICE_YAML)
@@ -196,6 +209,7 @@ class DB(object):
                     # no longer compatible.  It will be recreated as necessary
                     self.mappers[id].object_types = {}
 
+                    self._ensure_mapper_os_hw(id, self.mappers[id])
                     return self.mappers[id]
                 except Exception, e:
                     log.error("Error reading DataMapper snapshot from %s: %s", filename, e)
@@ -208,7 +222,34 @@ class DB(object):
             log.debug("  Setting device type to %s" % device["type"])
             mapper.update({id: device})
 
+        self._ensure_mapper_os_hw(id, self.mappers[id])
         return self.mappers[id]
+
+    def _ensure_mapper_os_hw(self, id, mapper):
+        object_type = mapper.get_object_type(id)
+
+        # create 'os' and 'hw' components if they are missing
+        os_datum = mapper.get('os', create_if_missing=True)
+        hw_datum = mapper.get('hw', create_if_missing=True)
+
+        added = False
+        if os_datum["type"] is None:
+            os_type = object_type.get_link_type('os').remote_class
+            os_datum["type"] = os_type
+            mapper.update({'os': os_datum})
+            added = True
+        if hw_datum["type"] is None:
+            hw_type = object_type.get_link_type('hw').remote_class
+            hw_datum["type"] = hw_type
+            mapper.update({'hw': hw_datum})
+            added = True
+
+        if added:
+            device = mapper.get(id)
+            device["links"]['os'] = set(["os"])
+            device["links"]['hw'] = set(["hw"])
+            mapper.update({id: device})
+
 
     def get_zobject(self, device=None, component=None):
         # return a ZDevice or ZDeviceComponent based on a set of dimensions
@@ -226,10 +267,16 @@ class DB(object):
 
         return ZDeviceComponent(self, self.devices[device], component)
 
-
     def snapshot(self):
         for id in self.mappers:
             self.snapshot_device(id)
+
+        # Also clean up any old leftover snapshot files.
+        for file in os.listdir(SNAPSHOT_DIR):
+            if file.endswith(".pickle"):
+                deviceId = re.sub(r".pickle$", "", file)
+                if deviceId not in self.devices:
+                    self.delete_device_snapshot(deviceId)
 
     def snapshot_device(self, id):
         if id not in self.mappers:
@@ -240,6 +287,12 @@ class DB(object):
         log.debug("Writing %s", filename)
         with open(filename, "w") as f:
             pickle.dump(self.mappers[id], f)
+
+    def delete_device_snapshot(self, deviceId):
+        filename = "%s/%s.pickle" % (SNAPSHOT_DIR, id)
+        if os.path.exists(filename):
+            log.info("Removing device snapshot for %s", deviceId)
+            os.remove(filename)
 
     def store_device(self, device):
         if device.id in self.devices:
@@ -261,6 +314,7 @@ class DB(object):
         self.publish_model(device=deviceId)
         del self.devices[deviceId]
         del self.mappers[deviceId]
+        self.delete_device_snapshot(deviceId)
 
     def store_deviceclass(self, deviceclass):
         self.device_classes[deviceclass.id] = deviceclass

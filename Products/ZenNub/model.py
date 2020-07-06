@@ -36,6 +36,7 @@ class Device(object):
         self.manageIp = manageIp
         self.device_class = device_class
         self.zProperties = {}
+        self._lastChange = 0
 
         from .db import get_nub_db
         self.db = get_nub_db()
@@ -109,16 +110,6 @@ class Device(object):
                 props.setdefault(zProp, value)
 
         return props
-
-    def getMonitoredComponents(self, collector=None):
-        mapper = self.db.get_mapper(self.id)
-        for object_id, obj in mapper.all():
-            if mapper.get_object_type(object_id).device:
-                continue
-
-            # should filter based on monitored status, but we don't have
-            # such a thing.  So just return all components.
-            yield object_id, obj
 
 
 class ModelerPlugin(object):
