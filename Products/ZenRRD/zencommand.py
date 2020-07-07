@@ -7,59 +7,56 @@
 #
 ##############################################################################
 
-
-__doc__ = """ZenCommand
+"""ZenCommand
 
 Run Command plugins periodically.
 
 """
-from datetime import datetime, timedelta
-import time
-from pprint import pformat
+
 import logging
-log = logging.getLogger("zen.zencommand")
+import time
 import traceback
+
 from copy import copy
+from datetime import datetime, timedelta
 from functools import partial
+from pprint import pformat
 
 from twisted.internet import defer
 from twisted.python.failure import Failure
-
 from twisted.spread import pb
+from zope.component import queryUtility
+from zope.interface import implementer
 
-import Globals
-import zope.interface
+import Globals  # noqa F401
 
-from Products.ZenUtils.Utils import unused, getExitMessage
 from Products.DataCollector.SshClient import SshClient
+from Products.ZenCollector.daemon import CollectorDaemon
+from Products.ZenCollector.interfaces import (
+    ICollectorPreferences,
+    IDataService,
+    IEventService,
+    IPausingScheduledTask,
+)
+from Products.ZenCollector.tasks import (
+    BaseTask,
+    SimpleTaskFactory,
+    SubConfigurationTaskSplitter,
+    TaskStates,
+)
+from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Clear, Cmd_Fail
 from Products.ZenRRD.CommandParser import ParsedResults
 from Products.ZenRRD import runner
-
-from Products.ZenCollector.daemon import CollectorDaemon
-from Products.ZenCollector.interfaces import ICollectorPreferences,\
-                                             IDataService,\
-                                             IEventService,\
-                                             IPausingScheduledTask
-from Products.ZenCollector.tasks import SimpleTaskFactory,\
-                                        SubConfigurationTaskSplitter,\
-                                        TaskStates, \
-                                        BaseTask
-from Products.ZenEvents import Event
 from Products.ZenUtils.Executor import TwistedExecutor
+from Products.ZenUtils.Utils import getExitMessage
 
-from Products.DataCollector import Plugins
-unused(Plugins)
-
-MAX_CONNECTIONS = 250
-MAX_BACK_OFF_MINUTES = 20
+from Products.DataCollector import Plugins  # noqa F401
 
 # We retrieve our configuration data remotely via a Twisted PerspectiveBroker
 # connection. To do so, we need to import the class that will be used by the
 # configuration service to send the data over, i.e. DeviceProxy.
-from Products.ZenCollector.services.config import DeviceProxy
-unused(DeviceProxy)
-
+from Products.ZenCollector.services.config import DeviceProxy  # noqa F401
 
 # The following classes were refactored into the runner module after the
 # 4.2 release. ZenPacks were importing those classes from here, so they
@@ -70,12 +67,16 @@ SshRunner = runner.SshRunner
 SshRunner.start = SshRunner.send
 TimeoutError = runner.TimeoutError
 
+MAX_CONNECTIONS = 250
+MAX_BACK_OFF_MINUTES = 20
 
 COLLECTOR_NAME = "zencommand"
 
+log = logging.getLogger("zen.zencommand")
 
+
+@implementer(ICollectorPreferences)
 class SshPerformanceCollectionPreferences(object):
-    zope.interface.implements(ICollectorPreferences)
 
     def __init__(self):
         """
@@ -88,7 +89,9 @@ class SshPerformanceCollectionPreferences(object):
 
         # The configurationService attribute is the fully qualified class-name
         # of our configuration service that runs within ZenHub
-        self.configurationService = 'Products.ZenHub.services.CommandPerformanceConfig'
+        self.configurationService = (
+            "Products.ZenHub.services.CommandPerformanceConfig"
+        )
 
         # Provide a reasonable default for the max number of tasks
         self.maxTasks = 50
@@ -97,49 +100,61 @@ class SshPerformanceCollectionPreferences(object):
         self.options = None
 
     def buildOptions(self, parser):
-        parser.add_option('--showrawresults',
-                          dest='showrawresults',
-                          action="store_true",
-                          default=False,
-                          help="Show the raw RRD values. For debugging purposes only.")
+        parser.add_option(
+            "--showrawresults",
+            dest="showrawresults",
+            action="store_true",
+            default=False,
+            help="Show the raw RRD values. For debugging purposes only.",
+        )
 
-        parser.add_option('--maxbackoffminutes',
-                          dest='maxbackoffminutes',
-                          default=MAX_BACK_OFF_MINUTES,
-                          type='int',
-                          help="When a device fails to respond, increase the time to" \
-                               " check on the device until this limit.")
+        parser.add_option(
+            "--maxbackoffminutes",
+            dest="maxbackoffminutes",
+            default=MAX_BACK_OFF_MINUTES,
+            type="int",
+            help="When a device fails to respond, increase the time to"
+            " check on the device until this limit.",
+        )
 
-        parser.add_option('--showfullcommand',
-                          dest='showfullcommand',
-                          action="store_true",
-                          default=False,
-                          help="Display the entire command and command-line arguments, " \
-                               " including any passwords.")
+        parser.add_option(
+            "--showfullcommand",
+            dest="showfullcommand",
+            action="store_true",
+            default=False,
+            help="Display the entire command and command-line arguments, "
+            " including any passwords.",
+        )
 
-        parser.add_option('--datasource',
-                          dest='datasource',
-                          type='string',
-                          default=None,
-                          help="Collect just for one datasource. "\
-                               "Write in format 'template/datasource'")
+        parser.add_option(
+            "--datasource",
+            dest="datasource",
+            type="string",
+            default=None,
+            help="Collect just for one datasource. "
+            "Write in format 'template/datasource'",
+        )
 
     def postStartup(self):
         pass
 
 
 class SshPerCycletimeTaskSplitter(SubConfigurationTaskSplitter):
-    subconfigName = 'datasources'
+    subconfigName = "datasources"
 
     def makeConfigKey(self, config, subconfig):
-        return (config.id, subconfig.cycleTime, 'Remote' if subconfig.useSsh else 'Local')
+        return (
+            config.id,
+            subconfig.cycleTime,
+            "Remote" if subconfig.useSsh else "Local",
+        )
 
 
+@implementer(runner.IClient)
 class MySshClient(SshClient):
     """
     Connection to SSH server at the remote device
     """
-    zope.interface.implements(runner.IClient)
 
     def __init__(self, *args, **kw):
         super(MySshClient, self).__init__(*args, **kw)
@@ -148,11 +163,13 @@ class MySshClient(SshClient):
         self.close_defer = None
         self.command_defers = {}
 
-        self.description = '%s:*****@%s:%s' % (self.username,
-                                               self.ip,
-                                               self.port)
+        self.description = "%s:*****@%s:%s" % (
+            self.username,
+            self.ip,
+            self.port,
+        )
         self.tasks = set()
-        self.is_expired = False     # TODO: placeholder; not implemented yet
+        self.is_expired = False  # TODO: placeholder; not implemented yet
 
     def __str__(self):
         return self.description
@@ -183,9 +200,15 @@ class MySshClient(SshClient):
         # member variable for zenmodeler
         d = self.command_defers.pop(command, None)
         if d is None:
-            log.error("Internal error where deferred object not in dictionary for %s. "
-                      "Command = '%s' Data = '%s' Code = '%s' Stderr = '%s'",
-                      self.description, command.split()[0], data, code, stderr)
+            log.error(
+                "Internal error where deferred object not in dictionary for "
+                "%s. Command='%s' Data='%s' Code='%s' Stderr='%s'",
+                self.description,
+                command.split()[0],
+                data,
+                code,
+                stderr,
+            )
         elif not d.called:
             d.callback((data, code, stderr))
 
@@ -225,21 +248,19 @@ class MySshClient(SshClient):
         @param reason: failure object
         @type reason: object
         """
-        msg = reason.getErrorMessage()
         if self.connect_defer and not self.connect_defer.called:
             self.connect_defer.errback(reason)
         if self.close_defer and not self.close_defer.called:
             self.close_defer.errback(reason)
-
         self.clientFinished()
 
 
 class DataPointConfig(pb.Copyable, pb.RemoteCopy):
-    id = ''
-    component = ''
-    rrdPath = ''
+    id = ""
+    component = ""
+    rrdPath = ""
     rrdType = None
-    rrdCreateCommand = ''
+    rrdCreateCommand = ""
     rrdMin = None
     rrdMax = None
     metadata = None
@@ -251,6 +272,7 @@ class DataPointConfig(pb.Copyable, pb.RemoteCopy):
     def __repr__(self):
         return pformat((self.data, self.id))
 
+
 pb.setUnjellyableForClass(DataPointConfig, DataPointConfig)
 
 
@@ -258,9 +280,10 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
     """
     Holds the config of every command to be run
     """
-    device = ''
+
+    device = ""
     command = None
-    ds = ''
+    ds = ""
     useSsh = False
     cycleTime = None
     eventClass = None
@@ -285,66 +308,69 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
         # Check for a condition that could cause zencommand to stop cycling.
         #   http://dev.zenoss.org/trac/ticket/4936
         if self.lastStop < self.lastStart:
-            log.debug('System clock went back?')
+            log.debug("System clock went back?")
             self.lastStop = self.lastStart
 
         if isinstance(pr, Failure):
             return pr
 
-        log.debug('Process %s stopped (%s), %.2f seconds elapsed',
-                  self.name,
-                  pr.exitCode,
-                  self.lastStop - self.lastStart)
+        log.debug(
+            "Process %s stopped (%s), %.2f seconds elapsed",
+            self.name,
+            pr.exitCode,
+            self.lastStop - self.lastStart,
+        )
         return self
 
     def getEventKey(self, point):
         # get datapoint name and add it to the event key
-        dpName = point.rrdPath.split('/')[-1]
-        if dpName == '':
+        dpName = point.rrdPath.split("/")[-1]
+        if dpName == "":
             try:
                 dpName = point.dpName
             except AttributeError:
-                dpName = ''
+                dpName = ""
 
-        return self.eventKey + '|' + dpName
+        return self.eventKey + "|" + dpName
 
     def commandKey(self):
         "Provide a value that establishes the uniqueness of this command"
-        return '%'.join(map(str, [self.useSsh, self.cycleTime,
-                        self.severity, self.command]))
+        return "%".join(
+            map(
+                str, [self.useSsh, self.cycleTime, self.severity, self.command]
+            )
+        )
 
     def __str__(self):
-        return ' '.join(map(str, [
-            self.ds,
-            'useSSH=%s' % self.useSsh,
-            self.cycleTime, ]))
+        return " ".join(
+            map(str, [self.ds, "useSSH=%s" % self.useSsh, self.cycleTime])
+        )
+
 
 pb.setUnjellyableForClass(Cmd, Cmd)
 
 
 STATUS_EVENT = {
-    'eventClass': Cmd_Fail,
-    'component': 'command',
+    "eventClass": Cmd_Fail,
+    "component": "command",
 }
 
 
+@implementer(IPausingScheduledTask)
 class SshPerformanceCollectionTask(BaseTask):
     """
     A task that performs periodic performance collection for devices providing
     data via SSH connections.
     """
-    zope.interface.implements(IPausingScheduledTask)
 
-    STATE_CONNECTING = 'CONNECTING'
-    STATE_FETCH_DATA = 'FETCH_DATA'
-    STATE_PARSE_DATA = 'PARSING_DATA'
-    STATE_STORE_PERF = 'STORE_PERF_DATA'
+    STATE_CONNECTING = "CONNECTING"
+    STATE_FETCH_DATA = "FETCH_DATA"
+    STATE_PARSE_DATA = "PARSING_DATA"
+    STATE_STORE_PERF = "STORE_PERF_DATA"
 
-    def __init__(self,
-                 taskName,
-                 configId,
-                 scheduleIntervalSeconds,
-                 taskConfig):
+    def __init__(
+        self, taskName, configId, scheduleIntervalSeconds, taskConfig
+    ):
         """
         @param taskName: the unique identifier for this task
         @type taskName: string
@@ -355,10 +381,9 @@ class SshPerformanceCollectionTask(BaseTask):
         @type scheduleIntervalSeconds: int
         @param taskConfig: the configuration for this task
         """
-        super(SshPerformanceCollectionTask, self).__init__(taskName,
-                                                           configId,
-                                                           scheduleIntervalSeconds,
-                                                           taskConfig)
+        super(SshPerformanceCollectionTask, self).__init__(
+            taskName, configId, scheduleIntervalSeconds, taskConfig
+        )
 
         # Needed for interface
         self.name = taskName
@@ -377,11 +402,10 @@ class SshPerformanceCollectionTask(BaseTask):
         self._runner = partial(runner.getRunner, taskConfig, client)
         self._connector = self._runner()
 
-        self._dataService = zope.component.queryUtility(IDataService)
-        self._eventService = zope.component.queryUtility(IEventService)
+        self._dataService = queryUtility(IDataService)
+        self._eventService = queryUtility(IEventService)
 
-        preferences = zope.component.queryUtility(ICollectorPreferences,
-                                                  COLLECTOR_NAME)
+        preferences = queryUtility(ICollectorPreferences, COLLECTOR_NAME)
         self._maxbackoffseconds = preferences.options.maxbackoffminutes * 60
         self._showfullcommand = preferences.options.showfullcommand
         self._chosenDatasource = preferences.options.datasource
@@ -389,20 +413,24 @@ class SshPerformanceCollectionTask(BaseTask):
         self._executor = TwistedExecutor(taskConfig.zSshConcurrentSessions)
 
         self.executed = 0
-        self._lastErrorMsg = ''
+        self._lastErrorMsg = ""
 
         self.manage_ip_event = {
-            'eventClass': Cmd_Fail,
-            'device': self._devId,
-            'summary': 'IP address not set, collection will be attempted\
-                        with host name',
-            'component': COLLECTOR_NAME,
-            'eventKey': 'Empty_IP_address'
+            "eventClass": Cmd_Fail,
+            "device": self._devId,
+            "summary":
+                "IP address not set, collection will be attempted "
+                "with host name",
+            "component": COLLECTOR_NAME,
+            "eventKey": "Empty_IP_address",
         }
 
     def __str__(self):
         return "COMMAND schedule Name: %s configId: %s Datasources: %d" % (
-               self.name, self.configId, len(self._datasources))
+            self.name,
+            self.configId,
+            len(self._datasources),
+        )
 
     def cleanup(self):
         if self._connector:
@@ -421,36 +449,53 @@ class SshPerformanceCollectionTask(BaseTask):
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
         try:
             if not self._manageIp and self._useSsh:
-                self._eventService.sendEvent(self.manage_ip_event, severity=Event.Info)
+                self._eventService.sendEvent(
+                    self.manage_ip_event, severity=Event.Info
+                )
             else:
-                self._eventService.sendEvent(self.manage_ip_event, severity=Clear)
+                self._eventService.sendEvent(
+                    self.manage_ip_event, severity=Clear
+                )
 
             yield self._connector.connect(self)
 
             if self._useSsh:
                 msg = "Connected to %s [%s]" % (self._devId, self._manageIp)
-                self._eventService.sendEvent(STATUS_EVENT,
-                                             device=self._devId,
-                                             summary=msg,
-                                             component=COLLECTOR_NAME,
-                                             severity=Clear)
+                self._eventService.sendEvent(
+                    STATUS_EVENT,
+                    device=self._devId,
+                    summary=msg,
+                    component=COLLECTOR_NAME,
+                    severity=Clear,
+                )
             yield self._fetchPerf()
         except Exception as e:
             self.state = TaskStates.STATE_PAUSED
-            log.error("Pausing task %s as %s [%s] connection failure: %s",
-                      self.name, self._devId, self._manageIp, e.message)
-            self._eventService.sendEvent(STATUS_EVENT,
-                                         device=self._devId,
-                                         summary=e.message,
-                                         component=COLLECTOR_NAME,
-                                         severity=Event.Error)
+            log.error(
+                "Pausing task %s as %s [%s] connection failure: %s",
+                self.name,
+                self._devId,
+                self._manageIp,
+                e.message,
+            )
+            self._eventService.sendEvent(
+                STATUS_EVENT,
+                device=self._devId,
+                summary=e.message,
+                component=COLLECTOR_NAME,
+                severity=Event.Error,
+            )
             raise
         else:
             self._returnToNormalSchedule()
 
     def getDatasources(self):
         if self._chosenDatasource:
-            return [ds for ds in self._datasources if ds.name == self._chosenDatasource]
+            return [
+                ds
+                for ds in self._datasources
+                if ds.name == self._chosenDatasource
+            ]
         else:
             return self._datasources
 
@@ -460,8 +505,11 @@ class SshPerformanceCollectionTask(BaseTask):
         for every datasource.
         """
         if self._showfullcommand:
-            log.info("Datasource %s command: %s", datasource.name,
-                     datasource.command)
+            log.info(
+                "Datasource %s command: %s",
+                datasource.name,
+                datasource.command,
+            )
 
         d = self._runner(self._connector.connection).send(datasource)
         datasource.lastStart = time.time()
@@ -498,7 +546,9 @@ class SshPerformanceCollectionTask(BaseTask):
         parsedResults = self._parseResults(resultList, cacheableDS)
         self._storeResults(parsedResults)
 
-    def _process_os_processes_results_in_sequence(self, process_datasources, collection_result):
+    def _process_os_processes_results_in_sequence(
+        self, process_datasources, collection_result
+    ):
         """
         Process OSProcesses in sequence order to avoid more than one OSProcess
         match the same process
@@ -527,7 +577,7 @@ class SshPerformanceCollectionTask(BaseTask):
         Interpret the results retrieved from the commands and pass on
         the datapoint values and events.
 
-        @parameter resultList: results of running the commands in a DeferredList
+        @parameter resultList: results of running the commands
         @type resultList: array of (boolean, datasource)
         @parameter cacheableDS: other datasources that can use the same results
         @type cacheableDS: dictionary of arrays of datasources
@@ -540,13 +590,17 @@ class SshPerformanceCollectionTask(BaseTask):
             if not success:
                 # In this case, our datasource is actually a defer.Failure
                 reason = datasource
-                datasource, = reason.value.args
+                (datasource,) = reason.value.args
                 msg = "Datasource %s command timed out" % datasource.name
-                event = self._makeCmdEvent(datasource, msg, event_key='Timeout')
+                event = self._makeCmdEvent(
+                    datasource, msg, event_key="Timeout"
+                )
             else:
                 # clear our timeout event
                 msg = "Datasource %s command timed out" % datasource.name
-                event = self._makeCmdEvent(datasource, msg, severity=Clear, event_key='Timeout')
+                event = self._makeCmdEvent(
+                    datasource, msg, severity=Clear, event_key="Timeout"
+                )
                 # Re-use our results for any similar datasources
                 cache = cacheableDS.get(datasource.command, [])
                 if datasource.name == "OSProcess/ps":
@@ -554,8 +608,10 @@ class SshPerformanceCollectionTask(BaseTask):
                     # avoid more than one OSProcess matching the same process
                     process_datasources = [datasource]
                     process_datasources.extend(cache)
-                    process_parseable_results = self._process_os_processes_results_in_sequence(
-                        process_datasources, datasource.result)
+                    process_parseable_results = \
+                        self._process_os_processes_results_in_sequence(
+                            process_datasources, datasource.result
+                        )
                     results.extend(process_parseable_results)
                     continue
                 for ds in cache:
@@ -578,10 +634,10 @@ class SshPerformanceCollectionTask(BaseTask):
         @parameter results: empty results object
         @type results: ParsedResults object
         """
-        if datasource.result.output is None :
-            datasource.result.output = ''
+        if datasource.result.output is None:
+            datasource.result.output = ""
         if datasource.result.stderr is None:
-            datasource.result.stderr = ''
+            datasource.result.stderr = ""
 
         exitCode = datasource.result.exitCode
         output = datasource.result.output.strip()
@@ -595,7 +651,7 @@ class SshPerformanceCollectionTask(BaseTask):
 
             event = self._makeCmdEvent(datasource, msg)
             if self._showfullcommand:
-                event['command'] = datasource.command
+                event["command"] = datasource.command
             results.events.append(event)
         else:
             try:
@@ -606,15 +662,19 @@ class SshPerformanceCollectionTask(BaseTask):
                 parser.preprocessResults(datasource, log)
                 parser.processResults(datasource, results)
 
-                if not results.events and \
-                        parser.createDefaultEventUsingExitCode:
+                if (
+                    not results.events
+                    and parser.createDefaultEventUsingExitCode
+                ):
                     # If there is no event, send one based on the exit code
                     if exitCode == 0:
                         msg = ""
                         severity = Clear
                     else:
                         msg = "Datasource: %s - Code: %s - Msg: %s" % (
-                            datasource.name, exitCode, getExitMessage(exitCode)
+                            datasource.name,
+                            exitCode,
+                            getExitMessage(exitCode),
                         )
                         severity = datasource.severity
                     event = self._makeCmdEvent(datasource, msg, severity)
@@ -622,14 +682,14 @@ class SshPerformanceCollectionTask(BaseTask):
                 if stderr:
                     # Add the stderr output to the error events
                     for event in results.events:
-                        if event['severity'] not in ('Clear', 'Info', 'Debug'):
-                            event['stderr'] = stderr
+                        if event["severity"] not in ("Clear", "Info", "Debug"):
+                            event["stderr"] = stderr
             except Exception:
                 msg = "Error %s %s" % (operation, datasource.parser)
                 log.exception(msg)
                 event = self._makeCmdEvent(datasource, msg)
-                event['message'] = traceback.format_exc()
-                event['output'] = output
+                event["message"] = traceback.format_exc()
+                event["output"] = output
                 results.events.append(event)
 
     @defer.inlineCallbacks
@@ -642,18 +702,24 @@ class SshPerformanceCollectionTask(BaseTask):
         """
         self.state = SshPerformanceCollectionTask.STATE_STORE_PERF
         if self._chosenDatasource:
-            log.info("Values would be stored for datasource %s",
-                     self._chosenDatasource)
+            log.info(
+                "Values would be stored for datasource %s",
+                self._chosenDatasource,
+            )
         for datasource, results in resultList:
             for dp, value in results.values:
                 threshData = {
-                    'eventKey': datasource.getEventKey(dp),
-                    'component': dp.component,
+                    "eventKey": datasource.getEventKey(dp),
+                    "component": dp.component,
                 }
                 try:
                     if self._chosenDatasource:
-                        log.info("Component: %s >> DataPoint: %s %s",
-                                 dp.metadata['contextKey'], dp.dpName, value)
+                        log.info(
+                            "Component: %s >> DataPoint: %s %s",
+                            dp.metadata["contextKey"],
+                            dp.dpName,
+                            value,
+                        )
                     yield self._dataService.writeMetricWithMetadata(
                         dp.dpName,
                         value,
@@ -662,21 +728,30 @@ class SshPerformanceCollectionTask(BaseTask):
                         max=dp.rrdMax,
                         threshEventData=threshData,
                         metadata=dp.metadata,
-                        extraTags=getattr(dp, "tags", {}))
+                        extraTags=getattr(dp, "tags", {}),
+                    )
                 except Exception as e:
-                    log.exception("Failed to write to metric service: "
-                                  "{0} {1.__class__.__name__} {1}"
-                                  .format(dp.metadata, e))
+                    log.exception(
+                        "Failed to write to metric service: %s %s",
+                        dp.metadata, e,
+                    )
 
             eventList = results.events
-            exitCode = getattr(datasource.result, 'exitCode', -1)
+            exitCode = getattr(datasource.result, "exitCode", -1)
             output = None
             if not isinstance(datasource.result, Failure):
                 output = datasource.result.output.strip()
             if exitCode == 0 and output:
                 # Ensure a CLEAR event is sent for any command that
                 # successfully completes
-                clearEvents = next((event for event in eventList if event['severity'] == Clear), None)
+                clearEvents = next(
+                    (
+                        event
+                        for event in eventList
+                        if event["severity"] == Clear
+                    ),
+                    None,
+                )
                 if not clearEvents:
                     msg = "Datasource %s command completed successfully" % (
                         datasource.name
@@ -690,11 +765,17 @@ class SshPerformanceCollectionTask(BaseTask):
         doTask_end = datetime.now()
         duration = doTask_end - self._doTask_start
         if duration > timedelta(seconds=self.interval):
-            log.warn("Collection for %s took %s seconds; cycle interval is %s seconds." % (
-                self.configId, duration.total_seconds(), self.interval))
+            log.warn(
+                "Collection for %s took %s seconds; "
+                "cycle interval is %s seconds.",
+                self.configId, duration.total_seconds(), self.interval,
+            )
         else:
-            log.debug("Collection time for %s was %s seconds; cycle interval is %s seconds." % (
-                self.configId, duration.total_seconds(), self.interval))
+            log.debug(
+                "Collection time for %s was %s seconds; "
+                "cycle interval is %s seconds.",
+                self.configId, duration.total_seconds(), self.interval,
+            )
 
     def _makeCmdEvent(self, datasource, msg, severity=None, event_key=None):
         """
@@ -706,7 +787,7 @@ class SshPerformanceCollectionTask(BaseTask):
             eventClass=datasource.eventClass,
             eventKey=datasource.eventKey if event_key is None else event_key,
             severity=severity if severity is not None else datasource.severity,
-            summary=msg
+            summary=msg,
         )
 
     def displayStatistics(self):
@@ -714,8 +795,7 @@ class SshPerformanceCollectionTask(BaseTask):
         Called by the collector framework scheduler, and allows us to
         see how each task is doing.
         """
-        display = "%s useSSH: %s\n" % (
-            self.name, self._useSsh)
+        display = "%s useSSH: %s\n" % (self.name, self._useSsh)
         if self._lastErrorMsg:
             display += "%s\n" % self._lastErrorMsg
         return display
@@ -727,7 +807,7 @@ class SshPerformanceCollectionTask(BaseTask):
         pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Required for passing classes from zenhub to here
     from Products.ZenRRD.zencommand import Cmd, DataPointConfig
 
