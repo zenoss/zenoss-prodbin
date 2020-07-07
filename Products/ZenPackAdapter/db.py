@@ -335,7 +335,9 @@ class DB(object):
 
         # store a list of devices that are in each device class (or a subclass)
         # creates blank intermediate DCs where needed
-        self.child_devices = {}
+        self.child_devices = {
+            '/': []
+        }
         for device in self.devices.values():
             for dc in all_parent_dcs(device.device_class):
                 if dc not in self.device_classes:
