@@ -317,7 +317,7 @@ class CloudMetricPublisher(CloudPublisher):
                 'source': self._source
             },
             "metadataFields": {
-                'source-type': "zenoss.nub"
+                'source-type': "zenoss.zenpackadapter"
             }
         }
 

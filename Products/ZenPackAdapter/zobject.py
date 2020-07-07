@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-# Given a ZenNub device model object and a mapper datum representing that device
+# Given a ZenPackAdapter device model object and a mapper datum representing that device
 # or a component of that device, provide an object that looks more or less
 # like what we would store in ZODB, which can be used in place of a Device
 # or DeviceComponent.  This isn't meant to be 100%, but it is intended to be
@@ -56,10 +56,10 @@ log = logging.getLogger("zen.cloudpublisher")
 # model properties, and zproperties) can be used this way.   If the method
 # relies on being a real zenoss component (ZODB, acquisition, etc), it can't
 # work here.  Instead, a new version of the method would have to be written
-# for use in zennub.
+# for use in ZenPackAdapter.
 #
 # If we find that to be frequently needed, we might consider making this
-# more automatic, based on a decorator or naming convention. (foo -> nub_foo
+# more automatic, based on a decorator or naming convention. (foo -> zpa_foo
 # for example
 
 METHOD_MAP = {

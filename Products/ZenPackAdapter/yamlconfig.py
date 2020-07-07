@@ -26,22 +26,22 @@ DEVICE_YAML = "/cfg/devices.yaml"
 # not be edited.                                                             #
 
 # All zenpack-defined defined device classes and zProperties
-DEVICECLASS_YAML = "/opt/zenoss/etc/nub/system/deviceclasses.yaml"
+DEVICECLASS_YAML = "/opt/zenoss/etc/zenpackadapter/system/deviceclasses.yaml"
 
 # Zenpack-defined monitoring templates
-MONITORINGTEMPLATE_YAML = "/opt/zenoss/etc/nub/system/monitoringtemplates.yaml"
+MONITORINGTEMPLATE_YAML = "/opt/zenoss/etc/zenpackadapter/system/monitoringtemplates.yaml"
 
 # Lists out each modeler plugin and a list of which deviceProperties it specifies.
-MODELER_PLUGIN_YAML = "/opt/zenoss/etc/nub/system/modelerplugins.yaml"
+MODELER_PLUGIN_YAML = "/opt/zenoss/etc/zenpackadapter/system/modelerplugins.yaml"
 
 # Lists out each modeler plugin and a list of which deviceProperties it specifies.
-PARSER_PLUGIN_YAML = "/opt/zenoss/etc/nub/system/parserplugins.yaml"
+PARSER_PLUGIN_YAML = "/opt/zenoss/etc/zenpackadapter/system/parserplugins.yaml"
 
 # Datasource (plugins) names and corresponding classes
-DATASOURCE_YAML = "/opt/zenoss/etc/nub/system/datasources.yaml"
+DATASOURCE_YAML = "/opt/zenoss/etc/zenpackadapter/system/datasources.yaml"
 
 # Information on model classes defined by zenpacks
-CLASS_MODEL_YAML = "/opt/zenoss/etc/nub/system/classmodels.yaml"
+CLASS_MODEL_YAML = "/opt/zenoss/etc/zenpackadapter/system/classmodels.yaml"
 
 
 def load_device_yaml():

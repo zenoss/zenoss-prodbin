@@ -11,7 +11,7 @@ import logging
 from zope.tales.engine import Engine
 from DateTime import DateTime
 
-log = logging.getLogger("zen.nub.utils.tales")
+log = logging.getLogger("zen.zenpackadapter.utils.tales")
 
 
 class InvalidTalesException(Exception):

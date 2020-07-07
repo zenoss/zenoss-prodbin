@@ -76,4 +76,4 @@ def safeTuple(arg):
     else:
         return ()
 
-from Products.ZenNub import nubmonkey
+from Products.ZenPackAdapter import monkey

@@ -5,13 +5,13 @@
     <meta:provides feature="guid"/>
 
     <adapter
-        for="Products.ZenNub.zobject.ZObject"
+        for="Products.ZenPackAdapter.zobject.ZObject"
         provides="Products.ZenUtils.guid.interfaces.IGlobalIdentifier"
         factory=".guid.GlobalIdentifier"
         />
 
     <adapter
-        for="Products.ZenNub.zobject.ZDummyDmd"
+        for="Products.ZenPackAdapter.zobject.ZDummyDmd"
         provides="Products.ZenUtils.guid.interfaces.IGUIDManager"
         factory=".guid.GUIDManager"
         />

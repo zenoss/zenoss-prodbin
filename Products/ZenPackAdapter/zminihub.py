@@ -59,19 +59,19 @@ from Products.ZenHub.server import (
     start_server,
 )
 
-from Products.ZenNub.services import (
+from Products.ZenPackAdapter.services import (
     ModelerService,
     EventService,
     CommandPerformanceConfig,
     PythonConfig,
     SnmpPerformanceConfig
 )
-from Products.ZenNub.db import get_nub_db
-from Products.ZenNub.impact import update_all_impacts
-from Products.ZenNub.cloudpublisher import CloudModelPublisher
-from Products.ZenNub.yamlconfig import DEVICE_YAML
+from Products.ZenPackAdapter.db import get_db
+from Products.ZenPackAdapter.impact import update_all_impacts
+from Products.ZenPackAdapter.cloudpublisher import CloudModelPublisher
+from Products.ZenPackAdapter.yamlconfig import DEVICE_YAML
 
-log = logging.getLogger('zen.zennub')
+log = logging.getLogger('zen.zenpackadapter')
 
 
 def _load_modules():
@@ -89,11 +89,11 @@ def _load_modules():
 _load_modules()
 
 
-class ZenNub(ZCmdBase):
+class ZMiniHub(ZCmdBase):
     totalTime = 0.
     totalEvents = 0
     totalCallTime = 0.
-    mname = name = 'zennub'
+    mname = name = 'zminihub'
     devices_yaml_info = (None, None)
 
     def __init__(self, noopts=0, args=None, should_log=None):
@@ -123,7 +123,7 @@ class ZenNub(ZCmdBase):
 
         # Load database
         log.info("Loading database")
-        self.db = get_nub_db()
+        self.db = get_db()
         self.db.load()
 
         # This technically shouldn't be necessary, because the impact
@@ -143,8 +143,8 @@ class ZenNub(ZCmdBase):
         ))
 
         self._service_manager = ServiceManager()
-        avatar = NubAvatar(self._service_manager)
-        realm = NubRealm(avatar)
+        avatar = ZMiniHubAvatar(self._service_manager)
+        realm = ZMiniHubRealm(avatar)
         authenticators = getCredentialCheckers(self.options.passwordfile)
         hubportal = portal.Portal(realm, authenticators)
         self._server_factory = pb.PBServerFactory(hubportal)
@@ -157,7 +157,7 @@ class ZenNub(ZCmdBase):
                 'before', 'shutdown', self._metric_manager.stop,
             )
 
-        # Start ZenNub services server
+        # Start ZMiniHub services server
         # Retrieve the server config object.
         config = getUtility(IHubServerConfig)
 
@@ -223,7 +223,7 @@ class ZenNub(ZCmdBase):
         return self._service_manager.getService(service, monitor)
 
     def buildOptions(self):
-        """Add ZenNub command-line options."""
+        """Add ZMiniHub command-line options."""
         ZenDaemon.buildOptions(self)
         self.parser.add_option(
             '--pbport', dest='pbport',
@@ -275,13 +275,13 @@ class ZenNub(ZCmdBase):
     def parseOptions(self):
         # Override parseOptions to initialize and install the
         # ServiceManager configuration utility.
-        super(ZenNub, self).parseOptions()
+        super(ZMiniHub, self).parseOptions()
         server_config.pbport = int(self.options.pbport)
         config_util = server_config.ModuleObjectConfig(server_config)
         provideUtility(config_util, IHubServerConfig)
 
 @implementer(portal.IRealm)
-class NubRealm(object):
+class ZMiniHubRealm(object):
     """Defines realm from which avatars are retrieved.
 
     NOTE: Only one avatar is used.  Only one set of credentials are used to
@@ -290,7 +290,7 @@ class NubRealm(object):
     """
 
     def __init__(self, avatar):
-        """Initialize an instance of NubRealm.
+        """Initialize an instance of ZMiniHubRealm.
 
         :param avatar: Represents the logged in client.
         :type avatar: HubAvatar
@@ -322,11 +322,11 @@ class NubRealm(object):
         )
 
 
-class NubAvatar(pb.Avatar):
-    """Manages the connection between clients and ZenNub."""
+class ZMiniHubAvatar(pb.Avatar):
+    """Manages the connection between clients and ZMiniHub."""
 
     def __init__(self, services):
-        """Initialize an instance of NubAvatar.
+        """Initialize an instance of ZMiniHubAvatar.
 
         :param services: The service manager
         :type services: ServiceManager
@@ -391,7 +391,7 @@ class ServiceManager(object):
     def getService(self, name, monitor):
         """Return (a Referenceable to) the named service."""
 
-        # monitor name is disregarded as zennub is meant to be deployed
+        # monitor name is disregarded as zenpackadapter is meant to be deployed
         # per-collector.
 
         if name not in self._services:
@@ -402,4 +402,4 @@ class ServiceManager(object):
 
 
 if __name__ == '__main__':
-    ZenNub().main()
+    ZMiniHub().main()

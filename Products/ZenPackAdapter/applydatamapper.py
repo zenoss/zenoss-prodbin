@@ -17,11 +17,11 @@ import time
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
 from Products.DataCollector.ApplyDataMap import isSameData
 
-from Products.ZenNub.zobject import METHOD_MAP, ZDevice, ZDeviceComponent
-from Products.ZenNub.db import get_nub_db
-from Products.ZenNub.impact import update_impact
+from Products.ZenPackAdapter.zobject import METHOD_MAP, ZDevice, ZDeviceComponent
+from Products.ZenPackAdapter.db import get_db
+from Products.ZenPackAdapter.impact import update_impact
 
-db = get_nub_db()
+db = get_db()
 log = logging.getLogger("zen.applydatamapper")
 
 FULL_MODEL_SENT = set()

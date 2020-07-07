@@ -15,10 +15,10 @@ from Products.DataCollector.ApplyDataMap import isSameData
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 
 from ZenPacks.zenoss.Impact.impactd.interfaces import IRelationshipDataProvider
-from Products.ZenNub.db import get_nub_db
+from Products.ZenPackAdapter.db import get_db
 
-db = get_nub_db()
-log = logging.getLogger('zen.zennub.impact')
+db = get_db()
+log = logging.getLogger('zen.zenpackadapter.impact')
 
 
 

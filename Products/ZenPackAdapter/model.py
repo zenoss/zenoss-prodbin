@@ -11,7 +11,7 @@ import os
 
 from DateTime import DateTime
 from Products.ZenUtils.Utils import binPath
-from Products.ZenNub.utils.tales import talesCompile, talesEvalStr
+from Products.ZenPackAdapter.utils.tales import talesCompile, talesEvalStr
 
 from .utils import all_parent_dcs
 from .utils.zenpack import zenpack_names, zenpack_directory
@@ -38,8 +38,8 @@ class Device(object):
         self.zProperties = {}
         self._lastChange = 0
 
-        from .db import get_nub_db
-        self.db = get_nub_db()
+        from .db import get_db
+        self.db = get_db()
 
         self._all_parent_dcs = None
 
@@ -210,7 +210,7 @@ class RRDDataSource(object):
         return self._rrdTemplate
 
     def talesEval(self, text, context):
-        from Products.ZenNub.zobject import ZDevice, ZDeviceComponent
+        from Products.ZenPackAdapter.zobject import ZDevice, ZDeviceComponent
 
         if text is None:
             return

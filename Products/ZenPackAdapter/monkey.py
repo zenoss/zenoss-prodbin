@@ -15,7 +15,7 @@
 
 from Products.ZenUtils.Utils import monkeypatch
 from Products.ZenHub.PBDaemon import PBDaemon
-from Products.ZenNub.cloudpublisher import CloudMetricPublisher
+from Products.ZenPackAdapter.cloudpublisher import CloudMetricPublisher
 
 @monkeypatch(PBDaemon)
 def publisher(self):

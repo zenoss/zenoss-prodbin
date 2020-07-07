@@ -22,7 +22,7 @@ from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIden
 import json
 from base64 import b64encode, b64decode
 
-from .db import get_nub_db
+from .db import get_db
 
 class GlobalIdentifier(object):
     adapts(IGloballyIdentifiable)
@@ -48,7 +48,7 @@ class GUIDManager(object):
 
     def __init__(self, context):
         self.context = context
-        self.db = get_nub_db()
+        self.db = get_db()
 
     def getPath(self, guid):
         return guid

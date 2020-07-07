@@ -38,8 +38,8 @@ from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
 from .utils import replace_prefix, all_parent_dcs
 from .utils.tales import talesEvalStr
 from .applydatamapper import ApplyDataMapper
-from .db import get_nub_db
-from .modelevents import onNubDeviceUpdate, onNubDeviceAdd, onNubDeviceDelete
+from .db import get_db
+from .modelevents import onZenPackAdapterDeviceUpdate, onZenPackAdapterDeviceAdd, onZenPackAdapterDeviceDelete
 
 log = logging.getLogger('zen.hub')
 
@@ -68,14 +68,14 @@ def translateError(callable):
     return inner
 
 
-class NubService(pb.Referenceable):
+class ZenPackAdapterService(pb.Referenceable):
 
     def __init__(self):
         self.log = log
         self.listeners = []
         self.listenerOptions = {}
         self.callTime = 0
-        self.db = get_nub_db()
+        self.db = get_db()
 
     def remoteMessageReceived(self, broker, message, args, kw):
         self.log.debug("Servicing %s in %s", message, self.name())
@@ -152,7 +152,7 @@ class NubService(pb.Referenceable):
         ]
 
 
-class EventService(NubService):
+class EventService(ZenPackAdapterService):
 
     def remote_sendEvent(self, evt):
         pass
@@ -170,7 +170,7 @@ class EventService(NubService):
         return 3
 
 
-class ModelerService(NubService):
+class ModelerService(ZenPackAdapterService):
 
     @translateError
     def remote_getThresholdClasses(self):
@@ -269,7 +269,7 @@ class ModelerService(NubService):
         return
 
 
-class CollectorConfigService(NubService):
+class CollectorConfigService(ZenPackAdapterService):
     def __init__(self, deviceProxyAttributes=()):
         """
         Constructs a new CollectorConfig instance.
@@ -281,10 +281,10 @@ class CollectorConfigService(NubService):
                that should be copied to every device proxy created
         @type deviceProxyAttributes: tuple
         """
-        NubService.__init__(self)
+        ZenPackAdapterService.__init__(self)
 
         self._deviceProxyAttributes = ('id', 'manageIp',) + deviceProxyAttributes
-        self.db = get_nub_db()
+        self.db = get_db()
         self.procrastinator = Procrastinate(self.pushConfig)
         self.last_schemaversion = {}
 
@@ -399,15 +399,15 @@ class CollectorConfigService(NubService):
 
         return proxy
 
-    @onNubDeviceDelete(str)
+    @onZenPackAdapterDeviceDelete(str)
     def deviceDeleted(self, deviceId, event):
         self.procrastinator.doLater(deviceId) # -> pushConfig
 
-    @onNubDeviceAdd(str)
+    @onZenPackAdapterDeviceAdd(str)
     def deviceAdded(self, deviceId, event):
         self.procrastinator.doLater(deviceId) # -> pushConfig
 
-    @onNubDeviceUpdate(str)
+    @onZenPackAdapterDeviceUpdate(str)
     def deviceUpdated(self, deviceId, event):
         self.procrastinator.doLater(deviceId) # -> pushConfig
 

@@ -38,17 +38,17 @@ from .utils import all_parent_dcs, datetime_millis
 from .mapper import DataMapper
 from .zobject import ZDevice, ZDeviceComponent
 from .cloudpublisher import CloudModelPublisher, sanitize_field
-from .modelevents import NubDeletedDeviceEvent, NubAddedDeviceEvent, NubUpdatedDeviceEvent
+from .modelevents import ZenPackAdapterDeletedDeviceEvent, ZenPackAdapterAddedDeviceEvent, ZenPackAdapterUpdatedDeviceEvent
 
 
 SNAPSHOT_DIR="/data/snapshot"
 
-log = logging.getLogger('zen.zennub.db')
+log = logging.getLogger('zen.zenpackadapter.db')
 _DB = None
 
 
 # return a singleton for the database
-def get_nub_db():
+def get_db():
     global _DB
     if _DB is None:
         _DB = DB()
@@ -172,11 +172,11 @@ class DB(object):
         new_devices = set(device_yaml.keys())
 
         for deviceId in old_devices - new_devices:
-            notify(NubDeletedDeviceEvent(deviceId))
+            notify(ZenPackAdapterDeletedDeviceEvent(deviceId))
             self.delete_device(deviceId)
 
         for deviceId in new_devices - old_devices:
-            notify(NubAddedDeviceEvent(deviceId))
+            notify(ZenPackAdapterAddedDeviceEvent(deviceId))
 
         changed_devices = set()
 
@@ -189,7 +189,7 @@ class DB(object):
                 log.error("Unable to reload device %s: %s", id_, e)
 
         for deviceId in changed_devices:
-            notify(NubUpdatedDeviceEvent(deviceId))
+            notify(ZenPackAdapterUpdatedDeviceEvent(deviceId))
 
         log.info("Indexing")
         self.index()
@@ -214,7 +214,7 @@ class DB(object):
                 except Exception, e:
                     log.error("Error reading DataMapper snapshot from %s: %s", filename, e)
 
-            mapper = DataMapper("zennub")
+            mapper = DataMapper("zenpackadapter")
             log.debug("Creating new DataMapper for device %s" % id)
             self.mappers[id] = mapper
             device = mapper.get(id, create_if_missing=True)
@@ -359,7 +359,7 @@ class DB(object):
                 'source': self.model_publisher._source
             },
             'metadataFields': {
-                'source-type': "zenoss.nub"
+                'source-type': "zenoss.zenpackadapter"
             }
         }
 

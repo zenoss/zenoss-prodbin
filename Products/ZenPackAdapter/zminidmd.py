@@ -23,10 +23,10 @@ from IPython import embed
 logging.basicConfig()
 log = logging.getLogger('zubdmd')
 
-from Products.ZenNub.db import get_nub_db
+from Products.ZenPackAdapter.db import get_db
 
 log.info("Loading database")
-_db = get_nub_db()
+_db = get_db()
 _db.load()
 
 def get(device=None, component=None):

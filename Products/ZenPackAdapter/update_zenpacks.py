@@ -9,7 +9,7 @@
 ##############################################################################
 
 # This script is designed to be run standalone, and import data from the
-# zenpacks into the yaml files that zennub is run from.  It should be run
+# zenpacks into the yaml files that zminihub is run from.  It should be run
 # whenever zenpacks are added, removed, or upgrades.  Note that error
 # handling isn't great.
 
@@ -23,8 +23,8 @@ import xml.etree.ElementTree as ET
 
 import Globals
 
-from Products.ZenNub.utils.zenpack import *
-from Products.ZenNub.yamlconfig import (
+from Products.ZenPackAdapter.utils.zenpack import *
+from Products.ZenPackAdapter.yamlconfig import (
     DEVICECLASS_YAML,
     MONITORINGTEMPLATE_YAML,
     MODELER_PLUGIN_YAML,
@@ -43,7 +43,7 @@ from Products.ZenModel.RRDDataSource import RRDDataSource
 ZENPACK_YAML_INDEX = "/tmp/zenpack_index.yaml"
 
 logging.basicConfig(level=logging.ERROR)
-log = logging.getLogger('zen.nub.update_zenpacks')
+log = logging.getLogger('zen.zenpackadapter.update_zenpacks')
 
 noalias_dumper = yaml.dumper.Dumper
 noalias_dumper.ignore_aliases = lambda self, data: True
@@ -60,7 +60,7 @@ def update_zenpack_yaml_index():
     # loaded), and it patches ZPL such as to break it.  So this should only be
     # run in its own process.
     #
-    # python -c "import Globals; from Products.ZenNub.zenpack import *; update_zenpack_yaml_index();"
+    # python -c "import Globals; from Products.ZenPackAdapter.zenpack import *; update_zenpack_yaml_index();"
 
     try:
         zenpack_yaml_index = yaml.load(file(ZENPACK_YAML_INDEX, 'r'))
