@@ -596,31 +596,32 @@ class SshPerformanceCollectionTask(BaseTask):
         # command being unable to complete, e.g. timeouts.
         return (False, (command, failure))
 
-    def _process_os_processes_results_in_sequence(
-        self, process_datasources, collection_result
-    ):
+    def _process_os_processes_results_in_sequence(self, datasources, response):
         """
         Process OSProcesses in sequence order to avoid more than one OSProcess
         match the same process
+
+        @param datasources: list of OSProcess datasources
+        @type datasources: List[Cmd]
+        @param response: the results of the command
+        @type response: IRunner (typically SshRunner)
         """
         process_parseable_results = []
 
-        # Sort process_datasources by sequence
-        process_datasources.sort(key=lambda x: x.sequence)
+        # Sort the datasources by sequence
+        datasources.sort(key=lambda x: x.sequence)
 
         already_matched = []
 
         # Now we process datasources in sequence order
-        for datasource in process_datasources:
+        for ds in datasources:
             parsed = ParsedResults()
-            datasource.result = copy(collection_result)
-            datasource.already_matched_cmdAndArgs = already_matched
-            self._processDatasourceResults(datasource, parsed)
-            already_matched = datasource.already_matched_cmdAndArgs[:]
-            del datasource.already_matched_cmdAndArgs
-            process_parseable_results.append(
-                (datasource, collection_result, parsed),
-            )
+            ds.result = copy(response)
+            ds.already_matched_cmdAndArgs = already_matched
+            self._processDatasourceResults(ds, response, parsed)
+            already_matched = ds.already_matched_cmdAndArgs[:]
+            del ds.already_matched_cmdAndArgs
+            process_parseable_results.append((ds, response, parsed))
 
         return process_parseable_results
 
@@ -631,8 +632,6 @@ class SshPerformanceCollectionTask(BaseTask):
 
         @parameter resultList: results of running the commands
         @type resultList: array of (boolean, (str, IRunner|Failure))
-        @parameter commands: other datasources that can use the same results
-        @type commands: dictionary of arrays of datasources
         """
         log.debug("Parsing fetched data  device=%s", self._devId)
         self.state = SshPerformanceCollectionTask.STATE_PARSE_DATA
