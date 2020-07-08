@@ -618,7 +618,7 @@ class SshPerformanceCollectionTask(BaseTask):
             parsed = ParsedResults()
             ds.result = copy(response)
             ds.already_matched_cmdAndArgs = already_matched
-            self._processDatasourceResults(ds, parsed)
+            self._processDatasourceResults(ds, response, parsed)
             already_matched = ds.already_matched_cmdAndArgs[:]
             del ds.already_matched_cmdAndArgs
             process_parseable_results.append((ds, response, parsed))
