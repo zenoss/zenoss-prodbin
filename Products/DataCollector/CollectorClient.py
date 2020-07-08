@@ -7,8 +7,6 @@
 #
 ##############################################################################
 
-from __future__ import absolute_import
-
 """CollectorClient
 
 Base class for client collectors
@@ -26,7 +24,7 @@ import sys
 
 from twisted.internet import protocol
 
-from .BaseClient import BaseClient
+from BaseClient import BaseClient
 
 log = logging.getLogger("zen.CmdClient")
 
