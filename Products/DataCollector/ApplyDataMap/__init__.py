@@ -13,5 +13,5 @@ from .applydatamap import (
     ApplyDataMap, notify, isSameData, IncrementalDataMap,
 )
 from .events import (
-    IDatamapUpdateEvent, IDatamapAddEvent, IDatamapProcessedEvent,
+    IDatamapUpdateEvent, IDatamapAddEvent, IDatamapProcessedEvent, IDatamapAppliedEvent
 )

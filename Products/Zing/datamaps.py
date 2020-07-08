@@ -18,7 +18,7 @@ from Products.DataCollector.plugins.DataMaps import (
     RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
 )
 from Products.DataCollector.ApplyDataMap import (
-    IDatamapProcessedEvent,
+    IDatamapAppliedEvent,
     IncrementalDataMap,
 )
 
@@ -36,12 +36,12 @@ logging.basicConfig()
 log = logging.getLogger("zen.zing.datamaps")
 
 
-@adapter(IDatamapProcessedEvent)
+@adapter(IDatamapAppliedEvent)
 def zing_add_datamap(event):
     log.debug('zing_add_datamap_context handeling event=%s', event)
-    zing_datamap_handler = ZingDatamapHandler(event.dmd)
-    zing_datamap_handler.add_context(event.objectmap, event.target)
-    zing_datamap_handler.add_datamap(event.target, event.objectmap)
+    zing_datamap_handler = ZingDatamapHandler(event.datamap._base.dmd)
+    zing_datamap_handler.add_context(event.datamap, event.datamap.target)
+    zing_datamap_handler.add_datamap(event.datamap.target, event.datamap)
 
 
 class ObjectMapContext(object):
