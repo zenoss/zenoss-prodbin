@@ -21,6 +21,11 @@ import sys
 import yaml
 import xml.etree.ElementTree as ET
 
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
+
 import Globals
 
 from Products.ZenPackAdapter.utils.zenpack import *
@@ -63,7 +68,7 @@ def update_zenpack_yaml_index():
     # python -c "import Globals; from Products.ZenPackAdapter.zenpack import *; update_zenpack_yaml_index();"
 
     try:
-        zenpack_yaml_index = yaml.load(file(ZENPACK_YAML_INDEX, 'r'))
+        zenpack_yaml_index = yaml.load(file(ZENPACK_YAML_INDEX, 'r'), Loader=Loader)
     except IOError:
         zenpack_yaml_index = {}
 
@@ -118,10 +123,15 @@ def update_system_deviceclasses_yaml():
     read_xmlfiles(device_classes, monitoring_templates, xmlfiles)
 
     try:
-        zenpack_yaml_index = yaml.load(file(ZENPACK_YAML_INDEX, 'r'))
+        zenpack_yaml_index = yaml.load(file(ZENPACK_YAML_INDEX, 'r'), Loader=Loader)
     except Exception, e:
         print "Error loading %s: %s  (try update_zenpack_yaml_index?)" % (ZENPACK_YAML_INDEX, e)
         return
+
+    print "Loading datasource class info from %s" % DATASOURCE_YAML
+    datasource_default = {}
+    for sourcetype, ds in yaml.load(file(DATASOURCE_YAML, 'r'), Loader=Loader).iteritems():
+        datasource_default[sourcetype] = importClass(ds['modulename'], ds['classname'])("dummy")
 
     for zenpack in zenpack_names():
         yamlfiles = zenpack_yaml_index.get(zenpack, [])
@@ -176,9 +186,20 @@ def update_system_deviceclasses_yaml():
                         dsout['sourcetype'] = getattr(datasource, "sourcetype", None)
                         dsout['cycletime'] = getattr(datasource, "cycletime", "${here/zCommandCollectionInterval}")
 
-                        if datasource.extra_params:
-                            for k, v in datasource.extra_params.iteritems():
-                                dsout[k] = v
+                        # support extra_params and default values for datasource
+                        # subclasses
+                        sourcetype = dsout['sourcetype']
+                        if sourcetype in datasource_default:
+                            default_ds = datasource_default[sourcetype]
+                            for propname in [x['id'] for x in default_ds._properties]:
+                                if propname in datasource.extra_params:
+                                    dsout[propname] = datasource.extra_params[propname]
+                                else:
+                                    default_ds = datasource_default[sourcetype]
+                                    dsout[propname] = getattr(default_ds, propname)
+                        elif sourcetype is not None:
+                            print "WARNING: Unrecognized sourcetype: %s" % sourceytpe
+
                         dsout['datapoints'] = {}
 
                         for dpname, datapoint in datasource.datapoints.iteritems():
@@ -192,6 +213,10 @@ def update_system_deviceclasses_yaml():
                             dpout['description'] = datapoint.description
                             dpout['aliases'] = datapoint.aliases
                             if datapoint.extra_params:
+                                # note that this doesn't currently support default
+                                # values for extra_params omitted from the yaml.
+                                # Something similar to the datasource_default stuff
+                                # above would be needed for that.
                                 for k, v in datapoint.extra_params.iteritems():
                                     dpout[k] = v
 
@@ -545,9 +570,9 @@ if __name__ == '__main__':
         sys.exit(0)
 
     update_zenpack_yaml_index()
-    update_system_deviceclasses_yaml()
     update_modeler_yaml()
     update_parser_yaml()
     update_classmodel_yaml()
     update_datasource_yaml()
+    update_system_deviceclasses_yaml()
 

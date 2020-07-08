@@ -71,7 +71,7 @@ from Products.ZenPackAdapter.impact import update_all_impacts
 from Products.ZenPackAdapter.cloudpublisher import CloudModelPublisher
 from Products.ZenPackAdapter.yamlconfig import DEVICE_YAML
 
-log = logging.getLogger('zen.zenpackadapter')
+log = logging.getLogger('zen.zminihub')
 
 
 def _load_modules():
@@ -174,11 +174,11 @@ class ZMiniHub(ZCmdBase):
         dfr.addCallback(lambda listener: setKeepAlive(listener.socket))
         log.info("Started server.")
 
-        # watch the devices.xml file for changes (checking every few seconds)
-        l = task.LoopingCall(self.checkDevicesXML)
+        # watch the devices.yaml file for changes (checking every few seconds)
+        l = task.LoopingCall(self.checkDevicesYAML)
 
         def err(reason):
-            log.error("Error in checkDevicesXML LoopingCall: %s" % reason)
+            log.error("Error in checkDevicesYAML LoopingCall: %s" % reason)
         l.start(10.0).addErrback(err)
 
         reactor.run()
@@ -187,7 +187,7 @@ class ZMiniHub(ZCmdBase):
         if self.options.profiling:
             self.profiler.stop()
 
-    def checkDevicesXML(self):
+    def checkDevicesYAML(self):
         modified = False
         last_mtime, last_md5hash = self.devices_yaml_info
 

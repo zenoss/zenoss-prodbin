@@ -21,7 +21,7 @@ import site
 from IPython import embed
 
 logging.basicConfig()
-log = logging.getLogger('zubdmd')
+log = logging.getLogger('zen.zminidmd')
 
 from Products.ZenPackAdapter.db import get_db
 

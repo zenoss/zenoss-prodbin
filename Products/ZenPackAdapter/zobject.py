@@ -195,7 +195,10 @@ class ZObject(object):
         for zProp in device.getAllProperties():
             if hasattr(self, zProp):
                 continue
-            setattr(self.__class__, zProp, property(lambda self, zProp=zProp: device.getProperty(zProp)))
+            def ZPropertyGetter(self, zProp=zProp):
+                return self._device.getProperty(zProp)
+
+            setattr(self.__class__, zProp, property(ZPropertyGetter, None))
 
         # properties
         propnames = set()
@@ -328,6 +331,14 @@ class ZObject(object):
 
     def aqBaseHasAttr(self, attrname):
         return hasattr(self, attrname)
+
+    def propertyIds(self):
+        return sorted(self._datum['properties'])
+
+    def getProperty(self, id, d=None):
+        if id in self._datum['properties']:
+            return self._datum['properties'][id]
+        return d
 
     def __repr__(self):
         return "<%s for %s %s of Device %s>" % (

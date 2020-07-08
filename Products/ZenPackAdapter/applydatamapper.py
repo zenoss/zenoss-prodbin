@@ -22,7 +22,7 @@ from Products.ZenPackAdapter.db import get_db
 from Products.ZenPackAdapter.impact import update_impact
 
 db = get_db()
-log = logging.getLogger("zen.applydatamapper")
+log = logging.getLogger("zen.zenpackadapter.applydatamapper")
 
 FULL_MODEL_SENT = set()
 

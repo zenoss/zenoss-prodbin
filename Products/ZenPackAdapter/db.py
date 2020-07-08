@@ -226,6 +226,9 @@ class DB(object):
         return self.mappers[id]
 
     def _ensure_mapper_os_hw(self, id, mapper):
+        if mapper is None:
+            return
+
         object_type = mapper.get_object_type(id)
 
         # create 'os' and 'hw' components if they are missing

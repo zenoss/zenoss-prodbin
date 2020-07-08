@@ -41,7 +41,7 @@ from .applydatamapper import ApplyDataMapper
 from .db import get_db
 from .modelevents import onZenPackAdapterDeviceUpdate, onZenPackAdapterDeviceAdd, onZenPackAdapterDeviceDelete
 
-log = logging.getLogger('zen.hub')
+log = logging.getLogger('zen.zminihub.services')
 
 
 def translateError(callable):
@@ -719,7 +719,7 @@ class PythonConfig(CollectorConfigService):
 
                 ds_config = PythonDataSourceConfig()
                 ds_config.device = device.id
-                ds_config.manageIp = deviceModel.manageIp
+                ds_config.manageIp = device.manageIp
                 ds_config.component = deviceOrComponent.id
                 ds_config.plugin_classname = ds.plugin_classname
                 ds_config.template = template.id
