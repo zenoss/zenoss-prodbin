@@ -96,6 +96,8 @@ class IncrementalDataMap(object):
         self.start_time = time()
         self._directive_map[self.directive]()
         self.end_time = time()
+        if self.changed:
+            notify(DatamapAppliedEvent(self))
 
     @property
     def _directive_map(self):
