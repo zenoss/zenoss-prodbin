@@ -633,8 +633,9 @@ class EventsRouter(DirectRouter):
         user = self.context.dmd.ZenUsers.getUserSettings()
         if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
             return True
-        if params.get('excludeNonActionables'):
-            return Zuul.checkPermission('ZenCommon', self.context)
+        if params:
+            if params.get('excludeNonActionables', None):
+                return Zuul.checkPermission('ZenCommon', self.context)
         try:
             if uid is not None:
                 organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
