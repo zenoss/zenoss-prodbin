@@ -863,8 +863,8 @@ class SshPerformanceCollectionTask(BaseTask):
                     # event is already present.
                     hasClearEvent = any((
                         (
-                            event["severity"] == Clear
-                            and event["eventKey"] == datasource.eventKey
+                            event.get("severity") == Clear
+                            and event.get("eventKey") == datasource.eventKey
                         )
                         for event in results.events
                     ))
