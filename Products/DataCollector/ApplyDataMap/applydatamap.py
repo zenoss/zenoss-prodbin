@@ -29,7 +29,7 @@ from .datamaputils import (
 )
 
 from .reporter import ADMReporter
-from .events import DatamapAddEvent, DatamapProcessedEvent
+from .events import DatamapAddEvent, DatamapProcessedEvent, DatamapAppliedEvent
 
 
 log = logging.getLogger("zen.ApplyDataMap")
@@ -174,6 +174,9 @@ class ApplyDataMap(object):
     def _apply_incrementalmap(self, incremental_map, device):
         log.debug('_apply_incrementalmap: incremental_map=%s', incremental_map)
         incremental_map.apply()
+
+        if incremental_map.changed:
+            notify(DatamapAppliedEvent(incremental_map))
 
         notify(DatamapProcessedEvent(
             self._dmd, incremental_map, incremental_map.target
