@@ -24,6 +24,15 @@ logging.basicConfig()
 log = logging.getLogger('zen.zminidmd')
 
 from Products.ZenPackAdapter.db import get_db
+from Products.ZenPackAdapter.impact import update_impact as _update_impact, update_all_impacts
+
+# Load zope adapters so that update_impact is possible
+from OFS.Application import import_products
+import_products()
+from Zope2.App.zcml import load_site
+load_site()
+
+logging.getLogger('zen').setLevel(logging.INFO)
 
 log.info("Loading database")
 _db = get_db()
@@ -35,8 +44,11 @@ find = get
 
 def impacted(zobject):
     print "Local (impactFromDimensions):"
-    for d in [_dimensions(x) for x in zobject.impactFromDimensions]:
-        print "  * %s" % get(device=d['device'], component=d['component'])
+    if zobject.impactFromDimensions is None:
+        print "  (none)"
+    else:
+        for d in [_dimensions(x) for x in zobject.impactFromDimensions]:
+            print "  * %s" % get(device=d['device'], component=d['component'])
 
     print "Remote (impactToDimensions refers to this object):"
     devId = zobject.device().id
@@ -55,9 +67,12 @@ impacted_by = impacted
 
 def impacts(zobject):
     print "Local (impactToDimensions):"
-    for d in [_dimensions(x) for x in zobject.impactToDimensions]:
-        lobj = get(device=d['device'], component=d['component'])
-        print "  * %s" % lobj
+    if zobject.impactToDimensions is None:
+        print "  (none)"
+    else:
+        for d in [_dimensions(x) for x in zobject.impactToDimensions]:
+            lobj = get(device=d['device'], component=d.get('component', None))
+            print "  * %s" % lobj
 
     print "Remote (impactFromDimensions refers to this object):"
     devId = zobject.device().id
@@ -71,6 +86,12 @@ def impacts(zobject):
             for d in [_dimensions(x) for x in robj.impactFromDimensions if isinstance(x, basestring)]:
                 if d['device'] == devId and d.get('component', None) == compId:
                     print "  * %s" % robj
+
+def update_impact(zobject):
+    print "Updating impact for %s" % zobject
+    _update_impact(device=zobject.device().id, component=zobject.id)
+    impacts(zobject)
+    impacted(zobject)
 
 def _dimensions(s):
     d = {}

@@ -94,6 +94,14 @@ METHOD_MAP = {
         'method': {
             'getWBEMStatsInstanceID': 'getWBEMStatsInstanceID'
         }
+    },
+    'ZenPacks.zenoss.NetAppMonitor.NetAppPort': {
+        'method': {
+            'setParentPorts': 'setParentPorts',
+            'getParentPorts': 'getParentPorts',
+            'parent_port': 'parent_port',
+            'child_port': 'child_port'
+        }
     }
 }
 
@@ -157,12 +165,12 @@ class ZObject(object):
         mawp = db.get_mapper(device.id)
         self._mapper = mawp
         self._datum = self._mapper.get(datumId)
-        datum = self._datum
+        self._datumType = self._datum['type']
         isDevice = self._mapper.get_object_type(datumId).device
 
         # Change our class to a dynamically created subclass that has
         # the right @properties on it.
-        self.__class__ =  get_adapted_class(datum['type'], self.__class__)
+        self.__class__ =  get_adapted_class(self._datumType, self.__class__)
 
         # Load the custom subclass with "property" methods that pull the
         # data in from its source.  Doing it this way makes dir, hasattr,
@@ -172,12 +180,16 @@ class ZObject(object):
         self.id = datumId
 
         # meta_type
-        if datum['type'] in db.classmodel:
-            setattr(self.__class__, 'meta_type', db.classmodel[datum['type']].meta_type)
+        if self._datumType in db.classmodel:
+            setattr(self.__class__, 'meta_type', db.classmodel[self._datumType].meta_type)
 
         # collectors (where applicable)
         if hasattr(self._orig_class, 'collectors'):
             setattr(self.__class__, 'collectors', self._orig_class.collectors)
+
+        # dynamicview_relations (where applicable)
+        if hasattr(self._orig_class, 'dynamicview_relations'):
+            setattr(self.__class__, 'dynamicview_relations', self._orig_class.dynamicview_relations)
 
         # add device_class and manageIp if it's a device.
         if isDevice:
@@ -203,19 +215,19 @@ class ZObject(object):
         # properties
         propnames = set()
         objtype = self._mapper.get_object_type(self._datumId)
-        for prop in [objtype.get_property(p) for p in objtype.properties]:
-            propnames.add(prop)
+        for prop in objtype.properties:
+            propnames.add(objtype.get_property(prop) or prop)
         objtype = self._mapper.get_object_type(self._device.id)
-        for prop in [objtype.get_property(p) for p in objtype.properties]:
-            propnames.add(prop)
+        for prop in objtype.properties:
+            propnames.add(objtype.get_property(prop) or prop)
 
         for prop in propnames:
             if hasattr(self, prop):
                 continue
 
             def PropertyGetter(self, prop=prop):
-                if prop in datum['properties']:
-                    return datum['properties'].get(prop)
+                if prop in self._datum['properties']:
+                    return self._datum['properties'].get(prop)
                 else:
                     # "acquire" property values from device if they are not
                     # defined on the component.
@@ -224,7 +236,7 @@ class ZObject(object):
                         return deviceDatum['properties'].get(prop, None)
 
             def PropertySetter(self, v, prop=prop):
-                datum['properties'][prop] = v
+                self._datum['properties'][prop] = v
 
             setattr(self.__class__, prop, property(PropertyGetter, PropertySetter))
 
@@ -243,22 +255,22 @@ class ZObject(object):
 
             if toMany:
                 def ToManyGetter(name=name):
-                    if name not in datum['links']:
+                    if name not in self._datum['links']:
                         return []
                     return [ZDeviceComponent(db, device, dId)
-                            for dId in datum['links'][name]]
+                            for dId in self._datum['links'][name]]
                 setattr(self, name, ToManyGetter)
             else:
                 def ToOneGetter(name=name):
-                    if name not in datum['links']:
+                    if name not in self._datum['links']:
                         return None
-                    if len(datum['links'][name]) == 0:
+                    if len(self._datum['links'][name]) == 0:
                         return None
-                    dId = list(datum['links'][name])[0]
+                    dId = list(self._datum['links'][name])[0]
                     return ZDeviceComponent(db, device, dId)
                 setattr(self, name, ToOneGetter)
 
-            if name in datum['links']:
+            if name in self._datum['links']:
                 new_links.add(name)
 
         # If we just added 'os' or 'hw' accessor methods to a device,
@@ -267,24 +279,23 @@ class ZObject(object):
         if isDevice:
             for name in ('os', 'hw', ):
                 def DirectGetter(self, name=name):
-                    if len(datum['links'][name]) == 0:
+                    if len(self._datum['links'][name]) == 0:
                         return None
-                    dId = list(datum['links'][name])[0]
+                    dId = list(self._datum['links'][name])[0]
                     return ZDeviceComponent(db, device, dId)
 
                 setattr(self.__class__, name, property(DirectGetter))
 
         # Proxy specific methods to the original wrapped class as specified by METHOD_MAP
-        if datum['type'] in METHOD_MAP:
+        if self._datumType in METHOD_MAP:
             # Regular methods.  (if necessary, we can add support for classmethod, etc- for now
             # this is all that is supported)
-
             orig_class = self._orig_class
-            if 'method' in METHOD_MAP[datum['type']]:
-                for from_method_name, to_method_name in METHOD_MAP[datum['type']]['method'].iteritems():
+            if 'method' in METHOD_MAP[self._datumType]:
+                for from_method_name, to_method_name in METHOD_MAP[self._datumType]['method'].iteritems():
                     if not hasattr(orig_class, to_method_name):
                         raise ValueError("%s is not a valid method on %s (%s).  Check METHOD_MAP." % (
-                            to_method_name, datum['type'], orig_class))
+                            to_method_name, self._datumType, orig_class))
                     to_method = getattr(orig_class, to_method_name)
                     to_func = to_method.__func__
                     setattr(self.__class__, from_method_name, types.MethodType(to_func, self, self.__class__))
@@ -298,7 +309,9 @@ class ZObject(object):
 
         # Copy all registered IRelationshipDataProviders (impact) registered for the
         # original zope class over to this adapted version.
+        log.debug("Copying impact adapters from %s to %s", cls._orig_class, cls)
         for adapter in gsm.adapters.subscriptions([implementedBy(cls._orig_class)], IRelationshipDataProvider):
+            log.debug("provideSubscriptionAdapter(%s, [%s], IRelationshipDataProvider)", adapter, cls)
             provideSubscriptionAdapter(adapter, [cls], IRelationshipDataProvider)
 
         # Copy all registered IRelationshipDataProviders and IRelatables (dynamic view) registered for the
@@ -312,9 +325,11 @@ class ZObject(object):
                 except Exception, e:
                     log.error("Error processing %s impact adapter: %s", adapter, e)
 
+            log.debug("provideSubscriptionAdapter(%s, [%s], IRelationsProvider)", adapter, cls)
             provideSubscriptionAdapter(adapter, [cls], IRelationsProvider)
         adapter = gsm.adapters.lookup([implementedBy(cls._orig_class)], IRelatable)
         if adapter:
+            log.debug("provideAdapter(%s, [%s], IRelatable)", adapter, cls)
             provideAdapter(adapter, [cls], IRelatable)
 
     def titleOrId(self):

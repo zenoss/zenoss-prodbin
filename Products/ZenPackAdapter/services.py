@@ -204,6 +204,8 @@ class ModelerService(ZenPackAdapterService):
             proxy.manageIp = device.manageIp
             proxy.plugins = []
             proxy._snmpLastCollection = 0
+            proxy._snmpStatus = 0
+
 
             plugin_ids = device.getProperty('zCollectorPlugins')
             for plugin_id in plugin_ids:
@@ -217,9 +219,13 @@ class ModelerService(ZenPackAdapterService):
                     if device.hasProperty(pid):
                         setattr(proxy, pid, device.getProperty(pid))
 
-                    # modeled properties (TODO)
+                    # modeled properties (TODO- convert to use zobject for this)
                     elif hasattr(device, pid):
                         setattr(proxy, pid, getattr(device, pid))
+
+                    # special cases
+                    elif pid == '_snmpStatus' or pid == '_snmpLastCollection':
+                        continue
 
                     else:
                         self.log.error("device property %s not found on %s", pid, id)

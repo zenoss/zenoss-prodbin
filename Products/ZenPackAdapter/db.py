@@ -77,6 +77,16 @@ class DB(object):
         if not os.path.exists(SNAPSHOT_DIR):
             os.mkdir(SNAPSHOT_DIR)
 
+        # Clear existing data
+        self.device_classes = {}
+        self.devices = {}
+        self.modelerplugin = {}
+        self.parserplugin = {}
+        self.mappers = {}
+        self.classmodel = {}
+        self.datasource = {}
+        self.child_devices = {}
+
         # Load the contents of the on-disk YAML files into the db.
         self.load_deviceclasses()
         self.load_devices()
@@ -226,10 +236,11 @@ class DB(object):
         return self.mappers[id]
 
     def _ensure_mapper_os_hw(self, id, mapper):
-        if mapper is None:
-            return
-
         object_type = mapper.get_object_type(id)
+
+        if object_type is None:
+            # device was deleted- no need to worry about os/hw
+            return
 
         # create 'os' and 'hw' components if they are missing
         os_datum = mapper.get('os', create_if_missing=True)
