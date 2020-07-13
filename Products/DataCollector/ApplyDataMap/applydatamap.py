@@ -175,9 +175,6 @@ class ApplyDataMap(object):
         log.debug('_apply_incrementalmap: incremental_map=%s', incremental_map)
         incremental_map.apply()
 
-        if incremental_map.changed:
-            notify(DatamapAppliedEvent(incremental_map))
-
         notify(DatamapProcessedEvent(
             self._dmd, incremental_map, incremental_map.target
         ))
