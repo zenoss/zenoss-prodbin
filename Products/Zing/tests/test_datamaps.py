@@ -47,6 +47,7 @@ class TestIncrementalDataMapHandler(TestCase):
             isLockedFromUpdates=Mock(return_value=False),
             isLockedFromDeletion=Mock(return_value=False),
         )
+        t.target.device.return_value = t.target
         # get the target from the relationship
         t.relationship = Mock(
             name='relationship',
@@ -90,7 +91,7 @@ class TestIncrementalDataMapHandler(TestCase):
         for i in range(5):
             components.append(Mock(getUUID=Mock(return_value=uuid), getComponentGroupNames=Mock(return_value='getComponentGroupNames')))
         t.target.getDeviceComponents.return_value = components
-
+        t.target._propertyMap.return_value = [Mock(id=t.target.id)]
         # ApplyDataMap side-effects, current implementation expects this
         for attr, value in t.idm.iteritems():
             setattr(t.target, attr, value)
@@ -113,6 +114,10 @@ class TestIncrementalDataMapHandler(TestCase):
             {
                 'name': t.target.titleOrId.return_value,
                 'id': t.idm.id,
+                'title': t.target.title,
+                'device_uuid': uuid,
+                'prod_state': t.target.getProductionStateString.return_value,
+                'device': t.target.id,
                 'dimension2': 'objectmap d2',
                 'metadata1': 'device m1',
                 'metadata2': 'objectmap m2',
@@ -155,21 +160,6 @@ class TestIncrementalDataMapHandler(TestCase):
             },
             facts[1].metadata,
         )
-        t.assertEqual(
-            {
-                'name': t.target.titleOrId.return_value,
-                'prod_state': t.target.getProductionStateString.return_value
-            },
-            facts[2].data,
-        )
-        t.assertEqual(
-            {
-                ZFact.DimensionKeys.PLUGIN_KEY: 'zen_device_info',
-                'contextUUID': t.target.getUUID.return_value,
-                'meta_type': t.target.meta_type,
-            },
-            facts[2].metadata,
-        )
 
     @patch('{src}.subscribers'.format(**PATH), autospec=True)
     def test_generate_facts_handles_missing_parent_uuid(t, subscribers):
@@ -187,6 +177,7 @@ class TestIncrementalDataMapHandler(TestCase):
             components.append(
                 Mock(getUUID=Mock(return_value=uuid), getComponentGroupNames=Mock(return_value='getComponentGroupNames')))
         t.target.getDeviceComponents.return_value = components
+        t.target._propertyMap.return_value = [Mock(id=t.target.id)]
         # ApplyDataMap side-effects, current implementation expects this
         for attr, value in t.idm.iteritems():
             setattr(t.target, attr, value)
@@ -247,10 +238,11 @@ class TestZingDatamapHandler(TestCase):
         get_zing_tx_state.assert_called_with(dmd)
 
     def test_add_datamap(t):
-        t.zdh.add_datamap(sentinel.device, sentinel.datamap)
+        ctx = Mock(device=Mock(return_value='target_device'))
+        t.zdh.add_datamap(ctx, sentinel.datamap)
         zing_state = t.zdh._get_zing_tx_state()
         t.assertEqual(
-            zing_state.datamaps, [(sentinel.device, sentinel.datamap)]
+            zing_state.datamaps, [(ctx.device.return_value, sentinel.datamap)]
         )
 
     @patch('{src}.ObjectMapContext'.format(**PATH), autospec=True)
@@ -301,7 +293,7 @@ class TestZingDatamapHandler(TestCase):
         t.assertEqual(
             {
                 'name': 'test_device',
-                'mem_capacity': 0,
+                'mem_capacity': 0L,
                 PLUGIN_NAME_ATTR: 'test_plugin_name',
                 'dimension2': 'objectmap d2',
                 'metadata1': 'device m1',
@@ -311,6 +303,25 @@ class TestZingDatamapHandler(TestCase):
                 'metadata5': 'omcp1 value5',
                 'metadata6': 'omcp2 value6',
                 'zen_schema_tags': 'Device',
+                'snmpindex': 0,
+                'snmpContact': '',
+                'rackSlot': '',
+                'id': 'test_device',
+                'monitor': True,
+                'title': '',
+                'device_uuid': 'dummy_uuid',
+                'comments': '',
+                'priority': 3,
+                'prod_state': 'test_production_state_string',
+                'sysedgeLicenseMode': '',
+                'snmpOid': '',
+                'snmpDescr': '',
+                'device': 'test_device',
+                'snmpSysName': '',
+                'dimension1': 'device d1',
+                'manageIp': '',
+                'snmpLocation': '',
+                'snmpAgent': ''
             },
             facts[0].data,
         )
@@ -323,6 +334,7 @@ class TestZingDatamapHandler(TestCase):
                 'dimension2': 'objectmap d2',
                 'dimension3': 'omcp1 value3',
                 'dimension4': 'omcp2 value4',
+                'relationship': 'parent_id'
             },
             facts[0].metadata,
         )
@@ -343,21 +355,6 @@ class TestZingDatamapHandler(TestCase):
                 'meta_type': 'Device',
             },
             facts[1].metadata,
-        )
-        t.assertEqual(
-            {
-                'name': 'test_device',
-                'prod_state': 'test_production_state_string'
-            },
-            facts[2].data,
-        )
-        t.assertEqual(
-            {
-                ZFact.DimensionKeys.PLUGIN_KEY: 'zen_device_info',
-                'contextUUID': 'dummy_uuid',
-                'meta_type': 'Device',
-            },
-            facts[2].metadata,
         )
 
 
@@ -382,6 +379,17 @@ class CustomDevice(Device):
 
     def getProductionStateString(self):
         return 'test_production_state_string'
+
+    def getPrimaryParent(self):
+
+        class PrimaryParentObject:
+            id = 'parent_id'
+
+            def __init__(self):
+                pass
+
+        primary_parent_obj = PrimaryParentObject()
+        return primary_parent_obj
 
 
 class ObjectMapContextProvider1(object):
