@@ -45,8 +45,7 @@ from Products.ZenCollector.tasks import (
     SubConfigurationTaskSplitter,
     TaskStates,
 )
-from Products.ZenEvents import Event
-from Products.ZenEvents.ZenEventClasses import Clear, Cmd_Fail
+from Products.ZenEvents.ZenEventClasses import Clear, Cmd_Fail, Error, Info
 from Products.ZenRRD import runner
 from Products.ZenRRD.CommandParser import ParsedResults
 from Products.ZenUtils.Executor import makeExecutor
@@ -459,7 +458,7 @@ class SshPerformanceCollectionTask(BaseTask):
         try:
             if not self._manageIp and self._useSsh:
                 self._eventService.sendEvent(
-                    self.manage_ip_event, severity=Event.Info
+                    self.manage_ip_event, severity=Info
                 )
             else:
                 self._eventService.sendEvent(
@@ -505,7 +504,7 @@ class SshPerformanceCollectionTask(BaseTask):
                 device=self._devId,
                 summary=e.message,
                 component=COLLECTOR_NAME,
-                severity=Event.Error,
+                severity=Error,
             )
             raise
         else:
@@ -621,7 +620,7 @@ class SshPerformanceCollectionTask(BaseTask):
             self._processDatasourceResults(ds, response, parsed)
             already_matched = ds.already_matched_cmdAndArgs[:]
             del ds.already_matched_cmdAndArgs
-            process_parseable_results.append((ds, response, parsed))
+            process_parseable_results.append((ds, parsed))
 
         return process_parseable_results
 
@@ -643,34 +642,111 @@ class SshPerformanceCollectionTask(BaseTask):
             parsed_results.extend(parse(datasources, result))
         return parsed_results
 
-    def _parse_error(self, datasources, failure):
-        if not isinstance(failure, Failure):
-            return self._process_command_error(datasources, failure)
+    def _timeout_error_result(self, datasource):
+        parsed = ParsedResults()
+        parsed.events.append(makeCmdTimeoutEvent(self._devId, datasource))
+        return parsed
 
-        if failure.check(defer.TimeoutError):
-            if self._connector.connection:
-                self._connector.connection.timed_out = True
-            log.warn(
-                "Connection flagged for closure  "
-                "device=%s datasources=%s reason=%s",
-                self._devId,
-                ",".join(ds.name for ds in datasources),
-                "timeout",
-            )
-            results = []
-            for ds in datasources:
-                parsedResults = ParsedResults()
-                parsedResults.events.append(
-                    makeCmdTimeoutEvent(self._devId, ds),
-                )
-                results.append((ds, failure, parsedResults))
-            return results
+    def _handle_timeout_error(self, datasources, failure):
+        if self._connector.connection:
+            self._connector.connection.timed_out = True
+        log.warn(
+            "Command timed out.  Connection flagged for closure  "
+            "device=%s datasources=%s",
+            self._devId,
+            ",".join(ds.name for ds in datasources),
+        )
+        return self._timeout_error_result
 
+    def _failure_error_result(self, failure, datasource):
+        parsed = ParsedResults()
+        event = makeCmdEvent(self._devId, datasource, "Could not run command")
+        event["error"] = str(failure.type)
+        event["reason"] = str(failure.value)
+        parsed.events.append(event)
+        # Clear the timeout event since this command didn't time out.
+        parsed.events.append(
+            makeCmdTimeoutEvent(self._devId, datasource, severity=Clear),
+        )
+        return parsed
+
+    def _handle_failure_error(self, datasources, failure):
         log.error(
             "Command failed  device=%s datasource=%s error=%s reason=%s",
             self._devId, datasources[0].name, failure.type, failure.value,
         )
-        return [(ds, failure, ParsedResults()) for ds in datasources]
+        return partial(self._failure_error_result, failure)
+
+    def _exitcode_error_result(self, response, message, datasource):
+        event = makeCmdEvent(
+            self._devId,
+            datasource,
+            "Datasource: %s - Code: %s - Msg: %s" % (
+                datasource.name, response.exitCode, message,
+            ),
+        )
+        stderr = response.stderr.strip()
+        if self._showfullcommand:
+            event["command"] = datasource.command
+        if stderr:
+            # Add the stderr output to the error events
+            event["stderr"] = stderr
+        parsed = ParsedResults()
+        parsed.events.append(event)
+        # Clear the timeout event since this command didn't time out.
+        parsed.events.append(
+            makeCmdTimeoutEvent(self._devId, datasource, severity=Clear),
+        )
+        return parsed
+
+    def _handle_exitcode_error(self, datasources, response):
+        log.error(
+            "Command returned an error  "
+            "device=%s datasources=%s exit-code=%s",
+            self._devId,
+            ",".join(ds.name for ds in datasources),
+            response.exitCode,
+        )
+        exit_message = getExitMessage(response.exitCode)
+        return partial(self._exitcode_error_result, response, exit_message)
+
+    def _unexpected_error_result(self, response, datasource):
+        event = makeCmdEvent(
+            self._devId, datasource, "Unexpected result from command",
+        )
+        event["result"] = str(response)
+        if self._showfullcommand:
+            event["command"] = datasource.command
+        parsed = ParsedResults()
+        parsed.events.append(event)
+        # Clear the timeout event since this command didn't time out.
+        parsed.events.append(
+            makeCmdTimeoutEvent(self._devId, datasource, severity=Clear),
+        )
+        return parsed
+
+    def _handle_unexpected_error(self, datasources, response):
+        log.error(
+            "Command failed with unexpected result  "
+            "device=%s datasources=%s result=%s",
+            self._devId,
+            ",".join(ds.name for ds in datasources),
+            response,
+        )
+        return partial(self._unexpected_error_result, response)
+
+    def _parse_error(self, datasources, failure):
+        if isinstance(failure, Failure):
+            if failure.check(defer.TimeoutError):
+                get_results = self._handle_timeout_error(datasources, failure)
+            else:
+                get_results = self._handle_failure_error(datasources, failure)
+        elif runner.IRunner.providedBy(failure):
+            get_results = self._handle_exitcode_error(datasources, failure)
+        else:
+            get_results = self._handle_unexpected_error(datasources, failure)
+
+        return [(ds, get_results(ds)) for ds in datasources]
 
     def _parse_result(self, datasources, response):
         ds = datasources[0]
@@ -691,14 +767,8 @@ class SshPerformanceCollectionTask(BaseTask):
         results = []
         for ds in datasources:
             parsedResults = ParsedResults()
-
-            # clear any timeout event
-            parsedResults.events.append(
-                makeCmdTimeoutEvent(self._devId, ds, severity=Clear),
-            )
-
             self._processDatasourceResults(ds, response, parsedResults)
-            results.append((ds, response, parsedResults))
+            results.append((ds, parsedResults))
 
         return results
 
@@ -713,6 +783,11 @@ class SshPerformanceCollectionTask(BaseTask):
         @parameter parsed: Parsed results are added to this object.
         @type parsed: ParsedResults object
         """
+        # Clear any timeout event
+        parsed.events.append(
+            makeCmdTimeoutEvent(self._devId, datasource, severity=Clear),
+        )
+
         datasource.result = copy(response)
         output = response.output.strip()
         stderr = response.stderr.strip()
@@ -739,12 +814,6 @@ class SshPerformanceCollectionTask(BaseTask):
             parser.preprocessResults(datasource, log)
             parser.processResults(datasource, parsed)
 
-            if (
-                not parsed.events
-                and parser.createDefaultEventUsingExitCode
-            ):
-                event = makeCmdEvent(self._devId, datasource, "", Clear)
-                parsed.events.append(event)
             if stderr:
                 # Add the stderr output to the error events.
                 # Note: although the command succeeded, the parser may put an
@@ -761,51 +830,24 @@ class SshPerformanceCollectionTask(BaseTask):
             if stderr:
                 event["stderr"] = stderr
             parsed.events.append(event)
-
-    def _process_command_error(self, datasources, response):
-        if not runner.IRunner.providedBy(response):
-            log.error(
-                "Command failed with unexpected result  "
-                "device=%s datasources=%s failure=%s",
-                self._devId,
-                ",".join(ds.name for ds in datasources),
-                response,
-            )
-            return [
-                (ds, response, ParsedResults())
-                for ds in datasources
-            ]
-
-        log.error(
-            "Command returned an error  "
-            "device=%s datasources=%s exit-code=%s",
-            self._devId,
-            ",".join(ds.name for ds in datasources),
-            response.exitCode,
-        )
-        results = []
-        exit_message = getExitMessage(response.exitCode)
-        for ds in datasources:
-            event = makeCmdEvent(
-                self._devId,
-                ds,
-                "Datasource: %s - Code: %s - Msg: %s" % (
-                    ds.name,
-                    response.exitCode,
-                    exit_message,
-                ),
-                severity=ds.severity,
-            )
-            if (
-                response.stderr
-                and ds.severity not in ("Clear", "Info", "Debug")
-            ):
-                # Add the stderr output to the error events
-                event["stderr"] = response.stderr
-            parsed = ParsedResults()
-            parsed.events.append(event)
-            results.append((ds, response, parsed))
-        return results
+        else:
+            # Determine whether a non-timeout related event exists.
+            hasNonTimeoutEvent = any((
+                event.get("eventKey") == datasource.eventKey
+                for event in parsed.events
+            ))
+            if not hasNonTimeoutEvent:
+                # No existing non-timeout event, so add a Clear event to
+                # clear any prior events on this datasource.
+                parsed.events.append(
+                    makeCmdEvent(
+                        self._devId,
+                        datasource,
+                        "Datasource %s command completed successfully"
+                        % datasource.name,
+                        severity=Clear,
+                    ),
+                )
 
     @defer.inlineCallbacks
     def _storeResults(self, resultList):
@@ -814,16 +856,16 @@ class SshPerformanceCollectionTask(BaseTask):
 
         @parameter resultList: results of running the commands
         @type resultList: array of tuples which have the following layout:
-           (Cmd object, IRunner object, ParsedResults object)
+           (Cmd object, ParsedResults object)
         """
         log.debug("Store parsed data  device=%s", self._devId)
         self.state = SshPerformanceCollectionTask.STATE_STORE_PERF
 
         try:
             # Note:
-            #   'response' is an IRunner object.
+            #   'datasource' is a Cmd object.
             #   'results' is a ParsedResults object.
-            for datasource, response, results in resultList:
+            for datasource, results in resultList:
                 log.debug("Store values  datasource=%s", datasource.name)
                 for dp, value in results.values:
                     log.debug("Store datapoint  datapoint=%s", dp.dpName)
@@ -854,29 +896,6 @@ class SshPerformanceCollectionTask(BaseTask):
                             "metadata=%s type=%s message=%s",
                             dp.metadata, e.__class__.__name__, e,
                         )
-
-                if response.output.strip():
-                    # Ensure a CLEAR event is sent for any command that
-                    # successfully completes.  This means non-empty output
-                    # (and an exit code == 0).
-                    # The eventKey is checked because the clear timeout
-                    # event is already present.
-                    hasClearEvent = any((
-                        (
-                            event.get("severity") == Clear
-                            and event.get("eventKey") == datasource.eventKey
-                        )
-                        for event in results.events
-                    ))
-                    if not hasClearEvent:
-                        event = makeCmdEvent(
-                            self._devId,
-                            datasource,
-                            "Datasource %s command completed successfully"
-                            % datasource.name,
-                            severity=Clear,
-                        )
-                        results.events.append(event)
 
                 # Send accumulated events
                 for event in results.events:
@@ -947,8 +966,8 @@ def makeCmdTimeoutEvent(deviceId, datasource, severity=None):
         deviceId,
         datasource,
         "Datasource %s command timed out" % datasource.name,
-        severity=severity,
-        eventKey="CommandTimeout",
+        severity=Error if severity is None else severity,
+        eventKey="{}_timeout".format(datasource.eventKey),
     )
 
 
@@ -961,7 +980,7 @@ def makeCmdEvent(deviceId, datasource, msg, severity=None, eventKey=None):
         "component": datasource.component,
         "eventClass": datasource.eventClass,
         "eventKey": datasource.eventKey if eventKey is None else eventKey,
-        "severity": severity if severity is not None else datasource.severity,
+        "severity": datasource.severity if severity is None else severity,
         "summary": msg,
     }
 
