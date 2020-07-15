@@ -42,6 +42,8 @@ from Products.ZenUtils.Utils import importClass
 from DateTime import DateTime
 
 from Products.ZenModel.RRDDataSource import RRDDataSource
+from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
+    import PythonDataSource
 
 # This file is used as a cache, and contains a list of all the ZPL yaml files
 # in each zenpack, along with any other metadata that is expensive to obtain.
@@ -191,14 +193,28 @@ def update_system_deviceclasses_yaml():
                         sourcetype = dsout['sourcetype']
                         if sourcetype in datasource_default:
                             default_ds = datasource_default[sourcetype]
-                            for propname in [x['id'] for x in default_ds._properties]:
+
+                            propnames = [x['id'] for x in default_ds._properties]
+                            if isinstance(default_ds, PythonDataSource):
+
+                                # Verify that all of the PythonDataSource properties
+                                # are included in any subclass of it, even if they
+                                # mis-define _properties and remove something.
+                                for propname in [x['id'] for x in PythonDataSource._properties]:
+                                    if propname not in propnames:
+                                        print "  (note: PythonDataSource subclass %s is missing property %s- re-adding it." % (
+                                            default_ds.__class__.__name__, propname
+                                        )
+                                        propnames.append(propname)
+
+                            for propname in propnames:
                                 if propname in datasource.extra_params:
                                     dsout[propname] = datasource.extra_params[propname]
                                 else:
                                     default_ds = datasource_default[sourcetype]
                                     dsout[propname] = getattr(default_ds, propname)
                         elif sourcetype is not None:
-                            print "WARNING: Unrecognized sourcetype: %s" % sourceytpe
+                            print "WARNING: Unrecognized sourcetype: %s" % sourcetype
 
                         dsout['datapoints'] = {}
 
@@ -545,6 +561,17 @@ def update_datasource_yaml():
                     parts.append(f[:f.rfind('.')])
                     modName = '.'.join([zenpack] + parts)
                     importClass(modName)
+
+    # Also pull in any datasource classes referenced in zenpack XML files, but
+    # which don't live in the datasource directory.
+    for zenpack in zenpack_names():
+        if zenpack_has_directory(zenpack, 'objects'):
+            objectdir = os.path.join(zenpack_directory(zenpack), 'objects')
+            xmlfiles = []
+            for dirname, _, filenames in os.walk(objectdir):
+                for filename in [x for x in filenames if x.endswith('.xml')]:
+                    xmlfiles.append(os.path.join(dirname, filename))
+            read_xmlfiles({}, {}, xmlfiles)
 
     data = {}
     for cls in all_subclasses(RRDDataSource):

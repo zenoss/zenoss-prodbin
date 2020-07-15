@@ -671,7 +671,7 @@ class PythonConfig(CollectorConfigService):
                 except Exception as e:
                     log.error(
                         "Failed to load plugin %r for %s/%s: %s",
-                        ds.plugin_classname,
+                        getattr(ds, 'plugin_classname', '[unknown]'),
                         template.id,
                         ds.id,
                         e)
