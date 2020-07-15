@@ -269,7 +269,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             v = Version(*getTwistedVersion())
             v.full()
         """
-        from twisted._version import version as v
+        from twisted import version as v
 
         return Version('Twisted', v.major, v.minor, v.micro)
 
