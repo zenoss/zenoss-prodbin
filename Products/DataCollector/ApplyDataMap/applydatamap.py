@@ -29,7 +29,7 @@ from .datamaputils import (
 )
 
 from .reporter import ADMReporter
-from .events import DatamapAddEvent, DatamapProcessedEvent, DatamapAppliedEvent
+from .events import DatamapAddEvent, DatamapProcessedEvent
 
 
 log = logging.getLogger("zen.ApplyDataMap")

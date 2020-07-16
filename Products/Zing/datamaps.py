@@ -44,6 +44,7 @@ def zing_add_datamap(event):
         zing_datamap_handler.add_context(event.datamap, event.datamap.target)
         zing_datamap_handler.add_datamap(event.datamap.target, event.datamap)
     else:
+        log.debug('no change event=%s', event)
         return
 
 
