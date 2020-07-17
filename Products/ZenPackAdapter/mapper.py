@@ -16,6 +16,7 @@ __all__ = [
 
 # stdlib Imports
 import collections
+import logging
 
 # Zenoss Imports
 from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
@@ -24,6 +25,8 @@ from Products.ZenModel.OperatingSystem import OperatingSystem
 from Products.ZenModel.DeviceHW import DeviceHW
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenUtils.Utils import importClass
+
+log = logging.getLogger("zen.zenpackadapter.mapper")
 
 # Public Classes
 
@@ -147,10 +150,7 @@ class DataMapper(object):
     def add_property(self, object_id, object_type, name, value):
         object_property = object_type.get_property(name)
         if not object_property:
-            print("invalid property name for {} ({}): {}".format(object_id, object_type.name, name))
-            # raise Exception(
-            #     "invalid property name for {}: {}".format(
-            #         object_id, name))
+            log.warning("invalid property name for {} ({}): {}".format(object_id, object_type.name, name))
 
         # TODO: Property type checking? Automatic coercion?
         self.objects[object_id]["properties"][name] = value
@@ -158,9 +158,10 @@ class DataMapper(object):
     def add_link(self, object_id, object_type, link_name, remote_ids):
         link_type = object_type.get_link_type(link_name)
         if not link_type:
-            raise Exception(
+            log.warning(
                 "invalid link name for {} ({}): {}".format(
                     object_id, object_type.name, link_name))
+            return
 
         if remote_ids is None:
             remote_ids = []
