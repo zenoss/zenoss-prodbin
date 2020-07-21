@@ -16,6 +16,7 @@ from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
                                                               IPropertiesPlugin)
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
+from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.AuthUtils import getJWKS, publicKeysFromJWKS
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.PASUtils import activatePluginForInterfaces, movePluginToTop
@@ -65,6 +66,20 @@ def getAuth0Conf():
         if _AUTH0_CONFIG and _AUTH0_CONFIG['whitelist']:
             _AUTH0_CONFIG['whitelist'] = [s.strip() for s in _AUTH0_CONFIG['whitelist'].split(',') if s.strip() != '']
     return _AUTH0_CONFIG or None
+
+def get_ip(request):
+    if "HTTP_X_FORWARDED_FOR" in request.environ:
+        # Virtual host
+        # This can be a comma-delimited list of IPs but we are fine with
+        # logging multiple IPs for auditing at this time.
+        ip = request.environ["HTTP_X_FORWARDED_FOR"]
+    elif "HTTP_HOST" in request.environ:
+        # Non-virtualhost
+        ip = request.environ["REMOTE_ADDR"]
+    else:
+        ip = getattr(request, '_client_addr', 'Unknown')
+
+    return ip
 
 def manage_addAuth0(context, id, title=None):
     obj = Auth0(id, title)
@@ -266,6 +281,8 @@ class Auth0(BasePlugin):
         sessionInfo = request.SESSION.get(Auth0.session_key)
         if not sessionInfo:
             sessionInfo = Auth0.storeToken(token, request, conf)
+            ipaddress = get_ip(request)
+            audit('UI.Authentication.Valid', username_=sessionInfo.userid, ipaddress=ipaddress)
 
         # ZING-821: We need to verify that the session data we've cached matches the
         # token expiration.  If the expiration cookie is set, make sure it matches
