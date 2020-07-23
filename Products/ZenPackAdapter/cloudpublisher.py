@@ -333,7 +333,7 @@ class CloudMetricPublisher(CloudPublisher):
                     continue
                 metric['metadataFields'][t] = sanitize_field(v)
 
-            # publish a model as well, the first tim we're called.
+            # publish a model as well, the first time we're called.
             if self._sent_daemon_model is False:
                 self.publish_model(
                     metric["dimensions"]["daemon"],

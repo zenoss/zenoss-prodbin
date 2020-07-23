@@ -222,7 +222,7 @@ class ZObject(object):
             propnames.add(objtype.get_property(prop) or prop)
 
         for prop in propnames:
-            if hasattr(self, prop):
+            if hasattr(self, prop) or prop == 'title':
                 continue
 
             def PropertyGetter(self, prop=prop):
@@ -239,6 +239,14 @@ class ZObject(object):
                 self._datum['properties'][prop] = v
 
             setattr(self.__class__, prop, property(PropertyGetter, PropertySetter))
+
+        # title
+        def TitleGetter(self):
+            return self._datum['title']
+
+        def TitleSetter(self, v):
+            self._datum['title'] = v
+        setattr(self.__class__, 'title', property(TitleGetter, TitleSetter))
 
         # relationships
 

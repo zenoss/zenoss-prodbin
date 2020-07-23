@@ -240,8 +240,14 @@ class ApplyDataMapper(object):
             target["type"] = objmap.modname
             changed = True
 
-        if hasattr(objmap, "title"):
+        if hasattr(objmap, "title") and objmap.title:
             target["title"] = objmap.title
+        else:
+            # if no title is included in the objmap, and no preexisting title
+            # is found in the target datum, go ahead and set it to the component's
+            # ID instead.
+            if not target["title"]:
+                target["title"] = target_id
 
         for k, v in objmap.iteritems():
             if k.startswith("set"):
