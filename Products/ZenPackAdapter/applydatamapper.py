@@ -26,6 +26,7 @@ log = logging.getLogger("zen.zenpackadapter.applydatamapper")
 
 FULL_MODEL_SENT = set()
 
+
 class ApplyDataMapper(object):
 
     def __init__(self, mapper, deviceModel):
@@ -278,7 +279,6 @@ class ApplyDataMapper(object):
                     getattr(adapted, k)(v)
                     changed = True
 
-
         return changed
 
     def apply_relationshipmap(self, base_id, relmap):
@@ -350,7 +350,6 @@ class ApplyDataMapper(object):
             objmap.relname = relmap.relname
 
             changed_ids.update(self.apply_objectmap(target_id, objmap))
-
 
         # Remove any existing objects that were't included in the relationshipmap
         for objid in current_objids:
@@ -425,6 +424,7 @@ class ApplyDataMapper(object):
 
         datum = self.mapper.get(new_id, create_if_missing=True)
         datum['type'] = link_type.remote_class
+        datum['title'] = new_id
         self.mapper.update({new_id: datum})
 
         parent["links"][relname].add(new_id)
