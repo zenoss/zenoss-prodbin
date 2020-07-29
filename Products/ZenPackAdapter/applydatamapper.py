@@ -250,6 +250,7 @@ class ApplyDataMapper(object):
             if not target["title"]:
                 target["title"] = target_id
 
+        # properties
         for k, v in objmap.iteritems():
             if k.startswith("set"):
                 continue
@@ -260,6 +261,20 @@ class ApplyDataMapper(object):
                 target["properties"][k] = v
                 changed = True
 
+        # relationship setter methods
+        object_type = self.mapper.get_object_type(target_id)
+        for relname in object_type.link_types:
+            # ZPL-style:  set_<relname>
+            if hasattr(objmap, "set_" + relname):
+                ids = getattr(objmap, "set_" + relname)
+                if isinstance(ids, list):
+                    target["links"][relname] = set(ids)
+                elif ids:
+                    target["links"][relname] = set(ids)
+                else:
+                    target["links"][relname] = set()
+
+        # permitted non-relationship setter methods
         if target["type"] in METHOD_MAP:
             setters_to_call = set()
             for k, v in objmap.iteritems():

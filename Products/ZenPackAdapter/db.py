@@ -124,6 +124,7 @@ class DB(object):
             d['id'] = id_
             try:
                 self.store_device(Device(**d))
+                log.info("  Loaded device %s", id_)
             except ValueError, e:
                 log.error("Unable to load device %s: %s", id_, e)
 

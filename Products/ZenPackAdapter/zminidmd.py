@@ -48,7 +48,7 @@ def impacted(zobject):
         print "  (none)"
     else:
         for d in [_dimensions(x) for x in zobject.impactFromDimensions]:
-            print "  * %s" % get(device=d['device'], component=d['component'])
+            print "  * %s" % get(device=d['device'], component=d.get('component', None))
 
     print "Remote (impactToDimensions refers to this object):"
     devId = zobject.device().id
