@@ -13,9 +13,14 @@
 #
 # This file is loaded by Products.ZenUtils (__init__.py)
 
+import time
+import os.path
+
 from Products.ZenUtils.Utils import monkeypatch
 from Products.ZenHub.PBDaemon import PBDaemon
+from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenPackAdapter.cloudpublisher import CloudMetricPublisher
+
 
 @monkeypatch(PBDaemon)
 def publisher(self):
@@ -55,3 +60,25 @@ def buildOptions(self):
                        type='string',
                        default=None,
                        help='Source tag data sent to Zenoss Cloud')
+
+@monkeypatch(CmdBase)
+def parseOptions(self):
+    from Products.ZenPackAdapter.yamlconfig import load_config_yaml, CONFIG_YAML
+    while not os.path.exists(CONFIG_YAML):
+        print "  waiting for %s" % CONFIG_YAML
+        time.sleep(3)
+
+    config = load_config_yaml()
+
+    option_type = {}
+    for opt in self.parser.option_list:
+        if opt.dest and opt.type:
+                option_type[opt.dest] = opt.type
+
+    for k, v in config.iteritems():
+        if k in option_type:
+            self.parser.defaults[k] = str(v)
+        else:
+            print "WARNING: While parsing %s, \"%s\" is not a valid option (ignoring)" % (CONFIG_YAML, k)
+
+    original(self)

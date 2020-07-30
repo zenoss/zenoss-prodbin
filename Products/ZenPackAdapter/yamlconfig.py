@@ -20,6 +20,9 @@ except ImportError:
 # User-maintained file with devices to moniotor
 DEVICE_YAML = "/cfg/devices.yaml"
 
+# User-maintained file with global config options
+CONFIG_YAML = "/cfg/config.yaml"
+
 
 ##############################################################################
 # The files below are maintained By update_zenpacks.py and should            #
@@ -47,6 +50,8 @@ CLASS_MODEL_YAML = "/opt/zenoss/etc/zenpackadapter/system/classmodels.yaml"
 def load_device_yaml():
     return yaml.load(file(DEVICE_YAML, 'r'), Loader=Loader)
 
+def load_config_yaml():
+    return yaml.load(file(CONFIG_YAML, 'r'), Loader=Loader)
 
 def load_deviceclass_yaml():
     return (
@@ -54,18 +59,14 @@ def load_deviceclass_yaml():
         yaml.load(file(MONITORINGTEMPLATE_YAML, 'r'), Loader=Loader),
     )
 
-
 def load_modelerplugin_yaml():
     return yaml.load(file(MODELER_PLUGIN_YAML, 'r'), Loader=Loader)
-
 
 def load_parserplugin_yaml():
     return yaml.load(file(PARSER_PLUGIN_YAML, 'r'), Loader=Loader)
 
-
 def load_datasource_yaml():
     return yaml.load(file(DATASOURCE_YAML, 'r'), Loader=Loader)
-
 
 def load_classmodel_yaml():
     return yaml.load(file(CLASS_MODEL_YAML, 'r'), Loader=Loader)
