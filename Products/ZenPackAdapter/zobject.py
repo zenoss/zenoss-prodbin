@@ -82,7 +82,8 @@ METHOD_MAP = {
     },
     'ZenPacks.zenoss.EMC.base.LUN': {
         'method': {
-            'getWBEMStatsInstanceID': 'getWBEMStatsInstanceID'
+            'getWBEMStatsInstanceID': 'getWBEMStatsInstanceID',
+             'getInitiators': lambda x: []
         }
     },
     'ZenPacks.zenoss.EMC.base.SP': {
@@ -301,6 +302,14 @@ class ZObject(object):
             orig_class = self._orig_class
             if 'method' in METHOD_MAP[self._datumType]:
                 for from_method_name, to_method_name in METHOD_MAP[self._datumType]['method'].iteritems():
+
+                    # if the value is callable, hook it in.
+                    if callable(to_method_name):
+                        to_func = to_method_name
+                        setattr(self.__class__, from_method_name, types.MethodType(to_func, self, self.__class__))
+                        continue
+
+                    # otherwise, it should be a method on the target class.
                     if not hasattr(orig_class, to_method_name):
                         raise ValueError("%s is not a valid method on %s (%s).  Check METHOD_MAP." % (
                             to_method_name, self._datumType, orig_class))

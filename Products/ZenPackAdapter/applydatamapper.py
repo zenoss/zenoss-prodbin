@@ -40,9 +40,11 @@ class ApplyDataMapper(object):
         deviceId = self.deviceModel.id
 
         if isinstance(datamap, RelationshipMap):
+            log.debug("applyDataMap (RelationshipMap)")
             changed_ids = self.apply_relationshipmap(base_id, datamap)
 
         if isinstance(datamap, ObjectMap):
+            log.debug("applyDataMap (ObjectMap)")
             changed_ids = self.apply_objectmap(base_id, datamap)
 
         changed_object_count = len(changed_ids)
@@ -51,6 +53,7 @@ class ApplyDataMapper(object):
         log.info("applyDataMap to %s complete.  changed=%s", deviceId, changed)
 
         log.debug("Updating impact relationships on %d modified objects" % changed_object_count)
+        log.debug("changed_ids=%s", changed_ids)
         for compId in changed_ids:
             update_impact(device=deviceId, component=compId)
 
@@ -273,6 +276,15 @@ class ApplyDataMapper(object):
                     target["links"][relname] = set(ids)
                 else:
                     target["links"][relname] = set()
+
+            # Legacy-style: set<RelName>Ids
+            for k,ids in objmap.iteritems():
+                if relname.endswith("s"):
+                    if k.lower() == "set" + relname[:-1] + "ids":
+                        target["links"][relname] = set(ids)
+                else:
+                    if k.lower() == "set" + relname + "ids":
+                        target["links"][relname] = set(ids)
 
         # permitted non-relationship setter methods
         if target["type"] in METHOD_MAP:
