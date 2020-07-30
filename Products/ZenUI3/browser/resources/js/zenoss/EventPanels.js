@@ -1151,6 +1151,11 @@
                                 Zenoss.Security.setContext(sel.data.device.uid)
                             });
                         }
+                        // Disable add_event button for event console context if no global role
+                        if (!Zenoss.env.device_uid) {
+                            tbar.getComponent('add_event_main_button').setDisabled(true);
+                        }
+
                     }
                 });
                 Zenoss.Security.onPermissionsChange(function() {
