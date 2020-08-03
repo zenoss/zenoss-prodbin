@@ -179,6 +179,7 @@ class DataMapper(object):
         if not link_type.local_many:
             local_link = local_links[link_type.local_name]
             if len(local_link) > 1:
+                import pdb; pdb.set_trace()
                 raise Exception(
                     "too many items in to-one {} relationship for {}: {}"
                     .format(

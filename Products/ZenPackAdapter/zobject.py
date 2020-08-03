@@ -103,6 +103,16 @@ METHOD_MAP = {
             'parent_port': 'parent_port',
             'child_port': 'child_port'
         }
+    },
+    'ZenPacks.zenoss.NetAppMonitor.FileSystem': {
+        'method': {
+            'getBackingStore': 'getBackingStore'
+        }
+    },
+    'ZenPacks.zenoss.NetAppMonitor.LUN': {
+        'method': {
+            'getBackingStore': 'getBackingStore'
+        }
     }
 }
 
@@ -151,8 +161,6 @@ def get_adapted_class(typename, zobject_cls):
         adapted_class.__cls_init__()
 
     return adapted_class
-
-
 
 
 class ZObject(object):
@@ -262,22 +270,8 @@ class ZObject(object):
             if hasattr(self, name) or hasattr(self.__class__, name):
                 continue
 
-            if toMany:
-                def ToManyGetter(name=name):
-                    if name not in self._datum['links']:
-                        return []
-                    return [ZDeviceComponent(db, device, dId)
-                            for dId in self._datum['links'][name]]
-                setattr(self, name, ToManyGetter)
-            else:
-                def ToOneGetter(name=name):
-                    if name not in self._datum['links']:
-                        return None
-                    if len(self._datum['links'][name]) == 0:
-                        return None
-                    dId = list(self._datum['links'][name])[0]
-                    return ZDeviceComponent(db, device, dId)
-                setattr(self, name, ToOneGetter)
+            zrel = ZRelationship(self, name, toMany)
+            setattr(self, name, zrel)
 
             if name in self._datum['links']:
                 new_links.add(name)
@@ -431,6 +425,51 @@ class ZObject(object):
 class ZDummyDmd(object):
     pass
 
+
+class ZRelationship(object):
+    def __init__(self, parent_object, relname, toMany=False):
+        self.parent_object = parent_object
+        self.relname = relname
+        self.toMany = toMany
+
+    def __call__(self):
+        datum = self.parent_object._datum
+        db = self.parent_object._db
+        device = self.parent_object._device
+
+        if self.toMany:
+            if self.relname not in datum['links']:
+                return []
+            return [ZDeviceComponent(db, device, dId)
+                    for dId in datum['links'][self.relname]]
+        else:
+            if self.relname not in datum['links']:
+                return None
+            if len(datum['links'][self.relname]) == 0:
+                return None
+            dId = list(datum['links'][self.relname])[0]
+            return ZDeviceComponent(db, device, dId)
+
+    def __repr__(self):
+        cardinality = "toOne"
+        if self.toMany:
+            cardinality = "toMany"
+        return "<%s relationship %s for %s %s of Device %s>" % (
+            cardinality,
+            self.relname,
+            self.parent_object._datum['type'],
+            self.parent_object._datumId,
+            self.parent_object._device.id
+        )
+
+
+    def _getOb(self, _id):
+        if _id in self.parent_object._datum['links'][self.relname]:
+            return ZDeviceComponent(self.parent_object._db, self.parent_object._device, _id)
+        else:
+            raise AttributeError(_id)
+
+
 class ZDeviceOrComponent(ZObject):
     def getRRDTemplates(self):
         clsname = self._datum["type"]
@@ -473,6 +512,7 @@ class ZDeviceOrComponent(ZObject):
             return self.adminStatus > 1
 
         return False
+
 
 class ZDevice(ZDeviceOrComponent):
     def device(self):

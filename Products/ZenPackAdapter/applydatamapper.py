@@ -237,6 +237,8 @@ class ApplyDataMapper(object):
 
             return changed_ids
 
+        return changed_ids
+
     def _update_properties(self, objmap, target, target_id):
         changed = False
 
@@ -273,7 +275,7 @@ class ApplyDataMapper(object):
                 if isinstance(ids, list):
                     target["links"][relname] = set(ids)
                 elif ids:
-                    target["links"][relname] = set(ids)
+                    target["links"][relname] = set([ids])
                 else:
                     target["links"][relname] = set()
 
@@ -358,7 +360,7 @@ class ApplyDataMapper(object):
         target = self.mapper.get(target_id)
         if target is None:
             log.error("When applying relationship map (compname=%s), target was not found.", compname)
-            return False
+            return changed_ids
 
         log.debug("RelationshipMap [1] base_id=%s, compname=%s, relname=%s, target_id=%s",
                   base_id, compname, relmap.relname, target_id)
