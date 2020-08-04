@@ -32,6 +32,8 @@ class DimensionKeys(object):
     CONTEXT_UUID_KEY = "contextUUID"
     META_TYPE_KEY = "meta_type"
     PLUGIN_KEY = "plugin"
+    PARENT_KEY = "parent"
+    RELATION_KEY = "relationship"
 
 
 class MetadataKeys(object):
@@ -47,6 +49,11 @@ class MetadataKeys(object):
     IMPACT_DS_ORG_KEY = "impact_ds_organizer"
     IMPACT_DS_IMPACTERS_KEY = "dynamic_service_impacters"
     ZEN_SCHEMA_TAGS_KEY = "zen_schema_tags"
+    ID_KEY = "id"
+    TITLE_KEY = "title"
+    DEVICE_UUID_KEY = "device_uuid"
+    DEVICE_KEY = "device"
+
 
 class Fact(object):
     def __init__(self, f_id=None):
@@ -55,6 +62,9 @@ class Fact(object):
         self.id = f_id
         self.metadata = {}  # corresponds to "dimensions" in zing
         self.data = {}  # corresponds to "metadata" in zing
+
+    def __str__(self):
+        return "ZING.fact {}   metadata: {!r}  data: {!r}".format(self.id, self.metadata, self.data)
 
     def update(self, other):
         self.data.update(other)
@@ -88,7 +98,7 @@ def deletion_fact(obj_uuid):
 
 def device_info_fact(device):
     """
-    Given a device, generates its device info fact
+    Given a device or component, generates its device info fact
     """
     f = Fact()
     f.set_context_uuid_from_object(device)
@@ -96,6 +106,30 @@ def device_info_fact(device):
     f.metadata[DimensionKeys.PLUGIN_KEY] = DEVICE_INFO_FACT_PLUGIN
     f.data[MetadataKeys.NAME_KEY] = device.titleOrId()
     f.data[MetadataKeys.PROD_STATE_KEY] = device.getProductionStateString()
+    for propdict in device._propertyMap():
+        propId = propdict.get('id')
+        if device.isLocal(propId) and propdict.get('type', None) in ('string', 'int', 'boolean',
+                                                                     'long', 'float', 'text',
+                                                                     'lines'):
+            # Some of the device properties can be methods, so we have to call them and get values
+            if callable(device.getProperty(propId)):
+                log.warn("Callable: {}".format(device.getProperty(propId)))
+                try:
+                    value = device.getProperty(propId).__call__()
+                except TypeError as e:
+                    log.exception("Unable to call property: {}. Exception {}".format(device.getProperty(propId), e))
+            else:
+                value = device.getProperty(propId)
+            if value is None:
+                value = ""
+            f.data[propId] = value
+    f.data[MetadataKeys.ID_KEY] = device.id
+    f.data[MetadataKeys.TITLE_KEY] = device.title
+    try:
+        f.data[MetadataKeys.DEVICE_UUID_KEY] = get_context_uuid(device.device())
+        f.data[MetadataKeys.DEVICE_KEY] = device.device().id
+    except Exception:
+        pass
     return f
 
 

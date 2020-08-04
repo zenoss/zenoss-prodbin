@@ -18,7 +18,7 @@ from Products.DataCollector.plugins.DataMaps import (
     RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
 )
 from Products.DataCollector.ApplyDataMap import (
-    IDatamapProcessedEvent,
+    IDatamapAppliedEvent,
     IncrementalDataMap,
 )
 
@@ -36,16 +36,21 @@ logging.basicConfig()
 log = logging.getLogger("zen.zing.datamaps")
 
 
-@adapter(IDatamapProcessedEvent)
+@adapter(IDatamapAppliedEvent)
 def zing_add_datamap(event):
-    log.debug('zing_add_datamap_context handeling event=%s', event)
-    zing_datamap_handler = ZingDatamapHandler(event.dmd)
-    zing_datamap_handler.add_context(event.objectmap, event.target)
-    zing_datamap_handler.add_datamap(event.target, event.objectmap)
+    if event.datamap.changed:
+        log.debug('zing_add_datamap_context handeling event=%s', event)
+        zing_datamap_handler = ZingDatamapHandler(event.datamap._base.dmd)
+        zing_datamap_handler.add_context(event.datamap, event.datamap.target)
+        zing_datamap_handler.add_datamap(event.datamap.target, event.datamap)
+    else:
+        log.debug('no change event=%s', event)
+        return
 
 
 class ObjectMapContext(object):
     def __init__(self, obj):
+        self._obj = obj
         self.uuid = None
         self.meta_type = None
         self.name = None
@@ -133,10 +138,10 @@ class ZingDatamapHandler(object):
         """ """
         return self.zing_tx_state_manager.get_zing_tx_state(self.context)
 
-    def add_datamap(self, device, datamap):
+    def add_datamap(self, ctx, datamap):
         """ adds the datamap to the ZingDatamapsTxState in the current tx"""
         zing_state = self._get_zing_tx_state()
-        zing_state.datamaps.append( (device, datamap) )
+        zing_state.datamaps.append( (ctx.device(), datamap) )
 
     def add_context(self, objmap, ctx):
         """ adds the context to the ZingDatamapsTxState in the current tx """
@@ -154,10 +159,10 @@ class ZingDatamapHandler(object):
             for f in facts:
                 # return datamap fact
                 if f.is_valid():
+                    comp_uuid = f.metadata.get(ZFact.DimensionKeys.CONTEXT_UUID_KEY, "")
+                    zing_tx_state.already_generated_device_info_facts.add(comp_uuid)
                     yield f
-                # organizers and impact relationships facts for the component
-                comp_uuid = f.metadata.get(ZFact.DimensionKeys.CONTEXT_UUID_KEY, "")
-                if comp_uuid:
+                    # organizers and impact relationships facts for the component
                     comp_groups = []
                     for component in device.getDeviceComponents():
                         if component.getUUID() == comp_uuid:
@@ -214,7 +219,23 @@ class ZingDatamapHandler(object):
         return f
 
     def fact_from_object_map(self, om, parent_device=None, relationship=None, context=None, dm_plugin=None):
-        f = ZFact.Fact()
+        om_context = (context or {}).get(om)
+        if om_context is not None:
+            f = ZFact.device_info_fact(om_context._obj)
+            parent_device = om_context._obj.device()
+            if relationship is not None:
+                f.metadata[ZFact.DimensionKeys.RELATION_KEY] = relationship
+            else:
+                f.metadata[ZFact.DimensionKeys.RELATION_KEY] = om_context._obj.getPrimaryParent().id
+            try:
+                parent = om_context._obj.getPrimaryParent().getPrimaryParent()
+                if parent.id in ('os', 'hw'):
+                    parent = parent_device
+                f.metadata[ZFact.DimensionKeys.PARENT_KEY] = parent.getUUID()
+            except Exception:
+                pass
+        else:
+            f = ZFact.Fact()
         d = om.__dict__.copy()
         if "_attrs" in d:
             del d["_attrs"]
@@ -227,16 +248,16 @@ class ZingDatamapHandler(object):
             elif isinstance(v, MultiArgs):
                 d[k] = v.args
         f.update(d)
+
         if parent_device is not None:
-            f.metadata["parent"] = parent_device.getUUID()
-        if relationship is not None:
-            f.metadata["relationship"] = relationship
+            f.data[ZFact.MetadataKeys.DEVICE_UUID_KEY] = parent_device.getUUID()
+            f.data[ZFact.MetadataKeys.DEVICE_KEY] = parent_device.id
+
         plugin_name = getattr(om, PLUGIN_NAME_ATTR, None) or dm_plugin
         if plugin_name:
             f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = plugin_name
 
         # Hack in whatever extra stuff we need.
-        om_context = (context or {}).get(om)
         if om_context is not None:
             self.apply_extra_fields(om_context, f)
 
@@ -248,7 +269,18 @@ class ZingDatamapHandler(object):
         return f
 
     def fact_from_incremental_map(self, idm, context=None):
-        f = ZFact.Fact()
+        parent = idm.parent
+        relname = idm.relname
+        om_context = (context or {}).get(idm)
+        if om_context is not None:
+            f = ZFact.device_info_fact(om_context._obj)
+            parent_device = om_context._obj.device()
+            if not parent:
+                parent = om_context._obj.getPrimaryParent().getPrimaryParent()
+            if not relname:
+                relname = om_context._obj.getPrimaryParent().id
+        else:
+            f = ZFact.Fact()
         valid_types = (
             str, int, long, float, bool, list, tuple, MultiArgs, set
         )
@@ -265,19 +297,22 @@ class ZingDatamapHandler(object):
             objectmap['id'] = idm.id
         f.update(objectmap)
 
-        if idm.relname:
-            f.metadata["relationship"] = idm.relname
-        if getattr(idm, PLUGIN_NAME_ATTR, None):
-            f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = idm.plugin_name
+        if relname:
+            f.metadata[ZFact.DimensionKeys.RELATION_KEY] = relname
         try:
-            f.metadata["parent"] = idm.parent.getUUID()
+            if parent:
+                if parent.id in ('os', 'hw'):
+                    parent = parent_device
+                f.metadata[ZFact.DimensionKeys.PARENT_KEY] = parent.getUUID()
         except Exception:
             log.debug('parent UUID not found')
 
         # Hack in whatever extra stuff we need.
-        om_context = (context or {}).get(idm)
         if om_context is not None:
             self.apply_extra_fields(om_context, f)
+
+        if getattr(idm, PLUGIN_NAME_ATTR, None):
+            f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = idm.plugin_name
 
         # FIXME temp solution until we are sure all zenpacks send the plugin
         if not f.metadata.get(ZFact.DimensionKeys.PLUGIN_KEY):
