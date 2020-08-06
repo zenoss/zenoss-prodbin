@@ -35,7 +35,7 @@ function jobLinkRenderer(value, metadata, record) {
     description = job.description;
     description = description.length > 58 ? description.substring(0, 55) + '...' : description;
     // Not htmlEncod()ing the 'description' below, as it's already coming to use encoded
-    return "<a href='/zport/dmd/joblist#jobs:" + job.jobid + "'>" + description + "</a>";
+    return "<a href='/zport/dmd/joblist#jobs:" + job.uuid + "'>" + description + "</a>";
 }
 
 function readableRenderer(value, metadata, record) {
@@ -59,16 +59,16 @@ function readableRenderer(value, metadata, record) {
 
 Ext.define("Zenoss.model.Job", {
     extend: 'Ext.data.Model',
-    idProperty: 'jobid',
+    idProperty: 'uuid',
     fields: [
-        'jobid',
+        'uuid',
         'type',
         'description',
-        'created',
+        'scheduled',
         'started',
         'finished',
         'status',
-        'userid'
+        'user'
     ]
 });
 
@@ -148,7 +148,7 @@ Ext.define("Zenoss.JobsWidget", {
                             renderer: jobLinkRenderer
                         }, {
                             header: 'scheduled',
-                            dataIndex: 'created',
+                            dataIndex: 'scheduled',
                             renderer: readableRenderer,
                             width: 150
                         }]

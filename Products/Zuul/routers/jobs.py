@@ -28,14 +28,14 @@ log = logging.getLogger("zen.JobsRouter")
 
 
 JOBKEYS = [
-    "jobid",
+    "uuid",
     "type",
     "description",
-    "created",
+    "scheduled",
     "started",
     "finished",
     "status",
-    "userid",
+    "user",
 ]
 
 
@@ -93,7 +93,7 @@ class JobsRouter(DirectRouter):
                 deletedJobs=Zuul.marshal(deletedJobs)
             )
 
-    def getJob(self, jobid):
+    def getInfo(self, jobid):
         job = self.api.getJob(jobid)
         return DirectResponse.succeed(data=Zuul.marshal(job))
 
