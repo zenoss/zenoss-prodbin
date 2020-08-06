@@ -40,7 +40,7 @@
                     }, this)
                 }]
             });
-            this.jobid = config.job.jobid;
+            this.jobid = config.job.uuid;
             this.callParent([config]);
         },
         initComponent: function() {

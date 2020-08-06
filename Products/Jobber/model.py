@@ -111,10 +111,22 @@ class JobRecordMarshaller(object):
     """Serializes JobRecord objects into dictionaries."""
 
     _default_keys = (
-        "jobid", "summary", "description",
-        "created", "started", "finished",
-        "status", "userid",
+        "jobid",
+        "summary",
+        "description",
+        "created",
+        "started",
+        "finished",
+        "status",
+        "userid",
     )
+
+    # Maps legacy job record field names to their new field names.
+    _key_map = {
+        "uuid": "jobid",
+        "scheduled": "created",
+        "user": "userid",
+    }
 
     def __init__(self, obj):
         """Initialize a JobRecordMarshaller object.
@@ -124,13 +136,14 @@ class JobRecordMarshaller(object):
         self.__obj = obj
 
     def marshal(self, keys=None):
-        """
+        """Returns a dict containing the JobRecord's data.
         """
         fields = self._default_keys if keys is None else keys
-        return {
-            name: getattr(self.__obj, name, None)
-            for name in fields
-        }
+        return {name: self._get_value(name) for name in fields}
+
+    def _get_value(self, name):
+        key = self._key_map.get(name, default=name)
+        return getattr(self.__obj, key, None)
 
 
 @inject_logger(log=mlog)
