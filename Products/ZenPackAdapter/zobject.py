@@ -300,7 +300,7 @@ class ZObject(object):
                     # if the value is callable, hook it in.
                     if callable(to_method_name):
                         to_func = to_method_name
-                        setattr(self.__class__, from_method_name, types.MethodType(to_func, self, self.__class__))
+                        setattr(self, from_method_name, types.MethodType(to_func, self, self.__class__))
                         continue
 
                     # otherwise, it should be a method on the target class.
@@ -309,7 +309,7 @@ class ZObject(object):
                             to_method_name, self._datumType, orig_class))
                     to_method = getattr(orig_class, to_method_name)
                     to_func = to_method.__func__
-                    setattr(self.__class__, from_method_name, types.MethodType(to_func, self, self.__class__))
+                    setattr(self, from_method_name, types.MethodType(to_func, self, self.__class__))
 
     @classmethod
     def __cls_init__(cls):
