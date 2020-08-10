@@ -10,6 +10,7 @@
 from __future__ import absolute_import, print_function
 
 import contextlib
+import redis
 import sys
 import traceback
 
@@ -32,3 +33,17 @@ def subTest(**params):
             ), end='',
         )
         raise
+
+
+class RedisLayer(object):
+    """Test layer to support testing with Redis."""
+
+    db = 13
+
+    @classmethod
+    def setUp(cls):
+        cls.redis = redis.StrictRedis(db=cls.db)
+
+    @classmethod
+    def tearDown(cls):
+        del cls.redis

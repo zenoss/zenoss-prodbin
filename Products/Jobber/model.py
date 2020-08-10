@@ -150,6 +150,10 @@ class JobRecordMarshaller(object):
 def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
     """Save the Zenoss specific job metadata to redis.
 
+    This function is registered as a handler for the before_task_publish
+    signal.  Right before the task is published to the queue, this function
+    is invoked with the data to be published to the queue.
+
     :param dict body: Task data
     :param dict headers: Headers to accompany message sent to Celery worker
     :param dict properties: Additional task and custom key/value pairs
@@ -205,6 +209,8 @@ def build_redis_record(
     description=None, status=None, created=None, userid=None, details=None,
     **ignored
 ):
+    if not jobid:
+        raise ValueError("Invalid job ID: '%s'" % (jobid,))
     if not description:
         description = task.getJobDescription(*args, **kwargs)
     record = {
@@ -212,11 +218,8 @@ def build_redis_record(
         "name": task.name,
         "summary": task.summary,
         "description": description,
+        "logfile": os.path.join(ZenJobs.get("job-log-path"), "%s.log" % jobid),
     }
-    if jobid:
-        record["logfile"] = os.path.join(
-            ZenJobs.get("job-log-path"), "%s.log" % jobid,
-        )
     if status:
         record["status"] = status
     if created:

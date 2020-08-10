@@ -11,12 +11,11 @@ from __future__ import absolute_import, print_function
 
 import collections
 import re
-import redis
 
 from unittest import TestCase
 
 from ..storage import JobStore, Fields
-from .utils import subTest
+from .utils import subTest, RedisLayer
 
 
 class FieldsTest(TestCase):
@@ -77,20 +76,6 @@ class FieldsTest(TestCase):
             k: Fields[k].dumps(v) for k, v in data.items()
         }
         t.assertDictEqual(expected, actual)
-
-
-class RedisLayer(object):
-    """Test layer to support testing with Redis."""
-
-    db = 13
-
-    @classmethod
-    def setUp(cls):
-        cls.redis = redis.StrictRedis(db=cls.db)
-
-    @classmethod
-    def tearDown(cls):
-        del cls.redis
 
 
 class EmptyJobStoreTest(TestCase):
