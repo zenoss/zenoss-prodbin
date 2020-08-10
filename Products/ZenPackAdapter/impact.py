@@ -47,7 +47,12 @@ def update_all_impacts():
     return changed
 
 def update_impact(device=None, component=None):
-    zobj = db.get_zobject(device=device, component=component)
+    try:
+        zobj = db.get_zobject(device=device, component=component)
+    except Exception, e:
+        log.error("Not updating impacts for %s / %s  (%s)", device, component, e)
+        return False
+
     if zobj is None:
         log.info("Not updating impacts for %s / %s  (not found)", device, component)
         return False

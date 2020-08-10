@@ -325,7 +325,11 @@ class DB(object):
         log.info("Removing device %s" % deviceId)
 
         mapper = self.get_mapper(deviceId)
-        mapper.remove(deviceId)
+        try:
+            mapper.remove(deviceId)
+        except Exception, e:
+            log.exception(e)
+
         self.publish_model(device=deviceId)
         del self.devices[deviceId]
         del self.mappers[deviceId]
