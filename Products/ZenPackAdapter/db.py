@@ -380,6 +380,10 @@ class DB(object):
             }
         }
 
+        # ensure that device level model has the correct dimensions
+        if model['dimensions']['component'] == model['dimensions']['device']:
+            model['dimensions']['component'] = ''
+
         if component is None or component == device:
             datum = mapper.get(device)
             if datum is not None:

@@ -321,6 +321,10 @@ class CloudMetricPublisher(CloudPublisher):
             }
         }
 
+        # ensure that device level metrics have the correct dimensions
+        if metric['dimensions']['component'] == metric['dimensions']['device']:
+            metric['dimensions']['component'] = ''
+
         # For internal metrics, include all tags.
         if tags.get('internal', False):
 
