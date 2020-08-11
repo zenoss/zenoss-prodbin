@@ -435,5 +435,5 @@ class ResponseReceiver(protocol.Protocol):
         self._buffer += data
 
     def connectionLost(self, reason):
-        log.debug("connection closed")
+        # log.debug("connection closed")
         self._deferred.callback(self._buffer)
