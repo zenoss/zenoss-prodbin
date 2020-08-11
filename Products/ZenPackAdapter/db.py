@@ -333,6 +333,9 @@ class DB(object):
         self.publish_model(device=deviceId)
         del self.devices[deviceId]
         del self.mappers[deviceId]
+        for dc in self.child_devices:
+            if deviceId in self.child_devices[dc]:
+                self.child_devices[dc].remove(deviceId)
         self.delete_device_snapshot(deviceId)
 
     def store_deviceclass(self, deviceclass):
