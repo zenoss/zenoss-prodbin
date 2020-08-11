@@ -666,6 +666,11 @@ class PythonConfig(CollectorConfigService):
             for ds in datasources:
                 datapoints = []
 
+                if 'ZenPacks.zenoss.CalculatedPerformance' in ds.plugin_classname:
+                    # CalcPerf isn't supported.
+                    continue
+
+
                 try:
                     ds_plugin_class = self._getPluginClass(ds)
                 except Exception as e:
