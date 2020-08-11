@@ -82,3 +82,10 @@ def parseOptions(self):
             print "WARNING: While parsing %s, \"%s\" is not a valid option (ignoring)" % (CONFIG_YAML, k)
 
     original(self)
+
+
+# disable logging of eventQueueLength metric every 2 seconds.  This is excessive
+# and not interesting.
+@monkeypatch(PBDaemon)
+def pushEventsLoop(self):
+  pass
