@@ -62,9 +62,18 @@ class JobRecord(object):
             return details[name]
         return None
 
+    def __dir__(self):
+        # Add __dir__ function to expose keys of details attribute
+        # as attributes of JobRecord.
+        return sorted(set(
+            tuple(dir(JobRecord)) +
+            tuple((getattr(self, "details") or {}).keys())
+        ))
+
     @property
     def __dict__(self):
-        # Clever hack for backward compatibility.
+        # Backward compatibility hack.  __slots__ objects do not have a
+        # built-in __dict__ attribute.
         # Some uses of JobRecord iterated over the '__dict__' attribute
         # to retrieve job-specific/custom attributes.
         base = {
@@ -72,7 +81,7 @@ class JobRecord(object):
             for k in self.__slots__ + ("uuid", "duration", "complete")
             if k != "details"
         }
-        details = getattr(self, "details", {}) or {}
+        details = getattr(self, "details") or {}
         base.update(**details)
         return base
 
@@ -96,7 +105,10 @@ class JobRecord(object):
 
     @property
     def duration(self):
-        if self.status in (states.PENDING, states.RECEIVED):
+        if (
+            self.status in (states.PENDING, states.RECEIVED)
+            or self.started is None
+        ):
             return None
         if self.complete:
             return self.finished - self.started

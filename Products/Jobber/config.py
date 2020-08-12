@@ -28,6 +28,8 @@ _default_configs = {
     "max-jobs-per-worker": "100",
     "concurrent-jobs": "1",
     "job-expires": 604800,  # 7 days
+    "job-hard-time-limit": 21600,  # 6 hours
+    "job-soft-time-limit": 18000,  # 5 hours
 }
 
 
@@ -92,6 +94,8 @@ class Celery(object):
     CELERYD_CONCURRENCY = int(ZenJobs.get("concurrent-jobs"))
     CELERYD_PREFETCH_MULTIPLIER = 1
     CELERYD_MAX_TASKS_PER_CHILD = int(ZenJobs.get("max-jobs-per-worker"))
+    CELERYD_TASK_TIME_LIMIT = int(ZenJobs.get("job-hard-time-limit"))
+    CELERYD_TASK_SOFT_TIME_LIMIT = int(ZenJobs.get("job-soft-time-limit"))
 
     # Task settings
     CELERY_ACKS_LATE = True

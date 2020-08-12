@@ -11,7 +11,6 @@ from __future__ import absolute_import, print_function
 
 import inspect
 
-from mock import patch
 from unittest import TestCase
 from zope.component import getGlobalSiteManager
 
