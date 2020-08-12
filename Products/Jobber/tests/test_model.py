@@ -15,12 +15,18 @@ from celery import states
 from mock import patch
 from unittest import TestCase
 
-from Products.Zuul.interfaces import IMarshallable
+from Products.Zuul import marshal
+from Products.Zuul.interfaces import IMarshallable, IInfo
 from zope.component import getGlobalSiteManager
 
 from ..jobs import Job
 from ..model import (
-    build_redis_record, IJobRecord, IJobStore, JobRecord, update_job_status,
+    build_redis_record,
+    IJobRecord,
+    IJobStore,
+    JobRecord,
+    JobRecordMarshaller,
+    update_job_status,
 )
 from ..storage import JobStore, Fields
 from ..zenjobs import app
@@ -53,7 +59,7 @@ class JobRecordTest(TestCase):
         }
 
     def test_interfaces(t):
-        for intf in (IJobRecord, IMarshallable):
+        for intf in (IJobRecord, IMarshallable, IInfo):
             with subTest(interface=intf):
                 t.assertTrue(intf.implementedBy(JobRecord))
                 j = JobRecord.make({})
@@ -374,3 +380,60 @@ class UpdateJobStatusTest(TestCase):
         t.assertEqual(expected_status, status)
         t.assertEqual(expected_started, started)
         t.assertEqual(expected_finished, finished)
+
+
+class ComponentsLoadedLayer(object):
+
+    @classmethod
+    def setUp(cls):
+        from Zope2.App import zcml
+        import Globals  # noqa: F401
+        import Products.ZenWidgets
+        from OFS.Application import import_products
+        from Products.ZenUtils.Utils import load_config_override
+
+        import_products()
+        zcml.load_site()
+        load_config_override('scriptmessaging.zcml', Products.ZenWidgets)
+
+
+class JobRecordMarshallerTest(TestCase):
+    """Test the JobRecordMarshaller class."""
+
+    layer = ComponentsLoadedLayer
+
+    def setUp(t):
+        t.jobid = "12345"
+        t.fields = {
+            "description": "A test job record",
+            "summary": "A Test",
+            "name": "test",
+            "jobid": t.jobid,
+        }
+        t.allfields = dict(t.fields, **{
+            "status": None,
+            "created": None,
+            "finished": None,
+            "started": None,
+            "userid": None,
+        })
+        t.record = JobRecord.make(t.fields)
+
+    def test_default_marshal(t):
+        expected = {
+            k: t.allfields[k]
+            for k in JobRecordMarshaller._default_keys
+            if k in t.allfields
+        }
+        serialized = marshal(t.record)
+        t.assertDictEqual(expected, serialized)
+
+    def test_keyed_marshal(t):
+        keys = ("uuid", "name", "description")
+        expected = {
+            "uuid": t.allfields["jobid"],
+            "name": t.allfields["name"],
+            "description": t.allfields["description"],
+        }
+        serialized = marshal(t.record, keys=keys)
+        t.assertDictEqual(expected, serialized)
