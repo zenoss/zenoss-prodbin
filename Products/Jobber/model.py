@@ -18,7 +18,7 @@ from celery.contrib.abortable import ABORTED
 from zope.component import getUtility
 from zope.interface import implementer
 
-from Products.Zuul.interfaces import IMarshaller, IMarshallable
+from Products.Zuul.interfaces import IMarshaller, IInfo
 
 from .config import ZenJobs
 from .interfaces import IJobStore, IJobRecord
@@ -29,7 +29,7 @@ from .zenjobs import app
 mlog = logging.getLogger("zen.zenjobs.model")
 
 
-@implementer(IJobRecord, IMarshallable)
+@implementer(IJobRecord, IInfo)
 class JobRecord(object):
     """Zenoss-centric record of a job submitted to ZenJobs."""
 
@@ -73,6 +73,16 @@ class JobRecord(object):
         details = getattr(self, "details", {}) or {}
         base.update(**details)
         return base
+
+    @property
+    def id(self):
+        """Implements IInfo.id"""
+        return self.jobid
+
+    @property
+    def uid(self):
+        """Implements IInfo.uid"""
+        return self.jobid
 
     @property
     def uuid(self):
@@ -142,7 +152,7 @@ class JobRecordMarshaller(object):
         return {name: self._get_value(name) for name in fields}
 
     def _get_value(self, name):
-        key = self._key_map.get(name, default=name)
+        key = self._key_map.get(name, name)
         return getattr(self.__obj, key, None)
 
 
