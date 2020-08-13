@@ -181,7 +181,6 @@ class ApplyDataMapper(object):
         #   }),
         if "id" in om and "relname" in om and "modname" in om:
             target_id = objmap.id
-            target_is_new = self.mapper.get(target_id) is None
 
             target = self.mapper.get(target_id, create_if_missing=_add)
             if target is None:
@@ -196,13 +195,12 @@ class ApplyDataMapper(object):
                 self.mapper.update({target_id: target})
                 changed_ids.add(target_id)
 
-            # Link from device to this component if it's new.
-            device = self.mapper.get(base_id)
-            # if target_id not in device["links"][objmap.relname]:
-            if target_is_new:
+            # Link from parent to this component if it's new.
+            parent = self.mapper.get(base_id)
+            if target_id not in parent["links"][objmap.relname]:
                 log.debug("  Added new component (%s) under %s (%s)", target_id, base_id, objmap.relname)
-                device["links"][objmap.relname].add(target_id)
-                self.mapper.update({base_id: device})
+                parent["links"][objmap.relname].add(target_id)
+                self.mapper.update({base_id: parent})
                 changed_ids.add(base_id)
 
             return changed_ids
@@ -342,7 +340,7 @@ class ApplyDataMapper(object):
         # but i see it in the ADM code- looks like you can specify a parentId
         # directly, rather than using compname)
         parentId = getattr(relmap, "parentId", None)
-        if parentId is not None:
+        if parentId is not None and parentId != '':
             target_id = parentId
 
         compname = getattr(relmap, "compname", None)
