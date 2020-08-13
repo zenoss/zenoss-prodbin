@@ -96,6 +96,36 @@ METHOD_MAP = {
             'getWBEMStatsInstanceID': 'getWBEMStatsInstanceID'
         }
     },
+    'ZenPacks.zenoss.NetAppMonitor.Aggregate': {
+        'method': {
+            'getRRDTemplates': 'getRRDTemplates'
+        }
+    },
+    'ZenPacks.zenoss.NetAppMonitor.FileSystem': {
+        'method': {
+            'getBackingStore': 'getBackingStore',
+            'getRRDTemplates': 'getRRDTemplates',
+            'getExternalClients': lambda x: []
+        }
+    },
+    'ZenPacks.zenoss.NetAppMonitor.HardDisk': {
+        'method': {
+            'getRRDTemplates': 'getRRDTemplates'
+        }
+    },
+    # needs a bit more work on prodkey
+    # 'ZenPacks.zenoss.NetAppMonitor.Interface': {
+    #     'method': {
+    #         'getRRDTemplates': 'getRRDTemplates'
+    #     }
+    # },
+    'ZenPacks.zenoss.NetAppMonitor.LUN': {
+        'method': {
+            'getBackingStore': 'getBackingStore',
+            'getRRDTemplates': 'getRRDTemplates',
+            'getInitiators': lambda x: []
+        }
+    },
     'ZenPacks.zenoss.NetAppMonitor.NetAppPort': {
         'method': {
             'setParentPorts': 'setParentPorts',
@@ -104,14 +134,9 @@ METHOD_MAP = {
             'child_port': 'child_port'
         }
     },
-    'ZenPacks.zenoss.NetAppMonitor.FileSystem': {
+    'ZenPacks.zenoss.NetAppMonitor.Volume': {
         'method': {
-            'getBackingStore': 'getBackingStore'
-        }
-    },
-    'ZenPacks.zenoss.NetAppMonitor.LUN': {
-        'method': {
-            'getBackingStore': 'getBackingStore'
+            'get_filesystem': 'get_filesystem'
         }
     }
 }
@@ -469,6 +494,9 @@ class ZRelationship(object):
         else:
             raise AttributeError(_id)
 
+    def objectIds(self):
+        return list(self.parent_object._datum['links'][self.relname])
+
 
 class ZDeviceOrComponent(ZObject):
     def getRRDTemplates(self):
@@ -495,6 +523,13 @@ class ZDeviceOrComponent(ZObject):
                     templates.append(template)
 
         return templates
+
+    def getRRDTemplateByName(self, name):
+        for dc in all_parent_dcs(self.device().device_class):
+            for template_name, template in self._db.device_classes[dc].rrdTemplates.iteritems():
+                if template_name == name:
+                    return template
+
 
     def getMonitoredComponents(self, collector=None):
         # should filter based on monitored status, but we don't have
@@ -525,6 +560,12 @@ class ZDevice(ZDeviceOrComponent):
                     yield component
             else:
                 yield component
+
+    def getDeviceClassPath(self):
+        return self.device_class
+
+    getDeviceClassName = getDeviceClassPath
+
 
     def getLastChange(self):
         return DateTime(float(self._device._lastChange))
