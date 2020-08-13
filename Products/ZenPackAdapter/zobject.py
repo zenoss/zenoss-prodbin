@@ -27,6 +27,7 @@ from Products.ZenUtils import Time
 from Products.ZenUtils.Utils import importClass, monkeypatch
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenRelations.RelSchema import ToMany, ToManyCont
+from Products.ZenRelations.Exceptions import zenmarker
 
 from zope.component import getGlobalSiteManager, provideSubscriptionAdapter, provideAdapter
 from zope.interface import implementedBy
@@ -88,7 +89,7 @@ METHOD_MAP = {
     },
     'ZenPacks.zenoss.EMC.base.SP': {
         'method': {
-            'getWBEMStatsInstanceID': 'getWBEMStatsInstanceID'
+            'getWBEMStatsInstagnceID': 'getWBEMStatsInstanceID'
         }
     },
     'ZenPacks.zenoss.EMC.base.SPPort': {
@@ -98,7 +99,8 @@ METHOD_MAP = {
     },
     'ZenPacks.zenoss.NetAppMonitor.Aggregate': {
         'method': {
-            'getRRDTemplates': 'getRRDTemplates'
+            'getRRDTemplates': 'getRRDTemplates',
+            'getFileSystem': 'getFileSystem'
         }
     },
     'ZenPacks.zenoss.NetAppMonitor.FileSystem': {
@@ -136,7 +138,8 @@ METHOD_MAP = {
     },
     'ZenPacks.zenoss.NetAppMonitor.Volume': {
         'method': {
-            'get_filesystem': 'get_filesystem'
+            'get_filesystem': 'get_filesystem',
+            'getLUNs': 'getLUNs'
         }
     }
 }
@@ -487,11 +490,12 @@ class ZRelationship(object):
             self.parent_object._device.id
         )
 
-
-    def _getOb(self, _id):
+    def _getOb(self, _id, default=zenmarker):
         if _id in self.parent_object._datum['links'][self.relname]:
             return ZDeviceComponent(self.parent_object._db, self.parent_object._device, _id)
         else:
+            if default != zenmarker:
+                return default
             raise AttributeError(_id)
 
     def objectIds(self):
@@ -499,6 +503,10 @@ class ZRelationship(object):
 
 
 class ZDeviceOrComponent(ZObject):
+
+    def name(self):
+        return self.titleOrId()
+
     def getRRDTemplates(self):
         clsname = self._datum["type"]
         if clsname not in self._db.classmodel:
@@ -529,7 +537,6 @@ class ZDeviceOrComponent(ZObject):
             for template_name, template in self._db.device_classes[dc].rrdTemplates.iteritems():
                 if template_name == name:
                     return template
-
 
     def getMonitoredComponents(self, collector=None):
         # should filter based on monitored status, but we don't have
@@ -566,6 +573,15 @@ class ZDevice(ZDeviceOrComponent):
 
     getDeviceClassName = getDeviceClassPath
 
+    def getRRDTemplates(self):
+        if not hasattr(self, 'zDeviceTemplates'):
+            return super(ZDevice, self).getRRDTemplates()
+        result = []
+        for name in self.zDeviceTemplates:
+            template = self.getRRDTemplateByName(name)
+            if template:
+                result.append(template)
+        return result
 
     def getLastChange(self):
         return DateTime(float(self._device._lastChange))
