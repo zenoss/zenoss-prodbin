@@ -86,26 +86,29 @@ class Job(Abortable, DMD, ZenTask):
         self.dmd.JobManager.update(jobid, **details)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
-        result = super(Job, self).on_failure(
-            exc, task_id, args, kwargs, einfo,
-        )
-        # Don't send an event when a job is aborted.
-        if not isinstance(exc, TaskAborted):
-            # Send an event about the job failure.
-            publisher = getUtility(IEventPublisher)
-            event = Event.buildEventFromDict({
-                "device": self.getJobType(),
-                "severity": Event.Error,
-                "component": "zenjobs",
-                "eventClass": "/App/Job/Fail",
-                "message": self.getJobDescription(*args, **kwargs),
-                "summary": repr(exc),
-                "jobid": str(task_id),
-            })
-            event.evid = guid.generate(1)
-            publisher.publish(event)
+        try:
+            result = super(Job, self).on_failure(
+                exc, task_id, args, kwargs, einfo,
+            )
+            # Don't send an event when a job is aborted.
+            if not isinstance(exc, TaskAborted):
+                # Send an event about the job failure.
+                publisher = getUtility(IEventPublisher)
+                event = Event.buildEventFromDict({
+                    "device": self.getJobType(),
+                    "severity": Event.Error,
+                    "component": "zenjobs",
+                    "eventClass": "/App/Job/Fail",
+                    "message": self.getJobDescription(*args, **kwargs),
+                    "summary": repr(exc),
+                    "jobid": str(task_id),
+                })
+                event.evid = guid.generate(1)
+                publisher.publish(event)
 
-        return result
+            return result
+        except Exception:
+            self.log.exception("Internal Error")
 
     def _get_config(self, key, default=_MARKER):
         value = ZenJobs.get(key, default=default)
