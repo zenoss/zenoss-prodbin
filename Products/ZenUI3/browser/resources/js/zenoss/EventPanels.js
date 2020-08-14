@@ -1154,7 +1154,10 @@
                 });
                 Zenoss.Security.onPermissionsChange(function() {
                     var tbar = this.grid.tbar;
-                    tbar.getComponent('event-commands-menu').setDisabled(!Zenoss.Security.hasPermission("Run Commands"));
+                    // event-commands-menu is not present on maintenance window page
+                    if (tbar && tbar.getComponent('event-commands-menu')) {
+                        tbar.getComponent('event-commands-menu').setDisabled(!Zenoss.Security.hasPermission("Run Commands"));
+                    }
                 }, this);
 
             },
