@@ -16,7 +16,7 @@ from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
 from zope.event import notify
-from zope.component import getMultiAdapter, queryUtility, getUtility
+from zope.component import getMultiAdapter, getUtility
 from Products.AdvancedQuery import Eq, Or, Generic, And, MatchGlob
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
@@ -24,7 +24,7 @@ from Products.Zuul.facades import TreeFacade
 from Products.Zuul.catalog.component_catalog import get_component_field_spec, pad_numeric_values_for_indexing
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.interfaces import IDeviceFacade, IInfo, ITemplateNode, IMetricServiceGraphDefinition
-from Products.Jobber.facade import FacadeMethodJob
+from Products.Jobber.jobs import FacadeMethodJob
 from Products.Zuul.tree import SearchResults
 from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer

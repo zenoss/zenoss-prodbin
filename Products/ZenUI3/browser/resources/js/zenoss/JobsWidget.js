@@ -68,7 +68,6 @@ Ext.define("Zenoss.model.Job", {
         'started',
         'finished',
         'status',
-        'result',
         'user'
     ]
 });

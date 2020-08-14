@@ -89,7 +89,7 @@ from Products.ZenUtils.Search import (
     makeCaseInsensitiveKeywordIndex,
     makeMultiPathIndex
 )
-from Products.Jobber.facade import FacadeMethodJob
+from Products.Jobber.jobs import FacadeMethodJob
 
 DEFAULT_PRODSTATE = 1000
 
