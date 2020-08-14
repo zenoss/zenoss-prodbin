@@ -95,7 +95,7 @@ class Celery(object):
 
     # Task settings
     CELERY_ACKS_LATE = True
-    CELERY_IGNORE_RESULT = True
+    CELERY_IGNORE_RESULT = False
     CELERY_STORE_ERRORS_EVEN_IF_IGNORED = True
     CELERY_TASK_SERIALIZER = "json"
     CELERY_TRACK_STARTED = True

@@ -22,7 +22,7 @@ from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 
 from .exceptions import NoSuchJobException
 from .interfaces import IJobStore
-from .model import JobRecord, build_redis_record
+from .model import LegacySuport, JobRecord, build_redis_record, sortable_keys
 from .utils.accesscontrol import ZClassSecurityInfo, ZInitializeClass
 from .zenjobs import app
 
@@ -172,13 +172,28 @@ class JobManager(ZenModelRM):
 
         Criteria fields:
             status - Select only records with this status
-            userid - Select only records with this user ID
+            user/userid - Select only records with this user ID
 
         Sort arguments:
             key - Result is sorted by this field
             reverse - True to reverse the sort order
             offset - The returned result starts with this index
             limit - Maximum number of returned records.
+
+        Supported values for 'key':
+            jobid
+            name
+            summary
+            description
+            userid
+            logfile
+            created
+            started
+            finished
+            status
+            uuid
+            scheduled
+            user
 
         :type criteria: Mapping[str, Union[int, float, str]]
         :type key: str
@@ -188,27 +203,37 @@ class JobManager(ZenModelRM):
         :rtype: {"jobs": Tuple[JobRecord], "total": int}
         """
         criteria = criteria if criteria is not None else {}
+        normalized_criteria = {
+            LegacySuport.from_key(k): criteria[k] for k in criteria
+        }
         valid = ["status", "userid"]
-        invalid_fields = set(criteria.keys()) - set(valid)
+        invalid_fields = set(normalized_criteria.keys()) - set(valid)
         if invalid_fields:
             raise ValueError(
                 "Invalid criteria field: %s" % ", ".join(invalid_fields),
             )
+        normalized_key = LegacySuport.from_key(key)
+        if normalized_key not in sortable_keys:
+            raise ValueError("Invalid sort key: %s" % (key,))
         try:
             storage = getUtility(IJobStore, "redis")
-            if len(criteria):
-                jobids = storage.search(**criteria)
+            if len(normalized_criteria):
+                jobids = storage.search(**normalized_criteria)
                 jobdata = storage.mget(*jobids)
             else:
                 jobdata = storage.values()
-            result = sorted(jobdata, key=lambda x: x[key], reverse=reverse)
+            result = sorted(
+                jobdata,
+                key=lambda x: x[normalized_key],
+                reverse=reverse,
+            )
             end = len(result) if limit is None else offset + limit
             jobs = tuple(
                 JobRecord.make(jobdata) for jobdata in result[offset:end]
             )
             return {"jobs": jobs, "total": len(result)}
-        except Exception as ex:
-            log.exception("Failure: %s %s", ex)
+        except Exception:
+            log.exception("Internal Error")
             return {"jobs": (), "total": 0}
 
     def update(self, jobid, **kwargs):
