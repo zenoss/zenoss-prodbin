@@ -198,9 +198,21 @@ class ApplyDataMapper(object):
             # Link from parent to this component if it's new.
             parent = self.mapper.get(base_id)
             if target_id not in parent["links"][objmap.relname]:
-                log.debug("  Added new component (%s) under %s (%s)", target_id, base_id, objmap.relname)
-                parent["links"][objmap.relname].add(target_id)
-                self.mapper.update({base_id: parent})
+
+                existing_parent = None
+                objecttype = self.mapper.get_object_type(target_id, target)
+                for linkname in target["links"]:
+                    if target["links"][linkname]:
+                        linktype = objecttype.get_link_type(linkname)
+                        if linktype.remote_containing:
+                            existing_parent = list(target["links"][linkname])[0]
+
+                if existing_parent and existing_parent != base_id:
+                    log.error("  Attempting to add new component (%s) under %s, but it already exists under %s.  Possible non-unique component ID?", target_id, base_id, existing_parent)
+                else:
+                    log.debug("  Added new component (%s) under %s (%s)", target_id, base_id, objmap.relname)
+                    parent["links"][objmap.relname].add(target_id)
+                    self.mapper.update({base_id: parent})
                 changed_ids.add(base_id)
 
             return changed_ids
