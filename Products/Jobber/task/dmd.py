@@ -20,6 +20,7 @@ from ZPublisher.HTTPResponse import HTTPResponse
 from ZPublisher.BaseRequest import RequestContainer
 from ZODB.transact import transact
 
+from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Products.ZenUtils.Utils import getObjByPath
 
 from ..config import ZenJobs
@@ -68,6 +69,7 @@ def zodb(db, userid, log):
         application = _getContext(root["Application"])
         dataroot = getObjByPath(application, "/zport/dmd")
         _login(dataroot, name=userid)
+        setDescriptors(dataroot)
         log.info("Authenticated as user %s", userid)
         try:
             yield dataroot
