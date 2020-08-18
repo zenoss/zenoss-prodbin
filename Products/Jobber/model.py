@@ -28,6 +28,8 @@ from .zenjobs import app
 
 mlog = logging.getLogger("zen.zenjobs.model")
 
+sortable_keys = list(set(Fields) - set({"details"}))
+
 
 @implementer(IJobRecord, IInfo)
 class JobRecord(object):
@@ -131,13 +133,6 @@ class JobRecordMarshaller(object):
         "userid",
     )
 
-    # Maps legacy job record field names to their new field names.
-    _key_map = {
-        "uuid": "jobid",
-        "scheduled": "created",
-        "user": "userid",
-    }
-
     def __init__(self, obj):
         """Initialize a JobRecordMarshaller object.
 
@@ -152,8 +147,25 @@ class JobRecordMarshaller(object):
         return {name: self._get_value(name) for name in fields}
 
     def _get_value(self, name):
-        key = self._key_map.get(name, name)
+        key = LegacySuport.from_key(name)
         return getattr(self.__obj, key, None)
+
+
+class LegacySuport(object):
+    """A namespace class for functions to aid in supporting legacy APIs.
+    """
+
+    # Maps legacy job record field names to their new field names.
+    keys = {
+        "uuid": "jobid",
+        "scheduled": "created",
+        "user": "userid",
+    }
+
+    @classmethod
+    def from_key(cls, key):
+        """Returns the modern key name for the given legacy key name."""
+        return cls.keys.get(key, key)
 
 
 @inject_logger(log=mlog)

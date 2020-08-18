@@ -26,6 +26,7 @@ from ..model import (
     IJobStore,
     JobRecord,
     JobRecordMarshaller,
+    LegacySuport,
     update_job_status,
 )
 from ..storage import JobStore, Fields
@@ -437,3 +438,36 @@ class JobRecordMarshallerTest(TestCase):
         }
         serialized = marshal(t.record, keys=keys)
         t.assertDictEqual(expected, serialized)
+
+
+class LegacySuportTest(TestCase):
+    """Test the LegacySupport class."""
+
+    def test_new_keys(t):
+        keys = (
+            "jobid",
+            "name",
+            "summary",
+            "description",
+            "userid",
+            "logfile",
+            "created",
+            "started",
+            "finished",
+            "status",
+        )
+        for key in keys:
+            with subTest(key=key):
+                actual = LegacySuport.from_key(key)
+                t.assertEqual(key, actual)
+
+    def test_legacy_keys(t):
+        keys = {
+            "uuid": "jobid",
+            "scheduled": "created",
+            "user": "userid",
+        }
+        for key in keys:
+            with subTest(key=key):
+                actual = LegacySuport.from_key(key)
+                t.assertEqual(keys[key], actual)
