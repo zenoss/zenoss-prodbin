@@ -11,7 +11,6 @@
 # operates against a Mapper instance rather than ZODB.
 
 
-from copy import deepcopy
 import logging
 import time
 
@@ -93,7 +92,7 @@ class ApplyDataMapper(object):
         # applied to the device.
         #   ObjectMap({'rackSlot': 'near-the-top'}),
         if "compname" not in om and "relname" not in om:
-            target = deepcopy(self.mapper.get(base_id))
+            target = self.mapper.get(base_id)
             if self._update_properties(objmap, target, base_id):
                 self.mapper.update({base_id: target})
                 changed_ids.add(base_id)
@@ -112,7 +111,7 @@ class ApplyDataMapper(object):
         if "compname" in om and "relname" not in om:
             target_id = objmap.compname
 
-            target = deepcopy(self.mapper.get(target_id, create_if_missing=_add))
+            target = self.mapper.get(target_id, create_if_missing=_add)
             if target is None:
                 # if _add=False, we don't create the object if it's not there.
                 log.debug("ObjectMap [2] not creating target_id=%s (_add=False)", target_id)
@@ -183,7 +182,7 @@ class ApplyDataMapper(object):
         if "id" in om and "relname" in om and "modname" in om:
             target_id = objmap.id
 
-            target = deepcopy(self.mapper.get(target_id, create_if_missing=_add))
+            target = self.mapper.get(target_id, create_if_missing=_add)
             if target is None:
                 # if _add=False, we don't create the object if it's not there.
                 log.debug("ObjectMap [3] not creating target_id=%s (_add=False)", target_id)
@@ -238,7 +237,7 @@ class ApplyDataMapper(object):
                 log.error("Unable to locate compname %s on %s", objmap.compname, base_id)
                 return None
 
-            target = deepcopy(self.mapper.get(target_id, create_if_missing=_add))
+            target = self.mapper.get(target_id, create_if_missing=_add)
             if self._update_properties(objmap, target, target_id):
                 self.mapper.update({target_id: target})
                 changed_ids.add(target_id)

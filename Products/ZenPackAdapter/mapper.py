@@ -16,6 +16,7 @@ __all__ = [
 
 # stdlib Imports
 import collections
+from copy import deepcopy
 import logging
 
 # Zenoss Imports
@@ -73,7 +74,8 @@ class DataMapper(object):
                     prop_value)
 
         if "links" in datum:
-            for link_name, remote_ids in datum["links"].iteritems():
+            links = deepcopy(datum["links"])
+            for link_name, remote_ids in links.iteritems():
                 self.add_link(
                     object_id,
                     object_type,
