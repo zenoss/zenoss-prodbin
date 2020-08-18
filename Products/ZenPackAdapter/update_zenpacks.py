@@ -232,7 +232,14 @@ def update_system_deviceclasses_yaml():
                                 # note that this doesn't currently support default
                                 # values for extra_params omitted from the yaml.
                                 # Something similar to the datasource_default stuff
-                                # above would be needed for that.
+                                # above would be needed for that.  (and it would need
+                                # to tackle custom datapoint subclasses (manage_addRRDDataPoint)
+
+                                # for now, hardcode stuff that we need defaults for.
+                                if sourcetype == 'NetAppMonitor ZAPI':
+                                    if "rpm" not in datapoint.extra_params:
+                                        datapoint.extra_params['rpm'] = False
+
                                 for k, v in datapoint.extra_params.iteritems():
                                     dpout[k] = v
 

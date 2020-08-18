@@ -299,13 +299,18 @@ class ApplyDataMapper(object):
                         target["links"][relname] = set(ids)
 
         # permitted non-relationship setter methods
+        setters_to_call = set()
         if target["type"] in METHOD_MAP:
-            setters_to_call = set()
             for k, v in objmap.iteritems():
                 if k.startswith("set") and k in METHOD_MAP[target["type"]]["method"]:
                     # If the setter has been allowed by METHOD_MAP, invoke it.
                     setters_to_call.add(k)
 
+        for k, v in objmap.iteritems():
+            if k == "setProductKey":
+                setters_to_call.add(k)
+
+        if setters_to_call:
             isDevice = self.mapper.get_object_type(target_id).device
             if isDevice:
                 adapted = ZDevice(db, self.deviceModel, target_id)
@@ -314,6 +319,9 @@ class ApplyDataMapper(object):
 
             for k, v in objmap.iteritems():
                 if k in setters_to_call:
+                    if not hasattr(adapted, k):
+                        log.error("Not invoking invalid setter %s on %s", k, target_id)
+                        continue
                     log.debug("Invoking setter %s on %s", k, target_id)
                     getattr(adapted, k)(v)
                     changed = True

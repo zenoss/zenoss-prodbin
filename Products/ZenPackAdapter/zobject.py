@@ -28,6 +28,7 @@ from Products.ZenUtils.Utils import importClass, monkeypatch
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenRelations.RelSchema import ToMany, ToManyCont
 from Products.ZenRelations.Exceptions import zenmarker
+from Products.ZenModel.MEProduct import MEProduct
 
 from zope.component import getGlobalSiteManager, provideSubscriptionAdapter, provideAdapter
 from zope.interface import implementedBy
@@ -115,12 +116,13 @@ METHOD_MAP = {
             'getRRDTemplates': 'getRRDTemplates'
         }
     },
-    # needs a bit more work on prodkey
-    # 'ZenPacks.zenoss.NetAppMonitor.Interface': {
-    #     'method': {
-    #         'getRRDTemplates': 'getRRDTemplates'
-    #     }
-    # },
+    'ZenPacks.zenoss.NetAppMonitor.Interface': {
+        'method': {
+            'getRRDTemplates': 'getRRDTemplates',
+            'zapi_instance': 'zapi_instance',
+            'zapi_perf_xpath': 'zapi_perf_xpath'
+        }
+    },
     'ZenPacks.zenoss.NetAppMonitor.LUN': {
         'method': {
             'getBackingStore': 'getBackingStore',
@@ -134,6 +136,12 @@ METHOD_MAP = {
             'getParentPorts': 'getParentPorts',
             'parent_port': 'parent_port',
             'child_port': 'child_port'
+        }
+    },
+    'ZenPacks.zenoss.NetAppMonitor.SystemNode': {
+        'method': {
+            'zapi_object_name': 'zapi_object_name',
+            'zapi_instance': 'zapi_instance'
         }
     },
     'ZenPacks.zenoss.NetAppMonitor.Volume': {
@@ -239,6 +247,27 @@ class ZObject(object):
                 device.manageIp = v
 
             setattr(self.__class__, 'manageIp', property(ManageIpGetter, ManageIpSetter))
+
+        # Support set/getProductKey if appropriate (adding _prodKey and _manufacturer props)
+        if issubclass(self._orig_class, MEProduct):
+            object_type = self._mapper.get_object_type(self._datumId, self._datum)
+            for p in ("_prodKey", "_manufacturer",):
+                if p not in object_type.properties:
+                    object_type.properties.add(p)
+
+            def setProductKey(self, prodKey, manufacturer=None):
+                if prodKey:
+                    self._prodKey = prodKey
+                    self._manufacturer = manufacturer
+            def getProductKey(self):
+                if self._manufacturer is not None:
+                    return (self._prodKey, self._manufacturer)
+                elif self._prodKey is not None:
+                    return self._prodKey
+                else:
+                    return None
+            setattr(self, 'setProductKey', types.MethodType(setProductKey, self, self.__class__))
+            setattr(self, 'getProductKey', types.MethodType(getProductKey, self, self.__class__))
 
         # zproperties
         for zProp in device.getAllProperties():
