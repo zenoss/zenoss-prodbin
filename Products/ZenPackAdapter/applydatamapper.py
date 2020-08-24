@@ -204,6 +204,10 @@ class ApplyDataMapper(object):
                 for linkname in target["links"]:
                     if target["links"][linkname]:
                         linktype = objecttype.get_link_type(linkname)
+                        if linktype is None:
+                            log.error("Ignoring invalid link '%s'", linkname)
+                            continue
+
                         if linktype.remote_containing:
                             existing_parent = list(target["links"][linkname])[0]
 
@@ -269,7 +273,7 @@ class ApplyDataMapper(object):
         for k, v in objmap.iteritems():
             if k.startswith("set"):
                 continue
-            if k in ['parentId', 'relname', 'id', '_add', '_remove', 'title']:
+            if k in ['parentId', 'relname', 'id', '_add', '_remove', 'title', "portal_type", "meta_type"]:
                 continue
 
             if k not in target["properties"] or not isSameData(target["properties"][k], v):

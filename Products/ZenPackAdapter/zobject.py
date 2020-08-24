@@ -354,6 +354,11 @@ class ZObject(object):
             if 'method' in METHOD_MAP[self._datumType]:
                 for from_method_name, to_method_name in METHOD_MAP[self._datumType]['method'].iteritems():
 
+                    if hasattr(self.__class__, from_method_name):
+                        if isinstance(getattr(self.__class__, from_method_name), property):
+                            self.log.debug("Overriding property '%s' with mapped method.", from_method_name)
+                            delattr(self.__class__, from_method_name)
+
                     # if the value is callable, hook it in.
                     if callable(to_method_name):
                         to_func = to_method_name
