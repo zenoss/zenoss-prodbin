@@ -10,6 +10,7 @@
 from __future__ import absolute_import
 
 import contextlib
+import logging
 import transaction
 
 from AccessControl.SecurityManagement import (
@@ -24,7 +25,9 @@ from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Products.ZenUtils.Utils import getObjByPath
 
 from ..config import ZenJobs
-from ..utils.log import get_task_logger, inject_logger
+from ..utils.log import get_logger, get_task_logger, inject_logger
+
+mlog = get_logger("zen.zenjobs.task.dmd")
 
 
 class DMD(object):
@@ -64,13 +67,15 @@ def zodb(db, userid, log):
     """
     session = db.open()
     try:
-        log.debug("Started ZODB session")
+        mlog.debug("Started ZODB session")
         root = session.root()
         application = _getContext(root["Application"])
         dataroot = getObjByPath(application, "/zport/dmd")
         _login(dataroot, name=userid)
         setDescriptors(dataroot)
-        log.info("Authenticated as user %s", userid)
+        log_mesg = ("Authenticated as user %s", userid)
+        log.info(*log_mesg)
+        mlog.debug(*log_mesg)
         try:
             yield dataroot
             transaction.commit()
@@ -81,7 +86,7 @@ def zodb(db, userid, log):
             noSecurityManager()
     finally:
         session.close()
-        log.debug("Finished ZODB session")
+        mlog.debug("Finished ZODB session")
 
 
 def _getContext(app):
@@ -102,10 +107,13 @@ def _login(log, context, name="admin", userfolder=None):
         userfolder = context.getPhysicalRoot().acl_users
     user = userfolder.getUserById(name)
     if user is None:
-        log.warn("No user specified with job.  Using the default user")
+        log_mesg = "No user specified with job.  Using the default user"
+        log.warn(log_mesg)
+        if mlog.isEnabledFor(logging.DEBUG):
+            mlog.warn(log_mesg)
         return
     if not hasattr(user, "aq_base"):
         user = user.__of__(userfolder)
     newSecurityManager(None, user)
-    log.debug("Logged in as user '%s'", user)
+    mlog.debug("Logged in as user '%s'", user)
     return user
