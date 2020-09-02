@@ -106,7 +106,7 @@ def _login(log, context, userid="admin", userfolder=None):
 
     if not userid:
         log.warn("No user ID specified with job.")
-        userid = getSecurityManager().getUser().getId()
+        userid = _getDefaultUser()
         log_mesg = ("Using default user '%s' instead.", userid)
         log.warn(*log_mesg)
         if mlog.isEnabledFor(logging.DEBUG):
@@ -115,12 +115,12 @@ def _login(log, context, userid="admin", userfolder=None):
     user = userfolder.getUserById(userid)
 
     if user is None:
-        log_mesg = "User '%s' is not a valid user."
-        log.warn(log_mesg)
+        log_mesg = ("User '%s' is not a valid user.", userid)
+        log.warn(*log_mesg)
         if mlog.isEnabledFor(logging.DEBUG):
-            mlog.warn(log_mesg)
+            mlog.warn(*log_mesg)
 
-        userid = getSecurityManager().getUser().getId()
+        userid = _getDefaultUser()
         log_mesg = ("Using default user '%s' instead.", userid)
         log.warn(*log_mesg)
         if mlog.isEnabledFor(logging.DEBUG):
@@ -133,3 +133,8 @@ def _login(log, context, userid="admin", userfolder=None):
     newSecurityManager(None, user)
     mlog.debug("Logged in as user '%s'", user)
     return user
+
+
+def _getDefaultUser():
+    userid = getSecurityManager().getUser().getId()
+    return userid if userid else "admin"
