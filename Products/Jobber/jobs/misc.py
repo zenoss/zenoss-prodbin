@@ -74,3 +74,14 @@ class DelayedFailure(Job):
 def pause(self, seconds):
     self.log.info("Sleeping for %s seconds", seconds)
     threading.Event().wait(seconds)
+
+@app.task(
+    bind=True,
+    base=requires(DMD, Abortable),
+    name="zen.zenjobs.test.rolesgroups",
+    summary="Log roles and groups of user",
+    description_template="Log roles and groups of user",
+)
+def rolesgroups(self):
+    from Products.Zuul.utils import allowedRolesAndGroups
+    self.log.info(allowedRolesAndGroups(self.dmd))

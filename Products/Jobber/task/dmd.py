@@ -41,8 +41,6 @@ class DMD(object):
         # NOTE: work-around for Celery >= 4.0
         # userid = getattr(self.request, "userid", None)
         userid = self.request.headers.get("userid")
-        if userid is None:
-            userid = getSecurityManager().getUser().getId()
         with zodb(self.app.db, userid, self.log) as dmd:
             self.__dmd = dmd
             try:
@@ -71,9 +69,9 @@ def zodb(db, userid, log):
         root = session.root()
         application = _getContext(root["Application"])
         dataroot = getObjByPath(application, "/zport/dmd")
-        _login(dataroot, name=userid)
+        user = _login(dataroot, userid=userid)
         setDescriptors(dataroot)
-        log_mesg = ("Authenticated as user %s", userid)
+        log_mesg = ("Authenticated as user %s", user.getUserName())
         log.info(*log_mesg)
         mlog.debug(*log_mesg)
         try:
@@ -101,17 +99,35 @@ def _getContext(app):
 
 
 @inject_logger(log=get_task_logger)
-def _login(log, context, name="admin", userfolder=None):
+def _login(log, context, userid="admin", userfolder=None):
     """Authenticate user and configure credentials."""
     if userfolder is None:
         userfolder = context.getPhysicalRoot().acl_users
-    user = userfolder.getUserById(name)
+
+    if not userid:
+        log.warn("No user ID specified with job.")
+        userid = getSecurityManager().getUser().getId()
+        log_mesg = ("Using default user '%s' instead.", userid)
+        log.warn(*log_mesg)
+        if mlog.isEnabledFor(logging.DEBUG):
+            mlog.warn(*log_mesg)
+
+    user = userfolder.getUserById(userid)
+
     if user is None:
-        log_mesg = "No user specified with job.  Using the default user"
+        log_mesg = "User '%s' is not a valid user."
         log.warn(log_mesg)
         if mlog.isEnabledFor(logging.DEBUG):
             mlog.warn(log_mesg)
-        return
+
+        userid = getSecurityManager().getUser().getId()
+        log_mesg = ("Using default user '%s' instead.", userid)
+        log.warn(*log_mesg)
+        if mlog.isEnabledFor(logging.DEBUG):
+            mlog.warn(*log_mesg)
+
+        user = userfolder.getUserById(userid)
+
     if not hasattr(user, "aq_base"):
         user = user.__of__(userfolder)
     newSecurityManager(None, user)
