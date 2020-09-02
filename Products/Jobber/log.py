@@ -73,6 +73,15 @@ _default_config = {
             "mode": "a",
             "filters": ["main"],
         },
+        "beat": {
+            "formatter": "main",
+            "class": "cloghandler.ConcurrentRotatingFileHandler",
+            "filename":
+                os.path.join(ZenJobs.get("logpath"), "zenjobs-scheduler.log"),
+            "maxBytes": ZenJobs.getint("maxlogsize") * 1024,
+            "backupCount": ZenJobs.getint("maxbackuplogs"),
+            "mode": "a",
+        },
     },
     "loggers": {
         "STDOUT": {
@@ -92,6 +101,16 @@ _default_config = {
         },
         "celery": {
             "level": _default_log_level,
+        },
+        "celery.beat": {
+            "level": _default_log_level,
+            "propagate": False,
+            "handlers": ["beat"],
+        },
+        "celery.redirected": {
+            "level": _default_log_level,
+            "propagate": False,
+            "handlers": ["beat"],
         },
     },
     "root": {
@@ -199,6 +218,13 @@ def apply_levels(loggerlevels):
 @inject_logger(log=_get_logger, adapter=FormatStringAdapter)
 def setup_job_instance_logger(log, task_id=None, task=None, **kwargs):
     """Create and configure the job instance logger."""
+    if task.ignore_result:
+        # Switch propagation on so that log messages are written to the
+        # main zenjobs log.
+        get_task_logger().propagate = True
+        log.debug("Task ignores result; skipping job instance log setup")
+        return
+
     log.debug("Adding a logger for job instance {}[{}]", task.name, task_id)
     try:
         storage = getUtility(IJobStore, "redis")
@@ -233,6 +259,9 @@ def setup_job_instance_logger(log, task_id=None, task=None, **kwargs):
 @inject_logger(log=_get_logger, adapter=FormatStringAdapter)
 def teardown_job_instance_logger(log, task=None, **kwargs):
     """Tear down and delete the job instance logger."""
+    if task.ignore_result:
+        get_task_logger().propagate = False
+        return
     log.debug("Removing job instance logger from {}", task.name)
     try:
         # Remove handler from STDOUT and STDERR loggers

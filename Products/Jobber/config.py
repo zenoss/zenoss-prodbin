@@ -23,6 +23,10 @@ _default_configs = {
     "maxbackuplogs": "3",
     "job-log-path": "/opt/zenoss/log/jobs",
 
+    "scheduler-config-file": "/opt/zenoss/etc/zenjobs_schedule.yaml",
+    "scheduler-max-loop-interval": 300,  # 5 minutes
+    "scheduler-sync-interval": 180,  # 3 minutes
+
     "zodb-config-file": "/opt/zenoss/etc/zodb.conf",
     "zodb-max-retries": 5,
     "max-jobs-per-worker": "100",
@@ -103,6 +107,17 @@ class Celery(object):
     CELERY_STORE_ERRORS_EVEN_IF_IGNORED = True
     CELERY_TASK_SERIALIZER = "without-unicode"
     CELERY_TRACK_STARTED = True
+
+    # Beat (scheduler) configuration
+    CELERYBEAT_MAX_LOOP_INTERVAL = int(
+        ZenJobs.get("scheduler-max-loop-interval"),
+    )
+    CELERYBEAT_SYNC_EVERY = int(ZenJobs.get("scheduler-sync-interval"))
+    CELERYBEAT_LOG_FILE = os.path.join(
+        ZenJobs.get("logpath"), "zenjobs-scheduler.log",
+    )
+    CELERYBEAT_REDIRECT_STDOUTS = True
+    CELERYBEAT_REDIRECT_STDOUTS_LEVEL = "INFO"
 
     # Event settings
     CELERY_SEND_EVENTS = True

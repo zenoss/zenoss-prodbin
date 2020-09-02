@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import logging
 import os
@@ -318,6 +318,17 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
         log.info("no headers, bad signal?")
         return
 
+    task = app.tasks.get(body.get("task"))
+    if task is None:
+        log.warn("Ignoring unknown task: %s", body.get("task"))
+        return
+
+    # If the result of tasks is ignored, don't create a job record.
+    # Celery doesn't store an entry in the result backend when the
+    # ignore_result flag is True.
+    if task.ignore_result:
+        return
+
     # Save first (and possibly only) job
     record = RedisRecord.from_signal(body, headers, properties)
     record.update({
@@ -356,8 +367,14 @@ def _save_record(log, record):
 @inject_logger(log=mlog)
 def update_job_status(log, task_id=None, task=None, **kwargs):
     """Update the job record's state."""
+    if task is not None and task.ignore_result:
+        return
     jobstore = getUtility(IJobStore, "redis")
     if task_id not in jobstore:
+        log.debug(
+            "Skipping job status update: task ID not found  "
+            "task-id=%s task=%r", task_id, task,
+        )
         return
     job_status = jobstore.getfield(task_id, "status")
     task_status = app.backend.get_status(task_id)
@@ -377,7 +394,7 @@ def update_job_status(log, task_id=None, task=None, **kwargs):
     # If the job failed or was aborted, change status of linked jobs
     if job_status in (states.FAILURE, ABORTED):
         req = getattr(task, "request", None)
-        if not req:
+        if req is None:
             return
         callbacks = req.callbacks
         if not callbacks:

@@ -21,6 +21,7 @@ from Products.Zuul.interfaces import IMarshallable, IInfo
 from zope.component import getGlobalSiteManager
 
 from ..model import (
+    app,
     IJobRecord,
     IJobStore,
     JobRecord,
@@ -214,13 +215,13 @@ class UpdateJobStatusTest(TestCase):
         )
         del t.store
 
-    @patch("Products.Jobber.model.app.backend", autospec=True)
+    @patch("{src}.app.backend".format(**PATH), autospec=True)
     def test_no_such_task(t, _backend):
         update_job_status("1")
         _backend.get_status.assert_not_called()
 
-    @patch("Products.Jobber.model.time", autospec=True)
-    @patch("Products.Jobber.model.app.backend", autospec=True)
+    @patch("{src}.time".format(**PATH), autospec=True)
+    @patch("{src}.app.backend".format(**PATH), autospec=True)
     def test_unready_state(t, _backend, _time):
         tm = 1597059131.762538
         _backend.get_status.return_value = states.STARTED
@@ -241,8 +242,8 @@ class UpdateJobStatusTest(TestCase):
         t.assertEqual(expected_started, started)
         t.assertEqual(expected_finished, finished)
 
-    @patch("Products.Jobber.model.time", autospec=True)
-    @patch("Products.Jobber.model.app.backend", autospec=True)
+    @patch("{src}.time".format(**PATH), autospec=True)
+    @patch("{src}.app.backend".format(**PATH), autospec=True)
     def test_ready_state(t, _backend, _time):
         tm = 1597059131.762538
         _backend.get_status.return_value = states.SUCCESS
@@ -263,8 +264,8 @@ class UpdateJobStatusTest(TestCase):
         t.assertEqual(expected_started, started)
         t.assertEqual(expected_finished, finished)
 
-    @patch("Products.Jobber.model.time", autospec=True)
-    @patch("Products.Jobber.model.app.backend", autospec=True)
+    @patch("{src}.time".format(**PATH), autospec=True)
+    @patch("{src}.app.backend".format(**PATH), autospec=True)
     def test_task_aborted_state(t, _backend, _time):
         tm = 1597059131.762538
         _backend.get_status.return_value = states.ABORTED
@@ -285,8 +286,8 @@ class UpdateJobStatusTest(TestCase):
         t.assertEqual(expected_started, started)
         t.assertEqual(expected_finished, finished)
 
-    @patch("Products.Jobber.model.time", autospec=True)
-    @patch("Products.Jobber.model.app.backend", autospec=True)
+    @patch("{src}.time".format(**PATH), autospec=True)
+    @patch("{src}.app.backend".format(**PATH), autospec=True)
     def test_job_aborted_state(t, _backend, _time):
         tm = 1597059131.762538
         _backend.get_status.return_value = states.FAILURE
@@ -308,6 +309,26 @@ class UpdateJobStatusTest(TestCase):
         t.assertEqual(expected_status, status)
         t.assertEqual(expected_started, started)
         t.assertEqual(expected_finished, finished)
+
+
+class IgnoreResultTest(TestCase):
+    """Test update_job_status when a task's ignore_result is True.
+    """
+
+    @app.task(
+        bind=True,
+        name="zen.zenjobs.test.result_ignored_task",
+        summary="Result Ignored Task",
+        ignore_result=True,
+    )
+    def noop_task(self, *args, **kw):
+        pass
+
+    @patch("{src}.getUtility".format(**PATH))
+    def test_ignore_result(t, _getUtility):
+        task = app.tasks.get("zen.zenjobs.test.result_ignored_task")
+        update_job_status(task_id="0", task=task)
+        _getUtility.assert_not_called()
 
 
 class ComponentsLoadedLayer(object):
