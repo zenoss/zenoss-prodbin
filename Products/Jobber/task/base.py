@@ -11,20 +11,26 @@ from __future__ import absolute_import, print_function
 
 import logging
 
-from celery import Task
 from AccessControl.SecurityManagement import getSecurityManager
+from celery import Task
+from celery.exceptions import Ignore, SoftTimeLimitExceeded
 
-from ..utils.log import get_task_logger
+from .event import SendZenossEventMixin
+from ..utils.log import get_task_logger, get_logger
 
 _default_summary = "Task {0.__class__.__name__}"
 
+mlog = get_logger("zen.zenjobs.task.base")
 
-class ZenTask(Task):
+
+class ZenTask(SendZenossEventMixin, Task):
     """Base class for tasks."""
 
     abstract = True
     description_template = None
     summary = None
+
+    throws = (SoftTimeLimitExceeded,)
 
     def __new__(cls, *args, **kwargs):
         task = super(ZenTask, cls).__new__(cls, *args, **kwargs)
@@ -70,9 +76,39 @@ class ZenTask(Task):
         result = super(ZenTask, self).on_failure(
             exc, task_id, args, kwargs, einfo,
         )
-        # If debug logging is enabled, log the traceback.
-        if einfo.type in getattr(self, "throws", ()) \
-                and self.log.isEnabledFor(logging.DEBUG):
-            self.log.error(einfo.traceback)
+        if (
+            einfo.type in getattr(self, "throws", ())
+            and not self.log.isEnabledFor(logging.DEBUG)
+        ):
+            # Log a simple message for known exceptions when not DEBUG.
+            self.log.error("Job failed: %r", exc)
+        else:
+            # log the traceback for everything else.
+            self.log.error("Job failed: %r\n%s", exc, einfo.traceback)
 
+        # Always log errors for the main logger
+        mlog.error("Job failed: %r", exc)
+
+        return result
+
+    def __call__(self, *args, **kwargs):
+        """Execute the task."""
+        self.__run, self.run = self.run, self.__exec
+        try:
+            return super(ZenTask, self).__call__(*args, **kwargs)
+        finally:
+            self.run = self.__run
+            del self.__run
+
+    def __exec(self, *args, **kwargs):
+        if self.request.id is None:
+            self.log.error("task has no ID")
+            raise Ignore()
+        started_mesg = "Job started"
+        finished_mesg = "Job finished"
+        self.log.info(started_mesg)
+        mlog.debug(started_mesg)
+        result = self.__run(*args, **kwargs)
+        mlog.debug(finished_mesg)
+        self.log.info(finished_mesg)
         return result

@@ -10,6 +10,7 @@
 from __future__ import absolute_import, print_function
 
 import itertools
+import types
 
 from celery import states
 from mock import patch
@@ -26,6 +27,7 @@ from ..model import (
     IJobStore,
     JobRecord,
     JobRecordMarshaller,
+    LegacySuport,
     update_job_status,
 )
 from ..storage import JobStore, Fields
@@ -70,6 +72,41 @@ class JobRecordTest(TestCase):
         j = JobRecord.make({})
         missing_names = set(Fields.viewkeys()) - set(dir(j))
         t.assertSetEqual(set(), missing_names)
+
+    def test_has_methods(t):
+        # Assert that the appropriate methods exist.
+        methods = ("abort", "wait")
+        for m in methods:
+            with subTest(method=m):
+                result = getattr(JobRecord, m, None)
+                t.assertIsInstance(result, types.UnboundMethodType)
+
+    def test_dir_keys(t):
+        j = JobRecord.make(t.data)
+        expected = t.data.keys()
+        expected.remove("details")
+        expected.extend(t.data["details"].keys())
+        expected.extend((
+            "details", "id", "make", "uid",
+            "uuid", "duration", "complete", "abort", "wait", "result",
+        ))
+        expected = sorted(expected)
+        actual = [a for a in dir(j) if not a.startswith("__")]
+        t.assertListEqual(expected, actual)
+
+    def test_details_are_exposed(t):
+        j = JobRecord.make({})
+        j.details = {"foo": 1}
+        t.assertEqual(1, j.foo)
+        t.assertIn("foo", dir(j))
+        t.assertIn("foo", j.__dict__)
+        t.assertEqual(1, j.__dict__["foo"])
+
+    def test_details_are_not_writable(t):
+        j = JobRecord.make({})
+        j.details = {"foo": 1}
+        with t.assertRaises(AttributeError):
+            j.foo = 3
 
     def test_make_badfield(t):
         with t.assertRaises(AttributeError):
@@ -437,3 +474,36 @@ class JobRecordMarshallerTest(TestCase):
         }
         serialized = marshal(t.record, keys=keys)
         t.assertDictEqual(expected, serialized)
+
+
+class LegacySuportTest(TestCase):
+    """Test the LegacySupport class."""
+
+    def test_new_keys(t):
+        keys = (
+            "jobid",
+            "name",
+            "summary",
+            "description",
+            "userid",
+            "logfile",
+            "created",
+            "started",
+            "finished",
+            "status",
+        )
+        for key in keys:
+            with subTest(key=key):
+                actual = LegacySuport.from_key(key)
+                t.assertEqual(key, actual)
+
+    def test_legacy_keys(t):
+        keys = {
+            "uuid": "jobid",
+            "scheduled": "created",
+            "user": "userid",
+        }
+        for key in keys:
+            with subTest(key=key):
+                actual = LegacySuport.from_key(key)
+                t.assertEqual(keys[key], actual)

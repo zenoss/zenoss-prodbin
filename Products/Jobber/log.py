@@ -86,6 +86,7 @@ _default_config = {
         },
         "zen.zenjobs.job": {
             "level": _default_log_level,
+            "propagate": False,
         },
         "celery": {
             "level": _default_log_level,
@@ -207,8 +208,7 @@ def setup_job_instance_logger(log, task_id=None, task=None, **kwargs):
             if e.errno != errno.EEXIST:
                 raise
         handler = TaskLogFileHandler(logfile)
-        for logger in (logging.getLogger("zen"), get_task_logger()):
-            logger.addHandler(handler)
+        get_task_logger().addHandler(handler)
     except Exception:
         log.exception("Failed to add job instance logger")
     finally:
@@ -220,14 +220,14 @@ def teardown_job_instance_logger(log, task=None, **kwargs):
     """Tear down and delete the job instance logger."""
     log.debug("Removing job instance logger from {}", task.name)
     try:
-        for logger in (logging.getLogger("zen"), get_task_logger()):
-            handlers = []
-            for handler in logger.handlers:
-                if isinstance(handler, TaskLogFileHandler):
-                    handler.close()
-                else:
-                    handlers.append(handler)
-            logger.handlers = handlers
+        logger = get_task_logger()
+        handlers = []
+        for handler in logger.handlers:
+            if isinstance(handler, TaskLogFileHandler):
+                handler.close()
+            else:
+                handlers.append(handler)
+        logger.handlers = handlers
     except Exception:
         log.exception("Failed to remove job instance logger")
     finally:

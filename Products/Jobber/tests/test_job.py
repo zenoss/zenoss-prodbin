@@ -12,7 +12,6 @@ from __future__ import absolute_import, print_function
 import inspect
 
 from celery.contrib.abortable import AbortableTask
-from mock import patch
 from unittest import TestCase
 
 from ..exceptions import NoSuchJobException
