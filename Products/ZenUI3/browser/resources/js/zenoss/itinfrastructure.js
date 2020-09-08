@@ -175,7 +175,8 @@ Ext.onReady(function () {
         }
         if (Ext.getCmp('actions-menu')) {
             Ext.getCmp('actions-menu').setDisabled(bool ||
-                Zenoss.Security.doesNotHavePermission('Manage Device'));
+                (Zenoss.Security.doesNotHavePermission('Change Device Production State') &&
+                 Zenoss.Security.doesNotHavePermission('Manage Device')));
         }
 
 
@@ -1517,7 +1518,19 @@ Ext.onReady(function () {
         selModel: new Zenoss.DeviceGridSelectionModel({
             listeners: {
                 selectionchange: function (sm) {
-                    setDeviceButtonsDisabled(!sm.hasSelection());
+                    if (!_has_global_roles()) {
+                        if (sm.hasSelection()) {
+                            var selection = sm.getSelection();
+                            setDeviceButtonsDisabled(false);
+                            selection.forEach(function(sel) {
+                                Zenoss.Security.setContext(sel.data.uid)
+                            });                            
+                        } else {
+                            setDeviceButtonsDisabled(true);
+                        }
+                    } else {
+                        setDeviceButtonsDisabled(!sm.hasSelection());
+                    }
                 }
             }
         }),
