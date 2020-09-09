@@ -13,7 +13,6 @@ import logging
 
 from unittest import TestCase
 
-# from .utils import subTest
 from ..jobs.subprocess import (
     LogFormatterContext, getLogFormattingContext, null_context,
 )

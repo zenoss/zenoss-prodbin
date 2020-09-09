@@ -13,11 +13,9 @@ import logging
 
 from cStringIO import StringIO
 
-# from contextlib import contextmanager
 from mock import MagicMock, Mock, patch, sentinel, call
 from unittest import TestCase
 
-# from .utils import subTest
 from ..log import (
     apply_levels,
     configure_logging,
