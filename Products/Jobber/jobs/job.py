@@ -87,7 +87,7 @@ class Job(Abortable, DMD, ZenTask):
         self.dmd.JobManager.update(jobid, **details)
 
     def _get_config(self, key, default=_MARKER):
-        value = ZenJobs.get(key, default=default)
+        value = ZenJobs.get(key, default)
         if value is _MARKER:
             raise KeyError("Config option '{}' is not defined".format(key))
         return value
