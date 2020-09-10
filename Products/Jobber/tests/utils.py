@@ -10,6 +10,7 @@
 from __future__ import absolute_import, print_function
 
 import contextlib
+import logging
 import redis
 import sys
 import traceback
@@ -47,3 +48,19 @@ class RedisLayer(object):
     @classmethod
     def tearDown(cls):
         del cls.redis
+
+
+class LoggingLayer(object):
+    """Test layer to support testing with Python's logging API."""
+
+    @classmethod
+    def setUp(cls):
+        cls.original_manager = logging.Logger.manager
+        cls.manager = logging.Manager(logging.root)
+        logging.Logger.manager = cls.manager
+
+    @classmethod
+    def tearDown(cls):
+        logging.Logger.manager = cls.original_manager
+        del cls.manager
+        del cls.original_manager

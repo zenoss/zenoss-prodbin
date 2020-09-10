@@ -101,7 +101,7 @@ class SubprocessJob(Job):
         while exitcode is None:
             line = reader.readline()
             if line:
-                with formatting_context:
+                with formatting_context():
                     self.log.info(line.strip())
                     output += line.strip()
             else:
@@ -123,6 +123,9 @@ class LogFormatterContext(object):
         self.__handler = handler
         self.__original = handler.formatter
         self.__alternate = formatter
+
+    def __call__(self):
+        return self
 
     def __enter__(self):
         self.__handler.setFormatter(self.__alternate)
