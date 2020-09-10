@@ -27,7 +27,6 @@ class SubprocessJob(Job):
     """Use this job to execute shell commands."""
 
     name = "Products.Jobber.SubprocessJob"
-    throws = Job.throws + (SubprocessJobFailed,)
 
     @classmethod
     def getJobType(cls):
@@ -73,6 +72,8 @@ class SubprocessJob(Job):
                 message = "Exit code %s for command %s; %s" % (
                     exitcode, self.getJobDescription(cmd), output,
                 )
+            self.log.error(message)
+            raise SubprocessJobFailed(summary)
         except JobAborted:
             if process:
                 self.log.warn("Job aborted. Killing subprocess...")
@@ -80,8 +81,6 @@ class SubprocessJob(Job):
                 process.wait()  # clean up the <defunct> process
                 self.log.info("Subprocess killed.")
             raise
-        self.log.error(message)
-        raise SubprocessJobFailed(summary)
 
     def _handle_process(self, process):
         # Since process.stdout.readline() is a blocking call, it stops
