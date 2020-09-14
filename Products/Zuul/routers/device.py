@@ -416,6 +416,20 @@ class DeviceRouter(TreeRouter):
 
         return DirectResponse.succeed(data=result)
 
+    def uuidExists(self, uuid):
+        """
+        Return boolean for existence of object with provided uuid.
+        Note that object type is not validated.
+
+        @type  uuid: string
+        @param uuid: UUID to check for existence
+        @rtype:   DirectResponse
+        """
+        if IGUIDManager(self.context.dmd).getObject(uuid):
+            return DirectResponse.succeed()
+        else:
+            return DirectResponse.fail()
+
     def getDeviceUids(self, uid):
         """
         Return a list of device uids underneath an organizer. This includes
