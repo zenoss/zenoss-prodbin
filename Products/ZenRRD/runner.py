@@ -288,11 +288,15 @@ class SshRunner(object):
         Either creates a deferred to append to the pool list otherwise, wraps
         the result
         """
-        if isinstance(self._pool[self._poolkey], list):
+        if self._poolkey not in self._pool:
+            return defer.fail(RuntimeError("No connector found"))
+
+        connection_or_list = self._pool.get(self._poolkey)
+        if isinstance(connection_or_list, list):
             d = defer.Deferred()
-            self._pool[self._poolkey].append(d)
+            connection_or_list.append(d)
         else:
-            d = defer.succeed(self._pool[self._poolkey])
+            d = defer.succeed(connection_or_list)
         return d
 
     def send(self, datasource):
