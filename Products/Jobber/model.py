@@ -227,12 +227,12 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
         task = app.tasks[taskname]
         record = build_redis_record(
             task,
-            body.get("id"),
+            jobid,
             body.get("args", ()),
             body.get("kwargs", {}),
             **properties
         )
-        storage[record["jobid"]] = record
+        storage[jobid] = record
         log.info("Saved record for job %s", jobid)
     else:
         log.info("Record already exists for job %s", jobid)
