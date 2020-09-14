@@ -2189,6 +2189,8 @@ Ext.onReady(function () {
             var node = Ext.getCmp('devices').getRootNode(),
                 selModel = getSelectionModel()
             selModel.select(node.firstChild);
+        } else {
+            Ext.util.History.selectByToken(Ext.util.History.currentToken)
         }
     });
 }); // Ext. OnReady
