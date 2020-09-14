@@ -14,8 +14,9 @@ import logging
 import transaction
 
 from AccessControl.SecurityManagement import (
-    getSecurityManager, newSecurityManager, noSecurityManager,
+    newSecurityManager, noSecurityManager,
 )
+from Products.CMFCore.utils import getToolByName
 from ZPublisher.HTTPRequest import HTTPRequest
 from ZPublisher.HTTPResponse import HTTPResponse
 from ZPublisher.BaseRequest import RequestContainer
@@ -102,42 +103,44 @@ def _getContext(app):
 
 
 @inject_logger(log=get_task_logger)
-def _login(log, context, userid=_default_user, userfolder=None):
+def _login(log, context, userid=_default_user):
     """Authenticate user and configure credentials."""
-    if userfolder is None:
-        userfolder = context.getPhysicalRoot().acl_users
-
-    if not userid:
+    if userid is None:
         log.warn("No user ID specified with job.")
-        userid = _getDefaultUser()
+        userid = _default_user
         log_mesg = ("Using default user '%s' instead.", userid)
-        log.warn(*log_mesg)
         if mlog.isEnabledFor(logging.DEBUG):
             mlog.warn(*log_mesg)
 
-    user = userfolder.getUserById(userid)
-
-    if user is None:
-        log_mesg = ("User '%s' is not a valid user.", userid)
-        log.warn(*log_mesg)
-        if mlog.isEnabledFor(logging.DEBUG):
-            mlog.warn(*log_mesg)
-
-        userid = _getDefaultUser()
-        log_mesg = ("Using default user '%s' instead.", userid)
-        log.warn(*log_mesg)
-        if mlog.isEnabledFor(logging.DEBUG):
-            mlog.warn(*log_mesg)
-
-        user = userfolder.getUserById(userid)
-
-    if not hasattr(user, "aq_base"):
-        user = user.__of__(userfolder)
+    user = _getUser(context, userid)
     newSecurityManager(None, user)
     mlog.debug("Logged in as user '%s'", user)
     return user
 
 
-def _getDefaultUser():
-    userid = getSecurityManager().getUser().getId()
-    return userid if userid else _default_user
+@inject_logger(log=get_task_logger)
+def _getUser(log, context, userid):
+    root = context.getPhysicalRoot()
+    tool = getToolByName(root, "acl_users")
+
+    user = tool.getUserById(userid)
+    if user is None:
+        # Try a different tool.
+        tool = getToolByName(root.zport, "acl_users")
+        user = tool.getUserById(userid)
+
+        if user is None:
+            log_mesg = ("User '%s' is not a valid user.", userid)
+            log.warn(*log_mesg)
+            if mlog.isEnabledFor(logging.DEBUG):
+                mlog.warn(*log_mesg)
+            log_mesg = ("Using default user '%s' instead.", _default_user)
+            log.warn(*log_mesg)
+            if mlog.isEnabledFor(logging.DEBUG):
+                mlog.warn(*log_mesg)
+            user = tool.getUserById(_default_user)
+
+    if not hasattr(user, "aq_base"):
+        user = user.__of__(tool)
+
+    return user
