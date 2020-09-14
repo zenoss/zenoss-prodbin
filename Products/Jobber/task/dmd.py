@@ -29,6 +29,9 @@ from ..utils.log import get_logger, get_task_logger, inject_logger
 
 mlog = get_logger("zen.zenjobs.task.dmd")
 
+# Can't get users when using Auth0 currently, so use zenoss_system.
+_default_user = "zenoss_system"
+
 
 class DMD(object):
     """Attaches a ZODB dataroot object to the task instance.
@@ -99,7 +102,7 @@ def _getContext(app):
 
 
 @inject_logger(log=get_task_logger)
-def _login(log, context, userid="admin", userfolder=None):
+def _login(log, context, userid=_default_user, userfolder=None):
     """Authenticate user and configure credentials."""
     if userfolder is None:
         userfolder = context.getPhysicalRoot().acl_users
@@ -137,4 +140,4 @@ def _login(log, context, userid="admin", userfolder=None):
 
 def _getDefaultUser():
     userid = getSecurityManager().getUser().getId()
-    return userid if userid else "admin"
+    return userid if userid else _default_user
