@@ -231,7 +231,8 @@ class JobStore(Container, Iterable, Sized):
             k: Fields[k].dumps(v)
             for k, v in fields.items() if v is not None
         }
-        self.__client.hmset(key, fields)
+        if fields:
+            self.__client.hmset(key, fields)
         self.__expire_key_if_finished(key)
 
     def keys(self):

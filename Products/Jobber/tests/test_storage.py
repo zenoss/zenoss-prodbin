@@ -294,6 +294,18 @@ class ModifyJobStoreTest(TestCase):
         actual = set(raw.keys())
         t.assertSetEqual(expected, actual)
 
+    def test_update_with_only_Nones(t):
+        jobid = t.initial["jobid"]
+        update = {"logfile": None}
+        expected = {k for k in t.initial if k != "logfile"}
+
+        t.store[jobid] = t.initial
+
+        t.store.update(jobid, **update)
+        raw = t.layer.redis.hgetall("zenjobs:job:%s" % jobid)
+        actual = set(raw.keys())
+        t.assertSetEqual(expected, actual)
+
 
 def _buildData(jobnames, userids, base):
     baseid = 100

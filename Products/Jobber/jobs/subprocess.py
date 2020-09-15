@@ -67,7 +67,7 @@ class SubprocessJob(Job):
             else:
                 exitcode, output = self._handle_process(process)
                 if exitcode == 0:
-                    return
+                    return exitcode
                 summary = "Command failed with exit code %s" % exitcode
                 message = "Exit code %s for command %s; %s" % (
                     exitcode, self.getJobDescription(cmd), output,
