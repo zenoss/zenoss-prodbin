@@ -36,12 +36,16 @@ class ZingTxState(object):
         #
         self.need_organizers_fact = {}  # contextUUIDs:Fact that need an organizers fact
         self.need_device_info_fact = {} # contextUUIDs:Fact that need a device info fact
+        self.need_device_organizer_info_fact = {}
+        self.need_component_group_info_fact = {}
         self.need_deletion_fact = {}    # contextUUIDs:Fact that need a deletion fact
 
         # sets containing the uuids for which we have already sent a type of fact
         # to avoid sending the same fact more than once
         self.already_generated_organizer_facts = set()
         self.already_generated_device_info_facts = set()
+        self.already_generated_device_organizer_info_facts = set()
+        self.already_generated_component_group_info_facts = set()
         self.already_generated_impact_facts = set()
 
         self.impact_installed = False
@@ -55,7 +59,13 @@ class ZingTxState(object):
         return len(self.datamaps) > 0
 
     def is_there_object_updates(self):
-        return len(self.need_organizers_fact) > 0 or len(self.need_device_info_fact) >0 or len(self.need_deletion_fact) > 0
+        return any((
+            len(self.need_organizers_fact) > 0,
+            len(self.need_device_info_fact) > 0,
+            len(self.need_device_organizer_info_fact) > 0,
+            len(self.need_component_group_info_fact) > 0,
+            len(self.need_deletion_fact) > 0,
+        ))
 
 
 def get_zing_tx_state():
