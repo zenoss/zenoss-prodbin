@@ -20,9 +20,7 @@ from Products.Zuul import marshal
 from Products.Zuul.interfaces import IMarshallable, IInfo
 from zope.component import getGlobalSiteManager
 
-from ..jobs import Job
 from ..model import (
-    build_redis_record,
     IJobRecord,
     IJobStore,
     JobRecord,
@@ -31,7 +29,6 @@ from ..model import (
     update_job_status,
 )
 from ..storage import JobStore, Fields
-from ..zenjobs import app
 from .utils import subTest, RedisLayer
 
 UNEXPECTED = type("UNEXPECTED", (object,), {})()
@@ -170,128 +167,6 @@ class JobRecordTest(TestCase):
             with subTest(status=status):
                 record.status = status
                 t.assertEqual(expected, record.duration)
-
-
-class BaseBuildRedisRecord(object):
-
-    def setUp(t):
-        t.args = (10,)
-        t.kw = {"named": "charger"}
-        t.jobid = "12345"
-        t.expected = {
-            "logfile": "/opt/zenoss/log/jobs/%s.log" % t.jobid,
-            "description": t.task.description_from(*t.args, **t.kw),
-            "summary": t.task.summary,
-            "name": t.task.name,
-            "jobid": t.jobid,
-        }
-
-    def tearDown(t):
-        del t.task
-        del t.args
-        del t.kw
-        del t.jobid
-        del t.expected
-
-    def test_bad_jobid(t):
-        with t.assertRaises(ValueError):
-            build_redis_record(t.task, None, (), {})
-
-    def test_minimum_args(t):
-        actual = build_redis_record(t.task, t.jobid, t.args, t.kw)
-        t.assertDictEqual(t.expected, actual)
-
-    def test_non_default_description(t):
-        description = "alternate description"
-        t.expected["description"] = description
-        actual = build_redis_record(
-            t.task, t.jobid, t.args, t.kw, description=description,
-        )
-        t.assertDictEqual(t.expected, actual)
-
-    def test_status(t):
-        status = "PENDING"
-        t.expected["status"] = status
-        actual = build_redis_record(
-            t.task, t.jobid, t.args, t.kw, status=status,
-        )
-        t.assertDictEqual(t.expected, actual)
-
-    def test_created(t):
-        created = 1234970434.303
-        t.expected["created"] = created
-        actual = build_redis_record(
-            t.task, t.jobid, t.args, t.kw, created=created,
-        )
-        t.assertDictEqual(t.expected, actual)
-
-    def test_userid(t):
-        userid = "someuser"
-        t.expected["userid"] = userid
-        actual = build_redis_record(
-            t.task, t.jobid, t.args, t.kw, userid=userid,
-        )
-        t.assertDictEqual(t.expected, actual)
-
-    def test_details(t):
-        details = {"a": 1, "b": 2}
-        t.expected["details"] = details
-        actual = build_redis_record(
-            t.task, t.jobid, t.args, t.kw, details=details,
-        )
-        t.assertDictEqual(t.expected, actual)
-
-    def test_all_defaulted_args(t):
-        status = "PENDING"
-        created = 1234970434.303
-        userid = "someuser"
-        details = {"a": 1, "b": 2}
-        t.expected.update({
-            "status": status,
-            "created": created,
-            "userid": userid,
-            "details": details,
-        })
-        actual = build_redis_record(
-            t.task, t.jobid, t.args, t.kw,
-            status=status, created=created, userid=userid, details=details,
-        )
-        t.assertDictEqual(t.expected, actual)
-
-
-class BuildRedisRecordFromJobTest(BaseBuildRedisRecord, TestCase):
-    """Test the build_redis_record function with a Job."""
-
-    class TestJob(Job):
-
-        @classmethod
-        def getJobType(cls):
-            return "Test Job"
-
-        @classmethod
-        def getJobDescription(cls, *args, **kw):
-            return "TestJob %s %s" % (args, kw)
-
-    def setUp(t):
-        t.task = t.TestJob()
-        BaseBuildRedisRecord.setUp(t)
-
-
-class BuildRedisRecordFromZenTaskTest(BaseBuildRedisRecord, TestCase):
-    """Test the build_redis_record function with a ZenTask."""
-
-    @app.task(
-        bind=True,
-        name="zen.zenjobs.test.test_task",
-        summary="Test ZenTask",
-        description_template="Test {0} named={named}",
-    )
-    def noop_task(self, *args, **kw):
-        pass
-
-    def setUp(t):
-        t.task = t.noop_task
-        BaseBuildRedisRecord.setUp(t)
 
 
 class UpdateJobStatusTest(TestCase):
