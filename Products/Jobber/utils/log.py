@@ -108,11 +108,11 @@ class FormatStringAdapter(logging.LoggerAdapter):
         self.log(logging.INFO, msg, *args, **kwargs)
 
     def warning(self, msg, *args, **kwargs):
-        """Log a WARN message."""
+        """Log a WARNING message."""
         self.log(logging.WARNING, msg, *args, **kwargs)
 
     def warn(self, msg, *args, **kwargs):
-        """Log a WARNING message."""
+        """Log a WARN message."""
         self.log(logging.WARN, msg, *args, **kwargs)
 
     def error(self, msg, *args, **kwargs):
@@ -195,6 +195,17 @@ class LoggingProxy(_LoggingProxy):
                 self.logger.log(self.loglevel, safe_str(line.rstrip()))
         finally:
             self._thread.recurse_protection = False
+
+
+class ForwardingHandler(logging.Handler):
+    """Forwards log records to another handler."""
+
+    def __init__(self, target, level=logging.NOTSET):
+        self.__target = target
+        super(ForwardingHandler, self).__init__(level=level)
+
+    def emit(self, record):
+        self.__target.emit(record)
 
 
 _task_format = "%(asctime)s %(levelname)s %(name)s: %(message)s"

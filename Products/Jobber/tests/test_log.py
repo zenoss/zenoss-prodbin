@@ -63,15 +63,15 @@ class ConfigureLoggingTest(TestCase):
         getLogger.side_effect = lambda n: logs[n]
         getLogger_calls = [call("STDOUT"), call("STDERR")]
         proxies = {
-            (logs["STDOUT"], _logging.INFO): sentinel.stdout_proxy,
-            (logs["STDERR"], _logging.ERROR): sentinel.stderr_proxy,
+            logs["STDOUT"]: sentinel.stdout_proxy,
+            logs["STDERR"]: sentinel.stderr_proxy,
         }
-        out_proxy = proxies[(logs["STDOUT"], _logging.INFO)]
-        err_proxy = proxies[(logs["STDERR"], _logging.ERROR)]
-        _LoggingProxy.side_effect = lambda x, y: proxies[(x, y)]
+        out_proxy = proxies[logs["STDOUT"]]
+        err_proxy = proxies[logs["STDERR"]]
+        _LoggingProxy.side_effect = lambda x: proxies[x]
         proxy_calls = [
-            call(logs["STDOUT"], _logging.INFO),
-            call(logs["STDERR"], _logging.ERROR),
+            call(logs["STDOUT"]),
+            call(logs["STDERR"]),
         ]
 
         exists.return_value = True
@@ -122,15 +122,15 @@ class ConfigureLoggingTest(TestCase):
         getLogger.side_effect = lambda n: logs[n]
         getLogger_calls = [call("STDOUT"), call("STDERR")]
         proxies = {
-            (logs["STDOUT"], _logging.INFO): sentinel.stdout_proxy,
-            (logs["STDERR"], _logging.ERROR): sentinel.stderr_proxy,
+            logs["STDOUT"]: sentinel.stdout_proxy,
+            logs["STDERR"]: sentinel.stderr_proxy,
         }
-        out_proxy = proxies[(logs["STDOUT"], _logging.INFO)]
-        err_proxy = proxies[(logs["STDERR"], _logging.ERROR)]
-        _LoggingProxy.side_effect = lambda x, y: proxies[(x, y)]
+        out_proxy = proxies[logs["STDOUT"]]
+        err_proxy = proxies[logs["STDERR"]]
+        _LoggingProxy.side_effect = lambda x: proxies[x]
         proxy_calls = [
-            call(logs["STDOUT"], _logging.INFO),
-            call(logs["STDERR"], _logging.ERROR),
+            call(logs["STDOUT"]),
+            call(logs["STDERR"]),
         ]
 
         exists.return_value = False
