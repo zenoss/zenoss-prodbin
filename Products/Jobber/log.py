@@ -11,7 +11,6 @@ from __future__ import absolute_import, print_function
 
 import contextlib
 import csv
-import errno
 import hashlib
 import logging
 import logging.config
@@ -26,11 +25,14 @@ from zope.component import getUtility
 from Products.ZenUtils.Utils import zenPath
 
 from .config import ZenJobs
+from .exceptions import NoSuchJobException
 from .interfaces import IJobStore
+from .utils.algorithms import partition
 from .utils.log import (
     FormatStringAdapter,
     get_logger,
     get_task_logger,
+    ForwardingHandler,
     inject_logger,
     LoggingProxy,
     TaskLogFileHandler,
@@ -125,13 +127,13 @@ def configure_logging(**ignore):
         levelconfig = load_log_level_config(_loglevelconf_filepath)
         apply_levels(levelconfig)
 
-    stdout = logging.getLogger("STDOUT")
-    outproxy = LoggingProxy(stdout, logging.INFO)
+    stdout_logger = logging.getLogger("STDOUT")
+    outproxy = LoggingProxy(stdout_logger)
     sys.__stdout__ = outproxy
     sys.stdout = outproxy
 
-    stderr = logging.getLogger("STDERR")
-    errproxy = LoggingProxy(stderr, logging.ERROR)
+    stderr_logger = logging.getLogger("STDERR")
+    errproxy = LoggingProxy(stderr_logger)
     sys.__stderr__ = errproxy
     sys.stderr = errproxy
 
@@ -200,18 +202,31 @@ def setup_job_instance_logger(log, task_id=None, task=None, **kwargs):
     log.debug("Adding a logger for job instance {}[{}]", task.name, task_id)
     try:
         storage = getUtility(IJobStore, "redis")
+        if task_id not in storage:
+            raise NoSuchJobException(task_id)
+
         logfile = storage.getfield(task_id, "logfile")
         logdir = os.path.dirname(logfile)
-        try:
+        if not os.path.exists(logdir):
             os.makedirs(logdir)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
         handler = TaskLogFileHandler(logfile)
         get_task_logger().addHandler(handler)
+
+        # Redirect zen logging to task log handler
+        zenlog = logging.getLogger("zen")
+        zenlog.propagate = False
+        zenlog.addHandler(handler)
+
+        # Add a handler to the STDOUT and STDERR loggers
+        newhandler = ForwardingHandler(handler)
+        # newhandler.setFormatter(logging.Formatter("%(message)s"))
+        loggers = (logging.getLogger("STDOUT"), logging.getLogger("STDERR"))
+        for logger in loggers:
+            logger.propagate = False
+            logger.addHandler(newhandler)
     except Exception:
         log.exception("Failed to add job instance logger")
-    finally:
+    else:
         log.debug("Job instance logger added")
 
 
@@ -220,17 +235,37 @@ def teardown_job_instance_logger(log, task=None, **kwargs):
     """Tear down and delete the job instance logger."""
     log.debug("Removing job instance logger from {}", task.name)
     try:
-        logger = get_task_logger()
-        handlers = []
-        for handler in logger.handlers:
-            if isinstance(handler, TaskLogFileHandler):
-                handler.close()
-            else:
-                handlers.append(handler)
-        logger.handlers = handlers
+        # Remove handler from STDOUT and STDERR loggers
+        loggers = (logging.getLogger("STDOUT"), logging.getLogger("STDERR"))
+        oldhandlers = set()
+        for logger in loggers:
+            logger.propagate = True
+            removedhandlers, handlers = partition(
+                logger.handlers,
+                lambda x: isinstance(x, ForwardingHandler)
+            )
+            logger.handlers = handlers
+            oldhandlers.update(removedhandlers)
+        for h in oldhandlers:
+            h.close()
+
+        # Restore zen logging
+        zenlog = logging.getLogger("zen")
+        zenlog.propagate = True
+        zenlog.handlers = []
+
+        # Close task logger
+        tasklog = get_task_logger()
+        taskhandlers, handlers = partition(
+            tasklog.handlers,
+            lambda x: isinstance(x, TaskLogFileHandler)
+        )
+        tasklog.handlers = handlers
+        for h in taskhandlers:
+            h.close()
     except Exception:
         log.exception("Failed to remove job instance logger")
-    finally:
+    else:
         log.debug("Job instance logger removed")
 
 

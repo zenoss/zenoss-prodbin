@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import logging
 import os
@@ -56,6 +56,7 @@ class SubprocessJob(Job):
                     cmd,
                     bufsize=1,
                     env=environ,
+                    close_fds=True,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                 )
@@ -83,30 +84,35 @@ class SubprocessJob(Job):
             raise
 
     def _handle_process(self, process):
+        process.stdout.flush()
         # Since process.stdout.readline() is a blocking call, it stops
         # asynchronous actions from occurring until it unblocks.
         # The LineReader object allows non-blocking readline().
         reader = LineReader(process.stdout)
-        reader.start()
+        try:
+            reader.start()
 
-        # Use threading.Event for temporarily pausing the thread
-        # because time.sleep blocks the current thread preventing it
-        # from receiving a JobAborted exception in a timely manner.
-        _sleeper = threading.Event()
+            # Use threading.Event for temporarily pausing the thread
+            # because time.sleep blocks the current thread preventing it
+            # from receiving a JobAborted exception in a timely manner.
+            _sleeper = threading.Event()
 
-        formatting_context = getLogFormattingContext()
-        exitcode = None
-        output = ""
-        while exitcode is None:
-            line = reader.readline()
-            if line:
-                with formatting_context():
-                    self.log.info(line.strip())
-                    output += line.strip()
-            else:
-                exitcode = process.poll()
-                _sleeper.wait(0.1)
-        return exitcode, output
+            formatting_context = getLogFormattingContext()
+            exitcode = None
+            output = ""
+            while exitcode is None:
+                line = reader.readline()
+                if line:
+                    line = line.rstrip()
+                    with formatting_context():
+                        self.log.info(line)
+                        output += line
+                else:
+                    exitcode = process.poll()
+                    _sleeper.wait(0.1)
+            return exitcode, output
+        finally:
+            reader.join(timeout=1.0)
 
 
 @contextmanager
