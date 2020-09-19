@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import logging
 import os
@@ -22,7 +22,7 @@ from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 
 from .exceptions import NoSuchJobException
 from .interfaces import IJobStore
-from .model import LegacySuport, JobRecord, build_redis_record, sortable_keys
+from .model import LegacySuport, JobRecord, RedisRecord, sortable_keys
 from .utils.accesscontrol import ZClassSecurityInfo, ZInitializeClass
 from .zenjobs import app
 
@@ -70,9 +70,9 @@ class JobManager(ZenModelRM):
         NOTE: The jobs WILL NOT run until the current transaction is committed!
 
         :param joblist: task signatures as positional arguments
-        :type joblist: celery.canvas.Signature
+        :type joblist: Tuple[celery.canvas.Signature]
         :param options: additional options/settings to apply to each job
-        :type options: keyword/value arguments, str=Any
+        :type options: Dict[str, Any]
         :return: The job record objects associated with the jobs.
         :rtype: Tuple[JobRecord]
         """
@@ -87,14 +87,7 @@ class JobManager(ZenModelRM):
         send = _SendTask(job)
         transaction.get().addAfterCommitHook(send)
         return tuple(
-            JobRecord.make(build_redis_record(
-                app.tasks.get(s.task),
-                s.id,
-                s.args,
-                s.kwargs,
-                description=s.options.get("description"),
-                userid=s.options.get("headers", {}).get("userid"),
-            ))
+            JobRecord.make(RedisRecord.from_signature(s))
             for s in signatures
         )
 
@@ -130,8 +123,6 @@ class JobManager(ZenModelRM):
 
         if description is not None:
             properties["description"] = description
-        else:
-            description = task.description_from(*args, **kwargs)
 
         task_id = str(uuid.uuid4())
         # Build the signature to call the task
@@ -140,14 +131,7 @@ class JobManager(ZenModelRM):
         # Defer sending the signature until the transaction has been committed
         hook = _SendTask(s)
         transaction.get().addAfterCommitHook(hook)
-        return JobRecord.make(build_redis_record(
-            task,
-            s.id,
-            args,
-            kwargs,
-            description=description,
-            userid=s.options["headers"]["userid"],
-        ))
+        return JobRecord.make(RedisRecord.from_signature(s))
 
     def wait(self, jobid):
         """Wait for the job identified by jobid to complete.

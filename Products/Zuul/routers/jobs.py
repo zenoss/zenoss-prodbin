@@ -36,6 +36,7 @@ JOBKEYS = [
     "finished",
     "status",
     "user",
+    "logfile",
 ]
 
 
@@ -95,7 +96,7 @@ class JobsRouter(DirectRouter):
 
     def getInfo(self, jobid):
         job = self.api.getJob(jobid)
-        return DirectResponse.succeed(data=Zuul.marshal(job))
+        return DirectResponse.succeed(data=Zuul.marshal(job, keys=JOBKEYS))
 
     def detail(self, jobid):
         try:

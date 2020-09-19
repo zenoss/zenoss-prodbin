@@ -28,7 +28,7 @@ from .zenjobs import app
 
 mlog = logging.getLogger("zen.zenjobs.model")
 
-sortable_keys = list(set(Fields) - set({"details"}))
+sortable_keys = list(set(Fields) - {"details"})
 
 
 @implementer(IJobRecord, IInfo)
@@ -180,6 +180,76 @@ class LegacySuport(object):
         return cls.keys.get(key, key)
 
 
+class RedisRecord(dict):
+    """A convenient mapping object for records stored in Redis.
+    """
+
+    @classmethod
+    def from_task(cls, task, jobid, args, kwargs, **fields):
+        if not jobid:
+            raise ValueError("Invalid job ID: '%s'" % (jobid,))
+        description = fields.get("description", None)
+        if not description:
+            description = task.description_from(*args, **kwargs)
+        record = cls(
+            jobid=jobid,
+            name=task.name,
+            summary=task.summary,
+            description=description,
+            logfile=os.path.join(
+                ZenJobs.get("job-log-path"), "%s.log" % jobid,
+            ),
+        )
+        if "status" in fields:
+            record["status"] = fields["status"]
+        if "created" in fields:
+            record["created"] = fields["created"]
+        if "userid" in fields:
+            record["userid"] = fields["userid"]
+        if "details" in fields:
+            record["details"] = fields["details"]
+        return record
+
+    @classmethod
+    def from_signature(cls, sig):
+        """Return a RedisRecord object built from a Signature object.
+        """
+        taskname = sig.get("task")
+        args = sig.get("args")
+        kwargs = sig.get("kwargs")
+
+        options = dict(sig.options)
+        headers = options.pop("headers", {})
+        jobid = options.pop("task_id")
+
+        return cls._build(jobid, taskname, args, kwargs, headers, options)
+
+    @classmethod
+    def from_signal(cls, body, headers, properties):
+        """Return a RedisRecord object built from the arguments passed to
+        a before_task_publish signal handler.
+        """
+        jobid = body.get("id")
+        taskname = body.get("task")
+        args = body.get("args", ())
+        kwargs = body.get("kwargs", {})
+        return cls._build(jobid, taskname, args, kwargs, headers, properties)
+
+    @classmethod
+    def _build(cls, jobid, taskname, args, kwargs, headers, properties):
+        task = app.tasks[taskname]
+        fields = {}
+        description = properties.pop("description", None)
+        if description:
+            fields["description"] = description
+        if properties:
+            fields["details"] = dict(properties)
+        userid = headers.get("userid")
+        if userid is not None:
+            fields["userid"] = userid
+        return cls.from_task(task, jobid, args, kwargs, **fields)
+
+
 @inject_logger(log=mlog)
 def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
     """Save the Zenoss specific job metadata to redis.
@@ -202,67 +272,40 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
         log.info("no headers, bad signal?")
         return
 
-    # Make sure properties is not None
-    properties = dict(properties) if properties else {}
-
-    # Retrieve the job storage connection.
-    storage = getUtility(IJobStore, "redis")
-
-    # Retrieve the job ID  (same as task ID)
-    jobid = body.get("id")
-
-    userid = headers.get("userid")
-    if userid is None:
-        log.warn("No user ID submitted with job %s", jobid)
-
-    properties.update({
+    # Save first (and possibly only) job
+    record = RedisRecord.from_signal(body, headers, properties)
+    record.update({
         "status": states.PENDING,
         "created": time.time(),
     })
-    if userid:
-        properties["userid"] = userid
+    _save_record(record)
 
+    # Iterate over the callbacks.
+    callbacks = body.get("callbacks") or []
+    links = []
+    for cb in callbacks:
+        links.extend(cb.flatten_links())
+    for link in links:
+        record = RedisRecord.from_signature(link)
+        record.update({
+            "status": states.PENDING,
+            "created": time.time(),
+        })
+        _save_record(record)
+
+
+@inject_logger(log=mlog)
+def _save_record(log, record):
+    # Retrieve the job storage connection.
+    storage = getUtility(IJobStore, "redis")
+    jobid = record["jobid"]
+    if "userid" not in record:
+        log.warn("No user ID submitted with job %s", jobid)
     if jobid not in storage:
-        taskname = body.get("task")
-        task = app.tasks[taskname]
-        record = build_redis_record(
-            task,
-            jobid,
-            body.get("args", ()),
-            body.get("kwargs", {}),
-            **properties
-        )
         storage[jobid] = record
         log.info("Saved record for job %s", jobid)
     else:
-        log.info("Record already exists for job %s", jobid)
-
-
-def build_redis_record(
-    task, jobid, args, kwargs,
-    description=None, status=None, created=None, userid=None, details=None,
-    **ignored
-):
-    if not jobid:
-        raise ValueError("Invalid job ID: '%s'" % (jobid,))
-    if not description:
-        description = task.description_from(*args, **kwargs)
-    record = {
-        "jobid": jobid,
-        "name": task.name,
-        "summary": task.summary,
-        "description": description,
-        "logfile": os.path.join(ZenJobs.get("job-log-path"), "%s.log" % jobid),
-    }
-    if status:
-        record["status"] = status
-    if created:
-        record["created"] = created
-    if userid:
-        record["userid"] = userid
-    if details:
-        record["details"] = details
-    return record
+        log.debug("Record already exists for job %s", jobid)
 
 
 @inject_logger(log=mlog)
@@ -284,4 +327,18 @@ def update_job_status(log, task_id=None, task=None, **kwargs):
         job_status = states.STARTED
     tmvalue = time.time()
     jobstore.update(task_id, **{"status": job_status, tmfield: tmvalue})
-    log.debug("status %s, %s: %s", job_status, tmfield, tmvalue)
+    log.info("status %s, %s: %s", job_status, tmfield, tmvalue)
+
+    # If the job failed or was aborted, change status of linked jobs
+    if job_status in (states.FAILURE, ABORTED):
+        req = getattr(task, "request", None)
+        if not req:
+            return
+        callbacks = req.callbacks
+        if not callbacks:
+            return
+        for cb in callbacks:
+            cbid = cb.get("options", {}).get("task_id")
+            if not cbid:
+                continue
+            jobstore.update(cbid, status=ABORTED, finished=tmvalue)
