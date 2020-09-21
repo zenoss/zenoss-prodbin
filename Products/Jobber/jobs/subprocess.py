@@ -28,6 +28,14 @@ class SubprocessJob(Job):
 
     name = "Products.Jobber.SubprocessJob"
 
+    # Specifying the exceptions a job can raise will avoid the
+    # "Unexpected exception" traceback message in zenjobs' log.
+    # NOTE: JobAborted is not specified on purpose.  The Abortable base
+    # class catches JobAborted and handles it.  Also, JobAborted does
+    # not originate from the SubprocessJob class so it has no business
+    # specifying whether it's an expected exception.
+    throws = Job.throws + (SubprocessJobFailed,)
+
     @classmethod
     def getJobType(cls):
         """Return a general, but brief, description of the job."""
