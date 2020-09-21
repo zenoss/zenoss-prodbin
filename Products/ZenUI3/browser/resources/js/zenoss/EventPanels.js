@@ -30,6 +30,10 @@
         var device;
         if (Zenoss.env.device_uid) {
             device = Zenoss.env.device_uid.split("/").reverse()[0];
+        } else {
+            if (!_has_global_roles()) {
+                device = Ext.getCmp(gridId).getSelectionModel().getSelected().data.device.text
+            }
         }
         var collectors = new Ext.data.ArrayStore({
                         data: Zenoss.env.COLLECTORS,
@@ -76,6 +80,7 @@
                     id: 'add_event_device_textfield',
                     name: 'device',
                     allowBlank: false,
+                    readOnly: !_has_global_roles(),
                     value: device
                 },{
                     xtype: 'textfield',
@@ -1146,7 +1151,8 @@
                             });
                         }
                         // Disable add_event button for event console context if no global role
-                        if (!Zenoss.env.device_uid) {
+                        // In some contexts we don't have add event button so check it first
+                        if (!Zenoss.env.device_uid && tbar && tbar.getComponent('add_event_main_button')) {
                             tbar.getComponent('add_event_main_button').setDisabled(true);
                         }
 
