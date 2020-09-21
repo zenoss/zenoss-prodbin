@@ -33,7 +33,10 @@ class SendZenossEventMixin(object):
                 exc, task_id, args, kwargs, einfo,
             )
         finally:
-            _send_event(self, exc, task_id, args, kwargs)
+            try:
+                _send_event(self, exc, task_id, args, kwargs)
+            except Exception:
+                mlog.exception("Failed to send event")
 
 
 def _send_event(task, exc, task_id, args, kwargs):

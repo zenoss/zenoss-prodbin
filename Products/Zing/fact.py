@@ -14,6 +14,9 @@ import copy
 import time
 import logging
 
+from Products.ZenModel.ComponentGroup import ComponentGroup
+from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+from Products.ZenModel.Location import Location
 from zope.component.interfaces import ComponentLookupError
 from zope.component import getUtility
 
@@ -24,6 +27,8 @@ log = logging.getLogger("zen.zing.fact")
 
 ORGANIZERS_FACT_PLUGIN = 'zen_organizers'
 DEVICE_INFO_FACT_PLUGIN = 'zen_device_info'
+DEVICE_ORGANIZER_INFO_FACT_PLUGIN = 'zen_device_organizer_info'
+COMPONENT_GROUP_INFO_FACT_PLUGIN = 'zen_component_group_info'
 DELETION_FACT_PLUGIN = 'zen_deletion'
 DYNAMIC_SERVICE_FACT_PLUGIN = 'zen_impact_dynamic_service'
 
@@ -93,6 +98,52 @@ def deletion_fact(obj_uuid):
     f.metadata[DimensionKeys.CONTEXT_UUID_KEY] = obj_uuid
     f.metadata[DimensionKeys.PLUGIN_KEY] = DELETION_FACT_PLUGIN
     f.data[MetadataKeys.DELETED_KEY] = True
+    return f
+
+
+def device_organizer_info_fact(device_organizer):
+    """
+    Given a DeviceOrganizer, generates its fact
+    """
+    f = Fact()
+    f.set_context_uuid_from_object(device_organizer)
+    f.set_meta_type_from_object(device_organizer)
+    f.metadata[DimensionKeys.PLUGIN_KEY] = DEVICE_ORGANIZER_INFO_FACT_PLUGIN
+    f.data[MetadataKeys.NAME_KEY] = device_organizer.getOrganizerName()
+
+    # Ignore root DeviceOrganizer (/) and DataRoot as parents.
+    parent = device_organizer.getPrimaryParent()
+    if isinstance(parent, DeviceOrganizer) and parent.getOrganizerName() != "/":
+        f.metadata[DimensionKeys.PARENT_KEY] = parent.getUUID()
+
+    if device_organizer.aqBaseHasAttr("description"):
+        f.data["description"] = device_organizer.description
+
+    if isinstance(device_organizer, Location):
+        if device_organizer.address:
+            f.data["z.map.address"] = device_organizer.address
+
+        if device_organizer.latlong:
+            f.data["z.map.latlong"] = device_organizer.latlong
+
+    return f
+
+
+def component_group_info_fact(component_group):
+    f = Fact()
+    f.set_context_uuid_from_object(component_group)
+    f.set_meta_type_from_object(component_group)
+    f.metadata[DimensionKeys.PLUGIN_KEY] = COMPONENT_GROUP_INFO_FACT_PLUGIN
+    f.data[MetadataKeys.NAME_KEY] = component_group.getOrganizerName()
+
+    # Ignore root ComponentGroup (/) and DataRoot as parents.
+    parent = component_group.getPrimaryParent()
+    if isinstance(parent, ComponentGroup) and parent.getOrganizerName() != "/":
+        f.metadata[DimensionKeys.PARENT_KEY] = parent.getUUID()
+
+    if component_group.aqBaseHasAttr("description"):
+        f.data["description"] = component_group.description
+
     return f
 
 

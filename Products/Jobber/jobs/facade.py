@@ -25,7 +25,6 @@ class FacadeMethodJob(Job):
 
     name = "Products.Jobber.FacadeMethodJob"
     ignore_result = False
-    throws = Job.throws + (FacadeMethodJobFailed,)
 
     @classmethod
     def getJobType(cls):

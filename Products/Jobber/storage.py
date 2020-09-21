@@ -45,6 +45,10 @@ def _float_str(f):
     return "{:.6f}".format(f).strip("0")
 
 
+def _immutable(self, *args, **kw):
+    raise TypeError("Object is immutable")
+
+
 class _Fields(dict):
     """Describes all the attributes of a job record.
 
@@ -68,6 +72,14 @@ class _Fields(dict):
             ("status", _Converter(str, str)),
             ("details", _Converter(json.dumps, json.loads)),
         ))
+
+    __setitem__ = _immutable
+    __delitem__ = _immutable
+    clear = _immutable
+    pop = _immutable
+    popitem = _immutable
+    setdefault = _immutable
+    update = _immutable
 
 
 Fields = _Fields()
@@ -231,7 +243,8 @@ class JobStore(Container, Iterable, Sized):
             k: Fields[k].dumps(v)
             for k, v in fields.items() if v is not None
         }
-        self.__client.hmset(key, fields)
+        if fields:
+            self.__client.hmset(key, fields)
         self.__expire_key_if_finished(key)
 
     def keys(self):
