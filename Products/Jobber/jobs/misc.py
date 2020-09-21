@@ -51,10 +51,15 @@ class PausingJob(Job):
         threading.Event().wait(seconds)
 
 
+class DelayedFailureError(ValueError):
+    pass
+
+
 class DelayedFailure(Job):
     """Waits for some interval of time before failing."""
 
     name = "zen.zenjobs.test.DelayedFailure"
+    throws = Job.throws + (DelayedFailureError,)
 
     @classmethod
     def getJobDescription(cls, *args, **kw):
@@ -63,7 +68,7 @@ class DelayedFailure(Job):
     def _run(self, seconds, *args, **kw):
         self.log.info("Sleeping for %s seconds", seconds)
         threading.Event().wait(seconds)
-        raise ValueError("slept for %s seconds" % seconds)
+        raise DelayedFailureError("slept for %s seconds" % seconds)
 
 
 @app.task(

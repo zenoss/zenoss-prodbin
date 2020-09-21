@@ -26,6 +26,10 @@ class FacadeMethodJob(Job):
     name = "Products.Jobber.FacadeMethodJob"
     ignore_result = False
 
+    # Specifying the exceptions a job can raise will avoid the
+    # "Unexpected exception" traceback message in zenjobs' log.
+    throws = Job.throws + (FacadeMethodJobFailed,)
+
     @classmethod
     def getJobType(cls):
         """Return a general, but brief, description of the job."""
@@ -84,7 +88,9 @@ class FacadeMethodJob(Job):
                     raise FacadeMethodJobFailed(str(result))
                 return result["message"]
             except (TypeError, KeyError):
-                self.log.error(
-                    "The output from job %s is not in the right format: %s",
-                    self.request.id, result,
+                self.log.warn(
+                    "The output from job %s is not in the right format: "
+                    "%s.%s returned %s",
+                    self.request.id, facadefqdn, bound_method, result,
                 )
+                return result

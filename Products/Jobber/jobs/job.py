@@ -19,7 +19,7 @@ from Products.ZenEvents import Event
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 
 from ..config import ZenJobs
-from ..exceptions import NoSuchJobException, TaskAborted
+from ..exceptions import NoSuchJobException
 from ..task import Abortable, DMD, ZenTask
 from ..zenjobs import app
 
@@ -30,6 +30,9 @@ class Job(Abortable, DMD, ZenTask):
     """Base class for legacy jobs."""
 
     abstract = True  # Job class itself is not registered.
+
+    # Specifying the exceptions a job can raise will avoid the
+    # "Unexpected exception" traceback message in zenjobs' log.
     throws = Abortable.throws + ZenTask.throws
 
     @classmethod
