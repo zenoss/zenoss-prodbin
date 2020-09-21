@@ -137,10 +137,7 @@ def column_config(request=None, archive=False):
 
 class EventClasses(JavaScriptSnippet):
     def snippet(self):
-        orgs = self.context.dmd.Events.getSubOrganizers()
-        paths = ['/'.join(x.getPrimaryPath()) for x in orgs]
-        paths = [p.replace('/zport/dmd/Events','') for p in paths]
-        paths.sort()
+        paths = self.context.dmd.Events.getOrganizerNames()
         return """
         Ext.onReady(function(){
             Zenoss.env.EVENT_CLASSES = %s;
