@@ -121,7 +121,8 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                     listeners: {
                         click: function() {
                             var itemName = options.onGetItemName();
-                            if (itemName !== 'Dynamic Service') {
+                            // Special hendler for Device Class organizer to fix ZEN-15212
+                            if (itemName == 'Device Class') {
                                 var nodePath = '/' + Ext.getCmp('devices').getSelectionModel().getSelectedNode().data.path;
                                 var dialog = new Zenoss.SmartFormDialog({
                                     buttonAlign: 'center',
