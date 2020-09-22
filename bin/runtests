@@ -9,52 +9,53 @@
 ##############################################################################
 
 SOLR_TEST_PORT="8993"
+ZK_TEST_PORT="9993"  # embedded ZK port is SOLR_TEST_PORT + 1000
 
 start_solr() {
-        echo "Preparing configuration files..."
-        mkdir -p /tmp/testing/solr/configsets /tmp/testing/solr/data
-        cp -rf /opt/solr/server/solr/configsets/zenoss_model/ /tmp/testing/solr/configsets
-        cp -f /opt/solr/server/solr/solr.xml /tmp/testing/solr/data
-        cp -f /opt/solr/server/solr/zoo.cfg /tmp/testing/solr/data
-        echo "name=zenoss_model" > /tmp/testing/solr/configsets/zenoss_model/core.properties
+	echo "Preparing configuration files..."
+	mkdir -p /tmp/testing/solr/configsets /tmp/testing/solr/data
+	cp -rf /opt/solr/server/solr/configsets/zenoss_model/ /tmp/testing/solr/configsets
+	cp -f /opt/solr/server/solr/solr.xml /tmp/testing/solr/data
+	cp -f /opt/solr/server/solr/zoo.cfg /tmp/testing/solr/data
+	echo "name=zenoss_model" > /tmp/testing/solr/configsets/zenoss_model/core.properties
 
-        echo "Starting Solr for testing purposes..."
-        /opt/solr/bin/solr \
-                -a \
-                -Dsolr.log.muteconsole \
-                -cloud \
-                -DzkRun \
-                -f \
-                -p $SOLR_TEST_PORT \
-                -DnumShards=1 \
-                -Dbootstrap_confdir=/tmp/testing/solr/configsets/zenoss_model/conf \
-                -s /tmp/testing/solr/data \
-                -Dcollection.configName=zenoss_model \
-                -Dsolr.jetty.request.header.size=1000000 \
-                1> "/tmp/testing/solr-console.log" \
-                2>&1 \
-                &
-        export SOLR_TEST_PID=$!
-        echo "SOLR_TEST_PID=$SOLR_TEST_PID"
-        echo "SOLR_TEST_PORT=$SOLR_TEST_PORT"
-        echo "Waiting for Solr to start..."
-        until $(curl -A 'Solr answering healthcheck' -sI http://localhost:$SOLR_TEST_PORT/solr/admin/cores | grep -q 200); do
-        sleep 5
-        done
-        echo "Solr is running"
+	echo "Starting Solr for testing purposes..."
+	/opt/solr/bin/solr start \
+		-f \
+		-p $SOLR_TEST_PORT \
+		-s /tmp/testing/solr/data \
+		-v \
+		-cloud \
+		-Dsolr.log.muteconsole \
+		-DzkRun \
+		-DnumShards=1 \
+		-Dbootstrap_confdir=/tmp/testing/solr/configsets/zenoss_model/conf \
+		-Dcollection.configName=zenoss_model \
+		-Dsolr.jetty.request.header.size=1000000 \
+		> "/tmp/testing/solr-console.log" \
+		2>&1 \
+		&
+	export SOLR_TEST_PID=$!
+	echo "SOLR_TEST_PID=$SOLR_TEST_PID"
+	echo "SOLR_TEST_PORT=$SOLR_TEST_PORT"
+	echo "Waiting for Solr to start..."
+	until $(curl -A 'Solr answering healthcheck' -sI http://localhost:$SOLR_TEST_PORT/solr/admin/cores | grep -q 200); do
+	sleep 5
+	done
+	echo "Solr is running"
 
-        echo "Creating zenoss_model collection"
-        /opt/solr/bin/solr create_collection \
-                -c zenoss_model \
-                -d /tmp/testing/solr/configsets/zenoss_model/conf \
-                -n zenoss_model \
-                -p $SOLR_TEST_PORT 1> "/tmp/testing/solr-console.log" \
-                2>&1 \
-                &
-        until $(/opt/solr/bin/solr healthcheck -c zenoss_model | grep -q "zenoss_model"); do
-        sleep 5
-        done
-        echo "Collection is created"
+	echo "Creating zenoss_model collection"
+	/opt/solr/bin/solr create_collection \
+		-c zenoss_model \
+		-d /tmp/testing/solr/configsets/zenoss_model/conf \
+		-n zenoss_model \
+		-p $SOLR_TEST_PORT 1> "/tmp/testing/solr-console.log" \
+		2>&1 \
+		&
+	until $(/opt/solr/bin/solr healthcheck -c zenoss_model -z localhost:$ZK_TEST_PORT | grep -q "zenoss_model"); do
+	sleep 5
+	done
+	echo "Collection is created"
 }
 
 stop_solr() {
