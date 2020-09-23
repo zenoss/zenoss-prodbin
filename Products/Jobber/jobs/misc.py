@@ -74,6 +74,23 @@ class DelayedFailure(Job):
 @app.task(
     bind=True,
     base=requires(DMD, Abortable),
+    name="zen.zenjobs.test.pathexists",
+    summary="Test whether a ZODB UID exists",
+    description_template="Test whether {0} exists in ZODB.",
+)
+def pathexists(self, uid):
+    try:
+        obj = self.dmd.unrestrictedTraverse(uid)
+        self.log.info("Found object %s: %s", uid, obj)
+        return True
+    except Exception:
+        self.log.exception("Had a problem finding %s", uid)
+        return False
+
+
+@app.task(
+    bind=True,
+    base=requires(DMD, Abortable),
     name="zen.zenjobs.test.pause",
     summary="Wait Task",
     description_template="Wait for {0} seconds, then exit.",
