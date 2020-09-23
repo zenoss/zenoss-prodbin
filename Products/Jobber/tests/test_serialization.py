@@ -45,13 +45,27 @@ class WithoutUnicodeTest(TestCase):
         t.assertIsInstance(dumped, str)
         t.assertSequenceEqual(data, loaded)
 
+    def test_nested_dicts(t):
+        data = {
+            "a": {
+                "b": 3,
+                "c": {
+                    "d": "blah",
+                },
+            },
+        }
+        dumped = without_unicode.dump(data)
+        loaded = without_unicode.load(dumped)
+        t.assertIsInstance(dumped, str)
+        t.assertSequenceEqual(data, loaded)
+
     def test_variety(t):
         data = {
             "id": "woeijfoejf",
             "args": ["a", ["c", "f"]],
             "info": [
                 {"a": 1},
-                {"b": "y"}
+                {"b": {"d": "y", "e": 42}}
             ],
         }
         dumped = without_unicode.dump(data)
