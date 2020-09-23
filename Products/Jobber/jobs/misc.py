@@ -81,10 +81,10 @@ class DelayedFailure(Job):
 def pathexists(self, uid):
     try:
         obj = self.dmd.unrestrictedTraverse(uid)
-        self.log.info("%s", obj)
+        self.log.info("Found object %s: %s", uid, obj)
         return True
     except Exception:
-        self.log.exception("%s", uid)
+        self.log.exception("Had a problem finding %s", uid)
         return False
 
 
