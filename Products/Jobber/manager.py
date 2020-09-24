@@ -375,7 +375,7 @@ class _SendTask(object):
 def _getByStatusAndType(statuses, jobtype=None):
     fields = {"status": statuses}
     if jobtype is not None:
-        fields["type"] = _getJobTypeStr(jobtype)
+        fields["name"] = _getJobTypeStr(jobtype)
     storage = getUtility(IJobStore, "redis")
     jobids = storage.search(**fields)
     result = storage.mget(*jobids)
@@ -384,8 +384,8 @@ def _getByStatusAndType(statuses, jobtype=None):
 
 def _getJobTypeStr(jobtype):
     if isinstance(jobtype, type):
-        if hasattr(jobtype, "getJobType"):
-            return jobtype.getJobType()
-        else:
-            return jobtype.__name__
-    return str(jobtype)
+        return jobtype.name
+    task = app.tasks.get(str(jobtype))
+    if not task:
+        raise ValueError("No such job: {!r}".format(jobtype))
+    return task.name

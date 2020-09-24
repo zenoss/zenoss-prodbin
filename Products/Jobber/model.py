@@ -147,6 +147,14 @@ class JobRecord(object):
     def result(self):
         return app.tasks[self.name].AsyncResult(self.jobid)
 
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return all(
+            getattr(self, fld, None) == getattr(other, fld, None)
+            for fld in self.__slots__
+        )
+
 
 @implementer(IMarshaller)
 class JobRecordMarshaller(object):

@@ -10,12 +10,13 @@
 from __future__ import absolute_import, print_function
 
 import inspect
+import types
 
 from unittest import TestCase
 from zope.component import getGlobalSiteManager
 
 from ..interfaces import IJobStore
-from ..manager import JobManager
+from ..manager import JobManager, JobRecord
 from ..storage import JobStore
 from .utils import subTest, RedisLayer
 
@@ -27,8 +28,8 @@ class JobManagerTest(TestCase):
 
     full = {
         "jobid": "123",
-        "name": "TestJob",
-        "summary": "Products.Jobber.jobs.TestJob",
+        "name": "zen.zenjobs.test.PausingJob",
+        "summary": "Pause then exit",
         "description": "A test job",
         "userid": "zenoss",
         "logfile": "/opt/zenoss/log/jobs/123.log",
@@ -132,3 +133,26 @@ class JobManagerTest(TestCase):
         expected = {"jobs": (), "total": 0}
         actual = t.manager.query()
         t.assertDictEqual(expected, actual)
+
+    def test_getUnfinishedJobs_all_types(t):
+        rec = dict(t.full)
+        rec["status"] = "STARTED"
+        t.store[t.full["jobid"]] = rec
+        expected = JobRecord.make(rec)
+        actual = t.manager.getUnfinishedJobs()
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), 1)
+        t.assertEqual(expected, actual[0])
+
+    def test_getUnfinishedJobs_one_type(t):
+        from Products.Jobber.jobs import PausingJob
+        rec = dict(t.full)
+        rec["status"] = "STARTED"
+        t.store[t.full["jobid"]] = rec
+        expected = JobRecord.make(rec)
+        actual = t.manager.getUnfinishedJobs(PausingJob)
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), 1)
+        t.assertEqual(expected, actual[0])
