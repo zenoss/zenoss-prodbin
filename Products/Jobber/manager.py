@@ -22,7 +22,7 @@ from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 
 from .exceptions import NoSuchJobException
 from .interfaces import IJobStore
-from .model import LegacySuport, JobRecord, RedisRecord, sortable_keys
+from .model import LegacySupport, JobRecord, RedisRecord, sortable_keys
 from .utils.accesscontrol import ZClassSecurityInfo, ZInitializeClass
 from .zenjobs import app
 
@@ -188,7 +188,7 @@ class JobManager(ZenModelRM):
         """
         criteria = criteria if criteria is not None else {}
         normalized_criteria = {
-            LegacySuport.from_key(k): criteria[k] for k in criteria
+            LegacySupport.from_key(k): criteria[k] for k in criteria
         }
         valid = ["status", "userid"]
         invalid_fields = set(normalized_criteria.keys()) - set(valid)
@@ -196,7 +196,7 @@ class JobManager(ZenModelRM):
             raise ValueError(
                 "Invalid criteria field: %s" % ", ".join(invalid_fields),
             )
-        normalized_key = LegacySuport.from_key(key)
+        normalized_key = LegacySupport.from_key(key)
         if normalized_key not in sortable_keys:
             raise ValueError("Invalid sort key: %s" % (key,))
         try:
