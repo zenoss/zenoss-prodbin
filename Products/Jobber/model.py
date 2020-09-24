@@ -104,6 +104,24 @@ class JobRecord(object):
         return self.jobid
 
     @property
+    def job_description(self):
+        return self.description
+
+    @property
+    def job_name(self):
+        return self.name
+
+    @property
+    def job_type(self):
+        task = app.tasks.get(self.name)
+        if task is None:
+            return self.name if self.name else ""
+        try:
+            return task.getJobType()
+        except AttributeError:
+            return self.name
+
+    @property
     def duration(self):
         if (
             self.status in (states.PENDING, states.RECEIVED)
@@ -159,11 +177,11 @@ class JobRecordMarshaller(object):
         return {name: self._get_value(name) for name in fields}
 
     def _get_value(self, name):
-        key = LegacySuport.from_key(name)
+        key = LegacySupport.from_key(name)
         return getattr(self.__obj, key, None)
 
 
-class LegacySuport(object):
+class LegacySupport(object):
     """A namespace class for functions to aid in supporting legacy APIs.
     """
 

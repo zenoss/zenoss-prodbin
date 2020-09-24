@@ -25,7 +25,7 @@ from ..model import (
     IJobStore,
     JobRecord,
     JobRecordMarshaller,
-    LegacySuport,
+    LegacySupport,
     update_job_status,
 )
 from ..storage import JobStore, Fields
@@ -86,10 +86,26 @@ class JobRecordTest(TestCase):
         expected.extend((
             "details", "id", "make", "uid",
             "uuid", "duration", "complete", "abort", "wait", "result",
+            "job_description", "job_name", "job_type",
         ))
         expected = sorted(expected)
         actual = [a for a in dir(j) if not a.startswith("__")]
         t.assertListEqual(expected, actual)
+
+    def test_job_description(t):
+        j = JobRecord.make(t.data)
+        t.assertEqual(j.job_description, j.description)
+
+    def test_job_name(t):
+        j = JobRecord.make(t.data)
+        t.assertEqual(j.job_name, j.name)
+
+    def test_job_type(t):
+        from Products.Jobber.jobs import FacadeMethodJob
+        data = dict(t.data)
+        data["name"] = FacadeMethodJob.name
+        j = JobRecord.make(data)
+        t.assertEqual(j.job_type, FacadeMethodJob.getJobType())
 
     def test_details_are_exposed(t):
         j = JobRecord.make({})
@@ -351,7 +367,7 @@ class JobRecordMarshallerTest(TestCase):
         t.assertDictEqual(expected, serialized)
 
 
-class LegacySuportTest(TestCase):
+class LegacySupportTest(TestCase):
     """Test the LegacySupport class."""
 
     def test_new_keys(t):
@@ -369,7 +385,7 @@ class LegacySuportTest(TestCase):
         )
         for key in keys:
             with subTest(key=key):
-                actual = LegacySuport.from_key(key)
+                actual = LegacySupport.from_key(key)
                 t.assertEqual(key, actual)
 
     def test_legacy_keys(t):
@@ -380,5 +396,5 @@ class LegacySuportTest(TestCase):
         }
         for key in keys:
             with subTest(key=key):
-                actual = LegacySuport.from_key(key)
+                actual = LegacySupport.from_key(key)
                 t.assertEqual(keys[key], actual)
