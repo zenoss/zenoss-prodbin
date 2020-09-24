@@ -1152,8 +1152,12 @@
                         }
                         // Disable add_event button for event console context if no global role
                         // In some contexts we don't have add event button so check it first
-                        if (!Zenoss.env.device_uid && tbar && tbar.getComponent('add_event_main_button')) {
-                            tbar.getComponent('add_event_main_button').setDisabled(true);
+                        if (tbar && tbar.getComponent('add_event_main_button')) {
+                            if (!Zenoss.env.device_uid && !selectionmodel.hasSelection()) {
+                                tbar.getComponent('add_event_main_button').setDisabled(true);
+                            } else {
+                                tbar.getComponent('add_event_main_button').setDisabled(false);
+                            }
                         }
 
                     }
