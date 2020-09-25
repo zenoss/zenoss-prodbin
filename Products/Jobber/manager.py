@@ -253,7 +253,7 @@ class JobManager(ZenModelRM):
         """
         storage = getUtility(IJobStore, "redis")
         if jobid not in storage:
-            log.warn("Job ID not found: %s", jobid)
+            log.warn("Cannot delete job that does not exist: %s", jobid)
             return
         job = storage[jobid]
         if job.get("status") not in states.READY_STATES:
@@ -268,8 +268,8 @@ class JobManager(ZenModelRM):
             except (OSError, IOError):
                 # Did our best!
                 pass
-        log.info("Deleting job %s", jobid)
         del storage[jobid]
+        log.info("Job deleted  jobid=%s name=%s", jobid, job["name"])
 
     def getUnfinishedJobs(self, type_=None):
         """Return jobs that are not completed.
@@ -324,7 +324,7 @@ class JobManager(ZenModelRM):
         storage = getUtility(IJobStore, "redis")
         if type_ is not None:
             jobtype = _getJobTypeStr(type_)
-            jobids = storage.search(type=jobtype)
+            jobids = storage.search(name=jobtype)
             result = storage.mget(*jobids)
         else:
             result = storage.values()
@@ -333,9 +333,8 @@ class JobManager(ZenModelRM):
     @security.protected(ZEN_MANAGE_DMD)
     def clearJobs(self):
         """Delete all finished jobs."""
-        statusCheck = states.READY_STATES
         storage = getUtility(IJobStore, "redis")
-        jobids = tuple(storage.search(status=statusCheck))
+        jobids = tuple(storage.search(status=states.READY_STATES))
         logfiles = (
             storage.getfield(j, "logfile")
             for j in jobids
@@ -375,7 +374,7 @@ class _SendTask(object):
 def _getByStatusAndType(statuses, jobtype=None):
     fields = {"status": statuses}
     if jobtype is not None:
-        fields["type"] = _getJobTypeStr(jobtype)
+        fields["name"] = _getJobTypeStr(jobtype)
     storage = getUtility(IJobStore, "redis")
     jobids = storage.search(**fields)
     result = storage.mget(*jobids)
@@ -384,8 +383,8 @@ def _getByStatusAndType(statuses, jobtype=None):
 
 def _getJobTypeStr(jobtype):
     if isinstance(jobtype, type):
-        if hasattr(jobtype, "getJobType"):
-            return jobtype.getJobType()
-        else:
-            return jobtype.__name__
-    return str(jobtype)
+        return jobtype.name
+    task = app.tasks.get(str(jobtype))
+    if not task:
+        raise ValueError("No such job: {!r}".format(jobtype))
+    return task.name
