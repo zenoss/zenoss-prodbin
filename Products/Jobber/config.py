@@ -78,7 +78,7 @@ class Celery(object):
     """Celery configuration."""
 
     BROKER_URL = _buildBrokerUrl()
-    CELERY_ACCEPT_CONTENT = ["json"]
+    CELERY_ACCEPT_CONTENT = ["without-unicode"]
 
     # List of modules to import when the Celery worker starts
     CELERY_IMPORTS = (
@@ -87,7 +87,7 @@ class Celery(object):
 
     # Result backend (redis)
     CELERY_RESULT_BACKEND = "redis://localhost/0"
-    CELERY_RESULT_SERIALIZER = "json"
+    CELERY_RESULT_SERIALIZER = "without-unicode"
     CELERY_TASK_RESULT_EXPIRES = int(ZenJobs.get("job-expires"))
 
     # Worker configuration
@@ -101,7 +101,7 @@ class Celery(object):
     CELERY_ACKS_LATE = True
     CELERY_IGNORE_RESULT = False
     CELERY_STORE_ERRORS_EVEN_IF_IGNORED = True
-    CELERY_TASK_SERIALIZER = "json"
+    CELERY_TASK_SERIALIZER = "without-unicode"
     CELERY_TRACK_STARTED = True
 
     # Event settings
