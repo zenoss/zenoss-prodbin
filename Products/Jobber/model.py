@@ -155,6 +155,26 @@ class JobRecord(object):
             for fld in self.__slots__
         )
 
+    def __ne__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return any(
+            getattr(self, fld, None) != getattr(other, fld, None)
+            for fld in self.__slots__
+        )
+
+    def __str__(self):
+        return "<{0.__class__.__name__}: {1}>".format(
+            self,
+            " ".join(
+                "{0}={1!r}".format(name, getattr(self, name, None))
+                for name in self.__slots__
+            )
+        )
+
+    def __hash__(self):
+        raise TypeError("unhashable type: %r" % (type(self).__name__))
+
 
 @implementer(IMarshaller)
 class JobRecordMarshaller(object):

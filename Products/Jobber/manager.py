@@ -253,7 +253,7 @@ class JobManager(ZenModelRM):
         """
         storage = getUtility(IJobStore, "redis")
         if jobid not in storage:
-            log.warn("Job ID not found: %s", jobid)
+            log.warn("Cannot delete job that does not exist: %s", jobid)
             return
         job = storage[jobid]
         if job.get("status") not in states.READY_STATES:
@@ -268,8 +268,8 @@ class JobManager(ZenModelRM):
             except (OSError, IOError):
                 # Did our best!
                 pass
-        log.info("Deleting job %s", jobid)
         del storage[jobid]
+        log.info("Job deleted  jobid=%s name=%s", jobid, job["name"])
 
     def getUnfinishedJobs(self, type_=None):
         """Return jobs that are not completed.
@@ -324,7 +324,7 @@ class JobManager(ZenModelRM):
         storage = getUtility(IJobStore, "redis")
         if type_ is not None:
             jobtype = _getJobTypeStr(type_)
-            jobids = storage.search(type=jobtype)
+            jobids = storage.search(name=jobtype)
             result = storage.mget(*jobids)
         else:
             result = storage.values()
@@ -333,9 +333,8 @@ class JobManager(ZenModelRM):
     @security.protected(ZEN_MANAGE_DMD)
     def clearJobs(self):
         """Delete all finished jobs."""
-        statusCheck = states.READY_STATES
         storage = getUtility(IJobStore, "redis")
-        jobids = tuple(storage.search(status=statusCheck))
+        jobids = tuple(storage.search(status=states.READY_STATES))
         logfiles = (
             storage.getfield(j, "logfile")
             for j in jobids

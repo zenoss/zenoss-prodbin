@@ -12,6 +12,7 @@ from __future__ import absolute_import, print_function
 import inspect
 import types
 
+from celery import states
 from unittest import TestCase
 from zope.component import getGlobalSiteManager
 
@@ -28,7 +29,7 @@ class JobManagerTest(TestCase):
 
     full = {
         "jobid": "123",
-        "name": "zen.zenjobs.test.PausingJob",
+        "name": "zen.zenjobs.test.SomeJob",
         "summary": "Pause then exit",
         "description": "A test job",
         "userid": "zenoss",
@@ -135,24 +136,210 @@ class JobManagerTest(TestCase):
         t.assertDictEqual(expected, actual)
 
     def test_getUnfinishedJobs_all_types(t):
-        rec = dict(t.full)
-        rec["status"] = "STARTED"
-        t.store[t.full["jobid"]] = rec
-        expected = JobRecord.make(rec)
+        expected = []
+        for idx, st in enumerate(states.ALL_STATES):
+            rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
+            t.store[rec["jobid"]] = rec
+            if st in states.UNREADY_STATES:
+                expected.append(JobRecord.make(rec))
         actual = t.manager.getUnfinishedJobs()
         t.assertIsInstance(actual, types.GeneratorType)
         actual = list(actual)
-        t.assertEqual(len(actual), 1)
-        t.assertEqual(expected, actual[0])
+        t.assertEqual(len(actual), len(states.UNREADY_STATES))
+        t.assertItemsEqual(expected, actual)
 
     def test_getUnfinishedJobs_one_type(t):
         from Products.Jobber.jobs import PausingJob
-        rec = dict(t.full)
-        rec["status"] = "STARTED"
-        t.store[t.full["jobid"]] = rec
-        expected = JobRecord.make(rec)
+        expected = []
+        for idx, st in enumerate(states.ALL_STATES):
+            rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
+            if st in states.UNREADY_STATES:
+                if not expected:
+                    rec["name"] = PausingJob.name
+                    expected.append(JobRecord.make(rec))
+            t.store[rec["jobid"]] = rec
         actual = t.manager.getUnfinishedJobs(PausingJob)
         t.assertIsInstance(actual, types.GeneratorType)
         actual = list(actual)
         t.assertEqual(len(actual), 1)
-        t.assertEqual(expected, actual[0])
+        t.assertItemsEqual(expected, actual)
+
+    def test_getUnfinishedJobs_wrong_state(t):
+        t.store[t.full["jobid"]] = t.full
+        actual = t.manager.getUnfinishedJobs()
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), 0)
+
+    def test_getUnfinishedJobs_with_bad_type(t):
+        with t.assertRaises(ValueError):
+            t.manager.getUnfinishedJobs("blah.blah")
+
+    def test_getRunningJobs_all_types(t):
+        running_states = (states.STARTED, states.RETRY)
+        expected = []
+        for idx, st in enumerate(states.ALL_STATES):
+            rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
+            t.store[rec["jobid"]] = rec
+            if st in running_states:
+                expected.append(JobRecord.make(rec))
+        actual = t.manager.getRunningJobs()
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), len(running_states))
+        t.assertItemsEqual(expected, actual)
+
+    def test_getRunningJobs_one_type(t):
+        from Products.Jobber.jobs import PausingJob
+        running_states = (states.STARTED, states.RETRY)
+        expected = []
+        for idx, st in enumerate(states.ALL_STATES):
+            rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
+            if st in running_states:
+                if not expected:
+                    rec["name"] = PausingJob.name
+                    expected.append(JobRecord.make(rec))
+            t.store[rec["jobid"]] = rec
+        actual = t.manager.getRunningJobs(PausingJob)
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), 1)
+        t.assertItemsEqual(expected, actual)
+
+    def test_getRunningJobs_wrong_state(t):
+        t.store[t.full["jobid"]] = t.full
+        actual = t.manager.getRunningJobs()
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), 0)
+
+    def test_getRunningJobs_with_bad_type(t):
+        with t.assertRaises(ValueError):
+            t.manager.getRunningJobs("blah.blah")
+
+    def test_getPendingJobs_all_types(t):
+        pending_states = (states.RECEIVED, states.PENDING)
+        expected = []
+        for idx, st in enumerate(states.ALL_STATES):
+            rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
+            t.store[rec["jobid"]] = rec
+            if st in pending_states:
+                expected.append(JobRecord.make(rec))
+        actual = t.manager.getPendingJobs()
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), len(pending_states))
+        t.assertItemsEqual(expected, actual)
+
+    def test_getPendingJobs_one_type(t):
+        from Products.Jobber.jobs import PausingJob
+        pending_states = (states.RECEIVED, states.PENDING)
+        expected = []
+        for idx, st in enumerate(states.ALL_STATES):
+            rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
+            if st in pending_states:
+                if not expected:
+                    rec["name"] = PausingJob.name
+                    expected.append(JobRecord.make(rec))
+            t.store[rec["jobid"]] = rec
+        actual = t.manager.getPendingJobs(PausingJob)
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), 1)
+        t.assertItemsEqual(expected, actual)
+
+    def test_getPendingJobs_wrong_state(t):
+        t.store[t.full["jobid"]] = t.full
+        actual = t.manager.getPendingJobs()
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), 0)
+
+    def test_getPendingJobs_with_bad_type(t):
+        with t.assertRaises(ValueError):
+            t.manager.getPendingJobs("blah.blah")
+
+    def test_getFinishedJobs_all_types(t):
+        expected = []
+        for idx, st in enumerate(states.ALL_STATES):
+            rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
+            t.store[rec["jobid"]] = rec
+            if st in states.READY_STATES:
+                expected.append(JobRecord.make(rec))
+        actual = t.manager.getFinishedJobs()
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), len(states.READY_STATES))
+        t.assertItemsEqual(expected, actual)
+
+    def test_getFinishedJobs_one_type(t):
+        from Products.Jobber.jobs import PausingJob
+        expected = []
+        for idx, st in enumerate(states.ALL_STATES):
+            rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
+            if st in states.READY_STATES:
+                if not expected:
+                    rec["name"] = PausingJob.name
+                    expected.append(JobRecord.make(rec))
+            t.store[rec["jobid"]] = rec
+        actual = t.manager.getFinishedJobs(PausingJob)
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), 1)
+        t.assertItemsEqual(expected, actual)
+
+    def test_getFinishedJobs_wrong_state(t):
+        t.store[t.full["jobid"]] = dict(t.full, status=states.STARTED)
+        actual = t.manager.getFinishedJobs()
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), 0)
+
+    def test_getFinishedJobs_with_bad_type(t):
+        with t.assertRaises(ValueError):
+            t.manager.getFinishedJobs("blah.blah")
+
+    def test_getAllJobs_all_types(t):
+        expected = []
+        for idx, st in enumerate(states.ALL_STATES):
+            rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
+            t.store[rec["jobid"]] = rec
+            expected.append(JobRecord.make(rec))
+        actual = t.manager.getAllJobs()
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), len(states.ALL_STATES))
+        t.assertItemsEqual(expected, actual)
+
+    def test_getAllJobs_one_type(t):
+        from Products.Jobber.jobs import PausingJob
+        expected = []
+        for idx, st in enumerate(states.ALL_STATES):
+            rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
+            if not expected:
+                rec["name"] = PausingJob.name
+                expected.append(JobRecord.make(rec))
+            t.store[rec["jobid"]] = rec
+        actual = t.manager.getAllJobs(PausingJob)
+        t.assertIsInstance(actual, types.GeneratorType)
+        actual = list(actual)
+        t.assertEqual(len(actual), 1)
+        t.assertItemsEqual(expected, actual)
+
+    def test_getAllJobs_with_bad_type(t):
+        with t.assertRaises(ValueError):
+            t.manager.getFinishedJobs("blah.blah")
+
+    def test_clearJobs(t):
+        expected = []
+        for idx, st in enumerate(states.ALL_STATES):
+            rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
+            t.store[rec["jobid"]] = rec
+            if st not in states.READY_STATES:
+                expected.append(JobRecord.make(rec))
+        t.manager.clearJobs()
+        actual = [
+            JobRecord.make(val)
+            for val in t.store.values()
+        ]
+        t.assertItemsEqual(expected, actual)
