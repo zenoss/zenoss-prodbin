@@ -9,15 +9,6 @@
 
 from __future__ import absolute_import
 
-import six
-
-from zope.component import getUtility
-
-import Products.ZenUtils.guid as guid
-
-from Products.ZenEvents import Event
-from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
-
 from ..config import ZenJobs
 from ..exceptions import NoSuchJobException
 from ..task import Abortable, DMD, ZenTask
