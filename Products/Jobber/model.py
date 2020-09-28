@@ -324,7 +324,7 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
         "status": states.PENDING,
         "created": time.time(),
     })
-    _save_record(record)
+    _save_record(log, record)
 
     # Iterate over the callbacks.
     callbacks = body.get("callbacks") or []
@@ -337,10 +337,9 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
             "status": states.PENDING,
             "created": time.time(),
         })
-        _save_record(record)
+        _save_record(log, record)
 
 
-@inject_logger(log=mlog)
 def _save_record(log, record):
     # Retrieve the job storage connection.
     storage = getUtility(IJobStore, "redis")
