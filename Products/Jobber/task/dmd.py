@@ -20,13 +20,14 @@ from Products.CMFCore.utils import getToolByName
 from ZPublisher.HTTPRequest import HTTPRequest
 from ZPublisher.HTTPResponse import HTTPResponse
 from ZPublisher.BaseRequest import RequestContainer
-from ZODB.transact import transact
 
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Products.ZenUtils.Utils import getObjByPath
 
 from ..config import ZenJobs
 from ..utils.log import get_logger, get_task_logger, inject_logger
+
+from .utils import transact, backoff
 
 mlog = get_logger("zen.zenjobs.task.dmd")
 
@@ -49,7 +50,11 @@ class DMD(object):
             self.__dmd = dmd
             try:
                 retries = ZenJobs.get("zodb-max-retries", 5)
-                f = transact(super(DMD, self).__call__, retries=retries)
+                limit = ZenJobs.get("zodb-retry-interval-limit", 30)
+                backoff_generator = backoff(limit)
+                f = transact(
+                    super(DMD, self).__call__, retries, backoff_generator,
+                )
                 return f(*args, **kwargs)
             finally:
                 self.__dmd = None
@@ -80,7 +85,8 @@ def zodb(db, userid, log):
         mlog.debug(*log_mesg)
         try:
             yield dataroot
-            transaction.commit()
+            # No transaction.commit() because the DMD class defined
+            # elsewhere handles commits using the transact decorator.
         except:  # noqa
             transaction.abort()
             raise  # reraise the exception
