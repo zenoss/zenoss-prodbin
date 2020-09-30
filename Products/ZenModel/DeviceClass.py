@@ -6,63 +6,63 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
-__doc__="""DeviceClass
+
+"""DeviceClass
+
 The primary organizer of device objects, managing zProperties and
 their acquisition.
 """
-
-import time
-from cStringIO import StringIO
-import logging
-log = logging.getLogger('zen.DeviceClass')
 
 import DateTime
 from zope.event import notify
 from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base, aq_chain
-from AccessControl import ClassSecurityInfo
-from AccessControl import Permissions as permissions
+from cStringIO import StringIO
+from Globals import DTMLFile
+from Products.AdvancedQuery import MatchGlob, Or, Eq, And
 from ZODB.transact import transact
+from zope.event import notify
 
-from Products.AdvancedQuery import MatchGlob, Or, Eq, RankByQueries_Max, And
-from Products.CMFCore.utils import getToolByName
 from Products.ZenMessaging.ChangeEvents.events import DeviceClassMovedEvent
+from Products.ZenModel.Exceptions import DeviceExistsError
 from Products.ZenModel.ZenossSecurity import (
-    ZEN_DELETE_DEVICE, ZEN_EDIT_LOCAL_TEMPLATES,
-    ZEN_ADD, ZEN_MANAGE_DMD
+    ZEN_ADD,
+    ZEN_DELETE_DEVICE,
+    ZEN_EDIT_LOCAL_TEMPLATES,
+    ZEN_MANAGE_DMD,
 )
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenRelations.ZenPropertyManager import Z_PROPERTIES
-from Products.ZenUtils.Search import (
-   makeCaseInsensitiveFieldIndex,
-   makePathIndex, makeMultiPathIndex
-)
-from Products.ZenUtils.Utils import importClass
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-from Products.ZenWidgets import messaging
 from Products.ZenUtils.FakeRequest import FakeRequest
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenUtils.Utils import importClass
+from Products.ZenWidgets import messaging
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
-from Products.ZenModel.Exceptions import DeviceExistsError
 from Products.Zuul.utils import safe_hasattr as hasattr
 
-import RRDTemplate
-from DeviceOrganizer import DeviceOrganizer
-from ZenPackable import ZenPackable
-from TemplateContainer import TemplateContainer
+from . import RRDTemplate
+from .DeviceOrganizer import DeviceOrganizer
+from .ZenPackable import ZenPackable
+from .TemplateContainer import TemplateContainer
 
 _marker = "__MARKER___"
 
-def manage_addDeviceClass(context, id, title = None, REQUEST = None):
+log = logging.getLogger('zen.DeviceClass')
+
+
+def manage_addDeviceClass(context, id, title=None, REQUEST=None):
     """make a device class"""
     dc = DeviceClass(id, title)
     context._setObject(id, dc)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(
+            context.absolute_url_path() + '/manage_main'
+        )
 
 
-addDeviceClass = DTMLFile('dtml/addDeviceClass',globals())
+addDeviceClass = DTMLFile('dtml/addDeviceClass', globals())
 
 
 class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
@@ -77,54 +77,60 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
     # Organizer configuration
     dmdRootName = "Devices"
 
-    manageDeviceSearch = DTMLFile('dtml/manageDeviceSearch',globals())
-    manageDeviceSearchResults = DTMLFile('dtml/manageDeviceSearchResults',
-                                            globals())
+    manageDeviceSearch = DTMLFile('dtml/manageDeviceSearch', globals())
+    manageDeviceSearchResults = DTMLFile(
+        'dtml/manageDeviceSearchResults', globals(),
+    )
 
     portal_type = meta_type = event_key = "DeviceClass"
 
     default_catalog = 'deviceSearch'
 
     _properties = DeviceOrganizer._properties + (
-                    {'id':'devtypes', 'type':'lines', 'mode':'w'},
-                   )
+        {'id': 'devtypes', 'type': 'lines', 'mode': 'w'},
+    )
 
-    _relations = DeviceOrganizer._relations + ZenPackable._relations + \
-                TemplateContainer._relations + (
-        ("devices", ToManyCont(ToOne,"Products.ZenModel.Device","deviceClass")),
-        )
+    _relations = DeviceOrganizer._relations + \
+        ZenPackable._relations + \
+        TemplateContainer._relations + ((
+            "devices",
+            ToManyCont(ToOne, "Products.ZenModel.Device", "deviceClass"),
+        ),)
 
     # Screen action bindings (and tab definitions)
     factory_type_information = (
         {
-            'id'             : 'DeviceClass',
-            'meta_type'      : 'DeviceClass',
-            'description'    : """Base class for all devices""",
-            'icon'           : 'DeviceClass_icon.gif',
-            'product'        : 'ZenModel',
-            'factory'        : 'manage_addDeviceClass',
-            'immediate_view' : 'deviceOrganizerStatus',
-            'actions'        :
-            (
-                { 'name'          : 'Classes'
-                , 'action'        : 'deviceOrganizerStatus'
-                , 'permissions'   : ( permissions.view, )
+            'id': 'DeviceClass',
+            'meta_type': 'DeviceClass',
+            'description': """Base class for all devices""",
+            'icon': 'DeviceClass_icon.gif',
+            'product': 'ZenModel',
+            'factory': 'manage_addDeviceClass',
+            'immediate_view': 'deviceOrganizerStatus',
+            'actions': (
+                {
+                    'name': 'Classes',
+                    'action': 'deviceOrganizerStatus',
+                    'permissions': (permissions.view,),
                 },
-                { 'name'          : 'Events'
-                , 'action'        : 'viewEvents'
-                , 'permissions'   : (  permissions.view, )
+                {
+                    'name': 'Events',
+                    'action': 'viewEvents',
+                    'permissions': (permissions.view,),
                 },
-                { 'name'          : 'Configuration Properties'
-                , 'action'        : 'zPropertyEdit'
-                , 'permissions'   : (permissions.view,)
+                {
+                    'name': 'Configuration Properties',
+                    'action': 'zPropertyEdit',
+                    'permissions': (permissions.view,),
                 },
-                { 'name'          : 'Templates'
-                , 'action'        : 'perfConfig'
-                , 'permissions'   : ('Manage DMD',)
+                {
+                    'name': 'Templates',
+                    'action': 'perfConfig',
+                    'permissions': ('Manage DMD',),
                 },
-            )
-         },
-        )
+            ),
+        },
+    )
 
     security = ClassSecurityInfo()
 
@@ -138,7 +144,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         @rtype: list of strings
         """
         dcnames = []
-        if pyclass == None:
+        if pyclass is None:
             pyclass = self.getPythonDeviceClass()
         dclass = self.getDmdRoot("Devices")
         for orgname in dclass.getOrganizerNames():
@@ -150,7 +156,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
     deviceMoveTargets = getPeerDeviceClassNames
     childMoveTargets = getPeerDeviceClassNames
-
 
     security.declareProtected(ZEN_MANAGE_DMD, 'createInstance')
     def createInstance(self, devId, performanceMonitor="localhost", manageIp=""):
@@ -176,21 +181,29 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
     def _checkDeviceExists(self, deviceName, performanceMonitor, ip):
         if deviceName:
             try:
-                dev = self.getDmdRoot('Devices').findDeviceByIdExact(deviceName)
+                dev = self.getDmdRoot('Devices').findDeviceByIdExact(
+                    deviceName,
+                )
             except Exception:
                 pass
-            else: 
+            else:
                 if dev:
-                    raise DeviceExistsError("Device %s already exists" %
-                                            deviceName, dev)
-                
+                    raise DeviceExistsError(
+                        "Device %s already exists" % deviceName, dev,
+                    )
         if ip:
-            mon = self.getDmdRoot('Monitors').getPerformanceMonitor(performanceMonitor)
+            mon = self.getDmdRoot('Monitors').getPerformanceMonitor(
+                performanceMonitor,
+            )
             if mon.viewName() != performanceMonitor:
-                raise Exception("Collector `{}` does not exist".format(performanceMonitor))
+                raise Exception(
+                    "Collector `%s` does not exist" % (performanceMonitor,),
+                )
             dev = mon.findDevice(ip)
             if dev:
-                raise DeviceExistsError("Manage IP %s already exists" % ip, dev)
+                raise DeviceExistsError(
+                    "Manage IP %s already exists" % ip, dev,
+                )
         return deviceName, ip
 
     def getPythonDeviceClass(self):
@@ -220,15 +233,15 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         guid = IGlobalIdentifier(dev).create()
         source = dev.deviceClass().primaryAq()
 
-        notify(DeviceClassMovedEvent(dev, dev.deviceClass().primaryAq(), target))
-
+        notify(
+            DeviceClassMovedEvent(dev, dev.deviceClass().primaryAq(), target),
+        )
 
         if dev.__class__ != targetClass:
             from Products.ZenRelations.ImportRM import NoLoginImportRM
 
             def switchClass(o, module, klass):
-                """
-                Create an XML string representing the module in a
+                """Create an XML string representing the module in a
                 new class.
 
                 @param o: file-type object
@@ -252,33 +265,29 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 root.setAttribute('class', klass)
                 for obj in root.childNodes:
                     if obj.nodeType != obj.ELEMENT_NODE:
-                        continue # Keep XML-tree baggage
+                        continue  # Keep XML-tree baggage
 
                     name = obj.getAttribute('id')
                     if obj.tagName == 'property':
                         # Only remove modeler plugins, templates
                         # and z*Ignore zprops
-                        if name in ('zCollectorPlugins', 'zDeviceTemplates') or \
-                           name.endswith('Ignore'):
+                        if name in ('zCollectorPlugins', 'zDeviceTemplates') or name.endswith('Ignore'):
                             root.removeChild(obj)
 
                     elif obj.tagName == 'toone' and \
                          name in ('perfServer', 'location', 'ipaddress'):
                         pass # Preserve collector name, location, and ipaddress
 
-                    elif obj.tagName == 'tomany' and \
-                         name in ('systems', 'groups'):
-                        pass # Preserve the Groups and Systems groupings
+                    elif obj.tagName == 'tomany' and name in ('systems', 'groups'):
+                        pass  # Preserve the Groups and Systems groupings
 
-                    elif obj.tagName == 'tomanycont' and \
-                         name in ('maintenanceWindows',
-                                  'adminRoles',
-                                  'userCommands'):
-                        pass # Preserve maintenance windows, admins, commands
+                    elif obj.tagName == 'tomanycont' and name in ('maintenanceWindows', 'adminRoles', 'userCommands'):
+                        pass  # Preserve maintenance windows, admins, commands
 
                     else:
-                        log.debug("Removing %s element id='%s'",
-                                     obj.tagName, name)
+                        log.debug(
+                            "Removing %s element id='%s'", obj.tagName, name,
+                        )
                         root.removeChild(obj)
 
                 importFile = StringIO()
@@ -352,9 +361,11 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         @param REQUEST: Zope REQUEST object
         @type REQUEST: Zope REQUEST object
         """
-        if not moveTarget or not deviceNames: return self()
+        if not moveTarget or not deviceNames:
+            return self()
         target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
-        if isinstance(deviceNames, basestring): deviceNames = (deviceNames,)
+        if isinstance(deviceNames, basestring):
+            deviceNames = (deviceNames,)
         targetClass = target.getPythonDeviceClass()
         moved_devices_count = 0
         for devname in deviceNames:
@@ -365,16 +376,21 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
     security.declareProtected(ZEN_DELETE_DEVICE, 'removeDevices')
     def removeDevices(self, deviceNames=None, deleteStatus=False,
-                    deleteHistory=False, deletePerf=False,REQUEST=None):
+                    deleteHistory=False, deletePerf=False, REQUEST=None):
         """
         See IManageDevice overrides DeviceManagerBase.removeDevices
         """
-        if not deviceNames: return self()
-        if isinstance(deviceNames, basestring): deviceNames = (deviceNames,)
+        if not deviceNames:
+            return self()
+        if isinstance(deviceNames, basestring):
+            deviceNames = (deviceNames,)
         for devname in deviceNames:
             dev = self.findDevice(devname)
-            dev.deleteDevice(deleteStatus=deleteStatus,
-                        deleteHistory=deleteHistory, deletePerf=deletePerf)
+            dev.deleteDevice(
+                deleteStatus=deleteStatus,
+                deleteHistory=deleteHistory,
+                deletePerf=deletePerf,
+            )
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Devices Deleted',
@@ -384,7 +400,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 return 'Devices were deleted: %s.' % ', '.join(deviceNames)
             else:
                 return self.callZenScreen(REQUEST)
-
 
     security.declareProtected('View', 'getEventDeviceInfo')
     def getEventDeviceInfo(self):
@@ -398,17 +413,20 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 systemNames.append(sys.getOrganizerName())
             systemNames = "|".join(systemNames)
             location = device.getLocationName()
-            if not location: location = "Unknown"
-            deviceInfo[device.id] = (systemNames, location,
-                                    device.getProductionState(),
-                                    device.getDeviceClassPath())
+            if not location:
+                location = "Unknown"
+            deviceInfo[device.id] = (
+                systemNames,
+                location,
+                device.getProductionState(),
+                device.getDeviceClassPath(),
+            )
         return deviceInfo
-
 
     security.declareProtected('View', 'getDeviceWinInfo')
     def getDeviceWinInfo(self, lastPoll=0, eventlog=False):
-        """
-        Return list of (devname,user,passwd,url) for each device.
+        """Return list of (devname,user,passwd,url) for each device.
+
         user and passwd are used to connect via wmi.
         """
         ffunc = None
@@ -420,14 +438,17 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             ffunc = lambda x: x.getProperty('zWinEventlog', False)
         devinfo = []
         for dev in self.getSubDevices(devfilter=ffunc):
-            if not dev.monitorDevice(): continue
-            if dev.getProperty('zWmiMonitorIgnore', False): continue
-            user = dev.getProperty('zWinUser','')
-            passwd = dev.getProperty( 'zWinPassword', '')
-            sev = dev.getProperty( 'zWinEventlogMinSeverity', '')
-            devinfo.append((dev.id, str(user), str(passwd), sev, dev.absolute_url_path()))
+            if not dev.monitorDevice():
+                continue
+            if dev.getProperty('zWmiMonitorIgnore', False):
+                continue
+            user = dev.getProperty('zWinUser', '')
+            passwd = dev.getProperty('zWinPassword', '')
+            sev = dev.getProperty('zWinEventlogMinSeverity', '')
+            devinfo.append((
+                dev.id, str(user), str(passwd), sev, dev.absolute_url_path(),
+            ))
         return starttime, devinfo
-
 
     def getWinServices(self):
         """
@@ -436,43 +457,43 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         svcinfo = []
         allsvcs = {}
         for s in self.getSubComponents("WinService"):
-            svcs=allsvcs.setdefault(s.hostname(),{})
+            svcs = allsvcs.setdefault(s.hostname(), {})
             name = s.name()
             if isinstance(name, unicode):
                 name = name.encode(s.zCollectorDecoding)
             svcs[name] = (s.getStatus(), s.getAqProperty('zFailSeverity'))
         for dev in self.getSubDevices():
-            if not dev.monitorDevice(): continue
-            if dev.getProperty( 'zWmiMonitorIgnore', False): continue
+            if not dev.monitorDevice():
+                continue
+            if dev.getProperty('zWmiMonitorIgnore', False):
+                continue
             svcs = allsvcs.get(dev.getId(), {})
-            if not svcs and not dev.getProperty('zWinEventlog', False): continue
-            user = dev.getProperty('zWinUser','')
-            passwd = dev.getProperty( 'zWinPassword', '')
+            if not svcs and not dev.getProperty('zWinEventlog', False):
+                continue
+            user = dev.getProperty('zWinUser', '')
+            passwd = dev.getProperty('zWinPassword', '')
             svcinfo.append((dev.id, str(user), str(passwd), svcs))
         return svcinfo
 
-
     security.declareProtected('View', 'searchDeviceSummary')
     def searchDeviceSummary(self, query):
-        """
-        Search device summary index and return device objects
+        """Search device summary index and return device objects.
         """
         # @TODO delete?
         # deviceSearch catalog does not have a summary index nor metadata
         return []
 
-
     security.declareProtected('View', 'searchInterfaces')
     def searchInterfaces(self, query):
+        """Search interfaces index and return interface objects.
         """
-        Search interfaces index and return interface objects
-        """
-        if not query: return []
+        if not query:
+            return []
         zcatalog = getattr(self, 'interfaceSearch', None)
-        if not zcatalog: return []
+        if not zcatalog:
+            return []
         results = zcatalog(query)
         return self._convertResultsToObj(results)
-
 
     def _convertResultsToObj(self, results):
         devices = []
@@ -486,70 +507,80 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         return devices
 
     def _findDevice(self, devicename, useTitle=True, commit_dirty=False):
-        """
-        Returns all devices whose ip/id/title match devicename.
+        """Returns all devices whose ip/id/title match devicename.
+
         ip/id matches are at the front of the list.
 
         @rtype: list of brains
         """
-        ors = [ MatchGlob('id', devicename), MatchGlob('text_ipAddress', devicename) ]
+        ors = [
+            MatchGlob('id', devicename),
+            MatchGlob('text_ipAddress', devicename),
+        ]
 
         if useTitle:
             ors.append(MatchGlob('name', devicename))
 
-        query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Or(*ors) )
-        fields = [ "name", "id", "text_ipAddress" ]
-        search_results = IModelCatalogTool(self.dmd.Devices).search(query=query, fields=fields, commit_dirty=commit_dirty)
+        query = And(
+            Eq("objectImplements", "Products.ZenModel.Device.Device"),
+            Or(*ors),
+        )
+        fields = ["name", "id", "text_ipAddress"]
+        search_results = IModelCatalogTool(self.dmd.Devices).search(
+            query=query, fields=fields, commit_dirty=commit_dirty,
+        )
         return list(search_results.results)
 
     def findDevicePath(self, devicename, commit_dirty=False):
-        """
-        Look up a device and return its path
+        """Look up a device and return its path.
         """
         ret = self._findDevice(devicename, commit_dirty=commit_dirty)
-        if not ret: return ""
-        return ret[0].getPath()
+        return ret[0].getPath() if ret else ""
 
     def findDevice(self, devicename, commit_dirty=False):
-        """
-        Returns the first device whose ip/id matches devicename.  If
-        there is no ip/id match, return the first device whose title
+        """Returns the first device whose ip/id matches devicename.
+
+        If there is no ip/id match, return the first device whose title
         matches devicename.
         """
         ret = self._findDevice(devicename, commit_dirty=commit_dirty)
-        if ret: return ret[0].getObject()
+        if ret:
+            return ret[0].getObject()
 
     def findDeviceByIdOrIp(self, devicename, commit_dirty=False):
+        """Returns the first device that has an ip/id that matches devicename.
         """
-        Returns the first device that has an ip/id that matches devicename
-        """
-        ret = self._findDevice( devicename, False, commit_dirty=commit_dirty )
-        if ret: return ret[0].getObject()
+        ret = self._findDevice(devicename, False, commit_dirty=commit_dirty)
+        if ret:
+            return ret[0].getObject()
 
     def findDeviceByIdExact(self, devicename):
+        """Look up device in catalog and return it.
+
+        devicename must match device id exactly.
         """
-        Look up device in catalog and return it.  devicename
-        must match device id exactly
-        """
-        if devicename:
-            query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Eq('id', devicename) )
-            search_results = IModelCatalogTool(self.dmd.Devices).search(query=query)
-            for brain in search_results.results:
-                dev = brain.getObject()
-                if dev.id == devicename:
-                    return dev
+        if not devicename:
+            return
+
+        query = And(
+            Eq("objectImplements", "Products.ZenModel.Device.Device"),
+            Eq('id', devicename),
+        )
+        results = IModelCatalogTool(self.dmd.Devices).search(query=query)
+        for brain in results.results:
+            dev = brain.getObject()
+            if dev.id == devicename:
+                return dev
 
     def findDevicePingStatus(self, devicename):
-        """
-        look up device in catalog and return its pingStatus
+        """Look up device in catalog and return its pingStatus.
         """
         dev = self.findDevice(devicename)
-        if dev: return dev.getPingStatusNumber()
-
+        if dev:
+            return dev.getPingStatusNumber()
 
     def getSubComponents(self, meta_type="", monitored=True):
-        """
-        Return generator of components, by meta_type if specified
+        """Return generator of components, by meta_type if specified.
         """
         catalog = IModelCatalogTool(self)
         COMPONENT = 'Products.ZenModel.DeviceComponent.DeviceComponent'
@@ -569,7 +600,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             except KeyError:
                 log.warn("bad path '%s' in global catalog", brain.getPath())
 
-
     security.declareProtected("ZenCommon", "getMonitoredComponents")
     def getMonitoredComponents(self):
         """
@@ -577,14 +607,13 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         return self.getSubComponents()
 
-
     security.declareProtected('View', 'getRRDTemplates')
     def getRRDTemplates(self, context=None):
-        """
-        Return the actual RRDTemplate instances.
+        """Return the actual RRDTemplate instances.
         """
         templates = {}
-        if not context: context = self
+        if not context:
+            context = self
         mychain = aq_chain(context)
         mychain.reverse()
         for obj in mychain:
@@ -594,26 +623,23 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 pass
         return templates.values()
 
-
     def getAvailableTemplates(self):
-        """
-        Returns all available templates
+        """Returns all available templates.
         """
         pdc = self.getPythonDeviceClass()
-        templates = filter(lambda t: issubclass(pdc, t.getTargetPythonClass()),
-                            self.getRRDTemplates())
+        templates = filter(
+            lambda t: issubclass(pdc, t.getTargetPythonClass()),
+            self.getRRDTemplates(),
+        )
         return sorted(templates, key=lambda a: a.id.lower())
 
-
     def bindTemplates(self, ids=(), REQUEST=None):
-        """
-        This will bind available templates to the zDeviceTemplates
+        """This will bind available templates to the zDeviceTemplates.
         """
         return self.setZenProperty('zDeviceTemplates', ids, REQUEST)
 
     def removeZDeviceTemplates(self, REQUEST=None):
-        """
-        Deletes the local zProperty, zDeviceTemplates
+        """Deletes the local zProperty, zDeviceTemplates.
         """
         if self.getPrimaryPath()[-2:] == ('dmd', 'Devices'):
             self.setZenProperty('zDeviceTemplates', ['Device'])
@@ -625,10 +651,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         )
         return self.callZenScreen(REQUEST)
 
-
     def getAllRRDTemplates(self, rrdts=None):
-        """
-        Return all RRDTemplates at this level and below in the object tree.
+        """Return all RRDTemplates at this level and below in the object tree.
+
         If rrdts is provided then it must be a list of RRDTemplates which
         will be extended with the templates from here and returned.
 
@@ -647,15 +672,15 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         rrdts.extend(RRDTemplate.YieldAllRRDTemplates(self))
         return rrdts
 
-
     def getAllRRDTemplatesPainfully(self, rrdts=None):
-        """
-        RRDTemplate.YieldAllRRDTemplates() is probably what you want.
+        """RRDTemplate.YieldAllRRDTemplates() is probably what you want.
+
         It takes advantage of the searchRRDTemplates catalog to get
         much better performance.  This method iterates over objects looking
         for templates which is a slow, painful process.
         """
-        if rrdts is None: rrdts = []
+        if rrdts is None:
+            rrdts = []
         rrdts.extend(self.rrdTemplates())
         for dev in self.devices():
             rrdts += dev.objectValues('RRDTemplate')
@@ -665,13 +690,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             child.getAllRRDTemplatesPainfully(rrdts)
         return rrdts
 
-
     security.declareProtected('Add DMD Objects', 'manage_addRRDTemplate')
     def manage_addRRDTemplate(self, id, REQUEST=None):
+        """Add an RRDTemplate to this DeviceClass.
         """
-        Add an RRDTemplate to this DeviceClass.
-        """
-        if not id: return self.callZenScreen(REQUEST)
+        if not id:
+            return self.callZenScreen(REQUEST)
         id = self.prepId(id)
         org = RRDTemplate.RRDTemplate(id)
         self.rrdTemplates._setObject(org.id, org)
@@ -682,19 +706,22 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             )
             return self.callZenScreen(REQUEST)
 
-
-    security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES,
-                              'manage_copyRRDTemplates')
+    security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES, 'manage_copyRRDTemplates')
     def manage_copyRRDTemplates(self, ids=(), REQUEST=None):
+        """Put a reference to the objects named in ids in the clip board.
         """
-        Put a reference to the objects named in ids in the clip board
-        """
-        if not ids: return self.callZenScreen(REQUEST)
-        ids = [ id for id in ids if self.rrdTemplates._getOb(id, None) is not None]
-        if not ids: return self.callZenScreen(REQUEST)
+        if not ids:
+            return self.callZenScreen(REQUEST)
+        ids = [
+            id
+            for id in ids
+            if self.rrdTemplates._getOb(id, None) is not None
+        ]
+        if not ids:
+            return self.callZenScreen(REQUEST)
         cp = self.rrdTemplates.manage_copyObjects(ids)
         if REQUEST:
-            resp=REQUEST['RESPONSE']
+            resp = REQUEST['RESPONSE']
             resp.setCookie('__cp', cp, path='/zport/dmd')
             REQUEST['__cp'] = cp
             messaging.IMessageSender(self).sendToBrowser(
@@ -704,21 +731,21 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             return self.callZenScreen(REQUEST)
         return cp
 
-
-    security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES,
-                              'manage_pasteRRDTemplates')
+    security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES, 'manage_pasteRRDTemplates')
     def manage_pasteRRDTemplates(self, moveTarget=None, cb_copy_data=None, REQUEST=None):
-        """
-        Paste RRDTemplates that have been copied before.
+        """Paste RRDTemplates that have been copied before.
         """
         cp = None
-        if cb_copy_data: cp = cb_copy_data
+        if cb_copy_data:
+            cp = cb_copy_data
         elif REQUEST:
-            cp = REQUEST.get("__cp",None)
+            cp = REQUEST.get("__cp", None)
 
         if cp:
             if moveTarget:
-                target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
+                target = self.getDmdRoot(self.dmdRootName).getOrganizer(
+                    moveTarget,
+                )
             else:
                 target = self
             target.rrdTemplates.manage_pasteObjects(cp)
@@ -726,8 +753,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             target = None
 
         if REQUEST:
-            REQUEST['RESPONSE'].setCookie('__cp', 'deleted', path='/zport/dmd',
-                            expires='Wed, 31-Dec-97 23:59:59 GMT')
+            REQUEST['RESPONSE'].setCookie(
+                '__cp',
+                'deleted',
+                path='/zport/dmd',
+                expires='Wed, 31-Dec-97 23:59:59 GMT',
+            )
             REQUEST['__cp'] = None
             if target:
                 message = "Template(s) copied to %s" % moveTarget
@@ -745,12 +776,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             else:
                 return self.callZenScreen(REQUEST)
 
-
-    security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES,
-                              'manage_copyAndPasteRRDTemplates')
+    security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES, 'manage_copyAndPasteRRDTemplates')
     def manage_copyAndPasteRRDTemplates(self, ids=(), copyTarget=None, REQUEST=None):
-        """
-        Copy the selected templates into the specified device class.
+        """Copy the selected templates into the specified device class.
         """
         if not ids:
             messaging.IMessageSender(self).sendToBrowser(
@@ -769,19 +797,15 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         cp = self.manage_copyRRDTemplates(ids)
         return self.manage_pasteRRDTemplates(copyTarget, cp, REQUEST)
 
-
-    security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES,
-                              'manage_deleteRRDTemplates')
+    security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES, 'manage_deleteRRDTemplates')
     def manage_deleteRRDTemplates(self, ids=(), paths=(), REQUEST=None):
-        """
-        Delete RRDTemplates from this DeviceClass
+        """Delete RRDTemplates from this DeviceClass
         (skips ones in other Classes)
         """
         if not ids and not paths:
             return self.callZenScreen(REQUEST)
         for id in ids:
-            if (getattr(aq_base(self), 'rrdTemplates', False)
-                and getattr(aq_base(self.rrdTemplates),id,False)):
+            if (getattr(aq_base(self), 'rrdTemplates', False) and getattr(aq_base(self.rrdTemplates), id, False)):
                 self.rrdTemplates._delObject(id)
         for path in paths:
             temp = self.dmd.getObjByPath(path)
@@ -798,19 +822,22 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
     security.declareProtected(ZEN_ADD, 'createCatalog')
     def createCatalog(self):
-        """
-        Make the catalog for device searching.
+        """Make the catalog for device searching.
+
         deviceSearch catalog is deprecated.
         """
         from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
         if hasattr(self, self.default_catalog):
             self._delObject(self.default_catalog)
-        setattr(self, self.default_catalog, LegacyCatalogAdapter(self, self.default_catalog))
+        setattr(
+            self,
+            self.default_catalog,
+            LegacyCatalogAdapter(self, self.default_catalog),
+        )
 
     security.declareProtected(ZEN_MANAGE_DMD, 'reIndex')
     def reIndex(self):
-        """
-        Go through all devices in this tree and reindex them.
+        """Go through all devices in this tree and reindex them.
         """
         for dev in self.getSubDevicesGen_recursive():
             if dev.hasObject('componentSearch'):
@@ -821,20 +848,18 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 notify(IndexingEvent(comp))
 
     def buildDeviceTreeProperties(self):
-        """
-        Create a new device tree with a default configuration
+        """Create a new device tree with a default configuration.
         """
         devs = self.getDmdRoot("Devices")
         for item in Z_PROPERTIES:
             id = item[0]
-            defaultValue = item[1]            
+            defaultValue = item[1]
             type = item[2]
             if not devs.hasProperty(id):
                 devs._setProperty(id, defaultValue, type)
 
     def zenPropertyOptions(self, propname):
-        """
-        Provide a set of default options for a zProperty
+        """Provide a set of default options for a zProperty.
 
         @param propname: zProperty name
         @type propname: string
@@ -854,10 +879,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             return ['', 'DES', 'AES']
         return DeviceOrganizer.zenPropertyOptions(self, propname)
 
-
     def pushConfig(self, REQUEST=None):
-        """
-        This will result in a push of all the devices to live collectors
+        """This will result in a push of all the devices to live collectors.
 
         @param REQUEST: Zope REQUEST object
         @type REQUEST: Zope REQUEST object
@@ -870,11 +893,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             )
             return self.callZenScreen(REQUEST)
 
-
     security.declareProtected('Change Device', 'setLastChange')
     def setLastChange(self, value=None):
-        """
-        Set the changed datetime for this device.
+        """Set the changed datetime for this device.
 
         @param value: changed datetime. Default is now.
         @type value: number
