@@ -17,6 +17,7 @@ from .misc import (  # noqa: F401
     DelayedFailure,
     pause,
 )
+from .purge_logs import purge_logs  # noqa F401
 from .roles import DeviceSetLocalRolesJob  # noqa: F401
 from .subprocess import SubprocessJob  # noqa: F401
 
