@@ -9,8 +9,13 @@
 
 from __future__ import absolute_import
 
+import functools
 import inspect
+import random
+import threading
+import transaction
 
+from ZODB.POSException import ConflictError, ReadConflictError
 from zope.component import getUtility
 
 from ..interfaces import IJobStore
@@ -50,3 +55,74 @@ def job_log_has_errors(task_id):
             )
     except Exception:
         return False
+
+
+def transact(f, retries, numbers, sleep=None, ctx=None):
+    """Transactional version of f with backoff between retries.
+
+    :param int retries: maximum number of retries before giving up.
+    :param numbers: An infinite generator of floats.
+    :param sleep: An object that has a wait() method that accepts a float
+        produced by numbers.
+    :param ctx: the transaction having commit and abort methods.
+    """
+
+    sleeper = threading.Event() if sleep is None else sleep
+    tx = transaction if ctx is None else ctx
+
+    @functools.wraps(f)
+    def transactional(*args, **kw):
+        tries_remaining = retries
+
+        while tries_remaining:
+            tries_remaining -= 1
+            try:
+                result = f(*args, **kw)
+                tx.commit()
+                return result
+            except (ReadConflictError, ConflictError):
+                # abort immediately to free up resources
+                tx.abort()
+                if not tries_remaining:
+                    raise
+                duration = next(numbers)
+                sleeper.wait(duration)
+                # Reset transaction again to "catch up" to current changes.
+                tx.abort()
+
+        raise RuntimeError("Couldn't commit transaction")
+
+    return transactional
+
+
+def backoff(limit, numbers):
+    """Returns a float producing infinite generator.
+
+    The backoff generator will produce a range of floats corresponding to the
+    distribution of values produced from the numbers generator.  In general,
+    the values are in the range of 0 < x <= limit.
+
+    The numbers function accepts a number and returns a generator that
+    produces floats.
+
+    @param int limit: The largest number possible that can be returned.
+    @param numbers: A function that takes a float and returns
+        an infinite generator.
+    @type numbers: Callable[float, Generator]
+    """
+    maxv = float(limit) / 2
+    gen = numbers(maxv)
+    while True:
+        base = next(gen)
+        offset = random.uniform(0, base)
+        yield base + offset
+
+
+def fibonacci(max_value):
+    """An infinite generator returning Fibonacci number <= max_value.
+    """
+    a, b = 0, 1  # the zero is never emitted from the generator.
+    while True:
+        if b <= max_value:
+            a, b = b, a + b
+        yield a
