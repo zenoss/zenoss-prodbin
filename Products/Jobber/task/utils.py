@@ -76,25 +76,11 @@ def transact(f, retries, numbers, sleep=None, ctx=None):
 
         while tries_remaining:
             tries_remaining -= 1
-
-            # Call the wrapped function
             try:
                 result = f(*args, **kw)
-            except ReadConflictError:
-                # abort immediately to free up resources
-                tx.abort()
-                if not tries_remaining:
-                    raise
-                duration = next(numbers)
-                sleeper.wait(duration)
-                # Reset transaction again to "catch up" to current changes.
-                tx.abort()
-                continue
-
-            # Commit the transaction.
-            try:
                 tx.commit()
-            except ConflictError:
+                return result
+            except (ReadConflictError, ConflictError):
                 # abort immediately to free up resources
                 tx.abort()
                 if not tries_remaining:
@@ -103,9 +89,7 @@ def transact(f, retries, numbers, sleep=None, ctx=None):
                 sleeper.wait(duration)
                 # Reset transaction again to "catch up" to current changes.
                 tx.abort()
-                continue
 
-            return result
         raise RuntimeError("Couldn't commit transaction")
 
     return transactional
