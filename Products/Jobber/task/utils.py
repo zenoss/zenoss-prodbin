@@ -81,30 +81,28 @@ def transact(f, retries, numbers, sleep=None, ctx=None):
             try:
                 result = f(*args, **kw)
             except ReadConflictError:
-                try:
-                    if not tries_remaining:
-                        raise
-                    # Wait before aborting the transaction so that the
-                    # process is not sitting idle with a new transaction.
-                    duration = next(numbers)
-                    sleeper.wait(duration)
-                finally:
-                    tx.abort()
+                # abort immediately to free up resources
+                tx.abort()
+                if not tries_remaining:
+                    raise
+                duration = next(numbers)
+                sleeper.wait(duration)
+                # Reset transaction again to "catch up" to current changes.
+                tx.abort()
                 continue
 
             # Commit the transaction.
             try:
                 tx.commit()
             except ConflictError:
-                try:
-                    if not tries_remaining:
-                        raise
-                    # Wait before aborting the transaction so that the
-                    # process is not sitting idle with a new transaction.
-                    duration = next(numbers)
-                    sleeper.wait(duration)
-                finally:
-                    tx.abort()
+                # abort immediately to free up resources
+                tx.abort()
+                if not tries_remaining:
+                    raise
+                duration = next(numbers)
+                sleeper.wait(duration)
+                # Reset transaction again to "catch up" to current changes.
+                tx.abort()
                 continue
 
             return result

@@ -316,9 +316,10 @@ class TransactTest(TestCase):
             tx()
 
         c.commit.assert_not_called()
-        abort_calls = [call() for _ in range(retries)]
+        total_aborts = (retries * 2) - 1
+        abort_calls = [call() for _ in range(total_aborts)]
         c.abort.assert_has_calls(abort_calls, any_order=True)
-        t.assertEqual(c.abort.call_count, retries)
+        t.assertEqual(c.abort.call_count, total_aborts)
 
         # Only four calls to wait(); there is no wait after the final attempt.
         wait_calls = [call(v) for v in delays[:retries - 1]]
@@ -349,9 +350,10 @@ class TransactTest(TestCase):
         c.commit.assert_has_calls(commit_calls, any_order=True)
         t.assertEqual(c.commit.call_count, retries)
 
-        abort_calls = [call() for _ in range(retries)]
+        total_aborts = (retries * 2) - 1
+        abort_calls = [call() for _ in range(total_aborts)]
         c.abort.assert_has_calls(abort_calls, any_order=True)
-        t.assertEqual(c.abort.call_count, retries)
+        t.assertEqual(c.abort.call_count, total_aborts)
 
         # Only four calls to wait(); there is no wait after the final attempt.
         wait_calls = [call(v) for v in delays[:retries - 1]]
@@ -390,11 +392,11 @@ class TransactTest(TestCase):
         t.assertEqual(c.commit.call_count, 3)
 
         # Abort call count is one less than the commit call count.
-        abort_calls = [call(), call()]
+        abort_calls = [call(), call(), call(), call()]
         c.abort.assert_has_calls(abort_calls, any_order=True)
-        t.assertEqual(c.abort.call_count, 2)
+        t.assertEqual(c.abort.call_count, len(abort_calls))
 
         # The number of wait calls should match the number of abort calls.
-        wait_calls = [call(v) for v in delays[:len(abort_calls)]]
+        wait_calls = [call(v) for v in delays[:len(abort_calls) / 2]]
         s.wait.assert_has_calls(wait_calls, any_order=True)
-        t.assertEqual(s.wait.call_count, 2)
+        t.assertEqual(s.wait.call_count, len(wait_calls))
