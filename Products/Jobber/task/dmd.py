@@ -27,7 +27,7 @@ from Products.ZenUtils.Utils import getObjByPath
 from ..config import ZenJobs
 from ..utils.log import get_logger, get_task_logger, inject_logger
 
-from .utils import transact, backoff
+from .utils import backoff, fibonacci, transact
 
 mlog = get_logger("zen.zenjobs.task.dmd")
 
@@ -51,7 +51,7 @@ class DMD(object):
             try:
                 retries = ZenJobs.get("zodb-max-retries", 5)
                 limit = ZenJobs.get("zodb-retry-interval-limit", 30)
-                backoff_generator = backoff(limit)
+                backoff_generator = backoff(limit, fibonacci)
                 f = transact(
                     super(DMD, self).__call__, retries, backoff_generator,
                 )
