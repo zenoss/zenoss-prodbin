@@ -68,11 +68,21 @@ class FacadeMethodJob(Job):
             raise FacadeMethodJobFailed(
                 "Not a callable method: %s.%s" % (facadeclass, method),
             )
-        accepted = fun_takes_kwargs(bound_method, kwargs)
+
+        # Some facade methods were written to accept a 'joblog'
+        # parameter provided by this task.
+        kwarg_names = set(kwargs)
+        kwarg_names.add("joblog")
+
+        # fun_takes_kwargs filters out parameter names not found in the
+        # facade method's signature.
+        accepted = fun_takes_kwargs(bound_method, kwarg_names)
+
+        # If 'joblog' was not filtered out, add it to kwargs.
         if "joblog" in accepted:
-            # Some facade methods were written to accept a 'joblog'
-            # argument provided by this task.
             kwargs["joblog"] = self.log
+
+        # Rebuild kwargs to include only accepted parameter names.
         kwargs = {
             k: v
             for k, v in kwargs.iteritems()
