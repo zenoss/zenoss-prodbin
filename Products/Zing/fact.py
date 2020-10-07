@@ -7,30 +7,30 @@
 #
 ##############################################################################
 
-from .shortid import shortid
+import copy
+import logging
+import time
+
 from json import JSONEncoder
 
-import copy
-import time
-import logging
+from zope.component import getUtility
+from zope.component.interfaces import ComponentLookupError
 
 from Products.ZenModel.ComponentGroup import ComponentGroup
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.Location import Location
-from zope.component.interfaces import ComponentLookupError
-from zope.component import getUtility
 
 from .interfaces import IImpactRelationshipsFactProvider
+from .shortid import shortid
 
-logging.basicConfig()
 log = logging.getLogger("zen.zing.fact")
 
-ORGANIZERS_FACT_PLUGIN = 'zen_organizers'
-DEVICE_INFO_FACT_PLUGIN = 'zen_device_info'
-DEVICE_ORGANIZER_INFO_FACT_PLUGIN = 'zen_device_organizer_info'
-COMPONENT_GROUP_INFO_FACT_PLUGIN = 'zen_component_group_info'
-DELETION_FACT_PLUGIN = 'zen_deletion'
-DYNAMIC_SERVICE_FACT_PLUGIN = 'zen_impact_dynamic_service'
+ORGANIZERS_FACT_PLUGIN = "zen_organizers"
+DEVICE_INFO_FACT_PLUGIN = "zen_device_info"
+DEVICE_ORGANIZER_INFO_FACT_PLUGIN = "zen_device_organizer_info"
+COMPONENT_GROUP_INFO_FACT_PLUGIN = "zen_component_group_info"
+DELETION_FACT_PLUGIN = "zen_deletion"
+DYNAMIC_SERVICE_FACT_PLUGIN = "zen_impact_dynamic_service"
 
 
 class DimensionKeys(object):
@@ -69,7 +69,9 @@ class Fact(object):
         self.data = {}  # corresponds to "metadata" in zing
 
     def __str__(self):
-        return "ZING.fact {}   metadata: {!r}  data: {!r}".format(self.id, self.metadata, self.data)
+        return "ZING.fact {}   metadata: {!r}  data: {!r}".format(
+            self.id, self.metadata, self.data
+        )
 
     def update(self, other):
         self.data.update(other)
@@ -113,7 +115,10 @@ def device_organizer_info_fact(device_organizer):
 
     # Ignore root DeviceOrganizer (/) and DataRoot as parents.
     parent = device_organizer.getPrimaryParent()
-    if isinstance(parent, DeviceOrganizer) and parent.getOrganizerName() != "/":
+    if (
+        isinstance(parent, DeviceOrganizer)
+        and parent.getOrganizerName() != "/"
+    ):
         f.metadata[DimensionKeys.PARENT_KEY] = parent.getUUID()
 
     if device_organizer.aqBaseHasAttr("description"):
@@ -158,17 +163,28 @@ def device_info_fact(device):
     f.data[MetadataKeys.NAME_KEY] = device.titleOrId()
     f.data[MetadataKeys.PROD_STATE_KEY] = device.getProductionStateString()
     for propdict in device._propertyMap():
-        propId = propdict.get('id')
-        if device.isLocal(propId) and propdict.get('type', None) in ('string', 'int', 'boolean',
-                                                                     'long', 'float', 'text',
-                                                                     'lines'):
-            # Some of the device properties can be methods, so we have to call them and get values
+        propId = propdict.get("id")
+        if device.isLocal(propId) and propdict.get("type", None) in (
+            "string",
+            "int",
+            "boolean",
+            "long",
+            "float",
+            "text",
+            "lines",
+        ):
+            # Some of the device properties can be methods,
+            # so we have to call them and get values.
             if callable(device.getProperty(propId)):
                 log.warn("Callable: %s", device.getProperty(propId))
                 try:
                     value = device.getProperty(propId).__call__()
                 except TypeError as e:
-                    log.exception("Unable to call property: %s. Exception %s", device.getProperty(propId), e)
+                    log.exception(
+                        "Unable to call property: %s. Exception %s",
+                        device.getProperty(propId),
+                        e,
+                    )
             else:
                 value = device.getProperty(propId)
             if value is None:
@@ -177,7 +193,9 @@ def device_info_fact(device):
     f.data[MetadataKeys.ID_KEY] = device.id
     f.data[MetadataKeys.TITLE_KEY] = device.title
     try:
-        f.data[MetadataKeys.DEVICE_UUID_KEY] = get_context_uuid(device.device())
+        f.data[MetadataKeys.DEVICE_UUID_KEY] = get_context_uuid(
+            device.device()
+        )
         f.data[MetadataKeys.DEVICE_KEY] = device.device().id
     except Exception:
         pass
@@ -192,15 +210,21 @@ def organizer_fact_from_device(device):
     device_fact.set_context_uuid_from_object(device)
     device_fact.set_meta_type_from_object(device)
     device_fact.metadata[DimensionKeys.PLUGIN_KEY] = ORGANIZERS_FACT_PLUGIN
-    device_fact.data[MetadataKeys.DEVICE_CLASS_KEY] = device.getDeviceClassName()
+    device_fact.data[
+        MetadataKeys.DEVICE_CLASS_KEY
+    ] = device.getDeviceClassName()
     location = device.getLocationName()
-    device_fact.data[MetadataKeys.LOCATION_KEY] = [location] if location else []
+    device_fact.data[MetadataKeys.LOCATION_KEY] = (
+        [location] if location else []
+    )
     device_fact.data[MetadataKeys.SYSTEMS_KEY] = device.getSystemNames()
     device_fact.data[MetadataKeys.GROUPS_KEY] = device.getDeviceGroupNames()
     return device_fact
 
 
-def organizer_fact_from_device_component(device_fact, comp_uuid, comp_meta_type, comp_groups):
+def organizer_fact_from_device_component(
+    device_fact, comp_uuid, comp_meta_type, comp_groups
+):
     """
     Given a device component, generates its organizers fact
     @param device_fact: organizers fact for device
@@ -222,19 +246,28 @@ def impact_relationships_fact(uuid):
         return fact_provider.impact_relationships_fact(uuid)
     return None
 
-def impact_relationships_fact_if_needed(tx_state, uuid, mark_as_generated=True):
+
+def impact_relationships_fact_if_needed(
+    tx_state, uuid, mark_as_generated=True
+):
     """
-    Generates an impact relationships fact for the received uuid if it has not already
-    been generated
-    :return a valid impact realtionship fact or None if the object does not belong to
-    impact graph, if the generated fact is not valid, or if the fact has already been generated
+    Generates an impact relationships fact for the received uuid if it has
+    not already been generated.
+
+    Returns a valid impact realtionship fact or None if the object does not
+    belong to impact graph, if the generated fact is not valid, or if the
+    fact has already been generated.
     """
     impact_fact = None
-    if tx_state and tx_state.impact_installed and uuid not in tx_state.already_generated_impact_facts:
+    if (
+        tx_state
+        and tx_state.impact_installed
+        and uuid not in tx_state.already_generated_impact_facts
+    ):
         fact = impact_relationships_fact(uuid)
         mark = False
         if fact is None:
-            mark = True # this object doesnt belong to impact graph
+            mark = True  # this object doesnt belong to impact graph
         elif fact.is_valid():
             mark = True
             impact_fact = fact
@@ -244,18 +277,25 @@ def impact_relationships_fact_if_needed(tx_state, uuid, mark_as_generated=True):
 
 
 class _FactEncoder(JSONEncoder):
-
     def _tweak_data(self, data_in):
         data_out = {}
         for k, v in data_in.iteritems():
-            if isinstance(v, list) or isinstance(v, tuple) or isinstance(v, set):
-                # whatever comes in the list, set etc. needs to be scalar, if it isnt
-                # cast it to string for now.
-                # TODO: Review if we need to support more complex types (list of lists, etc)
+            if (
+                isinstance(v, list)
+                or isinstance(v, tuple)
+                or isinstance(v, set)
+            ):
+                # whatever comes in the list, set etc. needs to be scalar,
+                # if it isn't cast it to string for now.
+                # TODO: Review if we need to support more complex types
+                # (list of lists, etc)
                 values = []
                 for x in v:
                     if not isinstance(x, (str, int, long, float, bool)):
-                        log.debug("Found non scalar type in list (%s). Casting it to str", x.__class__)
+                        log.debug(
+                            "Found non scalar type in list (%s). "
+                            "Casting it to str", x.__class__,
+                        )
                         x = str(x)
                     values.append(x)
                 data_out[k] = sorted(values)
@@ -269,7 +309,7 @@ class _FactEncoder(JSONEncoder):
                 "id": o.id,
                 "data": self._tweak_data(o.data),
                 "metadata": o.metadata,
-                "timestamp": int(time.time())
+                "timestamp": int(time.time()),
             }
         return JSONEncoder.default(self, o)
 
@@ -281,4 +321,3 @@ def serialize_facts(facts):
     if facts:
         encoded = FactEncoder.encode({"models": facts})
         return encoded
-

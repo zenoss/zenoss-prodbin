@@ -10,41 +10,37 @@
 import logging
 
 from collections import defaultdict
-from zope.interface import implements
 from zope.component import subscribers, adapter
 from zope.component.factory import Factory
+from zope.interface import implements
 
-from Products.DataCollector.plugins.DataMaps import (
-    RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
-)
 from Products.DataCollector.ApplyDataMap import (
     IDatamapAppliedEvent,
     IncrementalDataMap,
 )
-
-from Products.Zing import fact as ZFact
-
-from Products.Zing.interfaces import (
-    IObjectMapContextProvider,
-    IZingDatamapHandler,
+from Products.DataCollector.plugins.DataMaps import (
+    MultiArgs,
+    ObjectMap,
+    PLUGIN_NAME_ATTR,
+    RelationshipMap,
 )
 
-from Products.Zing.tx_state import ZingTxStateManager
+from . import fact as ZFact
+from .interfaces import IObjectMapContextProvider, IZingDatamapHandler
+from .tx_state import ZingTxStateManager
 
-
-logging.basicConfig()
 log = logging.getLogger("zen.zing.datamaps")
 
 
 @adapter(IDatamapAppliedEvent)
 def zing_add_datamap(event):
     if event.datamap.changed:
-        log.debug('zing_add_datamap_context handeling event=%s', event)
+        log.debug("zing_add_datamap_context handeling event=%s", event)
         zing_datamap_handler = ZingDatamapHandler(event.datamap._base.dmd)
         zing_datamap_handler.add_context(event.datamap, event.datamap.target)
         zing_datamap_handler.add_datamap(event.datamap.target, event.datamap)
     else:
-        log.debug('no change event=%s', event)
+        log.debug("no change event=%s", event)
         return
 
 
@@ -77,6 +73,7 @@ class ObjectMapContext(object):
             pass
 
         from Products.ZenModel.Device import Device
+
         if isinstance(obj, Device):
             self.is_device = True
             try:
@@ -85,6 +82,7 @@ class ObjectMapContext(object):
                 pass
 
         from Products.ZenModel.DeviceComponent import DeviceComponent
+
         if isinstance(obj, DeviceComponent):
             self.is_device_component = True
 
@@ -94,15 +92,15 @@ class ObjectMapContext(object):
                 merge_fields(self.dimensions, provider.get_dimensions(obj))
             except Exception as e:
                 log.error(
-                    "%s failed to get dimensions for %s: %s",
-                    provider, obj, e)
+                    "%s failed to get dimensions for %s: %s", provider, obj, e
+                )
 
             try:
                 merge_fields(self.metadata, provider.get_metadata(obj))
             except Exception as e:
                 log.error(
-                    "%s failed to get metadata for %s: %s",
-                    provider, obj, e)
+                    "%s failed to get metadata for %s: %s", provider, obj, e
+                )
 
 
 def merge_fields(d, new):
@@ -135,65 +133,99 @@ class ZingDatamapHandler(object):
         self.zing_tx_state_manager = ZingTxStateManager()
 
     def _get_zing_tx_state(self):
-        """ """
         return self.zing_tx_state_manager.get_zing_tx_state(self.context)
 
     def add_datamap(self, ctx, datamap):
-        """ adds the datamap to the ZingDatamapsTxState in the current tx"""
+        """Adds the datamap to the ZingDatamapsTxState in the current tx."""
         zing_state = self._get_zing_tx_state()
-        zing_state.datamaps.append( (ctx.device(), datamap) )
+        zing_state.datamaps.append((ctx.device(), datamap))
 
     def add_context(self, objmap, ctx):
-        """ adds the context to the ZingDatamapsTxState in the current tx """
+        """Adds the context to the ZingDatamapsTxState in the current tx."""
         zing_state = self._get_zing_tx_state()
         zing_state.datamaps_contexts[objmap] = ObjectMapContext(ctx)
 
     def _generate_facts(self, facts_per_device, zing_tx_state):
         """
-        Given a dict of device:facts from datamap, it returns a generator that includes
-        all the received facts plus some additional facts (organizers fact, device info fact
-        and impact relationship fact)
+        Given a dict of device:facts from datamap, it returns a generator that
+        includes all the received facts plus some additional facts (organizers
+        fact, device info fact and impact relationship fact)
         """
         for device, facts in facts_per_device.iteritems():
             device_organizers_fact = ZFact.organizer_fact_from_device(device)
+
             for f in facts:
-                # return datamap fact
-                if f.is_valid():
-                    comp_uuid = f.metadata.get(ZFact.DimensionKeys.CONTEXT_UUID_KEY, "")
-                    zing_tx_state.already_generated_device_info_facts.add(comp_uuid)
-                    yield f
-                    # organizers and impact relationships facts for the component
-                    comp_groups = []
-                    for component in device.getDeviceComponents():
-                        if component.getUUID() == comp_uuid:
-                            comp_groups = component.getComponentGroupNames()
-                            break
-                    # organizers fact for the component
-                    if comp_uuid not in zing_tx_state.already_generated_organizer_facts:
-                        comp_meta = f.metadata.get(ZFact.DimensionKeys.META_TYPE_KEY, "")
-                        comp_fact = ZFact.organizer_fact_from_device_component(device_organizers_fact, comp_uuid, comp_meta, comp_groups)
-                        if comp_fact.is_valid():
-                            zing_tx_state.already_generated_organizer_facts.add(comp_uuid)
-                            yield comp_fact
-                    # impact relationship fact for the component
-                    comp_impact_fact = ZFact.impact_relationships_fact_if_needed(zing_tx_state, comp_uuid)
-                    if comp_impact_fact:
-                        yield comp_impact_fact
+                if not f.is_valid():
+                    continue
+                # Return datamap fact
+                comp_uuid = f.metadata.get(
+                    ZFact.DimensionKeys.CONTEXT_UUID_KEY, ""
+                )
+                zing_tx_state.already_generated_device_info_facts.add(
+                    comp_uuid
+                )
+                yield f
+                # Organizers and impact relationships facts for the
+                # component.
+                comp_groups = []
+                for component in device.getDeviceComponents():
+                    if component.getUUID() == comp_uuid:
+                        comp_groups = component.getComponentGroupNames()
+                        break
+                # organizers fact for the component
+                if (
+                    comp_uuid
+                    not in zing_tx_state.already_generated_organizer_facts
+                ):
+                    comp_meta = f.metadata.get(
+                        ZFact.DimensionKeys.META_TYPE_KEY, ""
+                    )
+                    comp_fact = ZFact.organizer_fact_from_device_component(
+                        device_organizers_fact,
+                        comp_uuid,
+                        comp_meta,
+                        comp_groups,
+                    )
+                    if comp_fact.is_valid():
+                        zing_tx_state.already_generated_organizer_facts.add(
+                            comp_uuid
+                        )
+                        yield comp_fact
+                # impact relationship fact for the component
+                comp_impact_fact = ZFact.impact_relationships_fact_if_needed(
+                    zing_tx_state, comp_uuid
+                )
+                if comp_impact_fact:
+                    yield comp_impact_fact
+
             # generate facts for the device
             dev_uuid = device.getUUID()
             if dev_uuid:
                 # send organizers fact
-                if dev_uuid not in zing_tx_state.already_generated_organizer_facts and device_organizers_fact.is_valid():
-                    zing_tx_state.already_generated_organizer_facts.add(dev_uuid)
+                if (
+                    dev_uuid
+                    not in zing_tx_state.already_generated_organizer_facts
+                    and device_organizers_fact.is_valid()
+                ):
+                    zing_tx_state.already_generated_organizer_facts.add(
+                        dev_uuid
+                    )
                     yield device_organizers_fact
                 # send device info fact
-                if dev_uuid not in zing_tx_state.already_generated_device_info_facts:
+                if (
+                    dev_uuid
+                    not in zing_tx_state.already_generated_device_info_facts
+                ):
                     dev_info_fact = ZFact.device_info_fact(device)
                     if dev_info_fact.is_valid():
-                        zing_tx_state.already_generated_device_info_facts.add(dev_uuid)
+                        zing_tx_state.already_generated_device_info_facts.add(
+                            dev_uuid
+                        )
                         yield dev_info_fact
                 # send impact relationships fact
-                dev_impact_fact = ZFact.impact_relationships_fact_if_needed(zing_tx_state, dev_uuid)
+                dev_impact_fact = ZFact.impact_relationships_fact_if_needed(
+                    zing_tx_state, dev_uuid
+                )
                 if dev_impact_fact:
                     yield dev_impact_fact
 
@@ -201,10 +233,15 @@ class ZingDatamapHandler(object):
         """
         @return: Fact generator
         """
-        log.debug("Processing %s datamaps to send to zing-connector.", len(zing_tx_state.datamaps))
+        log.debug(
+            "Processing %s datamaps to send to zing-connector.",
+            len(zing_tx_state.datamaps),
+        )
         facts_per_device = defaultdict(list)
         for device, datamap in zing_tx_state.datamaps:
-            dm_facts = self.facts_from_datamap(device, datamap, zing_tx_state.datamaps_contexts)
+            dm_facts = self.facts_from_datamap(
+                device, datamap, zing_tx_state.datamaps_contexts
+            )
             if dm_facts:
                 facts_per_device[device].extend(dm_facts)
         return self._generate_facts(facts_per_device, zing_tx_state)
@@ -218,7 +255,14 @@ class ZingDatamapHandler(object):
         f.data[ZFact.MetadataKeys.NAME_KEY] = ctx.name
         return f
 
-    def fact_from_object_map(self, om, parent_device=None, relationship=None, context=None, dm_plugin=None):
+    def fact_from_object_map(
+        self,
+        om,
+        parent_device=None,
+        relationship=None,
+        context=None,
+        dm_plugin=None,
+    ):
         om_context = (context or {}).get(om)
         if om_context is not None:
             f = ZFact.device_info_fact(om_context._obj)
@@ -226,10 +270,12 @@ class ZingDatamapHandler(object):
             if relationship is not None:
                 f.metadata[ZFact.DimensionKeys.RELATION_KEY] = relationship
             else:
-                f.metadata[ZFact.DimensionKeys.RELATION_KEY] = om_context._obj.getPrimaryParent().id
+                f.metadata[
+                    ZFact.DimensionKeys.RELATION_KEY
+                ] = om_context._obj.getPrimaryParent().id
             try:
                 parent = om_context._obj.getPrimaryParent().getPrimaryParent()
-                if parent.id in ('os', 'hw'):
+                if parent.id in ("os", "hw"):
                     parent = parent_device
                 f.metadata[ZFact.DimensionKeys.PARENT_KEY] = parent.getUUID()
             except Exception:
@@ -241,16 +287,21 @@ class ZingDatamapHandler(object):
             del d["_attrs"]
         if "classname" in d and not d["classname"]:
             del d["classname"]
-        for k, v  in d.items():
-            # These types are currently all that the model ingest service can handle.
-            if not isinstance(v, (str, int, long, float, bool, list, tuple, MultiArgs, set)):
+        for k, v in d.items():
+            # These types are currently all that the model ingest service
+            # can handle.
+            if not isinstance(
+                v, (str, int, long, float, bool, list, tuple, MultiArgs, set)
+            ):
                 del d[k]
             elif isinstance(v, MultiArgs):
                 d[k] = v.args
         f.update(d)
 
         if parent_device is not None:
-            f.data[ZFact.MetadataKeys.DEVICE_UUID_KEY] = parent_device.getUUID()
+            f.data[
+                ZFact.MetadataKeys.DEVICE_UUID_KEY
+            ] = parent_device.getUUID()
             f.data[ZFact.MetadataKeys.DEVICE_KEY] = parent_device.id
 
         plugin_name = getattr(om, PLUGIN_NAME_ATTR, None) or dm_plugin
@@ -265,7 +316,9 @@ class ZingDatamapHandler(object):
         if not f.metadata.get(ZFact.DimensionKeys.PLUGIN_KEY):
             log.warn("Found fact without plugin information: %s", f.metadata)
             if f.metadata.get(ZFact.DimensionKeys.META_TYPE_KEY):
-                f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = f.metadata[ZFact.DimensionKeys.META_TYPE_KEY]
+                f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = f.metadata[
+                    ZFact.DimensionKeys.META_TYPE_KEY
+                ]
         return f
 
     def fact_from_incremental_map(self, idm, context=None):
@@ -282,30 +335,39 @@ class ZingDatamapHandler(object):
         else:
             f = ZFact.Fact()
         valid_types = (
-            str, int, long, float, bool, list, tuple, MultiArgs, set
+            str,
+            int,
+            long,
+            float,
+            bool,
+            list,
+            tuple,
+            MultiArgs,
+            set,
         )
 
         objectmap = {k: v for k, v in idm.iteritems()}
         for k, v in objectmap.items():
-            # These types are currently all that the model ingest service can handle.
+            # These types are currently all that the model ingest service
+            # can handle.
             if not isinstance(v, valid_types):
                 del objectmap[k]
             elif isinstance(v, MultiArgs):
                 objectmap[k] = v.args
 
         if idm.id:
-            objectmap['id'] = idm.id
+            objectmap["id"] = idm.id
         f.update(objectmap)
 
         if relname:
             f.metadata[ZFact.DimensionKeys.RELATION_KEY] = relname
         try:
             if parent:
-                if parent.id in ('os', 'hw'):
+                if parent.id in ("os", "hw"):
                     parent = parent_device
                 f.metadata[ZFact.DimensionKeys.PARENT_KEY] = parent.getUUID()
         except Exception:
-            log.debug('parent UUID not found')
+            log.debug("parent UUID not found")
 
         # Hack in whatever extra stuff we need.
         if om_context is not None:
@@ -318,7 +380,9 @@ class ZingDatamapHandler(object):
         if not f.metadata.get(ZFact.DimensionKeys.PLUGIN_KEY):
             log.warn("Found fact without plugin information: %s", f.metadata)
             if f.metadata.get(ZFact.DimensionKeys.META_TYPE_KEY):
-                f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = f.metadata[ZFact.DimensionKeys.META_TYPE_KEY]
+                f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = f.metadata[
+                    ZFact.DimensionKeys.META_TYPE_KEY
+                ]
         return f
 
     def facts_from_datamap(self, device, dm, context):
@@ -326,11 +390,19 @@ class ZingDatamapHandler(object):
         dm_plugin = getattr(dm, PLUGIN_NAME_ATTR, None)
         if isinstance(dm, RelationshipMap):
             for om in dm.maps:
-                f = self.fact_from_object_map(om, device, dm.relname, context=context, dm_plugin=dm_plugin)
+                f = self.fact_from_object_map(
+                    om,
+                    device,
+                    dm.relname,
+                    context=context,
+                    dm_plugin=dm_plugin,
+                )
                 if f.is_valid():
                     facts.append(f)
         elif isinstance(dm, ObjectMap):
-            f = self.fact_from_object_map(dm, context=context, dm_plugin=dm_plugin)
+            f = self.fact_from_object_map(
+                dm, context=context, dm_plugin=dm_plugin
+            )
             if f.is_valid():
                 facts.append(f)
         elif isinstance(dm, IncrementalDataMap):
@@ -338,7 +410,7 @@ class ZingDatamapHandler(object):
             if f.is_valid():
                 facts.append(f)
         else:
-            log.error('datamap type not found. type=%s', type(dm))
+            log.error("datamap type not found. type=%s", type(dm))
         return facts
 
     def apply_extra_fields(self, om_context, f):
@@ -357,7 +429,9 @@ class ZingDatamapHandler(object):
         elif om_context.is_device:
             f.data[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "Device"
             if om_context.mem_capacity is not None:
-                f.data[ZFact.MetadataKeys.MEM_CAPACITY_KEY] = om_context.mem_capacity
+                f.data[
+                    ZFact.MetadataKeys.MEM_CAPACITY_KEY
+                ] = om_context.mem_capacity
 
         if om_context.dimensions:
             f.metadata.update(om_context.dimensions)

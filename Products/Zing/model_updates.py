@@ -7,7 +7,6 @@
 #
 ##############################################################################
 
-
 from itertools import chain
 from logging import getLogger
 
@@ -18,10 +17,10 @@ from Products.ZenModel.ComponentGroup import ComponentGroup
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+
 from Products.Zing import fact as ZFact
 from Products.Zing.interfaces import IZingObjectUpdateHandler
 from Products.Zing.tx_state import ZingTxStateManager
-
 
 log = getLogger("zen.zing.model_updates")
 
@@ -40,12 +39,9 @@ class ZingObjectUpdateHandler(object):
             uuid = obj.getUUID()
         except Exception:
             pass
-        return uuid and isinstance(obj, (
-            ComponentGroup,
-            Device,
-            DeviceComponent,
-            DeviceOrganizer,
-        ))
+        return uuid and isinstance(
+            obj, (ComponentGroup, Device, DeviceComponent, DeviceOrganizer,)
+        )
 
     def _get_zing_tx_state(self):
         """ """
@@ -64,9 +60,15 @@ class ZingObjectUpdateHandler(object):
             parent = obj.getPrimaryParent().getPrimaryParent()
 
             device_fact = ZFact.device_info_fact(obj)
-            device_fact.metadata[ZFact.DimensionKeys.PARENT_KEY] = parent.getUUID()
-            device_fact.metadata[ZFact.DimensionKeys.RELATION_KEY] = obj.getPrimaryParent().id
-            device_fact.metadata[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "Device"
+            device_fact.metadata[
+                ZFact.DimensionKeys.PARENT_KEY
+            ] = parent.getUUID()
+            device_fact.metadata[
+                ZFact.DimensionKeys.RELATION_KEY
+            ] = obj.getPrimaryParent().id
+            device_fact.metadata[
+                ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY
+            ] = "Device"
             tx_state.need_device_info_fact[uuid] = device_fact
 
             device_org_fact = ZFact.organizer_fact_from_device(obj)
@@ -74,18 +76,28 @@ class ZingObjectUpdateHandler(object):
 
         elif isinstance(obj, DeviceComponent):
             parent = obj.getPrimaryParent().getPrimaryParent()
-            if parent.id in ('os', 'hw'):
+            if parent.id in ("os", "hw"):
                 parent = parent.device()
 
             comp_fact = ZFact.device_info_fact(obj)
-            comp_fact.metadata[ZFact.DimensionKeys.PARENT_KEY] = parent.getUUID()
-            comp_fact.metadata[ZFact.DimensionKeys.RELATION_KEY] = obj.getPrimaryParent().id
-            comp_fact.metadata[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "DeviceComponent"
+            comp_fact.metadata[
+                ZFact.DimensionKeys.PARENT_KEY
+            ] = parent.getUUID()
+            comp_fact.metadata[
+                ZFact.DimensionKeys.RELATION_KEY
+            ] = obj.getPrimaryParent().id
+            comp_fact.metadata[
+                ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY
+            ] = "DeviceComponent"
             tx_state.need_device_info_fact[uuid] = comp_fact
 
             device_org_fact = ZFact.organizer_fact_from_device(obj.device())
             comp_org_fact = ZFact.organizer_fact_from_device_component(
-                device_org_fact, uuid, obj.meta_type, obj.getComponentGroupNames)
+                device_org_fact,
+                uuid,
+                obj.meta_type,
+                obj.getComponentGroupNames,
+            )
             tx_state.need_organizers_fact[uuid] = comp_org_fact
 
         elif isinstance(obj, DeviceOrganizer):
@@ -121,10 +133,12 @@ class ZingObjectUpdateHandler(object):
         except Exception:
             log.exception("Exception buffering object deletion for Zing")
 
-    def _generate_facts(self, uuid_to_fact, already_generated=None, tx_state=None):
+    def _generate_facts(
+        self, uuid_to_fact, already_generated=None, tx_state=None
+    ):
         """
         :param uuid_to_fact: dict uuid: Fact
-        :param already_generated: uuids for which we have already generated a fact
+        :param already_generated: uuids that already have a generated fact
         :return: Fact generator
         """
         for uuid, fact in uuid_to_fact.iteritems():
@@ -134,7 +148,9 @@ class ZingObjectUpdateHandler(object):
                 if already_generated:
                     already_generated.add(uuid)
                 if tx_state is not None:
-                    impact_fact = ZFact.impact_relationships_fact_if_needed(tx_state, uuid)
+                    impact_fact = ZFact.impact_relationships_fact_if_needed(
+                        tx_state, uuid
+                    )
                     if impact_fact:
                         yield impact_fact
                 yield fact
@@ -146,30 +162,65 @@ class ZingObjectUpdateHandler(object):
         fact_generators = []
         if tx_state.need_device_info_fact:
             # TODO set this to debug
-            log.info("Processing %s device info updates", len(tx_state.need_device_info_fact))
-            fact_generators.append(self._generate_facts(tx_state.need_device_info_fact,
-                                   tx_state.already_generated_device_info_facts, tx_state))
+            log.info(
+                "Processing %s device info updates",
+                len(tx_state.need_device_info_fact),
+            )
+            fact_generators.append(
+                self._generate_facts(
+                    tx_state.need_device_info_fact,
+                    tx_state.already_generated_device_info_facts,
+                    tx_state,
+                )
+            )
         if tx_state.need_device_organizer_info_fact:
             # TODO set this to debug
-            log.info("Processing %s device organizer info updates", len(tx_state.need_device_organizer_info_fact))
-            fact_generators.append(self._generate_facts(tx_state.need_device_organizer_info_fact,
-                                                        tx_state.already_generated_device_organizer_info_facts, tx_state))
+            log.info(
+                "Processing %s device organizer info updates",
+                len(tx_state.need_device_organizer_info_fact),
+            )
+            fact_generators.append(
+                self._generate_facts(
+                    tx_state.need_device_organizer_info_fact,
+                    tx_state.already_generated_device_organizer_info_facts,
+                    tx_state,
+                )
+            )
         if tx_state.need_component_group_info_fact:
             # TODO set this to debug
-            log.info("Processing %s component group info updates", len(tx_state.need_component_group_info_fact))
-            fact_generators.append(self._generate_facts(tx_state.need_component_group_info_fact,
-                                                        tx_state.already_generated_component_group_info_facts, tx_state))
+            log.info(
+                "Processing %s component group info updates",
+                len(tx_state.need_component_group_info_fact),
+            )
+            fact_generators.append(
+                self._generate_facts(
+                    tx_state.need_component_group_info_fact,
+                    tx_state.already_generated_component_group_info_facts,
+                    tx_state,
+                )
+            )
         if tx_state.need_organizers_fact:
             # TODO set this to debug
-            log.info("Processing %s organizers updates", len(tx_state.need_organizers_fact))
-            fact_generators.append(self._generate_facts(tx_state.need_organizers_fact,
-                                   tx_state.already_generated_organizer_facts))
+            log.info(
+                "Processing %s organizers updates",
+                len(tx_state.need_organizers_fact),
+            )
+            fact_generators.append(
+                self._generate_facts(
+                    tx_state.need_organizers_fact,
+                    tx_state.already_generated_organizer_facts,
+                )
+            )
         if tx_state.need_deletion_fact:
             # TODO set this to debug
-            log.info("Processing %s deletion updates", len(tx_state.need_deletion_fact))
-            fact_generators.append(self._generate_facts(tx_state.need_deletion_fact))
+            log.info(
+                "Processing %s deletion updates",
+                len(tx_state.need_deletion_fact),
+            )
+            fact_generators.append(
+                self._generate_facts(tx_state.need_deletion_fact)
+            )
         return chain(*fact_generators)
 
 
 OBJECT_UPDATE_HANDLER_FACTORY = Factory(ZingObjectUpdateHandler)
-
