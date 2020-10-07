@@ -11,22 +11,22 @@ from itertools import chain
 from logging import getLogger
 
 from zope.component.factory import Factory
-from zope.interface import implements
+from zope.interface import implementer
 
 from Products.ZenModel.ComponentGroup import ComponentGroup
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 
-from Products.Zing import fact as ZFact
-from Products.Zing.interfaces import IZingObjectUpdateHandler
-from Products.Zing.tx_state import ZingTxStateManager
+from . import fact as ZFact
+from .interfaces import IZingObjectUpdateHandler
+from .tx_state import ZingTxStateManager
 
 log = getLogger("zen.zing.model_updates")
 
 
+@implementer(IZingObjectUpdateHandler)
 class ZingObjectUpdateHandler(object):
-    implements(IZingObjectUpdateHandler)
 
     def __init__(self, context):
         self.context = context.getDmd()
@@ -44,7 +44,6 @@ class ZingObjectUpdateHandler(object):
         )
 
     def _get_zing_tx_state(self):
-        """ """
         return self.zing_tx_state_manager.get_zing_tx_state(self.context)
 
     def _update_object(self, obj, idxs=None):
@@ -60,15 +59,11 @@ class ZingObjectUpdateHandler(object):
             parent = obj.getPrimaryParent().getPrimaryParent()
 
             device_fact = ZFact.device_info_fact(obj)
-            device_fact.metadata[
-                ZFact.DimensionKeys.PARENT_KEY
-            ] = parent.getUUID()
-            device_fact.metadata[
-                ZFact.DimensionKeys.RELATION_KEY
-            ] = obj.getPrimaryParent().id
-            device_fact.metadata[
-                ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY
-            ] = "Device"
+            device_fact.metadata.update({
+                ZFact.DimensionKeys.PARENT_KEY: parent.getUUID(),
+                ZFact.DimensionKeys.RELATION_KEY: obj.getPrimaryParent().id,
+                ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY: "Device",
+            })
             tx_state.need_device_info_fact[uuid] = device_fact
 
             device_org_fact = ZFact.organizer_fact_from_device(obj)
@@ -80,15 +75,11 @@ class ZingObjectUpdateHandler(object):
                 parent = parent.device()
 
             comp_fact = ZFact.device_info_fact(obj)
-            comp_fact.metadata[
-                ZFact.DimensionKeys.PARENT_KEY
-            ] = parent.getUUID()
-            comp_fact.metadata[
-                ZFact.DimensionKeys.RELATION_KEY
-            ] = obj.getPrimaryParent().id
-            comp_fact.metadata[
-                ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY
-            ] = "DeviceComponent"
+            comp_fact.metadata.update({
+                ZFact.DimensionKeys.PARENT_KEY: parent.getUUID(),
+                ZFact.DimensionKeys.RELATION_KEY: obj.getPrimaryParent().id,
+                ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY: "DeviceComponent",
+            })
             tx_state.need_device_info_fact[uuid] = comp_fact
 
             device_org_fact = ZFact.organizer_fact_from_device(obj.device())

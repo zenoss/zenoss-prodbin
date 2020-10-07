@@ -13,7 +13,7 @@ import time
 import urlparse
 
 from zope.component.factory import Factory
-from zope.interface import implements
+from zope.interface import implementer
 
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
@@ -67,8 +67,8 @@ class ZingConnectorConfig(object):
         self.ping_url = urlparse.urljoin(adminUrl, PING_ENDPOINT)
 
 
+@implementer(IZingConnectorClient)
 class ZingConnectorClient(object):
-    implements(IZingConnectorClient)
 
     def __init__(self, config=None):
         if config is None:
@@ -215,10 +215,9 @@ class ZingConnectorClient(object):
         return resp_code == 200
 
 
+@implementer(IZingConnectorProxy)
 class ZingConnectorProxy(object):
     """This class provides a ZingConnectorClient per zope thread."""
-
-    implements(IZingConnectorProxy)
 
     def __init__(self, context):
         self.context = context

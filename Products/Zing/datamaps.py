@@ -12,7 +12,7 @@ import logging
 from collections import defaultdict
 from zope.component import subscribers, adapter
 from zope.component.factory import Factory
-from zope.interface import implements
+from zope.interface import implementer
 
 from Products.DataCollector.ApplyDataMap import (
     IDatamapAppliedEvent,
@@ -125,8 +125,8 @@ def merge_fields(d, new):
             d[k] = v
 
 
+@implementer(IZingDatamapHandler)
 class ZingDatamapHandler(object):
-    implements(IZingDatamapHandler)
 
     def __init__(self, context):
         self.context = context

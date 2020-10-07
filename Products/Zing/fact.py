@@ -97,9 +97,13 @@ def get_context_uuid(obj):
 
 def deletion_fact(obj_uuid):
     f = Fact()
-    f.metadata[DimensionKeys.CONTEXT_UUID_KEY] = obj_uuid
-    f.metadata[DimensionKeys.PLUGIN_KEY] = DELETION_FACT_PLUGIN
-    f.data[MetadataKeys.DELETED_KEY] = True
+    f.metadata.update({
+        DimensionKeys.CONTEXT_UUID_KEY: obj_uuid,
+        DimensionKeys.PLUGIN_KEY: DELETION_FACT_PLUGIN,
+    })
+    f.data.update({
+        MetadataKeys.DELETED_KEY: True,
+    })
     return f
 
 
@@ -193,10 +197,10 @@ def device_info_fact(device):
     f.data[MetadataKeys.ID_KEY] = device.id
     f.data[MetadataKeys.TITLE_KEY] = device.title
     try:
-        f.data[MetadataKeys.DEVICE_UUID_KEY] = get_context_uuid(
-            device.device()
-        )
-        f.data[MetadataKeys.DEVICE_KEY] = device.device().id
+        f.data.update({
+            MetadataKeys.DEVICE_UUID_KEY: get_context_uuid(device.device()),
+            MetadataKeys.DEVICE_KEY: device.device().id,
+        })
     except Exception:
         pass
     return f
@@ -210,15 +214,13 @@ def organizer_fact_from_device(device):
     device_fact.set_context_uuid_from_object(device)
     device_fact.set_meta_type_from_object(device)
     device_fact.metadata[DimensionKeys.PLUGIN_KEY] = ORGANIZERS_FACT_PLUGIN
-    device_fact.data[
-        MetadataKeys.DEVICE_CLASS_KEY
-    ] = device.getDeviceClassName()
     location = device.getLocationName()
-    device_fact.data[MetadataKeys.LOCATION_KEY] = (
-        [location] if location else []
-    )
-    device_fact.data[MetadataKeys.SYSTEMS_KEY] = device.getSystemNames()
-    device_fact.data[MetadataKeys.GROUPS_KEY] = device.getDeviceGroupNames()
+    device_fact.data.update({
+        MetadataKeys.DEVICE_CLASS_KEY: device.getDeviceClassName(),
+        MetadataKeys.LOCATION_KEY: [location] if location else [],
+        MetadataKeys.SYSTEMS_KEY: device.getSystemNames(),
+        MetadataKeys.GROUPS_KEY: device.getDeviceGroupNames(),
+    })
     return device_fact
 
 

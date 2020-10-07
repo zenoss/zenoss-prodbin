@@ -17,7 +17,6 @@ from zope.component.interfaces import ComponentLookupError
 
 from .interfaces import IZingConnectorProxy, IImpactRelationshipsFactProvider
 
-logging.basicConfig()
 log = logging.getLogger("zen.zing.transaction")
 
 
