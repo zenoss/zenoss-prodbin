@@ -1978,15 +1978,15 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @param REQUEST: Zope REQUEST object
         @type REQUEST: Zope REQUEST object
         """
+        if self.renameInProgress:
+            log.warn("Rename already in progress for device %s.", self.id)
+            raise Exception(
+                "Rename already in progress for device {}.".format(self.id),
+            )
 
         parent = self.getPrimaryParent()
         path = self.absolute_url_path()
         oldId = self.getId()
-        newPath = "/".join(self.getPrimaryPath()).replace(oldId, newId)
-
-        if self.renameInProgress:
-            log.warn("Rename already in progress for device {}.".format(self.id))
-            raise Exception("Rename already in progress for device {}.".format(self.id))
 
         if newId is None:
             return path
@@ -2001,8 +2001,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         device = self.dmd.Devices.findDeviceByIdExact(newId)
         if device:
-            message = 'Device already exists with id %s' % newId
-            raise DeviceExistsError(message, device)
+            raise DeviceExistsError(
+                'Device already exists with id %s' % newId, device,
+            )
 
         if REQUEST:
             audit('UI.Device.ChangeId', self, id=newId)
@@ -2033,8 +2034,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         self.dmd.JobManager.addJob(
             FacadeMethodJob,
-            description=('Reassociating performance data for device {} with '
-                'new ID {}'.format(oldId, newId)),
+            description=(
+                'Reassociating performance data for device {} with '
+                'new ID {}'.format(oldId, newId)
+            ),
             kwargs=dict(
                 facadefqdn='Products.Zuul.facades.metricfacade.MetricFacade',
                 method='renameDevice',
