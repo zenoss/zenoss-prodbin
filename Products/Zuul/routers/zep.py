@@ -649,16 +649,13 @@ class EventsRouter(DirectRouter):
         manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
         return organizer_name in manage_events_for
     
-    def add_events(self, summary, device, component, severity, evclasskey,
+    def can_add_events(self, summary, device, component, severity, evclasskey,
                   evclass=None, monitor=None, **kwargs):
         ctx = self.context.dmd.Devices.findDevice(device.strip())
         if not ctx:
             ctx = self.context
 
-        if Zuul.checkPermission(ZEN_MANAGE_EVENTS, ctx):
-            return True
-        else:
-            return False
+        return Zuul.checkPermission(ZEN_MANAGE_EVENTS, ctx)
 
     def write_event_logs(self, evid=None, message=None):
         data = self.detail(evid).data['event'][0]
@@ -921,7 +918,7 @@ class EventsRouter(DirectRouter):
         status, response = self.zep.updateEventSummaries(update, event_filter, exclusion_filter, limit, timeout=timeout)
         return DirectResponse.succeed(data=response)
 
-    @require(add_events)
+    @require(can_add_events)
     def add_event(self, summary, device, component, severity, evclasskey,
                   evclass=None, monitor=None, **kwargs):
         """
