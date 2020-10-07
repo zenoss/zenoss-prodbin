@@ -976,7 +976,7 @@ class MetricFacade(ZuulFacade):
                 line_content = jsonLine["content"]
                 if line_type == "info":
                     log.info("[central-query] %s", line_content)
-                if line_type == "progress":
+                elif line_type == "progress":
                     if i % logFreq == 0:
                         log.info("[central-query] %s", line_content)
                 elif line_type == "error":
