@@ -319,7 +319,21 @@ class _FactEncoder(JSONEncoder):
 FactEncoder = _FactEncoder()
 
 
+def _serialize(fact):
+    try:
+        return FactEncoder.encode(fact), True
+    except Exception as ex:
+        log.warn(
+            "Skipping unserializable fact  error=%s fact=%s", ex, fact,
+        )
+        return None, False
+
+
 def serialize_facts(facts):
-    if facts:
-        encoded = FactEncoder.encode({"models": facts})
-        return encoded
+    serialized_facts = []
+    for fact in facts:
+        data, successful = _serialize(fact)
+        if successful:
+            serialized_facts.append(data)
+    if serialize_facts:
+        return "{\"models\": [{}]".format(", ".join(serialized_facts))
