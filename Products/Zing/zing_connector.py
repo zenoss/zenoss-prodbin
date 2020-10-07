@@ -89,7 +89,7 @@ class ZingConnectorClient(object):
             resp = self.session.put(self.facts_url, data=serialized, timeout=self.client_timeout)
             resp_code = resp.status_code
         except Exception as e:
-            log.exception("Unable to send facts. zing-connector URL: {}. Exception {}".format(self.facts_url, e))
+            log.exception("Unable to send facts. zing-connector URL: %s. Exception %s", self.facts_url, e)
         return resp_code
 
     def _send_one_by_one(self, facts):
@@ -99,8 +99,8 @@ class ZingConnectorClient(object):
             resp_code = self._send_facts(serialized, already_serialized=True)
             if resp_code != 200:
                 failed += 1
-                log.warn("Error sending fact: {}".format(serialized))
-        log.warn("{} out of {} facts were not processed.".format(failed, len(facts)))
+                log.warn("Error sending fact: %s", serialized)
+        log.warn("%s out of %s facts were not processed.", failed, len(facts))
         return failed==0
 
     def log_zing_connector_not_reachable(self, custom_msg=""):
@@ -120,7 +120,7 @@ class ZingConnectorClient(object):
             return False
         resp_code = self._send_facts(facts)
         if resp_code != 200:
-            log.error("Error sending datamaps: zing-connector returned an unexpected response code ({})".format(resp_code))
+            log.error("Error sending datamaps: zing-connector returned an unexpected response code (%s)", resp_code)
             if resp_code == 500:
                 log.info("Sending facts one by one to minimize data loss")
                 return self._send_one_by_one(facts)
@@ -131,7 +131,7 @@ class ZingConnectorClient(object):
     @param batch_size: doh
     """
     def send_facts_in_batches(self, facts, batch_size=DEFAULT_BATCH_SIZE):
-        log.debug("Sending {} facts to zing-connector in batches of {}.".format(len(facts), batch_size))
+        log.debug("Sending %s facts to zing-connector in batches of %s.", len(facts), batch_size)
         success = True
         if not self.ping():
             self.log_zing_connector_not_reachable()
@@ -149,7 +149,7 @@ class ZingConnectorClient(object):
     def send_fact_generator_in_batches(self, fact_gen, batch_size=DEFAULT_BATCH_SIZE, external_log=None):
         if external_log is None:
             external_log = log
-        external_log.debug("Sending facts to zing-connector in batches of {}".format(batch_size))
+        external_log.debug("Sending facts to zing-connector in batches of %s", batch_size)
         ts = time.time()
         count = 0
         if not self.ping():
@@ -167,7 +167,7 @@ class ZingConnectorClient(object):
             success = success and self.send_facts(batch, ping=False)
         if count > 0:
             elapsed = time.time() - ts
-            external_log.debug("send_fact_generator_in_batches sent {} facts in {} seconds".format(count, elapsed))
+            external_log.debug("send_fact_generator_in_batches sent %s facts in %s seconds", count, elapsed)
         return success == True
 
     def ping(self):
@@ -176,7 +176,7 @@ class ZingConnectorClient(object):
             resp = self.session.get(self.ping_url, timeout=0.2)
             resp_code = resp.status_code
         except Exception as e:
-            log.debug("Zing connector is unavailable at {}".format(self.ping_url))
+            log.debug("Zing connector is unavailable at %s", self.ping_url)
         return resp_code == 200
 
 

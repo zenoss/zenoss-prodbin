@@ -201,7 +201,7 @@ class ZingDatamapHandler(object):
         """
         @return: Fact generator
         """
-        log.debug("Processing {} datamaps to send to zing-connector.".format(len(zing_tx_state.datamaps)))
+        log.debug("Processing %s datamaps to send to zing-connector.", len(zing_tx_state.datamaps))
         facts_per_device = defaultdict(list)
         for device, datamap in zing_tx_state.datamaps:
             dm_facts = self.facts_from_datamap(device, datamap, zing_tx_state.datamaps_contexts)
@@ -263,7 +263,7 @@ class ZingDatamapHandler(object):
 
         # FIXME temp solution until we are sure all zenpacks send the plugin
         if not f.metadata.get(ZFact.DimensionKeys.PLUGIN_KEY):
-            log.warn("Found fact without plugin information: {}".format(f.metadata))
+            log.warn("Found fact without plugin information: %s", f.metadata)
             if f.metadata.get(ZFact.DimensionKeys.META_TYPE_KEY):
                 f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = f.metadata[ZFact.DimensionKeys.META_TYPE_KEY]
         return f
@@ -316,7 +316,7 @@ class ZingDatamapHandler(object):
 
         # FIXME temp solution until we are sure all zenpacks send the plugin
         if not f.metadata.get(ZFact.DimensionKeys.PLUGIN_KEY):
-            log.warn("Found fact without plugin information: {}".format(f.metadata))
+            log.warn("Found fact without plugin information: %s", f.metadata)
             if f.metadata.get(ZFact.DimensionKeys.META_TYPE_KEY):
                 f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = f.metadata[ZFact.DimensionKeys.META_TYPE_KEY]
         return f

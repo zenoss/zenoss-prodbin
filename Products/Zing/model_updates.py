@@ -58,7 +58,7 @@ class ZingObjectUpdateHandler(object):
         tx_state = self._get_zing_tx_state()
         uuid = obj.getUUID()
         tx_state.need_deletion_fact.pop(uuid, None)
-        log.debug("buffering object update for {}".format(uuid))
+        log.debug("buffering object update for %s", uuid)
 
         if isinstance(obj, Device):
             parent = obj.getPrimaryParent().getPrimaryParent()
@@ -99,7 +99,7 @@ class ZingObjectUpdateHandler(object):
     def _delete_object(self, obj):
         if self.is_object_relevant(obj):
             uuid = obj.getUUID()
-            log.debug("buffering object deletion for {}".format(uuid))
+            log.debug("buffering object deletion for %s", uuid)
             tx_state = self._get_zing_tx_state()
             tx_state.need_deletion_fact[uuid] = ZFact.deletion_fact(uuid)
 
@@ -146,27 +146,27 @@ class ZingObjectUpdateHandler(object):
         fact_generators = []
         if tx_state.need_device_info_fact:
             # TODO set this to debug
-            log.info("Processing {} device info updates".format(len(tx_state.need_device_info_fact)))
+            log.info("Processing %s device info updates", len(tx_state.need_device_info_fact))
             fact_generators.append(self._generate_facts(tx_state.need_device_info_fact,
                                    tx_state.already_generated_device_info_facts, tx_state))
         if tx_state.need_device_organizer_info_fact:
             # TODO set this to debug
-            log.info("Processing {} device organizer info updates".format(len(tx_state.need_device_organizer_info_fact)))
+            log.info("Processing %s device organizer info updates", len(tx_state.need_device_organizer_info_fact))
             fact_generators.append(self._generate_facts(tx_state.need_device_organizer_info_fact,
                                                         tx_state.already_generated_device_organizer_info_facts, tx_state))
         if tx_state.need_component_group_info_fact:
             # TODO set this to debug
-            log.info("Processing {} component group info updates".format(len(tx_state.need_component_group_info_fact)))
+            log.info("Processing %s component group info updates", len(tx_state.need_component_group_info_fact))
             fact_generators.append(self._generate_facts(tx_state.need_component_group_info_fact,
                                                         tx_state.already_generated_component_group_info_facts, tx_state))
         if tx_state.need_organizers_fact:
             # TODO set this to debug
-            log.info("Processing {} organizers updates".format(len(tx_state.need_organizers_fact)))
+            log.info("Processing %s organizers updates", len(tx_state.need_organizers_fact))
             fact_generators.append(self._generate_facts(tx_state.need_organizers_fact,
                                    tx_state.already_generated_organizer_facts))
         if tx_state.need_deletion_fact:
             # TODO set this to debug
-            log.info("Processing {} deletion updates".format(len(tx_state.need_deletion_fact)))
+            log.info("Processing %s deletion updates", len(tx_state.need_deletion_fact))
             fact_generators.append(self._generate_facts(tx_state.need_deletion_fact))
         return chain(*fact_generators)
 

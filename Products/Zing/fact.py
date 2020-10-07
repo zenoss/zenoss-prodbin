@@ -164,11 +164,11 @@ def device_info_fact(device):
                                                                      'lines'):
             # Some of the device properties can be methods, so we have to call them and get values
             if callable(device.getProperty(propId)):
-                log.warn("Callable: {}".format(device.getProperty(propId)))
+                log.warn("Callable: %s", device.getProperty(propId))
                 try:
                     value = device.getProperty(propId).__call__()
                 except TypeError as e:
-                    log.exception("Unable to call property: {}. Exception {}".format(device.getProperty(propId), e))
+                    log.exception("Unable to call property: %s. Exception %s", device.getProperty(propId), e)
             else:
                 value = device.getProperty(propId)
             if value is None:
@@ -255,7 +255,7 @@ class _FactEncoder(JSONEncoder):
                 values = []
                 for x in v:
                     if not isinstance(x, (str, int, long, float, bool)):
-                        log.debug("Found non scalar type in list ({}). Casting it to str".format(x.__class__))
+                        log.debug("Found non scalar type in list (%s). Casting it to str", x.__class__)
                         x = str(x)
                     values.append(x)
                 data_out[k] = sorted(values)
