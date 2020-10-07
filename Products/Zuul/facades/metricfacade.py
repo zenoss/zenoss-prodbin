@@ -948,18 +948,13 @@ class MetricFacade(ZuulFacade):
         return results
 
     # This method is supposed to run as a facade method job.
-    def renameDevice(self, oldId, newId, joblog=None):
-        # joblog is injected in the FacadeMethodJob class when this method runs
-        # as a job. The messages written to joblog will be displayed in the
-        # Jobs pane of Zenoss.
-
+    def renameDevice(self, oldId, newId):
         path = RENAME_URL_PATH
         timeout = 120
         totalFails = 0
         success = False
-        request = {}
 
-        def processRename():
+        def processRename(request):
             resp = self._metrics_connection.stream_request(
                 path, request, timeout=timeout
             )
@@ -977,73 +972,63 @@ class MetricFacade(ZuulFacade):
             jsonLine = None
             for i, line in enumerate(resp):
                 jsonLine = json.loads(line)
-                if jsonLine["type"] == "info":
-                    log.info(jsonLine["content"])
-                    joblog.info(jsonLine["content"])
-                if jsonLine["type"] == "progress":
+                line_type = str(jsonLine["type"]).lower()
+                line_content = jsonLine["content"]
+                if line_type == "info":
+                    log.info("[central-query] %s", line_content)
+                if line_type == "progress":
                     if i % logFreq == 0:
-                        log.info(jsonLine["content"])
-                        joblog.info(jsonLine["content"])
-                elif jsonLine["type"] == "error":
-                    log.error(jsonLine["content"])
-                    joblog.error(jsonLine["content"])
+                        log.info("[central-query] %s", line_content)
+                elif line_type == "error":
+                    log.error("[central-query] %s", line_content)
                     nFails += 1
                 else:
-                    log.error(
-                        "Unknown log msg type received from central query: "
-                        "type %s, content %s",
-                        jsonLine["type"],
-                        jsonLine["content"],
+                    log.warn(
+                        "Unknown message type received from central query  "
+                        "type=%s, content=%s",
+                        jsonLine["type"],  # log the original data
+                        line_content,
                     )
 
             # Log the last progress msg because the progress msgs are printed
             # at every once in a while so that the last line can be omitted.
-            if jsonLine and jsonLine["type"] == "progress":
-                log.info(jsonLine["content"])
-                joblog.info(jsonLine["content"])
+            if jsonLine and line_type == "progress":
+                log.info("[central-query] %s", line_content)
 
             return nFails
 
         try:
             # metrics
-            request = {
+            totalFails += processRename({
                 "oldName": oldId + "/",
                 "newName": newId + "/",
                 "type": "metric",
                 "patternType": "prefix",
-            }
-
-            totalFails += processRename()
+            })
 
             # key tagv for components metrics
-            request = {
+            totalFails += processRename({
                 "oldName": "Devices/" + oldId + "/",
                 "newName": "Devices/" + newId + "/",
                 "type": "tagv",
                 "patternType": "prefix",
-            }
-
-            totalFails += processRename()
+            })
 
             # key tagv for device metrics
-            request = {
+            totalFails += processRename({
                 "oldName": "Devices/" + oldId,
                 "newName": "Devices/" + newId,
                 "type": "tagv",
                 "patternType": "whole",
-            }
-
-            totalFails += processRename()
+            })
 
             # device tagv
-            request = {
+            totalFails += processRename({
                 "oldName": oldId,
                 "newName": newId,
                 "type": "tagv",
                 "patternType": "whole",
-            }
-
-            totalFails += processRename()
+            })
 
             success = totalFails == 0
 
@@ -1086,13 +1071,10 @@ class MetricFacade(ZuulFacade):
                 )
             )
         except Exception as e:
-            msg = (
+            log.exception(
                 "Exception thrown while re-identifying "
-                "device {} to {}: {}".format(oldId, newId, e)
+                "device %s to %s: %s", oldId, newId, e,
             )
-            log.error(msg)
-            joblog.error(msg)
-
         finally:
             if success:
                 # Update renameInProgress so that the collection resumes.
@@ -1100,15 +1082,12 @@ class MetricFacade(ZuulFacade):
                 if dev:
                     dev.renameInProgress = False
                     from transaction import commit
-
                     commit()
                 else:
-                    msg = (
-                        "Cannot find a device after reidentifying: "
-                        "Old ID %s, new ID %s".format(oldId, newId)
+                    log.error(
+                        "Cannot find a device after reidentifying  "
+                        "old-id=%s new-id=%s", oldId, newId,
                     )
-                    log.error(msg)
-                    joblog.error(msg)
                     success = False
 
             return {"success": success, "message": None}
