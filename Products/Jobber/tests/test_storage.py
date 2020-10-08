@@ -374,6 +374,13 @@ class ExpireKeysTest(TestCase):
         t.assertIsNotNone(ttl)
         t.assertLess(ttl, t.expires)
 
+    def test_ttl_for_aborted(t):
+        t.store.update(t.jobid, status="ABORTED")
+        time.sleep(1.0)
+        ttl = t.store.ttl(t.jobid)
+        t.assertIsNotNone(ttl)
+        t.assertLess(ttl, t.expires)
+
 
 def _buildData(jobnames, userids, base):
     baseid = 100
