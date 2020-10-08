@@ -14,6 +14,7 @@ import logging
 import re
 import redis
 
+from celery import states as celery_states
 from collections import Container, Iterable, Sized
 
 from .config import Celery
@@ -245,7 +246,7 @@ class JobStore(Container, Iterable, Sized):
         }
         if fields:
             self.__client.hmset(key, fields)
-        self.__expire_key_if_finished(key)
+        self.__expire_key_if_status_is_ready(key)
 
     def keys(self):
         """Return all existing job IDs.
@@ -352,7 +353,7 @@ class JobStore(Container, Iterable, Sized):
         if deleted_fields:
             self.__client.hdel(key, *deleted_fields)
         self.__client.hmset(key, data)
-        self.__expire_key_if_finished(key)
+        self.__expire_key_if_status_is_ready(key)
 
     def mdelete(self, *jobids):
         """Delete the job data associated with each of the given job IDs.
@@ -402,9 +403,13 @@ class JobStore(Container, Iterable, Sized):
         """
         return self.keys()
 
-    def __expire_key_if_finished(self, key):
-        finished = self.__client.hget(key, "finished")
-        if self.__expires and finished:
+    def ttl(self, jobid):
+        result = self.__client.ttl(_key(jobid))
+        return result if result >= 0 else None
+
+    def __expire_key_if_status_is_ready(self, key):
+        status = self.__client.hget(key, "status")
+        if self.__expires and status in celery_states.READY_STATES:
             self.__client.expire(key, self.__expires)
 
 
