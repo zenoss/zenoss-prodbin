@@ -336,4 +336,4 @@ def serialize_facts(facts):
         if successful:
             serialized_facts.append(data)
     if serialize_facts:
-        return "{\"models\": [{}]".format(", ".join(serialized_facts))
+        return "{{\"models\": [{}]}}".format(", ".join(serialized_facts))
