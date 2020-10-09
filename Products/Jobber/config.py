@@ -23,9 +23,8 @@ _default_configs = {
     "maxbackuplogs": "3",
     "job-log-path": "/opt/zenoss/log/jobs",
 
-    "scheduler-config-file": "/opt/zenoss/etc/zenjobs_schedule.yaml",
-    "scheduler-max-loop-interval": 300,  # 5 minutes
-    "scheduler-sync-interval": 180,  # 3 minutes
+    "scheduler-config-file": "/opt/zenoss/etc/zenjobs_schedules.yaml",
+    "scheduler-max-loop-interval": 180,  # 3 minutes
 
     "zodb-config-file": "/opt/zenoss/etc/zodb.conf",
     "zodb-max-retries": 5,
@@ -113,7 +112,6 @@ class Celery(object):
     CELERYBEAT_MAX_LOOP_INTERVAL = int(
         ZenJobs.get("scheduler-max-loop-interval"),
     )
-    CELERYBEAT_SYNC_EVERY = int(ZenJobs.get("scheduler-sync-interval"))
     CELERYBEAT_LOG_FILE = os.path.join(
         ZenJobs.get("logpath"), "zenjobs-scheduler.log",
     )

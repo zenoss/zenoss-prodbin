@@ -10,6 +10,7 @@
 from __future__ import absolute_import
 
 import json
+import logging
 import redis
 import time
 import yaml
@@ -75,6 +76,7 @@ class ZenJobsScheduler(Scheduler):
 
     def __init__(self, *args, **kwargs):
         self.__entries = {}
+        self.__log = logging.getLogger("zen.zenjobs.scheduler")
         super(ZenJobsScheduler, self).__init__(*args, **kwargs)
 
     def setup_schedule(self):
@@ -103,6 +105,9 @@ class ZenJobsScheduler(Scheduler):
 
         # Add 'default' entries to the schedule
         self.install_default_entries(schedule)
+
+        for entry in self.schedule.values():
+            self.__log.info("schedule loaded  %s", entry)
 
         # Save to redis.
         self.sync()
@@ -219,3 +224,10 @@ def _key(name):
 def _getClient():
     """Create and return the ZenJobs JobStore client."""
     return redis.StrictRedis.from_url(Celery.CELERY_RESULT_BACKEND)
+
+
+def handle_beat_init(*args, **kw):
+    beat_logger = logging.getLogger("celery.beat")
+    zenjobs_logger = logging.getLogger("zen.zenjobs")
+    root_logger = logging.getLogger()
+    root_logger.handlers = zenjobs_logger.handlers = beat_logger.handlers
