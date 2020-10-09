@@ -404,3 +404,8 @@ def update_job_status(log, task_id=None, task=None, **kwargs):
             if not cbid:
                 continue
             jobstore.update(cbid, status=ABORTED, finished=tmvalue)
+
+    finished = jobstore.getfield(task_id, "finished")
+    if finished is not None:
+        started = jobstore.getfield(task_id, "started")
+        log.info("Job total duration is %0.3f seconds", finished - started)

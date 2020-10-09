@@ -13,6 +13,7 @@ import logging
 import os
 import subprocess
 import threading
+import time
 
 from contextlib import contextmanager
 
@@ -60,6 +61,7 @@ class SubprocessJob(Job):
                 self.log.info(
                     "Spawning subprocess: %s", self.getJobDescription(cmd),
                 )
+                start = time.time()
                 process = subprocess.Popen(
                     cmd,
                     bufsize=1,
@@ -75,6 +77,8 @@ class SubprocessJob(Job):
                 )
             else:
                 exitcode, output = self._handle_process(process)
+                stop = time.time()
+                self.log.info("Command ran for %0.3f seconds", stop - start)
                 if exitcode == 0:
                     return exitcode
                 summary = "Command failed with exit code %s" % exitcode

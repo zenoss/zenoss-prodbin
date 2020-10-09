@@ -10,6 +10,7 @@
 from __future__ import absolute_import, print_function
 
 import logging
+import time
 
 from AccessControl.SecurityManagement import getSecurityManager
 from celery import Task, states
@@ -114,10 +115,12 @@ class ZenTask(SendZenossEventMixin, Task):
             self.log.error("task has no ID")
             raise Ignore()
         started_mesg = "Job started"
-        finished_mesg = "Job finished"
+        finished_mesg = "Job finished  duration=%0.3f"
         self.log.info(started_mesg)
         mlog.debug(started_mesg)
+        start = time.time()
         result = self.__run(*args, **kwargs)
-        mlog.debug(finished_mesg)
-        self.log.info(finished_mesg)
+        stop = time.time()
+        mlog.debug(finished_mesg, stop - start)
+        self.log.info(finished_mesg, stop - start)
         return result
