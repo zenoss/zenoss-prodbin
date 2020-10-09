@@ -128,9 +128,10 @@ class JobManager(ZenModelRM):
         # Build the signature to call the task
         s = task.s(*args, **kwargs).set(**properties).set(task_id=task_id)
 
-        # Defer sending the signature until the transaction has been committed
-        hook = _SendTask(s)
-        transaction.get().addAfterCommitHook(hook)
+        # Dispatch the task
+        result = s.apply_async()
+        log.debug("Submitted job to zenjobs  job=%s id=%s", s.task, result.id)
+
         return JobRecord.make(RedisRecord.from_signature(s))
 
     def wait(self, jobid):
