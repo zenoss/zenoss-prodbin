@@ -250,10 +250,11 @@ class UpdateJobStatusTest(TestCase):
         _time.time.return_value = tm
 
         expected_status = states.SUCCESS
-        expected_started = None
+        expected_started = tm - 10
         expected_finished = tm
 
         jobid = t.initial["jobid"]
+        t.store.update(jobid, started=expected_started)
         update_job_status(jobid)
 
         status = t.store.getfield(jobid, "status")
