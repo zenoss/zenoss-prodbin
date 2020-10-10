@@ -62,4 +62,9 @@
       handler=".model.update_job_status"
       />
 
+    <celery:signal
+        name="beat_init"
+        handler=".scheduler.handle_beat_init"
+        />
+
 </configure>
