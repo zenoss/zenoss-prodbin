@@ -27,6 +27,8 @@ class SendZenossEventMixin(object):
     """Mixin class to send an Zenoss event when a job fails.
     """
 
+    abstract = True
+
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         try:
             return super(SendZenossEventMixin, self).on_failure(

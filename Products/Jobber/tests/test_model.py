@@ -12,25 +12,20 @@ from __future__ import absolute_import, print_function
 import itertools
 import types
 
-from celery import states
 from mock import patch
 from unittest import TestCase
 
 from Products.Zuul import marshal
 from Products.Zuul.interfaces import IMarshallable, IInfo
-from zope.component import getGlobalSiteManager
 
 from ..model import (
-    app,
     IJobRecord,
-    IJobStore,
     JobRecord,
     JobRecordMarshaller,
     LegacySupport,
-    update_job_status,
 )
-from ..storage import JobStore, Fields
-from .utils import subTest, RedisLayer
+from ..storage import Fields
+from .utils import subTest
 
 UNEXPECTED = type("UNEXPECTED", (object,), {})()
 PATH = {"src": "Products.Jobber.model"}
@@ -184,152 +179,6 @@ class JobRecordTest(TestCase):
             with subTest(status=status):
                 record.status = status
                 t.assertEqual(expected, record.duration)
-
-
-class UpdateJobStatusTest(TestCase):
-
-    layer = RedisLayer
-
-    initial = {
-        "jobid": "123",
-        "name": "TestJob",
-        "summary": "Products.Jobber.jobs.TestJob",
-        "description": "A test job",
-        "userid": "zenoss",
-        "logfile": "/opt/zenoss/log/jobs/123.log",
-        "created": 1551804881.024517,
-        "status": "PENDING",
-    }
-
-    def setUp(t):
-        t.store = JobStore(t.layer.redis)
-        t.store[t.initial["jobid"]] = t.initial
-        getGlobalSiteManager().registerUtility(
-            t.store, IJobStore, name="redis",
-        )
-
-    def tearDown(t):
-        t.layer.redis.flushall()
-        getGlobalSiteManager().unregisterUtility(
-            t.store, IJobStore, name="redis",
-        )
-        del t.store
-
-    @patch("{src}.app.backend".format(**PATH), autospec=True)
-    def test_no_such_task(t, _backend):
-        update_job_status("1")
-        _backend.get_status.assert_not_called()
-
-    @patch("{src}.time".format(**PATH), autospec=True)
-    @patch("{src}.app.backend".format(**PATH), autospec=True)
-    def test_unready_state(t, _backend, _time):
-        tm = 1597059131.762538
-        _backend.get_status.return_value = states.STARTED
-        _time.time.return_value = tm
-
-        expected_status = states.STARTED
-        expected_started = tm
-        expected_finished = None
-
-        jobid = t.initial["jobid"]
-        update_job_status(jobid)
-
-        status = t.store.getfield(jobid, "status")
-        started = t.store.getfield(jobid, "started")
-        finished = t.store.getfield(jobid, "finished")
-
-        t.assertEqual(expected_status, status)
-        t.assertEqual(expected_started, started)
-        t.assertEqual(expected_finished, finished)
-
-    @patch("{src}.time".format(**PATH), autospec=True)
-    @patch("{src}.app.backend".format(**PATH), autospec=True)
-    def test_ready_state(t, _backend, _time):
-        tm = 1597059131.762538
-        _backend.get_status.return_value = states.SUCCESS
-        _time.time.return_value = tm
-
-        expected_status = states.SUCCESS
-        expected_started = tm - 10
-        expected_finished = tm
-
-        jobid = t.initial["jobid"]
-        t.store.update(jobid, started=expected_started)
-        update_job_status(jobid)
-
-        status = t.store.getfield(jobid, "status")
-        started = t.store.getfield(jobid, "started")
-        finished = t.store.getfield(jobid, "finished")
-
-        t.assertEqual(expected_status, status)
-        t.assertEqual(expected_started, started)
-        t.assertEqual(expected_finished, finished)
-
-    @patch("{src}.time".format(**PATH), autospec=True)
-    @patch("{src}.app.backend".format(**PATH), autospec=True)
-    def test_task_aborted_state(t, _backend, _time):
-        tm = 1597059131.762538
-        _backend.get_status.return_value = states.ABORTED
-        _time.time.return_value = tm
-
-        expected_status = states.ABORTED
-        expected_started = None
-        expected_finished = tm
-
-        jobid = t.initial["jobid"]
-        update_job_status(jobid)
-
-        status = t.store.getfield(jobid, "status")
-        started = t.store.getfield(jobid, "started")
-        finished = t.store.getfield(jobid, "finished")
-
-        t.assertEqual(expected_status, status)
-        t.assertEqual(expected_started, started)
-        t.assertEqual(expected_finished, finished)
-
-    @patch("{src}.time".format(**PATH), autospec=True)
-    @patch("{src}.app.backend".format(**PATH), autospec=True)
-    def test_job_aborted_state(t, _backend, _time):
-        tm = 1597059131.762538
-        _backend.get_status.return_value = states.FAILURE
-        _time.time.return_value = tm
-
-        jobid = t.initial["jobid"]
-        t.store.update(jobid, status=states.ABORTED)
-
-        expected_status = states.ABORTED
-        expected_started = None
-        expected_finished = tm
-
-        update_job_status(jobid)
-
-        status = t.store.getfield(jobid, "status")
-        started = t.store.getfield(jobid, "started")
-        finished = t.store.getfield(jobid, "finished")
-
-        t.assertEqual(expected_status, status)
-        t.assertEqual(expected_started, started)
-        t.assertEqual(expected_finished, finished)
-
-
-class IgnoreResultTest(TestCase):
-    """Test update_job_status when a task's ignore_result is True.
-    """
-
-    @app.task(
-        bind=True,
-        name="zen.zenjobs.test.result_ignored_task",
-        summary="Result Ignored Task",
-        ignore_result=True,
-    )
-    def noop_task(self, *args, **kw):
-        pass
-
-    @patch("{src}.getUtility".format(**PATH))
-    def test_ignore_result(t, _getUtility):
-        task = app.tasks.get("zen.zenjobs.test.result_ignored_task")
-        update_job_status(task_id="0", task=task)
-        _getUtility.assert_not_called()
 
 
 class ComponentsLoadedLayer(object):

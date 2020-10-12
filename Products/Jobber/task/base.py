@@ -40,6 +40,10 @@ class ZenTask(SendZenossEventMixin, Task):
         if not summary:
             summary = _default_summary.format(task)
         setattr(cls, "summary", summary)
+
+        from Products.Jobber.config import ZenJobs
+        task.max_retries = ZenJobs.get("zodb-max-retries", 5)
+
         return task
 
     @classmethod
@@ -112,15 +116,14 @@ class ZenTask(SendZenossEventMixin, Task):
 
     def __exec(self, *args, **kwargs):
         if self.request.id is None:
-            self.log.error("task has no ID")
+            self.log.error("Bad task: No ID found  request=%s", self.request)
             raise Ignore()
-        started_mesg = "Job started"
-        finished_mesg = "Job finished  duration=%0.3f"
-        self.log.info(started_mesg)
-        mlog.debug(started_mesg)
+        self.log.info("Job started")
+        mlog.debug("Job started  request=%s", self.request)
         start = time.time()
         result = self.__run(*args, **kwargs)
         stop = time.time()
-        mlog.debug(finished_mesg, stop - start)
-        self.log.info(finished_mesg, stop - start)
+        mesg = ("Job finished  duration=%0.3f", stop - start)
+        mlog.debug(*mesg)
+        self.log.info(*mesg)
         return result
