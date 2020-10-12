@@ -114,6 +114,7 @@ class JobsRouter(DirectRouter):
             "STARTED": "started",
             "SUCCESS": "finished",
             "PENDING": "created",
+            "RETRY": "started",
         }
         for job in self.api.getUserJobs():
             if job.status in validstates:

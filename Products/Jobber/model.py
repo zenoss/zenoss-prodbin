@@ -15,6 +15,7 @@ import time
 
 from celery import states
 from celery.contrib.abortable import ABORTED
+from functools import wraps
 from zope.component import getUtility
 from zope.interface import implementer
 
@@ -335,7 +336,10 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
         "status": states.PENDING,
         "created": time.time(),
     })
-    _save_record(log, record)
+    saved = _save_record(log, record)
+
+    if not saved:
+        return
 
     # Iterate over the callbacks.
     callbacks = body.get("callbacks") or []
@@ -360,52 +364,100 @@ def _save_record(log, record):
     if jobid not in storage:
         storage[jobid] = record
         log.info("Saved record for job %s", jobid)
+        return True
     else:
         log.debug("Record already exists for job %s", jobid)
+        return False
+
+
+def _catch_exception(f):
+
+    @wraps(f)
+    def wrapper(log, *args, **kw):
+        try:
+            f(log, *args, **kw)
+        except Exception:
+            log.exception("INTERNAL ERROR")
+
+    return wrapper
 
 
 @inject_logger(log=mlog)
-def update_job_status(log, task_id=None, task=None, **kwargs):
-    """Update the job record's state."""
+@_catch_exception
+def job_start(log, task_id, task=None, **ignored):
     if task is not None and task.ignore_result:
         return
     jobstore = getUtility(IJobStore, "redis")
-    if task_id not in jobstore:
-        log.debug(
-            "Skipping job status update: task ID not found  "
-            "task-id=%s task=%r", task_id, task,
-        )
+    status = jobstore.getfield(task_id, "status")
+
+    # Don't start jobs that are finished (i.e. "ready" in Celery-speak).
+    # This detects jobs that were aborted before they were executed.
+    if status in states.READY_STATES:
         return
-    job_status = jobstore.getfield(task_id, "status")
-    task_status = app.backend.get_status(task_id)
-    log.debug("task_status %s  job_status %s", task_status, job_status)
-    if ABORTED in (job_status, task_status):
-        task_status = job_status = ABORTED
-    if task_status in states.READY_STATES:
-        tmfield = "finished"
-        job_status = task_status
-    else:
-        tmfield = "started"
-        job_status = states.STARTED
-    tmvalue = time.time()
-    jobstore.update(task_id, **{"status": job_status, tmfield: tmvalue})
-    log.info("status %s, %s: %s", job_status, tmfield, tmvalue)
 
-    # If the job failed or was aborted, change status of linked jobs
-    if job_status in (states.FAILURE, ABORTED):
-        req = getattr(task, "request", None)
-        if req is None:
-            return
-        callbacks = req.callbacks
-        if not callbacks:
-            return
-        for cb in callbacks:
-            cbid = cb.get("options", {}).get("task_id")
-            if not cbid:
-                continue
-            jobstore.update(cbid, status=ABORTED, finished=tmvalue)
+    status = states.STARTED
+    tm = time.time()
+    jobstore.update(task_id, status=states.STARTED, started=tm)
+    log.info("status=%s started=%s", status, tm)
 
+
+@inject_logger(log=mlog)
+@_catch_exception
+def job_end(log, task_id, task=None, **ignored):
+    if task is not None and task.ignore_result:
+        return
+    jobstore = getUtility(IJobStore, "redis")
     finished = jobstore.getfield(task_id, "finished")
     if finished is not None:
         started = jobstore.getfield(task_id, "started")
         log.info("Job total duration is %0.3f seconds", finished - started)
+
+
+@inject_logger(log=mlog)
+@_catch_exception
+def job_success(log, result, sender=None, **ignored):
+    if sender is not None and sender.ignore_result:
+        return
+    task_id = sender.request.id
+    jobstore = getUtility(IJobStore, "redis")
+    status = app.backend.get_status(task_id)
+    tm = time.time()
+    jobstore.update(task_id, status=status, finished=tm)
+    log.info("status=%s finished=%s", status, tm)
+
+
+@inject_logger(log=mlog)
+@_catch_exception
+def job_failure(log, task_id, exception=None, sender=None, **ignored):
+    if sender is not None and sender.ignore_result:
+        return
+    jobstore = getUtility(IJobStore, "redis")
+    status = app.backend.get_status(task_id)
+    tm = time.time()
+    jobstore.update(task_id, status=status, finished=tm)
+    log.info("status=%s finished=%s", status, tm)
+
+    # Abort all subsequent jobs in the chain.
+    req = getattr(sender, "request", None)
+    if req is None:
+        return
+    callbacks = req.callbacks
+    if not callbacks:
+        return
+    for cb in callbacks:
+        cbid = cb.get("options", {}).get("task_id")
+        if not cbid:
+            continue
+        jobstore.update(cbid, status=ABORTED, finished=tm)
+
+
+@inject_logger(log=mlog)
+@_catch_exception
+def job_retry(log, request, reason=None, sender=None, **ignored):
+    if sender is not None and sender.ignore_result:
+        return
+    jobstore = getUtility(IJobStore, "redis")
+    task_id = request.id
+    status = app.backend.get_status(task_id)
+    jobstore.update(task_id, status=status)
+    log.info("status=%s", status)

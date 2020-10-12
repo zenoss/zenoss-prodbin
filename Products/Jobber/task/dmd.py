@@ -16,7 +16,9 @@ import transaction
 from AccessControl.SecurityManagement import (
     newSecurityManager, noSecurityManager,
 )
+from random import SystemRandom
 from Products.CMFCore.utils import getToolByName
+from ZODB.POSException import ConflictError, ReadConflictError
 from ZPublisher.HTTPRequest import HTTPRequest
 from ZPublisher.HTTPResponse import HTTPResponse
 from ZPublisher.BaseRequest import RequestContainer
@@ -26,8 +28,6 @@ from Products.ZenUtils.Utils import getObjByPath
 
 from ..config import ZenJobs
 from ..utils.log import get_logger, get_task_logger, inject_logger
-
-from .utils import backoff, fibonacci, transact
 
 mlog = get_logger("zen.zenjobs.task.dmd")
 
@@ -41,23 +41,40 @@ class DMD(object):
     The dataroot object is accessable to the task via the 'dmd' property.
     """
 
+    abstract = True
+
     def __call__(self, *args, **kwargs):
-        """Override to attach a zodb root object to the task."""
+        """Override to attach a zodb root object to the task.
+        """
         # NOTE: work-around for Celery >= 4.0
         # userid = getattr(self.request, "userid", None)
         userid = self.request.headers.get("userid")
         with zodb(self.app.db, userid, self.log) as dmd:
             self.__dmd = dmd
             try:
-                retries = ZenJobs.get("zodb-max-retries", 5)
-                limit = ZenJobs.get("zodb-retry-interval-limit", 30)
-                backoff_generator = backoff(limit, fibonacci)
-                f = transact(
-                    super(DMD, self).__call__, retries, backoff_generator,
-                )
-                return f(*args, **kwargs)
+                self.__run = self.run
+                self.run = self.__retry_on_conflict
+                return super(DMD, self).__call__(*args, **kwargs)
             finally:
+                self.run = self.__run
+                del self.__run
                 self.__dmd = None
+
+    def __retry_on_conflict(self, *args, **kw):
+        try:
+            result = self.__run(*args, **kw)
+            transaction.commit()
+            self.log.debug("Transaction committed")
+            return result
+        except (ReadConflictError, ConflictError) as ex:
+            transaction.abort()
+            self.log.warn("Transaction aborted  reason=%s", ex)
+            limit = ZenJobs.get("zodb-retry-interval-limit", 30)
+            duration = int(SystemRandom().uniform(1, limit))
+            self.log.info(
+                "Reschedule task to execute after %s seconds.", duration,
+            )
+            self.retry(exc=ex, countdown=duration)
 
     @property
     def dmd(self):

@@ -277,3 +277,11 @@ class inject_logger(object):
         def inject(*args, **kw):
             return func(log, *args, **kw)
         return inject
+
+
+class NullLogger(object):
+    """Defines an object that returns empty callables.
+    """
+
+    def __getattr__(self, name):
+        return lambda *x: None

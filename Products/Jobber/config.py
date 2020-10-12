@@ -29,6 +29,7 @@ _default_configs = {
     "zodb-config-file": "/opt/zenoss/etc/zodb.conf",
     "zodb-max-retries": 5,
     "zodb-retry-interval-limit": 30,  # 30 seconds
+
     "max-jobs-per-worker": "100",
     "concurrent-jobs": "1",
     "job-expires": 604800,  # 7 days

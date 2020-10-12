@@ -13,6 +13,8 @@ import logging
 import sys
 import threading
 
+from ZODB.POSException import ConflictError
+
 from ..task import requires, DMD, Abortable
 from ..zenjobs import app
 from .job import Job
@@ -69,6 +71,16 @@ class DelayedFailure(Job):
         self.log.info("Sleeping for %s seconds", seconds)
         threading.Event().wait(seconds)
         raise DelayedFailureError("slept for %s seconds" % seconds)
+
+
+@app.task(
+    bind=True,
+    base=requires(DMD, Abortable),
+    name="zen.zenjobs.test.badtx",
+    summary="Test ConflictError handling",
+)
+def badtx(self):
+    raise ConflictError("boom")
 
 
 @app.task(

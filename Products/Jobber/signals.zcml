@@ -54,12 +54,27 @@
 
    <celery:signal
       name="task_prerun"
-      handler=".model.update_job_status"
+      handler=".model.job_start"
       />
 
    <celery:signal
       name="task_postrun"
-      handler=".model.update_job_status"
+      handler=".model.job_end"
+      />
+
+   <celery:signal
+      name="task_success"
+      handler=".model.job_success"
+      />
+
+   <celery:signal
+      name="task_failure"
+      handler=".model.job_failure"
+      />
+
+   <celery:signal
+      name="task_retry"
+      handler=".model.job_retry"
       />
 
     <celery:signal
