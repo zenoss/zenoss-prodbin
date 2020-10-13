@@ -173,11 +173,11 @@ class ApplyDataMap(object):
 
     def _apply_incrementalmap(self, incremental_map, device):
         log.debug('_apply_incrementalmap: incremental_map=%s', incremental_map)
-        ret = incremental_map.apply()
+        incremental_map.apply()
+
         notify(DatamapProcessedEvent(
             self._dmd, incremental_map, incremental_map.target
         ))
-        return ret
 
     def stop(self):
         pass
