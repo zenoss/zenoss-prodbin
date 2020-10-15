@@ -20,6 +20,7 @@ from Products.ZenHub.zenhubworker import (
     PingZenHub,
     ServiceReferenceFactory,
     ServiceReference,
+    ZENHUB_MODULE,
     ZCmdBase,
     IDLE,
     IMetricManager,
@@ -70,6 +71,7 @@ class ZenHubWorkerTest(TestCase):
             'clientFromString',
             'getGlobalSiteManager',
             'loadPlugins',
+            'load_config',
             'reactor',
             'ContinuousProfiler',
             'MetricManager',
@@ -104,6 +106,7 @@ class ZenHubWorkerTest(TestCase):
     def test___init__(t):
         t.ZCmdBase__init__.assert_called_with(t.zhw)
 
+        t.load_config.assert_called_with("hubworker.zcml", ZENHUB_MODULE)
         # Optional Profiling
         t.ContinuousProfiler.assert_called_with('ZenHubWorker', log=t.zhw.log)
         t.assertEqual(t.zhw.profiler, t.ContinuousProfiler.return_value)
@@ -400,6 +403,7 @@ class ZenHubClientTest(TestCase):
             'PingZenHub',
             'backoffPolicy',
             'getLogger',
+            'load_config',
             'reactor',
             'task.LoopingCall',
         ]
