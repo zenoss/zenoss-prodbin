@@ -33,7 +33,6 @@ from .events import DatamapAddEvent, DatamapProcessedEvent
 
 
 log = logging.getLogger("zen.ApplyDataMap")
-log.setLevel(logging.DEBUG)
 
 CLASSIFIER_CLASS = '/Classifier'
 
