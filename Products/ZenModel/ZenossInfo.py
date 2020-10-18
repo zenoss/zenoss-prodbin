@@ -22,7 +22,7 @@ import traceback
 import logging
 import commands
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from OFS.SimpleItem import SimpleItem
 from AccessControl import ClassSecurityInfo
 

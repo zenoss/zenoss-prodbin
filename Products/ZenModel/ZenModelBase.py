@@ -29,7 +29,7 @@ import pytz
 from OFS.ObjectManager import checkValidId as globalCheckValidId
 
 from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base, aq_chain
 
 from Products.ZenModel.interfaces import IZenDocProvider

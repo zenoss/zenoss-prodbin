@@ -14,7 +14,7 @@ Handles GraphPoints that define an rrd COMMENT
 """
 
 from GraphPoint import GraphPoint
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 def manage_addCommentGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename

@@ -11,12 +11,13 @@ import logging
 import re
 
 from AccessControl import ClassSecurityInfo
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base, aq_chain
 from OFS.PropertyManager import PropertyManager
 from zExceptions import BadRequest
 from ZPublisher.Converters import type_converters
 
-from Globals import DTMLFile, InitializeClass
+from Globals import DTMLFile
 
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.ZenossSecurity import (

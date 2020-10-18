@@ -23,7 +23,7 @@ import math
 import re
 import ZTUtils
 import urllib
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from OFS.SimpleItem import SimpleItem
 from OFS.PropertyManager import PropertyManager

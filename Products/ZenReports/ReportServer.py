@@ -21,7 +21,7 @@ import sys
 
 from glob import glob
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenModel.ZenModelRM import ZenModelRM

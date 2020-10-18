@@ -12,7 +12,7 @@ __doc__ = """Organizer
 Base class for all Zenoss organizers
 """
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_parent
 from AccessControl import ClassSecurityInfo, getSecurityManager
 
