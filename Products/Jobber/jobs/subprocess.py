@@ -43,8 +43,9 @@ class SubprocessJob(Job):
         return "Shell Command"
 
     @classmethod
-    def getJobDescription(cls, cmd, environ=None):
+    def getJobDescription(cls, *args, **ignored):
         """Return a description of the job."""
+        cmd = args[0] if args else ""
         return cmd if isinstance(cmd, basestring) else " ".join(cmd)
 
     def _run(self, cmd, environ=None):

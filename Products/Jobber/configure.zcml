@@ -22,6 +22,11 @@
         handler=".model.save_jobrecord"
         />
 
+    <celery:signal
+        name="before_task_publish"
+        handler=".model.commit_jobrecord"
+        />
+
     <adapter
         provides="Products.Zuul.interfaces.IMarshaller"
         for=".interfaces.IJobRecord"

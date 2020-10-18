@@ -31,6 +31,8 @@ mlog = logging.getLogger("zen.zenjobs.model")
 
 sortable_keys = list(set(Fields) - {"details"})
 
+STAGED = "STAGED"
+
 
 @implementer(IJobRecord, IInfo)
 class JobRecord(object):
@@ -305,26 +307,19 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
     signal.  Right before the task is published to the queue, this function
     is invoked with the data to be published to the queue.
 
+    If the task has already been saved to redis, no changes are made to the
+    saved data and the function returns.
+
     :param dict body: Task data
     :param dict headers: Headers to accompany message sent to Celery worker
     :param dict properties: Additional task and custom key/value pairs
     """
-    if not body:
-        # If body is empty (or None), no job to save.
-        log.info("no body, so no job")
+    task, err_mesg = _verify_signal_args(body, headers, properties)
+    if not task:
+        log.info(err_mesg)
         return
 
-    if headers is None:
-        # If headers is None, bad signal so ignore.
-        log.info("no headers, bad signal?")
-        return
-
-    task = app.tasks.get(body.get("task"))
-    if task is None:
-        log.warn("Ignoring unknown task: %s", body.get("task"))
-        return
-
-    # If the result of tasks is ignored, don't create a job record.
+    # If the result of tasks is ignored, there's no job record to commit.
     # Celery doesn't store an entry in the result backend when the
     # ignore_result flag is True.
     if task.ignore_result:
@@ -368,6 +363,86 @@ def _save_record(log, record):
     else:
         log.debug("Record already exists for job %s", jobid)
         return False
+
+
+@inject_logger(log=mlog)
+def stage_jobrecord(log, sig):
+    """Save Zenoss specific job metadata to redis with status "STAGED".
+
+    :param sig: The task data
+    :type sig: celery.canvas.Signature
+    """
+    task = app.tasks.get(sig.task)
+
+    # If the result of tasks is ignored, don't create a job record.
+    # Celery doesn't store an entry in the result backend when the
+    # ignore_result flag is True.
+    if task.ignore_result:
+        return
+
+    record = RedisRecord.from_signature(sig)
+    record.update({
+        "status": STAGED,
+        "created": time.time(),
+    })
+    _save_record(log, record)
+
+
+@inject_logger(log=mlog)
+def commit_jobrecord(log, body=None, headers=None, properties=None, **ignored):
+    """Change a STAGED job to PENDING.
+
+    If the task is not found in redis or does not have a status of STAGED,
+    no changes are made to the task's data and this function returns.
+
+    This function is registered as a handler for the before_task_publish
+    signal.  Right before the task is published to the queue, this function
+    is invoked with the data to be published to the queue.
+
+    :param dict body: Task data
+    :param dict headers: Headers to accompany message sent to Celery worker
+    :param dict properties: Additional task and custom key/value pairs
+    """
+    task, err_mesg = _verify_signal_args(body, headers, properties)
+    if not task:
+        log.info(err_mesg)
+        return
+
+    # If the result of tasks is ignored, there's no job record to commit.
+    # Celery doesn't store an entry in the result backend when the
+    # ignore_result flag is True.
+    if task.ignore_result:
+        return
+
+    jobid = body.get("id")
+    storage = getUtility(IJobStore, "redis")
+    if jobid not in storage:
+        return
+
+    # Skip if the status is not "STAGED".
+    status = storage.getfield(jobid, "status")
+    if status != STAGED:
+        return
+
+    storage.update(jobid, status=states.PENDING)
+
+
+def _verify_signal_args(body, headers, properties):
+    # Returns (None, str) if the args are not valid.
+    # Returns (task, None) for valid arguments.
+    if not body:
+        # If body is empty (or None), no job to save.
+        return None, "no body, so no job"
+
+    if headers is None:
+        # If headers is None, bad signal so ignore.
+        return None, "no headers, bad signal?"
+
+    task = app.tasks.get(body.get("task"))
+    if task is None:
+        return None, "Ignoring unknown task: {}".format(body.get("task"))
+
+    return task, None
 
 
 def _catch_exception(f):

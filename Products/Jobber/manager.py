@@ -12,7 +12,6 @@ from __future__ import absolute_import, print_function
 import logging
 import os
 import transaction
-import uuid
 
 from celery import states, chain
 from zope.component import getUtility
@@ -22,13 +21,22 @@ from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 
 from .exceptions import NoSuchJobException
 from .interfaces import IJobStore
-from .model import LegacySupport, JobRecord, RedisRecord, sortable_keys
+from .model import (
+    JobRecord,
+    LegacySupport,
+    RedisRecord,
+    sortable_keys,
+    STAGED,
+    stage_jobrecord,
+)
 from .utils.accesscontrol import ZClassSecurityInfo, ZInitializeClass
 from .zenjobs import app
 
 log = logging.getLogger("zen.zenjobs.JobManager")
 
 JOBMANAGER_VERSION = 2
+
+UNFINISHED_STATES = tuple(states.UNREADY_STATES) + (STAGED,)
 
 
 def manage_addJobManager(context, oid="JobManager"):
@@ -78,10 +86,13 @@ class JobManager(ZenModelRM):
         """
         signatures = []
         for signature in joblist:
-            task_id = str(uuid.uuid4())
-            signature = signature.set(**options).set(task_id=task_id)
+            signature = signature.set(**options)
             signatures.append(signature)
         job = chain(*signatures)
+
+        # Stage the tasks in redis
+        for s in signatures:
+            stage_jobrecord(s)
 
         # Defer sending the job until the transaction has been committed.
         send = _SendTask(job)
@@ -124,14 +135,15 @@ class JobManager(ZenModelRM):
         if description is not None:
             properties["description"] = description
 
-        task_id = str(uuid.uuid4())
         # Build the signature to call the task
-        s = task.s(*args, **kwargs).set(**properties).set(task_id=task_id)
+        s = task.s(*args, **kwargs).set(**properties)
 
-        # Dispatch the task
-        result = s.apply_async()
-        log.debug("Submitted job to zenjobs  job=%s id=%s", s.task, result.id)
+        # Stage the job into Redis.
+        stage_jobrecord(s)
 
+        # Defer sending the job until the transaction has been committed.
+        send = _SendTask(s)
+        transaction.get().addAfterCommitHook(send)
         return JobRecord.make(RedisRecord.from_signature(s))
 
     def wait(self, jobid):
@@ -214,7 +226,10 @@ class JobManager(ZenModelRM):
             )
             end = len(result) if limit is None else offset + limit
             jobs = tuple(
-                JobRecord.make(jobdata) for jobdata in result[offset:end]
+                JobRecord.make(jobdata)
+                for jobdata in result[offset:end]
+                if jobdata["status"] != STAGED
+                or jobdata["jobid"] in _staged_jobs
             )
             return {"jobs": jobs, "total": len(result)}
         except Exception:
@@ -230,6 +245,13 @@ class JobManager(ZenModelRM):
         storage = getUtility(IJobStore, "redis")
         if jobid not in storage:
             raise NoSuchJobException(jobid)
+
+        status = storage.getfield(jobid, "status")
+        if status == STAGED:
+            global _staged_jobs
+            if jobid not in _staged_jobs:
+                raise NoSuchJobException(jobid)
+
         storage.update(jobid, details=kwargs)
 
     def getJob(self, jobid):
@@ -244,6 +266,13 @@ class JobManager(ZenModelRM):
         storage = getUtility(IJobStore, "redis")
         if jobid not in storage:
             raise NoSuchJobException(jobid)
+
+        status = storage.getfield(jobid, "status")
+        if status == STAGED:
+            global _staged_jobs
+            if jobid not in _staged_jobs:
+                raise NoSuchJobException(jobid)
+
         return JobRecord.make(storage[jobid])
 
     @security.protected(ZEN_MANAGE_DMD)
@@ -257,10 +286,22 @@ class JobManager(ZenModelRM):
             log.warn("Cannot delete job that does not exist: %s", jobid)
             return
         job = storage[jobid]
+
+        # Deleting a STAGED job occurs only if the job is found in the
+        # _staged_jobs dict.  Only the session/user that submitted a
+        # STAGED job can delete it.
+        if job["status"] == STAGED:
+            global _staged_jobs
+            if jobid in _staged_jobs:
+                del _staged_jobs[jobid]
+                del storage[jobid]
+            return
+
         if job.get("status") not in states.READY_STATES:
             task = app.tasks[job["name"]]
             result = task.AsyncResult(jobid)
             result.abort()
+
         # Clean up the log file
         logfile = job.get("logfile")
         if logfile is not None:
@@ -282,7 +323,14 @@ class JobManager(ZenModelRM):
         :return: All jobs in the requested state.
         :rtype: Iterator[JobRecord]
         """
-        return _getByStatusAndType(states.UNREADY_STATES, type_)
+        result = _getByStatusAndType(UNFINISHED_STATES, type_)
+        # Filter out STAGED jobs the caller shouldn't know about.
+        global _staged_jobs
+        return (
+            job
+            for job in result
+            if job.status != STAGED or job.jobid in _staged_jobs
+        )
 
     def getRunningJobs(self, type_=None):
         """Return the jobs that have started but not not finished.
@@ -329,7 +377,13 @@ class JobManager(ZenModelRM):
             result = storage.mget(*jobids)
         else:
             result = storage.values()
-        return (JobRecord.make(jd) for jd in result)
+        # Filter out STAGED jobs the caller shouldn't know about.
+        global _staged_jobs
+        return (
+            JobRecord.make(rec)
+            for rec in result
+            if rec["status"] != "STAGED" or rec["jobid"] in _staged_jobs
+        )
 
     @security.protected(ZEN_MANAGE_DMD)
     def clearJobs(self):
@@ -355,21 +409,30 @@ class JobManager(ZenModelRM):
             job.abort()
 
 
+_staged_jobs = {}
+
+
 class _SendTask(object):
     """Sends the task to Celery when invoked."""
 
     def __init__(self, signature):
-        self.__s = signature
+        global _staged_jobs
+        _staged_jobs[signature.id] = signature
+        self.__taskid = signature.id
 
     def __call__(self, status, **kw):
+        global _staged_jobs
+        sig = _staged_jobs.pop(self.__taskid, None)
+        if sig is None:
+            return
         if status:
-            result = self.__s.apply_async()
-            log.debug(
-                "Submitted job to zenjobs  job=%s id=%s",
-                self.__s.task, result.id,
-            )
+            sig.apply_async()
+            log.debug("Job sent  job=%s id=%s", sig.task, sig.id)
         else:
-            log.debug("Job discarded  job=%s", self.__s.task)
+            storage = getUtility(IJobStore, "redis")
+            if self.__taskid in storage:
+                del storage[self.__taskid]
+            log.debug("Job discarded  job=%s", sig.task)
 
 
 def _getByStatusAndType(statuses, jobtype=None):
