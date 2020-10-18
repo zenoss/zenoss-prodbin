@@ -17,7 +17,7 @@ rather than just number bounds checking.
 
 from AccessControl import Permissions
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from ThresholdClass import ThresholdClass
 from ThresholdInstance import ThresholdContext
 from Products.ZenEvents import Event

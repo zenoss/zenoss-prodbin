@@ -11,7 +11,7 @@
 import logging
 log = logging.getLogger("zen.triggers")
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
 from AdministrativeRoleable import AdministrativeRoleable

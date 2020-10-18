@@ -17,7 +17,7 @@ from zope.event import notify
 from zope.interface import implements
 from AccessControl import ClassSecurityInfo
 from ZODB.transact import transact
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 from Products.ZenModel.AdministrativeRoleable import AdministrativeRoleable
 from Products.ZenModel.ZenossSecurity import ZEN_VIEW, ZEN_MANAGE_DMD

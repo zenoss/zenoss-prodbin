@@ -9,7 +9,7 @@
 
 
 import cgi
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.ZenTales import talesEval

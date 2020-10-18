@@ -21,7 +21,7 @@ from itertools import chain
 log = logging.getLogger("zen.IpInterface")
 
 from Globals import DTMLFile
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from App.Dialogs import MessageDialog
 from AccessControl import ClassSecurityInfo

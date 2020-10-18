@@ -16,7 +16,7 @@ CustomDeviceReportClass contain CustomDeviceReports.
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from ReportClass import ReportClass
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenMessaging.audit import audit

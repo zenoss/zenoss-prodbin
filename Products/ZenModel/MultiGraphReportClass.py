@@ -17,7 +17,7 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from ReportClass import ReportClass
 from Products.ZenRelations.RelSchema import *
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import getDisplayType

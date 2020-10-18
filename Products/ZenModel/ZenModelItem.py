@@ -14,7 +14,7 @@ $Id: ZenModelItem.py,v 1.3 2003/10/04 15:54:36 edahl Exp $"""
 
 __version__ = "$Revision: 1.3 $"[11:-2]
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from ZenModelBase import ZenModelBase

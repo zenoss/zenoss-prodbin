@@ -30,7 +30,7 @@ from collections import defaultdict
 from StringIO import StringIO
 
 from Acquisition import aq_base
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import importClass, zenPath, varPath

@@ -25,7 +25,7 @@ from Products.ZenMessaging.audit import audit
 
 log = logging.getLogger("zen.Events")
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Acquisition import aq_chain
