@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 from Products.ZenRelations.RelSchema import ToMany
 from Products.Zuul.catalog.interfaces import IModelCatalogTool

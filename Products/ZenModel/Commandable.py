@@ -17,7 +17,7 @@ Mixin class for classes that need a relationship back from UserCommand.
 
 """
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import *
 from UserCommand import UserCommand

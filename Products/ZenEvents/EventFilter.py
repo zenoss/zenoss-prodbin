@@ -9,7 +9,7 @@
 
 
 from AccessControl import ClassSecurityInfo
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 class EventFilter(object):
     "Mix-in for objects that query events"

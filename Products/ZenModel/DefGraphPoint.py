@@ -14,7 +14,7 @@ Handles GraphPoints that define an rrd DEF
 """
 
 from GraphPoint import GraphPoint
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 
 def manage_addDefGraphPoint(context, id, REQUEST = None):

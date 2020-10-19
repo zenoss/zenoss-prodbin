@@ -16,7 +16,7 @@ $Id: ZenTableState.py,v 1.3 2004/01/17 04:56:13 edahl Exp $"""
 
 __revision__ = "$Revision: 1.3 $"[11:-2]
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from DateTime.DateTime import DateTime
 from persistent.dict import PersistentDict

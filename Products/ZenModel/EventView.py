@@ -14,7 +14,7 @@ log = logging.getLogger("zen.EventView")
 from decorator import decorator
 from copy import deepcopy
 from AccessControl import ClassSecurityInfo, getSecurityManager
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from zope.interface import Interface, implements
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade

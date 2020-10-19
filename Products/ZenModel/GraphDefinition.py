@@ -18,7 +18,7 @@ import string
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from ZenModelRM import ZenModelRM
 from Products.ZenWidgets import messaging

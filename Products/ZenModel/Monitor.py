@@ -18,7 +18,7 @@ $Id: Monitor.py,v 1.5 2004/04/14 22:11:48 edahl Exp $"""
 
 __version__ = "$Revision: 1.5 $"[11:-2]
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 from ZenModelRM import ZenModelRM
 from DeviceManagerBase import DeviceManagerBase

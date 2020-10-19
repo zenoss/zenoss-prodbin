@@ -16,7 +16,7 @@ Handles GraphPoints that refer to RRDDataPoints
 import os
 import os.path
 from ComplexGraphPoint import ComplexGraphPoint
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Products.ZenUtils.deprecated import deprecated
 
 @deprecated

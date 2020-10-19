@@ -22,7 +22,7 @@ log = logging.getLogger("zen.Relations")
 # Base classes for ToOneRelationship
 from RelationshipBase import RelationshipBase
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
 from App.Dialogs import MessageDialog

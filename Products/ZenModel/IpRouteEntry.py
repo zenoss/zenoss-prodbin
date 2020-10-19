@@ -16,7 +16,7 @@ RouteEntry represents a group of devices
 import re
 
 from Globals import DTMLFile
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenUtils.Utils import localIpCheck, prepId

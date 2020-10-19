@@ -13,7 +13,7 @@ __doc__="""RpnGraphPoint
 Base class for graph points with RPNs. Never directly instantiated.
 """
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 from Products.ZenModel.GraphPoint import GraphPoint
 from Products.ZenRRD.utils import rpnStack
