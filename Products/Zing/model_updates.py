@@ -61,7 +61,7 @@ class ZingObjectUpdateHandler(object):
                 device_org_fact = ZFact.organizer_fact_from_device(obj.device())
                 comp_org_fact = ZFact.organizer_fact_from_device_component(device_org_fact,
                                                                            uuid, obj.meta_type,
-                                                                           obj.getComponentGroupNames)
+                                                                           obj.getComponentGroupNames())
                 tx_state.need_organizers_fact[uuid] = comp_org_fact
             else:
                 obj_fact.metadata[ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY] = "Device"
