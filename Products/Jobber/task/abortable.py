@@ -14,6 +14,7 @@ import signal
 import sys
 import thread
 import threading
+import time
 
 from celery import states
 from celery.app import push_current_task, pop_current_task
@@ -38,7 +39,7 @@ class AbortableResult(AbortableAsyncResult):
     def abort(self):
         """Abort the job."""
         jobstore = getUtility(IJobStore, "redis")
-        jobstore.update(self.id, status=ABORTED)
+        jobstore.update(self.id, status=ABORTED, finished=time.time())
         return super(AbortableResult, self).abort()
 
 

@@ -129,7 +129,7 @@ class JobRecord(object):
             or self.started is None
         ):
             return None
-        if self.complete:
+        if self.complete and self.finished is not None:
             return self.finished - self.started
         return time.time() - self.started
 

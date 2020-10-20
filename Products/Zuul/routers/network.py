@@ -32,6 +32,17 @@ from . import TreeRouter
 log = logging.getLogger("zen.NetworkRouter")
 
 
+JOBKEYS = [
+    "uuid",
+    "status",
+    "started",
+    "scheduled",
+    "finished",
+    "duration",
+    "logfile",
+]
+
+
 class NetworkRouter(TreeRouter):
     """A JSON/ExtDirect interface to operations on networks.
     """
@@ -250,7 +261,7 @@ class NetworkRouter(TreeRouter):
             networks=networks, zProperties=zProperties, collector=collector
         )
         audit("UI.Discovery.Add", networks=networks, collector=collector)
-        return DirectResponse.succeed(data=Zuul.marshal(jobs))
+        return DirectResponse.succeed(data=Zuul.marshal(jobs, keys=JOBKEYS))
 
 
 class Network6Router(NetworkRouter):
