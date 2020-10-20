@@ -49,7 +49,10 @@ class IProcessInfo(IInfo):
                                 ' of this process to be running at any time.') 
     maxProcessCount = Attribute('Numerical value describing the maximum number'
                                 ' of this process to be running at any time.')
-
+    minProcessMemory = Attribute('Numerical value (bytes) describing the minimum '
+                                 ' memory this process should use.')
+    maxProcessMemory = Attribute('Numerical value (bytes) describing the maximum '
+                                 ' memory this process should use.')
 
 class IProcessFacade(IFacade):
 
