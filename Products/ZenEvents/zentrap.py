@@ -567,11 +567,12 @@ class TrapTask(BaseTask, CaptureReplay):
             # the varbind to the event details using pre Zenoss 6.2.0 rules.
             if len(data) == 1:
                 full_name, value = data[0]
+                result[base_name].append(value)
+                
                 suffix = full_name[offset:]
-                if base_name != full_name:
-                    result[base_name].append(value)
                 if suffix:
                     result[base_name + ".ifIndex"].append(suffix)
+                continue
 
             # Record the varbind instance(s) in their 'raw' form.
             for full_name, value in data:
