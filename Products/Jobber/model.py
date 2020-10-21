@@ -24,6 +24,7 @@ from Products.Zuul.interfaces import IMarshaller, IInfo
 from .config import ZenJobs
 from .interfaces import IJobStore, IJobRecord
 from .storage import Fields
+from .task.utils import job_log_has_errors
 from .utils.log import inject_logger
 from .zenjobs import app
 
@@ -129,7 +130,7 @@ class JobRecord(object):
             or self.started is None
         ):
             return None
-        if self.complete:
+        if self.complete and self.finished is not None:
             return self.finished - self.started
         return time.time() - self.started
 
@@ -421,6 +422,9 @@ def job_success(log, result, sender=None, **ignored):
     task_id = sender.request.id
     jobstore = getUtility(IJobStore, "redis")
     status = app.backend.get_status(task_id)
+    if job_log_has_errors(task_id):
+        log.warn("Error messages detected in job log.")
+        status = states.FAILURE
     tm = time.time()
     jobstore.update(task_id, status=status, finished=tm)
     log.info("status=%s finished=%s", status, tm)
