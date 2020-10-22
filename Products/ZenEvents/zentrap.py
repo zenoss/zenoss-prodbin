@@ -646,9 +646,10 @@ class TrapTask(BaseTask, CaptureReplay):
 
         return eventType, result
 
-    def decodeSnmpv2(self, addr, pdu):
+    def decodeSnmpV2OrV3(self, addr, pdu):
         eventType = 'unknown'
-        result = {"snmpVersion": "2", "oid": "", "device": addr[0]}
+        version = "2" if pdu.version == SNMPv2 else "3"
+        result = {"snmpVersion": version, "oid": "", "device": addr[0]}
         variables = self.getResult(pdu)
 
         varbinds = []
@@ -657,7 +658,7 @@ class TrapTask(BaseTask, CaptureReplay):
             vb_oid = '.'.join(map(str, vb_oid))
             if vb_value is None:
                 log.debug(
-                    "[decodeSnmpv2] varbind-oid %s, varbind-value %s",
+                    "[decodeSnmpV2OrV3] varbind-oid %s, varbind-value %s",
                     vb_oid, vb_value
                 )
 
@@ -708,7 +709,7 @@ class TrapTask(BaseTask, CaptureReplay):
             eventType, result = self.decodeSnmpv1(addr, pdu)
         elif pdu.version in (SNMPv2, SNMPv3):
             self.log.debug("SNMPv2 or v3 trap, Addr: %s", str(addr))
-            eventType, result = self.decodeSnmpv2(addr, pdu)
+            eventType, result = self.decodeSnmpV2OrV3(addr, pdu)
         else:
             self.log.error("Unable to handle trap version %d", pdu.version)
             return
