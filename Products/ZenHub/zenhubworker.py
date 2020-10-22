@@ -257,6 +257,7 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         @param monitor {str} Name of the collection monitor
         """
         try:
+            self.syncdb()
             return self.__manager.getService(name, monitor)
         except RemoteBadMonitor:
             # Catch and rethrow this Exception derived exception.
