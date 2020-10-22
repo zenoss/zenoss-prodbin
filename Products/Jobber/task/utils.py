@@ -35,6 +35,14 @@ def requires(*features):
     return basetask
 
 
+_failure_text = (
+    "ERROR zen.",
+    "ERROR STDERR",
+    "CRITICAL zen.",
+    "CRITICAL STDERR",
+)
+
+
 def job_log_has_errors(task_id):
     """Return True if the job's log contains any ERROR messages.
     """
@@ -45,7 +53,7 @@ def job_log_has_errors(task_id):
     try:
         with open(logfile, "r") as f:
             return any(
-                ("ERROR zen." in line) or ("ERROR STDERR" in line)
+                any(txt in line for txt in _failure_text)
                 for line in f.readlines()
             )
     except Exception:

@@ -34,6 +34,7 @@ JOBKEYS = [
     "scheduled",
     "started",
     "finished",
+    "duration",
     "status",
     "user",
     "logfile",

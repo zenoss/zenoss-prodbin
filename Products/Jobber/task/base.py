@@ -13,11 +13,10 @@ import logging
 import time
 
 from AccessControl.SecurityManagement import getSecurityManager
-from celery import Task, states
+from celery import Task
 from celery.exceptions import Ignore, SoftTimeLimitExceeded
 
 from .event import SendZenossEventMixin
-from .utils import job_log_has_errors
 from ..utils.log import get_task_logger, get_logger
 
 _default_summary = "Task {0.__class__.__name__}"
@@ -77,14 +76,6 @@ class ZenTask(SendZenossEventMixin, Task):
         userid = getSecurityManager().getUser().getId()
         headers["userid"] = userid
         return super(ZenTask, self).subtask(*args, **kw)
-
-    def after_return(self, status, retval, task_id, args, kwargs, eninfo):
-        if status == states.SUCCESS and job_log_has_errors(task_id):
-            status = states.FAILURE
-            self.update_state(state=status)
-        return super(ZenTask, self).after_return(
-            status, retval, task_id, args, kwargs, eninfo,
-        )
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         result = super(ZenTask, self).on_failure(

@@ -189,6 +189,22 @@ class ProcessInfo(InfoBase):
 
     maxProcessCount = property(getMaxProcessCount, setMaxProcessCount)
 
+    def getMinProcessMemory(self):
+        return getattr(self._object, 'minProcessMemory', '')
+
+    def setMinProcessMemory(self, minProcessMemory):
+        self._object.minProcessMemory = minProcessMemory
+
+    minProcessMemory = property(getMinProcessMemory, setMinProcessMemory)
+
+    def getMaxProcessMemory(self):
+        return getattr(self._object, 'maxProcessMemory', '')
+
+    def setMaxProcessMemory(self, maxProcessMemory):
+        self._object.maxProcessMemory = maxProcessMemory
+
+    maxProcessMemory = property(getMaxProcessMemory, setMaxProcessMemory)
+
     @property
     def count(self):
         if isinstance(self._object, OSProcessOrganizer):
