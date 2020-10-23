@@ -849,9 +849,11 @@ class DeviceFacade(TreeFacade):
                     pass
 
     def addLocationOrganizer(self, contextUid, id, description = '', address=''):
-        org = super(DeviceFacade, self).addOrganizer(contextUid, id, description)
-        org.address = address
-        return org
+        properties = {}
+        if address:
+            properties["address"] = address
+
+        return super(DeviceFacade, self).addOrganizer(contextUid, id, description, properties=properties)
 
     def addDeviceClass(self, contextUid, id, description = '', connectionInfo=None):
         org = super(DeviceFacade, self).addOrganizer(contextUid, id, description)

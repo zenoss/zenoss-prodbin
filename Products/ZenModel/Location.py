@@ -28,6 +28,7 @@ from ZenPackable import ZenPackable
 from zExceptions import NotFound
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.Utils import extractPostContent
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 def manage_addLocation(context, id, description = "",
                        address="", REQUEST = None):
@@ -196,6 +197,8 @@ class Location(DeviceOrganizer, ZenPackable):
                 loc = self.unrestrictedTraverse(str(uid))
                 if loc.latlong != geo['latlong']:
                     loc.latlong = geo['latlong']
+                    # ensure new latlong gets to the catalog and cloud
+                    IModelCatalogTool(loc).update(loc)
             except (KeyError, NotFound):
                 # the location might have been removed or renamed
                 # and the client still had the cache.
