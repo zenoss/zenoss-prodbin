@@ -477,8 +477,16 @@ class JobDispatcher(object):
 
 class ThreadedJobDispatcher(threading.local):
 
-    def __init__(self):
-        self.dispatcher = JobDispatcher(getUtility(IJobStore, "redis"))
+    def __getattr__(self, name):
+        # Lazily initialize 'dispatcher'; avoids performing zope component
+        # lookups during module loading.
+        # This is not evaluated each time because __getattr__ is called
+        # only when an attribute is not found.
+        if name == "dispatcher":
+            storage = getUtility(IJobStore, "redis")
+            dispatcher = self.dispatcher = JobDispatcher(storage)
+            return dispatcher
+        return super(ThreadedJobDispatcher, self).__getattr__(name)
 
     def add(self, sig):
         self.dispatcher.add(sig)
