@@ -11,6 +11,7 @@ from __future__ import absolute_import, print_function
 
 import logging
 import time
+import uuid
 
 from AccessControl.SecurityManagement import getSecurityManager
 from celery import Task
@@ -75,6 +76,7 @@ class ZenTask(SendZenossEventMixin, Task):
         headers = kw.setdefault("headers", {})
         userid = getSecurityManager().getUser().getId()
         headers["userid"] = userid
+        kw["task_id"] = str(uuid.uuid4())
         return super(ZenTask, self).subtask(*args, **kw)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
