@@ -38,7 +38,7 @@ from .utils.log import (
     TaskLogFileHandler,
 )
 
-_default_log_level = logging.getLevelName(ZenJobs.getint("logseverity"))
+_default_log_level = logging.getLevelName(ZenJobs.get("logseverity"))
 
 _default_config = {
     "worker": {
@@ -70,8 +70,8 @@ _default_config = {
                 "class": "cloghandler.ConcurrentRotatingFileHandler",
                 "filename":
                     os.path.join(ZenJobs.get("logpath"), "zenjobs.log"),
-                "maxBytes": ZenJobs.getint("maxlogsize") * 1024,
-                "backupCount": ZenJobs.getint("maxbackuplogs"),
+                "maxBytes": ZenJobs.get("maxlogsize") * 1024,
+                "backupCount": ZenJobs.get("maxbackuplogs"),
                 "mode": "a",
                 "filters": ["main"],
             },
@@ -119,8 +119,8 @@ _default_config = {
                 "filename": os.path.join(
                     ZenJobs.get("logpath"), "zenjobs-scheduler.log",
                 ),
-                "maxBytes": ZenJobs.getint("maxlogsize") * 1024,
-                "backupCount": ZenJobs.getint("maxbackuplogs"),
+                "maxBytes": ZenJobs.get("maxlogsize") * 1024,
+                "backupCount": ZenJobs.get("maxbackuplogs"),
                 "mode": "a",
             },
         },
