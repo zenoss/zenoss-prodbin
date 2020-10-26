@@ -22,6 +22,7 @@ _default_configs = {
     "maxlogsize": "10240",
     "maxbackuplogs": "3",
     "job-log-path": "/opt/zenoss/log/jobs",
+    "zenjobs-job-expires": 604800,  # 7 days
 
     "scheduler-config-file": "/opt/zenoss/etc/zenjobs_schedules.yaml",
     "scheduler-max-loop-interval": 180,  # 3 minutes
@@ -32,7 +33,6 @@ _default_configs = {
 
     "max-jobs-per-worker": "100",
     "concurrent-jobs": "1",
-    "job-expires": 604800,  # 7 days
     "job-hard-time-limit": 21600,  # 6 hours
     "job-soft-time-limit": 18000,  # 5 hours
 }
@@ -93,7 +93,7 @@ class Celery(object):
     # Result backend (redis)
     CELERY_RESULT_BACKEND = "redis://localhost/0"
     CELERY_RESULT_SERIALIZER = "without-unicode"
-    CELERY_TASK_RESULT_EXPIRES = int(ZenJobs.get("job-expires"))
+    CELERY_TASK_RESULT_EXPIRES = int(ZenJobs.get("zenjobs-job-expires"))
 
     # Worker configuration
     CELERYD_CONCURRENCY = int(ZenJobs.get("concurrent-jobs"))

@@ -243,16 +243,20 @@ class TreeFacade(ZuulFacade):
         # convert to info objects
         return SearchResults(imap(IInfo, objs), brains.total, brains.hash_)
 
-    def addOrganizer(self, contextUid, id, description=''):
+    def addOrganizer(self, contextUid, id, description='', properties=None):
+        if not properties:
+            properties = {}
+
+        properties["description"] = description
+
         context = self._getObject(contextUid)
-        context.manage_addOrganizer(id)
+        context.manage_addOrganizer(id, properties=properties)
         if id.startswith("/"):
             organizer = context.getOrganizer(id)
         else:
             # call prepId for each segment.
             id = '/'.join(context.prepId(s) for s in id.split('/'))
             organizer = context._getOb(id)
-        organizer.description = description
         return IOrganizerInfo(organizer)
 
     def addClass(self, contextUid, id):

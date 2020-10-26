@@ -95,8 +95,14 @@ class ZenTaskTest(TestCase):
         _get_task_logger.assert_called_with(t.task_name)
         t.assertEqual(_get_task_logger.return_value, log)
 
-    def test_subtask(t):
-        expected = {"headers": {"userid": None}}
+    @patch("Products.Jobber.task.base.uuid", autospect=True)
+    def test_subtask(t, _uuid):
+        task_id = "123"
+        _uuid.uuid4.return_value = task_id
+        expected = {
+            "headers": {"userid": None},
+            "task_id": task_id,
+        }
         task = t.simple_task.subtask()
         t.assertIsInstance(task, Signature)
         t.assertDictEqual(expected, task.options)
