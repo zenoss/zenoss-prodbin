@@ -11,24 +11,36 @@ from __future__ import absolute_import, print_function
 
 import logging
 import os
+import threading
 import transaction
-import uuid
 
 from celery import states, chain
+from transaction.interfaces import IDataManager
 from zope.component import getUtility
+from zope.interface import implementer
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 
 from .exceptions import NoSuchJobException
 from .interfaces import IJobStore
-from .model import LegacySupport, JobRecord, RedisRecord, sortable_keys
+from .model import (
+    commit_jobrecord,
+    JobRecord,
+    LegacySupport,
+    RedisRecord,
+    sortable_keys,
+    STAGED,
+    stage_jobrecord,
+)
 from .utils.accesscontrol import ZClassSecurityInfo, ZInitializeClass
 from .zenjobs import app
 
 log = logging.getLogger("zen.zenjobs.JobManager")
 
 JOBMANAGER_VERSION = 2
+
+UNFINISHED_STATES = tuple(states.UNREADY_STATES) + (STAGED,)
 
 
 def manage_addJobManager(context, oid="JobManager"):
@@ -78,14 +90,13 @@ class JobManager(ZenModelRM):
         """
         signatures = []
         for signature in joblist:
-            task_id = str(uuid.uuid4())
-            signature = signature.set(**options).set(task_id=task_id)
+            signature = signature.set(**options)
             signatures.append(signature)
         job = chain(*signatures)
 
         # Defer sending the job until the transaction has been committed.
-        send = _SendTask(job)
-        transaction.get().addAfterCommitHook(send)
+        _job_dispatcher.add(job)
+
         return tuple(
             JobRecord.make(RedisRecord.from_signature(s))
             for s in signatures
@@ -124,13 +135,11 @@ class JobManager(ZenModelRM):
         if description is not None:
             properties["description"] = description
 
-        task_id = str(uuid.uuid4())
         # Build the signature to call the task
-        s = task.s(*args, **kwargs).set(**properties).set(task_id=task_id)
+        s = task.s(*args, **kwargs).set(**properties)
 
-        # Dispatch the task
-        result = s.apply_async()
-        log.debug("Submitted job to zenjobs  job=%s id=%s", s.task, result.id)
+        # Defer sending the job until the transaction has been committed.
+        _job_dispatcher.add(s)
 
         return JobRecord.make(RedisRecord.from_signature(s))
 
@@ -141,6 +150,9 @@ class JobManager(ZenModelRM):
         """
         storage = getUtility(IJobStore, "redis")
         if jobid not in storage:
+            raise NoSuchJobException(jobid)
+        status = storage.getfield(jobid, "status")
+        if status == STAGED and jobid not in _job_dispatcher.staged:
             raise NoSuchJobException(jobid)
         taskname = storage.getfield(jobid, "name")
         app.tasks.get(taskname).AsyncResult(jobid).wait()
@@ -204,18 +216,24 @@ class JobManager(ZenModelRM):
             storage = getUtility(IJobStore, "redis")
             if len(normalized_criteria):
                 jobids = storage.search(**normalized_criteria)
-                jobdata = storage.mget(*jobids)
+                records = storage.mget(*jobids)
             else:
-                jobdata = storage.values()
+                records = storage.values()
+            # For an accurate count of all results, unknown STAGED jobs
+            # are removed from the original result.
+            staged_task_ids = _job_dispatcher.staged
             result = sorted(
-                jobdata,
+                (
+                    rec
+                    for rec in records
+                    if rec["status"] != STAGED
+                    or rec["jobid"] in staged_task_ids
+                ),
                 key=lambda x: x[normalized_key],
                 reverse=reverse,
             )
             end = len(result) if limit is None else offset + limit
-            jobs = tuple(
-                JobRecord.make(jobdata) for jobdata in result[offset:end]
-            )
+            jobs = tuple(JobRecord.make(rec) for rec in result[offset:end])
             return {"jobs": jobs, "total": len(result)}
         except Exception:
             log.exception("Internal Error")
@@ -229,6 +247,9 @@ class JobManager(ZenModelRM):
         """
         storage = getUtility(IJobStore, "redis")
         if jobid not in storage:
+            raise NoSuchJobException(jobid)
+        status = storage.getfield(jobid, "status")
+        if status == STAGED and jobid not in _job_dispatcher.staged:
             raise NoSuchJobException(jobid)
         storage.update(jobid, details=kwargs)
 
@@ -244,6 +265,9 @@ class JobManager(ZenModelRM):
         storage = getUtility(IJobStore, "redis")
         if jobid not in storage:
             raise NoSuchJobException(jobid)
+        status = storage.getfield(jobid, "status")
+        if status == STAGED and jobid not in _job_dispatcher.staged:
+            raise NoSuchJobException(jobid)
         return JobRecord.make(storage[jobid])
 
     @security.protected(ZEN_MANAGE_DMD)
@@ -257,6 +281,12 @@ class JobManager(ZenModelRM):
             log.warn("Cannot delete job that does not exist: %s", jobid)
             return
         job = storage[jobid]
+
+        if job["status"] == STAGED:
+            if jobid in _job_dispatcher.staged:
+                _job_dispatcher.discard(jobid)
+            return
+
         if job.get("status") not in states.READY_STATES:
             task = app.tasks[job["name"]]
             result = task.AsyncResult(jobid)
@@ -282,7 +312,14 @@ class JobManager(ZenModelRM):
         :return: All jobs in the requested state.
         :rtype: Iterator[JobRecord]
         """
-        return _getByStatusAndType(states.UNREADY_STATES, type_)
+        result = _getByStatusAndType(UNFINISHED_STATES, type_)
+        # Filter out STAGED jobs the caller shouldn't know about.
+        staged_task_ids = _job_dispatcher.staged
+        return (
+            job
+            for job in result
+            if job.status != STAGED or job.jobid in staged_task_ids
+        )
 
     def getRunningJobs(self, type_=None):
         """Return the jobs that have started but not not finished.
@@ -329,7 +366,12 @@ class JobManager(ZenModelRM):
             result = storage.mget(*jobids)
         else:
             result = storage.values()
-        return (JobRecord.make(jd) for jd in result)
+        staged_task_ids = _job_dispatcher.staged
+        return (
+            JobRecord.make(rec)
+            for rec in result
+            if rec["status"] != STAGED or rec["jobid"] in staged_task_ids
+        )
 
     @security.protected(ZEN_MANAGE_DMD)
     def clearJobs(self):
@@ -355,21 +397,109 @@ class JobManager(ZenModelRM):
             job.abort()
 
 
-class _SendTask(object):
-    """Sends the task to Celery when invoked."""
+@implementer(IDataManager)
+class JobDispatcher(object):
+    """
+    """
 
-    def __init__(self, signature):
-        self.__s = signature
+    transaction_manager = transaction.manager.manager
 
-    def __call__(self, status, **kw):
-        if status:
-            result = self.__s.apply_async()
-            log.debug(
-                "Submitted job to zenjobs  job=%s id=%s",
-                self.__s.task, result.id,
-            )
-        else:
-            log.debug("Job discarded  job=%s", self.__s.task)
+    def __init__(self, storage):
+        self._storage = storage
+        self._joined = False
+        self._sig = None
+        self._staged = ()
+
+    @property
+    def staged(self):
+        return tuple(task.id for task in self._staged)
+
+    def add(self, sig):
+        if not self._joined:
+            transaction.get().join(self)
+            self._joined = True
+
+        # The 'tasks' attribute appears only on canvas tasks, e.g. chain.
+        tasks = getattr(sig, "tasks", (sig,))
+        for task in tasks:
+            stage_jobrecord(self._storage, task)
+
+        self._staged = tasks
+        self._sig = sig
+
+    def discard(self, task_id):
+        self._staged = tuple(
+            task for task in self._staged if task.id != task_id
+        )
+        self._storage.mdelete(*(task_id,))
+
+    def _reset(self):
+        self._joined = False
+        self._sig = None
+        self._staged = ()
+
+    # ==========
+    # IDataManager interface methods follow below
+
+    def abort(self, tx):
+        # Delete staged records
+        self._storage.mdelete(*(task.id for task in self._staged))
+        self._reset()
+        log.debug("[abort] discarded staged job")
+
+    def tpc_begin(self, tx):
+        # Required by IDataManager, but a no-op for JobDispatcher
+        pass
+
+    def commit(self, tx):
+        # Required by IDataManager, but a no-op for JobDispatcher
+        pass
+
+    def tpc_vote(self, tx):
+        # Required by IDataManager, but a no-op for JobDispatcher
+        pass
+
+    def tpc_finish(self, tx):
+        # Update relevant STAGED records to PENDING.
+        for task in self._staged:
+            commit_jobrecord(self._storage, task)
+        # Send the job to zenjobs
+        self._sig.apply_async()
+        self._reset()
+        log.debug("[tpc_finish] set staged jobs to pending; dispatched job")
+
+    def tpc_abort(self, tx):
+        self.abort(tx)
+
+    def sortKey(self):
+        return str(id(self),)
+
+
+class ThreadedJobDispatcher(threading.local):
+
+    def __getattr__(self, name):
+        # Lazily initialize 'dispatcher'; avoids performing zope component
+        # lookups during module loading.
+        # This is not evaluated each time because __getattr__ is called
+        # only when an attribute is not found.
+        if name == "dispatcher":
+            storage = getUtility(IJobStore, "redis")
+            dispatcher = self.dispatcher = JobDispatcher(storage)
+            return dispatcher
+        return super(ThreadedJobDispatcher, self).__getattr__(name)
+
+    def add(self, sig):
+        self.dispatcher.add(sig)
+
+    def discard(self, taskid):
+        self.dispatcher.discard(taskid)
+
+    @property
+    def staged(self):
+        return self.dispatcher.staged
+
+
+_job_dispatcher = ThreadedJobDispatcher()
 
 
 def _getByStatusAndType(statuses, jobtype=None):
