@@ -26,6 +26,7 @@ from .incrementalupdate import (
 from .datamaputils import (
     _locked_from_updates,
     _locked_from_deletion,
+    isSameData
 )
 
 from .reporter import ADMReporter
@@ -36,33 +37,6 @@ log = logging.getLogger("zen.ApplyDataMap")
 log.setLevel(logging.DEBUG)
 
 CLASSIFIER_CLASS = '/Classifier'
-
-'''TODO: get dmd from utility
-from zope.component import getUtility
-from Products.Zuul.interfaces import IDataRootFactory
-get_dmd = getUtility(IDataRootFactory)
-dmd = get_dmd()
-'''
-
-
-def isSameData(x, y):
-    """
-    A more comprehensive check to see if existing model data is the same as
-    newly modeled data. The primary focus is comparing unsorted lists of
-    dictionaries.
-    """
-    if isinstance(x, (tuple, list)) and isinstance(y, (tuple, list)):
-        if (
-            x and y
-            and all(isinstance(i, dict) for i in x)
-            and all(isinstance(i, dict) for i in y)
-        ):
-            x = set(tuple(sorted(d.items())) for d in x)
-            y = set(tuple(sorted(d.items())) for d in y)
-        else:
-            return sorted(x) == sorted(y)
-
-    return x == y
 
 
 class ApplyDataMap(object):
