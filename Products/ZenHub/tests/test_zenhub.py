@@ -9,6 +9,7 @@
 
 from unittest import TestCase
 from mock import Mock, patch, create_autospec, call, sentinel
+import sys
 
 from zope.interface.verify import verifyObject
 from zope.component import adaptedBy
@@ -23,6 +24,13 @@ from Products.ZenHub.zenhub import (
     DefaultConfProvider, IHubConfProvider,
     DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
     IEventPublisher,
+    stop_server,
+    server_config,
+    IHubServerConfig,
+    handle_reactor_delayed_calls_metric,
+    EventHeartbeat,
+    IMetricManager,
+    reactor,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -271,9 +279,10 @@ class ZenHubTest(TestCase):
         t.assertEqual(t.zh.metricreporter, t.zh._metric_manager.metricreporter)
         t.zh._metric_manager.start.assert_called_with()
         # trigger to shut down metric reporter before zenhub exits
-        t.reactor.addSystemEventTrigger.assert_called_with(
-            'before', 'shutdown', t.zh._metric_manager.stop,
-        )
+        t.reactor.addSystemEventTrigger.assert_has_calls([
+            call('before', 'shutdown', t.zh._metric_manager.stop),
+            call('before', 'shutdown', stop_server),
+        ])
         # After the reactor stops:
         t.zh.profiler.stop.assert_called_with()
         # Closes IEventPublisher, which breaks old integration tests
@@ -418,6 +427,8 @@ class ZenHubTest(TestCase):
         # parser expected to be added by CmdBase.buildParser
         from optparse import OptionParser
         t.zh.parser = OptionParser()
+        # Given no commandline options
+        sys.argv = []
 
         t.zh.buildOptions()
         t.zh.options, args = t.zh.parser.parse_args()
@@ -434,6 +445,27 @@ class ZenHubTest(TestCase):
         t.assertEqual(t.zh.options.modeling_pause_timeout, 3600)
         # delay before actually parsing the options
         notify.assert_called_with(ParserReadyForOptionsEvent(t.zh.parser))
+
+    @patch('{src}.server_config.ModuleObjectConfig'.format(**PATH))
+    @patch('{src}.provideUtility'.format(**PATH))
+    @patch('{src}.super'.format(**PATH))
+    def test_parseOptions(t, super, provideUtility, ModuleObjectConfig):
+        t.zh.parseOptions()
+
+        super.assert_called_with(ZenHub, t.zh)
+        super.return_value.parseOptions.assert_called_with()
+
+        t.assertEqual(
+            server_config.modeling_pause_timeout,
+            int(t.zh.options.modeling_pause_timeout)
+        )
+        t.assertEqual(server_config.xmlrpcport, int(t.zh.options.xmlrpcport))
+        t.assertEqual(server_config.pbport, int(t.zh.options.pbport))
+
+        ModuleObjectConfig.assert_called_with(server_config)
+        provideUtility.assert_called_with(
+            ModuleObjectConfig.return_value, IHubServerConfig
+        )
 
 
 class DefaultConfProviderTest(TestCase):
@@ -558,3 +590,38 @@ class ParserReadyForOptionsEventTest(TestCase):
         verifyObject(IParserReadyForOptionsEvent, event)
 
         t.assertEqual(event.parser, parser)
+
+
+class ReactorDelayedCallsMetricTest(TestCase):
+
+    def setUp(t):
+        _patchables = (
+            ("getUtility", Mock(spec=[])),
+        )
+        for name, value in _patchables:
+            patcher = patch(
+                "{src}.{name}".format(src=PATH["src"], name=name),
+                new=value,
+            )
+            setattr(t, name, patcher.start())
+            t.addCleanup(patcher.stop)
+
+    def test_handle_reactor_delayed_calls_metric(t):
+        zenhub_monitor = 'zenhub.options.monitor'
+        zenhub_name = 'zenhub.name'
+        zenhub_heartbeat_timeout = 'zenhub.options.heartbeatTimeout'
+        writer = t.getUtility.return_value.metric_writer
+        event = EventHeartbeat(
+            zenhub_monitor, zenhub_name, zenhub_heartbeat_timeout
+        )
+        event.timestamp = 111.0
+
+        handle_reactor_delayed_calls_metric(event)
+
+        t.getUtility.assert_called_once_with(IMetricManager)
+        writer.write_metric.assert_called_once_with(
+            'zenhub.reactor.delayedcalls',
+            len(reactor.getDelayedCalls()),
+            event.timestamp * 1000,
+            {'monitor': zenhub_monitor, 'name': zenhub_name},
+        )

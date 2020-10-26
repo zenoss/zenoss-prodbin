@@ -108,8 +108,7 @@ class HubAvatarTest(TestCase):
 
     def test_perspective_reportingForWork_nominal(self):
         worker = Mock(spec_set=[
-            "workerId", "sessionId", "queue_name",
-            "busy", "notifyOnDisconnect",
+            "workerId", "sessionId", "queue_name", "notifyOnDisconnect",
         ])
         workerId = "default-1"
 
@@ -122,8 +121,6 @@ class HubAvatarTest(TestCase):
 
         # Add the worker
         self.avatar.perspective_reportingForWork(worker, workerId, "foo")
-        self.assertTrue(hasattr(worker, "busy"))
-        self.assertFalse(worker.busy)
         self.assertTrue(hasattr(worker, "sessionId"))
         self.assertIsNotNone(worker.sessionId)
         self.assertTrue(hasattr(worker, "workerId"))
