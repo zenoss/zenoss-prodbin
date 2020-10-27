@@ -457,8 +457,12 @@ def job_end(log, task_id, task=None, **ignored):
         return
     jobstore = getUtility(IJobStore, "redis")
     finished = jobstore.getfield(task_id, "finished")
-    if finished is not None:
-        started = jobstore.getfield(task_id, "started")
+    if finished is None:
+        return
+    started = jobstore.getfield(task_id, "started")
+    if started is None:
+        log.info("Job never started")
+    else:
         log.info("Job total duration is %0.3f seconds", finished - started)
 
 
