@@ -508,7 +508,6 @@ class SshPerformanceCollectionTask(BaseTask):
                 component=COLLECTOR_NAME,
                 severity=Error,
             )
-            defer.fail(e)
         else:
             self._returnToNormalSchedule()
 
