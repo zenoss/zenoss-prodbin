@@ -150,11 +150,6 @@ class DerivativeTracker(object):
                 delta = float(timed_metric[0] - last_timed_metric[0]) / \
                         float(timed_metric[1] - last_timed_metric[1])
 
-                if delta / 100 > 1:
-                    log.info(
-                        'anomaly detected:  last_timed_metric=%s, timed_metric=%s, delta=%s',
-                        last_timed_metric, timed_metric, delta
-                        )
                 # Get min/max into a usable float or None state.
                 min, max = map(constraint_value, (min, max))
 

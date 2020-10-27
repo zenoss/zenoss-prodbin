@@ -32,6 +32,8 @@ mlog = logging.getLogger("zen.zenjobs.model")
 
 sortable_keys = list(set(Fields) - {"details"})
 
+STAGED = "STAGED"
+
 
 @implementer(IJobRecord, IInfo)
 class JobRecord(object):
@@ -331,13 +333,15 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
     if task.ignore_result:
         return
 
+    storage = getUtility(IJobStore, "redis")
+
     # Save first (and possibly only) job
     record = RedisRecord.from_signal(body, headers, properties)
     record.update({
         "status": states.PENDING,
         "created": time.time(),
     })
-    saved = _save_record(log, record)
+    saved = _save_record(log, storage, record)
 
     if not saved:
         return
@@ -353,12 +357,11 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
             "status": states.PENDING,
             "created": time.time(),
         })
-        _save_record(log, record)
+        _save_record(log, storage, record)
 
 
-def _save_record(log, record):
+def _save_record(log, storage, record):
     # Retrieve the job storage connection.
-    storage = getUtility(IJobStore, "redis")
     jobid = record["jobid"]
     if "userid" not in record:
         log.warn("No user ID submitted with job %s", jobid)
@@ -369,6 +372,51 @@ def _save_record(log, record):
     else:
         log.debug("Record already exists for job %s", jobid)
         return False
+
+
+@inject_logger(log=mlog)
+def stage_jobrecord(log, storage, sig):
+    """Save Zenoss job data to redis with status "STAGED".
+
+    :param sig: The job data
+    :type sig: celery.canvas.Signature
+    """
+    task = app.tasks.get(sig.task)
+
+    # Tasks with ignored results cannot be tracked,
+    # so don't insert a record into Redis.
+    if task.ignore_result:
+        return
+
+    record = RedisRecord.from_signature(sig)
+    record.update({
+        "status": STAGED,
+        "created": time.time(),
+    })
+    _save_record(log, storage, record)
+
+
+@inject_logger(log=mlog)
+def commit_jobrecord(log, storage, sig):
+    """Update STAGED job records to PENDING.
+
+    :param sig: The job data
+    :type sig: celery.canvas.Signature
+    """
+    task = app.tasks.get(sig.task)
+
+    # Tasks with ignored results cannot be tracked,
+    # so there won't be a record to update.
+    if task.ignore_result:
+        return
+
+    if sig.id not in storage:
+        return
+
+    status = storage.getfield(sig.id, "status")
+    if status != STAGED:
+        return
+    storage.update(sig.id, status=states.PENDING)
 
 
 def _catch_exception(f):
@@ -409,8 +457,12 @@ def job_end(log, task_id, task=None, **ignored):
         return
     jobstore = getUtility(IJobStore, "redis")
     finished = jobstore.getfield(task_id, "finished")
-    if finished is not None:
-        started = jobstore.getfield(task_id, "started")
+    if finished is None:
+        return
+    started = jobstore.getfield(task_id, "started")
+    if started is None:
+        log.info("Job never started")
+    else:
         log.info("Job total duration is %0.3f seconds", finished - started)
 
 
