@@ -95,6 +95,9 @@ SNMPv1 = 0
 SNMPv2 = 1
 SNMPv3 = 3
 
+LEGACY_VARBIND_COPY_MODE = 0
+DIRECT_VARBIND_COPY_MODE = 1
+MIXED_VARBIND_COPY_MODE  = 2
 
 class FakePacket(object):
     """
@@ -156,6 +159,15 @@ class SnmpTrapPreferences(CaptureReplay):
             help="File that contains trap oids to keep, "
             "should be in $ZENHOME/etc."
         )
+        parser.add_option(
+            '--varbindCopyMode',
+            dest='varbindCopyMode', type='int', default=2,
+            help='Varbind copy mode. Possible values: '
+                '0 - the varbinds are copied into event as one field and ifIndex field is added. '
+                '1 - the varbinds are copied into event as several fields and sequence field is added. '
+                '2 - the mixed mode. Uses varbindCopyMode=0 behaviour if there is only one occurrence '
+                'of the varbind, otherwise uses varbindCopyMode=1 behaviour'
+        )
 
         self.buildCaptureReplayOptions(parser)
 
@@ -215,6 +227,17 @@ class TrapTask(BaseTask, CaptureReplay):
         self.processCaptureReplayOptions()
         self.session = None
         self._replayStarted = False
+        self.varbindCopyMode = self.options.varbindCopyMode
+
+        if self.varbindCopyMode not in [LEGACY_VARBIND_COPY_MODE, 
+                                        DIRECT_VARBIND_COPY_MODE, 
+                                        MIXED_VARBIND_COPY_MODE]:
+            self.varbindCopyMode = MIXED_VARBIND_COPY_MODE
+            self.log.warn(
+                "Wrong 'varbindCopyMode' value. 'varbindCopyMode=%s' will be used", 
+                self.varbindCopyMode
+            )
+
         if not self.options.replayFilePrefix:
             trapPort = self._preferences.options.trapport
             if not self.options.useFileDescriptor and trapPort < 1024:
@@ -563,9 +586,9 @@ class TrapTask(BaseTask, CaptureReplay):
         for base_name, data in groups.items():
             offset = len(base_name) + 1
 
-            # If there's only one instance for a given object, then add
-            # the varbind to the event details using pre Zenoss 6.2.0 rules.
-            if len(data) == 1:
+            # If there's only one instance for a given object and enabled mixed varbind copy
+            # mode, then add the varbind to the event details using pre Zenoss 6.2.0 rules.
+            if len(data) == 1 and self.varbindCopyMode == MIXED_VARBIND_COPY_MODE:
                 full_name, value = data[0]
                 result[base_name].append(value)
                 
@@ -577,9 +600,15 @@ class TrapTask(BaseTask, CaptureReplay):
             # Record the varbind instance(s) in their 'raw' form.
             for full_name, value in data:
                 suffix = full_name[offset:]
-                result[full_name].append(value)
-                if suffix:
-                    result[base_name + ".sequence"].append(suffix)
+
+                if self.varbindCopyMode == LEGACY_VARBIND_COPY_MODE:
+                    result[base_name].append(value)
+                    if suffix:
+                        result[base_name + ".ifIndex"].append(suffix)
+                else:
+                    result[full_name].append(value)
+                    if suffix:
+                        result[base_name + ".sequence"].append(suffix)          
 
         return {name: ','.join(vals) for name, vals in result.iteritems()}
 
