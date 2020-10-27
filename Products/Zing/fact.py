@@ -238,6 +238,23 @@ def organizer_fact_from_device_component(
     comp_fact.id = shortid()
     return comp_fact
 
+def organizer_fact_without_groups_from_device_component(
+    device_fact, comp_uuid, comp_meta_type
+):
+    """
+    Given a device component, generates its organizers fact.  This is identical
+    to organizer_fact_from_device_component, except that it doesn't
+    set COMPONENT_GROUPS_KEY in the resulting fact.   (Omitting it is different
+    than setting it to an empty value!)   It may be used in situations where
+    the device organizers are being changed and we only need to update the
+    organizers that came from device_fact.
+    @param device_fact: organizers fact for device
+    """
+    comp_fact = copy.deepcopy(device_fact)
+    comp_fact.metadata[DimensionKeys.CONTEXT_UUID_KEY] = comp_uuid
+    comp_fact.metadata[DimensionKeys.META_TYPE_KEY] = comp_meta_type
+    comp_fact.id = shortid()
+    return comp_fact
 
 def impact_relationships_fact(uuid):
     try:

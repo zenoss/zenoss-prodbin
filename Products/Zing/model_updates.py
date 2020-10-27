@@ -77,7 +77,7 @@ class ZingObjectUpdateHandler(object):
                     if not comp_brain.getUUID:
                         continue
                     try:
-                        comp_org_fact = ZFact.organizer_fact_from_device_component(device_org_fact, comp_brain.getUUID, comp_brain.meta_type, comp_brain.getObject().getComponentGroupNames())
+                        comp_org_fact = ZFact.organizer_fact_without_groups_from_device_component(device_org_fact, comp_brain.getUUID, comp_brain.meta_type)
                         tx_state.need_organizers_fact[comp_brain.getUUID] = comp_org_fact
                     except Exception as e:
                         log.exception("Cannot find object at path %s", brain.getPath())
@@ -100,7 +100,7 @@ class ZingObjectUpdateHandler(object):
                 device_org_fact,
                 uuid,
                 obj.meta_type,
-                obj.getComponentGroupNames,
+                obj.getComponentGroupNames(),
             )
             tx_state.need_organizers_fact[uuid] = comp_org_fact
 
