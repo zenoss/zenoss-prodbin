@@ -407,8 +407,8 @@ class JobDispatcher(object):
     def __init__(self, storage):
         self._storage = storage
         self._joined = False
-        self._sig = None
-        self._staged = ()
+        self._signatures = []
+        self._staged = []
 
     @property
     def staged(self):
@@ -424,19 +424,22 @@ class JobDispatcher(object):
         for task in tasks:
             stage_jobrecord(self._storage, task)
 
-        self._staged = tasks
-        self._sig = sig
+        self._staged.extend(tasks)
+        self._signatures.append(sig)
 
     def discard(self, task_id):
-        self._staged = tuple(
+        self._staged = [
             task for task in self._staged if task.id != task_id
-        )
+        ]
         self._storage.mdelete(*(task_id,))
+        self._signatures = [
+            task for task in self._signatures if task.id != task_id
+        ]
 
     def _reset(self):
         self._joined = False
-        self._sig = None
-        self._staged = ()
+        self._signatures = []
+        self._staged = []
 
     # ==========
     # IDataManager interface methods follow below
@@ -463,8 +466,9 @@ class JobDispatcher(object):
         # Update relevant STAGED records to PENDING.
         for task in self._staged:
             commit_jobrecord(self._storage, task)
-        # Send the job to zenjobs
-        self._sig.apply_async()
+        # Send the job(s) to zenjobs
+        for sig in self._signatures:
+            sig.apply_async()
         self._reset()
         log.debug("[tpc_finish] set staged jobs to pending; dispatched job")
 
@@ -472,7 +476,7 @@ class JobDispatcher(object):
         self.abort(tx)
 
     def sortKey(self):
-        return str(id(self),)
+        return str(id(self))
 
 
 class ThreadedJobDispatcher(threading.local):
