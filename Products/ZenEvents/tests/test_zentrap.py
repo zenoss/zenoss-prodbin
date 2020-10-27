@@ -5,7 +5,8 @@ from struct import pack
 from unittest import TestCase
 
 from Products.ZenEvents.zentrap import (
-    decode_snmp_value, TrapTask, FakePacket, SNMPv1, SNMPv2
+    decode_snmp_value, TrapTask, FakePacket, SNMPv1, SNMPv2, 
+    LEGACY_VARBIND_COPY_MODE, DIRECT_VARBIND_COPY_MODE, MIXED_VARBIND_COPY_MODE
 )
 
 log = logging.getLogger("test_zentrap")
@@ -159,9 +160,15 @@ class DecodersUnitTest(TestCase):
 
 class MockTrapTask(TrapTask):
 
-    def __init__(self, oidMap):
+    def __init__(self, oidMap, varbindCopyMode=DIRECT_VARBIND_COPY_MODE):
         self.oidMap = oidMap
         self.log = log
+        if varbindCopyMode is not None:
+            self.varbindCopyMode = varbindCopyMode
+        else:
+            self.varbindCopyMode = MIXED_VARBIND_COPY_MODE
+        processor_class = TrapTask._varbind_processors.get(self.varbindCopyMode)
+        self._process_varbinds = processor_class(self.oid2name)
 
 
 class TestOid2Name(TestCase):
@@ -218,7 +225,7 @@ class TestOid2Name(TestCase):
 
 class _SnmpV1Base(object):
 
-    def makeInputs(self, trapType=6, oidMap={}, variables=()):
+    def makeInputs(self, trapType=6, oidMap={}, variables=(), varbindCopyMode=None):
         pckt = FakePacket()
         pckt.version = SNMPv1
         pckt.host = "localhost"
@@ -235,7 +242,7 @@ class _SnmpV1Base(object):
         pckt.enterprise_length = len(pckt.enterprise)
         pckt.community = "community"
 
-        return pckt, MockTrapTask(oidMap)
+        return pckt, MockTrapTask(oidMap, varbindCopyMode)
 
 
 class TestDecodeSnmpV1(TestCase, _SnmpV1Base):
@@ -340,16 +347,16 @@ class _SnmpV2Base(object):
         pckt.enterprise_length = 0
         return pckt
 
-    def makeTask(self, extraOidMap={}):
+    def makeTask(self, extraOidMap={}, varbindCopyMode=None):
         oidMap = self.baseOidMap.copy()
         oidMap.update(extraOidMap)
-        return MockTrapTask(oidMap)
+        return MockTrapTask(oidMap, varbindCopyMode)
 
     def makeInputs(
-        self, trapOID="1.3.6.1.6.3.1.1.5.1", variables=(), oidMap={},
+        self, trapOID="1.3.6.1.6.3.1.1.5.1", variables=(), oidMap={}, varbindCopyMode=None
     ):
         pckt = self.makePacket(trapOID=trapOID, variables=variables)
-        task = self.makeTask(extraOidMap=oidMap)
+        task = self.makeTask(extraOidMap=oidMap, varbindCopyMode=varbindCopyMode)
         return pckt, task
 
 
@@ -420,10 +427,20 @@ class TestDecodeSnmpV2(TestCase, _SnmpV2Base):
 class _VarbindTests(object):
 
     def case_unknown_id_single(self):
+        variables = (((1, 2, 6, 7), "foo"),)
         tests = (
-            self.makeInputs(variables=(
-                ((1, 2, 6, 7), "foo"),
-            )),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE
+            ),
         )
         for test in tests:
             result = yield test
@@ -433,12 +450,24 @@ class _VarbindTests(object):
             self.assertEqual(result["1.2.6.7"], "foo")
 
     def case_unknown_id_repeated(self):
+        variables = (
+            ((1, 2, 6, 7), "foo"),
+            ((1, 2, 6, 7), "bar"),
+            ((1, 2, 6, 7), "baz"),
+        )
         tests = (
-            self.makeInputs(variables=(
-                ((1, 2, 6, 7), "foo"),
-                ((1, 2, 6, 7), "bar"),
-                ((1, 2, 6, 7), "baz"),
-            )),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE
+            ),
         )
         for test in tests:
             result = yield test
@@ -448,13 +477,31 @@ class _VarbindTests(object):
             self.assertEqual(result["1.2.6.7"], "foo,bar,baz")
 
     def case_unknown_ids_multiple(self):
+        variables = (
+            ((1, 2, 6, 0), "foo"),
+            ((1, 2, 6, 1), "bar"),
+        )
         tests = (
-            self.makeInputs(variables=(
-                ((1, 2, 6, 0), "foo"),
-                ((1, 2, 6, 1), "bar"),
-            )),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE
+            ),
         )
         expected_results = ({
+            "1.2.6.0": "foo",
+            "1.2.6.1": "bar",
+        }, {
+            "1.2.6.0": "foo",
+            "1.2.6.1": "bar",
+        }, {
             "1.2.6.0": "foo",
             "1.2.6.1": "bar",
         },)
@@ -468,13 +515,30 @@ class _VarbindTests(object):
                 self.assertEqual(value, result[key])
 
     def case_one_id(self):
+        variables = (((1, 2, 6, 7), "foo"),)
+        oidMap = {"1.2.6.7": "testVar"}
         tests = (
             self.makeInputs(
-                variables=(((1, 2, 6, 7), "foo"),),
-                oidMap={"1.2.6.7": "testVar"}
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE
             ),
         )
         expected_results = ({
+            "testVar": "foo",
+        }, {
+            "testVar": "foo",
+        }, {
             "testVar": "foo",
         },)
         for test, expected in zip(tests, expected_results):
@@ -488,17 +552,30 @@ class _VarbindTests(object):
 
     def case_one_id_one_sub_id(self):
         oidMap = {"1.2.6": "testVar"}
+        variables = (((1, 2, 6, 5), "foo"),)
         tests = (
             self.makeInputs(
-                variables=(((1, 2, 6, 0), "foo"),), oidMap=oidMap,
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE
             ),
             self.makeInputs(
-                variables=(((1, 2, 6, 5), "foo"),), oidMap=oidMap,
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE
             ),
         )
         expected_results = ({
             "testVar": "foo",
-            "testVar.ifIndex": "0",
+            "testVar.ifIndex": "5",
+        }, {
+            "testVar.5": "foo",
+            "testVar.sequence": "5",
         }, {
             "testVar": "foo",
             "testVar.ifIndex": "5",
@@ -514,25 +591,48 @@ class _VarbindTests(object):
 
     def case_one_id_multiple_sub_ids(self):
         oidMap = {"1.2.6": "testVar"}
+        variables_one = (
+            ((1, 2, 6, 0), "foo"),
+            ((1, 2, 6, 1), "bar"),
+            ((1, 2, 6, 2), "baz"),
+        )
+        variables_two = (
+            ((1, 2, 6, 3), "foo"),
+            ((1, 2, 6, 3), "bar"),
+        )
+
         tests = (
             self.makeInputs(
-                variables=(
-                    ((1, 2, 6, 0), "foo"),
-                    ((1, 2, 6, 1), "bar"),
-                    ((1, 2, 6, 2), "baz"),
-                ), oidMap=oidMap,
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
             ),
             self.makeInputs(
-                variables=(
-                    ((1, 2, 6, 7), "foo"),
-                    ((1, 2, 6, 2), "bar"),
-                ), oidMap=oidMap,
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
+            ),
+
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
             ),
             self.makeInputs(
-                variables=(
-                    ((1, 2, 6, 3), "foo"),
-                    ((1, 2, 6, 3), "bar"),
-                ), oidMap=oidMap,
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
             ),
         )
         expected_results = ({
@@ -541,12 +641,22 @@ class _VarbindTests(object):
             "testVar.2": "baz",
             "testVar.sequence": "0,1,2",
         }, {
-            "testVar.7": "foo",
-            "testVar.2": "bar",
-            "testVar.sequence": "7,2",
+            "testVar.3": "foo,bar",
+            "testVar.sequence": "3,3",
+        }, {
+            "testVar.0": "foo",
+            "testVar.1": "bar",
+            "testVar.2": "baz",
+            "testVar.sequence": "0,1,2",
         }, {
             "testVar.3": "foo,bar",
             "testVar.sequence": "3,3",
+        }, {
+            "testVar": "foo,bar,baz",
+            "testVar.ifIndex": "0,1,2",
+        }, {
+            "testVar": "foo,bar",
+            "testVar.ifIndex": "3,3",
         })
         for test, expected in zip(tests, expected_results):
             result = yield test
@@ -561,15 +671,34 @@ class _VarbindTests(object):
             "1.2.6": "foo",
             "1.2.7": "bar",
         }
+        variables = (
+            ((1, 2, 6), "is a foo"),
+            ((1, 2, 7), "lower the bar"),
+        )
         tests = (
             self.makeInputs(
-                variables=(
-                    ((1, 2, 6), "is a foo"),
-                    ((1, 2, 7), "lower the bar"),
-                ), oidMap=oidMap,
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
             ),
         )
         expected_results = ({
+            "foo": "is a foo",
+            "bar": "lower the bar",
+        }, {
+            "foo": "is a foo",
+            "bar": "lower the bar",
+        }, {
             "foo": "is a foo",
             "bar": "lower the bar",
         },)
@@ -590,21 +719,67 @@ class _VarbindTests(object):
             "1.2.6": "foo",
             "1.2.7": "bar",
         }
+        variables_one = (
+            ((1, 2, 6, 0), "is a foo"),
+            ((1, 2, 7, 2), "lower the bar"),
+        )
+        variables_two = (
+            ((1, 2, 6, 0, 1), "is a foo"),
+            ((1, 2, 7, 2, 1), "lower the bar"),
+        )
         tests = (
             self.makeInputs(
-                variables=(
-                    ((1, 2, 6, 0), "is a foo"),
-                    ((1, 2, 7, 2), "lower the bar"),
-                ), oidMap=oidMap,
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
             ),
             self.makeInputs(
-                variables=(
-                    ((1, 2, 6, 0, 1), "is a foo"),
-                    ((1, 2, 7, 2, 1), "lower the bar"),
-                ), oidMap=oidMap,
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
             ),
         )
         expected_results = ({
+            "foo": "is a foo",
+            "foo.ifIndex": "0",
+            "bar": "lower the bar",
+            "bar.ifIndex": "2",
+        }, {
+            "foo": "is a foo",
+            "foo.ifIndex": "0.1",
+            "bar": "lower the bar",
+            "bar.ifIndex": "2.1",
+        }, {
+            "foo.0": "is a foo",
+            "foo.sequence": "0",
+            "bar.2": "lower the bar",
+            "bar.sequence": "2",
+        }, {
+            "foo.0.1": "is a foo",
+            "foo.sequence": "0.1",
+            "bar.2.1": "lower the bar",
+            "bar.sequence": "2.1",
+        }, {
             "foo": "is a foo",
             "foo.ifIndex": "0",
             "bar": "lower the bar",
@@ -632,39 +807,62 @@ class _VarbindTests(object):
             "1.2.6": "foo",
             "1.2.7": "bar",
         }
+        variables_one = (
+            ((1, 2, 6, 0, 1), "here a foo"),
+            ((1, 2, 6, 1, 1), "there a foo"),
+            ((1, 2, 7, 2, 1), "lower the bar"),
+            ((1, 2, 7, 2, 2), "raise the bar"),
+        )
+        variables_two = (
+            ((1, 2, 6, 0), "here a foo"),
+            ((1, 2, 6, 0), "there a foo"),
+            ((1, 2, 7, 3), "lower the bar"),
+            ((1, 2, 7, 3), "raise the bar"),
+        )
         tests = (
             self.makeInputs(
-                variables=(
-                    ((1, 2, 6, 0), "here a foo"),
-                    ((1, 2, 6, 1), "there a foo"),
-                    ((1, 2, 7, 2), "lower the bar"),
-                    ((1, 2, 7, 4), "raise the bar"),
-                ), oidMap=oidMap,
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
             ),
             self.makeInputs(
-                variables=(
-                    ((1, 2, 6, 0, 1), "here a foo"),
-                    ((1, 2, 6, 1, 1), "there a foo"),
-                    ((1, 2, 7, 2, 1), "lower the bar"),
-                    ((1, 2, 7, 2, 2), "raise the bar"),
-                ), oidMap=oidMap,
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
             ),
             self.makeInputs(
-                variables=(
-                    ((1, 2, 6, 0), "here a foo"),
-                    ((1, 2, 6, 0), "there a foo"),
-                    ((1, 2, 7, 3), "lower the bar"),
-                    ((1, 2, 7, 3), "raise the bar"),
-                ), oidMap=oidMap,
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
             ),
         )
         expected_results = ({
-            "foo.0": "here a foo",
-            "foo.1": "there a foo",
-            "foo.sequence": "0,1",
-            "bar.2": "lower the bar",
-            "bar.4": "raise the bar",
-            "bar.sequence": "2,4",
+            "foo.0.1": "here a foo",
+            "foo.1.1": "there a foo",
+            "foo.sequence": "0.1,1.1",
+            "bar.2.1": "lower the bar",
+            "bar.2.2": "raise the bar",
+            "bar.sequence": "2.1,2.2",
+        }, {
+            "foo.0": "here a foo,there a foo",
+            "foo.sequence": "0,0",
+            "bar.3": "lower the bar,raise the bar",
+            "bar.sequence": "3,3",
         }, {
             "foo.0.1": "here a foo",
             "foo.1.1": "there a foo",
@@ -677,6 +875,16 @@ class _VarbindTests(object):
             "foo.sequence": "0,0",
             "bar.3": "lower the bar,raise the bar",
             "bar.sequence": "3,3",
+        }, {
+            "foo": "here a foo,there a foo",
+            "foo.ifIndex": "0.1,1.1",
+            "bar": "lower the bar,raise the bar",
+            "bar.ifIndex": "2.1,2.2",
+        }, {
+            "foo": "here a foo,there a foo",
+            "foo.ifIndex": "0,0",
+            "bar": "lower the bar,raise the bar",
+            "bar.ifIndex": "3,3",
         },)
         for test, expected in zip(tests, expected_results):
             result = yield test
@@ -691,59 +899,87 @@ class _VarbindTests(object):
                 self.assertEqual(value, result[key])
 
     def case_ifentry_trap(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 1, 143), 143),
-                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 7, 143), 2),
-                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 8, 143), 2),
-                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 2, 143), "F23"),
-                ((1, 3, 6, 1, 2, 1, 31, 1, 1, 1, 18, 143), ""),
-            ),
-            oidMap={
+        oidMap = {
                 "1.3.6.1.2.1.2.2.1.1": "ifIndex",
                 "1.3.6.1.2.1.2.2.1.7": "ifAdminStatus",
                 "1.3.6.1.2.1.2.2.1.8": "ifOperStatus",
                 "1.3.6.1.2.1.2.2.1.2": "ifDescr",
                 "1.3.6.1.2.1.31.1.1.1.18": "ifAlias",
-            }
+        }
+        variables=(
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 1, 143), 143),
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 7, 143), 2),
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 8, 143), 2),
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 2, 143), "F23"),
+                ((1, 3, 6, 1, 2, 1, 31, 1, 1, 1, 18, 143), ""),
+            )
+        tests = (
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
+            ),
         )
+        expected_results = ({
+            "ifIndex": "143",
+            "ifIndex.ifIndex": "143",
+            "ifAdminStatus": "2",
+            "ifAdminStatus.ifIndex": "143",
+            "ifOperStatus": "2",
+            "ifOperStatus.ifIndex": "143",
+            "ifDescr": "F23",
+            "ifDescr.ifIndex": "143",
+            "ifAlias": "",
+            "ifAlias.ifIndex": "143",
+        }, {
+            "ifIndex.143": "143",
+            "ifIndex.sequence": "143",
+            "ifAdminStatus.143": "2",
+            "ifAdminStatus.sequence": "143",
+            "ifOperStatus.143": "2",
+            "ifOperStatus.sequence": "143",
+            "ifDescr.143": "F23",
+            "ifDescr.sequence": "143",
+            "ifAlias.143": "",
+            "ifAlias.sequence": "143",
+        }, {
+            "ifIndex": "143",
+            "ifIndex.ifIndex": "143",
+            "ifAdminStatus": "2",
+            "ifAdminStatus.ifIndex": "143",
+            "ifOperStatus": "2",
+            "ifOperStatus.ifIndex": "143",
+            "ifDescr": "F23",
+            "ifDescr.ifIndex": "143",
+            "ifAlias": "",
+            "ifAlias.ifIndex": "143",
+        },)
 
-        result = yield (pckt, task)
-
-        totalVarKeys = sum(1 for k in result if k.startswith("ifIndex"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifIndex", result)
-        self.assertIn("ifIndex.ifIndex", result)
-        self.assertEqual(result["ifIndex"], "143")
-        self.assertEqual(result["ifIndex.ifIndex"], "143")
-
-        totalVarKeys = sum(1 for k in result if k.startswith("ifAdminStatus"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifAdminStatus", result)
-        self.assertIn("ifAdminStatus.ifIndex", result)
-        self.assertEqual(result["ifAdminStatus"], "2")
-        self.assertEqual(result["ifAdminStatus.ifIndex"], "143")
-
-        totalVarKeys = sum(1 for k in result if k.startswith("ifOperStatus"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifOperStatus", result)
-        self.assertIn("ifOperStatus.ifIndex", result)
-        self.assertEqual(result["ifOperStatus"], "2")
-        self.assertEqual(result["ifOperStatus.ifIndex"], "143")
-
-        totalVarKeys = sum(1 for k in result if k.startswith("ifDescr"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifDescr", result)
-        self.assertIn("ifDescr.ifIndex", result)
-        self.assertEqual(result["ifDescr"], "F23")
-        self.assertEqual(result["ifDescr.ifIndex"], "143")
-
-        totalVarKeys = sum(1 for k in result if k.startswith("ifAlias"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifAlias", result)
-        self.assertIn("ifAlias.ifIndex", result)
-        self.assertEqual(result["ifAlias"], "")
-        self.assertEqual(result["ifAlias.ifIndex"], "143")
+        for test, expected in zip(tests, expected_results):
+            result = yield test
+            # eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
+            count = sum(
+                1 for k in result
+                if k.startswith("ifIndex") 
+                or k.startswith("ifAdminStatus") 
+                or k.startswith("ifOperStatus") 
+                or k.startswith("ifDescr") 
+                or k.startswith("ifAlias")
+            )
+            self.assertEqual(count, len(expected.keys()))
+            for key, value in expected.items():
+                self.assertIn(key, result)
+                self.assertEqual(value, result[key])
 
 
 class TestSnmpV1VarbindHandling(TestCase, _SnmpV1Base, _VarbindTests):
