@@ -20,9 +20,7 @@ from Products.DataCollector.ApplyDataMap import (
 )
 from Products.DataCollector.plugins.DataMaps import (
     MultiArgs,
-    ObjectMap,
     PLUGIN_NAME_ATTR,
-    RelationshipMap,
 )
 
 from . import fact as ZFact
@@ -242,81 +240,6 @@ class ZingDatamapHandler(object):
                 facts_per_device[device].extend(dm_facts)
         return self._generate_facts(facts_per_device, zing_tx_state)
 
-    def fact_from_device(self, device):
-        f = ZFact.Fact()
-        ctx = ObjectMapContext(device)
-        f.metadata[ZFact.DimensionKeys.CONTEXT_UUID_KEY] = ctx.uuid
-        f.metadata[ZFact.DimensionKeys.META_TYPE_KEY] = ctx.meta_type
-        f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = ctx.meta_type
-        f.data[ZFact.MetadataKeys.NAME_KEY] = ctx.name
-        return f
-
-    def fact_from_object_map(
-        self,
-        om,
-        parent_device=None,
-        relationship=None,
-        context=None,
-        dm_plugin=None,
-    ):
-        om_context = (context or {}).get(om)
-        if om_context is not None:
-            f = ZFact.device_info_fact(om_context._obj)
-            parent_device = om_context._obj.device()
-            if relationship is not None:
-                f.metadata[ZFact.DimensionKeys.RELATION_KEY] = relationship
-            else:
-                f.metadata[
-                    ZFact.DimensionKeys.RELATION_KEY
-                ] = om_context._obj.getPrimaryParent().id
-            try:
-                parent = om_context._obj.getPrimaryParent().getPrimaryParent()
-                if parent.id in ("os", "hw"):
-                    parent = parent_device
-                f.metadata[ZFact.DimensionKeys.PARENT_KEY] = parent.getUUID()
-            except Exception:
-                pass
-        else:
-            f = ZFact.Fact()
-        d = om.__dict__.copy()
-        if "_attrs" in d:
-            del d["_attrs"]
-        if "classname" in d and not d["classname"]:
-            del d["classname"]
-        for k, v in d.items():
-            # These types are currently all that the model ingest service
-            # can handle.
-            if not isinstance(
-                v, (str, int, long, float, bool, list, tuple, MultiArgs, set)
-            ):
-                del d[k]
-            elif isinstance(v, MultiArgs):
-                d[k] = v.args
-        f.update(d)
-
-        if parent_device is not None:
-            f.data[
-                ZFact.MetadataKeys.DEVICE_UUID_KEY
-            ] = parent_device.getUUID()
-            f.data[ZFact.MetadataKeys.DEVICE_KEY] = parent_device.id
-
-        plugin_name = getattr(om, PLUGIN_NAME_ATTR, None) or dm_plugin
-        if plugin_name:
-            f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = plugin_name
-
-        # Hack in whatever extra stuff we need.
-        if om_context is not None:
-            self.apply_extra_fields(om_context, f)
-
-        # FIXME temp solution until we are sure all zenpacks send the plugin
-        if not f.metadata.get(ZFact.DimensionKeys.PLUGIN_KEY):
-            log.warn("Found fact without plugin information: %s", f.metadata)
-            if f.metadata.get(ZFact.DimensionKeys.META_TYPE_KEY):
-                f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = f.metadata[
-                    ZFact.DimensionKeys.META_TYPE_KEY
-                ]
-        return f
-
     def fact_from_incremental_map(self, idm, context=None):
         parent = idm.parent
         relname = idm.relname
@@ -383,30 +306,13 @@ class ZingDatamapHandler(object):
 
     def facts_from_datamap(self, device, dm, context):
         facts = []
-        dm_plugin = getattr(dm, PLUGIN_NAME_ATTR, None)
-        if isinstance(dm, RelationshipMap):
-            for om in dm.maps:
-                f = self.fact_from_object_map(
-                    om,
-                    device,
-                    dm.relname,
-                    context=context,
-                    dm_plugin=dm_plugin,
-                )
-                if f.is_valid():
-                    facts.append(f)
-        elif isinstance(dm, ObjectMap):
-            f = self.fact_from_object_map(
-                dm, context=context, dm_plugin=dm_plugin
-            )
-            if f.is_valid():
-                facts.append(f)
-        elif isinstance(dm, IncrementalDataMap):
+        if isinstance(dm, IncrementalDataMap):
             f = self.fact_from_incremental_map(dm, context=context)
             if f.is_valid():
                 facts.append(f)
         else:
-            log.error("datamap type not found. type=%s", type(dm))
+            log.error("Only IncrementalDataMap supported for fact generation."
+                      " Unsupported type=%s (device=%s)", type(dm), device.id)
         return facts
 
     def apply_extra_fields(self, om_context, f):
