@@ -148,10 +148,11 @@ class ZingDatamapHandler(object):
         for device, facts in facts_per_device.iteritems():
             device_organizers_fact = ZFact.organizer_fact_from_device(device)
 
-            for f in facts:
+            for (f, ctx) in facts:
                 if not f.is_valid():
                     continue
-                # Return datamap fact
+                device_organizers_fact = ZFact.organizer_fact_from_device(device)
+                # return datamap fact
                 comp_uuid = f.metadata.get(
                     ZFact.DimensionKeys.CONTEXT_UUID_KEY, ""
                 )
@@ -159,38 +160,41 @@ class ZingDatamapHandler(object):
                     comp_uuid
                 )
                 yield f
-                # Organizers and impact relationships facts for the
-                # component.
-                comp_groups = []
-                for component in device.getDeviceComponents():
-                    if component.getUUID() == comp_uuid:
-                        comp_groups = component.getComponentGroupNames()
-                        break
-                # organizers fact for the component
-                if (
-                    comp_uuid
-                    not in zing_tx_state.already_generated_organizer_facts
-                ):
-                    comp_meta = f.metadata.get(
-                        ZFact.DimensionKeys.META_TYPE_KEY, ""
-                    )
-                    comp_fact = ZFact.organizer_fact_from_device_component(
-                        device_organizers_fact,
-                        comp_uuid,
-                        comp_meta,
-                        comp_groups,
-                    )
-                    if comp_fact.is_valid():
-                        zing_tx_state.already_generated_organizer_facts.add(
-                            comp_uuid
+
+                if ctx is None:
+                    for component in device.getDeviceComponents():
+                        if component.getUUID() == comp_uuid:
+                            ctx = ObjectMapContext(component)
+                            break
+                if ctx is not None and ctx.is_device_component:
+
+                    # organizers and impact relationships facts for the
+                    # component
+                    comp_groups = component.getComponentGroupNames()
+                    if (
+                        comp_uuid
+                        not in zing_tx_state.already_generated_organizer_facts
+                    ):
+                        comp_meta = f.metadata.get(
+                            ZFact.DimensionKeys.META_TYPE_KEY, ""
                         )
-                        yield comp_fact
-                # impact relationship fact for the component
-                comp_impact_fact = ZFact.impact_relationships_fact_if_needed(
-                    zing_tx_state, comp_uuid
-                )
-                if comp_impact_fact:
-                    yield comp_impact_fact
+                        comp_fact = ZFact.organizer_fact_from_device_component(
+                            device_organizers_fact,
+                            comp_uuid,
+                            comp_meta,
+                            comp_groups,
+                        )
+                        if comp_fact.is_valid():
+                            zing_tx_state.already_generated_organizer_facts.add(
+                                comp_uuid
+                            )
+                            yield comp_fact
+                    # impact relationship fact for the component
+                    comp_impact_fact = ZFact.impact_relationships_fact_if_needed(
+                        zing_tx_state, comp_uuid
+                    )
+                    if comp_impact_fact:
+                        yield comp_impact_fact
 
             # generate facts for the device
             dev_uuid = device.getUUID()
@@ -240,10 +244,10 @@ class ZingDatamapHandler(object):
                 facts_per_device[device].extend(dm_facts)
         return self._generate_facts(facts_per_device, zing_tx_state)
 
-    def fact_from_incremental_map(self, idm, context=None):
+    def fact_from_incremental_map(self, idm, contexts=None):
         parent = idm.parent
         relname = idm.relname
-        om_context = (context or {}).get(idm)
+        om_context = (contexts or {}).get(idm)
         if om_context is not None:
             f = ZFact.device_info_fact(om_context._obj)
             parent_device = om_context._obj.device()
@@ -302,14 +306,14 @@ class ZingDatamapHandler(object):
                 f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = f.metadata[
                     ZFact.DimensionKeys.META_TYPE_KEY
                 ]
-        return f
+        return (f, om_context)
 
-    def facts_from_datamap(self, device, dm, context):
+    def facts_from_datamap(self, device, dm, contexts):
         facts = []
         if isinstance(dm, IncrementalDataMap):
-            f = self.fact_from_incremental_map(dm, context=context)
+            (f, ctx) = self.fact_from_incremental_map(dm, contexts=contexts)
             if f.is_valid():
-                facts.append(f)
+                facts.append((f, ctx))
         else:
             log.error("Only IncrementalDataMap supported for fact generation."
                       " Unsupported type=%s (device=%s)", type(dm), device.id)
