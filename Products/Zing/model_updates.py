@@ -69,6 +69,19 @@ class ZingObjectUpdateHandler(object):
             device_org_fact = ZFact.organizer_fact_from_device(obj)
             tx_state.need_organizers_fact[uuid] = device_org_fact
 
+            if idxs and "path" in idxs:
+                # If the device's organizers were changed, we also need to
+                # generate updated organizer facts for all of the device's
+                # components
+                for comp_brain in obj.componentSearch(query={}):
+                    if not comp_brain.getUUID:
+                        continue
+                    try:
+                        comp_org_fact = ZFact.organizer_fact_without_groups_from_device_component(device_org_fact, comp_brain.getUUID, comp_brain.meta_type)
+                        tx_state.need_organizers_fact[comp_brain.getUUID] = comp_org_fact
+                    except Exception as e:
+                        log.exception("Cannot find object at path %s", brain.getPath())
+
         elif isinstance(obj, DeviceComponent):
             parent = obj.getPrimaryParent().getPrimaryParent()
             if parent.id in ("os", "hw"):
@@ -87,7 +100,7 @@ class ZingObjectUpdateHandler(object):
                 device_org_fact,
                 uuid,
                 obj.meta_type,
-                obj.getComponentGroupNames,
+                obj.getComponentGroupNames(),
             )
             tx_state.need_organizers_fact[uuid] = comp_org_fact
 
