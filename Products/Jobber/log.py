@@ -266,7 +266,9 @@ def setup_job_instance_logger(log, task_id=None, task=None, **kwargs):
     try:
         storage = getUtility(IJobStore, "redis")
         if task_id not in storage:
-            raise NoSuchJobException(task_id)
+            get_task_logger().propagate = True
+            log.debug("No job record found")
+            return
 
         logfile = storage.getfield(task_id, "logfile")
         logdir = os.path.dirname(logfile)
@@ -282,22 +284,21 @@ def setup_job_instance_logger(log, task_id=None, task=None, **kwargs):
 
         # Add a handler to the STDOUT and STDERR loggers
         newhandler = ForwardingHandler(handler)
-        # newhandler.setFormatter(logging.Formatter("%(message)s"))
         loggers = (logging.getLogger("STDOUT"), logging.getLogger("STDERR"))
         for logger in loggers:
             logger.propagate = False
             logger.addHandler(newhandler)
+
+        log.debug("Job instance logger added")
     except Exception:
         log.exception("Failed to add job instance logger")
-    else:
-        log.debug("Job instance logger added")
 
 
 @inject_logger(log=_get_logger, adapter=FormatStringAdapter)
 def teardown_job_instance_logger(log, task=None, **kwargs):
     """Tear down and delete the job instance logger."""
+    get_task_logger().propagate = False
     if task.ignore_result:
-        get_task_logger().propagate = False
         return
     log.debug("Removing job instance logger from {}", task.name)
     try:
