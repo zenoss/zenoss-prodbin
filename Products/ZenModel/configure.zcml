@@ -46,7 +46,7 @@
     <utility
         factory=".actions.SNMPv3Action"
         provides=".interfaces.IAction"
-        name="SNMPv3 Trap"
+        name="trap_v3"
         />
 
     <utility
