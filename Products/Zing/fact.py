@@ -124,7 +124,10 @@ def device_info_fact(device):
                 value = ""
             f.data[propId] = value
     f.data[MetadataKeys.ID_KEY] = device.id
-    f.data[MetadataKeys.TITLE_KEY] = device.title
+    title = device.title
+    if callable(title):
+        title = title()
+    f.data[MetadataKeys.TITLE_KEY] = title
     try:
         f.data[MetadataKeys.DEVICE_UUID_KEY] = get_context_uuid(device.device())
         f.data[MetadataKeys.DEVICE_KEY] = device.device().id
