@@ -44,6 +44,12 @@
         />
 
     <utility
+        factory=".actions.SNMPv3Action"
+        provides=".interfaces.IAction"
+        name="SNMPv3 Trap"
+        />
+
+    <utility
         factory=".actions.SyslogAction"
         provides=".interfaces.IAction"
         name="syslog"
