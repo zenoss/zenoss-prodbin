@@ -221,6 +221,11 @@
              factory=".actions.SnmpTrapActionContentInfo"
              />
 
+    <adapter provides="..interfaces.actions.ISNMPv3ActionContentInfo"
+             for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
+             factory=".actions.SNMPv3ActionContentInfo"
+             />
+
     <adapter provides="..interfaces.actions.ISyslogActionContentInfo"
              for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
              factory=".actions.SyslogActionContentInfo"
