@@ -167,6 +167,8 @@ class MockTrapTask(TrapTask):
             self.varbindCopyMode = varbindCopyMode
         else:
             self.varbindCopyMode = MIXED_VARBIND_COPY_MODE
+        processor_class = TrapTask._varbind_processors.get(self.varbindCopyMode)
+        self._process_varbinds = processor_class(self.oid2name)
 
 
 class TestOid2Name(TestCase):
