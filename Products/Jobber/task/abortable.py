@@ -75,10 +75,15 @@ class Abortable(AbortableTask):
         # Ignore this task if it's already aborted.
         jobstore = getUtility(IJobStore, "redis")
         status = jobstore.getfield(self.request.id, "status")
+        # This check may need to be in base.ZenTask instead if it's
+        # decided to have un-abortable jobs visible in the Zenoss UI.
+        if not status and not self.ignore_result:
+            mlog.info("Ignoring deleted job")
+            raise Ignore()
         if status == ABORTED:
-            log_mesg = ("Ignoring aborted job: %s", self.request.id)
-            self.log.info(*log_mesg)
-            mlog.info(*log_mesg)
+            log_mesg = "Ignoring aborted job"
+            self.log.info(log_mesg)
+            mlog.info(log_mesg)
             raise Ignore()
 
         # Alias the original run to __run
