@@ -564,7 +564,7 @@ class NoLoginImportRM(ImportRM):
         @type app: string
         """
         import Products.ZenossStartup
-        from Products.Five import zcml
+        from Zope2.App import zcml
         zcml.load_site()
         import logging
         self.log = logging.getLogger('zen.ImportRM')
