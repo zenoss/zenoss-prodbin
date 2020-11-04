@@ -18,6 +18,7 @@ import Migrate
 from Products.ZenModel.ZenossSecurity import (
     CZ_ADMIN_ROLE,
     MANAGER_ROLE,
+    ZEN_MANAGER_ROLE,
     ZEN_DEFINE_COMMANDS_EDIT
 )
 
@@ -44,6 +45,6 @@ class UpdateDefineCommandsEditPermission(Migrate.Step):
 
         # Put CZ_ADMIN_ROLE to ZEN_DEFINE_COMMANDS_EDIT permission ZEN-30566.
         self.addPermissions(zport, ZEN_DEFINE_COMMANDS_EDIT,
-            [MANAGER_ROLE, CZ_ADMIN_ROLE], 1)
+            [MANAGER_ROLE, CZ_ADMIN_ROLE, ZEN_MANAGER_ROLE], 1)
 
 UpdateDefineCommandsEditPermission()
