@@ -26,7 +26,7 @@ from zope.component.interfaces import IObjectEvent
 from zope.testing import cleanup
 
 from OFS.interfaces import IItem
-from Products.Five import zcml
+from Zope2.App import zcml
 from Products.ZenRelations.RelationshipBase import IRelationship
 from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenRelations.RelSchema import *
