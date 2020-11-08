@@ -41,7 +41,7 @@ from zope.component import subscribers
 from zope.event import notify
 from zope.interface import implements
 
-from Products.Jobber.jobs import FacadeMethodJob
+from Products.Jobber.facade import FacadeMethodJob
 from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
 from Products.ZenEvents.events2.proxy import EventProxy
