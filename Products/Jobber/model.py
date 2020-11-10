@@ -475,6 +475,11 @@ def job_end(log, task_id, task=None, **ignored):
         log.debug("job never started")
         return
 
+    status = jobstore.getfield(task_id, "status")
+    if status not in states.READY_STATES:
+        log.debug("job not done  status=%s", status)
+        return
+
     finished = jobstore.getfield(task_id, "finished")
     log.info("Job total duration is %0.3f seconds", finished - started)
 
