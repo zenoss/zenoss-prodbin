@@ -9,7 +9,6 @@
 
 from __future__ import absolute_import, print_function
 
-import itertools
 import logging
 import types
 
@@ -28,7 +27,7 @@ from ..model import (
     job_failure,
     job_retry,
 )
-from ..storage import JobStore, Fields
+from ..storage import JobStore
 from .utils import subTest, RedisLayer
 
 UNEXPECTED = type("UNEXPECTED", (object,), {})()
