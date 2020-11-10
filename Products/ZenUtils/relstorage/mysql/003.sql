@@ -11,7 +11,7 @@ BEGIN
         CREATE TABLE connection_info(
           connection_id INT NOT NULL,
           pid INT NOT NULL,
-          info VARCHAR(60000) NOT NULL,
+          info TEXT NOT NULL,
           ts TIMESTAMP NOT NULL,
           PRIMARY KEY(connection_id),
           KEY(pid)

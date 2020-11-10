@@ -106,7 +106,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-tw", "--workers", dest="workers",
         action="store", default=-1, type=int,
-        help="Build internal tables only using workers.")
+        #help="Build internal tables only using workers."
+        help=argparse.SUPPRESS)
     parser.add_argument(
         "-u", "--use-prepack-state", dest="usePrePackState",
         action="store_true", default=False,

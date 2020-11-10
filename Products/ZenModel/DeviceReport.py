@@ -9,7 +9,7 @@
 
 
 import cgi
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.ZenTales import talesEval
@@ -95,7 +95,7 @@ class DeviceReport(BaseReport):
             try:
                 return [ dev for dev in devlist \
                             if talesEval("python:"+self.deviceQuery, dev) ]
-            except Exception, e:
+            except Exception as e:
                 return e
         return devlist
             
@@ -105,7 +105,7 @@ class DeviceReport(BaseReport):
         """
         try:
             self.getDevices()
-        except:
+        except Exception:
             return "color:#FF0000"
    
 
@@ -182,19 +182,19 @@ class DeviceReport(BaseReport):
                         try:
                             exec(expression, variables_and_funcs)
                             attr = variables_and_funcs['attr']
-                        except Exception, ex:
+                        except Exception as ex:
                             attr = str(ex)
 
                     if callable(attr):
                         try: value = attr()
-                        except Exception, ex:
+                        except Exception as ex:
                              value = str(ex)
                     else: value = attr
 
                     if isinstance(value, (list, tuple, set)):
                         # Some calls don't return strings
                         try: value = ", ".join(value)
-                        except Exception, ex:
+                        except Exception as ex:
                              value = str(ex)
                     if (not field.endswith("Link")
                             and isinstance(value, basestring)):

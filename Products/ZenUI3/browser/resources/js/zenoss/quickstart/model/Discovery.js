@@ -26,7 +26,10 @@
     });
 
     Ext.define('Zenoss.quickstart.Wizard.model.Discovery', {
-        extend: 'Zenoss.quickstart.Wizard.model.JobRecord'
+        extend: 'Zenoss.quickstart.Wizard.model.JobRecord',
+        fields: [
+            {name: 'duration', type: 'int'}
+        ]
     });
 
     Ext.define('Zenoss.quickstart.Wizard.model.AddDeviceJobRecord', {

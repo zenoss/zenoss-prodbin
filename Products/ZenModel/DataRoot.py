@@ -24,7 +24,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
 from OFS.OrderedFolder import OrderedFolder
 from Globals import DTMLFile
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Globals import DevelopmentMode
 from Products.ZenModel.SiteError import SiteError
 from Products.ZenModel.ZenModelBase import ZenModelBase
@@ -587,7 +587,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             devid = objid
             if not devid.endswith('*'): devid += '*'
             obj = self.Devices.findDevice(devid)
-        except:
+        except Exception:
             obj=None
         if not obj:
             try:
@@ -610,7 +610,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             devid = objid
             if not devid.endswith('*'): devid += '*'
             obj = self.Networks.getNet(objid)
-        except: obj=None
+        except Exception: obj=None
         if not obj:
             obj = self.Devices.findDevice(devid)
         if not obj:

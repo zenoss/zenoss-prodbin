@@ -17,7 +17,7 @@ Created by Marc Irlandez on 2007-04-05.
 from AccessControl import ClassSecurityInfo
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.AdministrativeRole import AdministrativeRole
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from zope.event import notify
 from Products.ZenUtils.Utils import getDisplayType
 from Products.Zuul.catalog.events import IndexingEvent

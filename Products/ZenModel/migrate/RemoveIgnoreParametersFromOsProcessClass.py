@@ -30,7 +30,7 @@ class RemoveIgnoreParametersFromOsProcessClass(Migrate.Step):
             for brain in ICatalogTool(dmd).search(OSProcessClass):
                 try:
                     pc = brain.getObject()
-                except:
+                except Exception:
                     log.warn("Failed to get %s", brain.getPath())
                 else:
                     try:
@@ -44,9 +44,9 @@ class RemoveIgnoreParametersFromOsProcessClass(Migrate.Step):
                         if ignore and not getattr(pc, 'replaceRegex', False):
                             pc.replaceRegex = '.*'
                             pc.replacement = pc.name
-                    except:
+                    except Exception:
                         log.warn("Failed to migrate %s", brain.getPath(), exc_info=True)
-        except:
+        except Exception:
             log.fail('Unable to search for OSProcessClass objects')
 
 RemoveIgnoreParametersFromOsProcessClass()

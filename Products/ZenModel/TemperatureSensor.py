@@ -16,7 +16,7 @@ TemperatureSensor is an abstraction of a temperature sensor or probe.
 
 from math import isnan
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 from Products.ZenRelations.RelSchema import ToOne, ToManyCont
 

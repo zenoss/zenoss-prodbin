@@ -28,7 +28,7 @@ from Products.ZenUtils.IpUtil import ipwrap
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from Globals import DTMLFile
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Monitor import Monitor
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenRelations.RelSchema import ToMany, ToOne
@@ -582,7 +582,7 @@ class PerformanceConf(Monitor, StatusColor):
         cmd = [zm]
         deviceName = self._escapeParentheses(deviceName)
         options = [
-            'run', '--now', '-d', deviceName, '--monitor', performanceMonitor,
+            'run', '--now', '-d', '"{}"'.format(deviceName), '--monitor', performanceMonitor,
             '--collect={}'.format(collectPlugins)
         ]
         cmd.extend(options)

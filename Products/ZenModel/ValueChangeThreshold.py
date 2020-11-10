@@ -13,7 +13,7 @@ from Products.ZenModel.ThresholdInstance import MetricThresholdInstance
 __doc__= """Threshold to track when a value changes.
 """
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from ThresholdClass import ThresholdClass
 from ThresholdInstance import ThresholdContext
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO

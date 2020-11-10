@@ -16,7 +16,7 @@ that form part of an UberReport.
 
 
 from AccessControl import Permissions
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM

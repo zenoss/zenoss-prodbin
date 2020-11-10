@@ -66,8 +66,6 @@ function getMysqlConnectionArgs()
     local arg
     arg+=" "$(getConfValue "$config" "$dbname-admin-user" "--user=")
     arg+=" "$(getConfValue "$config" "$dbname-admin-password" "--password=")
-    arg+=" "$(getConfValue "$config" "$dbname-host" "--host=")
-    arg+=" "$(getConfValue "$config" "$dbname-port" "--port=")
     arg+=" "$(getConfValue "$config" "$dbname-db" "--database=")
     [[ $arg =~ "--user=" ]] || die "required $dbname-admin-user not found in $config"
     [[ $arg =~ "--database=" ]] || die "required $dbname-db not found in $config"
@@ -196,13 +194,14 @@ function do_resume()
 
 function main()
 {
+    [[ -n "$MARIADB_DB" ]] || die "MARIADB_DB env var is not set"
     [[ -n "$VARDIR" ]] || die "VARDIR env var is not set"
     [[ -d "$VARDIR" ]] || die "VARDIR=$VARDIR is not a directory"
     [[ -n "$CFGDIR" ]] || die "CFGDIR env var is not set"
     [[ -d "$CFGDIR" ]] || die "CFGDIR=$CFGDIR is not a directory"
     export GLOBAL_CONF="$CFGDIR/global.conf"
 
-    declare dbnames=('zodb' 'zep')
+    dbnames=($MARIADB_DB)
 
     case "$CMD" in
         status)
@@ -221,13 +220,13 @@ function main()
         hold-lock-zodb)
             # do not advertise via help that private method 'hold-lock-*' is a valid run command
             local hold_time=${LOCK_HOLD_DURATION:-600}
-            do_hold_lock "$hold_time" "${dbnames[0]}"
+            do_hold_lock "$hold_time" "zodb"
         ;;
 
         hold-lock-zep)
             # do not advertise via help that private method 'hold-lock-*' is a valid run command
             local hold_time=${LOCK_HOLD_DURATION:-600}
-            do_hold_lock "$hold_time" "${dbnames[1]}"
+            do_hold_lock "$hold_time" "zep"
         ;;
 
         help)

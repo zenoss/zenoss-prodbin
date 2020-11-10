@@ -128,7 +128,7 @@ def prepareContents(self, registry, register_subdirs=0):
                 try:
                     ob = t(name, entry_filepath, fullname=entry,
                            properties=metadata.getProperties())
-                except:
+                except Exception:
                     import sys
                     import traceback
                     typ, val, tb = sys.exc_info()
@@ -169,7 +169,7 @@ def prepareContents(self, registry, register_subdirs=0):
                 if hasattr(ob, '_proxy_roles'):
                     try:
                         ob._proxy_roles = tuple(metadata.getProxyRoles())
-                    except:
+                    except Exception:
                         logger.exception("Error setting proxy role")
 
                 ob_id = ob.getId()

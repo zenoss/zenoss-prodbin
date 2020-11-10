@@ -26,7 +26,7 @@ from BTrees.OOBTree import OOBTree
 from OFS.SimpleItem import SimpleItem
 
 from Globals import DTMLFile
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
@@ -641,7 +641,17 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             self._setObject(ip_id, new_net)
             new_net = self._getOb(ip_id)
             netobj = aq_base(netobj)
+            log.info(
+                "Adding %s as supernet of %s",
+                new_net.getNetworkName(), netobj.getNetworkName(),
+            )
             new_net._setObject(ip_id, netobj)
+            ips = filter(
+                lambda n: isinstance(n, IpAddress) and n.interface(),
+                netobj.getSubObjects(),
+            )
+            for i in ips:
+                i.interface().ipaddresses._setObject(i.id, i)
 
         return self.getSubNetwork(ip)
 
@@ -923,7 +933,7 @@ class AutoDiscoveryJob(SubprocessJob):
     specifying IP ranges, not both. Also accepts a set of zProperties to be
     set on devices that are discovered.
     """
-    def _run(self, nets=(), ranges=(), zProperties=(), collector='localhost'):
+    def _run(self, nets=(), ranges=(), zProperties={}, collector='localhost'):
         # Store the nets and ranges
         self.nets = nets
         self.ranges = ranges

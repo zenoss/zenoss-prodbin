@@ -11,22 +11,24 @@ from __future__ import absolute_import
 
 from unittest import TestCase
 from mock import (
-    NonCallableMagicMock, Mock, patch,
+    NonCallableMagicMock, MagicMock, Mock, patch,
 )
 from twisted.internet import defer, reactor
 from twisted.python.failure import Failure
 from twisted.spread import pb
 
+from Products.ZenHub.server.config import ModuleObjectConfig
 from Products.ZenHub.server.service import ServiceCall
 from Products.ZenHub.server.worklist import ZenHubWorklist
 from Products.ZenHub.server.workerpool import WorkerPool
 from Products.ZenHub.server.utils import subTest
 
 from ..workers import (
-    WorkerPoolExecutor,
-    ServiceCallTask,
-    _Running,
     RemoteException, banana, jelly,
+    ServiceCallPriority,
+    ServiceCallTask,
+    WorkerPoolExecutor,
+    _Running,
 )
 
 PATH = {'src': 'Products.ZenHub.server.executors.workers'}
@@ -34,28 +36,48 @@ PATH = {'src': 'Products.ZenHub.server.executors.workers'}
 
 class WorkerPoolExecutorTest(TestCase):  # noqa: D101
 
-    def setUp(self):
-        self.getLogger_patcher = patch(
+    def setUp(t):
+        t.getLogger_patcher = patch(
             "{src}.getLogger".format(**PATH), autospec=True,
         )
-        self.getLogger = self.getLogger_patcher.start()
-        self.addCleanup(self.getLogger_patcher.stop)
+        t.getLogger = t.getLogger_patcher.start()
+        t.addCleanup(t.getLogger_patcher.stop)
 
-        self._Running_patcher = patch(
+        t._Running_patcher = patch(
             "{src}._Running".format(**PATH), autospec=True,
         )
-        self._Running = self._Running_patcher.start()
-        self.addCleanup(self._Running_patcher.stop)
+        t._Running = t._Running_patcher.start()
+        t.addCleanup(t._Running_patcher.stop)
 
-        self.reactor = Mock(spec=reactor)
-        self.worklist = NonCallableMagicMock(spec=ZenHubWorklist)
-        self.workers = NonCallableMagicMock(spec=WorkerPool)
+        t.reactor = Mock(spec=reactor)
+        t.worklist = NonCallableMagicMock(spec=ZenHubWorklist)
+        t.workers = NonCallableMagicMock(spec=WorkerPool)
 
-        self.name = "default"
-        self.executor = WorkerPoolExecutor(
-            self.name, self.worklist, self.workers,
+        t.name = "default"
+        t.executor = WorkerPoolExecutor(
+            t.name, t.worklist, t.workers,
         )
-        self.logger = self.getLogger(self.executor)
+        t.logger = t.getLogger(t.executor)
+
+    @patch("{src}.ModelingPaused".format(**PATH), autospec=True)
+    @patch("{src}.PrioritySelection".format(**PATH), autospec=True)
+    @patch("{src}.ZenHubWorklist".format(**PATH), autospec=True)
+    def test_create(t, _zhwlist, _ps, _mp):
+        config = MagicMock(spec=ModuleObjectConfig)
+        pool = Mock()
+        result = WorkerPoolExecutor.create(t.name, config, pool)
+
+        _mp.assert_called_once_with(
+            config.priorities["modeling"], config.modeling_pause_timeout,
+        )
+        _ps.assert_called_once_with(
+            ServiceCallPriority, exclude=_mp.return_value,
+        )
+        _zhwlist.assert_called_once_with(_ps.return_value)
+        t.assertIsInstance(result, WorkerPoolExecutor)
+        t.assertEqual(result.name, t.name)
+        t.assertIs(result._WorkerPoolExecutor__worklist, _zhwlist.return_value)
+        t.assertIs(result._WorkerPoolExecutor__workers, pool)
 
     def test_initial_state(self):
         self.assertEqual(self.name, self.executor.name)
@@ -63,6 +85,7 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
 
         call = Mock(spec=ServiceCall)
         handler = Mock()
+
         dfr = self.executor.submit(call)
         dfr.addErrback(handler)
 
@@ -74,6 +97,17 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
             self.name, self.worklist, self.workers, self.logger,
         )
 
+    def test_create_requires_pool_and_config_args(t):
+        cases = {
+            "no args": {},
+            "missing 'config'": {"pool": Mock()},
+            "missing 'pool'": {"config": Mock()},
+        }
+        for name, params in cases.items():
+            with subTest(case=name):
+                with t.assertRaises(ValueError):
+                    WorkerPoolExecutor.create(t.name, **params)
+
     def test_start(self):
         call = Mock(spec=ServiceCall)
         running_state = self._Running.return_value
@@ -82,6 +116,21 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
         dfr = self.executor.submit(call)
 
         self.assertEqual(dfr, running_state.submit.return_value)
+
+    def test_stop(t):
+        '''submit returns a deferred.failure object if the executor is stopped
+        '''
+        call = Mock(spec=ServiceCall)
+
+        t.executor.stop()
+        dfr = t.executor.submit(call)
+        handler = Mock(name='errback handler')
+        dfr.addErrback(handler)  # silence 'unhandled error in deffered'
+
+        f = handler.call_args[0][0]
+        t.assertIsInstance(f, Failure)
+        t.assertIsInstance(f.value, pb.Error)
+        t.assertEqual("ZenHub not ready.", str(f.value))
 
 
 class BaseRunning(object):
@@ -104,8 +153,15 @@ class BaseRunning(object):
         self.getUtility = self.getUtility_patcher.start()
         self.addCleanup(self.getUtility_patcher.stop)
 
+        self.LoopingCall_patcher = patch(
+            "{src}.LoopingCall".format(**PATH), autospec=True,
+        )
+        self.LoopingCall = self.LoopingCall_patcher.start()
+        self.addCleanup(self.LoopingCall_patcher.stop)
+
         self.max_retries = self.getUtility.return_value.task_max_retries
         self.logger = self.getLogger.return_value
+        self.loop = self.LoopingCall.return_value
         self.workers = NonCallableMagicMock(spec=WorkerPool)
         self.worklist = NonCallableMagicMock(spec=ZenHubWorklist)
         self.name = "default"
@@ -119,15 +175,22 @@ class RunningTest(BaseRunning, TestCase):
     """Test the _Running class."""
 
     def test_initial_state(self):
+        self.LoopingCall.assert_called_once_with(self.running.dispatch)
         self.assertIs(self.running.log, self.logger)
         self.assertIs(self.running.name, self.name)
         self.assertIs(self.running.worklist, self.worklist)
         self.assertIs(self.running.workers, self.workers)
         self.assertIs(self.running.task_max_retries, self.max_retries)
+        self.assertIs(self.running.loop, self.loop)
 
     def test_start(self):
         self.running.start(self.reactor)
         self.assertIs(self.running.reactor, self.reactor)
+        self.loop.start.assert_called_once_with(0)
+
+    def test_stop(self):
+        self.running.stop()
+        self.loop.stop.assert_called_once_with()
 
     @patch("{src}.ServiceCallTask".format(**PATH), autospec=True)
     def test_submit(self, _ServiceCallTask):
@@ -143,121 +206,94 @@ class RunningTest(BaseRunning, TestCase):
         self.assertIs(expected_dfr, dfr)
         _ServiceCallTask.assert_called_once_with(self.name, call)
         self.worklist.push.assert_called_once_with(expected_priority, task)
-        self.reactor.callLater.assert_called_once_with(
-            0, self.running.execute,
-        )
-
-    def test_execute_no_tasks(self):
-        self.running.start(self.reactor)
-
-        self.worklist.__len__.return_value = 0
-        self.workers.available = True
-
-        dfr = self.running.execute()
-
-        self.assertIsInstance(dfr, defer.Deferred)
-        self.assertIsNone(dfr.result)
-        self.workers.hire.assert_not_called()
-        self.worklist.pop.assert_not_called()
         self.reactor.callLater.assert_not_called()
 
-    def test_execute_no_workers(self):
+    def test_dispatch_no_tasks(self):
         self.running.start(self.reactor)
 
-        self.worklist.__len__.return_value = 1
-        self.workers.hire.return_value = None
+        task_dfr = defer.Deferred()
+        self.worklist.pop.return_value = task_dfr
 
-        dfr = self.running.execute()
+        dfr = self.running.dispatch()
+        # Cancel the defer after the test completes to avoid leaving
+        # uncollected garbage.
+        self.addCleanup(dfr.cancel)
 
         self.assertIsInstance(dfr, defer.Deferred)
-        self.assertIsNone(dfr.result)
-        self.workers.hire.assert_called_once_with()
-        self.worklist.pop.assert_not_called()
-        self.reactor.callLater.assert_called_once_with(
-            0.1, self.running.execute,
-        )
+        self.worklist.pop.assert_called_once_with()
+        self.workers.hire.assert_not_called()
+        self.reactor.callLater.assert_not_called()
 
-    def test_execute_worker_hire_failure(self):
+    def test_dispatch_no_workers(self):
+        self.running.start(self.reactor)
+
+        worker_dfr = defer.Deferred()
+        self.workers.hire.return_value = worker_dfr
+
+        dfr = self.running.dispatch()
+        # Cancel the defer after the test completes to avoid leaving
+        # uncollected garbage.
+        self.addCleanup(dfr.cancel)
+
+        self.assertFalse(worker_dfr.called)
+        self.assertIsInstance(dfr, defer.Deferred)
+        self.worklist.pop.assert_called_once_with()
+        self.workers.hire.assert_called_once_with()
+        self.reactor.callLater.assert_not_called()
+
+    def test_dispatch_worker_hire_failure(self):
         self.running.start(self.reactor)
 
         self.worklist.__len__.return_value = 1
         self.workers.hire.side_effect = Exception("boom")
 
         handler = Mock()
-        dfr = self.running.execute()
+        dfr = self.running.dispatch()
         dfr.addErrback(handler)
+        # Cancel the defer after the test completes to avoid leaving
+        # uncollected garbage.
+        self.addCleanup(dfr.cancel)
 
         self.assertIsInstance(dfr, defer.Deferred)
+        self.worklist.pop.assert_called_once_with()
         self.workers.hire.assert_called_once_with()
-        self.logger.exception.assert_called_once_with("Unexpected failure")
-        self.reactor.callLater.assert_called_once_with(
-            0.1, self.running.execute,
+        self.logger.exception.assert_called_once_with(
+            "Unexpected failure worklist=%s", self.name,
         )
 
         handler.assert_not_called()
-        self.logger.debug.assert_not_called()
+        self.reactor.callLater.assert_not_called()
         self.logger.info.assert_not_called()
         self.logger.warn.assert_not_called()
         self.logger.error.assert_not_called()
         self.workers.layoff.assert_not_called()
-        self.worklist.pop.assert_not_called()
         self.worklist.pushfront.assert_not_called()
         self.worklist.push.assert_not_called()
 
-    def test_execute_pop_failure(self):
+    def test_dispatch_pop_failure(self):
         self.running.start(self.reactor)
 
-        self.worklist.__len__.return_value = 1
         self.worklist.pop.side_effect = Exception("boom")
-        worker = Mock(spec=["workerId", "run"])
-        self.workers.hire.return_value = worker
 
         handler = Mock()
-        dfr = self.running.execute()
+        dfr = self.running.dispatch()
         dfr.addErrback(handler)
+        # Cancel the defer after the test completes to avoid leaving
+        # uncollected garbage.
+        self.addCleanup(dfr.cancel)
 
         self.assertIsInstance(dfr, defer.Deferred)
-        self.workers.hire.assert_called_once_with()
         self.worklist.pop.assert_called_once_with()
-        self.logger.exception.assert_called_once_with("Unexpected failure")
-        self.workers.layoff.assert_called_once_with(worker)
-        self.reactor.callLater.assert_called_once_with(
-            0.1, self.running.execute,
+        self.logger.exception.assert_called_once_with(
+            "Unexpected failure worklist=%s", self.name,
         )
+        self.workers.hire.assert_not_called()
+        self.workers.layoff.assert_not_called()
 
         handler.assert_not_called()
-        worker.run.assert_not_called()
         self.logger.info.assert_not_called()
         self.logger.warn.assert_not_called()
         self.logger.error.assert_not_called()
-        self.worklist.pushfront.assert_not_called()
-        self.worklist.push.assert_not_called()
-
-    def test_execute_pop_returns_none(self):
-        self.running.start(self.reactor)
-
-        self.worklist.__len__.return_value = 1
-        self.worklist.pop.return_value = None
-        worker = Mock(spec=["workerId", "run"])
-        self.workers.hire.return_value = worker
-
-        handler = Mock()
-        dfr = self.running.execute()
-        dfr.addErrback(handler)
-
-        self.assertIsInstance(dfr, defer.Deferred)
-        self.workers.hire.assert_called_once_with()
-        self.worklist.pop.assert_called_once_with()
-        self.workers.layoff.assert_called_once_with(worker)
-        self.reactor.callLater.assert_called_once_with(
-            0.1, self.running.execute,
-        )
-        handler.assert_not_called()
-        worker.run.assert_not_called()
-        self.logger.info.assert_not_called()
-        self.logger.warn.assert_not_called()
-        self.logger.error.assert_not_called()
-        self.logger.exception.assert_not_called()
         self.worklist.pushfront.assert_not_called()
         self.worklist.push.assert_not_called()
 
@@ -431,9 +467,7 @@ class RunningHandleMethodsTest(BaseRunning, TestCase):
 
         self.running._handle_success(task, result)
 
-        self.reactor.callLater.assert_called_once_with(
-            0, task.success, result,
-        )
+        task.success.assert_called_once_with(result)
         task.completed.assert_called_once_with(result=result)
         _notify.assert_called_once_with(task.completed.return_value)
 
@@ -449,9 +483,7 @@ class RunningHandleMethodsTest(BaseRunning, TestCase):
 
         self.running._handle_failure(task, error)
 
-        self.reactor.callLater.assert_called_once_with(
-            0, task.failure, error,
-        )
+        task.failure.assert_called_once_with(error)
         task.completed.assert_called_once_with(error=error)
         _notify.assert_called_once_with(task.completed.return_value)
 
@@ -482,23 +514,19 @@ class RunningExecuteTest(BaseRunning, TestCase):
     def test_nominal_execute(self):
         task = Mock(spec=["call", "retryable"])
         task.retryable = False
-        self.worklist.__len__.return_value = 1
-        self.worklist.pop.return_value = task
         worker = Mock(spec=["workerId", "run"])
-        self.workers.hire.return_value = worker
         expected_result = worker.run.return_value
 
         handler = Mock()
-        dfr = self.running.execute()
+        dfr = self.running.execute(worker, task)
         dfr.addErrback(handler)
 
         handler.assert_not_called()
         self.assertIsInstance(dfr, defer.Deferred)
-        self.worklist.pop.assert_called_once_with()
+        self.worklist.pop.assert_not_called()
         worker.run.assert_called_once_with(task.call)
-        self.reactor.callLater.assert_called_once_with(
-            0.1, self.running.execute,
-        )
+        self.reactor.callLater.assert_not_called()
+
         self.patches["_handle_start"].assert_called_once_with(
             task, worker.workerId,
         )
@@ -514,6 +542,7 @@ class RunningExecuteTest(BaseRunning, TestCase):
         self.patches["_handle_failure"].assert_not_called()
         self.patches["_handle_error"].assert_not_called()
         self.patches["_handle_retry"].assert_not_called()
+        self.workers.layoff.assert_called_once_with(worker)
 
     def test_remote_errors(self):
         worker = Mock(spec=["workerId", "run"])
@@ -528,17 +557,13 @@ class RunningExecuteTest(BaseRunning, TestCase):
                 worker.run.side_effect = error
                 task = Mock(spec=["call", "retryable", "priority"])
                 task.retryable = True
-                self.worklist.__len__.return_value = 1
-                self.worklist.pop.return_value = task
-                self.workers.hire.return_value = worker
 
                 handler = Mock()
-                dfr = self.running.execute()
+                dfr = self.running.execute(worker, task)
                 dfr.addErrback(handler)
 
                 handler.assert_not_called()
                 self.assertIsInstance(dfr, defer.Deferred)
-                self.worklist.pop.assert_called_once_with()
                 worker.run.assert_called_once_with(task.call)
                 self.patches["_handle_start"].assert_called_once_with(
                     task, worker.workerId,
@@ -547,9 +572,6 @@ class RunningExecuteTest(BaseRunning, TestCase):
                     task, error,
                 )
                 self.workers.layoff.assert_called_once_with(worker)
-                self.reactor.callLater.assert_called_once_with(
-                    0.1, self.running.execute,
-                )
 
                 self.logger.exception.assert_not_called()
                 self.logger.error.assert_not_called()
@@ -581,17 +603,13 @@ class RunningExecuteTest(BaseRunning, TestCase):
 
                 task = Mock(spec=["call", "retryable", "priority"])
                 task.retryable = True
-                self.worklist.__len__.return_value = 1
-                self.worklist.pop.return_value = task
-                self.workers.hire.return_value = worker
 
                 handler = Mock()
-                dfr = self.running.execute()
+                dfr = self.running.execute(worker, task)
                 dfr.addErrback(handler)
 
                 handler.assert_not_called()
                 self.assertIsInstance(dfr, defer.Deferred)
-                self.worklist.pop.assert_called_once_with()
                 worker.run.assert_called_once_with(task.call)
                 self.patches["_handle_start"].assert_called_once_with(
                     task, worker.workerId,
@@ -606,9 +624,6 @@ class RunningExecuteTest(BaseRunning, TestCase):
                     task, _Error.return_value,
                 )
                 self.workers.layoff.assert_called_once_with(worker)
-                self.reactor.callLater.assert_called_once_with(
-                    0.1, self.running.execute,
-                )
 
                 self.logger.exception.assert_not_called()
                 self.logger.warn.assert_not_called()
@@ -633,17 +648,13 @@ class RunningExecuteTest(BaseRunning, TestCase):
 
         task = Mock(spec=["call", "retryable", "priority"])
         task.retryable = True
-        self.worklist.__len__.return_value = 1
-        self.worklist.pop.return_value = task
-        self.workers.hire.return_value = worker
 
         handler = Mock()
-        dfr = self.running.execute()
+        dfr = self.running.execute(worker, task)
         dfr.addErrback(handler)
 
         handler.assert_not_called()
         self.assertIsInstance(dfr, defer.Deferred)
-        self.worklist.pop.assert_called_once_with()
         worker.run.assert_called_once_with(task.call)
         self.patches["_handle_start"].assert_called_once_with(
             task, worker.workerId,
@@ -653,9 +664,6 @@ class RunningExecuteTest(BaseRunning, TestCase):
             task.priority, task,
         )
         self.workers.layoff.assert_called_once_with(worker)
-        self.reactor.callLater.assert_called_once_with(
-            0.1, self.running.execute,
-        )
 
         self.logger.error.assert_not_called()
         self.worklist.push.assert_not_called()
@@ -670,17 +678,13 @@ class RunningExecuteTest(BaseRunning, TestCase):
 
         task = Mock(spec=["call", "retryable", "attempt", "priority"])
         task.retryable = True
-        self.worklist.__len__.return_value = 1
-        self.worklist.pop.return_value = task
-        self.workers.hire.return_value = worker
 
         handler = Mock()
-        dfr = self.running.execute()
+        dfr = self.running.execute(worker, task)
         dfr.addErrback(handler)
 
         handler.assert_not_called()
         self.assertIsInstance(dfr, defer.Deferred)
-        self.worklist.pop.assert_called_once_with()
         worker.run.assert_called_once_with(task.call)
         self.patches["_handle_start"].assert_called_once_with(
             task, worker.workerId,
@@ -692,10 +696,9 @@ class RunningExecuteTest(BaseRunning, TestCase):
             task.priority, task,
         )
         self.workers.layoff.assert_called_once_with(worker)
-        self.reactor.callLater.assert_called_once_with(
-            0.1, self.running.execute,
+        self.logger.exception.assert_called_once_with(
+            "Unexpected failure worklist=%s", "default"
         )
-        self.logger.exception.assert_called_once_with("Unexpected failure")
 
         self.logger.error.assert_not_called()
         self.logger.warn.assert_not_called()

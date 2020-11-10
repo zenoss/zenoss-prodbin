@@ -55,7 +55,7 @@ def GetCatalogedObjects(dmd, packName):
             try:
                 obj = brain.getObject()
                 result.append(obj)
-            except KeyError, e:
+            except KeyError as e:
                 log.warn('catalog object %s not found in system', e)
     return result
 

@@ -67,4 +67,7 @@
     <!-- advertize that Zenoss provides pre/post backup events -->
     <meta:provides feature="PrePostBackupEvents" />
 
+    <!-- Zenoss provides pidfile option for daemons -->
+    <meta:provides feature="configurable-pidfile" />
+
 </configure>

@@ -68,7 +68,7 @@ class TestZenprocess(TestCase):
         try:
             dataAsString = open(name).read()
             data = eval(dataAsString)
-        except Exception, ex:
+        except Exception as ex:
             log.warn('Unable to evaluate data file %s because %s', name, str(ex))
 
         self.assert_(data is not None, "No data from file %s" % filename)
@@ -140,9 +140,7 @@ class TestZenprocess(TestCase):
         The results are passed back from the method
         """
         procs = task._parseProcessNames(data)
-        #print "procs  : ", procs
         results = task._determineProcessStatus(procs)
-        #print "results: ", results
 
         actual = dict(zip(ProcessResults.resultKeys, results))
         actual[ProcessResults.PROCESSES] = procs
@@ -253,7 +251,7 @@ class TestZenprocess(TestCase):
             for line in open(name).readlines():
                 procname, regex, excludeRegex = line.rsplit(None, 3)
                 self.updateProcDefs(procDefs, procname.strip(), regex.strip(), excludeRegex.strip())
-        except Exception, ex:
+        except Exception as ex:
             log.warn('Unable to evaluate data file %s because %s',
                      name, str(ex))
         return procDefs
@@ -815,7 +813,6 @@ class TestZenprocess(TestCase):
 
 
 def test_suite():
-    print "..Starting the test suite........."
     from unittest import TestSuite, makeSuite
     
     # TestSuite - aggregate of individual test cases/suites

@@ -95,6 +95,9 @@ SNMPv1 = 0
 SNMPv2 = 1
 SNMPv3 = 3
 
+LEGACY_VARBIND_COPY_MODE = 0
+DIRECT_VARBIND_COPY_MODE = 1
+MIXED_VARBIND_COPY_MODE  = 2
 
 class FakePacket(object):
     """
@@ -156,6 +159,15 @@ class SnmpTrapPreferences(CaptureReplay):
             help="File that contains trap oids to keep, "
             "should be in $ZENHOME/etc."
         )
+        parser.add_option(
+            '--varbindCopyMode',
+            dest='varbindCopyMode', type='int', default=2,
+            help='Varbind copy mode. Possible values: '
+                '0 - the varbinds are copied into event as one field and ifIndex field is added. '
+                '1 - the varbinds are copied into event as several fields and sequence field is added. '
+                '2 - the mixed mode. Uses varbindCopyMode=0 behaviour if there is only one occurrence '
+                'of the varbind, otherwise uses varbindCopyMode=1 behaviour'
+        )
 
         self.buildCaptureReplayOptions(parser)
 
@@ -182,12 +194,90 @@ def ipv6_is_enabled():
     return True
 
 
+class _LegacyVarbindProcessor(object):
+
+    def __init__(self, oid2name):
+        self.oid2name = oid2name
+
+    def __call__(self, varbinds):
+        result = defaultdict(list)
+        for oid, value in varbinds:
+            base_name = self.oid2name(oid, exactMatch=False, strip=True)
+            full_name = self.oid2name(oid, exactMatch=False, strip=False)
+            result[base_name].append(str(value))
+            if base_name != full_name:
+                suffix = full_name[len(base_name) + 1:]
+                result[base_name + ".ifIndex"].append(suffix)
+        return {name: ','.join(vals) for name, vals in result.iteritems()}
+
+
+class _DirectVarbindProcessor(object):
+
+    def __init__(self, oid2name):
+        self.oid2name = oid2name
+
+    def __call__(self, varbinds):
+        result = defaultdict(list)
+        for oid, value in varbinds:
+            base_name = self.oid2name(oid, exactMatch=False, strip=True)
+            full_name = self.oid2name(oid, exactMatch=False, strip=False)
+            result[full_name].append(str(value))
+            if base_name != full_name:
+                suffix = full_name[len(base_name) + 1:]
+                result[base_name + ".sequence"].append(suffix)
+        return {name: ','.join(vals) for name, vals in result.iteritems()}
+
+
+class _MixedVarbindProcessor(object):
+
+    def __init__(self, oid2name):
+        self.oid2name = oid2name
+
+    def __call__(self, varbinds):
+        result = defaultdict(list)
+        groups = defaultdict(list)
+
+        # Group varbinds having the same MIB Object name together
+        for key, value in varbinds:
+            base_name = self.oid2name(key, exactMatch=False, strip=True)
+            full_name = self.oid2name(key, exactMatch=False, strip=False)
+            groups[base_name].append((full_name, str(value)))
+
+        # Process each MIB object by name
+        for base_name, data in groups.items():
+            offset = len(base_name) + 1
+
+            # If there's only one instance for a given object, then add
+            # the varbind to the event details using pre Zenoss 6.2.0 rules.
+            if len(data) == 1:
+                full_name, value = data[0]
+                result[base_name].append(value)
+                
+                suffix = full_name[offset:]
+                if suffix:
+                    result[base_name + ".ifIndex"].append(suffix)
+                continue
+
+            # Record the varbind instance(s) in their 'raw' form.
+            for full_name, value in data:
+                suffix = full_name[offset:]
+                result[full_name].append(value)
+                if suffix:
+                    result[base_name + ".sequence"].append(suffix) 
+        return {name: ','.join(vals) for name, vals in result.iteritems()}
+
+
 @implementer(IScheduledTask)
 class TrapTask(BaseTask, CaptureReplay):
     """
     Listen for SNMP traps and turn them into events
     Connects to the TrapService service in zenhub.
     """
+    _varbind_processors = {
+        LEGACY_VARBIND_COPY_MODE: _LegacyVarbindProcessor,
+        DIRECT_VARBIND_COPY_MODE: _DirectVarbindProcessor,
+        MIXED_VARBIND_COPY_MODE: _MixedVarbindProcessor,
+    }
 
     def __init__(
             self, taskName, configId, scheduleIntervalSeconds=3600,
@@ -215,6 +305,20 @@ class TrapTask(BaseTask, CaptureReplay):
         self.processCaptureReplayOptions()
         self.session = None
         self._replayStarted = False
+        self.varbindCopyMode = self.options.varbindCopyMode
+
+        if self.varbindCopyMode not in [LEGACY_VARBIND_COPY_MODE, 
+                                        DIRECT_VARBIND_COPY_MODE, 
+                                        MIXED_VARBIND_COPY_MODE]:
+            self.varbindCopyMode = MIXED_VARBIND_COPY_MODE
+            self.log.warn(
+                "Wrong 'varbindCopyMode' value. 'varbindCopyMode=%s' will be used", 
+                self.varbindCopyMode
+            )
+
+        processor_class = self._varbind_processors.get(self.varbindCopyMode)
+        self._process_varbinds = processor_class(self.oid2name)
+
         if not self.options.replayFilePrefix:
             trapPort = self._preferences.options.trapport
             if not self.options.useFileDescriptor and trapPort < 1024:
@@ -241,9 +345,8 @@ class TrapTask(BaseTask, CaptureReplay):
                 listening_address = '%s:%d' % (listening_protocol, trapPort)
                 fileno = -1
             self._pre_parse_callback = _pre_parse_factory(self._pre_parse)
-            debug = self.log.isEnabledFor(logging.DEBUG)
             self.session.awaitTraps(
-                listening_address, fileno, self._pre_parse_callback, debug
+                listening_address, fileno, self._pre_parse_callback, debug=True
             )
             self.session.callback = self.receiveTrap
             twistedsnmp.updateReactor()
@@ -293,7 +396,7 @@ class TrapTask(BaseTask, CaptureReplay):
         """
         if hasattr(pdu, "fake"):  # Replaying a packet
             return pdu.variables
-        return netsnmp.getResult(pdu)
+        return netsnmp.getResult(pdu, self.log)
 
     def getCommunity(self, pdu):
         """
@@ -325,7 +428,7 @@ class TrapTask(BaseTask, CaptureReplay):
         packet.version = pdu.version
         packet.host = addr[0]
         packet.port = addr[1]
-        packet.variables = netsnmp.getResult(pdu)
+        packet.variables = netsnmp.getResult(pdu, self.log)
         packet.community = ''
         packet.enterprise_length = pdu.enterprise_length
 
@@ -546,15 +649,6 @@ class TrapTask(BaseTask, CaptureReplay):
             netsnmp.lib.snmp_free_pdu(reply)
         sess.close()
 
-    def _add_varbind_detail(self, result, oid, value):
-        detail_name = self.oid2name(oid, exactMatch=False, strip=False)
-        result[detail_name].append(str(value))
-
-        detail_name_stripped = self.oid2name(oid, exactMatch=False, strip=True)
-        if detail_name_stripped != detail_name:
-            remainder = detail_name[len(detail_name_stripped)+1:]
-            result[detail_name_stripped + ".sequence"].append(remainder)
-
     def decodeSnmpv1(self, addr, pdu):
 
         result = {"snmpVersion": "1"}
@@ -603,7 +697,7 @@ class TrapTask(BaseTask, CaptureReplay):
 
         # Decode all variable bindings. Allow partial matches and strip
         # off any index values.
-        vb_result = defaultdict(list)
+        varbinds = []
         for vb_oid, vb_value in variables:
             vb_value = decode_snmp_value(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
@@ -612,26 +706,25 @@ class TrapTask(BaseTask, CaptureReplay):
                     "[decodeSnmpv1] enterprise %s, varbind-oid %s, "
                     "varbind-value %s", enterprise, vb_oid, vb_value
                 )
-            self._add_varbind_detail(vb_result, vb_oid, vb_value)
+            varbinds.append((vb_oid, vb_value))
 
-        result.update(
-            {name: ','.join(vals) for name, vals in vb_result.iteritems()}
-        )
+        result.update(self._process_varbinds(varbinds))
 
         return eventType, result
 
-    def decodeSnmpv2(self, addr, pdu):
+    def decodeSnmpV2OrV3(self, addr, pdu):
         eventType = 'unknown'
-        result = {"snmpVersion": "2", "oid": "", "device": addr[0]}
+        version = "2" if pdu.version == SNMPv2 else "3"
+        result = {"snmpVersion": version, "oid": "", "device": addr[0]}
         variables = self.getResult(pdu)
 
-        vb_result = defaultdict(list)
+        varbinds = []
         for vb_oid, vb_value in variables:
             vb_value = decode_snmp_value(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
             if vb_value is None:
                 log.debug(
-                    "[decodeSnmpv2] varbind-oid %s, varbind-value %s",
+                    "[decodeSnmpV2OrV3] varbind-oid %s, varbind-value %s",
                     vb_oid, vb_value
                 )
 
@@ -647,11 +740,9 @@ class TrapTask(BaseTask, CaptureReplay):
                 result['snmpTrapAddress'] = vb_value
                 result['device'] = vb_value
             else:
-                self._add_varbind_detail(vb_result, vb_oid, vb_value)
+                varbinds.append((vb_oid, vb_value))
 
-        result.update(
-            {name: ','.join(vals) for name, vals in vb_result.iteritems()}
-        )
+        result.update(self._process_varbinds(varbinds))
 
         if eventType in ["linkUp", "linkDown"]:
             eventType = "snmp_" + eventType
@@ -684,7 +775,7 @@ class TrapTask(BaseTask, CaptureReplay):
             eventType, result = self.decodeSnmpv1(addr, pdu)
         elif pdu.version in (SNMPv2, SNMPv3):
             self.log.debug("SNMPv2 or v3 trap, Addr: %s", str(addr))
-            eventType, result = self.decodeSnmpv2(addr, pdu)
+            eventType, result = self.decodeSnmpV2OrV3(addr, pdu)
         else:
             self.log.error("Unable to handle trap version %d", pdu.version)
             return

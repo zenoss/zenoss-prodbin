@@ -30,6 +30,15 @@ class SendEventExecutor(object):
     and sendEvents tasks directly on a MySqlEventManager instance.
     """
 
+    @classmethod
+    def create(cls, name, **ignored):
+        """Return a new executor instance.
+
+        :param str name: The executor's name
+        :return: A new SendEventExecutor instance.
+        """
+        return cls(name)
+
     def __init__(self, name):
         """Initialize an SendEventExecutor instance.
 
@@ -43,6 +52,9 @@ class SendEventExecutor(object):
         return self.__name
 
     def start(self, reactor):
+        pass
+
+    def stop(self):
         pass
 
     def submit(self, call):

@@ -12,6 +12,7 @@ from __future__ import absolute_import
 import time
 
 from twisted.internet import defer
+from twisted.internet.task import LoopingCall
 from twisted.spread import pb, banana, jelly
 from zope.component import getUtility
 from zope.event import notify
@@ -24,7 +25,13 @@ from ..events import (
     ServiceCallCompleted,
 )
 from ..interface import IHubServerConfig
-from ..priority import servicecall_priority_map
+from ..priority import (
+    ModelingPaused,
+    PrioritySelection,
+    ServiceCallPriority,
+    servicecall_priority_map,
+)
+from ..worklist import ZenHubWorklist
 from ..utils import UNSPECIFIED as _UNSPECIFIED, getLogger
 
 _InternalErrors = (
@@ -35,6 +42,29 @@ _RemoteErrors = (RemoteException, pb.RemoteError)
 
 class WorkerPoolExecutor(object):
     """An executor that executes service calls using remote workers."""
+
+    @classmethod
+    def create(cls, name, config=None, pool=None):
+        """Return a new executor instance.
+
+        :param str name: The executor's name
+        :param IHubServerConfig config: Configuration data
+        :param WorkerPool pool: Where the zenhubworker references live
+        :return: A new WorkerPoolExecutor instance.
+        """
+        if config is None:
+            raise ValueError("Invalid value for 'config': None")
+        if pool is None:
+            raise ValueError("Invalid value for 'pool': None")
+        modeling_paused = ModelingPaused(
+            config.priorities["modeling"],
+            config.modeling_pause_timeout,
+        )
+        selection = PrioritySelection(
+            ServiceCallPriority, exclude=modeling_paused,
+        )
+        worklist = ZenHubWorklist(selection)
+        return cls(name, worklist, pool)
 
     def __init__(self, name, worklist, pool):
         """Initialize a WorkerPoolExecutor instance."""
@@ -63,6 +93,10 @@ class WorkerPoolExecutor(object):
         self.__state = self.__states["running"]
         self.__state.start(reactor)
 
+    def stop(self):
+        self.__state.stop()
+        self.__state = self.__states["stopped"]
+
     def submit(self, call):
         """Submit a ServiceCall for execution.
 
@@ -76,6 +110,9 @@ class WorkerPoolExecutor(object):
 
 class _Stopped(object):
     """WorkerPoolExecutor in stopped state."""
+
+    def stop(self):
+        pass
 
     def submit(self, call):
         return defer.fail(pb.Error("ZenHub not ready."))
@@ -91,107 +128,107 @@ class _Running(object):
         self.log = log
         config = getUtility(IHubServerConfig)
         self.task_max_retries = config.task_max_retries
+        self.loop = LoopingCall(self.dispatch)
 
     def start(self, reactor):
         self.reactor = reactor
+        self.loopd = self.loop.start(0)
+
+    def stop(self):
+        self.loop.stop()
 
     def submit(self, call):
         task = ServiceCallTask(self.name, call)
         notify(task.received())
-        self.worklist.push(task.priority, task)
-        # Schedule a call to execute to process the new task.
-        self.reactor.callLater(0, self.execute)
         self.log.info(
             "Received task service=%s method=%s id=%s",
             call.service, call.method, call.id.hex,
         )
+        self.worklist.push(task.priority, task)
         return task.deferred
 
     @defer.inlineCallbacks
-    def execute(self):
-        """Execute the next task in the worklist."""
-        # If the worklist is empty, return as there's nothing to do.
-        if not self.worklist:
-            defer.returnValue(None)
-
+    def dispatch(self):
+        """Schedule tasks for execution by workers."""
+        self.log.debug(
+            "There are %s workers currently available to work %s tasks "
+            "worklist=%s",
+            self.workers.available, len(self.worklist), self.name,
+        )
         worker = None
         try:
-            # Attempt to hire a worker.
+            # Retrieve a task from the work queue
+            task = yield self.worklist.pop()
+
+            # Retrieve a worker to execute the task.
             worker = yield self.workers.hire()
 
-            # If no worker was hired, try again later.
-            if worker is None:
-                defer.returnValue(None)
-
-            self.log.debug(
-                "There are %s workers currently available to work %s tasks",
-                self.workers.available + 1, len(self.worklist),
-            )
-            # Retrieve the next task
-            task = self.worklist.pop()
-            if task is None:
-                defer.returnValue(None)
-            try:
-                # Notify listeners of a task execution attempt.
-                self._handle_start(task, worker.workerId)
-
-                # Run the task
-                result = yield worker.run(task.call)
-
-                # Task succeeded, process the result
-                self._handle_success(task, result)
-            except _RemoteErrors as ex:
-                # These kinds of errors originate from the service and
-                # are propagated directly back to the submitter.
-                self._handle_failure(task, ex)
-            except _InternalErrors as ex:
-                # These are un-retryable errors that occur while attempting
-                # to execute the call, so are logged and a summary error is
-                # returned to the submitter.
-                self.log.error(
-                    "(%s) %s service=%s method=%s id=%s worker=%s",
-                    type(ex), ex, task.call.service, task.call.method,
-                    task.call.id, worker.workerId,
-                )
-                error = pb.Error((
-                    "Internal ZenHub error: ({0.__class__.__name__}) {0}"
-                    .format(ex)
-                ).strip())
-                self._handle_failure(task, error)
-            except pb.PBConnectionLost as ex:
-                # Lost connection to the worker; not a failure.
-                # The attempt count is _not_ incremented.
-                self.log.warn(
-                    "Worker no longer accepting work worker=%s error=%s",
-                    worker.workerId, ex,
-                )
-                self._handle_retry(task, ex)
-            except Exception as ex:
-                self._handle_error(task, ex)
-                raise  # reraise to catch again in outer handler.
-            finally:
-                # if the task is retryable, push the task
-                # to the front of its queue.
-                if task.retryable:
-                    self.worklist.pushfront(task.priority, task)
-                    self.log.debug(
-                        "Task queued for retry service=%s method=%s id=%s",
-                        task.call.service, task.call.method, task.call.id.hex,
-                    )
-        except Exception as ex:
-            # Unexpected exceptions caught here too.
-            self.log.exception("Unexpected failure")
-        finally:
-            # Layoff the worker
+            # Schedule the worker to execute the task
+            self.reactor.callLater(0, self.execute, worker, task)
+        except Exception:
+            self.log.exception("Unexpected failure worklist=%s", self.name)
+            # Layoff the worker (if a worker was hired)
             if worker:
                 self.workers.layoff(worker)
 
-            # If worklist contains a task, schedule another call to _execute.
-            # However, introduce a 0.1 second delay to avoid maximizing CPU
-            # utilization testing for a lack of available workers or logging
-            # a recuring error with a task.
-            if self.worklist:
-                self.reactor.callLater(0.1, self.execute)
+    @defer.inlineCallbacks
+    def execute(self, worker, task):
+        """Execute the task using the worker.
+
+        :param worker: The worker to execute the task
+        :type worker: WorkerRef
+        :param task: The task to be executed by the worker
+        :type task: ServiceCallTask
+        """
+        try:
+            # Notify listeners of a task execution attempt.
+            self._handle_start(task, worker.workerId)
+
+            # Run the task
+            result = yield worker.run(task.call)
+
+            # Task succeeded, process the result
+            self._handle_success(task, result)
+        except _RemoteErrors as ex:
+            # These kinds of errors originate from the service and
+            # are propagated directly back to the submitter.
+            self._handle_failure(task, ex)
+        except _InternalErrors as ex:
+            # These are un-retryable errors that occur while attempting
+            # to execute the call, so are logged and a summary error is
+            # returned to the submitter.
+            self.log.error(
+                "(%s) %s service=%s method=%s id=%s worker=%s",
+                type(ex), ex, task.call.service, task.call.method,
+                task.call.id, worker.workerId,
+            )
+            error = pb.Error((
+                "Internal ZenHub error: ({0.__class__.__name__}) {0}"
+                .format(ex)
+            ).strip())
+            self._handle_failure(task, error)
+        except pb.PBConnectionLost as ex:
+            # Lost connection to the worker; not a failure.
+            # The attempt count is _not_ incremented.
+            self.log.warn(
+                "Worker no longer accepting work worker=%s error=%s",
+                worker.workerId, ex,
+            )
+            self._handle_retry(task, ex)
+        except Exception as ex:
+            self._handle_error(task, ex)
+            self.log.exception("Unexpected failure worklist=%s", self.name)
+        finally:
+            # if the task is retryable, push the task
+            # to the front of its queue.
+            if task.retryable:
+                self.worklist.pushfront(task.priority, task)
+                self.log.debug(
+                    "Task queued for retry service=%s method=%s id=%s",
+                    task.call.service, task.call.method, task.call.id.hex,
+                )
+            # Make the worker available for work again
+            self.workers.layoff(worker)
 
     def _handle_start(self, task, workerId):
         task.attempt += 1
@@ -223,14 +260,14 @@ class _Running(object):
 
     def _handle_success(self, task, result):
         # Send the result back to the submitter
-        self.reactor.callLater(0, task.success, result)
+        task.success(result)
         # Notify listeners of call completion (and success)
         notify(task.completed(result=result))
         self._log_completed(task)
 
     def _handle_failure(self, task, exception):
         # Send failure back to the submitter
-        self.reactor.callLater(0, task.failure, exception)
+        task.failure(exception)
         # Notify listeners of call completion (and failure)
         notify(task.completed(error=exception))
         self._log_completed(task)

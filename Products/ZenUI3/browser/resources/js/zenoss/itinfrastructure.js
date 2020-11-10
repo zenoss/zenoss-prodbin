@@ -172,7 +172,8 @@ Ext.onReady(function () {
             }
             if (Ext.getCmp('actions-menu')) {
                 Ext.getCmp('actions-menu').setDisabled(bool ||
-                    Zenoss.Security.doesNotHavePermission('Manage Device'));
+                    (Zenoss.Security.doesNotHavePermission('Change Device Production State') &&
+                     Zenoss.Security.doesNotHavePermission('Manage Device')));
             }
 
 
@@ -1525,7 +1526,19 @@ Ext.onReady(function () {
             selModel: new Zenoss.DeviceGridSelectionModel({
                 listeners: {
                     selectionchange: function (sm) {
-                        setDeviceButtonsDisabled(!sm.hasSelection());
+                        if (!_has_global_roles()) {
+                            if (sm.hasSelection()) {
+                                 var selection = sm.getSelection();
+                                 setDeviceButtonsDisabled(false);
+                                 selection.forEach(function(sel) {
+                                    Zenoss.Security.setContext(sel.data.uid)
+                                 });                            
+                             } else {
+                                 setDeviceButtonsDisabled(true);
+                             }
+                        } else {
+                            setDeviceButtonsDisabled(!sm.hasSelection());
+                        }
                     }
                 }
             }),
@@ -1956,7 +1969,8 @@ Ext.onReady(function () {
                         msg = [msg, '<br/><br/><strong>',
                             _t('WARNING'), '</strong>:',
                             _t(' This will also delete all devices in this {0}.'),
-                            '<br/>'].join('');
+                            '<br/>',
+                            _t(' Type the full path of the class you want to remove to confirm')].join('');
                     }
                     return Ext.String.format(msg, itemName.toLowerCase(), '/' + node.data.path);
                 },
@@ -2175,6 +2189,8 @@ Ext.onReady(function () {
             var node = Ext.getCmp('devices').getRootNode(),
                 selModel = getSelectionModel()
             selModel.select(node.firstChild);
+        } else {
+            Ext.util.History.selectByToken(Ext.util.History.currentToken)
         }
     });
 }); // Ext. OnReady

@@ -95,7 +95,7 @@ class ProcessSignalTask(object):
         except SchemaException:
             log.error("Unable to hydrate protobuf %s. " % message.content.body)
             self.queueConsumer.acknowledge(message)
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             # FIXME: Send to an error queue instead of acknowledge.
             log.error('Acknowledging broken message.')
@@ -129,18 +129,18 @@ class ProcessSignalTask(object):
                     target = ','.join(action.getTargets(notification, signal))
                 with self.notification_timer:
                     action.execute(notification, signal)
-            except ActionMissingException, e:
+            except ActionMissingException as e:
                 log.error('Error finding action: {action}'.format(action = notification.action))
                 audit_msg =  "%s Action:%s Status:%s Target:%s Info:%s" % (
                                     audit_event_trigger_info, notification.action, "FAIL", target, "<action not found>")
-            except ActionExecutionException, aee:
+            except ActionExecutionException as aee:
                 log.error('Error executing action: {action} on notification {notification}'.format(
                     action = notification.action,
                     notification = notification.id,
                 ))
                 audit_msg =  "%s Action:%s Status:%s Target:%s Info:%s" % (
                                     audit_event_trigger_info, notification.action, "FAIL", target, aee)
-            except Exception, e:
+            except Exception as e:
                 msg = 'Error executing action {notification}'.format(
                     notification = notification.id,
                 )

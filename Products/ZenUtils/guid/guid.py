@@ -97,7 +97,7 @@ class GUIDManager(object):
         self.traverse = self.context.unrestrictedTraverse
         try:
             self.table = self.traverse(self._table_path)
-        except (AttributeError, KeyError), e:
+        except (AttributeError, KeyError) as e:
             parent, name = self._table_path.rsplit('/', 1)
             self.table = ShardedBTree(n_shards=DEFAULT_NUMBER_OF_SHARDS)
             setattr(self.traverse(parent), name, self.table)

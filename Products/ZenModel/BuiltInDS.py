@@ -14,7 +14,7 @@ Define a data source for RRD files that just appear without
 additional configuration.
 """
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from RRDDataSource import RRDDataSource
 
 class BuiltInDS(RRDDataSource):

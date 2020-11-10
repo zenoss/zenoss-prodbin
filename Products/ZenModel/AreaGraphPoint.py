@@ -14,7 +14,7 @@ Handles GraphPoints that define an rrd AREA
 """
 
 from GraphPoint import GraphPoint
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.Utils import unused
 

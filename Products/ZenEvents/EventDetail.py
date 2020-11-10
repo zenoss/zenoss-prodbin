@@ -13,7 +13,7 @@ from Products.ZenModel.ZenModelItem import ZenModelItem
 from Acquisition import Implicit
 
 from AccessControl import Permissions as permissions
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 class EventDetail(ZEvent, ZenModelItem, Implicit):

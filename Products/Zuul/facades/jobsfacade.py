@@ -1,68 +1,107 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-from itertools import islice
 import logging
 from AccessControl import getSecurityManager
 from Products.Zuul.facades import ZuulFacade
-from Products.Zuul.decorators import info
-
 
 log = logging.getLogger('zen.JobsFacade')
 
 
 class JobsFacade(ZuulFacade):
+    """Facade for JobManager."""
 
-    @info
-    def getJobs(self, start=0, limit=50, sort='scheduled', dir='ASC',
-                createdBy=None):
+    def queryJobs(
+        self, start=0, limit=50, sort='created', dir='ASC', createdBy=None,
+    ):
+        """Returns the requested job records.
+
+        :return: A tuple containing the jobs and the total number of jobs.
+        :rtype: Tuple[Sequence[JobRecord], int]
+        """
         start = max(start, 0)
-        if limit is None:
-            stop = None
-        else:
-            stop = start + limit
-        kwargs = dict(sort_on=sort, sort_order='descending' if dir=='DESC' else 'ascending')
-        if createdBy:
-            kwargs['user'] = createdBy
-        brains = self._dmd.JobManager.getCatalog()(
-            **kwargs
+        queryArgs = {
+            "key": sort,
+            "reverse": (dir == "DESC"),
+            "offset": start,
+            "limit": limit,
+        }
+        if createdBy is not None:
+            queryArgs["criteria"] = {"userid": createdBy}
+        log.debug("queryArgs %s", queryArgs)
+        result = self._dmd.JobManager.query(**queryArgs)
+        return (
+            result["jobs"],
+            result["total"],
         )
-        total = len(brains)
-        results = islice(brains, start, stop)
-        return [b.getObject() for b in results], total
 
-    @info
-    def getInfo(self, jobid):
+    def getJob(self, jobid):
+        """Returns the job record identified by jobid.
+
+        :type jobid: str
+        :rtype: JobRecord
+        """
         return self._dmd.JobManager.getJob(jobid)
-    
-    def abortJob(self, id_):
-        self._dmd.JobManager.getJob(id_).abort()
 
-    def deleteJob(self, id_):
-        self._dmd.JobManager.deleteJob(id_)
+    def abortJob(self, jobid):
+        """Aborts the job record identified by jobid.
 
-    def getJobDetail(self, id_):
-        job = self._dmd.JobManager.getJob(id_)
+        :type jobid: str
+        """
+        self._dmd.JobManager.getJob(jobid).abort()
+
+    def deleteJob(self, jobid):
+        """Deletes the job record identified by jobid.
+
+        :type jobid: str
+        """
+        self._dmd.JobManager.deleteJob(jobid)
+
+    def getJobLog(self, jobid):
+        """Returns the last 100 lines of the job's log file.
+
+        The return value is a tuple structured as follows:
+
+            (<logfile>, <list of str>, <True if list is truncated log>)
+
+        If there's no log file the returned tuple's structure is:
+
+            (<error message>, (), None)
+
+        :type jobid: str
+        :rtype: Tuple[str, Tuple[str], Union[boolean, None]]
+        """
+        job = self._dmd.JobManager.getJob(jobid)
         try:
             with open(job.logfile, 'r') as f:
-                buffer = f.readlines()
-                return job.logfile, buffer[-100:], len(buffer) > 100
-                
+                _buffer = f.readlines()
+                return (
+                    job.logfile,
+                    tuple(_buffer[-100:]),
+                    len(_buffer) > 100,
+                )
         except (IOError, AttributeError):
-            return ("The log file for this job either does not exist or "
-                    "cannot be accessed."), (), None
+            return (
+                (
+                    "The log file for this job either does not exist or "
+                    "cannot be accessed."
+                ),
+                (),
+                None,
+            )
 
-    @info
     def getUserJobs(self):
+        """Returns the jobs associated with the current user.
+
+        :rtype: Tuple[JobRecord]
+        """
         user = getSecurityManager().getUser()
         if not isinstance(user, basestring):
             user = user.getId()
-        results = self._dmd.JobManager.getCatalog()(user=user)
-        return [b.getObject() for b in results]
+        return self._dmd.JobManager.query(criteria={"userid": user})["jobs"]

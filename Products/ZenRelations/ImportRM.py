@@ -341,7 +341,7 @@ for a ZenPack.
                         raise Exception(msg)
                 else:
                     obj = klass(id)
-            except TypeError, ex:
+            except TypeError as ex:
                 # This happens when the constructor expects more arguments
                 self.log.exception("Unable to build %s instance of class %s (line %s)",
                                    id, klass.__name__, self._locator.getLineNumber())
@@ -455,7 +455,7 @@ for a ZenPack.
                 obj = getObjByPath(self.app, objid)
                 if not rel.hasobject(obj):
                     rel.addRelation(obj)
-            except:
+            except Exception:
                 self.log.critical('Failed linking relation %s to object %s' % (
                                   relid, objid))
 
@@ -518,7 +518,7 @@ for a ZenPack.
         parser.setContentHandler(self)
         try:
             parser.parse(self.infile)
-        except SAXParseException, ex:
+        except SAXParseException as ex:
             self.log.error("XML parse error at line %d column %d: %s",
                    ex.getLineNumber(), ex.getColumnNumber(),
                    ex.getMessage())
@@ -570,7 +570,7 @@ class NoLoginImportRM(ImportRM):
         @type app: string
         """
         import Products.ZenossStartup
-        from Products.Five import zcml
+        from Zope2.App import zcml
         zcml.load_site()
         import logging
         self.log = logging.getLogger('zen.ImportRM')

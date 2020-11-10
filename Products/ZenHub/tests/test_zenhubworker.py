@@ -8,6 +8,7 @@
 ##############################################################################
 
 from __future__ import absolute_import
+import sys
 
 from unittest import TestCase
 from mock import patch, sentinel, call, Mock, create_autospec, ANY, MagicMock
@@ -19,6 +20,7 @@ from Products.ZenHub.zenhubworker import (
     PingZenHub,
     ServiceReferenceFactory,
     ServiceReference,
+    ZENHUB_MODULE,
     ZCmdBase,
     IDLE,
     IMetricManager,
@@ -50,6 +52,7 @@ class ZenHubWorkerTest(TestCase):
             'dmd': patch.object(ZenHubWorker, 'dmd', create=True),
             'log': patch.object(ZenHubWorker, 'log', create=True),
             'options': patch.object(ZenHubWorker, 'options', create=True),
+            'connection': patch.object(ZenHubWorker, 'connection', create=True),
         }
         for name, patcher in t.zcmdbase_patchers.items():
             setattr(t, name, patcher.start())
@@ -69,6 +72,7 @@ class ZenHubWorkerTest(TestCase):
             'clientFromString',
             'getGlobalSiteManager',
             'loadPlugins',
+            'load_config',
             'reactor',
             'ContinuousProfiler',
             'MetricManager',
@@ -103,6 +107,7 @@ class ZenHubWorkerTest(TestCase):
     def test___init__(t):
         t.ZCmdBase__init__.assert_called_with(t.zhw)
 
+        t.load_config.assert_called_with("hubworker.zcml", ZENHUB_MODULE)
         # Optional Profiling
         t.ContinuousProfiler.assert_called_with('ZenHubWorker', log=t.zhw.log)
         t.assertEqual(t.zhw.profiler, t.ContinuousProfiler.return_value)
@@ -362,6 +367,8 @@ class ZenHubWorkerTest(TestCase):
         # parser expected to be added by CmdBase.buildParser
         from optparse import OptionParser
         t.zhw.parser = OptionParser()
+        # Given no command line arguments
+        sys.argv = []
 
         t.zhw.buildOptions()
         t.zhw.options, args = t.zhw.parser.parse_args()
@@ -397,6 +404,7 @@ class ZenHubClientTest(TestCase):
             'PingZenHub',
             'backoffPolicy',
             'getLogger',
+            'load_config',
             'reactor',
             'task.LoopingCall',
         ]

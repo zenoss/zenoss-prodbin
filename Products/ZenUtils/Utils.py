@@ -27,9 +27,6 @@ import tempfile
 import logging
 import re
 import socket
-import inspect
-import threading
-import Queue
 import math
 import contextlib
 import string
@@ -59,8 +56,11 @@ from zope.schema._field import Password
 
 from .Exceptions import ZenPathError, ZentinelException
 from .jsonutils import unjson
-from .Logger import (
+from .Logger import (  # noqa: F401
     HtmlFormatter, setWebLoggingStream, clearWebLoggingStream, setLogLevel,
+)
+from .Threading import (  # noqa: F401
+    ThreadInterrupt, InterruptableThread, LineReader,
 )
 
 log = logging.getLogger("zen.Utils")
@@ -241,14 +241,6 @@ def getObjByPath(base, path, restricted=0):
                 next = guarded_getattr(obj, name, marker)
             else:
                 next = _getattr(obj, name, marker)
-                ## Below this is a change from the standard traverse from zope
-                ## it allows a path to use acquisition which is not what
-                ## we want.  Our version will fail if one element of the
-                ## path doesn't exist. -EAD
-                #if hasattr(aq_base(obj), name):
-                #    next = _getattr(obj, name, marker)
-                #else:
-                #    raise NotFound, name
             if next is marker:
                 try:
                     next=obj[name]
@@ -490,7 +482,7 @@ def importClass(modulePath, classname=""):
         try:
             __import__(modulePath, globals(), locals(), classname)
             mod = sys.modules[modulePath]
-        except (ValueError, ImportError, KeyError), ex:
+        except (ValueError, ImportError, KeyError) as ex:
             raise ex
 
         return getattr(mod, classname)
@@ -1233,10 +1225,7 @@ def executeCommand(cmd, REQUEST, write=None):
                 write(s)
             else:
                 log.info(s)
-    except (SystemExit, KeyboardInterrupt):
-        if xmlrpc: return 1
-        raise
-    except ZentinelException, e:
+    except ZentinelException as e:
         if xmlrpc: return 1
         log.critical(e)
     except Exception:
@@ -1594,12 +1583,16 @@ def is_browser_connection_open(request):
     preclude the thread from being destroyed even though the connection has
     been closed.
     """
-    creation_time = request.environ['channel.creation_time']
-    for cnxn in asyncore.socket_map.values():
-        if (isinstance(cnxn, zhttp_channel) and
-            cnxn.creation_time==creation_time):
-            return True
-    return False
+    missing = object()
+    env = getattr(request, "environ", {})
+    creation_time = env.get("channel.creation_time", missing)
+    if creation_time is missing:
+        return False
+    return any(
+        getattr(cnxn, "creation_time", missing) == creation_time
+        for cnxn in asyncore.socket_map.values()
+        if isinstance(cnxn, zhttp_channel)
+    )
 
 
 EXIT_CODE_MAPPING = {
@@ -1735,11 +1728,18 @@ def load_config_override(file, package=None, execute=True):
     key = (file, package)
     if not key in _LOADED_CONFIGS:
         from zope.configuration import xmlconfig
-        from Products.Five.zcml import _context
+        from Zope2.App.zcml import _context
         xmlconfig.includeOverrides(_context, file, package=package)
         if execute:
             _context.execute_actions()
         _LOADED_CONFIGS.add(key)
+
+
+def has_feature(name):
+    """Return True if named feature is provided, otherwise return False."""
+    from Zope2.App.zcml import _context
+    return _context.hasFeature(name)
+
 
 def rrd_daemon_running():
     """
@@ -1804,7 +1804,7 @@ def swallowExceptions(log, msg=None, showTraceback=True, returnValue=None):
             return func(*args, **kwargs)
         except ConflictError:
             raise
-        except Exception, e:
+        except Exception as e:
             if log is not None:
                 if showTraceback:
                     log.exception(msg if msg else str(e))
@@ -1922,68 +1922,6 @@ def isZenBinFile(name):
     if os.path.sep in name:
         return False
     return os.path.isfile(binPath(name))
-
-
-
-class ThreadInterrupt(Exception):
-    """
-    An exception that can be raised in a thread from another thread.
-    """
-
-
-class InterruptableThread(threading.Thread):
-    """
-    A thread class that supports being interrupted. Target functions should
-    catch ThreadInterrupt to perform cleanup.
-
-    Code is a somewhat modified version of Bluebird75's solution found at
-    http://stackoverflow.com/questions/323972/is-there-any-way-to-kill-a-thread-in-python
-    """
-    def _raise(self, exception_type=ThreadInterrupt):
-        threadid = ctypes.c_long(self.ident)
-        exception = ctypes.py_object(exception_type)
-        result = ctypes.pythonapi.PyThreadState_SetAsyncExc(threadid, exception)
-        if result == 0:
-            raise ValueError("Invalid thread id: %s" % self.ident)
-        elif result != 1:
-            ctypes.pythonapi.PyThreadState_SetAsyncExc(threadid, None)
-            raise SystemError("Failed to interrupt thread")
-
-    def interrupt(self, exception_type=ThreadInterrupt):
-        if not inspect.isclass(exception_type):
-            raise TypeError("Can't raise exception instances into a thread.")
-        self._raise(exception_type)
-
-    def kill(self):
-        self.interrupt(SystemExit)
-
-
-class LineReader(threading.Thread):
-    """
-    Simulate non-blocking readline() behavior.
-    """
-
-    daemon = True
-
-    def __init__(self, stream):
-        """
-        @param stream {File-like object} input data stream
-        """
-        super(LineReader, self).__init__()
-        self._stream = stream
-        self._queue = Queue.Queue()
-
-    def run(self):
-        for line in iter(self._stream.readline, b''):
-            self._queue.put(line)
-        self._stream.close()
-        self._stream = None
-
-    def readline(self, timeout=0):
-        try:
-            return self._queue.get(timeout=timeout)
-        except Queue.Empty:
-            return ''
 
 
 def wait(seconds):

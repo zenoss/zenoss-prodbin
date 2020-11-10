@@ -1,13 +1,12 @@
 #!/bin/bash
 
-if [ $1 = "mariadb-model" ]
-  then
-     DB="zodb"
-  else
-    DB="zep"
+if [[ $1 = "mariadb-model" ]]; then
+  DB="zodb"
+else
+  DB="zep"
 fi
 
-/opt/zenoss/bin/python /opt/zenoss/Products/ZenUtils/ZenDB.py --usedb $DB --execsql=<<SQL
+/usr/bin/python /opt/zenoss/Products/ZenUtils/ZenDB.py --usedb $DB --execsql=<<SQL
 USE information_schema;
 
 SELECT
