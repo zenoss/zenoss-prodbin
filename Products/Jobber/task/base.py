@@ -72,11 +72,21 @@ class ZenTask(SendZenossEventMixin, Task):
 
         This overridden version adds the currently logged in user's ID
         to the headers sent along with the task to Celery.
+
+        This overridden method also sets an ID for the job.  Normally,
+        Celery does not assign an ID until the job is submitted, but for
+        Zenoss, the ID needs to be set before submission.
         """
-        headers = kw.setdefault("headers", {})
-        userid = getSecurityManager().getUser().getId()
-        headers["userid"] = userid
-        kw["task_id"] = str(uuid.uuid4())
+        # Note that when a job is retried, this method is called when the
+        # job is re-submitted.  Therefore, the current request is
+        # tested before setting the values.  Nothing is set if there is a
+        # currently active request.
+        if self.request.headers is None:
+            headers = kw.setdefault("headers", {})
+            userid = getSecurityManager().getUser().getId()
+            headers["userid"] = userid
+        if self.request.id is None:
+            kw["task_id"] = str(uuid.uuid4())
         return super(ZenTask, self).subtask(*args, **kw)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
