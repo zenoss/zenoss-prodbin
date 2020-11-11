@@ -75,6 +75,9 @@ class DMD(object):
                 "Reschedule task to execute after %s seconds.", duration,
             )
             self.retry(exc=ex, countdown=duration)
+        except BaseException:  # catch all exceptions
+            transaction.abort()
+            raise  # reraise the exception
 
     @property
     def dmd(self):
@@ -102,11 +105,6 @@ def zodb(db, userid, log):
         mlog.debug(*log_mesg)
         try:
             yield dataroot
-            # No transaction.commit() because the DMD class defined
-            # elsewhere handles commits using the transact decorator.
-        except:  # noqa
-            transaction.abort()
-            raise  # reraise the exception
         finally:
             noSecurityManager()
     finally:
