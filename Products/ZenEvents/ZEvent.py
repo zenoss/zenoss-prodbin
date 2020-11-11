@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from Event import Event

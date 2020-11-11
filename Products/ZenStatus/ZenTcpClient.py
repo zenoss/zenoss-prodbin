@@ -104,7 +104,7 @@ class ZenTcpTest(protocol.Protocol):
         self.data = ""
         try:
             self.defer.cancel()
-        except:
+        except Exception:
             self.defer = None
         self.transport.loseConnection()
 

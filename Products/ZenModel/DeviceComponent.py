@@ -14,7 +14,7 @@ All device components inherit from this class
 
 """
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 

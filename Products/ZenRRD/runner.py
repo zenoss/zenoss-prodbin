@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import
+
 import logging
 
 from twisted.internet import reactor, defer
@@ -14,11 +16,11 @@ from twisted.internet.error import ProcessExitedAlready
 from twisted.internet.protocol import ProcessProtocol
 from twisted.python.failure import Failure
 
-from zope.interface import Interface, Attribute, implements
+from zope.interface import Interface, Attribute, implementer
 
 from Products.DataCollector.SshClient import SshClient
-from Products.ZenUtils.Utils import DictAsObj
 from Products.ZenCollector.pools import getPool
+from Products.ZenUtils.Utils import DictAsObj
 
 log = logging.getLogger("zen.runner")
 
@@ -30,16 +32,17 @@ class TimeoutError(Exception):
 
 
 def getRunner(proxy=None, client=None, connection=None):
-
+    # 'proxy' is a device config object.
     if client and issubclass(client, SshRunner.client):
         runner = SshRunner(proxy, client)
         runner.connection = connection
     else:
-        runner = ProcessRunner()
+        runner = ProcessRunner(proxy)
     return runner
 
 
 class IRunner(Interface):
+
     connection = Attribute("Object describing the client connection")
     client = Attribute("Client connection class")
     proxy = Attribute("Connection information about a device")
@@ -49,17 +52,17 @@ class IRunner(Interface):
 
     def connect(self, task):
         """
-        Establishes a connection through the connection client
+        Establishes a connection through the connection client.
         """
 
     def send(self, command):
         """
-        Send a command through the connection
+        Send a command through the connection.
         """
 
     def close(self):
         """
-        Closes the connection to the client
+        Closes the connection to the client.
         """
 
 
@@ -67,6 +70,7 @@ class IClient(Interface):
     """
     Interface for supporting client connection objects
     """
+
     connect_defer = Attribute("Deferred for establishing a connection")
     command_defers = Attribute("Deferreds for submitting commands")
     close_defer = Attribute("Deferred for a closed connection")
@@ -75,8 +79,9 @@ class IClient(Interface):
     is_expired = Attribute("Boolean to mark an expired connection")
 
 
+@implementer(IRunner)
 class ProcessRunner(ProcessProtocol):
-    implements(IRunner)
+    """A ProcessRunner executes commands on the host (local server)."""
 
     connection = None
     client = None
@@ -85,35 +90,35 @@ class ProcessRunner(ProcessProtocol):
     output = None
     stderr = None
 
-    def __init__(self):
+    def __init__(self, proxy):
         self.output = []
         self.stderr = []
+        self.proxy = proxy
 
     def connect(self, task=None):
-        """
-        Commands are run locally, so this is simply a passthrough
-        """
         log.debug("Running command(s) locally")
         return defer.succeed(None)
 
-    def send(self, command):
+    def send(self, datasource):
         """
         Kick off the process
+
+        @type datasource: Products.ZenRRD.zencommand.Cmd
         """
-        log.debug("Running %s", command.command.split()[0])
+        log.debug("Running %s", datasource.command.split()[0])
         shell = "/bin/sh"
-        cmdline = (shell, '-c', 'exec %s' % command.command)
+        cmdline = (shell, "-c", "exec %s" % datasource.command)
 
-        self.command = command
-        self.stdin = ' '.join(cmdline)
+        self.datasource = datasource
+        self.stdin = " ".join(cmdline)
 
-        commandTimeout = command.deviceConfig.zCommandCommandTimeout
-        d = self.command_defer = defer.Deferred()
-        reactor.spawnProcess(self, shell, cmdline, env=command.env)
+        commandTimeout = self.proxy.zCommandCommandTimeout
+        self._deferred = defer.Deferred()
+        reactor.spawnProcess(self, shell, cmdline, env=datasource.env)
         self._timer = reactor.callLater(commandTimeout, self.timeout)
         self.isTimeout = False
 
-        return d
+        return self._deferred
 
     def close(self, *args):
         pass
@@ -123,9 +128,9 @@ class ProcessRunner(ProcessProtocol):
         Kill a process gracefully if it takes too long
         """
         self.isTimeout = True
-        if not self.command_defer.called:
+        if not self._deferred.called:
             if timedOut:
-                self.command_defer.errback(TimeoutError(self.command))
+                self._deferred.errback(TimeoutError(self.datasource))
             try:
                 self.transport.signalProcess("INT")
                 reactor.callLater(2, self._reap)
@@ -161,28 +166,32 @@ class ProcessRunner(ProcessProtocol):
         if self.exitCode is not None:
             if not self.isTimeout:
                 self._timer.cancel()
-            self.output = ''.join(self.output)
-            self.stderr = ''.join(self.stderr)
+            self.output = "".join(self.output)
+            self.stderr = "".join(self.stderr)
 
             msg = "Datasource: %s Received exit code: %s Output: \n%r"
-            data = [self.command.ds, self.exitCode, self.output]
+            data = [self.datasource.ds, self.exitCode, self.output]
             if self.stderr:
                 msg += "\nStandard Error:\n%r"
                 data.append(self.stderr)
             log.debug(msg, *data)
 
-        d, self.command_defer = self.command_defer, None
+        d, self._deferred = self._deferred, None
         if not d.called:
             d.callback(self)
 
 
+@implementer(IRunner)
 class SshRunner(object):
-    implements(IRunner)
+    """Execute commands on the remote end of an SSH connection."""
 
     POOLNAME = "SSH Connections"
-    EXPIRED_MESSAGES = ("WARNING: Your password has expired.\nPassword" \
-        " change required but no TTY available.\n",)
+    EXPIRED_MESSAGES = (
+        "WARNING: Your password has expired.\n"
+        "Password change required but no TTY available.\n",
+    )
 
+    datasource = None
     connection = None
     client = SshClient
     proxy = None
@@ -192,8 +201,10 @@ class SshRunner(object):
 
     def __init__(self, proxy, client):
         self.proxy = proxy
-        self.client = client #note SshRunner only works with MySshClient from zencommand because of its is_expiredidden
-                             # run method and close_defer attr
+        # NOTE: SshRunner only works with MySshClient from zencommand because
+        # of its `is_expired` and `close_defer` attributes and its run method
+        # which returns a deferred object.
+        self.client = client
 
         self.task = None
         self.deviceId = self.proxy.id
@@ -209,7 +220,7 @@ class SshRunner(object):
 
         self._sshOptions = DictAsObj(
             loginTries=1,
-            searchPath='',
+            searchPath="",
             existenceTest=None,
             username=_username,
             password=_password,
@@ -223,15 +234,18 @@ class SshRunner(object):
 
     @defer.inlineCallbacks
     def connect(self, task):
-        """
-        Establish a connection with the device
+        """Establish a connection with the device.
         """
         self.task = task
-        self._setupConnector()
+        yield self._setupConnector()
         self.connection = yield self._establishConnection()
-        log.debug("Connected to %s [%s]", self.deviceId, self.manageIp)
+        log.debug(
+            "Connection established  device=%s manage-ip=%s",
+            self.deviceId, self.manageIp,
+        )
         self.connection.tasks.add(self.task)
-        self.connection.close_defer.addCallback(self.cleanUpPool) # called when connection is closed, see MySshClient
+        # cleanUpPool called when connection is closed, see MySshClient
+        self.connection.close_defer.addCallback(self.cleanUpPool)
 
     @defer.inlineCallbacks
     def _setupConnector(self):
@@ -240,49 +254,61 @@ class SshRunner(object):
         Set up a list for storing deferred objects that will callback
         or errback based on the result of the initial deferred.
         """
-        if self._poolkey not in self._pool:
-            log.debug("Creating connection object to %s", self.deviceId)
-            connection = self.client(self.deviceId, self.manageIp, self.port,
-                                     options=self._sshOptions)
-            self._pool[self._poolkey] = []
+        if self._poolkey in self._pool:
+            log.debug(
+                "Connector already in pool  device=%s pool-key=%s",
+                self.deviceId, self._poolkey,
+            )
+            defer.returnValue(None)
 
-            try:
-                connection = yield connection.run()
-            except Exception, e:
-                deferredList = self._pool.get(self._poolkey, [])
-                self.cleanUpPool(connection)
-                for d in deferredList:
-                    d.errback(e)
-            else:
-                deferredList = self._pool.get(self._poolkey, [])
-                self._pool[self._poolkey] = connection
-                for d in deferredList:
-                    d.callback(connection)
+        connection = self.client(
+            self.deviceId,
+            self.manageIp,
+            self.port,
+            options=self._sshOptions,
+        )
+        self._pool[self._poolkey] = []
+
+        try:
+            connection = yield connection.run()
+        except Exception as e:
+            deferredList = self._pool.get(self._poolkey, [])
+            self.cleanUpPool(connection)
+            for d in deferredList:
+                d.errback(e)
+            log.error("Failed to set up connection  error=%s", e)
+        else:
+            deferredList = self._pool.get(self._poolkey, [])
+            self._pool[self._poolkey] = connection
+            for d in deferredList:
+                d.callback(connection)
 
     def _establishConnection(self):
         """
         Either creates a deferred to append to the pool list otherwise, wraps
         the result
         """
-
         if isinstance(self._pool[self._poolkey], list):
             d = defer.Deferred()
             self._pool[self._poolkey].append(d)
         else:
             d = defer.succeed(self._pool[self._poolkey])
-
         return d
 
-    def send(self, command):
+    def send(self, datasource):
         """
         Create a channel on the connection and send the command
+
+        @type datasource: Products.ZenRRD.zencommand.Cmd
         """
-        self.command = command
-        d = self.command_defer = self.connection.addCommand(command.command)
-        self._timer = reactor.callLater(self._sshOptions.commandTimeout,
-                                        self.timeout)
-        d.addBoth(self.processEnded)
-        return d
+        self.datasource = datasource
+        self._deferred = self.connection.addCommand(datasource.command)
+        self._deferred.addBoth(self.processEnded)
+        log.debug(
+            "Command sent  device=%s command=%r",
+            self.deviceId, datasource.command,
+        )
+        return self._deferred
 
     def close(self):
         """
@@ -291,19 +317,11 @@ class SshRunner(object):
         """
         if self.connection:
             self.connection.tasks.discard(self.task)
-            if not self.connection.tasks:  #last task using connection so can be closed
+            if not self.connection.tasks:
+                # Last task is using connection so can be closed
                 self.connection.clientFinished()
                 self.cleanUpPool(close=True)
             self.connection = None
-
-    def timeout(self, timedOut=True):
-        """
-        Deal with slow executing commmand/connection (close it)
-        We could send a kill signal, but then we would need to track the
-        command channel to send it.  Just close the connection instead
-        """
-        if not self.command_defer.called:
-            self.command_defer.errback(TimeoutError(self.command))
 
     def cleanUpPool(self, connection=None, close=False):
         """
@@ -312,12 +330,13 @@ class SshRunner(object):
         connection = connection or self.connection
 
         if self._poolkey in self._pool:
-            log.debug("Deleting connection %s from pool",
-                      connection)
             del self._pool[self._poolkey]
-        if close and connection and hasattr(connection, 'transport'):
-                connection.transport.loseConnection()
-
+            log.debug(
+                "Deleted connection from pool  device=%s connection=%s",
+                self.deviceId, connection,
+            )
+        if close and connection and hasattr(connection, "transport"):
+            connection.transport.loseConnection()
 
     def processEnded(self, result):
         """
@@ -326,16 +345,18 @@ class SshRunner(object):
         if isinstance(result, Failure):
             return result
 
-        self._timer.cancel()
         self.output, self.exitCode, self.stderr = result
 
-        if not self.connection.is_expired \
-                and self.stderr in SshRunner.EXPIRED_MESSAGES:
-
-            log.debug('Connection %s expired, cleaning up pool',
-                self.connection.description)
+        if (
+            not self.connection.is_expired
+            and self.stderr in SshRunner.EXPIRED_MESSAGES
+        ):
+            log.debug(
+                "Connection expired, cleaning up pool  "
+                "device=%s connection=%s",
+                self.deviceId, self.connection.description,
+            )
             self.connection.is_expired = True
             self.cleanUpPool(close=True)
 
         return self
-

@@ -17,7 +17,7 @@ rather than just number bounds checking.
 
 from AccessControl import Permissions
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from ThresholdClass import ThresholdClass
 from ThresholdInstance import ThresholdContext
 from Products.ZenEvents import Event
@@ -134,7 +134,7 @@ class MinMaxThreshold(ThresholdClass):
                 express = "python:%s" % value
                 evaluated = talesEval(express, context)
                 value = evaluated
-            except:
+            except Exception:
                 nodeName = context.getNodeName()
                 if nodeName == 'Device':
                     location = '{} of Device {}'.format(self.dsnames, context.id)
@@ -322,7 +322,7 @@ class MinMaxThresholdInstance(MetricThresholdInstance):
         if rpn:
             try:
                 rpn = talesEvalStr(rpn, context)
-            except Exception, e:
+            except Exception as e:
                 log.exception(e)
                 self.raiseRPNExc()
                 return []
@@ -330,14 +330,14 @@ class MinMaxThresholdInstance(MetricThresholdInstance):
             try:
                 if minval is not NaN:
                     minval = rpneval(minval, rpn)
-            except:
+            except Exception:
                 minval= 0
                 self.raiseRPNExc()
 
             try:
                 if maxval is not NaN:
                     maxval = rpneval(maxval, rpn)
-            except:
+            except Exception:
                 maxval= 0
                 self.raiseRPNExc()
 

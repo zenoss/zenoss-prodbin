@@ -28,6 +28,7 @@ from twisted.spread import pb
 from zope.component import getGlobalSiteManager
 
 import Globals  # noqa: F401
+import Products.ZenHub as ZENHUB_MODULE
 
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT
@@ -40,7 +41,7 @@ from Products.ZenHub.PBDaemon import RemoteBadMonitor
 from Products.ZenUtils.debugtools import ContinuousProfiler
 from Products.ZenUtils.PBUtil import setKeepAlive
 from Products.ZenUtils.Time import isoDateTime
-from Products.ZenUtils.Utils import zenPath, atomicWrite
+from Products.ZenUtils.Utils import zenPath, atomicWrite, load_config
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 IDLE = "None/None"
@@ -61,7 +62,7 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
     def __init__(self, reactor):
         """Initialize a ZenHubWorker instance."""
         ZCmdBase.__init__(self)
-
+        load_config("hubworker.zcml", ZENHUB_MODULE)
         self.__reactor = reactor
 
         if self.options.profiling:

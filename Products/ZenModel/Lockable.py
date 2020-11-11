@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenWidgets import messaging

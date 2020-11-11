@@ -36,7 +36,7 @@ class RemoveStatusMonitor(Migrate.Step):
             t = dmd.Monitors.rrdTemplates.PerformanceConf.thresholds
             t = t._getOb('zenping cycle time')
             t.maxval = 'here.pingCycleInterval * 0.8'
-        except AttributeError, err:
+        except AttributeError as err:
             pass
         for perf in dmd.Monitors.Performance.objectSubValues():
             perf.checkRelations(repair=True)

@@ -68,7 +68,7 @@ class ZenDaemon(CmdBase):
             if self.options.daemon:
                 self.changeUser()
                 self.becomeDaemon()
-            if self.options.daemon or self.options.watchdogPath:
+            if self.options.pidfile or self.options.daemon or self.options.watchdogPath:
                 try:
                     self.writePidFile()
                 except OSError:
@@ -131,11 +131,15 @@ class ZenDaemon(CmdBase):
         """
         Write the PID file to disk
         """
-        myname = sys.argv[0].split(os.sep)[-1]
-        if myname.endswith('.py'):
-            myname = myname[:-3]
-        monitor = getattr(self.options, 'monitor', 'localhost')
-        myname = "%s-%s.pid" % (myname, monitor)
+        pidfile = getattr(self.options, 'pidfile', '')
+        if pidfile:
+            myname = pidfile
+        else:
+            myname = sys.argv[0].split(os.sep)[-1]
+            if myname.endswith('.py'):
+                myname = myname[:-3]
+            monitor = getattr(self.options, 'monitor', 'localhost')
+            myname = "%s-%s.pid" % (myname, monitor)
         if self.options.watchdog and not self.options.watchdogPath:
             self.pidfile = zenPath("var", 'watchdog-%s' % myname)
         else:
@@ -199,7 +203,6 @@ class ZenDaemon(CmdBase):
 
             for handler in (h for h in rootLog.handlers
                     if isinstance(h, logging.StreamHandler)):
-                handler.setLevel(self.options.logseverity)
                 handler.setFormatter(formatter)
 
         self.log = logging.getLogger('zen.%s' % self.logname)
@@ -276,14 +279,14 @@ class ZenDaemon(CmdBase):
             getproxies()
         try:
             pid = os.fork()
-        except OSError, e:
+        except OSError as e:
             raise Exception("%s [%d]" % (e.strerror, e.errno))
 
         if pid == 0:  # The first child.
             os.setsid()
             try:
                 pid = os.fork()  # Fork a second child.
-            except OSError, e:
+            except OSError as e:
                 raise Exception("%s [%d]" % (e.strerror, e.errno))
 
             if pid == 0:  # The second child.
@@ -441,3 +444,6 @@ class ZenDaemon(CmdBase):
                 type='int',
                 help="Set a heartbeat timeout in seconds for a daemon",
                 default=900)
+        self.parser.add_option('--pidfile', dest='pidfile', default="",
+                help='pidfile to save a pid number of a process')
+        

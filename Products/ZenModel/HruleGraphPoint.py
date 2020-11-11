@@ -14,7 +14,7 @@ Handles GraphPoints that define an rrd Line
 """
 
 from GraphPoint import GraphPoint
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 
 def manage_addHruleGraphPoint(context, id, REQUEST = None):

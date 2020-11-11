@@ -17,7 +17,7 @@ from zope.event import notify
 from zope.interface import implements
 from ZODB.transact import transact
 from AccessControl import ClassSecurityInfo
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 from Organizer import Organizer
 from DeviceManagerBase import DeviceManagerBase

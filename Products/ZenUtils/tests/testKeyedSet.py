@@ -57,7 +57,7 @@ class KeyedSetTest(unittest.TestCase):
             ks.pop_by_key('a')
         except KeyError:
             self.assertTrue(True)
-        except:
+        except Exception:
             self.assertTrue(False)
         else:
             self.assertTrue(False)
@@ -73,7 +73,7 @@ class KeyedSetTest(unittest.TestCase):
         self.assertTrue(not ks)
         try:
             self.assertEqual(ks.discard_by_key('a'), set())
-        except:
+        except Exception:
             self.assertTrue(False)
 
 
@@ -100,7 +100,7 @@ class KeyedSetTest(unittest.TestCase):
                 ks.remove(item)
             except KeyError:
                 self.assertTrue(True)
-            except:
+            except Exception:
                 self.assertTrue(False)
             else:
                 self.assertTrue(False)

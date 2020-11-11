@@ -13,9 +13,10 @@ Holds an assortment of devices and/or components on a multi-style report.
 """
 import sys
 
-from Globals import InitializeClass
-from AccessControl import ClassSecurityInfo, Permissions
 from Globals import DTMLFile
+from AccessControl import ClassSecurityInfo, Permissions
+from AccessControl.class_init import InitializeClass
+from zope.component import getUtility
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from Products.ZenUtils.Utils import resequence

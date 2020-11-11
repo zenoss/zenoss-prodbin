@@ -119,6 +119,6 @@ class SiteError:
             mailSent = True
         finally:
             try: server.quit()
-            except: pass
+            except Exception: pass
         return mailSent
     sendErrorEmail = classmethod(sendErrorEmail)

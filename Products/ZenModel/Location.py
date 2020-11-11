@@ -14,7 +14,7 @@ $Id: Location.py,v 1.12 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.12 $"[11:-2]
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Globals import DTMLFile
 import transaction
 from AccessControl import ClassSecurityInfo
@@ -188,7 +188,7 @@ class Location(DeviceOrganizer, ZenPackable):
         """
         cache = extractPostContent(REQUEST)
         try: cache = cache.decode('utf-8')
-        except: pass
+        except Exception: pass
         from json import loads
         geocode = loads(cache)
         for uid, geo in geocode.iteritems():

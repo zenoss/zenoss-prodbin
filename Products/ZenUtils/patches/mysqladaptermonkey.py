@@ -19,6 +19,7 @@ import logging
 import traceback
 import time
 from Products.ZenUtils.Utils import monkeypatch
+from MySQLdb import OperationalError
 
 TRIM_TIME = time.time()
 
@@ -37,11 +38,18 @@ _trim_sql = (
     AND information_schema.processlist.db = DATABASE() \
     WHERE information_schema.innodb_trx.trx_mysql_thread_id IS NULL AND information_schema.processlist.id IS NULL;")
 
+READ_ONLY_TRANSACTION_ERROR = 1792
+
 def trim_db(conn, cursor):
     try:
         conn.autocommit(True)
         cursor.execute(_trim_sql)
-    except:
+    except OperationalError as ex:
+        code, msg = ex.args
+        if code != READ_ONLY_TRANSACTION_ERROR:
+            LOG.debug("Unable to record pid and thread_id to connection_info",
+                exc_info=True)
+    except Exception:
         LOG.error("Unable to trim data in the connection_info table",
                 exc_info=True)
     finally:
@@ -56,7 +64,12 @@ def record_pid(conn, cursor):
         stacktrace = ''.join(traceback.format_stack())
         info = "pid=%d tid=%d\n%s\n%s" % (pid, tid, cmd, stacktrace)
         cursor.execute(_record_pid_sql, (pid, info, pid, info))
-    except:
+    except OperationalError as ex:
+        code, msg = ex.args
+        if code != READ_ONLY_TRANSACTION_ERROR:
+            LOG.debug("Unable to record pid and thread_id to connection_info",
+                exc_info=True)
+    except Exception:
         LOG.debug("Unable to record pid and thread_id to connection_info",
                  exc_info=True)
     finally:
@@ -81,7 +94,7 @@ try:
                 sql = "DELETE FROM connection_info WHERE connection_id = connection_id();"
                 cursor.execute(sql)
                 conn.commit()
-        except:
+        except Exception:
             pass
         original(self, conn, cursor)
 
@@ -112,4 +125,3 @@ try:
 
 except ImportError:
     pass
-

@@ -18,7 +18,7 @@ __version__ = "$Revision: 1.4 $"[11:-2]
 
 from OFS.PropertyManager import PropertyManager
 from Globals import DTMLFile
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 class ConfmonPropManager(PropertyManager):
 

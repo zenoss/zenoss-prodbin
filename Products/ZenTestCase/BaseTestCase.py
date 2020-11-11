@@ -18,7 +18,7 @@ from transaction._transaction import Transaction
 from Testing import ZopeTestCase
 from Testing.ZopeTestCase.layer import ZopeLite
 
-from Products.Five import zcml
+from Zope2.App import zcml
 
 from Products.ZenModel.DmdBuilder import DmdBuilder
 from Products.ZenModel.ZentinelPortal import PortalGenerator

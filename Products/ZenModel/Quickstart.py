@@ -18,7 +18,7 @@ in the last-in first-out order
 import logging
 
 from AccessControl import ClassSecurityInfo
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from OFS.SimpleItem import SimpleItem
 from Products.ZenModel.ZenModelItem import ZenModelItem
 

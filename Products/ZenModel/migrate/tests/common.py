@@ -1,17 +1,15 @@
-#!/usr/bin/env python
-
 import importlib
 import difflib
 import json
 import mock
 import os
-from collections import namedtuple
-from itertools import chain, tee
 
-import Globals
+from collections import namedtuple, OrderedDict
+from itertools import chain, tee
 from servicemigration import context, service
 
 import logging
+
 log = logging.getLogger("zen.migrate")
 log.setLevel(logging.CRITICAL)
 
@@ -26,7 +24,7 @@ def fakeContextFromFile(jsonfile):
             for datum in json.loads(open(jsonfile, 'r').read()):
                 self.services.append(service.deserialize(datum))
             self.version = self.services[0]._Service__data["Version"]
-            # ZEN-28127 _client is a ref to ZenUtils.controlplane.ControlPlaneClient,
+            # _client is a ref to ZenUtils.controlplane.ControlPlaneClient,
             # which we don't need during unit-tests. So set it to None
             self._client = None
             self.__logFilters = dict()
@@ -93,64 +91,75 @@ class FakeDmd:
 def compare(this, that, path=None):
     """
     Compare two json serialized values.
-    Returns a triplet:
-        1) Boolean representing whether the two objects are equal
-        2) If not equal, the path leading to the first difference
-        3) If not equal, either a compare.Diff object or, in the
-           case of a diff in a multi-line string, a generator
-           containing a text representation of the diff
+    Returns an iterable of differences.  Each difference is a pair of
+    values.  The first value is the path where difference is found and
+    the second value is the difference itself.  The difference may be
+    a compare.Diff object or a string having a unified diff format.
     """
     path = path or []
-    iab = []
     if isinstance(this, list):
         if not isinstance(that, list):
-            return False, path, compare.Diff(this, that)
+            return ((path, compare.Diff(this, that)),)
         if len(this) != len(that):
-            return False, path, compare.Diff(this, that)
-        iab = enumerate(zip(this, that))
+            return ((path, compare.Diff(this, that)),)
+        return (
+            (p, d)
+            for i, (a, b) in enumerate(zip(this, that))
+            for (p, d) in compare(a, b, path + [i])
+        )
     elif isinstance(this, dict):
         if not isinstance(that, dict):
-            return False, path, compare.Diff(this, that)
-        # The json deserialization in serviced does a case-insensitive match on
-        #   the field name, choosing the last match encountered for any field.
-        #   The keys are sorted in service-migration, so in the case of
-        #   duplicates the "most lower-case" is the last and therefore wins.
+            return ((path, compare.Diff(this, that)),)
+        # The json deserialization in serviced does a case-insensitive match
+        # on the field name, choosing the last match encountered for any field.
+        # The keys are sorted in service-migration, so in the case of
+        # duplicates the "most lower-case" is the last and therefore wins.
         # Duplicate this behavior when comparing dictionaries.
-        dis = dict((k.lower(), this[k]) for k in sorted(this.iterkeys()))
-        dat = dict((k.lower(), that[k]) for k in sorted(that.iterkeys()))
-        get_val = lambda d, k: d.get(k, compare.missingKey)
-        keys = set(chain(dis.iterkeys(), dat.iterkeys()))
-        iab = [(k, (get_val(dis, k), get_val(dat, k))) for k in keys]
+        dis = OrderedDict(
+            (k.lower(), this[k]) for k in sorted(this.iterkeys())
+        )
+        dat = OrderedDict(
+            (k.lower(), that[k]) for k in sorted(that.iterkeys())
+        )
+
+        def get_val(d, k):
+            return d.get(k, compare.missingKey)
+
+        keys = sorted(set(chain(dis.iterkeys(), dat.iterkeys())))
+        inputs = ((k, (get_val(dis, k), get_val(dat, k))) for k in keys)
+        return (
+            (p, d)
+            for i, (a, b) in inputs
+            for (p, d) in compare(a, b, path + [i])
+        )
     elif isinstance(this, basestring):
         if this == that:
-            return True, None, None
+            return ()
         if not isinstance(that, basestring):
-            return False, path, compare.Diff(this, that)
+            return ((path, compare.Diff(this, that)),)
         if any('\n' in i for i in (this, that)):
             diff = difflib.unified_diff(
                 this.replace('\r', '').split('\n'),
-                that.replace('\r', '').split('\n')
+                that.replace('\r', '').split('\n'),
+                fromfile="actual",
+                tofile="expected",
             )
-
-            # Since we ignored '\r', we need to see if the diff actually found 0 differences,
-            # but iterating diff will empty it, so make a copy to count the diffs
+            # Since we ignored '\r', we need to see if the diff actually
+            # found 0 differences, but iterating diff will empty it, so
+            # make a copy to count the diffs
             diff, diff2 = tee(diff)
             n_diffs = 0
             for d in diff2:
                 n_diffs += 1
             if n_diffs == 0:
-                return True, None, None
-            return False, path, diff
+                return ()
+            return ((path, diff),)
         else:
-            return False, path, compare.Diff(this, that)
+            return ((path, compare.Diff(this, that)),)
     else:
         if this != that:
-            return False, path, compare.Diff(this, that)
-    for i, (a, b) in iab:
-        r, p, n = compare(a, b, path + [i])
-        if not r:
-            return False, p, n
-    return True, None, None
+            return ((path, compare.Diff(this, that)),)
+    return ()
 
 
 compare.Diff = namedtuple('Diff', ['actual', 'expected'])
@@ -179,7 +188,9 @@ class ServiceMigrationTestCase(object):
 
     def _test_cutover(self, svcdef_before, svcdef_after):
         self._fakeContext = fakeContextFromFile(svcdef_before)
-        module_name = 'Products.ZenModel.migrate.%s' % self.migration_module_name
+        module_name = (
+            'Products.ZenModel.migrate.%s' % self.migration_module_name
+        )
         sm_context = '%s.sm.ServiceContext' % module_name
         migration = importlib.import_module(module_name)
         if hasattr(self, 'dmd'):
@@ -196,18 +207,28 @@ class ServiceMigrationTestCase(object):
                 getattr(migration, self.migration_class_name)().cutover(dmd)
         actual = self._fakeContext.servicedef()
         expected = fakeContextFromFile(svcdef_after).servicedef()
-        result, rpath, rdiff = compare(actual, expected)
-        if not result:
+        failures = 0
+        differences = []
+        for rpath, rdiff in compare(actual, expected):
+            failures += 1
             if isinstance(rdiff, compare.Diff):
-                self.fail(
-                    "Migration failed: Expected\n\n%s\n\n at %s, got \n\n%s\n\n instead."
-                    % (rdiff.expected, rpath, rdiff.actual)
-                )
+                differences.append((
+                    "Difference found: Expected\n"
+                    "\n%s\n"
+                    "\n  at %s, got\n"
+                    "\n%s\n"
+                    "\n  instead."
+                ) % (rdiff.expected, rpath, rdiff.actual))
             else:
-                self.fail(
-                    "Migration failed: Unified Diff at %s:\n\n%s\n" %
-                    (rpath, "\n".join(rdiff))
+                differences.append(
+                    "Difference found: Unified Diff at %s:\n\n%s\n"
+                    % (rpath, "\n".join(rdiff))
                 )
+        if failures:
+            self.fail(
+                "Migration failed: %s differences found\n\n%s"
+                % (failures, "\n\n".join(differences))
+            )
 
     def test_cutover_correctness(self):
         self._test_cutover(self.initial_servicedef, self.expected_servicedef)
@@ -224,14 +245,15 @@ class ServiceMigrationTestCase(object):
             for name, value in self.expected_log_filters.iteritems():
                 if name not in self._fakeContext.logFilters:
                     self.fail(
-                        "Migration failed: Did not find expected log filter '%s'"
-                        % name
+                        "Migration failed: Did not find expected log "
+                        "filter '%s'" % name
                     )
                 else:
                     actual = self._fakeContext.logFilters[name]["Filter"]
                     if value != actual:
                         self.fail(
-                            "Migration failed: for log filter '%s', Expected:\n%s\n\nGot:\n%s\n\n"
+                            "Migration failed: for log filter '%s', "
+                            "Expected:\n%s\n\nGot:\n%s\n\n"
                             % (name, value, actual)
                         )
 

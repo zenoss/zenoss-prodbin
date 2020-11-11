@@ -55,7 +55,7 @@ def talesEval(express, context, extra=None, skipfails=False):
 
     try:
         res = compiled(getEngine().getContext(contextDict))
-    except Exception, e:
+    except Exception as e:
         msg = "Error when processing tales expression %s on context %s : Exception Class %s Message: %s" % (express,
                                                                                                             context,
                                                                                                             type(e), e)

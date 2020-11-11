@@ -25,7 +25,7 @@ class UpdateAddressEncoding(Migrate.Step):
             except UnicodeDecodeError:
                 try:
                     loc.address = loc.address.decode('latin-1').encode('utf-8')
-                except UnicodeDecodeError, UnicodeEncodeError:
+                except UnicodeDecodeError as UnicodeEncodeError:
                     pass
 
 UpdateAddressEncoding()

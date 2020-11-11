@@ -38,7 +38,7 @@ class AddZHardDiskMapMatchProperty(Migrate.Step):
                 if not sshLinux.getProperty(HARD_DISK_MAP_MATCH_PROPERTY):
                     hdRegex = dmd.Devices.Server.Linux.getProperty(HARD_DISK_MAP_MATCH_PROPERTY)
                     sshLinux.setZenProperty(HARD_DISK_MAP_MATCH_PROPERTY, hdRegex)
-        except Exception, e:
+        except Exception as e:
             log.warn('Exception trying to add %s property to /Devices/Server/SSH/Linux: %s', HARD_DISK_MAP_MATCH_PROPERTY, e)
 
 AddZHardDiskMapMatchProperty()

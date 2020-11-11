@@ -43,7 +43,7 @@ class StorageMetricGatherer(MetricGatherer):
         ts = time.time()
         tags = {'zenoss_storage': self.name}
         try:
-            response = subprocess.check_output([self.METRICS_QUERY])
+            response = subprocess.check_output([self.METRICS_QUERY, self.name])
         except Exception as e:
             log.error("Error gathering mysql storage info: %s" % e)
             return []
@@ -53,12 +53,12 @@ class StorageMetricGatherer(MetricGatherer):
                 continue
             parsed = line.split('\t')
             table, size, free = parsed[0], parsed[1], parsed[2]
-            table_size = 'zenoss.%s.%s.size' % (self.name, table)
-            table_free = 'zenoss.%s.%s.free' % (self.name, table)
+            table_size = 'zenoss.mariadb.%s.%s.size' % (self.name, table)
+            table_free = 'zenoss.mariadb.%s.%s.free' % (self.name, table)
             total_size += int(size)
             metrics.append(self.build_metric(table_size, size, ts, tags))
             metrics.append(self.build_metric(table_free, free, ts, tags))
-        metrics.append(self.build_metric('zenoss.%s.total.size' % self.name, total_size, ts, tags))
+        metrics.append(self.build_metric('zenoss.mariadb.%s.total.size' % self.name, total_size, ts, tags))
         return metrics
 
 

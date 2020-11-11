@@ -17,7 +17,7 @@ import re
 log = logging.getLogger("zen.UserSettings")
 
 from Globals import DTMLFile
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
 from Acquisition import aq_base
@@ -1412,7 +1412,7 @@ class GroupSettings(UserSettings):
     def printUsers(self):
         try:
             userIds = self.getMemberUserIds()
-        except LocalAndLDAPUserEntries, ex:
+        except LocalAndLDAPUserEntries as ex:
             return str(ex)
 
         return ", ".join(userIds)

@@ -123,15 +123,11 @@ class SnmpPerformanceConfig(CollectorConfigService):
 
                 for dp in ds.getRRDDataPoints():
                     cname = comp.id
-                    oidData = (
-                        cname,
-                        dp.name(),
-                        dp.rrdtype,
-                        dp.getRRDCreateCommand(perfServer).strip(),
-                        dp.rrdmin,
-                        dp.rrdmax,
-                        metadata,
-                        dp.getTags(comp))
+                    oidData = (cname,
+                                 dp.name(),
+                                 dp.rrdtype,
+                                 dp.getRRDCreateCommand(perfServer).strip(),
+                                 dp.rrdmin, dp.rrdmax, metadata)
 
                     # An OID can appear in multiple data sources/data points
                     oids.setdefault(oid, []).append(oidData)

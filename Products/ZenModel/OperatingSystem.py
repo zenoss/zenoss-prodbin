@@ -14,7 +14,7 @@ log = logging.getLogger("zen.OS")
 from Software import Software
 
 from AccessControl import ClassSecurityInfo
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 from Products.ZenUtils.Utils import convToUnits
 from Products.ZenRelations.RelSchema import *

@@ -21,6 +21,7 @@ Patched methods in PackUndo:
 
 """
 
+from relstorage.adapters.connections import LoadConnection, PrePackConnection
 from Products.ZenUtils.Utils import monkeypatch
 from collections import defaultdict, deque
 from itertools import groupby
@@ -81,12 +82,13 @@ class ZodbPackMonkeyHelper(object):
             """ returns objects that are at distance 1 from oid  """
             return self.refs_to[oid] | self.refs_from[oid]
 
-    def create_reverse_ref_index(self, cursor):
+    def create_reverse_ref_index(self, store_connection):
         """
         Checks if the reverser reference index exists on the
         reference table and creates the index if it does not exist
         """
-        sql = """ SHOW INDEX FROM {0} WHERE key_name="{1}"; """.format(self.REF_TABLE_NAME, self.REVERSE_REF_INDEX)
+        sql = """ SHOW INDEX FROM {0} WHERE key_name='{1}'; """.format(self.REF_TABLE_NAME, self.REVERSE_REF_INDEX)
+        cursor = store_connection.cursor
         cursor.execute(sql)
         if cursor.rowcount == 0:
             log.info("Creating reverse reference index on {0}".format(self.REF_TABLE_NAME))
@@ -94,18 +96,6 @@ class ZodbPackMonkeyHelper(object):
             index_sql = """ CREATE INDEX {0} ON {1} (to_zoid); """.format(self.REVERSE_REF_INDEX, self.REF_TABLE_NAME)
             cursor.execute(index_sql)
             log.info("Reverse reference index creation took {0} seconds.".format(time.time()-start))
-
-    def get_ref_tables_engine(self, cursor):
-        """ Returns the engine of object_ref and object_refs_added """
-        engines = {} # { table : engine }
-        try:
-            sql = """ SELECT TABLE_NAME, ENGINE  FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ("object_ref", "object_refs_added"); """
-            cursor.execute(sql)
-            if cursor.rowcount == 2:
-                engines = { table:engine.lower() for table, engine in cursor.fetchall() }
-        except Exception:
-            log.error("Exception retrieving ref tables engine")
-        return engines
 
     def get_current_database(self, cursor):
         sql = """SELECT DATABASE();"""
@@ -391,21 +381,24 @@ try:
                         "history-free storage, so doing nothing")
             return
 
-        conn, cursor = self.connmanager.open_for_pre_pack()
-        conn.ping(True)
+        load_connection = LoadConnection(self.connmanager)
+        store_connection = PrePackConnection(self.connmanager)
         try:
             try:
-                self._pre_pack_main(conn, cursor, pack_tid, get_references)
-            except:
+                self._pre_pack_main(load_connection, store_connection, pack_tid, get_references)
+            except Exception:
                 log.exception("pre_pack: failed")
-                conn.rollback()
+                store_connection.rollback_quietly()
                 raise
+            else:
+                store_connection.commit()
+                log.info("pre_pack: finished successfully")
         finally:
-            self.connmanager.close(conn, cursor)
-
+            load_connection.drop()
+            store_connection.drop()
 
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
-    def _pre_pack_main(self, conn, cursor, pack_tid, get_references):
+    def _pre_pack_main(self, load_connection, store_connection, pack_tid, get_references):
         """
         Determine what to garbage collect.
         """
@@ -415,43 +408,7 @@ try:
 
         log.info("Running with the following options: {0}".format(GLOBAL_OPTIONS))
         # Create reverse ref index
-        MONKEY_HELPER.create_reverse_ref_index(cursor)
-
-        # In order to use workers the engine for the ref tables should be innodb.
-        # By default the engine is MyISAM and the whole table blocks on write.
-        if "N_WORKERS" in GLOBAL_OPTIONS:
-            engines = MONKEY_HELPER.get_ref_tables_engine(cursor)
-            if not all(map(lambda x: x=="innodb", engines.values())):
-                log.warn("Reference tables engines should be InnoDB to run zenossdbpack -t. {0}".format(engines))
-
-        try:
-
-        ##############################
-        ### END ZENOSS CUSTOM CODE ###
-        ##############################
-
-            stmt = self._script_create_temp_pack_visit
-            if stmt:
-                self.runner.run_script(cursor, stmt)
-
-            self.fill_object_refs(conn, cursor, get_references)
-
-        ################################
-        ### BEGIN ZENOSS CUSTOM CODE ###
-        ################################
-
-        except:
-            log.exception("pre_pack: failed")
-            conn.rollback()
-            raise
-        finally:
-            self.connmanager.close(conn, cursor)
-
-
-        # That might easily have taken longer than the MariaDB connection
-        # timeout, so refresh the connection
-        conn, cursor = self.connmanager.open_for_pre_pack()
-        conn.ping(True)
+        MONKEY_HELPER.create_reverse_ref_index(store_connection)
 
         ##############################
         ### END ZENOSS CUSTOM CODE ###
@@ -463,22 +420,25 @@ try:
         %(TRUNCATE)s pack_object;
 
         INSERT INTO pack_object (zoid, keep, keep_tid)
-        SELECT zoid, %(FALSE)s, tid
+        SELECT zoid, CASE WHEN tid > %(pack_tid)s THEN %(TRUE)s ELSE %(FALSE)s END, tid
         FROM object_state;
 
-        -- Keep the root object.
-        UPDATE pack_object SET keep = %(TRUE)s
+        -- Also keep the root
+        UPDATE pack_object
+        SET keep = %(TRUE)s
         WHERE zoid = 0;
-
-        -- Keep objects that have been revised since pack_tid.
-        UPDATE pack_object SET keep = %(TRUE)s
-        WHERE keep_tid > %(pack_tid)s;
         """
-        self.runner.run_script(cursor, stmt, {'pack_tid': pack_tid})
+
+        self.runner.run_script(store_connection.cursor, stmt, {'pack_tid': pack_tid})
+        store_connection.commit()
+        log.info("pre_pack: Filled the pack_object table")
+
+        # Chase down all the references using a consistent snapshot, including
+        # only the objects that were visible in ``pack_object``.
+        self.fill_object_refs(load_connection, store_connection, get_references)
 
         # Traverse the graph, setting the 'keep' flags in pack_object
-        self._traverse_graph(cursor)
-
+        self._traverse_graph(load_connection, store_connection)
 
     #------------------ Functions related to pack method ---------------------
 
@@ -502,7 +462,7 @@ try:
 
 
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
-    def remove_isolated_oids(self, conn, cursor, grouped_oids, sleep, packed_func, total, oids_processed):
+    def remove_isolated_oids(self, conn, cursor, grouped_oids, packed_func, total, oids_processed):
         """
         objects that not connected to other objects can be safely removed.
         """
@@ -520,7 +480,6 @@ try:
 
         packed_list = []
         batch_size = 100
-        self._pause_pack_until_lock(cursor, sleep)
         start = time.time()
         while isolated_oids:
             batch = isolated_oids[:batch_size]
@@ -541,8 +500,6 @@ try:
                     log.info("pack: processed %d (%.1f%%) state(s)",
                         counter, counter/float(total)*100)
                     lastreport = counter / reportstep * reportstep
-                self.locker.release_commit_lock(cursor)
-                self._pause_pack_until_lock(cursor, sleep)
                 start = time.time()
 
         if packed_func is not None:
@@ -555,7 +512,7 @@ try:
 
 
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
-    def remove_connected_oids(self, conn, cursor, grouped_oids, sleep, packed_func, total, oids_processed):
+    def remove_connected_oids(self, conn, cursor, grouped_oids, packed_func, total, oids_processed):
         """
         connected oids must be removed all or none
         """
@@ -569,7 +526,6 @@ try:
         batch_size = 1000 # some batches can be huge and we are holding the commit lock
         prevent_pke_oids = [] # oids that have not been deleted to prevent pkes
         rollbacks = 0
-        self._pause_pack_until_lock(cursor, sleep)
         start = time.time()
         for oids_group in grouped_oids:
             if len (oids_group) == 1:
@@ -602,11 +558,7 @@ try:
                     log.info("pack: processed %d (%.1f%%) state(s)",
                         counter, counter/float(total)*100)
                     lastreport = counter / reportstep * reportstep
-                self.locker.release_commit_lock(cursor)
-                self._pause_pack_until_lock(cursor, sleep)
                 start = time.time()
-
-        self.locker.release_commit_lock(cursor)
 
         if prevent_pke_oids:
             log.info("{0} oid groups were skipped. ({1} oids)".format(rollbacks, len(prevent_pke_oids)))
@@ -623,7 +575,7 @@ try:
 
 
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
-    def pack(self, pack_tid, sleep=None, packed_func=None):
+    def pack(self, pack_tid, packed_func=None):
         """ Run garbage collection. Requires the information provided by pre_pack. """
 
         if "BUILD_TABLES_ONLY" in GLOBAL_OPTIONS:
@@ -631,14 +583,14 @@ try:
             return
 
         # Read committed mode is sufficient.
-        conn, cursor = self.connmanager.open()
-        conn.ping(True)
+        conn, cursor = self.connmanager.open_for_store()
         try:
             try:
                 stmt = """
                 SELECT zoid, keep_tid
                 FROM pack_object
                 WHERE keep = %(FALSE)s
+                ORDER BY zoid
                 """
                 self.runner.run_script_stmt(cursor, stmt)
                 to_remove = list(cursor)
@@ -664,9 +616,9 @@ try:
                         # interruption of concurrent write operations.
                         log.info("Removing objects...")
 
-                        oids_processed = self.remove_isolated_oids(conn, cursor, grouped_oids, sleep, packed_func, total, 0)
+                        oids_processed = self.remove_isolated_oids(conn, cursor, grouped_oids, packed_func, total, 0)
 
-                        prevent_pke_oids = self.remove_connected_oids(conn, cursor, grouped_oids, sleep, packed_func, total, oids_processed)
+                        prevent_pke_oids = self.remove_connected_oids(conn, cursor, grouped_oids, packed_func, total, oids_processed)
 
                         self._pack_cleanup(conn, cursor)
 
@@ -677,7 +629,7 @@ try:
                         except Exception as e:
                             MONKEY_HELPER.log_exception(e, "Execption while running tests.")
 
-            except:
+            except Exception:
                 log.exception("pack: failed")
                 conn.rollback()
                 raise
@@ -696,15 +648,16 @@ try:
     OIDS_PER_TASK = 1000
 
     class RefTableWorker(multiprocessing.Process):
-        def __init__(self, tasks_queue, results_queue, conn, context, get_references):
+        def __init__(self, tasks_queue, results_queue, load_connection,
+                    store_connection, context, get_references):
             multiprocessing.Process.__init__(self)
             self.tasks_queue = tasks_queue
             self.results_queue = results_queue
-            self.conn = conn
-            self.cursor = self.conn.cursor()
             self.context = context
             self.get_references = get_references
             self.oids_processed = 0
+            self.load_connection = load_connection
+            self.store_connection = store_connection
 
         def run(self):
             last_report = time.time()
@@ -716,8 +669,8 @@ try:
                     if task is None:
                         break # poison pill
                     else:
-                        self.context._add_refs_for_oids(self.cursor, task, self.get_references)
-                        self.conn.commit()
+                        self.context._add_refs_for_oids(self.load_connection, self.store_connection, task, self.get_references)
+                        self.store_connection.commit()
                         self.oids_processed = self.oids_processed + len(task)
                         now = time.time()
                         if now > last_report + REPORT_PERIOD:
@@ -728,13 +681,14 @@ try:
                         log.info("{0}: Stopping worker...".format(self.name))
                     else:
                         log.exception("{0}: Exception in worker while building ref tables. {1}".format(self.name, e))
-                    self.conn.rollback()
+                    self.store_connection.rollback()
                     break
                 finally:
                     if task_dequeued:
                         self.tasks_queue.task_done()
                         task_dequeued = False
-            self.context.connmanager.close(self.conn, self.cursor)
+            self.load_connection.drop()
+            self.store_connection.drop()
 
 
     def _log_ref_tables_progress(processed, total, proccessed_last_report):
@@ -768,8 +722,9 @@ try:
             tasks.append(task)
         return tasks
 
+    #need to look whether we need connectios in args
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
-    def workerized_ref_tables_builder(self, oids, conn, cursor, get_references):
+    def workerized_ref_tables_builder(self, oids, load_connection, store_connection, get_references):
         """
         Use multiple workers to build ref tables
         """
@@ -786,8 +741,13 @@ try:
         # Start workers
         workers = []
         for i in range(n_workers):
-            conn, cursor = self.connmanager.open_for_pre_pack()
-            worker = RefTableWorker(tasks_queue, results_queue, conn, self, get_references)
+            worker = RefTableWorker(tasks_queue,
+                                    results_queue,
+                                    load_connection,
+                                    store_connection,
+                                    self,
+                                    get_references
+                                    )
             worker.start()
             workers.append(worker)
         time.sleep(2)
@@ -864,7 +824,7 @@ try:
 
 
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
-    def patched_fill_object_refs(self, conn, cursor, get_references):
+    def patched_fill_object_refs(self, load_connection, store_connection, get_references):
         """ Patched version that uses workers if analyzing a large number of oids """
 
         HEADER = "ref-tables-builder"
@@ -879,8 +839,8 @@ try:
         WHERE object_refs_added.tid IS NULL
             OR object_refs_added.tid != object_state.tid
         """
-        self.runner.run_script_stmt(cursor, stmt)
-        oids = [ oid for (oid,) in cursor ]
+        self.runner.run_script_stmt(load_connection.cursor, stmt)
+        oids = [ oid for (oid,) in load_connection.cursor ]
 
         duration = duration_to_pretty_text(time.time()-start)
         log.info("{0}: Looking for updated objects took {1}. {2} objects found".format(HEADER, duration, len(oids)))
@@ -888,23 +848,23 @@ try:
         if len(oids) > 0:
             start = time.time()
             log.info("{0}: Building reference tables...".format(HEADER))
-            self.workerized_ref_tables_builder(oids, conn, cursor, get_references)
+            self.workerized_ref_tables_builder(oids, load_connection, store_connection, get_references)
             duration = duration_to_pretty_text(time.time()-start)
             log.info("{0}: Build reference tables took {1}.".format(HEADER, duration))
 
 
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
-    def fill_object_refs(self, conn, cursor, get_references):
+    def fill_object_refs(self, load_connection, store_connection, get_references):
         """ Update the object_refs table by analyzing new object states. """
         if "BUILD_TABLES_ONLY" in GLOBAL_OPTIONS and "N_WORKERS" in GLOBAL_OPTIONS:
             # Lets build ref tables with workers
-            self.patched_fill_object_refs(conn, cursor, get_references)
+            self.patched_fill_object_refs(load_connection, store_connection, get_references)
         else:
-            original(self, conn, cursor, get_references)
+            original(self, load_connection, store_connection, get_references)
 
 
     @monkeypatch('relstorage.adapters.packundo.PackUndo')
-    def _patched_traverse_graph(self, cursor):
+    def _patched_traverse_graph(self, load_connection, store_connection):
         """Visit the entire object graph to find out what should be kept.
 
         Sets the pack_object.keep flags.
@@ -918,8 +878,8 @@ try:
         FROM pack_object
         WHERE keep = %(TRUE)s
         """
-        self.runner.run_script_stmt(cursor, stmt)
-        for from_oid, in cursor:
+        self.runner.run_script_stmt(load_connection.cursor, stmt)
+        for from_oid, in load_connection.cursor:
             keep_set.add(from_oid)
 
         # Note the Oracle optimizer hints in the following statement; MySQL
@@ -963,9 +923,9 @@ try:
                 # FIXME: Don't use string parameters interpolation (%) to pass
                 # variables to a SQL query string
                 execute_stmt = stmt.format(', '.join([str(p) for p in limited_list]))
-                self.runner.run_script_stmt(cursor, execute_stmt)
+                self.runner.run_script_stmt(load_connection.cursor, execute_stmt)
                 # Grouped by object_ref.zoid, store all object_ref.to_zoid in sets
-                for from_oid, rows in groupby(cursor, itemgetter(0)):
+                for from_oid, rows in groupby(load_connection.cursor, itemgetter(0)):
                     children.update(set(row[1] for row in rows))
 
                 log.debug("pre_pack: %d items left" % (len(parents_list)-step))
@@ -985,9 +945,9 @@ try:
             del batch[:]
             stmt = """
             UPDATE pack_object SET keep = %%(TRUE)s, visited = %%(TRUE)s
-            WHERE zoid IN (%s)
+            WHERE zoid IN (%s) 
             """ % oids_str
-            self.runner.run_script_stmt(cursor, stmt)
+            self.runner.run_script_stmt(store_connection.cursor, stmt)
 
         for oid in keep_list:
             batch.append(oid)
@@ -998,77 +958,11 @@ try:
 
 
     @monkeypatch('relstorage.adapters.packundo.PackUndo')
-    def _traverse_graph(self, cursor):
+    def _traverse_graph(self, load_connection, store_connection):
         if "MINIMIZE_MEMORY_USAGE" in GLOBAL_OPTIONS:
-            self._patched_traverse_graph(cursor)
+            self._patched_traverse_graph(load_connection, store_connection)
         else:
-            original(self, cursor)
-
-    @monkeypatch('relstorage.storage.RelStorage')
-    def pack(self, t, referencesf, prepack_only=False, skip_prepack=False,
-             sleep=None):
-        """Pack the storage. Holds the pack lock for the duration."""
-        # pylint:disable=too-many-branches
-        if self._is_read_only:
-            raise ReadOnlyError()
-
-        prepack_only = prepack_only or self._options.pack_prepack_only
-        skip_prepack = skip_prepack or self._options.pack_skip_prepack
-
-        if prepack_only and skip_prepack:
-            raise ValueError('Pick either prepack_only or skip_prepack.')
-
-        def get_references(state):
-            """Return an iterable of the set of OIDs the given state refers to."""
-            if not state:
-                return ()
-
-            assert isinstance(state, bytes), type(state) # XXX PY3: str(state)
-            return {u64(oid) for oid in referencesf(state)}
-
-        # Use a private connection (lock_conn and lock_cursor) to
-        # hold the pack lock.  Have the adapter open temporary
-        # connections to do the actual work, allowing the adapter
-        # to use special transaction modes for packing.
-        adapter = self._adapter
-        if not skip_prepack:
-            # Find the latest commit before or at the pack time.
-            pack_point = repr(TimeStamp(*time.gmtime(t)[:5] + (t % 60,)))
-            tid_int = adapter.packundo.choose_pack_transaction(
-                u64(pack_point))
-            if tid_int is None:
-                log.debug("all transactions before %s have already "
-                            "been packed", time.ctime(t))
-                return
-
-            if prepack_only:
-                log.info("pack: beginning pre-pack")
-
-            s = time.ctime(TimeStamp(p64(tid_int)).timeTime())
-            log.info("pack: analyzing transactions committed "
-                        "%s or before", s)
-
-            # In pre_pack, the adapter fills tables with
-            # information about what to pack.  The adapter
-            # must not actually pack anything yet.
-            adapter.packundo.pre_pack(tid_int, get_references)
-        else:
-            # Need to determine the tid_int from the pack_object table
-            tid_int = adapter.packundo._find_pack_tid()
-
-        if prepack_only:
-            log.info("pack: pre-pack complete")
-        else:
-            # Now pack.
-            if self.blobhelper is not None:
-                packed_func = self.blobhelper.after_pack
-            else:
-                packed_func = None
-            adapter.packundo.pack(tid_int, sleep=sleep,
-                                    packed_func=packed_func)
-        self.sync()
-
-        self._pack_finished()
+            original(self, load_connection, store_connection)
 
 
 except ImportError as e:

@@ -17,7 +17,7 @@ Mixin class for classes that need a relationship back from UserCommand.
 
 """
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import *
 from UserCommand import UserCommand
@@ -147,7 +147,7 @@ class Commandable:
                 self.doCommandForTarget(command, target, out)
                 #untested, method call cannot be found
                 audit('UI.Command.Invoke', commandId, target=target)
-            except:
+            except Exception:
                 self.write(out,
                     'exception while performing command for %s' % target.id)
                 self.write(

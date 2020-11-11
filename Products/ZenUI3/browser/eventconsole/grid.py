@@ -47,7 +47,7 @@ def _find_column_fields():
         for item in details:
             if item['key'] not in DEFAULT_COLUMN_ORDER:
                 DEFAULT_COLUMN_ORDER.append(item['key'])
-    except ZepConnectionError, e:
+    except ZepConnectionError as e:
         log.error(e.message)
 
     return DEFAULT_COLUMN_ORDER
@@ -67,7 +67,7 @@ def _find_column_definitions(archive=False):
 
     try:
         details = getFacade('zep').getUnmappedDetails()
-    except ZepConnectionError, e:
+    except ZepConnectionError as e:
         log.error(e.message)
         return columns
 
@@ -179,7 +179,7 @@ class GridColumnDefinitions(JavaScriptSnippet):
                     rulecmp = 'Zenoss.form.rule.NUMBERCOMPARISONS'
                 zpdetails.append("{{ text: _t('{name}'), value: '{key}', comparisons: {cmp} }}".format(name=detail['name'], key=detail['key'], cmp=rulecmp))
             result.append(',\n'.join(zpdetails))
-        except ZepConnectionError, e:
+        except ZepConnectionError as e:
             log.error(e.message)
         result.append('];')
 

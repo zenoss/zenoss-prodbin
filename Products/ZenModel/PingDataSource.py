@@ -13,7 +13,7 @@ __doc__ = """PingDataSource.py
 Defines datasource for zenping
 """
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 import Products.ZenModel.RRDDataSource as RRDDataSource
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD

@@ -183,7 +183,7 @@ class DiscoverService(ModelerService):
                 dev = manage_createDevice(self.dmd, **kw)
                 netroot.createIp(ip, netmask)
                 return dev, True
-            except DeviceExistsError, e:
+            except DeviceExistsError as e:
                 # Update device with latest info from zendisc
                 # (if necessary)
                 if not e.dev.getManageIp():
@@ -204,7 +204,7 @@ class DiscoverService(ModelerService):
                 # use updateDevice so we don't clobber existing device properties.
                 e.dev.updateDevice(**updateAttributes)
                 return e.dev, False
-            except Exception, ex:
+            except Exception as ex:
                 log.exception("IP address %s (kw = %s) encountered error", ipunwrap(ip), kw)
                 raise pb.CopyableFailure(ex)
 

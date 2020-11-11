@@ -22,7 +22,7 @@ import traceback
 import logging
 import commands
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from OFS.SimpleItem import SimpleItem
 from AccessControl import ClassSecurityInfo
 
@@ -265,7 +265,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             v = Version(*getTwistedVersion())
             v.full()
         """
-        from twisted._version import version as v
+        from twisted import version as v
 
         return Version('Twisted', v.major, v.minor, v.micro)
 
@@ -431,7 +431,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         try:
             os.kill(pid, 0)
             return pid
-        except OSError, ex:
+        except OSError as ex:
             import errno
             errnum, msg = ex.args
             if errnum == errno.EPERM:
@@ -542,7 +542,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         data = ' '
         try:
             data = self._readLogFile(filename, maxBytes) or ' '
-        except Exception, ex:
+        except Exception as ex:
             data = "Error reading %s log file '%s':\n%s" % (
                     daemon, filename, str(ex))
         return data
@@ -669,7 +669,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                     priority=messaging.CRITICAL
                 )
                 return [["Output", output, errors, make_xml, "string"]]
-        except Exception, ex:
+        except Exception as ex:
             msg = "Unable to execute '%s'\noutput='%s'\nerrors='%s'\nex=%s" % (
                         make_xml, output, errors, ex)
             log.error(msg)
@@ -681,7 +681,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
         try:
             xml_defaults = parse( xml_default_name )
-        except:
+        except Exception:
             info = traceback.format_exc()
             msg = "Unable to parse XML file %s because %s" % (
                 xml_default_name, info)
@@ -696,7 +696,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         try:
             # Grab the current configs
             current_configs = self.parseconfig( configfile )
-        except:
+        except Exception:
             info = traceback.format_exc()
             msg = "Unable to obtain current configuration from %s because %s" % (
                        configfile, info)
@@ -716,12 +716,12 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                     continue
                 try:
                     help = unquote(option.attributes['help'].nodeValue)
-                except:
+                except Exception:
                     help = ''
 
                 try:
                     default = unquote(option.attributes['default'].nodeValue)
-                except:
+                except Exception:
                     default = ''
                 if default == '[]':  # Attempt at a list argument -- ignore
                     continue
@@ -733,7 +733,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                     help.replace("%default", default),
                     option.attributes['type'].nodeValue,
                 ]
-        except:
+        except Exception:
             info = traceback.format_exc()
             msg = "Unable to merge XML defaults with config file" \
                       " %s because %s" % (configfile, info)
@@ -792,7 +792,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                     continue
                 config.write('%s %s\n' % (key, value))
             config.close()
-        except Exception, ex:
+        except Exception as ex:
             msg = "Couldn't write to %s because %s" % (config_file_pre, ex)
             log.error(msg)
             messaging.IMessageSender(self).sendToBrowser(
@@ -802,7 +802,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             config.close()
             try:
                 os.unlink(config_file_pre)
-            except:
+            except Exception:
                 pass
             return
 
@@ -812,12 +812,12 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         config_file_save = configfile + ".save"
         try:
             shutil.copy(configfile, config_file_save)
-        except:
+        except Exception:
             log.error("Unable to make backup copy of %s" % configfile)
             # Don't bother telling the user
         try:
             shutil.move(config_file_pre, configfile)
-        except:
+        except Exception:
             msg = "Unable to save contents to %s" % configfile
             log.error(msg)
             messaging.IMessageSender(self).sendToBrowser(
