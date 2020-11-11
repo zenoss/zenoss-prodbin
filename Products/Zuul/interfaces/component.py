@@ -103,6 +103,9 @@ class IIpInterfaceInfo(IComponentInfo):
         title=_t(u"MTU"), group="Details",
         order=12)
 
+    ifindex = schema.TextLine(
+        title=_t(u"SNMP Index"), group="Details",
+        order=13)
 
 class IFileSystemInfo(IComponentInfo):
     """
