@@ -9,12 +9,11 @@
 
 from __future__ import absolute_import, print_function
 
-import itertools
 import logging
 import types
 
 from celery import states
-from mock import patch
+from mock import patch, Mock
 from unittest import TestCase
 
 from zope.component import getGlobalSiteManager
@@ -28,7 +27,7 @@ from ..model import (
     job_failure,
     job_retry,
 )
-from ..storage import JobStore, Fields
+from ..storage import JobStore
 from .utils import subTest, RedisLayer
 
 UNEXPECTED = type("UNEXPECTED", (object,), {})()
@@ -79,6 +78,15 @@ class JobStartTest(_CommonFixture, TestCase):
         job_start("1")
 
     @patch("{src}.time".format(**PATH), autospec=True)
+    def test_already_finished(t, _time):
+        for status in states.READY_STATES:
+            t.store.update(t.jobid, status=status)
+            with subTest(status=status):
+                job_start(t.jobid)
+                t.assertEqual(t.store.getfield(t.jobid, "status"), status)
+                _time.time.assert_not_called()
+
+    @patch("{src}.time".format(**PATH), autospec=True)
     def test_started(t, _time):
         tm = 1597059131.762538
         _time.time.return_value = tm
@@ -109,25 +117,6 @@ class JobStartTest(_CommonFixture, TestCase):
 
         t.assertEqual(expected_status, status)
         t.assertEqual(expected_started, started)
-
-
-class JobEndTest(_CommonFixture, TestCase):
-
-    layer = RedisLayer
-
-    def test_unknown_task_id(t):
-        job_start("1")
-
-    def test_job_not_finished(t):
-        tm = 1597059131.762538
-        t.store.update(t.jobid, started=tm)
-        job_end(t.jobid)
-
-    def test_job_finished(t):
-        started_tm = 1597059131.762538
-        finished_tm = started_tm + 10
-        t.store.update(t.jobid, started=started_tm, finished=finished_tm)
-        job_end(t.jobid)
 
 
 class JobSuccessTest(_CommonFixture, TestCase):
@@ -292,29 +281,24 @@ class JobRetryTest(_CommonFixture, TestCase):
         t.assertEqual(expected_finished, finished)
 
 
+@app.task(
+    bind=True,
+    name="zen.zenjobs.test.result_ignored_task",
+    summary="Result Ignored Task",
+    ignore_result=True,
+)
+def noop_task(self, *args, **kw):
+    pass
+
+
 class IgnoreResultTest(TestCase):
     """Test update_job_status when a task's ignore_result is True.
     """
-
-    @app.task(
-        bind=True,
-        name="zen.zenjobs.test.result_ignored_task",
-        summary="Result Ignored Task",
-        ignore_result=True,
-    )
-    def noop_task(self, *args, **kw):
-        pass
 
     @patch("{src}.getUtility".format(**PATH))
     def test_job_start(t, _getUtility):
         task = app.tasks.get("zen.zenjobs.test.result_ignored_task")
         job_start(task_id="0", task=task)
-        _getUtility.assert_not_called()
-
-    @patch("{src}.getUtility".format(**PATH))
-    def test_job_end(t, _getUtility):
-        task = app.tasks.get("zen.zenjobs.test.result_ignored_task")
-        job_end(task_id="0", task=task)
         _getUtility.assert_not_called()
 
     @patch("{src}.getUtility".format(**PATH))
@@ -334,3 +318,98 @@ class IgnoreResultTest(TestCase):
         task = app.tasks.get("zen.zenjobs.test.result_ignored_task")
         job_retry(None, sender=task)
         _getUtility.assert_not_called()
+
+
+# Super fragile code here!!!!
+# Unwrapping a decorated function!
+# This only works as expected if job_end is declared as follows:
+#
+#    @inject_logger(log=mlog)
+#    @_catch_exception
+#    def job_end(log, task_id, task=None, **ignored):
+#        ....
+#
+job_end = next(
+    (
+        c.cell_contents
+        for c in job_end.func_closure
+        if isinstance(c.cell_contents, types.FunctionType)
+    ),
+    None
+)
+
+
+class JobEndTest(TestCase):
+    """Test job_end task_postrun signal handler."""
+
+    layer = RedisLayer
+
+    def setUp(t):
+        t.store = JobStore(t.layer.redis)
+        getGlobalSiteManager().registerUtility(
+            t.store, IJobStore, name="redis",
+        )
+
+    def tearDown(t):
+        t.layer.redis.flushall()
+        getGlobalSiteManager().unregisterUtility(
+            t.store, IJobStore, name="redis",
+        )
+        del t.store
+
+    @patch("{src}.getUtility".format(**PATH))
+    def test_ignore_result_task(t, _getUtility):
+        task = app.tasks.get("zen.zenjobs.test.result_ignored_task")
+        log = Mock()
+        job_end(log, "123", task=task)
+        log.debug.assert_not_called()
+        log.info.assert_not_called()
+        _getUtility.assert_not_called()
+
+    def test_unknown_taskid(t):
+        log = Mock()
+        job_end(log, "123")
+        log.debug.assert_called_once_with("job not found")
+        log.info.assert_not_called()
+
+    def test_job_not_started(t):
+        t.store["123"] = {
+            "jobid": "123",
+        }
+        log = Mock()
+        job_end(log, "123")
+        log.debug.assert_called_once_with("job never started")
+        log.info.assert_not_called()
+
+    def test_job_not_done(t):
+        for n, status in enumerate(states.UNREADY_STATES):
+            taskid = str(123 + n)
+            t.store[taskid] = {
+                "jobid": taskid,
+                "started": 1605015326.914606,
+                "status": status,
+            }
+            log = Mock()
+            expected = ("job not done  status=%s", status)
+            with subTest(taskid=taskid, status=status):
+                job_end(log, taskid)
+                log.debug.assert_called_once_with(*expected)
+                log.info.assert_not_called()
+
+    def test_job_finished(t):
+        started = 1605015326.914606
+        finished = 1605015336.914606
+        expected = ("Job total duration is %0.3f seconds", finished - started)
+        for n, status in enumerate(states.READY_STATES):
+            taskid = str(123 + n)
+            t.store[taskid] = {
+                "jobid": taskid,
+                "started": started,
+                "finished": finished,
+                "status": status,
+            }
+            log = Mock()
+            with subTest(taskid=taskid, status=status):
+                job_end(log, taskid)
+                log.debug.assert_not_called()
+                log.info.assert_called_once_with(*expected)
