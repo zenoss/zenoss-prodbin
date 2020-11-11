@@ -12,9 +12,11 @@ from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
                                                               IAuthenticationPlugin,
                                                               IChallengePlugin,
                                                               ICredentialsResetPlugin,
-                                                              IRolesPlugin)
+                                                              IRolesPlugin,
+                                                              IPropertiesPlugin)
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
+from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.AuthUtils import getJWKS, publicKeysFromJWKS
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.PASUtils import activatePluginForInterfaces, movePluginToTop
@@ -33,10 +35,11 @@ log = logging.getLogger('Auth0')
 TOOL = 'Auth0'
 PLUGIN_ID = 'auth0_plugin'
 PLUGIN_TITLE = 'Provide auth via Auth0 service'
-PLUGIN_VERSION = 3
+PLUGIN_VERSION = 4
 MEMCACHED_IMPORT = ('localhost', '11211')
 
 rbac_pattern = re.compile("^(internal:)?(CZ[0-9]+):(.+)")
+email_pattern = re.compile("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 
 _AUTH0_CONFIG = {
     'audience': None,
@@ -63,6 +66,20 @@ def getAuth0Conf():
         if _AUTH0_CONFIG and _AUTH0_CONFIG['whitelist']:
             _AUTH0_CONFIG['whitelist'] = [s.strip() for s in _AUTH0_CONFIG['whitelist'].split(',') if s.strip() != '']
     return _AUTH0_CONFIG or None
+
+def get_ip(request):
+    if "HTTP_X_FORWARDED_FOR" in request.environ:
+        # Virtual host
+        # This can be a comma-delimited list of IPs but we are fine with
+        # logging multiple IPs for auditing at this time.
+        ip = request.environ["HTTP_X_FORWARDED_FOR"]
+    elif "HTTP_HOST" in request.environ:
+        # Non-virtualhost
+        ip = request.environ["REMOTE_ADDR"]
+    else:
+        ip = getattr(request, '_client_addr', 'Unknown')
+
+    return ip
 
 def manage_addAuth0(context, id, title=None):
     obj = Auth0(id, title)
@@ -194,13 +211,15 @@ class Auth0(BasePlugin):
             # + The tenantkey is used to lookup the tenant from the jwt.
             tenantkey = conf.get('tenantkey', 'https://dev.zing.ninja/tenant')
             tenant = payload.get(tenantkey, None) # ie: "https://dev.zing.ninja/tenant": "alphacorp", in jwt
-            if not tenant:
+            # Check the jwt for the globalkey setting.
+            is_global_key = payload.get('https://dev.zing.ninja/globalkey', None)
+            if not is_global_key and not tenant:
                 log.warn('No auth0 tenant specified in jwt for tenantkey: {}'.format(tenantkey))
                 Auth0.removeToken(request)
                 return None
             # + Get the whitelist from global.conf and verify that it's in the list.
             whitelist = conf.get('whitelist', [])
-            if not tenant in whitelist:
+            if not is_global_key and tenant not in whitelist:
                 log.warn('Tenant {} is invalid. Not in whitelist: {}'.format(tenant, whitelist))
                 Auth0.removeToken(request)
                 return None
@@ -262,6 +281,8 @@ class Auth0(BasePlugin):
         sessionInfo = request.SESSION.get(Auth0.session_key)
         if not sessionInfo:
             sessionInfo = Auth0.storeToken(token, request, conf)
+            ipaddress = get_ip(request)
+            audit('UI.Authentication.Valid', username_=sessionInfo.userid, ipaddress=ipaddress)
 
         # ZING-821: We need to verify that the session data we've cached matches the
         # token expiration.  If the expiration cookie is set, make sure it matches
@@ -384,14 +405,29 @@ class Auth0(BasePlugin):
         if not sessionInfo.roles:
             log.debug('No roles in Auth0 session - not returning roles')
             return ()
-        return set(sessionInfo.roles)
+        # to avoid the issue in ZEN-31732 - CZ-only users can still see all the events
+        return set(sessionInfo.roles) - set(["Delegate to Collection Zone"])
+
+    def getPropertiesForUser(self, user, request=None):
+        """ ImplementesPluggableAuthService  IPropertiesPlugin interface.
+            o Return properties for auth0 user
+        """
+        if not request:
+            return {}
+        sessionInfo = request.SESSION.get(Auth0.session_key)
+        if getattr(sessionInfo, 'userid'):
+            # userid is not always an email; see method storeToken
+            if email_pattern.match(sessionInfo.userid):
+                return {'email': sessionInfo.userid}
+        return {}
 
 classImplements(Auth0,
                 IAuthenticationPlugin,
                 IExtractionPlugin,
                 IChallengePlugin,
                 ICredentialsResetPlugin,
-                IRolesPlugin)
+                IRolesPlugin,
+                IPropertiesPlugin)
 
 InitializeClass(Auth0)
 
@@ -416,7 +452,8 @@ def setup(context):
                   'IExtractionPlugin',
                   'IChallengePlugin',
                   'ICredentialsResetPlugin',
-                  'IRolesPlugin')
+                  'IRolesPlugin',
+                  'IPropertiesPlugin')
     activatePluginForInterfaces(zport_acl, PLUGIN_ID, interfaces)
 
     movePluginToTop(zport_acl, PLUGIN_ID, 'IAuthenticationPlugin')

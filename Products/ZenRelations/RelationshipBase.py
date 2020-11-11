@@ -20,7 +20,7 @@ __version__ = "$Revision: 1.26 $"[11:-2]
 import logging
 log = logging.getLogger("zen.Relations")
   
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from zope import interface
 

@@ -157,11 +157,12 @@ class TestMaintenanceWindows(ZenModelBaseTest):
 
         #r = FakeRequest()
         r = None
+        startDttm = 1138531500
         m.manage_editMaintenanceWindow(
                                          startDate='01/29/2006',
                                          startHours='10',
                                          startMinutes='45',
-                                         startDateTime='1138531500',
+                                         startDateTime=str(startDttm),
                                          durationDays='1',
                                          durationHours='1',
                                          durationMinutes='1',
@@ -172,7 +173,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
 
         #self.assert_('message' in r)
         #self.assert_(r['message'] == 'Saved Changes')
-        self.assert_(m.start == t - 12)
+        self.assertEqual(m.start, startDttm)
         self.assert_(m.duration == 24*60+61)
         self.assert_(m.repeat == 'Weekly')
         self.assert_(m.startProductionState == state_Maintenance)

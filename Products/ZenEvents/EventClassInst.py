@@ -25,7 +25,7 @@ from Products.ZenMessaging.audit import audit
 
 log = logging.getLogger("zen.Events")
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Acquisition import aq_chain
@@ -352,7 +352,7 @@ Transform:
         try:
             if self.transform:
                 compile(self.transform, "<string>", "exec")
-        except:
+        except Exception:
             return "color:#FF0000;"
 
 
@@ -536,7 +536,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
             try:
                 log.debug("eval rule:%s", self.rule)
                 value = eval(self.rule, {'evt':evt, 'dev':device, 'device': device})
-            except Exception, e:
+            except Exception as e:
                 logging.warn("EventClassInst: %s rule failure: %s",
                             self.getDmdKey(), e)
         else:
@@ -564,7 +564,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         try:
             if self.rule:
                 compile(self.rule, "<string>", "eval")
-        except:
+        except Exception:
             return "color:#FF0000;"
 
 

@@ -16,12 +16,9 @@ from zope.traversing.adapters import DefaultTraversable
 from transaction._transaction import Transaction
 
 from Testing import ZopeTestCase
-from Testing.ZopeTestCase.ZopeTestCase import standard_permissions
 from Testing.ZopeTestCase.layer import ZopeLite
-if 0:
-    standard_permissions = None         # pyflakes
 
-from Products.Five import zcml
+from Zope2.App import zcml
 
 from Products.ZenModel.DmdBuilder import DmdBuilder
 from Products.ZenModel.ZentinelPortal import PortalGenerator

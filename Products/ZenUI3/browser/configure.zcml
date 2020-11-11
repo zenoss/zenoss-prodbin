@@ -280,7 +280,7 @@
     class=".command.CommandView"
     name="run_command"
     for="*"
-    permission="zenoss.RunCommands"
+    permission="zenoss.Common"
     />
 
 <browser:page
@@ -319,8 +319,36 @@
     />
 
 <browser:page
-    class=".command.TestDataSourceView"
-    name="test_datasource"
+    class=".command.GroupModelView"
+    name="group_model"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
+    class=".command.GroupModelDebugView"
+    name="group_model_debug"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
+    class=".command.GroupMonitorView"
+    name="group_monitor"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
+    class=".command.GroupMonitorDebugView"
+    name="group_monitor_debug"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
+    class=".command.MonitorDatasource"
+    name="monitor_datasource"
     for="Products.ZenModel.RRDDataSource.RRDDataSource"
     permission="zenoss.RunCommands"
     />
@@ -388,6 +416,13 @@
     for="*"
     permission="zenoss.Common"
     />
+
+<browser:page
+    template="templates/viewGraphPortlet.pt"
+    name="viewGraphPortlet"
+    for="*"
+    permission="zenoss.Common"
+    />    
 
 <browser:page
     class=".views.GetDaemonLogs"

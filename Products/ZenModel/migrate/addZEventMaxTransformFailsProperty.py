@@ -28,7 +28,7 @@ class AddZEventMaxTransformFailsProperty(Migrate.Step):
             log.debug('Adding %s property to /Events.', EVENT_MAX_TRANSFORM_FAILS_PROPERTY)
             if not hasattr(dmd.Events, EVENT_MAX_TRANSFORM_FAILS_PROPERTY):
                 dmd.Events._setProperty(EVENT_MAX_TRANSFORM_FAILS_PROPERTY, 10, type='int')
-        except Exception, e:
+        except Exception as e:
             log.warn('Exception trying to add %s property to /Events, %s', EVENT_MAX_TRANSFORM_FAILS_PROPERTY, e)
 
 class AddTransformEnabledProperty(Migrate.Step):
@@ -39,7 +39,7 @@ class AddTransformEnabledProperty(Migrate.Step):
             log.debug('Adding %s property to /Events.', TRANSFORM_ENABLED_PROPERTY)
             if not hasattr(dmd.Events, TRANSFORM_ENABLED_PROPERTY):
                 dmd.Events._setProperty(TRANSFORM_ENABLED_PROPERTY, True, type='bool')
-        except Exception, e:
+        except Exception as e:
             log.warn('Exception trying to add %s property to /Events, %s', TRANSFORM_ENABLED_PROPERTY, e)
 
 AddZEventMaxTransformFailsProperty()

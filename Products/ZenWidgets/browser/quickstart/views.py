@@ -202,7 +202,7 @@ class DeviceAddView(BrowserView):
                         collector=collector
                     )
                 )
-            except Exception, e:
+            except Exception as e:
                 log.exception(e)
                 response.error('network', 'There was an error scheduling this '
                                'job. Please check your installation and try '
@@ -229,7 +229,7 @@ class DeviceAddView(BrowserView):
                         collector=collector
                     )
                 )
-            except Exception, e:
+            except Exception as e:
                 log.exception(e)
                 response.error('network', 'There was an error scheduling this '
                                'job. Please check your installation and try '

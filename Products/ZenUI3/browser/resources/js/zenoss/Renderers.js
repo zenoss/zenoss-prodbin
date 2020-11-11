@@ -342,7 +342,13 @@ Ext.apply(Zenoss.render, {
             }else if(item.url) {
                 return Zenoss.render.link(null, item.url, item.text);
             }else if(item.uid) {
-                return Zenoss.render.link(item.uid, null, item.text);
+                // Don't render link to event class page for user without global role as
+                // as such user doesn't have access to view such page
+                if (!_has_global_roles() && item.uid.includes("/dmd/Events/")) {
+                    return item.text
+                } else {
+                    return Zenoss.render.link(item.uid, null, item.text);
+                }
             }
             return Ext.htmlEncode(item.text);
         }
@@ -464,7 +470,13 @@ Ext.apply(Zenoss.render, {
     },
 
     EventClass: function(uid, name) {
-        return Zenoss.render.default_uid_renderer(uid, name);
+        // don't render link to the event class page for user without globa role
+        // as such user doesn't have permission to see it
+        if (!_has_global_roles()) {
+            return name
+        } else {
+            return Zenoss.render.default_uid_renderer(uid, name);
+        }
     },
 
     IpServiceClass: function(value, metadata, record) {

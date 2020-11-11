@@ -1,5 +1,5 @@
 from unittest import TestCase
-from mock import Mock, patch, create_autospec
+from mock import Mock, patch, create_autospec, ANY
 from Products.ZenHub.tests.mock_interface import create_interface_mock
 
 
@@ -101,3 +101,57 @@ class TestCollectorDaemon_maintenanceCycle(TestCase):
         t.cd._scheduler.pauseTasksForConfig.assert_called_with('d3')
         t.assertIsInstance(ret, defer.Deferred)
         t.assertEqual(ret.result, issues)
+
+    def test_writeMetric(t):
+        # FIX ME: these attributes are set in the subclass PBDaemon
+        # and default to None in the parent, making it non-functional/testable
+        from Products.ZenUtils.metricwriter import DerivativeTracker
+        from Products.ZenUtils.metricwriter import ThresholdNotifier
+        t.cd._derivative_tracker = DerivativeTracker()
+        t.cd._threshold_notifier = Mock(ThresholdNotifier)
+        t.cd._metric_writer = Mock(name='MetricWriter')
+
+        t.cd.should_trace_metric = create_autospec(t.cd.should_trace_metric)
+        t.cd.should_trace_metric.return_value = True
+
+        # First we have to prime the agrogator with an inital value
+        metric = 'some_metric'
+        contextKey = 'contextKey'
+        contextUUID = 'contextUUID'
+        tags = {
+            'mtrace': ANY,
+            'contextUUID': contextUUID,
+            'key': contextKey,
+        }
+
+        # now it will calculate the deltas
+        cases = [
+            {'timestamp': 0, 'value': 1, 'delta': 0.0, 'call': False},
+            {'timestamp': 1, 'value': 100, 'delta': 99.0, 'call': True},
+            {'timestamp': 2, 'value': 200, 'delta': 100, 'call': True},
+            # a reset happens
+            {'timestamp': 3, 'value': 100, 'delta': -100, 'call': False},
+            {'timestamp': 4, 'value': 200, 'delta': 100, 'call': True},
+            {'timestamp': 5, 'value': 300, 'delta': 100, 'call': True},
+            {'timestamp': 6, 'value': 30000, 'delta': 29700.0, 'call': True},
+        ]
+
+        for case in cases:
+            ret = t.cd.writeMetric(
+                contextKey=contextKey,
+                metric=metric,
+                value=case['value'],
+                metricType='COUNTER',
+                contextId='contextId',
+                contextUUID=contextUUID,
+                timestamp=case['timestamp'],
+                min='U',
+                max='U',
+            )
+
+            t.assertEqual(ret.result, None)  # triggers the callback
+            if case['call']:
+                t.cd._metric_writer.write_metric.assert_called_with(
+                    metric, case['delta'], case['timestamp'], tags
+                )
+            t.cd._metric_writer.write_metric.reset_mock()

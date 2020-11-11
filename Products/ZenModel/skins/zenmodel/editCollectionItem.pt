@@ -13,11 +13,11 @@
             
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <input class="tablevalues" type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/id"/>
     </tr>
     <tr>
@@ -27,19 +27,19 @@
         </td>
         <td class="tablevalues" tal:content="structure here/getDesc">
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">Recurse</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <select class="tablevalues" name="recurse:boolean">
                 <option tal:repeat="e python:(True,False)" tal:content="e"
                         tal:attributes="value e; 
                         selected python:e==here.recurse"/>
             </select>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/recurse"/>
     </tr>
     <tr>

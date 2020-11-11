@@ -86,7 +86,7 @@ if __name__ == '__main__':
     e = Eggify()
     try:
         e.run()
-    except ZenPackException, e:
+    except ZenPackException as e:
         import sys
         sys.stderr.write('%s\n' % str(e))
         sys.exit(-1)

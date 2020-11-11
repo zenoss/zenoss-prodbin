@@ -375,7 +375,7 @@ class ZenPackCmd(ZenScriptBase):
                 from_version = f.readline().split('\n')[0]
                 from_version = parse_version(from_version)
                 log.info("Installing zenpacks that are new since %s", from_version)
-        except:
+        except Exception:
             log.info(
                 "Unable to fetch version from before upgrade. "
                 "The new zenpacks installation process will be skipped."
@@ -722,7 +722,7 @@ class ZenPackCmd(ZenScriptBase):
                 try:
                     module =  __import__('Products.' + packName, globals(), {}, [''])
                     zp = module.ZenPack(packName)
-                except (ImportError, AttributeError), ex:
+                except (ImportError, AttributeError) as ex:
                     self.log.debug(
                         "Unable to find custom ZenPack (%s), defaulting to generic ZenPack", ex
                     )
@@ -736,13 +736,13 @@ class ZenPackCmd(ZenScriptBase):
                 for required in zp.requires:
                     try:
                         self.dmd.ZenPackManager.packs._getOb(required)
-                    except:
+                    except Exception:
                         self.log.error(
                             "Pack %s requires pack %s: not installing",
                             packName, required
                         )
                         return
-        except:
+        except Exception:
             transaction.abort()
         finally:
             self.dmd.stopPauseADM()

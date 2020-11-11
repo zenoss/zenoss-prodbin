@@ -17,7 +17,7 @@ and builds the nessesary DEF and CDEF statements for it.
 from Products.ZenModel import RRDDataSource
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD, ZEN_CHANGE_DEVICE
 from AccessControl import ClassSecurityInfo, Permissions
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Products.ZenModel.Commandable import Commandable
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
 from Products.ZenUtils.Utils import executeStreamCommand, executeSshCommand, escapeSpecChars
@@ -131,12 +131,10 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
                 return self.commandTemplate
         return RRDDataSource.RRDDataSource.getDescription(self)
 
-
     def useZenCommand(self):
         if self.sourcetype == 'COMMAND':
             return True
         return False
-
 
     security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None):
@@ -157,115 +155,6 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
         return RRDDataSource.SimpleRRDDataSource.zmanage_editProperties(
                                                                 self, REQUEST)
 
-    def testDataSourceAgainstDevice(self, testDevice, REQUEST, write, errorLog):
-        """
-        Does the majority of the logic for testing a datasource against the device
-        @param string testDevice The id of the device we are testing
-        @param Dict REQUEST the browers request
-        @param Function write The output method we are using to stream the result of the command
-        @parma Function errorLog The output method we are using to report errors
-        """
-        out = REQUEST.RESPONSE
-        # Determine which device to execute against
-        device = None
-        if testDevice:
-            # Try to get specified device
-            device = self.findDevice(testDevice)
-            if not device:
-                errorLog(
-                    'No device found',
-                    'Cannot find device matching %s.' % testDevice,
-                    priority=messaging.WARNING
-                )
-                return self.callZenScreen(REQUEST)
-        elif hasattr(self, 'device'):
-            # ds defined on a device, use that device
-            device = self.device()
-        elif hasattr(self, 'getSubDevicesGen'):
-            # ds defined on a device class, use any device from the class
-            try:
-                device = self.getSubDevicesGen().next()
-            except StopIteration:
-                # No devices in this class, bail out
-                pass
-        if not device:
-            errorLog(
-                'No Testable Device',
-                'Cannot determine a device against which to test.',
-                priority=messaging.WARNING
-            )
-            return self.callZenScreen(REQUEST)
-
-        # Get the command to run
-        command = None
-        if self.sourcetype=='COMMAND':
-            # create self.command to compile a command for zminion
-            # it's only used by the commandable mixin
-            self.command = self.commandTemplate
-            zminionCommand = self.compile(self, device)
-            # to prevent command injection, get these from self rather than the browser REQUEST
-            command = self.getCommand(device, self.get('commandTemplate'))
-            displayCommand = command
-            if displayCommand and len(displayCommand.split()) > 1:
-                displayCommand = "%s [args omitted]" % displayCommand.split()[0]
-        elif self.sourcetype=='SNMP':
-            snmpinfo = copy(device.getSnmpConnInfo().__dict__)
-            if snmpinfo.get('zSnmpCommunity', None):
-                # escape dollar sign if any by $ as it's used in zope templating system
-                snmpinfo['zSnmpCommunity'] = escapeSpecChars(snmpinfo['zSnmpCommunity']).replace("$", "$$")
-            # use the oid from the request or our existing one
-            snmpinfo['oid'] = self.get('oid', self.getDescription())
-            command = SnmpCommand(snmpinfo)
-            displayCommand = command.display.replace("\\", "").replace("$$", "$")
-            # modify snmp command to be run with zminion
-            zminionCommand = self.compile(command, device)
-        else:
-            errorLog(
-                'Test Failed',
-                'Unable to test %s datasources' % self.sourcetype,
-                priority=messaging.WARNING
-            )
-            return self.callZenScreen(REQUEST)
-        if not command:
-            errorLog(
-                'Test Failed',
-                'Unable to create test command.',
-                priority=messaging.WARNING
-            )
-            return self.callZenScreen(REQUEST)
-        header = ''
-        footer = ''
-        # Render
-        if REQUEST.get('renderTemplate', True):
-            header, footer = self.commandTestOutput().split('OUTPUT_TOKEN')
-
-        out.write(str(header))
-
-        write("Executing command\n%s\n   against %s" % (displayCommand, device.id))
-        write('')
-        start = time.time()
-        remoteCollector = device.getPerformanceServer().id != 'localhost'
-        try:
-            if self.usessh:
-                if remoteCollector:
-                    # if device is on remote collector modify command to be run via zenhub
-                    self.command = "/opt/zenoss/bin/zentestds run --device {} --cmd '{}'".format(
-                        device.manageIp, self.commandTemplate)
-                    zminionCommand = self.compile(self, device)
-                    # zminion executes call back to zenhub
-                    executeStreamCommand(zminionCommand, write)
-                else:
-                    executeSshCommand(device, command, write)
-            else:
-                executeStreamCommand(zminionCommand, write)
-        except:
-            import sys
-            write('exception while executing command')
-            write('type: %s  value: %s' % tuple(sys.exc_info()[:2]))
-        write('')
-        write('')
-        write('DONE in %s seconds' % long(time.time() - start))
-        out.write(str(footer))
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'manage_testDataSource')
     def manage_testDataSource(self, testDevice, REQUEST):
@@ -302,7 +191,6 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
     def parsers(self):
         from Products.DataCollector.Plugins import loadParserPlugins
         return sorted(p.modPath for p in loadParserPlugins(self.getDmd()))
-
 
 
 InitializeClass(BasicDataSource)

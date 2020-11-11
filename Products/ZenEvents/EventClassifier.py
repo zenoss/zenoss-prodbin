@@ -45,7 +45,7 @@ class EventClassifier(object):
         if hasattr(event, "process"):
             words.insert(0,event.process)
         if len(words) > len(self.positionIndex):
-            raise EventClassNotFound, "event summary longer than position index"
+            raise EventClassNotFound("event summary longer than position index")
         classids = None 
         classid = -1
         for index, word in zip(self.positionIndex, words):
@@ -63,11 +63,14 @@ class EventClassifier(object):
                 classid = classids.pop()
                 break
             elif len(classids) == 0:
-                raise EventClassNotFound, \
+                raise EventClassNotFound(
                     "no class found for words: " + " ".join(words)
+                )
         if classid == -1:
-            raise EventClassNotUnique, \
-                "could not find unique classid possabilites are: ", classids
+            raise EventClassNotUnique(
+                "could not find unique classid possabilites are: %s"
+                % (classids,)
+            )
         #logging.debug("found classid %s for words: %s" % 
         #                (classid, " ".join(words)))
         return classid 

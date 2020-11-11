@@ -12,7 +12,7 @@ from collections import defaultdict
 
 from Acquisition import aq_base
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from OFS.Folder import Folder

@@ -21,7 +21,7 @@ import Migrate
 def delProperty(obj, name):
     try:
         obj._delProperty(name)
-    except (ValueError, AttributeError), ex:
+    except (ValueError, AttributeError) as ex:
         pass
 
 class NoCountProcs(Migrate.Step):

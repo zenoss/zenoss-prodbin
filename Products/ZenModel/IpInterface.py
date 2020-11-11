@@ -21,7 +21,7 @@ from itertools import chain
 log = logging.getLogger("zen.IpInterface")
 
 from Globals import DTMLFile
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from App.Dialogs import MessageDialog
 from AccessControl import ClassSecurityInfo
@@ -260,7 +260,7 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
         """
         try:
             return ConfmonPropManager.manage_editProperties(self, REQUEST)
-        except IpAddressError, e:
+        except IpAddressError as e:
             return   MessageDialog(
                 title = "Input Error",
                 message = e.args[0],

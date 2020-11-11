@@ -76,7 +76,7 @@ def _createInitialUser(self):
             # now that we've loaded from inituser, let's delete the file
             try:
                 os.remove(os.path.join(cfg.instancehome, 'inituser'))
-            except:
+            except Exception:
                 pass
 
 

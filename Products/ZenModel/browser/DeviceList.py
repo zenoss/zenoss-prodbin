@@ -150,7 +150,7 @@ class DeviceBatch(BrowserView):
         # new (or the same) screen and set a message
         try:
             result = action(**argdict)
-        except:
+        except Exception:
             msgs = {'lockDevicesFromUpdates':'lock devices from updates',
                     'lockDevicesFromDeletion':'lock devices from deletion',
                     'unlockDevices':'unlock devices',

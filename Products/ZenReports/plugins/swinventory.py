@@ -23,7 +23,7 @@ class swinventory:
                         try:
                             if dmd.checkRemotePerm('View', i.device()):
                                 c += 1
-                        except:
+                        except Exception:
                             continue
                         i._p_invalidate()
                     if c == 0: continue                     

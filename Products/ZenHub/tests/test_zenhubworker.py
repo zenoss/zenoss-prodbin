@@ -1,11 +1,14 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2018, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2018, 2019, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
+
+from __future__ import absolute_import
+import sys
 
 from unittest import TestCase
 from mock import patch, sentinel, call, Mock, create_autospec, ANY, MagicMock
@@ -17,8 +20,10 @@ from Products.ZenHub.zenhubworker import (
     PingZenHub,
     ServiceReferenceFactory,
     ServiceReference,
+    ZENHUB_MODULE,
     ZCmdBase,
     IDLE,
+    IMetricManager,
     ContinuousProfiler,
     PB_PORT,
     RemoteBadMonitor,
@@ -32,6 +37,7 @@ PATH = {'src': 'Products.ZenHub.zenhubworker'}
 
 
 class ZenHubWorkerTest(TestCase):
+    """Test the ZenHubWorker class."""
 
     def setUp(t):
         # Patch out the ZCmdBase __init__ method
@@ -46,12 +52,13 @@ class ZenHubWorkerTest(TestCase):
             'dmd': patch.object(ZenHubWorker, 'dmd', create=True),
             'log': patch.object(ZenHubWorker, 'log', create=True),
             'options': patch.object(ZenHubWorker, 'options', create=True),
+            'connection': patch.object(ZenHubWorker, 'connection', create=True),
         }
         for name, patcher in t.zcmdbase_patchers.items():
             setattr(t, name, patcher.start())
             t.addCleanup(patcher.stop)
 
-        # ZenHubWorker.options = sentinel.options
+        # Set ZenHubWorker's options to some real and mock values
         t.options.profiling = True
         t.options.hubhost = "localhost"
         t.options.hubport = 8765
@@ -62,16 +69,20 @@ class ZenHubWorkerTest(TestCase):
 
         # Patch external dependencies
         needs_patching = [
+            'clientFromString',
+            'getGlobalSiteManager',
+            'loadPlugins',
+            'load_config',
+            'reactor',
             'ContinuousProfiler',
-            'HubServiceRegistry',
             'MetricManager',
             'Metrology',
-            'loadPlugins',
+            'ServiceLoader',
+            'ServiceManager',
             'ServiceReferenceFactory',
+            'ServiceRegistry',
             'UsernamePassword',
-            'clientFromString',
             'ZenHubClient',
-            'reactor',
         ]
         t.patchers = {}
         for target in needs_patching:
@@ -82,11 +93,21 @@ class ZenHubWorkerTest(TestCase):
             setattr(t, target, patched.start())
             t.addCleanup(patched.stop)
 
+        # A little cheat; 'worklistId' and 'instanceId' are set by the
+        # parseOptions method, but parseOptions is called by ZenHubWorker's
+        # base class, which has been mocked out.  So worklistId and
+        # instanceId are set on the class so it's available to the instance.
+        ZenHubWorker.worklistId = "default"
+        ZenHubWorker.instanceId = "%s_%s" % (
+            ZenHubWorker.worklistId, t.options.workerid,
+        )
+
         t.zhw = ZenHubWorker(t.reactor)
 
     def test___init__(t):
         t.ZCmdBase__init__.assert_called_with(t.zhw)
 
+        t.load_config.assert_called_with("hubworker.zcml", ZENHUB_MODULE)
         # Optional Profiling
         t.ContinuousProfiler.assert_called_with('ZenHubWorker', log=t.zhw.log)
         t.assertEqual(t.zhw.profiler, t.ContinuousProfiler.return_value)
@@ -103,12 +124,13 @@ class ZenHubWorkerTest(TestCase):
         t.assertEqual(t.zhw.zem, t.zhw.dmd.ZenEventManager)
         t.loadPlugins.assert_called_with(t.zhw.dmd)
 
+        t.ServiceRegistry.assert_called_once_with()
+        t.ServiceLoader.assert_called_once_with()
         t.ServiceReferenceFactory.assert_called_once_with(t.zhw)
-        t.HubServiceRegistry.assert_called_once_with(
-            t.dmd, t.ServiceReferenceFactory.return_value,
-        )
-        t.assertEqual(
-            t.HubServiceRegistry.return_value, t.zhw._ZenHubWorker__registry,
+        t.ServiceManager.assert_called_once_with(
+            t.ServiceRegistry.return_value,
+            t.ServiceLoader.return_value,
+            t.ServiceReferenceFactory.return_value,
         )
 
         t.UsernamePassword.assert_called_once_with(
@@ -120,18 +142,28 @@ class ZenHubWorkerTest(TestCase):
         )
         t.ZenHubClient.assert_called_once_with(
             t.reactor, t.clientFromString.return_value,
-            t.UsernamePassword.return_value, t.zhw, 10.0,
+            t.UsernamePassword.return_value, t.zhw,
+            t.zhw.options.hub_response_timeout, t.zhw.worklistId,
         )
         t.assertEqual(t.ZenHubClient.return_value, t.zhw._ZenHubWorker__client)
 
         t.MetricManager.assert_called_with(
             daemon_tags={
-                'zenoss_daemon': 'zenhub_worker_%s' % t.zhw.options.workerid,
+                'zenoss_daemon': 'zenhub_worker_%s_%s' % (
+                    t.zhw.worklistId, t.zhw.options.workerid,
+                ),
                 'zenoss_monitor': t.zhw.options.monitor,
                 'internal': True,
             },
         )
         t.assertEqual(t.zhw._metric_manager, t.MetricManager.return_value)
+        t.getGlobalSiteManager.assert_called_once_with()
+        gsm = t.getGlobalSiteManager.return_value
+        gsm.registerUtility.assert_called_once_with(
+            t.zhw._metric_manager,
+            IMetricManager,
+            name='zenhub_worker_metricmanager',
+        )
 
     @patch("{src}.signal".format(**PATH), autospec=True)
     def test_start(t, signal):
@@ -154,8 +186,7 @@ class ZenHubWorkerTest(TestCase):
         ])
 
     def test_audit(t):
-        '''does nothing
-        '''
+        # Verifies the API exists, although it does nothing.
         action = sentinel.action
         t.zhw.audit(action)
 
@@ -216,16 +247,18 @@ class ZenHubWorkerTest(TestCase):
     @patch('{src}.isoDateTime'.format(**PATH), autospec=True)
     @patch('{src}.time'.format(**PATH), autospec=True)
     def test_reportStats(t, time, isoDateTime):
-        '''Metric Reporting Function. Log various statistics on services
-        as a general rule, do not test individual log messages, just log format
-        this function is difficult to read and should be refactored
-        '''
+        """Test the metric reporting function.
+
+        Log various statistics on services as a general rule, do not test
+        individual log messages, just log format this function is difficult
+        to read and should be refactored.
+        """
         t.zhw.current = sentinel.current_job
         t.zhw.options.workerid = 1
         t.zhw.currentStart = 0
         time.time.return_value = 7
+        monitor = "localhost"
         name = 'module.module_name'
-        instance = 'collector_instance'
         service = sentinel.service
         method = 'method_name'
         stats = sentinel.stats
@@ -233,19 +266,22 @@ class ZenHubWorkerTest(TestCase):
         stats.totaltime = 54
         stats.lasttime = 555
         service.callStats = {method: stats}
-        t.zhw._ZenHubWorker__registry = {
-            (name, instance): service,
-        }
+        t.zhw._ZenHubWorker__registry = {(monitor, name): service}
         isodate = isoDateTime.return_value
 
         t.zhw.reportStats()
 
         isoDateTime.assert_called_with(stats.lasttime)
 
-        parsed_service_id = '{instance}/module_name'.format(**locals())
+        parsed_service_id = 'module_name'
         average_time = stats.totaltime / stats.numoccurrences
+        headers = [
+            "Service", "Method", "Count", "Total", "Average", "Last Run",
+        ]
         t.zhw.log.info.assert_called_with(
             'Running statistics:\n'
+            ' {headers[0]: <50} {headers[1]: <32} {headers[2]: >8}'
+            ' {headers[3]: >12} {headers[4]: >8} {headers[5]}\n'
             ' - {parsed_service_id: <49}{method: <32}'
             '{stats.numoccurrences: 9}{stats.totaltime: 13.2f}'
             '{average_time: 9.2f} {isodate}'.format(**locals()),
@@ -268,50 +304,50 @@ class ZenHubWorkerTest(TestCase):
     def test_remote_getService(t):
         name = "service"
         monitor = "monitor"
-        registry = t.HubServiceRegistry.return_value
-        expected = registry.getService.return_value
+        manager = t.ServiceManager.return_value
+        expected = manager.getService.return_value
 
         actual = t.zhw.remote_getService(name, monitor)
 
         t.assertEqual(expected, actual)
-        registry.getService.assert_called_once_with(name, monitor)
+        manager.getService.assert_called_once_with(name, monitor)
 
     def test_remote_getService_bad_monitor(t):
         name = "service"
         monitor = "bad"
-        registry = t.HubServiceRegistry.return_value
+        manager = t.ServiceManager.return_value
 
         errorMessage = "boom"
         tb = Mock()
-        registry.getService.side_effect = RemoteBadMonitor(errorMessage, tb)
+        manager.getService.side_effect = RemoteBadMonitor(errorMessage, tb)
 
         with t.assertRaises(RemoteBadMonitor):
             t.zhw.remote_getService(name, monitor)
 
-        registry.getService.assert_called_once_with(name, monitor)
+        manager.getService.assert_called_once_with(name, monitor)
 
     def test_remote_getService_unknown_service(t):
         name = "bad"
         monitor = "monitor"
-        registry = t.HubServiceRegistry.return_value
-        registry.getService.side_effect = UnknownServiceError("boom")
+        manager = t.ServiceManager.return_value
+        manager.getService.side_effect = UnknownServiceError("boom")
 
         with t.assertRaises(UnknownServiceError):
             t.zhw.remote_getService(name, monitor)
 
-        registry.getService.assert_called_once_with(name, monitor)
+        manager.getService.assert_called_once_with(name, monitor)
         t.zhw.log.error.assert_has_calls([ANY])
 
     def test_remote_getService_general_error(t):
         name = "bad"
         monitor = "monitor"
         error = ValueError("boom")
-        registry = t.HubServiceRegistry.return_value
-        registry.getService.side_effect = error
+        manager = t.ServiceManager.return_value
+        manager.getService.side_effect = error
 
         with t.assertRaises(pb.Error):
             t.zhw.remote_getService(name, monitor)
-            registry.getService.assert_called_once_with(name, monitor)
+            manager.getService.assert_called_once_with(name, monitor)
             t.zhw.log.exception.assert_has_calls([ANY])
 
     def test__shutdown(t):
@@ -320,15 +356,19 @@ class ZenHubWorkerTest(TestCase):
 
     @patch('{src}.ZCmdBase'.format(**PATH))
     def test_buildOptions(t, ZCmdBase):
-        '''After initialization, the ZenHubWorker instance should have
-        options parsed from its buildOptions method
-        assertions based on default options
-        '''
+        """Test the result of the buildOptions method.
+
+        In this isolated test, after argument parsing, the ZenHubWorker
+        instance options object should have values matching the default
+        values specified for the options.
+        """
         # this should call buildOptions on parent classes, up the tree
         # currently calls an ancestor class directly
         # parser expected to be added by CmdBase.buildParser
         from optparse import OptionParser
         t.zhw.parser = OptionParser()
+        # Given no command line arguments
+        sys.argv = []
 
         t.zhw.buildOptions()
         t.zhw.options, args = t.zhw.parser.parse_args()
@@ -345,6 +385,7 @@ class ZenHubWorkerTest(TestCase):
 
 
 class ZenHubClientTest(TestCase):
+    """Test the ZenHubClient class."""
 
     def setUp(t):
         # t.reactor = Mock()
@@ -352,16 +393,18 @@ class ZenHubClientTest(TestCase):
         t.credentials = Mock()
         t.worker = Mock()
         t.timeout = 10
+        t.worklistId = "default"
 
         # Patch external dependencies
         needs_patching = [
-            'pb.PBClientFactory',
+            'ZenPBClientFactory',
             'clientFromString',
             'ClientService',
             'ConnectedToZenHubSignalFile',
             'PingZenHub',
             'backoffPolicy',
             'getLogger',
+            'load_config',
             'reactor',
             'task.LoopingCall',
         ]
@@ -377,6 +420,7 @@ class ZenHubClientTest(TestCase):
 
         t.zhc = ZenHubClient(
             t.reactor, t.endpoint, t.credentials, t.worker, t.timeout,
+            t.worklistId,
         )
 
     def test___init__(t):
@@ -404,7 +448,7 @@ class ZenHubClientTest(TestCase):
         t.assertFalse(t.zhc._ZenHubClient__stopping)
         t.backoffPolicy.assert_called_once_with(initialDelay=0.5, factor=3.0)
         t.ClientService.assert_called_once_with(
-            t.endpoint, t.PBClientFactory.return_value,
+            t.endpoint, t.ZenPBClientFactory.return_value,
             retryPolicy=t.backoffPolicy.return_value,
         )
         service = t.ClientService.return_value
@@ -521,6 +565,7 @@ class ZenHubClientTest(TestCase):
             "reportingForWork",
             t.zhc._ZenHubClient__worker,
             workerId=t.zhc._ZenHubClient__worker.instanceId,
+            worklistId=t.worklistId,
         )
         t.LoopingCall.assert_called_once_with(t.PingZenHub.return_value)
         t.assertEqual(t.zhc._ZenHubClient__pinger, pinger)
@@ -548,7 +593,7 @@ class ZenHubClientTest(TestCase):
 
         login.assert_called_once_with(broker)
         t.zhc._ZenHubClient__log.error.assert_called_once_with(
-            ANY, type(ex), ex,
+            ANY, type(ex).__name__, ex,
         )
         t.zhc._ZenHubClient__signalFile.remove.assert_called_once_with()
         t.reactor.stop.assert_called_once_with()
@@ -587,9 +632,10 @@ class ZenHubClientTest(TestCase):
             "reportingForWork",
             t.zhc._ZenHubClient__worker,
             workerId=t.zhc._ZenHubClient__worker.instanceId,
+            worklistId=t.worklistId,
         )
         t.zhc._ZenHubClient__log.error.assert_called_once_with(
-            ANY, type(ex), ex,
+            ANY, type(ex).__name__, ex,
         )
         t.zhc._ZenHubClient__signalFile.remove.assert_called_once_with()
         t.reactor.stop.assert_called_once_with()
@@ -639,6 +685,7 @@ class ZenHubClientTest(TestCase):
 
 
 class PingZenHubTest(TestCase):
+    """Test the PingZenHub class."""
 
     def setUp(t):
         t.zenhub = Mock()
@@ -684,6 +731,7 @@ class PingZenHubTest(TestCase):
 
 
 class ServiceReferenceFactoryTest(TestCase):
+    """Test the ServiceReferenceFactory class."""
 
     @patch("{src}.ServiceReference".format(**PATH), autospec=True)
     def test_build(t, ServiceReference):
@@ -693,7 +741,7 @@ class ServiceReferenceFactoryTest(TestCase):
         name = sentinel.name
         monitor = sentinel.monitor
 
-        result = factory.build(service, name, monitor)
+        result = factory(service, name, monitor)
 
         ServiceReference.assert_called_once_with(
             service, name, monitor, worker,
@@ -702,6 +750,7 @@ class ServiceReferenceFactoryTest(TestCase):
 
 
 class ServiceReferenceTest(TestCase):
+    """Test the ServiceReference class."""
 
     def setUp(t):
         t._CumulativeWorkerStats_patcher = patch(
@@ -797,6 +846,7 @@ class ServiceReferenceTest(TestCase):
 
 
 class _CumulativeWorkerStatsTest(TestCase):
+    """Test the _CumulativeWorkerStats class."""
 
     def test___init__(t):
         cws = _CumulativeWorkerStats()

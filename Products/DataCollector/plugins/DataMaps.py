@@ -1,22 +1,25 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 import logging
-log = logging.getLogger("zen.plugins.DataMap")
 
 from pprint import pformat
-from pprint import pprint
 from twisted.spread import pb
+
+log = logging.getLogger("zen.plugins.DataMap")
 
 PLUGIN_NAME_ATTR = "plugin_name"
 
-class PBSafe(pb.Copyable, pb.RemoteCopy): pass
+
+class PBSafe(pb.Copyable, pb.RemoteCopy):
+    pass
+
 
 class RelationshipMap(PBSafe):
     parentId = ""
@@ -24,14 +27,28 @@ class RelationshipMap(PBSafe):
     compname = ""
     plugin_name = ""
 
-    def __init__(self, relname="", compname="", modname="", objmaps=[], parentId="", plugin_name=""):
+    def __init__(
+        self,
+        relname="",
+        compname="",
+        modname="",
+        objmaps=[],
+        parentId="",
+        plugin_name=""
+    ):
         self.parentId = parentId
         self.relname = relname
         self.compname = compname
+
         if modname:
-            self.maps = [ObjectMap(dm, modname=modname, plugin_name=plugin_name) for dm in objmaps ]
+            self.maps = [
+                ObjectMap(dm, modname=modname, plugin_name=plugin_name)
+                for dm in objmaps
+            ]
         else:
-            self.maps = [ObjectMap(dm, plugin_name=plugin_name) for dm in objmaps ]
+            self.maps = [
+                ObjectMap(dm, plugin_name=plugin_name) for dm in objmaps
+            ]
         self.plugin_name = plugin_name
 
     def __repr__(self):
@@ -43,11 +60,17 @@ class RelationshipMap(PBSafe):
     def __iter__(self):
         return iter(self.maps)
 
-    def append(self, obj):
-        self.maps.append(obj)
+    def append(self, objmap):
+        self._add_map(objmap)
 
     def extend(self, objmaps):
-        self.maps.extend(objmaps)
+        for map in objmaps:
+            self._add_map(map)
+
+    def _add_map(self, objmap):
+        if self.plugin_name and not getattr(objmap, 'plugin_name', None):
+            objmap.plugin_name = self.plugin_name
+        self.maps.append(objmap)
 
     def asUnitTest(self):
         """
@@ -56,15 +79,16 @@ class RelationshipMap(PBSafe):
         """
         return pformat(dict((map.id, map.asUnitTest()) for map in self.maps))
 
+
 pb.setUnjellyableForClass(RelationshipMap, RelationshipMap)
 
 
 class ObjectMap(PBSafe):
     """
     ObjectMap defines a mapping of some data to a ZenModel object.  To be valid
-    it must specify modname the full path to the module where the class to 
+    it must specify modname the full path to the module where the class to
     be created is defined.  If the class name is the same as the module
-    classname doesn't need to be defined.  
+    classname doesn't need to be defined.
     """
     compname = ""
     modname = ""
@@ -72,20 +96,32 @@ class ObjectMap(PBSafe):
     plugin_name = ""
     _blockattrs = ('compname', 'modname', 'classname', PLUGIN_NAME_ATTR)
     _attrs = []
+    __valid_directives = (
+        'remove', 'delete_locked', 'add', 'update', 'update_locked', 'rebuild',
+        'nochange', None
+    )
 
-    def __init__(self, data={}, compname="", modname="", classname="", plugin_name=""):
+    def __init__(
+        self, data={}, compname="", modname="", classname="", plugin_name=""
+    ):
         self._attrs = []
         self.updateFromDict(data)
-        if compname: self.compname = compname
-        if modname: self.modname = modname
-        if classname: self.classname = classname
-        if plugin_name: self.plugin_name = plugin_name
+        if compname:
+            self.compname = compname
+        if modname:
+            self.modname = modname
+        if classname:
+            self.classname = classname
+        if plugin_name:
+            self.plugin_name = plugin_name
 
     def __setattr__(self, name, value):
         if name not in self._attrs and not name.startswith("_"):
             self._attrs.append(name)
+        if name == '_directive' and value not in self.__valid_directives:
+            raise RuntimeError('invalid directive: %s' % value)
         self.__dict__[name] = value
-        
+
     def __repr__(self):
         map = {}
         map.update(self.__dict__)
@@ -95,8 +131,18 @@ class ObjectMap(PBSafe):
     def items(self):
         """Return the name value pairs for this ObjectMap.
         """
-        return [ (n, v) for n, v in self.__dict__.items() \
-                if n not in self._blockattrs and n in self._attrs ]
+        return [
+            (n, v) for n, v in self.__dict__.items()
+            if n not in self._blockattrs
+            and n in self._attrs
+        ]
+
+    def iteritems(self):
+        return (
+            (n, v) for n, v in self.__dict__.iteritems()
+            if n not in self._blockattrs
+            and n in self._attrs
+        )
 
     def updateFromDict(self, data):
         """Update this ObjectMap from a dictionary's values.
@@ -120,6 +166,7 @@ class ObjectMap(PBSafe):
 
 
 pb.setUnjellyableForClass(ObjectMap, ObjectMap)
+
 
 class MultiArgs(PBSafe):
     """

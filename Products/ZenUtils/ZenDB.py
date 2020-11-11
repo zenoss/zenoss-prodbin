@@ -81,7 +81,7 @@ class ZenDB(object):
 
     def getConnection(self, extraParams={}):
         if self.dbtype == 'mysql':
-            from Products.ZenUtils.mysql import MySQLdb
+            import MySQLdb
             p = self.dbparams
             params = {}
             params['host'] = p['host']

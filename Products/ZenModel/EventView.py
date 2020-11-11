@@ -14,13 +14,14 @@ log = logging.getLogger("zen.EventView")
 from decorator import decorator
 from copy import deepcopy
 from AccessControl import ClassSecurityInfo, getSecurityManager
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from zope.interface import Interface, implements
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
 from Products.ZenWidgets import messaging
 from zenoss.protocols.services import ServiceResponseError
 from zenoss.protocols.services.zep import ZepConnectionError
+from urllib3.exceptions import ProtocolError
 from zenoss.protocols.protobufs.zep_pb2 import (STATUS_NEW, STATUS_ACKNOWLEDGED, SEVERITY_CRITICAL,
                                                 SEVERITY_ERROR, SEVERITY_WARNING, SEVERITY_INFO,
                                                 SEVERITY_DEBUG)
@@ -35,13 +36,20 @@ def zepConnectionError(retval=None):
         def inner(func, self, *args, **kwargs):
             try:
                 return func(self, *args, **kwargs)
-            except ZepConnectionError, e:
+            except ZepConnectionError as e:
                 msg = 'Connection refused. Check zeneventserver status on <a href="/zport/dmd/daemons">Services</a>'
                 messaging.IMessageSender(self).sendToBrowser("ZEP connection error",
                                                         msg,
                                                         priority=messaging.CRITICAL,
                                                         sticky=True)
                 log.warn("Could not connect to ZEP")
+            except ProtocolError as e:
+                msg = '"No status line received before ZEP closed the http connection". Check zeneventserver status on <a href="/zport/dmd/daemons">Services</a>'
+                messaging.IMessageSender(self).sendToBrowser("ZEP closed the connection before sending a status line",
+                                                        msg,
+                                                        priority=messaging.CRITICAL,
+                                                        sticky=True)
+                log.warn("ZEP closed the connection before sending a status line.")
             return deepcopy(retval)    # don't return the mutable retval
         return decorator(inner, func)  # for URL's through Zope we must use the same arguments as the original function
     return outer
@@ -89,7 +97,7 @@ class EventView(object):
                 count = counts.get('count', 0)
                 acked = counts.get('acknowledged_count', 0)
                 sevsum.append([getCssClass(sev), acked, count])
-        except TypeError, e:
+        except TypeError as e:
             log.warn("Attempted to query events for %r which does not have a uuid" % self)
         return sevsum
 
@@ -131,7 +139,7 @@ class EventView(object):
             evids_filter = zep.createEventFilter(uuid=evids)
             zep.acknowledgeEventSummaries(eventFilter=evids_filter)
             self._redirectToEventConsole("Acknowledged events: %s" % ", ".join(evids), REQUEST)
-        except ServiceResponseError, e:
+        except ServiceResponseError as e:
             self._redirectToEventConsole("Error acknowledging events: %s" % str(e), REQUEST)
 
     security.declareProtected('Manage Events','manage_deleteEvents')
@@ -150,7 +158,7 @@ class EventView(object):
             evids_filter = zep.createEventFilter(uuid=evids)
             zep.closeEventSummaries(eventFilter=evids_filter)
             self._redirectToEventConsole("Closed events: %s" % ", ".join(evids), REQUEST)
-        except ServiceResponseError, e:
+        except ServiceResponseError as e:
             self._redirectToEventConsole("Error Closing events: %s" % str(e), REQUEST)
 
     security.declareProtected('Manage Events','manage_undeleteEvents')
@@ -169,7 +177,7 @@ class EventView(object):
             evids_filter = zep.createEventFilter(uuid=evids)
             zep.reopenEventSummaries(eventFilter=evids_filter)
             self._redirectToEventConsole("Reopened events: %s" % ", ".join(evids), REQUEST)
-        except ServiceResponseError, e:
+        except ServiceResponseError as e:
             self._redirectToEventConsole("Error Reopening events: %s" % str(e), REQUEST)
 
     @zepConnectionError(0)
@@ -183,7 +191,7 @@ class EventView(object):
                                                  severity=[SEVERITY_WARNING,SEVERITY_ERROR,SEVERITY_CRITICAL],
                                                  status=[STATUS_NEW,STATUS_ACKNOWLEDGED],
                                                  event_class=filter(None, [statusclass]))
-        except TypeError, e:
+        except TypeError as e:
             log.warn("Attempted to query events for %r which does not have a uuid" % self)
             return 0
         result = zep.getEventSummaries(0, filter=event_filter, limit=0)
@@ -200,7 +208,7 @@ class EventView(object):
             # Event class rainbows show all events through DEBUG severity
             sevs = (SEVERITY_CRITICAL,SEVERITY_ERROR,SEVERITY_WARNING,SEVERITY_INFO,SEVERITY_DEBUG)
             severities = zep.getEventSeveritiesByUuid(self.getUUID(), severities=sevs)
-        except TypeError, e:
+        except TypeError as e:
             log.warn("Attempted to query events for %r which does not have a uuid" % self)
             return {}
         results = dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
@@ -214,7 +222,7 @@ class EventView(object):
         zep = getFacade('zep', self.dmd)
         try:
             result =  zep.getWorstSeverityByUuid(self.getUUID())
-        except TypeError, e:
+        except TypeError as e:
             log.warn("Attempted to query events for %r which does not have a uuid" % self)
             result = 0
         return result

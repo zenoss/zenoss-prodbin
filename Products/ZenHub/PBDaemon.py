@@ -68,16 +68,29 @@ LIMITS={
 }
 
 
-class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
+class RemoteException(pb.Error, pb.Copyable, pb.RemoteCopy):
     """Exception that can cross the PB barrier"""
 
     def __init__(self, msg, tb):
-        Exception.__init__(self, msg)
+        super(RemoteException, self).__init__(msg)
         self.traceback = tb
 
+    def getStateToCopy(self):
+        return {
+            "args": tuple(self.args),
+            "traceback": self.traceback,
+        }
+
+    def setCopyableState(self, state):
+        self.args = state["args"]
+        self.traceback = state["traceback"]
+
     def __str__(self):
-        return "%s: %s" % (
-            Exception.__str__(self), self.traceback or '<no traceback>')
+        return "%s:%s" % (
+            super(RemoteException, self).__str__(),
+            ("\n" + self.traceback) if self.traceback else " <no traceback>",
+        )
+
 
 pb.setUnjellyableForClass(RemoteException, RemoteException)
 
@@ -89,6 +102,7 @@ pb.setUnjellyableForClass(RemoteConflictError, RemoteConflictError)
 
 # Invalid monitor specified
 class RemoteBadMonitor(RemoteException): pass
+pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
 
 
 def translateError(callable):
@@ -107,11 +121,11 @@ def translateError(callable):
         """
         try:
             return callable(*args, **kw)
-        except ConflictError, ex:
+        except ConflictError as ex:
             raise RemoteConflictError(
                 'Remote exception: %s: %s' % (ex.__class__, ex),
                 traceback.format_exc())
-        except Exception, ex:
+        except Exception as ex:
             raise RemoteException(
                 'Remote exception: %s: %s' % (ex.__class__, ex),
                 traceback.format_exc())

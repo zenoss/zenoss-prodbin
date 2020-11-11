@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -17,6 +17,8 @@ import signal
 import time
 from itertools import imap
 from Products.ZenMessaging.audit import audit
+from Products.ZenUI3.security.security import permissionsForContext
+from Products.ZenModel.ZenossSecurity import ZEN_RUN_COMMANDS
 from Products.ZenUI3.browser.streaming import StreamingView, StreamClosed
 from Products.ZenUtils.jsonutils import unjson
 from Products.Zuul import getFacade
@@ -31,11 +33,15 @@ class CommandView(StreamingView):
     """
     def stream(self):
         data = unjson(self.request.get('data'))
-        command = self.context.getUserCommands(asDict=True).get(data['command'], None)
+        command = self.context.getUserCommands(asDict=True).get(
+            data['command'], None)
         if command:
             for uid in data['uids']:
                 target = self.context.unrestrictedTraverse(uid)
-                self.execute(command, target)
+                if permissionsForContext(target)[ZEN_RUN_COMMANDS.lower()]:
+                    self.execute(command, target)
+                else:
+                    self.write('==== No permissions to run command %s for %s, skipping ===='.format(command, target))
 
     def _get_printable_command(self, raw_command, compiled_command, target):
         """
@@ -72,7 +78,8 @@ class CommandView(StreamingView):
                               self.context.defaultTimeout)
             end = time.time() + timeout
             self.write('==== %s ====' % target.titleOrId())
-            printable_command = self._get_printable_command(cmd.command, compiled, target)
+            printable_command = self._get_printable_command(cmd.command,
+                                                            compiled, target)
             self.write(printable_command)
 
             audit('UI.Command.Invoke', cmd.id, target=target.id)
@@ -101,7 +108,7 @@ class CommandView(StreamingView):
                 self.write('Command timed out for %s (timeout is %s seconds)'%(
                                 target.titleOrId(), timeout)
                           )
-        except:
+        except Exception:
             self.write('Exception while performing command for %s' %
                        target.id)
             self.write('Type: %s   Value: %s' % tuple(sys.exc_info()[:2]))
@@ -122,24 +129,17 @@ class BackupView(StreamingView):
                 includeMysqlLogin, timeout, self.request, self.write)
 
 
-class TestDataSourceView(StreamingView):
+class MonitorDatasource(StreamingView):
     """
-    Accepts a post with data in of the command to be tested against a device
+    Get device by id. Accepts datasource object to device model.
     """
 
     def stream(self):
-        """
-        Called by the parent class, this method asks the datasource
-        to test itself.
-        """
         try:
             request = self.request
             data = unjson(request.form['data'])
-            # datasource expect the request object, so set the attributes
-            # from the request (so the user can test without saving the datasource)
             for key in data:
                 request[key] = data[key]
-
             self.write("Preparing Command...")
             request['renderTemplate'] = False
             results = self.context.testDataSourceAgainstDevice(
@@ -182,12 +182,39 @@ class ModelDebugView(StreamingView):
         uids = data['uids']
         facade = getFacade('device', self.context)
         for device in imap(facade._getObject, uids):
-            device.collectDevice(REQUEST=self.request, write=self.write, debug=True)
+            device.collectDevice(REQUEST=self.request, write=self.write,
+                                 debug=True)
+
+
+class GroupModelView(StreamingView):
+    """
+    Accepts a list of organizer uids to model devices they contain.
+    """
+    def stream(self):
+        data = unjson(self.request.get('data'))
+        uids = data['uids']
+        facade = getFacade('device', self.context)
+        for deviceOrganizer in imap(facade._getObject, uids):
+            deviceOrganizer.collectDevice(REQUEST=self.request,
+                                          write=self.write)
+
+
+class GroupModelDebugView(StreamingView):
+    """
+    Accepts a list of organizer uids to model devices they contain.
+    """
+    def stream(self):
+        data = unjson(self.request.get('data'))
+        uids = data['uids']
+        facade = getFacade('device', self.context)
+        for deviceOrganizer in imap(facade._getObject, uids):
+            deviceOrganizer.collectDevice(REQUEST=self.request,
+                                          write=self.write, debug=True)
 
 
 class MonitorView(StreamingView):
     """
-    Accepts a list of uids to model.
+    Accepts a list of uids to monitor.
     """
     def stream(self):
         data = unjson(self.request.get('data'))
@@ -199,11 +226,38 @@ class MonitorView(StreamingView):
 
 class MonitorDebugView(StreamingView):
     """
-    Accepts a list of uids to model.
+    Accepts a list of uids to monitor.
     """
     def stream(self):
         data = unjson(self.request.get('data'))
         uids = data['uids']
         facade = getFacade('device', self.context)
         for device in imap(facade._getObject, uids):
-            device.runDeviceMonitor(REQUEST=self.request, write=self.write, debug=True)
+            device.runDeviceMonitor(REQUEST=self.request, write=self.write,
+                                    debug=True)
+
+
+class GroupMonitorView(StreamingView):
+    """
+    Accepts a list of organizer uids to monitor devices they contain.
+    """
+    def stream(self):
+        data = unjson(self.request.get('data'))
+        uids = data['uids']
+        facade = getFacade('device', self.context)
+        for deviceOrganizer in imap(facade._getObject, uids):
+            deviceOrganizer.runDeviceMonitor(REQUEST=self.request,
+                                             write=self.write)
+
+
+class GroupMonitorDebugView(StreamingView):
+    """
+    Accepts a list of organizer uids to monitor devices they contain.
+    """
+    def stream(self):
+        data = unjson(self.request.get('data'))
+        uids = data['uids']
+        facade = getFacade('device', self.context)
+        for deviceOrganizer in imap(facade._getObject, uids):
+            deviceOrganizer.runDeviceMonitor(REQUEST=self.request,
+                                             write=self.write, debug=True)

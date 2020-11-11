@@ -143,6 +143,8 @@ class ZenModeler(PBDaemon):
         self.collectorLoopIteration = 0
         self.mainLoopGotDeviceList = False
 
+        self.isMainScheduled = False
+
         self._modeledDevicesMetric = Metrology.meter("zenmodeler.modeledDevices")
         self._failuresMetric = Metrology.counter("zenmodeler.failures")
 
@@ -256,12 +258,7 @@ class ZenModeler(PBDaemon):
                 self.log.debug( "Loaded plugin %s" % plugin.name() )
                 plugins.append( plugin )
                 valid_loaders.append( loader )
-
-            except (SystemExit, KeyboardInterrupt), ex:
-                self.log.info( "Interrupted by external signal (%s)" % str(ex) )
-                raise
-
-            except Plugins.PluginImportError, import_error:
+            except Plugins.PluginImportError as import_error:
                 import socket
                 component, _ = os.path.splitext( os.path.basename( sys.argv[0] ) )
                 collector_host= socket.gethostname()
@@ -365,8 +362,6 @@ class ZenModeler(PBDaemon):
             if not client or not plugins:
                 self.log.warn("WMI collector creation failed")
                 return
-        except (SystemExit, KeyboardInterrupt):
-            raise
         except Exception:
             self.log.exception("Error opening WMI collector")
         self.addClient(client, timeout, 'WMI', device.id)
@@ -396,8 +391,7 @@ class ZenModeler(PBDaemon):
             if not client or not plugins:
                 self.log.warn("Python client creation failed")
                 return
-        except (SystemExit, KeyboardInterrupt): raise
-        except:
+        except Exception:
             self.log.exception("Error opening pythonclient")
         self.addClient(client, timeout, 'python', device.id)
 
@@ -467,8 +461,7 @@ class ZenModeler(PBDaemon):
             else:
                 self.log.info("plugins: %s",
                     ", ".join(map(lambda p: p.name(), plugins)))
-        except (SystemExit, KeyboardInterrupt): raise
-        except:
+        except Exception:
             self.log.exception("Error opening command collector")
         self.addClient(client, timeout, clientType, device.id)
 
@@ -509,8 +502,7 @@ class ZenModeler(PBDaemon):
             if not client or not plugins:
                 self.log.warn("SNMP collector creation failed")
                 return
-        except (SystemExit, KeyboardInterrupt): raise
-        except:
+        except Exception:
             self.log.exception("Error opening the SNMP collector")
         self.addClient(client, timeout, 'SNMP', device.id)
 
@@ -599,8 +591,7 @@ class ZenModeler(PBDaemon):
             if not client or not plugins:
                 self.log.warn("Portscan collector creation failed")
                 return
-        except (SystemExit, KeyboardInterrupt): raise
-        except:
+        except Exception:
             self.log.exception("Error opening portscan collector")
         self.addClient(client, timeout, 'portscan', device.id)
 
@@ -614,7 +605,7 @@ class ZenModeler(PBDaemon):
         @type: boolean
         """
         delay = device.getSnmpLastCollection() + self.collage
-        if delay >= float(DateTime.DateTime()) or device.getSnmpStatusNumber() > 0:
+        if delay >= float(DateTime.DateTime()) and device.getSnmpStatusNumber() == 0:
             self.log.info("Skipped collection of %s" % device.id)
             return False
         return True
@@ -670,14 +661,12 @@ class ZenModeler(PBDaemon):
                             datamaps = plugin.process(device, results, self.log)
                         if datamaps:
                             pluginStats.setdefault(plugin.name(), plugin.weight)
-
-                    except (SystemExit, KeyboardInterrupt), ex:
+                    except (SystemExit, KeyboardInterrupt) as ex:
                         self.log.info( "Plugin %s terminated due to external"
                                       " signal (%s)" % (plugin.name(), str(ex) )
                                       )
                         continue
-
-                    except Exception, ex:
+                    except Exception as ex:
                         # NB: don't discard the plugin, as it might be a
                         #     temporary issue
                         #     Also, report it against the device, rather than at
@@ -729,7 +718,7 @@ class ZenModeler(PBDaemon):
                 else:
                     self.log.info("No change in configuration detected")
 
-            except Exception, ex:
+            except Exception as ex:
                 self.log.exception(ex)
                 raise
 
@@ -819,6 +808,9 @@ class ZenModeler(PBDaemon):
                     self.started = True
                     self.log.info("Starting modeling...")
                     reactor.callLater(1, self.main)
+                elif not self.isMainScheduled:
+                    self.isMainScheduled = True
+                    reactor.callLater(self.cycleTime(), self.main)
             else:
                 self.started = True
                 self.log.info("Starting modeling in %s seconds.", self.startDelay)
@@ -1143,6 +1135,7 @@ class ZenModeler(PBDaemon):
         @rtype: Twisted deferred object
         """
         if self.options.cycle:
+            self.isMainScheduled = True
             driveLater(self.cycleTime(), self.mainLoop)
 
         if self.clients:

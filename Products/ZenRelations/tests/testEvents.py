@@ -21,12 +21,10 @@ from OFS.Folder import Folder
 from zope import interface
 from zope import component
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from zope.site.hooks import setHooks
 from zope.component.interfaces import IObjectEvent
 from zope.testing import cleanup
 
 from OFS.interfaces import IItem
-from Products.Five import zcml
 from Products.ZenRelations.RelationshipBase import IRelationship
 from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenRelations.RelSchema import *
@@ -87,16 +85,12 @@ class EventLayer(ZopeLite):
     def setUp(cls):
         import Products
 
-        zcml._initialized = 0
-        zcml.load_site()
-        setHooks()
         component.provideHandler(eventlog.trace, (ITestItem, IObjectEvent))
         component.provideHandler(eventlog.trace, (IRelationship, IObjectEvent))
 
     @classmethod
     def tearDown(cls):
         cleanup.cleanUp()
-        zcml._initialized = 0
 
 
 class EventTest(BaseTestCase):

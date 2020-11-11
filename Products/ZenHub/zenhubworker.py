@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2008, 2018 all rights reserved.
+# Copyright (C) Zenoss, Inc. 2018, 2019 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -13,12 +13,11 @@ from __future__ import absolute_import
 import logging
 import os
 import signal
-import socket
 import time
 
 from collections import defaultdict
 from contextlib import contextmanager
-from optparse import SUPPRESS_HELP
+from optparse import SUPPRESS_HELP, OptParseError
 
 from metrology import Metrology
 from twisted.application.internet import ClientService, backoffPolicy
@@ -26,21 +25,23 @@ from twisted.cred.credentials import UsernamePassword
 from twisted.internet.endpoints import clientFromString
 from twisted.internet import defer, reactor, error, task
 from twisted.spread import pb
-from zope.interface import implementer
+from zope.component import getGlobalSiteManager
 
 import Globals  # noqa: F401
+import Products.ZenHub as ZENHUB_MODULE
 
 from Products.DataCollector.Plugins import loadPlugins
-from Products.ZenHub import PB_PORT, OPTION_STATE, CONNECT_TIMEOUT
-from Products.ZenHub.interfaces import IServiceReferenceFactory
-from Products.ZenHub.metricmanager import MetricManager
-from Products.ZenHub.servicemanager import (
-    HubServiceRegistry, UnknownServiceError,
+from Products.ZenHub import PB_PORT
+from Products.ZenHub.metricmanager import MetricManager, IMetricManager
+from Products.ZenHub.server import (
+    ServiceLoader, ServiceManager, ServiceRegistry,
+    UnknownServiceError, ZenPBClientFactory,
 )
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 from Products.ZenUtils.debugtools import ContinuousProfiler
+from Products.ZenUtils.PBUtil import setKeepAlive
 from Products.ZenUtils.Time import isoDateTime
-from Products.ZenUtils.Utils import zenPath, atomicWrite
+from Products.ZenUtils.Utils import zenPath, atomicWrite, load_config
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 IDLE = "None/None"
@@ -53,15 +54,6 @@ def getLogger(obj):
     return logging.getLogger(name)
 
 
-def setKeepAlive(sock):
-    """Configure a socket for a longer keep-alive interval."""
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, OPTION_STATE)
-    sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, CONNECT_TIMEOUT)
-    interval = max(CONNECT_TIMEOUT / 4, 10)
-    sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, interval)
-    sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 2)
-
-
 class ZenHubWorker(ZCmdBase, pb.Referenceable):
     """Execute ZenHub requests."""
 
@@ -70,7 +62,7 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
     def __init__(self, reactor):
         """Initialize a ZenHubWorker instance."""
         ZCmdBase.__init__(self)
-
+        load_config("hubworker.zcml", ZENHUB_MODULE)
         self.__reactor = reactor
 
         if self.options.profiling:
@@ -80,7 +72,6 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
                 'before', 'shutdown', self.profiler.stop,
             )
 
-        self.instanceId = self.options.workerid
         self.current = IDLE
         self.currentStart = 0
         self.numCalls = Metrology.meter("zenhub.workerCalls")
@@ -88,8 +79,10 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
 
-        serviceFactory = ServiceReferenceFactory(self)
-        self.__registry = HubServiceRegistry(self.dmd, serviceFactory)
+        self.__registry = ServiceRegistry()
+        loader = ServiceLoader()
+        factory = ServiceReferenceFactory(self)
+        self.__manager = ServiceManager(self.__registry, loader, factory)
 
         # Configure/initialize the ZenHub client
         creds = UsernamePassword(
@@ -99,16 +92,25 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
             host=self.options.hubhost, port=self.options.hubport,
         )
         endpoint = clientFromString(reactor, endpointDescriptor)
-        self.__client = ZenHubClient(reactor, endpoint, creds, self, 10.0)
+        self.__client = ZenHubClient(
+            reactor, endpoint, creds, self,
+            self.options.hub_response_timeout, self.worklistId,
+        )
 
         # Setup Metric Reporting
         self.log.debug("Creating async MetricReporter")
         self._metric_manager = MetricManager(
             daemon_tags={
-                'zenoss_daemon': 'zenhub_worker_%s' % self.options.workerid,
+                'zenoss_daemon': 'zenhub_worker_%s' % self.instanceId,
                 'zenoss_monitor': self.options.monitor,
                 'internal': True,
             },
+        )
+        # Make the metric manager available via zope.component.getUtility
+        getGlobalSiteManager().registerUtility(
+            self._metric_manager,
+            IMetricManager,
+            name='zenhub_worker_metricmanager',
         )
 
     def start(self):
@@ -139,6 +141,17 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         """
         pass
 
+    def parseOptions(self):
+        """Parse options for zenhubworker.
+
+        Override parseOptions to capture the worklistId argument.
+        """
+        super(ZenHubWorker, self).parseOptions()
+        if len(self.args) == 0:
+            raise OptParseError("ZenHub worklist name not specified")
+        self.worklistId = self.args[0]
+        self.instanceId = "%s_%s" % (self.worklistId, self.options.workerid)
+
     def setupLogging(self):
         """Configure logging for zenhubworker.
 
@@ -146,10 +159,9 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         all log messages.
         """
         super(ZenHubWorker, self).setupLogging()
-        instanceInfo = "(%s)" % (self.options.workerid,)
         template = (
-            "%%(asctime)s %%(levelname)s %%(name)s: %s %%(message)s"
-        ) % instanceInfo
+            "%%(asctime)s %%(levelname)s %%(name)s: (%s) %%(message)s"
+        ) % self.instanceId
         rootLog = logging.getLogger()
         formatter = logging.Formatter(template)
         for handler in rootLog.handlers:
@@ -198,7 +210,7 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         if self.current != IDLE:
             self.log.info(
                 "Currently performing %s, elapsed %.2f s",
-                self.current, now-self.currentStart,
+                self.current, now - self.currentStart,
             )
         else:
             self.log.info("Currently IDLE")
@@ -206,17 +218,20 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
             loglines = ["Running statistics:"]
             sorted_data = sorted(
                 self.__registry.iteritems(),
-                key=lambda kvp: (kvp[0][1], kvp[0][0].rpartition('.')[-1]),
+                key=lambda kv: kv[0][1].rpartition('.')[-1],
             )
-            for svc, svcob in sorted_data:
-                svc = "%s/%s" % (svc[1], svc[0].rpartition('.')[-1])
+            loglines.append(" %-50s %-32s %8s %12s %8s %s" % (
+                "Service", "Method", "Count", "Total", "Average", "Last Run",
+            ))
+            for (_, svc), svcob in sorted_data:
+                svc = "%s" % svc.rpartition('.')[-1]
                 for method, stats in sorted(svcob.callStats.items()):
                     loglines.append(
                         " - %-48s %-32s %8d %12.2f %8.2f %s" % (
                             svc, method,
                             stats.numoccurrences,
                             stats.totaltime,
-                            stats.totaltime/stats.numoccurrences
+                            stats.totaltime / stats.numoccurrences
                             if stats.numoccurrences else 0.0,
                             isoDateTime(stats.lasttime),
                         ),
@@ -242,7 +257,8 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         @param monitor {str} Name of the collection monitor
         """
         try:
-            return self.__registry.getService(name, monitor)
+            self.syncdb()
+            return self.__manager.getService(name, monitor)
         except RemoteBadMonitor:
             # Catch and rethrow this Exception derived exception.
             raise
@@ -252,6 +268,13 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         except Exception as ex:
             self.log.exception("Failed to get service '%s'", name)
             raise pb.Error(str(ex))
+
+    def remote_ping(self):
+        """Return "pong".
+
+        Used by ZenHub to determine whether zenhubworker is still active.
+        """
+        return "pong"
 
     def _shutdown(self):
         self.log.info("Shutting down")
@@ -280,6 +303,12 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
             help="password to use when connecting to ZenHub",
         )
         self.parser.add_option(
+            '--hub-response-timeout', dest='hub_response_timeout',
+            default=30, type='int',
+            help="ZenHub response timeout interval (in seconds) "
+            "default: %default",
+        )
+        self.parser.add_option(
             '--call-limit', dest='call_limit', type='int', default=200,
             help="Maximum number of remote calls before restarting worker",
         )
@@ -306,21 +335,28 @@ class ZenHubClient(object):
     any reason.
     """
 
-    def __init__(self, reactor, endpoint, credentials, worker, timeout):
+    def __init__(
+        self, reactor, endpoint, credentials, worker, timeout, worklistId,
+    ):
         """Initialize a ZenHubClient instance.
 
-        @param reactor {IReactorCore}
-        @param endpoint {IStreamClientEndpoint} Where zenhub is found
-        @param credentials {IUsernamePassword} Credentials to log into ZenHub.
-        @param worker {IReferenceable} Reference to worker
-        @param timeout {float} Seconds to wait before determining whether
+        :type reactor: IReactorCore
+        :param endpoint: Where zenhub is found
+        :type endpoint: IStreamClientEndpoint
+        :param credentials: Credentials to log into ZenHub.
+        :type credentials: IUsernamePassword
+        :param worker: Reference to worker
+        :type worker: IReferenceable
+        :param float timeout: Seconds to wait before determining whether
             ZenHub is unresponsive.
+        :param str worklistId: Name of the worklist to receive tasks from.
         """
         self.__reactor = reactor
         self.__endpoint = endpoint
         self.__credentials = credentials
         self.__worker = worker
         self.__timeout = timeout
+        self.__worklistId = worklistId
 
         self.__stopping = False
         self.__pinger = None
@@ -332,7 +368,7 @@ class ZenHubClient(object):
     def start(self):
         """Start connecting to ZenHub."""
         self.__stopping = False
-        factory = pb.PBClientFactory()
+        factory = ZenPBClientFactory()
         self.__service = ClientService(
             self.__endpoint, factory,
             retryPolicy=backoffPolicy(initialDelay=0.5, factor=3.0),
@@ -401,7 +437,9 @@ class ZenHubClient(object):
             zenhub = yield self.__login(broker)
             yield zenhub.callRemote(
                 "reportingForWork",
-                self.__worker, workerId=self.__worker.instanceId,
+                self.__worker,
+                workerId=self.__worker.instanceId,
+                worklistId=self.__worklistId,
             )
 
             ping = PingZenHub(zenhub, self)
@@ -414,7 +452,7 @@ class ZenHubClient(object):
             defer.returnValue(None)
         except Exception as ex:
             self.__log.error(
-                "Unable to report for work: (%s) %s", type(ex), ex,
+                "Unable to report for work: (%s) %s", type(ex).__name__, ex,
             )
             self.__signalFile.remove()
             self.__reactor.stop()
@@ -493,7 +531,6 @@ class ConnectedToZenHubSignalFile(object):
         self.__log.debug("Removed file '%s'", self.__signalFilePath)
 
 
-@implementer(IServiceReferenceFactory)
 class ServiceReferenceFactory(object):
     """This is a factory that builds ServiceReference objects."""
 
@@ -504,7 +541,7 @@ class ServiceReferenceFactory(object):
         """
         self.__worker = worker
 
-    def build(self, service, name, monitor):
+    def __call__(self, service, name, monitor):
         """Build and return a ServiceReference object.
 
         @param service {HubService derived} Service object

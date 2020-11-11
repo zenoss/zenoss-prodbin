@@ -27,7 +27,7 @@ class LocationDump(ZCmdBase):
         """
         outfile = open(self.options.outfile, "w")
         if not hasattr(self.dataroot, "getSubDevices"):
-            raise RuntimeError, "dataroot doesn't have getSubDevices"
+            raise RuntimeError("dataroot doesn't have getSubDevices")
         devs = self.dataroot.getSubDevices()
         for dev in devs:
             dcname = dev.getDataCenterName()

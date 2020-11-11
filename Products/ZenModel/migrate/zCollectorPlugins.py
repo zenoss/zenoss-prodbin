@@ -53,7 +53,7 @@ class zCollectorPlugins(Migrate.Step):
                         'zenoss.snmp.CiscoHSRP',
                         'zenoss.snmp.RouteMap',
                     ), type = 'lines')
-        except: pass
+        except Exception: pass
 
         try:
             
@@ -159,6 +159,6 @@ class zCollectorPlugins(Migrate.Step):
                         'zenoss.snmp.HPCPUMap',
                         'zenoss.snmp.InformantHardDiskMap',
                     ), type = 'lines')
-        except: pass
+        except Exception: pass
 
 zCollectorPlugins()

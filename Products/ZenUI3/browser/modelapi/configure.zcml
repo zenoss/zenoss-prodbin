@@ -91,9 +91,24 @@
         />
 
     <browser:view
+        zcml:condition="installed ZenPacks.zenoss.Impact"
+        class=".modelapi.ImpactDaemons"
+        name="ImpactDaemons"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
         zcml:condition="have zingConnector"
         class=".modelapi.ZingConnector"
         name="ZingConnector"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        class=".modelapi.Memcached"
+        name="Memcached"
         for="Products.ZenModel.interfaces.IDataRoot"
         permission="zenoss.Common"
         />

@@ -325,7 +325,8 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         if not (Zuul.checkPermission(ZEN_MANAGE_DEVICE, self.context) or (
                 Zuul.checkPermission(ZEN_CHANGE_DEVICE_PRODSTATE,
-                                     self.context) and 'productionState' in data.keys())):
+                                     self.context) and
+                                     sorted(data.keys()) == ['productionState', 'uid'])):
             raise Exception('You do not have permission to save changes.')
         the_uid = data['uid']  # gets deleted
         process = facade.getInfo(the_uid)
@@ -414,6 +415,20 @@ class DeviceRouter(TreeRouter):
                 result.append({'name':escape(device.name()), 'uuid':uuid})
 
         return DirectResponse.succeed(data=result)
+
+    def uuidExists(self, uuid):
+        """
+        Return boolean for existence of object with provided uuid.
+        Note that object type is not validated.
+
+        @type  uuid: string
+        @param uuid: UUID to check for existence
+        @rtype:   DirectResponse
+        """
+        if IGUIDManager(self.context.dmd).getObject(uuid):
+            return DirectResponse.succeed()
+        else:
+            return DirectResponse.fail()
 
     def getDeviceUids(self, uid):
         """
@@ -577,7 +592,7 @@ class DeviceRouter(TreeRouter):
                 result = facade.moveDevices(uids, target, asynchronous=asynchronous)
             else:
                 return DirectResponse.fail(msg='User does not have permissions to move devices to {0}'.format(target))
-        except Exception, e:
+        except Exception as e:
             log.exception("Failed to move devices")
             return DirectResponse.exception(e, 'Failed to move devices.')
         if asynchronous:
@@ -682,7 +697,7 @@ class DeviceRouter(TreeRouter):
                 audit('UI.Device.EditLocks', uid,
                       deletion=deletion, updates=updates, sendEvent=sendEvent)
             return DirectResponse.succeed(message)
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to lock devices.')
 
@@ -729,7 +744,7 @@ class DeviceRouter(TreeRouter):
                 info.ipAddress = ip  # Set to empty causes DNS lookup
                 audit('UI.Device.ResetIP', uid, ip=ip)
             return DirectResponse('Reset %s IP addresses.' % len(uids))
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to reset IP addresses.')
 
@@ -770,7 +785,7 @@ class DeviceRouter(TreeRouter):
                 facade.resetCommunityString(uid)
                 audit('UI.Device.ResetCommunity', uid)
             return DirectResponse('Reset %s community strings.' % len(uids))
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to reset community strings.')
 
@@ -826,7 +841,7 @@ class DeviceRouter(TreeRouter):
             facade.setProductionState(uids, prodState, asynchronous=True)
             return DirectResponse('Set %s devices to %s.' % (
                 len(uids), prodStateName))
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to change production state.')
 
@@ -875,7 +890,7 @@ class DeviceRouter(TreeRouter):
                       oldData_={'priority':oldPriorityLabel})
             return DirectResponse('Set %s devices to %s priority.' % (
                 len(uids), info.priorityLabel))
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to change priority.')
 
@@ -950,7 +965,7 @@ class DeviceRouter(TreeRouter):
             else:
                 return DirectResponse.succeed('Changed collector to %s for %s devices.' %
                                       (collector, len(uids)))
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to change the collector.')
 
@@ -1078,7 +1093,7 @@ class DeviceRouter(TreeRouter):
                 audit('UI.Component.EditLocks', uid,
                       deletion=deletion, updates=updates, sendEvents=sendEvent)
             return DirectResponse.succeed(message)
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to lock components.')
 
@@ -1131,7 +1146,7 @@ class DeviceRouter(TreeRouter):
             for uid in uids:
                 audit('UI.Component.Delete', uid)
             return DirectResponse.succeed('Components deleted.')
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to delete components.')
 
@@ -1206,7 +1221,7 @@ class DeviceRouter(TreeRouter):
                                          deleteEvents=deleteEvents,
                                          deletePerf=deletePerf)
                 return DirectResponse.succeed()
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             return DirectResponse.exception(e, 'Failed to remove devices.')
 
@@ -1790,7 +1805,7 @@ class DeviceRouter(TreeRouter):
         try:
             old_templateIds = [t.id for t in facade.getBoundTemplates(uid)]
             facade.setBoundTemplates(uid, templateIds)
-        except DatapointNameConfict, e:
+        except DatapointNameConfict as e:
             log.info("Failed to bind templates for {}: {}".format(uid, e))
             return DirectResponse.exception(e, 'Failed to bind templates.')
         audit('UI.Device.BindTemplates', uid,new_bound_templates=templateIds, old_bound_templates=old_templateIds )

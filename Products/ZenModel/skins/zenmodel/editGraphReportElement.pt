@@ -38,11 +38,11 @@ addLoadEvent(connectZenWebTextareas);
             
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <input class="tablevalues" type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/id"/>
     </tr>
     <tr>
@@ -60,11 +60,11 @@ addLoadEvent(connectZenWebTextareas);
     </tr>
     <tr>
         <td class="tableheader">Summary<br /> (for normal view)</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <textarea class="tablevalues" name="summary" rows="4" cols="60"
                 tal:content="here/summary"></textarea>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/comments"/>
     </tr>
     <tr>
@@ -75,11 +75,11 @@ addLoadEvent(connectZenWebTextareas);
     </tr>
     <tr>
         <td class="tableheader">Comments<br />(for printable view)</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <textarea class="tablevalues" name="comments" rows="12" cols="60"
                 tal:content="here/comments"></textarea>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/comments"/>
     </tr>
     <tr>

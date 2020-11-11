@@ -17,7 +17,7 @@ $Id: SoftwareClass.py,v 1.5 2003/03/08 18:34:24 edahl Exp $"""
 __version__ = "$Revision: 1.5 $"[11:-2]
 
 from Globals import DTMLFile
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 from Products.ZenRelations.RelSchema import *
 

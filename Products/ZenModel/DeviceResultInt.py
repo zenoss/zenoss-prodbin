@@ -17,7 +17,7 @@ The primary object must implement device.
 
 
 from AccessControl import ClassSecurityInfo
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 from cgi import escape
 
@@ -78,6 +78,17 @@ class DeviceResultInt:
             # always return a string
             return str(self.convertProdState(d.getProductionState()))
         return "None"
+
+
+    security.declareProtected('View', 'getDeviceStatus')
+    def getDeviceStatus(self):
+        dev = self.device()
+        if dev:
+            dev = dev.primaryAq()
+            return dev.getStatus()
+        else:
+            return self.getStatus()
+        return -1
 
 
     security.declareProtected('View', 'getPingStatus')

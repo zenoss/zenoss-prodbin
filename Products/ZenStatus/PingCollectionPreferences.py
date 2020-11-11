@@ -71,10 +71,10 @@ class PingCollectionPreferences(object):
         
     def buildOptions(self, parser):
         parser.add_option('--disable-correlator',
-            dest='correlator',
-            default=True,
-            action="store_false",
-            help="Disable the correlator.")
+            dest='disableCorrelator',
+            default=False,
+            action="store_true",
+            help="Disable the ping down event correlator.")
 
         parser.add_option('--traceroute-interval',
             dest='tracerouteInterval',
