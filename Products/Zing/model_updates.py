@@ -46,9 +46,6 @@ class ZingObjectUpdateHandler(object):
         return self.zing_tx_state_manager.get_zing_tx_state(self.context)
 
     def _update_object(self, obj, idxs=None):
-        if not self.is_object_relevant(obj):
-            return
-
         tx_state = self._get_zing_tx_state()
         uuid = obj.getUUID()
         tx_state.need_deletion_fact.pop(uuid, None)
@@ -138,6 +135,9 @@ class ZingObjectUpdateHandler(object):
         ModelCatalog calls this method when an object needs to be updated
         """
         try:
+            if not self.is_object_relevant(obj):
+                return
+
             self._update_object(obj, idxs)
         except Exception:
             log.exception("Exception buffering object update for Zing")

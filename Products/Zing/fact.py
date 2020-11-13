@@ -61,6 +61,9 @@ class MetadataKeys(object):
 
 
 class Fact(object):
+    """Fact about an entity.
+    """
+
     def __init__(self, f_id=None):
         if not f_id:
             f_id = shortid()
@@ -110,8 +113,7 @@ def deletion_fact(obj_uuid):
 
 
 def device_organizer_info_fact(device_organizer):
-    """
-    Given a DeviceOrganizer, generates its fact
+    """Return a Fact about the given DeviceOrganizer.
     """
     f = Fact()
     f.set_context_uuid_from_object(device_organizer)
@@ -141,6 +143,8 @@ def device_organizer_info_fact(device_organizer):
 
 
 def component_group_info_fact(component_group):
+    """Return a Fact about the given ComponentGroup.
+    """
     f = Fact()
     f.set_context_uuid_from_object(component_group)
     f.set_meta_type_from_object(component_group)
@@ -304,14 +308,13 @@ def impact_relationships_fact_if_needed(
 
 
 class _FactEncoder(JSONEncoder):
+    """A custom JSON encoder to encode Fact objects.
+    """
+
     def _tweak_data(self, data_in):
         data_out = {}
         for k, v in data_in.iteritems():
-            if (
-                isinstance(v, list)
-                or isinstance(v, tuple)
-                or isinstance(v, set)
-            ):
+            if isinstance(v, (list, tuple, set)):
                 # whatever comes in the list, set etc. needs to be scalar,
                 # if it isn't cast it to string for now.
                 # TODO: Review if we need to support more complex types
