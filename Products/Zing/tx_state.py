@@ -65,12 +65,12 @@ class ZingTxState(object):
 
     def is_there_object_updates(self):
         return any(
-            (
-                len(self.need_organizers_fact) > 0,
-                len(self.need_device_info_fact) > 0,
-                len(self.need_device_organizer_info_fact) > 0,
-                len(self.need_component_group_info_fact) > 0,
-                len(self.need_deletion_fact) > 0,
+            len(facts) > 0 for facts in (
+                self.need_organizers_fact,
+                self.need_device_info_fact,
+                self.need_device_organizer_info_fact,
+                self.need_component_group_info_fact,
+                self.need_deletion_fact,
             )
         )
 
@@ -96,7 +96,7 @@ class ZingTxStateManager(object):
             zing_tx_state = ZingTxState()
             setattr(current_tx, self.TX_DATA_FIELD_NAME, zing_tx_state)
             current_tx.addAfterCommitHook(
-                self.process_facts, args=(zing_tx_state, context)
+                self.process_facts, args=(zing_tx_state, context),
             )
             log.debug(
                 "ZingTxStateManager AfterCommitHook added. "
