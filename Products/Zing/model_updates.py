@@ -27,7 +27,6 @@ log = getLogger("zen.zing.model_updates")
 
 @implementer(IZingObjectUpdateHandler)
 class ZingObjectUpdateHandler(object):
-
     def __init__(self, context):
         self.context = context.getDmd()
         self.zing_tx_state_manager = ZingTxStateManager()
@@ -59,11 +58,14 @@ class ZingObjectUpdateHandler(object):
             parent = obj.getPrimaryParent().getPrimaryParent()
 
             device_fact = ZFact.device_info_fact(obj)
-            device_fact.metadata.update({
-                ZFact.DimensionKeys.PARENT_KEY: parent.getUUID(),
-                ZFact.DimensionKeys.RELATION_KEY: obj.getPrimaryParent().id,
-                ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY: "Device",
-            })
+            device_fact.metadata.update(
+                {
+                    ZFact.DimensionKeys.PARENT_KEY: parent.getUUID(),
+                    ZFact.DimensionKeys.RELATION_KEY:
+                        obj.getPrimaryParent().id,
+                    ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY: "Device",
+                }
+            )
             tx_state.need_device_info_fact[uuid] = device_fact
 
             device_org_fact = ZFact.organizer_fact_from_device(obj)
@@ -77,10 +79,19 @@ class ZingObjectUpdateHandler(object):
                     if not comp_brain.getUUID:
                         continue
                     try:
-                        comp_org_fact = ZFact.organizer_fact_without_groups_from_device_component(device_org_fact, comp_brain.getUUID, comp_brain.meta_type)
-                        tx_state.need_organizers_fact[comp_brain.getUUID] = comp_org_fact
-                    except Exception as e:
-                        log.exception("Cannot find object at path %s", brain.getPath())
+                        comp_org_fact = ZFact.organizer_fact_without_groups_from_device_component(
+                            device_org_fact,
+                            comp_brain.getUUID,
+                            comp_brain.meta_type,
+                        )
+                        tx_state.need_organizers_fact[
+                            comp_brain.getUUID
+                        ] = comp_org_fact
+                    except Exception:
+                        log.exception(
+                            "Cannot find object at path %s",
+                            comp_brain.getPath()
+                        )
 
         elif isinstance(obj, DeviceComponent):
             parent = obj.getPrimaryParent().getPrimaryParent()
@@ -88,11 +99,14 @@ class ZingObjectUpdateHandler(object):
                 parent = parent.device()
 
             comp_fact = ZFact.device_info_fact(obj)
-            comp_fact.metadata.update({
-                ZFact.DimensionKeys.PARENT_KEY: parent.getUUID(),
-                ZFact.DimensionKeys.RELATION_KEY: obj.getPrimaryParent().id,
-                ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY: "DeviceComponent",
-            })
+            comp_fact.metadata.update(
+                {
+                    ZFact.DimensionKeys.PARENT_KEY: parent.getUUID(),
+                    ZFact.DimensionKeys.RELATION_KEY:
+                        obj.getPrimaryParent().id,
+                    ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY: "DeviceComponent",
+                }
+            )
             tx_state.need_device_info_fact[uuid] = comp_fact
 
             device_org_fact = ZFact.organizer_fact_from_device(obj.device())

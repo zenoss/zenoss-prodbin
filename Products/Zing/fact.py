@@ -97,13 +97,15 @@ def get_context_uuid(obj):
 
 def deletion_fact(obj_uuid):
     f = Fact()
-    f.metadata.update({
-        DimensionKeys.CONTEXT_UUID_KEY: obj_uuid,
-        DimensionKeys.PLUGIN_KEY: DELETION_FACT_PLUGIN,
-    })
-    f.data.update({
-        MetadataKeys.DELETED_KEY: True,
-    })
+    f.metadata.update(
+        {
+            DimensionKeys.CONTEXT_UUID_KEY: obj_uuid,
+            DimensionKeys.PLUGIN_KEY: DELETION_FACT_PLUGIN,
+        }
+    )
+    f.data.update(
+        {MetadataKeys.DELETED_KEY: True}
+    )
     return f
 
 
@@ -157,8 +159,7 @@ def component_group_info_fact(component_group):
 
 
 def device_info_fact(device):
-    """
-    Given a device or component, generates its device info fact
+    """Given a device or component, generates its device info fact.
     """
     f = Fact()
     f.set_context_uuid_from_object(device)
@@ -197,38 +198,42 @@ def device_info_fact(device):
     f.data[MetadataKeys.ID_KEY] = device.id
     f.data[MetadataKeys.TITLE_KEY] = device.title
     try:
-        f.data.update({
-            MetadataKeys.DEVICE_UUID_KEY: get_context_uuid(device.device()),
-            MetadataKeys.DEVICE_KEY: device.device().id,
-        })
+        dev_rel = device.device()
+        f.data.update(
+            {
+                MetadataKeys.DEVICE_UUID_KEY: get_context_uuid(dev_rel),
+                MetadataKeys.DEVICE_KEY: dev_rel.id,
+            }
+        )
     except Exception:
         pass
     return f
 
 
 def organizer_fact_from_device(device):
-    """
-    Given a device, generates its organizers fact
+    """Given a device, generates its organizers fact.
     """
     device_fact = Fact()
     device_fact.set_context_uuid_from_object(device)
     device_fact.set_meta_type_from_object(device)
     device_fact.metadata[DimensionKeys.PLUGIN_KEY] = ORGANIZERS_FACT_PLUGIN
     location = device.getLocationName()
-    device_fact.data.update({
-        MetadataKeys.DEVICE_CLASS_KEY: device.getDeviceClassName(),
-        MetadataKeys.LOCATION_KEY: [location] if location else [],
-        MetadataKeys.SYSTEMS_KEY: device.getSystemNames(),
-        MetadataKeys.GROUPS_KEY: device.getDeviceGroupNames(),
-    })
+    device_fact.data.update(
+        {
+            MetadataKeys.DEVICE_CLASS_KEY: device.getDeviceClassName(),
+            MetadataKeys.LOCATION_KEY: [location] if location else [],
+            MetadataKeys.SYSTEMS_KEY: device.getSystemNames(),
+            MetadataKeys.GROUPS_KEY: device.getDeviceGroupNames(),
+        }
+    )
     return device_fact
 
 
 def organizer_fact_from_device_component(
     device_fact, comp_uuid, comp_meta_type, comp_groups
 ):
-    """
-    Given a device component, generates its organizers fact
+    """Given a device component, generates its organizers fact.
+
     @param device_fact: organizers fact for device
     """
     comp_fact = copy.deepcopy(device_fact)
@@ -238,16 +243,18 @@ def organizer_fact_from_device_component(
     comp_fact.id = shortid()
     return comp_fact
 
+
 def organizer_fact_without_groups_from_device_component(
     device_fact, comp_uuid, comp_meta_type
 ):
-    """
-    Given a device component, generates its organizers fact.  This is identical
-    to organizer_fact_from_device_component, except that it doesn't
-    set COMPONENT_GROUPS_KEY in the resulting fact.   (Omitting it is different
-    than setting it to an empty value!)   It may be used in situations where
-    the device organizers are being changed and we only need to update the
-    organizers that came from device_fact.
+    """Given a device component, generates its organizers fact.
+
+    This is identical to organizer_fact_from_device_component, except that it
+    doesn't set COMPONENT_GROUPS_KEY in the resulting fact (omitting it is
+    different than setting it to an empty value).  It may be used in
+    situations where the device organizers are being changed and we only need
+    to update the organizers that came from device_fact.
+
     @param device_fact: organizers fact for device
     """
     comp_fact = copy.deepcopy(device_fact)
@@ -255,6 +262,7 @@ def organizer_fact_without_groups_from_device_component(
     comp_fact.metadata[DimensionKeys.META_TYPE_KEY] = comp_meta_type
     comp_fact.id = shortid()
     return comp_fact
+
 
 def impact_relationships_fact(uuid):
     try:
@@ -313,7 +321,8 @@ class _FactEncoder(JSONEncoder):
                     if not isinstance(x, (str, int, long, float, bool)):
                         log.debug(
                             "Found non scalar type in list (%s). "
-                            "Casting it to str", x.__class__,
+                            "Casting it to str",
+                            x.__class__,
                         )
                         x = str(x)
                     values.append(x)
@@ -353,4 +362,4 @@ def serialize_facts(facts):
         if successful:
             serialized_facts.append(data)
     if serialize_facts:
-        return "{{\"models\": [{}]}}".format(", ".join(serialized_facts))
+        return '{{"models": [{}]}}'.format(", ".join(serialized_facts))
