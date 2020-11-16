@@ -263,7 +263,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                             root.removeChild(obj)
 
                     elif obj.tagName == 'toone' and \
-                         name in ('perfServer', 'location'):
+                         name in ('perfServer', 'location', 'ipaddress'):
                         pass # Preserve collector name and location
 
                     elif obj.tagName == 'tomany' and \
