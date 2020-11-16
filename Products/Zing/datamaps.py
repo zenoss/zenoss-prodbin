@@ -379,6 +379,13 @@ class ZingDatamapHandler(object):
                 f.metadata[ZFact.DimensionKeys.PLUGIN_KEY] = f.metadata[
                     ZFact.DimensionKeys.META_TYPE_KEY
                 ]
+
+        if idm.directive == "remove":
+            log.info(
+                "Generated fact from a 'remove' incremental datamap  "
+                "directive=%s target=%s fact=%s",
+                idm.directive, idm.target, f,
+            )
         return f
 
     def facts_from_datamap(self, device, dm, context):

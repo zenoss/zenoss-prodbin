@@ -48,7 +48,9 @@ class ZingObjectUpdateHandler(object):
     def _update_object(self, obj, idxs=None):
         tx_state = self._get_zing_tx_state()
         uuid = obj.getUUID()
-        tx_state.need_deletion_fact.pop(uuid, None)
+        f = tx_state.need_deletion_fact.pop(uuid, None)
+        if f is not None:
+            log.info("Removed a delete fact  uuid=%s fact=%s", uuid, f)
         log.debug("buffering object update for %s", uuid)
 
         if isinstance(obj, Device):
@@ -128,7 +130,9 @@ class ZingObjectUpdateHandler(object):
             uuid = obj.getUUID()
             log.debug("buffering object deletion for %s", uuid)
             tx_state = self._get_zing_tx_state()
-            tx_state.need_deletion_fact[uuid] = ZFact.deletion_fact(uuid)
+            f = ZFact.deletion_fact(uuid)
+            tx_state.need_deletion_fact[uuid] = f
+            log.info("Added a delete fact  uuid=%s fact=%s", uuid, f)
 
     def update_object(self, obj, idxs=None):
         """
