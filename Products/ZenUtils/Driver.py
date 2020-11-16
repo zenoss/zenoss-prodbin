@@ -59,7 +59,7 @@ class Driver:
         ex = self.result
         if isinstance(self.result, failure.Failure):
             ex = resolveException(self.result)
-        if isinstance(ex, Exception):
+        if isinstance(ex, Exception) and str(ex) != "exceptions must be old-style classes or derived from BaseException, not str":
             raise ex
         return self.result
     next = result                       # historical name for result
