@@ -25,3 +25,11 @@ zing_connector = IZingConnectorProxy(context)
 if zing_connector.ping():
     zing_connector.send_facts(FACTS)
 ```
+
+
+## Development
+
+There is an alternative to the ZingConnectorClient that can be used when developing solely within the CZ.  It allows all the normal Zing fact generation to run but makes no attempt to send the facts via the zing-connector.  To enable this alternate client:
+
+ 1. Set "zing-connector-client NullZingClient" in globals.conf
+ 2. Restart the services.
