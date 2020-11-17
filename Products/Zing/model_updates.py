@@ -67,10 +67,12 @@ class ZingObjectUpdateHandler(object):
             )
             tx_state.need_device_info_fact[uuid] = device_fact
 
-            device_org_fact = ZFact.organizer_fact_from_device(obj)
-            tx_state.need_organizers_fact[uuid] = device_org_fact
 
             if idxs and "path" in idxs:
+                
+                device_org_fact = ZFact.organizer_fact_from_device(obj)
+                tx_state.need_organizers_fact[uuid] = device_org_fact
+
                 # If the device's organizers were changed, we also need to
                 # generate updated organizer facts for all of the device's
                 # components
