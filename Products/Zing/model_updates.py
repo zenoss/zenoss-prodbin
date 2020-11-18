@@ -48,9 +48,7 @@ class ZingObjectUpdateHandler(object):
     def _update_object(self, obj, idxs=None):
         tx_state = self._get_zing_tx_state()
         uuid = obj.getUUID()
-        f = tx_state.need_deletion_fact.pop(uuid, None)
-        if f is not None:
-            log.info("Removed a delete fact  uuid=%s fact=%s", uuid, f)
+        tx_state.need_deletion_fact.pop(uuid, None)
         log.debug("buffering object update for %s", uuid)
 
         if isinstance(obj, Device):
@@ -134,7 +132,6 @@ class ZingObjectUpdateHandler(object):
             tx_state = self._get_zing_tx_state()
             f = ZFact.deletion_fact(uuid)
             tx_state.need_deletion_fact[uuid] = f
-            log.info("Added a delete fact  uuid=%s fact=%s", uuid, f)
 
     def update_object(self, obj, idxs=None):
         """
@@ -165,19 +162,26 @@ class ZingObjectUpdateHandler(object):
         :param already_generated: uuids that already have a generated fact
         :return: Fact generator
         """
+        if already_generated is None:
+            already_generated = []  # always track uuid facts.
         for uuid, fact in uuid_to_fact.iteritems():
-            if already_generated and uuid in already_generated:
+            if uuid in already_generated:
                 continue
-            if fact.is_valid():
-                if already_generated:
-                    already_generated.add(uuid)
-                if tx_state is not None:
-                    impact_fact = ZFact.impact_relationships_fact_if_needed(
-                        tx_state, uuid
-                    )
-                    if impact_fact:
-                        yield impact_fact
-                yield fact
+            if not fact.is_valid():
+                continue
+            already_generated.add(uuid)
+            if tx_state is not None:
+                impact_fact = ZFact.impact_relationships_fact_if_needed(
+                    tx_state, uuid
+                )
+                if impact_fact:
+                    yield impact_fact
+            yield fact
+            if ZFact.MetadataKeys.DELETED_KEY in fact.data:
+                log.info(
+                    "Generated a delete fact  uuid=%s fact-id=%s",
+                    uuid, fact.id,
+                )
 
     def generate_facts(self, tx_state):
         """
