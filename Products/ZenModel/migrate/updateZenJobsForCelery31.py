@@ -23,14 +23,15 @@ class UpdateZenJobsForCelery31(Migrate.Step):
     version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
-        prior_version = getattr(dmd.JobManager, "_jobmanager_version", 1)
-        if prior_version < JOBMANAGER_VERSION:
+        try:
+            prior_version = getattr(dmd, "JobManager")
+        except TypeError:
             log.info("Removing old JobManager.")
             try:
                 del dmd.JobManager
             except Exception:
                 dmd._delOb("JobManager")
-            log.info("Old JobManager%s removed.")
+            log.info("Old JobManager removed.")
             manage_addJobManager(dmd)
             log.info("New JobManager added.")
         else:
