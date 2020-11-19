@@ -9,6 +9,8 @@
 
 from __future__ import absolute_import
 
+import json
+
 from Products.ZenHub import XML_RPC_PORT, PB_PORT
 from zope.interface import implementer
 
@@ -57,6 +59,34 @@ class ModuleObjectConfig(object):
     @property
     def xmlrpcport(self):
         return self.__config.xmlrpcport
+
+
+class ZenHubServiceCallConfig(object):
+    """ load and store configuration from file """
+    
+    def __init__(self, config):
+
+        self.__config = {}
+
+        try:
+            with open(config, 'r') as f:
+                self.__config = json.load(f)
+        except Exception as e:
+            import logging
+            log = logging.getLogger("zen.%s" %  __name__)
+            log.error("Couldn't load configuration from %s, using default configuration instead, ERROR: %s", config, e)
+
+    @property
+    def pools(self):
+        return {i['poolid']:i['executorid'] for i in self.__config.get('pools', {})}
+
+    @property
+    def executors(self):
+        return {i['executorid']:i['spec'] for i in self.__config.get('executors', {})}
+
+    @property
+    def routes(self):     
+        return {i['servicecall']:i['executorid'] for i in self.__config.get('routes', {})}
 
 
 ##############################################################################
