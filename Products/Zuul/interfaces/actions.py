@@ -181,6 +181,36 @@ class ISnmpTrapActionContentInfo(IActionContentInfo):
         default = 162
     )
 
+
+class ISNMPv3ActionContentInfo(ISnmpTrapActionContentInfo):
+    # hide unused fields
+    version = schema.Text(title=_t(u''), xtype="hidden")
+    community = schema.Text(title=_t(u''), xtype="hidden")
+
+    securityEngineId = schema.TextLine(
+        title=_t(u'Security Engine ID'),
+        default=u'0x0102030405'
+    )
+    contextEngineId = schema.TextLine(
+        title=_t(u'Context Engine ID'),
+    )
+
+    contextName = schema.TextLine(title=_t(u'Context Name'))
+
+    authProto = schema.Choice(title=_t(u"Authentication Protocol"),
+        vocabulary=SimpleVocabulary.fromValues(['None', 'MD5', 'SHA']),
+        default = _t(u'None')
+    )
+    securityName = schema.TextLine(title=_t(u'Security Name'))
+    securityPassphrase = schema.Password(title=_t(u'Security Passphrase'))
+
+    privProto = schema.Choice(title=_t(u"Privacy Protocol"),
+        vocabulary=SimpleVocabulary.fromValues(['None', 'DES', 'AES']),
+        default = _t(u'None')
+    )
+    privacyPassphrase = schema.Password(title=_t(u'Privacy Passphrase'))
+
+
 class ISyslogActionContentInfo(IInfo):
     host = schema.Text(
         title       = _t(u'Syslog Host'),

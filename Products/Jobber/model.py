@@ -331,6 +331,7 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
     # Celery doesn't store an entry in the result backend when the
     # ignore_result flag is True.
     if task.ignore_result:
+        log.debug("skipping; task result is ignored")
         return
 
     storage = getUtility(IJobStore, "redis")
@@ -386,6 +387,7 @@ def stage_jobrecord(log, storage, sig):
     # Tasks with ignored results cannot be tracked,
     # so don't insert a record into Redis.
     if task.ignore_result:
+        log.debug("skipping; task result is ignored")
         return
 
     record = RedisRecord.from_signature(sig)
@@ -408,9 +410,11 @@ def commit_jobrecord(log, storage, sig):
     # Tasks with ignored results cannot be tracked,
     # so there won't be a record to update.
     if task.ignore_result:
+        log.debug("skipping; task result is ignored")
         return
 
     if sig.id not in storage:
+        log.debug("Staged job not found")
         return
 
     status = storage.getfield(sig.id, "status")
@@ -437,11 +441,16 @@ def job_start(log, task_id, task=None, **ignored):
     if task is not None and task.ignore_result:
         return
     jobstore = getUtility(IJobStore, "redis")
-    status = jobstore.getfield(task_id, "status")
+
+    if task_id not in jobstore:
+        log.debug("job not found")
+        return
 
     # Don't start jobs that are finished (i.e. "ready" in Celery-speak).
     # This detects jobs that were aborted before they were executed.
+    status = jobstore.getfield(task_id, "status")
     if status in states.READY_STATES:
+        log.debug("job already finished")
         return
 
     status = states.STARTED
@@ -456,14 +465,23 @@ def job_end(log, task_id, task=None, **ignored):
     if task is not None and task.ignore_result:
         return
     jobstore = getUtility(IJobStore, "redis")
-    finished = jobstore.getfield(task_id, "finished")
-    if finished is None:
+
+    if task_id not in jobstore:
+        log.debug("job not found")
         return
+
     started = jobstore.getfield(task_id, "started")
     if started is None:
-        log.info("Job never started")
-    else:
-        log.info("Job total duration is %0.3f seconds", finished - started)
+        log.debug("job never started")
+        return
+
+    status = jobstore.getfield(task_id, "status")
+    if status not in states.READY_STATES:
+        log.debug("job not done  status=%s", status)
+        return
+
+    finished = jobstore.getfield(task_id, "finished")
+    log.info("Job total duration is %0.3f seconds", finished - started)
 
 
 @inject_logger(log=mlog)
@@ -487,8 +505,13 @@ def job_success(log, result, sender=None, **ignored):
 def job_failure(log, task_id, exception=None, sender=None, **ignored):
     if sender is not None and sender.ignore_result:
         return
-    jobstore = getUtility(IJobStore, "redis")
     status = app.backend.get_status(task_id)
+
+    jobstore = getUtility(IJobStore, "redis")
+    if task_id not in jobstore:
+        log.info("Job was deleted  status=%s", status)
+        return
+
     tm = time.time()
     jobstore.update(task_id, status=status, finished=tm)
     log.info("status=%s finished=%s", status, tm)

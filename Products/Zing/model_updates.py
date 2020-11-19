@@ -27,7 +27,6 @@ log = getLogger("zen.zing.model_updates")
 
 @implementer(IZingObjectUpdateHandler)
 class ZingObjectUpdateHandler(object):
-
     def __init__(self, context):
         self.context = context.getDmd()
         self.zing_tx_state_manager = ZingTxStateManager()
@@ -47,9 +46,6 @@ class ZingObjectUpdateHandler(object):
         return self.zing_tx_state_manager.get_zing_tx_state(self.context)
 
     def _update_object(self, obj, idxs=None):
-        if not self.is_object_relevant(obj):
-            return
-
         tx_state = self._get_zing_tx_state()
         uuid = obj.getUUID()
         tx_state.need_deletion_fact.pop(uuid, None)
@@ -59,17 +55,22 @@ class ZingObjectUpdateHandler(object):
             parent = obj.getPrimaryParent().getPrimaryParent()
 
             device_fact = ZFact.device_info_fact(obj)
-            device_fact.metadata.update({
-                ZFact.DimensionKeys.PARENT_KEY: parent.getUUID(),
-                ZFact.DimensionKeys.RELATION_KEY: obj.getPrimaryParent().id,
-                ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY: "Device",
-            })
+            device_fact.metadata.update(
+                {
+                    ZFact.DimensionKeys.PARENT_KEY: parent.getUUID(),
+                    ZFact.DimensionKeys.RELATION_KEY:
+                        obj.getPrimaryParent().id,
+                    ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY: "Device",
+                }
+            )
             tx_state.need_device_info_fact[uuid] = device_fact
 
-            device_org_fact = ZFact.organizer_fact_from_device(obj)
-            tx_state.need_organizers_fact[uuid] = device_org_fact
 
             if idxs and "path" in idxs:
+                
+                device_org_fact = ZFact.organizer_fact_from_device(obj)
+                tx_state.need_organizers_fact[uuid] = device_org_fact
+
                 # If the device's organizers were changed, we also need to
                 # generate updated organizer facts for all of the device's
                 # components
@@ -77,10 +78,19 @@ class ZingObjectUpdateHandler(object):
                     if not comp_brain.getUUID:
                         continue
                     try:
-                        comp_org_fact = ZFact.organizer_fact_without_groups_from_device_component(device_org_fact, comp_brain.getUUID, comp_brain.meta_type)
-                        tx_state.need_organizers_fact[comp_brain.getUUID] = comp_org_fact
-                    except Exception as e:
-                        log.exception("Cannot find object at path %s", brain.getPath())
+                        comp_org_fact = ZFact.organizer_fact_without_groups_from_device_component(
+                            device_org_fact,
+                            comp_brain.getUUID,
+                            comp_brain.meta_type,
+                        )
+                        tx_state.need_organizers_fact[
+                            comp_brain.getUUID
+                        ] = comp_org_fact
+                    except Exception:
+                        log.exception(
+                            "Cannot find object at path %s",
+                            comp_brain.getPath()
+                        )
 
         elif isinstance(obj, DeviceComponent):
             parent = obj.getPrimaryParent().getPrimaryParent()
@@ -88,11 +98,14 @@ class ZingObjectUpdateHandler(object):
                 parent = parent.device()
 
             comp_fact = ZFact.device_info_fact(obj)
-            comp_fact.metadata.update({
-                ZFact.DimensionKeys.PARENT_KEY: parent.getUUID(),
-                ZFact.DimensionKeys.RELATION_KEY: obj.getPrimaryParent().id,
-                ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY: "DeviceComponent",
-            })
+            comp_fact.metadata.update(
+                {
+                    ZFact.DimensionKeys.PARENT_KEY: parent.getUUID(),
+                    ZFact.DimensionKeys.RELATION_KEY:
+                        obj.getPrimaryParent().id,
+                    ZFact.MetadataKeys.ZEN_SCHEMA_TAGS_KEY: "DeviceComponent",
+                }
+            )
             tx_state.need_device_info_fact[uuid] = comp_fact
 
             device_org_fact = ZFact.organizer_fact_from_device(obj.device())
@@ -117,13 +130,17 @@ class ZingObjectUpdateHandler(object):
             uuid = obj.getUUID()
             log.debug("buffering object deletion for %s", uuid)
             tx_state = self._get_zing_tx_state()
-            tx_state.need_deletion_fact[uuid] = ZFact.deletion_fact(uuid)
+            f = ZFact.deletion_fact(uuid)
+            tx_state.need_deletion_fact[uuid] = f
 
     def update_object(self, obj, idxs=None):
         """
         ModelCatalog calls this method when an object needs to be updated
         """
         try:
+            if not self.is_object_relevant(obj):
+                return
+
             self._update_object(obj, idxs)
         except Exception:
             log.exception("Exception buffering object update for Zing")
@@ -145,19 +162,26 @@ class ZingObjectUpdateHandler(object):
         :param already_generated: uuids that already have a generated fact
         :return: Fact generator
         """
+        if already_generated is None:
+            already_generated = []  # always track uuid facts.
         for uuid, fact in uuid_to_fact.iteritems():
-            if already_generated and uuid in already_generated:
+            if uuid in already_generated:
                 continue
-            if fact.is_valid():
-                if already_generated:
-                    already_generated.add(uuid)
-                if tx_state is not None:
-                    impact_fact = ZFact.impact_relationships_fact_if_needed(
-                        tx_state, uuid
-                    )
-                    if impact_fact:
-                        yield impact_fact
-                yield fact
+            if not fact.is_valid():
+                continue
+            already_generated.add(uuid)
+            if tx_state is not None:
+                impact_fact = ZFact.impact_relationships_fact_if_needed(
+                    tx_state, uuid
+                )
+                if impact_fact:
+                    yield impact_fact
+            yield fact
+            if ZFact.MetadataKeys.DELETED_KEY in fact.data:
+                log.info(
+                    "Generated a delete fact  uuid=%s fact-id=%s",
+                    uuid, fact.id,
+                )
 
     def generate_facts(self, tx_state):
         """

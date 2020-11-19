@@ -1728,7 +1728,7 @@ def load_config_override(file, package=None, execute=True):
     key = (file, package)
     if not key in _LOADED_CONFIGS:
         from zope.configuration import xmlconfig
-        from Products.Five.zcml import _context
+        from Zope2.App.zcml import _context
         xmlconfig.includeOverrides(_context, file, package=package)
         if execute:
             _context.execute_actions()

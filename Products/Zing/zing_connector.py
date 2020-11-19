@@ -9,9 +9,11 @@
 
 import logging
 import requests
+import threading
 import time
 import urlparse
 
+from zope.component import createObject
 from zope.component.factory import Factory
 from zope.interface import implementer
 
@@ -22,9 +24,15 @@ from .interfaces import IZingConnectorClient, IZingConnectorProxy
 
 log = logging.getLogger("zen.zing.zing-connector")
 
+# Thread local storage for zing client
+_zing = threading.local()
+
+GLOBAL_ZING_CLIENT_NAME = "zing-connector-client"
 GLOBAL_ZING_CONNECTOR_URL = "zing-connector-url"
 GLOBAL_ZING_CONNECTOR_ENDPOINT = "zing-connector-endpoint"
 GLOBAL_ZING_CONNECTOR_TIMEOUT = "zing-connector-timeout"
+
+DEFAULT_CLIENT = "ZingConnectorClient"
 DEFAULT_HOST = "http://localhost:9237"
 DEFAULT_ENDPOINT = "/api/model/ingest"
 PING_PORT = "9000"
@@ -57,7 +65,7 @@ class ZingConnectorConfig(object):
         parts = urlparse.urlsplit(host)
         start = parts.netloc.rfind(":")
         if start != -1:
-            newNetloc = parts.netloc[: start + 1] + PING_PORT
+            newNetloc = parts.netloc[:start + 1] + PING_PORT
         else:
             newNetloc = parts.netloc + ":" + PING_PORT
 
@@ -65,6 +73,54 @@ class ZingConnectorConfig(object):
         parts[1] = newNetloc
         adminUrl = urlparse.urlunsplit(tuple(parts))
         self.ping_url = urlparse.urljoin(adminUrl, PING_ENDPOINT)
+
+
+def _getZingConnectorClient():
+    client_name = (
+        getGlobalConfiguration().get(GLOBAL_ZING_CLIENT_NAME)
+        or DEFAULT_CLIENT
+    )
+    return createObject(client_name)
+
+
+@implementer(IZingConnectorClient)
+class NullZingClient(object):
+    """Implements the IZingConnectorClient interface, but no I/O.
+    """
+
+    def __init__(self, config=None):
+        if config is None:
+            config = ZingConnectorConfig()
+        self.config = config
+
+    @property
+    def facts_url(self):
+        return self.config.facts_url
+
+    @property
+    def ping_url(self):
+        return self.config.ping_url
+
+    @property
+    def client_timeout(self):
+        return self.config.timeout
+
+    def send_facts(self, facts, ping):
+        return True
+
+    def send_facts_in_batches(self, facts, batch_size):
+        return True
+
+    def send_fact_generator_in_batches(
+        self, fact_gen, batch_size, external_log=None
+    ):
+        # Exercise the generator; the facts could be lazily created.
+        for f in fact_gen:
+            pass
+        return True
+
+    def ping(self):
+        return True
 
 
 @implementer(IZingConnectorClient)
@@ -103,9 +159,7 @@ class ZingConnectorClient(object):
             resp_code = resp.status_code
         except Exception as e:
             log.exception(
-                "Unable to send facts. zing-connector URL: %s. Exception %s",
-                self.facts_url,
-                e,
+                "Unable to send facts  URL=%s error=%s", self.facts_url, e,
             )
         return resp_code
 
@@ -153,9 +207,7 @@ class ZingConnectorClient(object):
         @param batch_size: doh
         """
         log.debug(
-            "Sending %s facts to zing-connector in batches of %s.",
-            len(facts),
-            batch_size,
+            "Sending %s facts in batches of %s.", len(facts), batch_size,
         )
         success = True
         if not self.ping():
@@ -167,7 +219,7 @@ class ZingConnectorClient(object):
             success = success and self.zing_connector.send_facts(
                 batch, ping=False
             )
-        return success is True
+        return bool(success)
 
     def send_fact_generator_in_batches(
         self, fact_gen, batch_size=DEFAULT_BATCH_SIZE, external_log=None
@@ -179,7 +231,7 @@ class ZingConnectorClient(object):
         if external_log is None:
             external_log = log
         external_log.debug(
-            "Sending facts to zing-connector in batches of %s", batch_size
+            "Sending facts to zing-connector in batches of %s", batch_size,
         )
         ts = time.time()
         count = 0
@@ -203,7 +255,7 @@ class ZingConnectorClient(object):
                 count,
                 elapsed,
             )
-        return success is True
+        return bool(success)
 
     def ping(self):
         resp_code = -1
@@ -217,42 +269,24 @@ class ZingConnectorClient(object):
 
 @implementer(IZingConnectorProxy)
 class ZingConnectorProxy(object):
-    """This class provides a ZingConnectorClient per zope thread."""
+    """This class provides a ZingConnectorClient per zope thread.
+    """
 
-    def __init__(self, context):
-        self.context = context
-        self.client = self.get_client(self.context)
-
-    def get_client(self, context):
+    @staticmethod
+    def get_client():
         """
         Retrieves/creates the zing connector client for the zope thread that
         is trying to access zing connector.
         """
-        zodb_conn = getattr(self.context, "_p_jar", None)
-
-        client = None
-        # context is not a persistent object.
-        # Create a temp client in a volatile variable.
-        # Volatile variables are not shared across threads,
-        # so each thread will have its own client.
-        #
-        if zodb_conn is None:
-            if not hasattr(self, "_v_temp_zing_connector_client"):
-                self._v_temp_zing_connector_client = ZingConnectorClient()
-            client = self._v_temp_zing_connector_client
-        else:
-            #
-            # context is a persistent object. Create/retrieve the client
-            # from the zodb connection object. We store the client in the
-            # zodb connection object so we are certain that each zope thread
-            # has its own.
-            client = getattr(zodb_conn, "zing_connector_client", None)
-            if client is None:
-                setattr(
-                    zodb_conn, "zing_connector_client", ZingConnectorClient()
-                )
-                client = zodb_conn.zing_connector_client
+        global _zing
+        client = getattr(_zing, "client", None)
+        if client is None:
+            client = _getZingConnectorClient()
+            _zing.client = client
         return client
+
+    def __init__(self, context):
+        self.client = self.get_client()
 
     def send_facts(self, facts):
         return self.client.send_facts(facts)
@@ -272,3 +306,4 @@ class ZingConnectorProxy(object):
 
 
 CLIENT_FACTORY = Factory(ZingConnectorClient)
+NULL_CLIENT_FACTORY = Factory(NullZingClient)
