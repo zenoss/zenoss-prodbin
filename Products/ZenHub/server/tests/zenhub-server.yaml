@@ -1,0 +1,18 @@
+default:
+    spec: "Products.ZenHub.server.executors:WorkerPoolExecutor"
+    routes:
+      - "*:*"
+
+event:
+    spec: "Products.ZenHub.server.executors:SendEventExecutor"
+    routes:
+      - "EventService:sendEvent"
+      - "EventService:sendEvents"
+
+adm:
+    spec: "Products.ZenHub.server.executors:WorkerPoolExecutor"
+    routes:
+      - "*:applyDataMaps"
+
+user:
+    spec: "Products.ZenHub.server.executors:WorkerPoolExecutor"

@@ -9,7 +9,7 @@
 
 from __future__ import absolute_import
 
-import json
+import yaml
 
 from Products.ZenHub import XML_RPC_PORT, PB_PORT
 from zope.interface import implementer
@@ -61,32 +61,66 @@ class ModuleObjectConfig(object):
         return self.__config.xmlrpcport
 
 
-class ZenHubServiceCallConfig(object):
-    """ load and store configuration from file """
-    
+class ServerConfig(object):
+    """Load zenhub server configuration from a file.
+    """
+
+    @classmethod
+    def from_file(cls, filename):
+        with open(filename, "r") as f:
+            config = yaml.load(f, Loader=yaml.SafeLoader)
+        return cls(config)
+
     def __init__(self, config):
+        """Initialize a ZenHubServerConfig instance.
 
-        self.__config = {}
+        The config dict is expected to have the following structure:
 
-        try:
-            with open(config, 'r') as f:
-                self.__config = json.load(f)
-        except Exception as e:
-            import logging
-            log = logging.getLogger("zen.%s" %  __name__)
-            log.error("Couldn't load configuration from %s, using default configuration instead, ERROR: %s", config, e)
+            <executor-id>: {
+                "spec": "<module-path>:<class-name>",
+                "worklist": "<worklist-name>"
+                "servicecalls": [
+                    "<service-name>:<method-name>",
+                    ...
+                ]
+            }
+
+        where <executor-id> are the keys in the config parameter.
+
+        :type config: dict
+        """
+        routes = {}
+        executors = {}
+        pools = {}
+        for executor, config in config.items():
+            spec = config["spec"]
+            executors[executor] = spec
+            poolid = config.get("worklist")
+            # WorkerPoolExecutor requires a pool, so set if the
+            # worklist value is missing.
+            if poolid is None and spec.endswith("WorkerPoolExecutor"):
+                poolid = executor
+            if poolid:
+                pools[poolid] = executor
+            calls = config.get("servicecalls")
+            if calls:
+                for call in calls:
+                    routes[call] = executor
+        self.__routes = routes
+        self.__executors = executors
+        self.__pools = pools
 
     @property
     def pools(self):
-        return {i['poolid']:i['executorid'] for i in self.__config.get('pools', {})}
+        return self.__pools
 
     @property
     def executors(self):
-        return {i['executorid']:i['spec'] for i in self.__config.get('executors', {})}
+        return self.__executors
 
     @property
-    def routes(self):     
-        return {i['servicecall']:i['executorid'] for i in self.__config.get('routes', {})}
+    def routes(self):
+        return self.__routes
 
 
 ##############################################################################
