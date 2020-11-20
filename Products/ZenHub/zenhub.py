@@ -123,7 +123,6 @@ class ZenHub(ZCmdBase):
         self.shutdown = False
 
         super(ZenHub, self).__init__()
-        logging.getLogger("zen.zenhub.server").setLevel(logging.DEBUG)
 
         load_config("hub.zcml", ZENHUB_MODULE)
         notify(HubWillBeCreatedEvent(self))
