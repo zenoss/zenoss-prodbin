@@ -64,6 +64,7 @@ from Products.ZenHub.server import (
     XmlRpcManager,
     ZenHubStatusReporter,
 )
+from Products.ZenHub.server.config import ServerConfig
 
 
 def _load_modules():
@@ -352,7 +353,10 @@ class ZenHub(ZCmdBase):
             type='int', default=server_config.defaults.modeling_pause_timeout,
             help='Maximum number of seconds to pause modeling during ZenPack'
                  ' install/upgrade/removal (default: %default)')
-
+        self.parser.add_option(
+            '--server-config', dest='serverconfig',
+            type='string', default='/opt/zenoss/etc/zenhub-server.yaml',
+            help='Configuration file to customize routes to zenhubworkers')
         notify(ParserReadyForOptionsEvent(self.parser))
 
     def parseOptions(self):
@@ -363,6 +367,11 @@ class ZenHub(ZCmdBase):
             int(self.options.modeling_pause_timeout)
         server_config.xmlrpcport = int(self.options.xmlrpcport)
         server_config.pbport = int(self.options.pbport)
+        if self.options.serverconfig:
+            cfg = ServerConfig.from_file(self.options.serverconfig)
+            server_config.routes.update(cfg.routes)
+            server_config.executors.update(cfg.executors)
+            server_config.pools.update(cfg.pools)
         config_util = server_config.ModuleObjectConfig(server_config)
         provideUtility(config_util, IHubServerConfig)
 

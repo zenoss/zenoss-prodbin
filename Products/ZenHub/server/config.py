@@ -9,6 +9,8 @@
 
 from __future__ import absolute_import
 
+import yaml
+
 from Products.ZenHub import XML_RPC_PORT, PB_PORT
 from zope.interface import implementer
 
@@ -58,6 +60,69 @@ class ModuleObjectConfig(object):
     def xmlrpcport(self):
         return self.__config.xmlrpcport
 
+
+class ServerConfig(object):
+    """Load zenhub server configuration from a file.
+    """
+
+    @classmethod
+    def from_file(cls, filename):
+        try:
+            with open(filename, "r") as f:
+                config = yaml.load(f, Loader=yaml.SafeLoader)
+            return cls(config)
+        except Exception as e:
+            import logging
+            log = logging.getLogger('zen.zenhub.server.config')
+            log.error("Couldn't load server configuration, using default: ERROR: %s", e)
+            return cls({})
+
+    def __init__(self, config):
+        """Initialize a ZenHubServerConfig instance.
+        The config dict is expected to have the following structure:
+            <executor-id>: {
+                "spec": "<module-path>:<class-name>",
+                "worklist": "<worklist-name>"
+                "servicecalls": [
+                    "<service-name>:<method-name>",
+                    ...
+                ]
+            }
+        where <executor-id> are the keys in the config parameter.
+        :type config: dict
+        """
+        routes = {}
+        executors = {}
+        pools = {}
+        for executor, config in config.items():
+            spec = config["spec"]
+            executors[executor] = spec
+            poolid = config.get("worklist")
+            # WorkerPoolExecutor requires a pool, so set if the
+            # worklist value is missing.
+            if poolid is None and spec.endswith("WorkerPoolExecutor"):
+                poolid = executor
+            if poolid:
+                pools[poolid] = executor
+            calls = config.get("servicecalls")
+            if calls:
+                for call in calls:
+                    routes[call] = executor
+        self.__routes = routes
+        self.__executors = executors
+        self.__pools = pools
+
+    @property
+    def pools(self):
+        return self.__pools
+
+    @property
+    def executors(self):
+        return self.__executors
+
+    @property
+    def routes(self):
+        return self.__routes
 
 ##############################################################################
 # NOTE
