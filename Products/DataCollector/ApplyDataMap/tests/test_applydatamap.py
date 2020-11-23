@@ -239,6 +239,7 @@ class ApplyDataMapTests(TestCase):
         device = Mock(Device(id='test_applyDataMap_ObjectMap_set_lists'))
         device.dmd = Mock(name='dmd')
         device.isLockedFromUpdates.return_value = False
+        device.zCollectorDecoding = 'utf-8'
         device.getFoo = Mock(return_value=[3,2,1])
         device.setFoo = Mock()
 
