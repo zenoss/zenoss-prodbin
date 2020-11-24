@@ -377,8 +377,8 @@ class ZingDatamapHandler(object):
         if idm.directive == "remove":
             log.info(
                 "Generated fact from a 'remove' incremental datamap  "
-                "directive=%s target=%s fact=%s",
-                idm.directive, idm.target, f,
+                "directive=%s target=%s fact-id=%s",
+                idm.directive, idm.target, f.id,
             )
         return f, om_context
 
