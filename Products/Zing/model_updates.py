@@ -163,7 +163,7 @@ class ZingObjectUpdateHandler(object):
         :return: Fact generator
         """
         if already_generated is None:
-            already_generated = []  # always track uuid facts.
+            already_generated = set()  # always track uuid facts.
         for uuid, fact in uuid_to_fact.iteritems():
             if uuid in already_generated:
                 continue
