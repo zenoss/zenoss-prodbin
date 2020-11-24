@@ -88,6 +88,7 @@ class NetworkCache(SimpleItem):
         net_obj = None
         key = self.get_key(netip, netmask)
         net_paths = self.cache.get(key, ())
+        toDelete = []
         for net_path in net_paths:
             try:
                 net = context.dmd.unrestrictedTraverse(net_path)
@@ -95,8 +96,10 @@ class NetworkCache(SimpleItem):
                     net_obj = net
                     break
             except KeyError:
-                self.delete_net(key, net_path)
+                toDelete.append(net_path)
                 net_obj = None
+        for net_path in toDelete:
+            self.delete_net(key, net_path)
         return net_obj
 
     def get_net(self, netip, netmask, basenet, context):
