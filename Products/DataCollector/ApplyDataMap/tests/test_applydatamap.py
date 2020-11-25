@@ -235,6 +235,49 @@ class ApplyDataMapTests(TestCase):
         t.adm._report_changes.assert_called_with(incmap, device)
         t.assertEqual(ret, t.adm._report_changes.return_value)
 
+    def test_applyDataMap_ObjectMap_set_lists(t):
+        device = Mock(Device(id='test_applyDataMap_ObjectMap_set_lists'))
+        device.dmd = Mock(name='dmd')
+        device.isLockedFromUpdates.return_value = False
+        device.zCollectorDecoding = 'utf-8'
+        device.getFoo = Mock(return_value=[3,2,1])
+        device.setFoo = Mock()
+
+        # Set it to the same exact list- setter should not be called.
+        t.adm.applyDataMap(device, ObjectMap({
+            'id': device.id,
+            'setFoo': [3,2,1]
+        }))
+        device.setFoo.assert_not_called()
+
+        # Set it to the same list contents, but in a different order.
+        # Setter should not be called.
+        device.setFoo.reset_mock()
+        t.adm.applyDataMap(device, ObjectMap({
+            'id': device.id,
+            'setFoo': [1,2,3]
+        }))
+        device.setFoo.assert_not_called()
+
+        # Now change the contents.  This should of course call the setter.
+        device.setFoo.reset_mock()
+        t.adm.applyDataMap(device, ObjectMap({
+            'id': device.id,
+            'setFoo': [1]
+        }))
+        device.setFoo.assert_called_once_with([1])
+
+        # One more variation- change form a list to a string.
+        # Now change the contents.  This should of course call the setter.
+        device.setFoo.reset_mock()
+        t.adm.applyDataMap(device, ObjectMap({
+            'id': device.id,
+            'setFoo': "foo"
+        }))
+        device.setFoo.assert_called_once_with("foo")
+
+
+
     @patch('{src}.transact'.format(**PATH), autospec=True)
     def test_applyDataMap_IncrementalDataMap(t, transact):
         device, objmap = t._device_and_objmap()
