@@ -165,7 +165,7 @@ class ZingDatamapHandler(object):
                         if component.getUUID() == comp_uuid:
                             ctx = ObjectMapContext(component)
                             break
-
+                comp_groups = []
                 if ctx is not None and ctx.is_device_component:
 
                     # organizers and impact relationships facts for the component
