@@ -9,6 +9,8 @@
 
 from __future__ import absolute_import
 
+
+import logging
 import yaml
 
 from Products.ZenHub import XML_RPC_PORT, PB_PORT
@@ -16,6 +18,7 @@ from zope.interface import implementer
 
 from .interface import IHubServerConfig
 
+log = logging.getLogger('zen.zenhub.server.config')
 
 @implementer(IHubServerConfig)
 class ModuleObjectConfig(object):
@@ -72,9 +75,8 @@ class ServerConfig(object):
                 config = yaml.load(f, Loader=yaml.SafeLoader)
             return cls(config)
         except Exception as e:
-            import logging
-            log = logging.getLogger('zen.zenhub.server.config')
-            log.error("Couldn't load server configuration, using default: ERROR: %s", e)
+            log.error("Couldn't load zenhub-server.yaml configuration, "
+                "using default settings: %s", e)
             return cls({})
 
     def __init__(self, config):
@@ -83,7 +85,7 @@ class ServerConfig(object):
             <executor-id>: {
                 "spec": "<module-path>:<class-name>",
                 "worklist": "<worklist-name>"
-                "servicecalls": [
+                "routes": [
                     "<service-name>:<method-name>",
                     ...
                 ]
@@ -104,13 +106,14 @@ class ServerConfig(object):
                 poolid = executor
             if poolid:
                 pools[poolid] = executor
-            calls = config.get("servicecalls")
+            calls = config.get("routes")
             if calls:
                 for call in calls:
                     routes[call] = executor
         self.__routes = routes
         self.__executors = executors
         self.__pools = pools
+        
 
     @property
     def pools(self):
