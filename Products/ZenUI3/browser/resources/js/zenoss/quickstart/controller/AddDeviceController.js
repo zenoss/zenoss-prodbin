@@ -335,6 +335,10 @@
                         // so always grab the last one
                         var jobRecord = response.new_jobs.pop();
                         // set some properties we need
+                        // add uuid into response from vSphere custom job
+                        if ('description' in jobRecord && jobRecord.description.includes('/vSphere')) {
+                            jobRecord.uuid = jobRecord.jobid
+                        }
                         record.set(jobRecord);
                         record.set('status', 'PENDING');
                         record.set('pendingDelete', false);
