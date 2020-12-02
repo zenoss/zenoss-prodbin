@@ -7,9 +7,10 @@
 #
 ##############################################################################
 
+import sys
+
 from unittest import TestCase
 from mock import Mock, patch, create_autospec, call, sentinel
-import sys
 
 from zope.interface.verify import verifyObject
 from zope.component import adaptedBy
@@ -30,6 +31,8 @@ from Products.ZenHub.zenhub import (
     report_reactor_delayed_calls,
     IMetricManager,
     reactor,
+    initServiceManager,
+    ServerConfig
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -60,8 +63,10 @@ class ZenHubInitTest(TestCase):
     @patch('{src}.notify'.format(**PATH), spec=True)
     @patch('{src}.load_config'.format(**PATH), spec=True)
     @patch('__builtin__.super'.format(**PATH), autospec=True)
+    @patch('{src}.initServiceManager'.format(**PATH))
     def test___init__(
         t,
+        initServiceManager,
         _super,
         load_config,
         notify,
@@ -179,6 +184,8 @@ class ZenHubInitTest(TestCase):
 
         signal.signal.assert_called_with(signal.SIGUSR2, zh.sighandler_USR2)
 
+        initServiceManager.assert_called_once_with(zh.options)
+
     def test_PbRegistration(t):
         from twisted.spread.jelly import unjellyableRegistry
         t.assertIn('DataMaps.ObjectMap', unjellyableRegistry)
@@ -233,6 +240,7 @@ class ZenHubTest(TestCase):
             "IHubConfProvider",
             "provideUtility",
             "register_legacy_worklist_metrics",
+            "initServiceManager",
         ]
         t.patchers = {}
         for target in needs_patching:
@@ -242,6 +250,11 @@ class ZenHubTest(TestCase):
             t.patchers[target] = patched
             setattr(t, target, patched.start())
             t.addCleanup(patched.stop)
+
+        from_file_patcher = patch("{src}.ServerConfig.from_file".format(**PATH))
+        t.from_file_mock = from_file_patcher.start()
+        t.addCleanup(from_file_patcher.stop)
+        t.from_file_mock.return_value = ServerConfig({})
 
         t.zh = ZenHub()
 
@@ -452,13 +465,9 @@ class ZenHubTest(TestCase):
 
     @patch('{src}.server_config.ModuleObjectConfig'.format(**PATH))
     @patch('{src}.provideUtility'.format(**PATH))
-    @patch('{src}.super'.format(**PATH))
-    def test_parseOptions(t, super, provideUtility, ModuleObjectConfig):
-        t.zh.parseOptions()
-
-        super.assert_called_with(ZenHub, t.zh)
-        super.return_value.parseOptions.assert_called_with()
-
+    def test_initServiceManager(t, provideUtility, ModuleObjectConfig):
+        
+        initServiceManager(t.zh.options)
         t.assertEqual(
             server_config.modeling_pause_timeout,
             int(t.zh.options.modeling_pause_timeout)

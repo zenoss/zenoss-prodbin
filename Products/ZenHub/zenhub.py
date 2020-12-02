@@ -140,6 +140,9 @@ class ZenHub(ZCmdBase):
                        summary="%s started" % self.name,
                        severity=0)
 
+        # Init and install service manager
+        initServiceManager(self.options)
+
         # Initialize ZenHub's RPC servers
         self._monitor = StatsMonitor()
         self._status_reporter = ZenHubStatusReporter(self._monitor)
@@ -359,21 +362,6 @@ class ZenHub(ZCmdBase):
             help='Configuration file to customize routes to zenhubworkers')
         notify(ParserReadyForOptionsEvent(self.parser))
 
-    def parseOptions(self):
-        # Override parseOptions to initialize and install the
-        # ServiceManager configuration utility.
-        super(ZenHub, self).parseOptions()
-        server_config.modeling_pause_timeout = \
-            int(self.options.modeling_pause_timeout)
-        server_config.xmlrpcport = int(self.options.xmlrpcport)
-        server_config.pbport = int(self.options.pbport)
-        if self.options.serverconfig:
-            cfg = ServerConfig.from_file(self.options.serverconfig)
-            server_config.routes.update(cfg.routes)
-            server_config.executors.update(cfg.executors)
-            server_config.pools.update(cfg.pools)
-        config_util = server_config.ModuleObjectConfig(server_config)
-        provideUtility(config_util, IHubServerConfig)
 
 
 class DefaultConfProvider(object):  # noqa: D101
@@ -420,6 +408,28 @@ class ParserReadyForOptionsEvent(object):  # noqa: D101
 
     def __init__(self, parser):
         self.parser = parser
+
+
+def initServiceManager(options):
+    # init and install the ServiceManager configuration utility.
+    server_config.modeling_pause_timeout = \
+        int(options.modeling_pause_timeout)
+    server_config.xmlrpcport = int(options.xmlrpcport)
+    server_config.pbport = int(options.pbport)
+    if options.serverconfig:
+        cfg = ServerConfig.from_file(options.serverconfig)
+        server_config.routes.update(cfg.routes)
+        server_config.executors.update(cfg.executors)
+        server_config.pools.update(cfg.pools)
+    log.info("\nZenhub-server configuration:\n"
+        "executors: %s\n"
+        "pools: %s\n"
+        "routes: %s",
+        server_config.executors,
+        server_config.pools,
+        server_config.routes)
+    config_util = server_config.ModuleObjectConfig(server_config)
+    provideUtility(config_util, IHubServerConfig)
 
 
 def report_reactor_delayed_calls(monitor, name):
