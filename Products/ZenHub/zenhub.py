@@ -22,23 +22,26 @@ from twisted.internet.defer import inlineCallbacks
 
 from zope.component import getUtility, adapts, provideUtility
 from zope.event import notify
-from zope.interface import implements
+from zope.interface import implementer
 
 # Import Globals before any Zenoss Products
 import Globals  # noqa: F401
+import Products.ZenMessaging.queuemessaging as QUEUEMESSAGING_MODULE
 
-from Products.ZenUtils.Utils import (
-    zenPath, load_config, load_config_override,
-)
-from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.debugtools import ContinuousProfiler
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
-import Products.ZenMessaging.queuemessaging as QUEUEMESSAGING_MODULE
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
+from Products.ZenUtils.debugtools import ContinuousProfiler
+from Products.ZenUtils.Utils import (
+    load_config,
+    load_config_override,
+    zenPath,
+)
+from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 # local
 import Products.ZenHub as ZENHUB_MODULE
+
 from Products.ZenHub.interfaces import (
     IHubCreatedEvent,
     IHubWillBeCreatedEvent,
@@ -47,8 +50,8 @@ from Products.ZenHub.interfaces import (
     IParserReadyForOptionsEvent,
 )
 
-from Products.ZenHub.metricmanager import MetricManager, IMetricManager
 from Products.ZenHub.invalidationmanager import InvalidationManager
+from Products.ZenHub.metricmanager import MetricManager, IMetricManager
 from Products.ZenHub.server import (
     config as server_config,
     getCredentialCheckers,
@@ -74,14 +77,15 @@ def _load_modules():
     # with the jelly serialization engine under both names:
     #  1st: get Products.DataCollector.plugins.DataMaps.ObjectMap
     from Products.DataCollector.plugins.DataMaps import ObjectMap  # noqa: F401
+
     #  2nd: get DataMaps.ObjectMap
-    sys.path.insert(0, zenPath('Products', 'DataCollector', 'plugins'))
+    sys.path.insert(0, zenPath("Products", "DataCollector", "plugins"))
     import DataMaps  # noqa: F401
 
 
 _load_modules()
 
-log = logging.getLogger('zen.zenhub')
+log = logging.getLogger("zen.zenhub")
 
 
 class ZenHub(ZCmdBase):
@@ -114,10 +118,10 @@ class ZenHub(ZCmdBase):
     TODO: document invalidation workers
     """
 
-    totalTime = 0.
+    totalTime = 0.0
     totalEvents = 0
-    totalCallTime = 0.
-    mname = name = 'zenhub'
+    totalCallTime = 0.0
+    mname = name = "zenhub"
 
     def __init__(self):
         self.shutdown = False
@@ -128,17 +132,17 @@ class ZenHub(ZCmdBase):
         notify(HubWillBeCreatedEvent(self))
 
         if self.options.profiling:
-            self.profiler = ContinuousProfiler('zenhub', log=self.log)
+            self.profiler = ContinuousProfiler("zenhub", log=self.log)
             self.profiler.start()
 
         self.zem = self.dmd.ZenEventManager
 
         # responsible for sending messages to the queues
-        load_config_override('twistedpublisher.zcml', QUEUEMESSAGING_MODULE)
+        load_config_override("twistedpublisher.zcml", QUEUEMESSAGING_MODULE)
         notify(HubCreatedEvent(self))
-        self.sendEvent(eventClass=App_Start,
-                       summary="%s started" % self.name,
-                       severity=0)
+        self.sendEvent(
+            eventClass=App_Start, summary="%s started" % self.name, severity=0
+        )
 
         # Init and install service manager
         initServiceManager(self.options)
@@ -168,10 +172,11 @@ class ZenHub(ZCmdBase):
         # Setup Metric Reporting
         self._metric_manager = MetricManager(
             daemon_tags={
-                'zenoss_daemon': 'zenhub',
-                'zenoss_monitor': self.options.monitor,
-                'internal': True,
-            })
+                "zenoss_daemon": "zenhub",
+                "zenoss_monitor": self.options.monitor,
+                "internal": True,
+            }
+        )
         provideUtility(self._metric_manager)
         self._metric_writer = self._metric_manager.metric_writer
         self.rrdStats = self._metric_manager.get_rrd_stats(
@@ -198,7 +203,7 @@ class ZenHub(ZCmdBase):
             self.log.debug("Creating async MetricReporter")
             self._metric_manager.start()
             reactor.addSystemEventTrigger(
-                'before', 'shutdown', self._metric_manager.stop,
+                "before", "shutdown", self._metric_manager.stop,
             )
             # preserve legacy API
             self.metricreporter = self._metric_manager.metricreporter
@@ -273,8 +278,9 @@ class ZenHub(ZCmdBase):
 
     # Legacy API
     def _initialize_invalidation_filters(self):
-        self._invalidation_filters = self._invalidation_manager\
-            .initialize_invalidation_filters()
+        self._invalidation_filters = (
+            self._invalidation_manager.initialize_invalidation_filters()
+        )
 
     def sendEvent(self, **kw):
         """Post events to the EventManager.
@@ -283,10 +289,10 @@ class ZenHub(ZCmdBase):
         @param kw: the values for an event: device, summary, etc.
         @return: None
         """
-        if 'device' not in kw:
-            kw['device'] = self.options.monitor
-        if 'component' not in kw:
-            kw['component'] = self.name
+        if "device" not in kw:
+            kw["device"] = self.options.monitor
+        if "component" not in kw:
+            kw["component"] = self.name
         try:
             self.zem.sendEvent(Event(**kw))
         except Exception:
@@ -309,9 +315,9 @@ class ZenHub(ZCmdBase):
 
         r = self.rrdStats
         r.counter(
-            'totalTime', int(self._invalidation_manager.totalTime * 1000),
+            "totalTime", int(self._invalidation_manager.totalTime * 1000),
         )
-        r.counter('totalEvents', self._invalidation_manager.totalEvents)
+        r.counter("totalEvents", self._invalidation_manager.totalEvents)
         self._monitor.update_rrd_stats(r, self._service_manager)
 
         try:
@@ -324,48 +330,72 @@ class ZenHub(ZCmdBase):
         """Add ZenHub command-line options."""
         ZCmdBase.buildOptions(self)
         self.parser.add_option(
-            '--xmlrpcport', '-x', dest='xmlrpcport',
-            type='int', default=server_config.defaults.xmlrpcport,
-            help='Port to use for XML-based Remote Procedure Calls (RPC)')
+            "--xmlrpcport",
+            "-x",
+            dest="xmlrpcport",
+            type="int",
+            default=server_config.defaults.xmlrpcport,
+            help="Port to use for XML-based Remote Procedure Calls (RPC)",
+        )
         self.parser.add_option(
-            '--pbport', dest='pbport',
-            type='int', default=server_config.defaults.pbport,
-            help="Port to use for Twisted's pb service")
+            "--pbport",
+            dest="pbport",
+            type="int",
+            default=server_config.defaults.pbport,
+            help="Port to use for Twisted's pb service",
+        )
         self.parser.add_option(
-            '--passwd', dest='passwordfile',
-            type='string', default=zenPath('etc', 'hubpasswd'),
-            help='File where passwords are stored')
+            "--passwd",
+            dest="passwordfile",
+            type="string",
+            default=zenPath("etc", "hubpasswd"),
+            help="File where passwords are stored",
+        )
         self.parser.add_option(
-            '--monitor', dest='monitor',
-            default='localhost',
-            help='Name of the distributed monitor this hub runs on')
+            "--monitor",
+            dest="monitor",
+            default="localhost",
+            help="Name of the distributed monitor this hub runs on",
+        )
         self.parser.add_option(
-            '--workers-reserved-for-events', dest='workersReservedForEvents',
-            type='int', default=1,
-            help="Number of worker instances to reserve for handling events")
+            "--workers-reserved-for-events",
+            dest="workersReservedForEvents",
+            type="int",
+            default=1,
+            help="Number of worker instances to reserve for handling events",
+        )
         self.parser.add_option(
-            '--invalidation-poll-interval',
-            type='int', default=30,
-            help="Interval at which to poll invalidations (default: %default)")
+            "--invalidation-poll-interval",
+            type="int",
+            default=30,
+            help="Interval at which to poll invalidations (default: %default)",
+        )
         self.parser.add_option(
-            '--profiling', dest='profiling',
-            action='store_true', default=False,
-            help="Run with profiling on")
+            "--profiling",
+            dest="profiling",
+            action="store_true",
+            default=False,
+            help="Run with profiling on",
+        )
         self.parser.add_option(
-            '--modeling-pause-timeout',
-            type='int', default=server_config.defaults.modeling_pause_timeout,
-            help='Maximum number of seconds to pause modeling during ZenPack'
-                 ' install/upgrade/removal (default: %default)')
+            "--modeling-pause-timeout",
+            type="int",
+            default=server_config.defaults.modeling_pause_timeout,
+            help="Maximum number of seconds to pause modeling during ZenPack"
+            " install/upgrade/removal (default: %default)",
+        )
         self.parser.add_option(
-            '--server-config', dest='serverconfig',
-            type='string', default='/opt/zenoss/etc/zenhub-server.yaml',
-            help='Configuration file to customize routes to zenhubworkers')
+            "--server-config",
+            dest="serverconfig",
+            type="string",
+            default="/opt/zenoss/etc/zenhub-server.yaml",
+            help="Configuration file to customize routes to zenhubworkers",
+        )
         notify(ParserReadyForOptionsEvent(self.parser))
 
 
-
+@implementer(IHubConfProvider)
 class DefaultConfProvider(object):  # noqa: D101
-    implements(IHubConfProvider)
     adapts(ZenHub)
 
     def __init__(self, zenhub):
@@ -378,8 +408,8 @@ class DefaultConfProvider(object):  # noqa: D101
         )
 
 
+@implementer(IHubHeartBeatCheck)
 class DefaultHubHeartBeatCheck(object):  # noqa: D101
-    implements(IHubHeartBeatCheck)
     adapts(ZenHub)
 
     def __init__(self, zenhub):
@@ -389,22 +419,22 @@ class DefaultHubHeartBeatCheck(object):  # noqa: D101
         pass
 
 
+@implementer(IHubWillBeCreatedEvent)
 class HubWillBeCreatedEvent(object):  # noqa: D101
-    implements(IHubWillBeCreatedEvent)
 
     def __init__(self, hub):
         self.hub = hub
 
 
+@implementer(IHubCreatedEvent)
 class HubCreatedEvent(object):  # noqa: D101
-    implements(IHubCreatedEvent)
 
     def __init__(self, hub):
         self.hub = hub
 
 
+@implementer(IParserReadyForOptionsEvent)
 class ParserReadyForOptionsEvent(object):  # noqa: D101
-    implements(IParserReadyForOptionsEvent)
 
     def __init__(self, parser):
         self.parser = parser
@@ -412,8 +442,7 @@ class ParserReadyForOptionsEvent(object):  # noqa: D101
 
 def initServiceManager(options):
     # init and install the ServiceManager configuration utility.
-    server_config.modeling_pause_timeout = \
-        int(options.modeling_pause_timeout)
+    server_config.modeling_pause_timeout = int(options.modeling_pause_timeout)
     server_config.xmlrpcport = int(options.xmlrpcport)
     server_config.pbport = int(options.pbport)
     if options.serverconfig:
@@ -421,13 +450,15 @@ def initServiceManager(options):
         server_config.routes.update(cfg.routes)
         server_config.executors.update(cfg.executors)
         server_config.pools.update(cfg.pools)
-    log.info("\nZenhub-server configuration:\n"
+    log.info(
+        "\nZenhub-server configuration:\n"
         "executors: %s\n"
         "pools: %s\n"
         "routes: %s",
         server_config.executors,
         server_config.pools,
-        server_config.routes)
+        server_config.routes,
+    )
     config_util = server_config.ModuleObjectConfig(server_config)
     provideUtility(config_util, IHubServerConfig)
 
@@ -438,15 +469,16 @@ def report_reactor_delayed_calls(monitor, name):
         writer = getUtility(IMetricManager).metric_writer
 
         writer.write_metric(
-            'zenhub.reactor.delayedcalls',
+            "zenhub.reactor.delayedcalls",
             deferred_count,
             int(time() * 1000),  # to milliseconds
-            {'monitor': monitor, 'name': name},
+            {"monitor": monitor, "name": name},
         )
     except Exception:
-        log.exception('Failure in report_reactor_delayed_calls')
+        log.exception("Failure in report_reactor_delayed_calls")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from Products.ZenHub.zenhub import ZenHub
+
     ZenHub().main()

@@ -9,7 +9,6 @@
 
 from __future__ import absolute_import
 
-
 import logging
 import yaml
 
@@ -18,7 +17,8 @@ from zope.interface import implementer
 
 from .interface import IHubServerConfig
 
-log = logging.getLogger('zen.zenhub.server.config')
+log = logging.getLogger("zen.zenhub.server.config")
+
 
 @implementer(IHubServerConfig)
 class ModuleObjectConfig(object):
@@ -75,8 +75,11 @@ class ServerConfig(object):
                 config = yaml.load(f, Loader=yaml.SafeLoader)
             return cls(config)
         except Exception as e:
-            log.error("Couldn't load zenhub-server.yaml configuration, "
-                "using default settings: %s", e)
+            log.error(
+                "Couldn't load zenhub-server.yaml configuration, "
+                "using default settings: %s",
+                e,
+            )
             return cls({})
 
     def __init__(self, config):
@@ -113,7 +116,6 @@ class ServerConfig(object):
         self.__routes = routes
         self.__executors = executors
         self.__pools = pools
-        
 
     @property
     def pools(self):
@@ -127,6 +129,7 @@ class ServerConfig(object):
     def routes(self):
         return self.__routes
 
+
 ##############################################################################
 # NOTE
 #
@@ -134,6 +137,7 @@ class ServerConfig(object):
 # Specfically, if the 'executors' dict is changed, then main.py
 # must also be updated with a corresponding change.
 ##############################################################################
+
 
 # Declares the executors where work can be sent.
 # "executor-id" : "module-path:class-name"
