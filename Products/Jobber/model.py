@@ -193,6 +193,7 @@ class JobRecordMarshaller(object):
         "finished",
         "status",
         "userid",
+        "uuid",
     )
 
     def __init__(self, obj):
