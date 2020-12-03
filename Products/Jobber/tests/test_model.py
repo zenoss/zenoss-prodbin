@@ -215,6 +215,7 @@ class JobRecordMarshallerTest(TestCase):
             "finished": None,
             "started": None,
             "userid": None,
+            "uuid": t.jobid,
         })
         t.record = JobRecord.make(t.fields)
 
