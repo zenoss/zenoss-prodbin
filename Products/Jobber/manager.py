@@ -21,6 +21,7 @@ from zope.interface import implementer
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
+from Products.Zuul.catalog.model_catalog import NoRollbackSavepoint
 
 from .exceptions import NoSuchJobException
 from .interfaces import IJobStore
@@ -477,6 +478,9 @@ class JobDispatcher(object):
 
     def sortKey(self):
         return str(id(self))
+
+    def savepoint(self, optimistic=False):
+        return NoRollbackSavepoint(self)
 
 
 class ThreadedJobDispatcher(threading.local):
