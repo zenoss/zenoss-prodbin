@@ -171,33 +171,27 @@ def device_info_fact(device):
     f.metadata[DimensionKeys.PLUGIN_KEY] = DEVICE_INFO_FACT_PLUGIN
     f.data[MetadataKeys.NAME_KEY] = device.titleOrId()
     f.data[MetadataKeys.PROD_STATE_KEY] = device.getProductionStateString()
+    valid_types = (str, int, long, float, bool, list, tuple, set,)
     for propdict in device._propertyMap():
         propId = propdict.get("id")
-        if device.isLocal(propId) and propdict.get("type", None) in (
-            "string",
-            "int",
-            "boolean",
-            "long",
-            "float",
-            "text",
-            "lines",
-        ):
-            # Some of the device properties can be methods,
-            # so we have to call them and get values.
-            if callable(device.getProperty(propId)):
-                log.warn("Callable: %s", device.getProperty(propId))
-                try:
-                    value = device.getProperty(propId).__call__()
-                except TypeError as e:
-                    log.exception(
-                        "Unable to call property: %s. Exception %s",
-                        device.getProperty(propId),
-                        e,
-                    )
-            else:
-                value = device.getProperty(propId)
-            if value is None:
-                value = ""
+        value = None
+        # Some of the device properties can be methods,
+        # so we have to call them and get values.
+        if callable(device.getProperty(propId)):
+            log.warn("Callable: %s", device.getProperty(propId))
+            try:
+                value = device.getProperty(propId).__call__()
+            except TypeError as e:
+                log.exception(
+                    "Unable to call property: %s. Exception %s",
+                    device.getProperty(propId),
+                    e,
+                )
+        else:
+            value = device.getProperty(propId)
+        if value is None:
+            value = ""
+        if device.isLocal(propId) and isinstance(value, valid_types):
             f.data[propId] = value
     f.data[MetadataKeys.ID_KEY] = device.id
     title = device.title
