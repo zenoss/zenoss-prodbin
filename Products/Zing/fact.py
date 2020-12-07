@@ -178,7 +178,7 @@ def device_info_fact(device):
         # Some of the device properties can be methods,
         # so we have to call them and get values.
         if callable(device.getProperty(propId)):
-            log.warn("Callable: %s", device.getProperty(propId))
+            log.debug("Callable: %s", device.getProperty(propId))
             try:
                 value = device.getProperty(propId).__call__()
             except TypeError as e:
