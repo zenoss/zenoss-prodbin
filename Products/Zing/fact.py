@@ -174,6 +174,8 @@ def device_info_fact(device):
     valid_types = (str, int, long, float, bool, list, tuple, set,)
     for propdict in device._propertyMap():
         propId = propdict.get("id")
+        if not device.isLocal(propId):
+            continue
         value = None
         # Some of the device properties can be methods,
         # so we have to call them and get values.
@@ -191,7 +193,7 @@ def device_info_fact(device):
             value = device.getProperty(propId)
         if value is None:
             value = ""
-        if device.isLocal(propId) and isinstance(value, valid_types):
+        if isinstance(value, valid_types):
             f.data[propId] = value
     f.data[MetadataKeys.ID_KEY] = device.id
     title = device.title
