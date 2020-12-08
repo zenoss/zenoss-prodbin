@@ -10,6 +10,7 @@
 from __future__ import absolute_import
 
 import logging
+import re
 import yaml
 
 from Products.ZenHub import XML_RPC_PORT, PB_PORT
@@ -18,6 +19,8 @@ from zope.interface import implementer
 from .interface import IHubServerConfig
 
 log = logging.getLogger("zen.zenhub.server.config")
+
+_default_spec = "Products.ZenHub.server.executors:WorkerPoolExecutor"
 
 
 @implementer(IHubServerConfig)
@@ -64,6 +67,24 @@ class ModuleObjectConfig(object):
         return self.__config.xmlrpcport
 
 
+_spec_pattern = re.compile(r"^(?:[a-zA-Z]\w*\.)+[a-zA-Z]\w*:[a-zA-Z]\w*$")
+
+
+def _validate_spec(spec):
+    if _spec_pattern.match(spec) is None:
+        raise ValueError("Invalid format for 'spec': %s" % (spec,))
+
+
+_call_pattern = re.compile(
+    r"^(?:\*|(?:[a-zA-Z]\w*\.)*[a-zA-Z]\w*):(?:\*|[a-zA-Z]\w*)$",
+)
+
+
+def _validate_call(call):
+    if _call_pattern.match(call) is None:
+        raise ValueError("Invalid format for 'routes' call: %s" % (call,))
+
+
 class ServerConfig(object):
     """Load zenhub server configuration from a file.
     """
@@ -100,7 +121,8 @@ class ServerConfig(object):
         executors = {}
         pools = {}
         for executor, config in config.items():
-            spec = config["spec"]
+            spec = config.get("spec", _default_spec)
+            _validate_spec(spec)
             executors[executor] = spec
             poolid = config.get("worklist")
             # WorkerPoolExecutor requires a pool, so set if the
@@ -112,6 +134,7 @@ class ServerConfig(object):
             calls = config.get("routes")
             if calls:
                 for call in calls:
+                    _validate_call(call)
                     routes[call] = executor
         self.__routes = routes
         self.__executors = executors
@@ -143,8 +166,8 @@ class ServerConfig(object):
 # "executor-id" : "module-path:class-name"
 executors = {
     "event": "Products.ZenHub.server.executors:SendEventExecutor",
-    "adm": "Products.ZenHub.server.executors:WorkerPoolExecutor",
-    "default": "Products.ZenHub.server.executors:WorkerPoolExecutor",
+    "adm": _default_spec,
+    "default": _default_spec,
 }
 
 # Declares which executor a service call is sent to.
