@@ -45,6 +45,7 @@ from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import zenPath, binPath, unpublished
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
+from Products.ZenUtils.GlobalConfig import globalConfToDict
 
 from Products.ZenEvents.Exceptions import (
     MySQLConnectionError, pythonThresholdException, rpnThresholdException)
@@ -208,6 +209,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             )
           },
         )
+
+    if not bool(globalConfToDict().get('zcml-enable-cz-dashboard', '')):
+        factory_type_information[0]['immediate_view'] = "Events"
+        del factory_type_information[0]['factory']
 
     security = ClassSecurityInfo()
 

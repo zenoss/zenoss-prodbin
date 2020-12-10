@@ -11,13 +11,17 @@
 from AccessControl import getSecurityManager, Unauthorized
 import sys
 from Products.Five.browser import BrowserView, pagetemplatefile
+from Products.ZenUtils.GlobalConfig import globalConfToDict
 from zope.viewlet.interfaces import IViewletManager
 from zope.component import queryMultiAdapter
 
 
 class MainPageRedirect(BrowserView):
     def __call__(self):
-        self.request.response.redirect('/zport/dmd/dashboard')
+        if bool(globalConfToDict().get('zcml-enable-cz-dashboard', '')):
+            self.request.response.redirect('/zport/dmd/dashboard')
+        else:
+            self.request.response.redirect('/zport/dmd/Events/evconsole')
 
 
 class ErrorMessage(BrowserView):
