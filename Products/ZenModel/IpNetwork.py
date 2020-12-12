@@ -119,8 +119,9 @@ class NetworkCache(SimpleItem):
             net_key = self.get_key(net_obj.id, net_obj.netmask)
             net_value = "/".join(net_obj.getPrimaryPath())
             nets = self.cache.get(net_key, set())
-            nets.add(net_value)
-            self.cache[net_key] = nets
+            if net_value not in nets:
+                nets.add(net_value)
+                self.cache[net_key] = nets
 
     def delete_net(self, net_key, net_path):
         if net_key in self.cache:
