@@ -133,7 +133,8 @@ class ApplyDataMap(object):
             _remove_relationship(relmap._parent, relname, obj)
 
         # update relationships for each object in the relationship map
-        for object_map in relmap:
+        maps = getattr(relmap, 'incrmaps', relmap.maps)
+        for object_map in maps:
             if isinstance(object_map, IncrementalDataMap):
                 self._apply_incrementalmap(object_map, device)
 
@@ -165,7 +166,7 @@ class ApplyDataMap(object):
                 'update_locked', 'delete_locked',
             ]
             counts = {directive: 0 for directive in directives}
-            for object_map in datamap:
+            for object_map in datamap.incrmaps:
                 counts[object_map._directive] += 1
                 self._reporter.report_directive(device, object_map)
             log.info(
@@ -384,7 +385,7 @@ def _process_relationshipmap(relmap, base_device):
     for map in new_maps:
         map.plugin_name = relmap.plugin_name
 
-    relmap.maps = new_maps
+    relmap.incrmaps = new_maps
 
     return relmap
 
