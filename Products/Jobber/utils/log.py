@@ -86,9 +86,10 @@ class FormatStringAdapter(logging.LoggerAdapter):
     def __init__(self, logger, extra=None):
         """Initialize an instance of FormatStringAdapter.
 
-        @param logger {Logger} The logger to adapt.
-        @param extra {dict} Additional context variables to appy to the
+        :param Logger logger: The logger to adapt.
+        :param extra: Additional context variables to appy to the
             message template string (not the message itself).
+        :type extra: Mapping[str, Any]
         """
         super(FormatStringAdapter, self).__init__(logger, extra or {})
 
@@ -107,11 +108,11 @@ class FormatStringAdapter(logging.LoggerAdapter):
         self.log(logging.INFO, msg, *args, **kwargs)
 
     def warning(self, msg, *args, **kwargs):
-        """Log a WARN message."""
+        """Log a WARNING message."""
         self.log(logging.WARNING, msg, *args, **kwargs)
 
     def warn(self, msg, *args, **kwargs):
-        """Log a WARNING message."""
+        """Log a WARN message."""
         self.log(logging.WARN, msg, *args, **kwargs)
 
     def error(self, msg, *args, **kwargs):
@@ -196,6 +197,17 @@ class LoggingProxy(_LoggingProxy):
             self._thread.recurse_protection = False
 
 
+class ForwardingHandler(logging.Handler):
+    """Forwards log records to another handler."""
+
+    def __init__(self, target, level=logging.NOTSET):
+        self.__target = target
+        super(ForwardingHandler, self).__init__(level=level)
+
+    def emit(self, record):
+        self.__target.emit(record)
+
+
 _task_format = "%(asctime)s %(levelname)s %(name)s: %(message)s"
 _task_datefmt = "%Y-%m-%d %H:%M:%S"
 
@@ -265,3 +277,11 @@ class inject_logger(object):
         def inject(*args, **kw):
             return func(log, *args, **kw)
         return inject
+
+
+class NullLogger(object):
+    """Defines an object that returns empty callables.
+    """
+
+    def __getattr__(self, name):
+        return lambda *x: None

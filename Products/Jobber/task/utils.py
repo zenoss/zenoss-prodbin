@@ -11,6 +11,9 @@ from __future__ import absolute_import
 
 import inspect
 
+from zope.component import getUtility
+
+from ..interfaces import IJobStore
 from ..zenjobs import app
 
 
@@ -30,3 +33,28 @@ def requires(*features):
     name = ''.join(t.__name__ for t in features) + "Task"
     basetask = type(name, tuple(culled), {"abstract": True})
     return basetask
+
+
+_failure_text = (
+    "ERROR zen.",
+    "ERROR STDERR",
+    "CRITICAL zen.",
+    "CRITICAL STDERR",
+)
+
+
+def job_log_has_errors(task_id):
+    """Return True if the job's log contains any ERROR messages.
+    """
+    storage = getUtility(IJobStore, "redis")
+    logfile = storage.getfield(task_id, "logfile")
+    if not logfile:
+        return False
+    try:
+        with open(logfile, "r") as f:
+            return any(
+                any(txt in line for txt in _failure_text)
+                for line in f.readlines()
+            )
+    except Exception:
+        return False

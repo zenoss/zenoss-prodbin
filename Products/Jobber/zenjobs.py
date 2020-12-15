@@ -10,6 +10,19 @@
 from __future__ import absolute_import
 
 from celery import Celery
+from kombu.serialization import register
+
+from .serialization import without_unicode
+
+
+# Register custom serializer
+register(
+    "without-unicode",
+    without_unicode.dump,
+    without_unicode.load,
+    content_type="application/x-without-unicode",
+    content_encoding="utf-8",
+)
 
 app = Celery(
     "zenjobs",

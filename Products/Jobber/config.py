@@ -18,44 +18,57 @@ __all__ = ("Celery", "ZenJobs")
 
 _default_configs = {
     "logpath": "/opt/zenoss/log",
-    "logseverity": "20",
-    "maxlogsize": "10240",
-    "maxbackuplogs": "3",
+    "logseverity": 20,
+    "maxlogsize": 10240,
+    "maxbackuplogs": 3,
     "job-log-path": "/opt/zenoss/log/jobs",
+    "zenjobs-job-expires": 604800,  # 7 days
 
     "zodb-config-file": "/opt/zenoss/etc/zodb.conf",
     "zodb-max-retries": 5,
-    "max-jobs-per-worker": "100",
-    "concurrent-jobs": "1",
-    "job-expires": 604800,  # 7 days
+    "zodb-retry-interval-limit": 30,  # 30 seconds
+
+    "max-jobs-per-worker": 100,
+    "concurrent-jobs": 1,
+    "job-hard-time-limit": 21600,  # 6 hours
+    "job-soft-time-limit": 18000,  # 5 hours
 }
 
 
-class _ZenJobsConfig(Config):
-    """Config preconfigured with defaults for ZenJobs."""
-
-    def __init__(self, *args, **kwargs):
-        """Initialize a ZenJobsConfig instance."""
-        conf = dict(_default_configs)
-        conf.update(args, **kwargs)
-        super(_ZenJobsConfig, self).__init__(conf)
-
-
-_zenjobs_conf_file = zenPath("etc", "zenjobs.conf")
-_zenjobs_config_loader = ConfigLoader(_zenjobs_conf_file, _ZenJobsConfig)
+_xform = {
+    "concurrent-jobs": int,
+    "job-hard-time-limit": int,
+    "job-soft-time-limit": int,
+    "logseverity": int,
+    "maxbackuplogs": int,
+    "max-jobs-per-worker": int,
+    "maxlogsize": int,
+    "zenjobs-job-expires": int,
+    "zodb-max-retries": int,
+    "zodb-retry-interval-limit": int,
+}
 
 
 def _getConfig():
     """Return a dict containing the configuration for zenjobs."""
-    conf = getGlobalConfiguration()
+    conf = _default_configs.copy()
+    conf.update(getGlobalConfiguration())
+
+    app_conf_file = zenPath("etc", "zenjobs.conf")
+    app_config_loader = ConfigLoader(app_conf_file, Config)
     try:
-        appconf = _zenjobs_config_loader()
+        conf.update(app_config_loader())
     except IOError as ex:
         # Re-raise exception if the error is not "File not found"
         if ex.errno != 2:
             raise
-        appconf = _default_configs
-    conf.update(appconf)
+
+    # Convert the configuration value types to useable types.
+    for key, cast in _xform.items():
+        if key not in conf:
+            continue
+        conf[key] = cast(conf[key])
+
     return conf
 
 
@@ -76,7 +89,7 @@ class Celery(object):
     """Celery configuration."""
 
     BROKER_URL = _buildBrokerUrl()
-    CELERY_ACCEPT_CONTENT = ["json"]
+    CELERY_ACCEPT_CONTENT = ["without-unicode"]
 
     # List of modules to import when the Celery worker starts
     CELERY_IMPORTS = (
@@ -85,19 +98,21 @@ class Celery(object):
 
     # Result backend (redis)
     CELERY_RESULT_BACKEND = "redis://localhost/0"
-    CELERY_RESULT_SERIALIZER = "json"
-    CELERY_TASK_RESULT_EXPIRES = int(ZenJobs.get("job-expires"))
+    CELERY_RESULT_SERIALIZER = "without-unicode"
+    CELERY_TASK_RESULT_EXPIRES = ZenJobs.get("zenjobs-job-expires")
 
     # Worker configuration
-    CELERYD_CONCURRENCY = int(ZenJobs.get("concurrent-jobs"))
+    CELERYD_CONCURRENCY = ZenJobs.get("concurrent-jobs")
     CELERYD_PREFETCH_MULTIPLIER = 1
-    CELERYD_MAX_TASKS_PER_CHILD = int(ZenJobs.get("max-jobs-per-worker"))
+    CELERYD_MAX_TASKS_PER_CHILD = ZenJobs.get("max-jobs-per-worker")
+    CELERYD_TASK_TIME_LIMIT = ZenJobs.get("job-hard-time-limit")
+    CELERYD_TASK_SOFT_TIME_LIMIT = ZenJobs.get("job-soft-time-limit")
 
     # Task settings
     CELERY_ACKS_LATE = True
-    CELERY_IGNORE_RESULT = True
+    CELERY_IGNORE_RESULT = False
     CELERY_STORE_ERRORS_EVEN_IF_IGNORED = True
-    CELERY_TASK_SERIALIZER = "json"
+    CELERY_TASK_SERIALIZER = "without-unicode"
     CELERY_TRACK_STARTED = True
 
     # Event settings

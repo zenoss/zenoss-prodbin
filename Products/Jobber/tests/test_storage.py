@@ -11,6 +11,7 @@ from __future__ import absolute_import, print_function
 
 import collections
 import re
+import time
 
 from unittest import TestCase
 
@@ -293,6 +294,92 @@ class ModifyJobStoreTest(TestCase):
         raw = t.layer.redis.hgetall("zenjobs:job:%s" % jobid)
         actual = set(raw.keys())
         t.assertSetEqual(expected, actual)
+
+    def test_update_with_only_Nones(t):
+        jobid = t.initial["jobid"]
+        update = {"logfile": None}
+        expected = {k for k in t.initial if k != "logfile"}
+
+        t.store[jobid] = t.initial
+
+        t.store.update(jobid, **update)
+        raw = t.layer.redis.hgetall("zenjobs:job:%s" % jobid)
+        actual = set(raw.keys())
+        t.assertSetEqual(expected, actual)
+
+
+class ExpireKeysTest(TestCase):
+    """Test key expiration in JobStorage."""
+
+    layer = RedisLayer
+
+    initial = {
+        "jobid": "123",
+        "name": "TestJob",
+        "summary": "Products.Jobber.jobs.TestJob",
+        "description": "A test job",
+        "userid": "zenoss",
+        "logfile": "/opt/zenoss/log/jobs/123.log",
+        "created": 1551804881.024517,
+        "status": "PENDING",
+    }
+
+    expires = 10  # seconds
+
+    def setUp(t):
+        t.store = JobStore(t.layer.redis, expires=t.expires)
+        t.jobid = t.initial["jobid"]
+        t.store[t.jobid] = t.initial
+
+    def tearDown(t):
+        t.layer.redis.flushall()
+
+    def test_ttl_initial(t):
+        ttl = t.store.ttl(t.jobid)
+        t.assertIsNone(ttl)
+
+    def test_ttl_for_received(t):
+        t.store.update(t.jobid, status="RECEIVED")
+        ttl = t.store.ttl(t.jobid)
+        t.assertIsNone(ttl)
+
+    def test_ttl_for_started(t):
+        t.store.update(t.jobid, status="STARTED")
+        ttl = t.store.ttl(t.jobid)
+        t.assertIsNone(ttl)
+
+    def test_ttl_for_retry(t):
+        t.store.update(t.jobid, status="RETRY")
+        ttl = t.store.ttl(t.jobid)
+        t.assertIsNone(ttl)
+
+    def test_ttl_for_revoked(t):
+        t.store.update(t.jobid, status="REVOKED")
+        time.sleep(1.0)
+        ttl = t.store.ttl(t.jobid)
+        t.assertIsNotNone(ttl)
+        t.assertLess(ttl, t.expires)
+
+    def test_ttl_for_success(t):
+        t.store.update(t.jobid, status="SUCCESS")
+        time.sleep(1.0)
+        ttl = t.store.ttl(t.jobid)
+        t.assertIsNotNone(ttl)
+        t.assertLess(ttl, t.expires)
+
+    def test_ttl_for_failure(t):
+        t.store.update(t.jobid, status="FAILURE")
+        time.sleep(1.0)
+        ttl = t.store.ttl(t.jobid)
+        t.assertIsNotNone(ttl)
+        t.assertLess(ttl, t.expires)
+
+    def test_ttl_for_aborted(t):
+        t.store.update(t.jobid, status="ABORTED")
+        time.sleep(1.0)
+        ttl = t.store.ttl(t.jobid)
+        t.assertIsNotNone(ttl)
+        t.assertLess(ttl, t.expires)
 
 
 def _buildData(jobnames, userids, base):

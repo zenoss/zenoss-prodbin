@@ -179,7 +179,13 @@ class JobDeviceLoader(BaseDeviceLoader):
 
 
 class CreateDeviceJob(Job):
-    """Create a new device object."""
+    """
+    Create a new device object.
+    """
+
+    # Declare DeviceExistsError as an expected exception so that a traceback
+    # is not written to zenjobs' log.
+    throws = Job.throws + (DeviceExistsError,)
 
     @classmethod
     def getJobType(cls):

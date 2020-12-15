@@ -275,19 +275,31 @@ Ext.getCmp('center_panel').add({
             }
             REMOTE.detail({jobid:this.jobid}, function(r){
                 var msg = _t("[!] Log file too large for job log screen (viewing last 100 lines). To view full log use link above.");
-                var html = "<b>Log file: <a href='joblog?job=" + this.jobid + "'>" + r.logfile + "</a></b><br/><br/>";
-                if(r.maxLimit){
-                    html += "<b style='color:red;padding-bottom:8px;display:block;'>"+msg+"</b>";
+                var html = Ext.String.format(
+                    "<b>Log file: <a href='joblog?job={0}'>{1}</a></b><br/><br/>", this.jobid, r.logfile
+                );
+                if (r.maxLimit) {
+                    html += Ext.String.format(
+                        "<b style='color:red;padding-bottom:8px;display:block;'>{0}</b>", msg
+                    );
                 }
+                var preTagFmt = Ext.String.format(
+                    "<pre style='{0}'>{1}</pre>",
+                    [
+                        "font-family:Monaco,monospaced",
+                        "font-size:12px",
+                        "white-space:pre-wrap",
+                        "color:{0}"
+                    ].join(';') + ";",
+                    "{1}"
+                );
                 for (var i=0; i < r.content.length; i++) {
-                    var color = '#657B83', str = r.content[i];
-                    if (str.indexOf("ERROR") > -1) {
+                    var color = (i % 2) ? '#b58900' : '#657B83';
+                    var line = r.content[i];
+                    if (line.indexOf("ERROR") > -1) {
                         color = '#ff0000'; // red
-                    } else if (i%2) {
-                        color = '#b58900';
                     }
-                    html += "<pre style='font-family:Monaco,monospaced;font-size:12px;color:" +
-                        color + ";'>" + Ext.htmlEncode(str) + '</pre>';
+                    html += Ext.String.format(preTagFmt, color, Ext.htmlEncode(line));
                 }
                 this.update(html);
                 var d = this.body.dom;

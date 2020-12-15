@@ -14,6 +14,7 @@ import logging
 import re
 import redis
 
+from celery import states as celery_states
 from collections import Container, Iterable, Sized
 
 from .config import Celery
@@ -45,6 +46,10 @@ def _float_str(f):
     return "{:.6f}".format(f).strip("0")
 
 
+def _immutable(self, *args, **kw):
+    raise TypeError("Object is immutable")
+
+
 class _Fields(dict):
     """Describes all the attributes of a job record.
 
@@ -68,6 +73,14 @@ class _Fields(dict):
             ("status", _Converter(str, str)),
             ("details", _Converter(json.dumps, json.loads)),
         ))
+
+    __setitem__ = _immutable
+    __delitem__ = _immutable
+    clear = _immutable
+    pop = _immutable
+    popitem = _immutable
+    setdefault = _immutable
+    update = _immutable
 
 
 Fields = _Fields()
@@ -115,13 +128,19 @@ class _RegEx(object):
 
 
 class JobStore(Container, Iterable, Sized):
-    """Implements an API for managing zenjobs' job data."""
+    """Implements an API for managing zenjobs' job data.
+
+    If 'expires' is given, keys are not marked for expiration until their
+    associated tasks have finished execution.
+    """
 
     def __init__(self, client, expires=None):
         """Initialize a JobStore instance.
 
         :param client: A Redis client instance.
         :type client: redis.StrictRedis
+        :param expires: The number of seconds a key will exist.
+        :type expires: Union[int, None]
         """
         self.__client = client
         self.__expires = expires
@@ -203,10 +222,9 @@ class JobStore(Container, Iterable, Sized):
         If a field name does not identify a known field, an AttributeError
         exception is raised.
 
-        @param jobid {str}
-        @param fields {Mapping[str, Union[str, float, int, dict]]}
-        @returns {None}
-        @raises Union[AttributeError, KeyError]
+        :type jobid: str
+        :param fields: Mapping[str, Union[str, float, int, dict]]
+        :raises: Union[AttributeError, KeyError]
         """
         badfields = fields.viewkeys() - Fields.viewkeys()
         if badfields:
@@ -226,13 +244,14 @@ class JobStore(Container, Iterable, Sized):
             k: Fields[k].dumps(v)
             for k, v in fields.items() if v is not None
         }
-        self.__client.hmset(key, fields)
-        self.__expire_key_if_finished(key)
+        if fields:
+            self.__client.hmset(key, fields)
+        self.__expire_key_if_status_is_ready(key)
 
     def keys(self):
         """Return all existing job IDs.
 
-        @returns {Iterable[str]}
+        :rtype: Iterator[str]
         """
         return (
             self.__client.hget(key, "jobid")
@@ -242,7 +261,7 @@ class JobStore(Container, Iterable, Sized):
     def values(self):
         """Return all existing job data.
 
-        @returns {Iterable[Mapping[str, Union[str, float]]]}
+        :rtype: Iterator[Dict[str, Union[str, float]]]
         """
         items = _iteritems(self.__client)
         return (
@@ -253,7 +272,7 @@ class JobStore(Container, Iterable, Sized):
     def items(self):
         """Return all existing jobs as (ID, data) pairs.
 
-        @returns {Iterable[Tuple[str, Mapping[str, Union[str, float]]]]}
+        :rtype: Iterator[Tuple[str, Dict[str, Union[str, float]]]]
         """
         items = _iteritems(self.__client)
         return (
@@ -270,8 +289,8 @@ class JobStore(Container, Iterable, Sized):
         The returned iterable will produce the job data in the same
         order given in the jobids parameter.
 
-        @param jobids {Iterable[str]}
-        @returns {Iterable[Mapping[str, Union[str, float]]]}
+        :param jobids: Iterable[str]
+        :rtype: Iterator[Dict[str, Union[str, float]]]
         """
         keys = (_key(jobid) for jobid in jobids)
         raw = (
@@ -289,9 +308,9 @@ class JobStore(Container, Iterable, Sized):
 
         If the job ID is not found, the default argument is returned.
 
-        @param jobid {str}
-        @param default {Any}
-        @returns {Mapping[str, Union[str, float]]}
+        :type jobid: str
+        :type default: Any
+        :rtype: Union[Dict[str, Union[str, float]], default]
         """
         key = _key(jobid)
         if not self.__client.exists(key):
@@ -304,9 +323,9 @@ class JobStore(Container, Iterable, Sized):
 
         If the job ID is not found, a KeyError exception is raised.
 
-        @param jobid {str}
-        @returns {Mapping[str, Union[str, float]]}
-        @raises {KeyError}
+        :type jobid: str
+        :rtype: Dict[str, Union[str, float]]
+        :raises: KeyError
         """
         key = _key(jobid)
         if not self.__client.exists(key):
@@ -319,9 +338,9 @@ class JobStore(Container, Iterable, Sized):
 
         If the data contains unknown fields, a ValueError exception is raised.
 
-        @param jobid {str}
-        @param data {Mapping[str, Union[str, float]]}
-        @raises {ValueError}
+        :param jobid: str
+        :param data: Mapping[str, Union[str, float]]
+        :raises: ValueError
         """
         _verifyfields(data.keys())
         data = {
@@ -334,12 +353,13 @@ class JobStore(Container, Iterable, Sized):
         if deleted_fields:
             self.__client.hdel(key, *deleted_fields)
         self.__client.hmset(key, data)
-        self.__expire_key_if_finished(key)
+        self.__expire_key_if_status_is_ready(key)
 
     def mdelete(self, *jobids):
         """Delete the job data associated with each of the given job IDs.
 
-        @param jobsids {Iterable[str]} An iterable producing Job IDs
+        :param jobsids: An iterable producing Job IDs
+        :type jobids: Iterable[str]
         """
         if not jobids:
             return
@@ -351,7 +371,7 @@ class JobStore(Container, Iterable, Sized):
 
         If the job ID does not exist, a KeyError is raised.
 
-        @param jobid {str}
+        :type jobid: str
         """
         key = _key(jobid)
         if not self.__client.exists(key):
@@ -359,7 +379,11 @@ class JobStore(Container, Iterable, Sized):
         self.__client.delete(key)
 
     def __contains__(self, jobid):
-        """Return True if job data exists for the given job ID."""
+        """Return True if job data exists for the given job ID.
+
+        :type jobid: str
+        :rtype: boolean
+        """
         return self.__client.exists(_key(jobid))
 
     def __len__(self):
@@ -373,15 +397,19 @@ class JobStore(Container, Iterable, Sized):
         return count
 
     def __iter__(self):
-        """Return an iterable producing all the job IDs in the datastore.
+        """Return an iterator producing all the job IDs in the datastore.
 
-        @returns {Iterable[str]}
+        :rtype: Iterator[str]
         """
         return self.keys()
 
-    def __expire_key_if_finished(self, key):
-        finished = self.__client.hget(key, "finished")
-        if self.__expires and finished:
+    def ttl(self, jobid):
+        result = self.__client.ttl(_key(jobid))
+        return result if result >= 0 else None
+
+    def __expire_key_if_status_is_ready(self, key):
+        status = self.__client.hget(key, "status")
+        if self.__expires and status in celery_states.READY_STATES:
             self.__client.expire(key, self.__expires)
 
 
