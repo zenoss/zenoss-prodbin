@@ -18,19 +18,13 @@ _MARKER = object()
 
 
 class Job(Abortable, DMD, ZenTask):
-    """Base class for legacy jobs.
-
-    Notes:
-    * The summary property is rewritten in terms of getJobType
-    * The __call__ method is overridden to handle _run method impl
-
-    """
+    """Base class for legacy jobs."""
 
     abstract = True  # Job class itself is not registered.
 
-    def __new__(cls, *args, **kwargs):
-        cls.summary = cls.getJobType()
-        return super(Job, cls).__new__(cls, *args, **kwargs)
+    # Specifying the exceptions a job can raise will avoid the
+    # "Unexpected exception" traceback message in zenjobs' log.
+    throws = Abortable.throws + ZenTask.throws
 
     @classmethod
     def getJobType(cls):
@@ -39,6 +33,16 @@ class Job(Abortable, DMD, ZenTask):
         By default, the class type name is returned.
         """
         return cls.name
+
+    @classmethod
+    def getJobDescription(cls, *args, **kwargs):
+        """Return the description of the task instance."""
+        raise NotImplementedError
+
+    @classmethod
+    def description_from(cls, *args, **kwargs):
+        """Alias for getJobDescription."""
+        return cls.getJobDescription(*args, **kwargs)
 
     @classmethod
     def makeSubJob(cls, args=None, kwargs=None, description=None, **options):
@@ -74,10 +78,10 @@ class Job(Abortable, DMD, ZenTask):
         record = self.dmd.JobManager.getJob(jobid)
         details = record.details or {}
         details.update(**properties)
-        self.dmd.JobManager.update(jobid, details=details)
+        self.dmd.JobManager.update(jobid, **details)
 
     def _get_config(self, key, default=_MARKER):
-        value = ZenJobs.get(key, default=default)
+        value = ZenJobs.get(key, default)
         if value is _MARKER:
             raise KeyError("Config option '{}' is not defined".format(key))
         return value

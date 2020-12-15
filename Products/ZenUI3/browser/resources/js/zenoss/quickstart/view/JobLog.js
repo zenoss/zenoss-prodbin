@@ -15,11 +15,11 @@
         router.getInfo({
             jobid: jobid
         }, function(response){
-            var window = Ext.create("Zenoss.quickstart.Wizard.view.JobLog", {
+            var dialog = Ext.create("Zenoss.quickstart.Wizard.view.JobLog", {
                 job: response.data,
                 deviceName: deviceName
             });
-            window.show();
+            dialog.show();
         }, this);
     };
 

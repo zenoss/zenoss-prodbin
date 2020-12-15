@@ -14,6 +14,7 @@ import signal
 import sys
 import thread
 import threading
+import time
 
 from celery import states
 from celery.app import push_current_task, pop_current_task
@@ -27,6 +28,9 @@ from Products.ZenUtils.Threading import inject_exception_into_thread
 
 from ..exceptions import JobAborted, TaskAborted
 from ..interfaces import IJobStore
+from ..utils.log import get_logger
+
+mlog = get_logger("zen.zenjobs.task.abortable")
 
 
 class AbortableResult(AbortableAsyncResult):
@@ -35,7 +39,7 @@ class AbortableResult(AbortableAsyncResult):
     def abort(self):
         """Abort the job."""
         jobstore = getUtility(IJobStore, "redis")
-        jobstore.update(self.id, status=ABORTED)
+        jobstore.update(self.id, status=ABORTED, finished=time.time())
         return super(AbortableResult, self).abort()
 
 
@@ -58,9 +62,9 @@ class Abortable(AbortableTask):
         if isinstance(exc, TaskAborted):
             result = self.AsyncResult(task_id)
             result.backend.store_result(
-                task_id, result=None, status=states.ABORTED, traceback=None,
+                task_id, result=exc, status=states.ABORTED, traceback=None,
             )
-            self.log.debug(
+            mlog.debug(
                 "On TaskAborted exception, reset the task status to ABORTED",
             )
 
@@ -71,29 +75,38 @@ class Abortable(AbortableTask):
         # Ignore this task if it's already aborted.
         jobstore = getUtility(IJobStore, "redis")
         status = jobstore.getfield(self.request.id, "status")
-        if status == ABORTED:
-            self.log.info("Ignoring aborted job: %s", self.request.id)
+        # This check may need to be in base.ZenTask instead if it's
+        # decided to have un-abortable jobs visible in the Zenoss UI.
+        if not status and not self.ignore_result:
+            mlog.info("Ignoring deleted job")
             raise Ignore()
+        if status == ABORTED:
+            log_mesg = "Ignoring aborted job"
+            self.log.info(log_mesg)
+            mlog.info(log_mesg)
+            raise Ignore()
+
+        # Alias the original run to __run
+        # Alias _exec to run
+        # _exec will call __run
+        self.__run, self.run = self.run, self.__exec
+
         try:
-            self._run, self.run = self.run, self._exec
             return super(Abortable, self).__call__(*args, **kwargs)
         finally:
-            self.run = self._run
+            self.run = self.__run
+            del self.__run
 
-    def _exec(self, *args, **kwargs):
-        if self.request.id is None:
-            self.log.error("task has no ID")
-            return
+    def __exec(self, *args, **kwargs):
         aborter = _TaskAborter(self, thread.get_ident())
         try:
             aborter.start()
-            self.log.info("Job started")
-            result = self._run(*args, **kwargs)
-        except Exception as ex:
-            self.log.error("Job failed: %r", ex)
-            raise
+            mlog.debug("Started the ABORTED status monitor thread")
+            return self.__run(*args, **kwargs)
         except JobAborted:
-            self.log.warning("Job aborted")
+            aborted_mesg = "Job aborted"
+            self.log.warning(aborted_mesg)
+            mlog.warning(aborted_mesg)
             # Convert JobAborted into TaskAborted.
             # JobAborted is derived from BaseException and TaskAborted
             # is derviced from Exception.  Raising TaskAborted will result
@@ -101,18 +114,22 @@ class Abortable(AbortableTask):
             # cause the Celery worker process to exit.
             cls, instance, tb = sys.exc_info()[0:3]
             raise TaskAborted, TaskAborted(), tb
-        else:
-            self.log.info("Job finished")
-            return result
         finally:
             aborter.stop.set()
             aborter.join()
-            self.log.debug("Stopped the ABORTED status monitor thread")
+            mlog.debug("Stopped the ABORTED status monitor thread")
 
 
 class _TaskAborter(threading.Thread):
+    """Stops a task if its status is set to ABORTED.
+    """
 
     def __init__(self, task, tid):
+        """Initialize a _TaskAborter instance.
+
+        :param task: The currently executing task.
+        :param tid: The ID of the thread executing the task.
+        """
         self.task = task
         self.tid = tid
         self.request = task.request
@@ -134,7 +151,7 @@ class _TaskAborter(threading.Thread):
                 if self._stopped():
                     break
             if not self.stop.wait(5.0):
-                self.log.warning("Forcing worker process to exit")
+                mlog.warning("Forcing worker process to exit")
                 os.kill(os.getpid(), signal.SIGKILL)
         finally:
             # Pop the request and task from their respective
@@ -145,13 +162,17 @@ class _TaskAborter(threading.Thread):
     def _stopped(self):
         if not self.stop.wait(0.1):
             return False
-        self.log.debug("Stopping ABORTED status monitor thread")
+        mlog.debug("Stopping ABORTED status monitor thread")
         return True
 
     def _job_aborted(self, result):
         if not result.is_aborted():
             return False
-        self.log.warning("Aborting job")
+        abort_mesg = "Aborting job"
+        inject_mesg = "Injected the JobAbort exception"
+        self.log.warning(abort_mesg)
+        mlog.warning(abort_mesg)
         inject_exception_into_thread(self.tid, JobAborted)
-        self.log.debug("Injected the JobAbort exception")
+        self.log.debug(inject_mesg)
+        mlog.debug(inject_mesg)
         return True

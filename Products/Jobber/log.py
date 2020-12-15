@@ -11,7 +11,7 @@ from __future__ import absolute_import, print_function
 
 import contextlib
 import csv
-import errno
+import hashlib
 import logging
 import logging.config
 import logging.handlers
@@ -25,17 +25,20 @@ from zope.component import getUtility
 from Products.ZenUtils.Utils import zenPath
 
 from .config import ZenJobs
+from .exceptions import NoSuchJobException
 from .interfaces import IJobStore
+from .utils.algorithms import partition
 from .utils.log import (
     FormatStringAdapter,
     get_logger,
     get_task_logger,
+    ForwardingHandler,
     inject_logger,
     LoggingProxy,
     TaskLogFileHandler,
 )
 
-_default_log_level = logging.getLevelName(ZenJobs.getint("logseverity"))
+_default_log_level = logging.getLevelName(ZenJobs.get("logseverity"))
 
 _default_config = {
     "version": 1,
@@ -64,9 +67,10 @@ _default_config = {
         "main": {
             "formatter": "main",
             "class": "cloghandler.ConcurrentRotatingFileHandler",
-            "filename": os.path.join(ZenJobs.get("logpath"), "zenjobs.log"),
-            "maxBytes": ZenJobs.getint("maxlogsize") * 1024,
-            "backupCount": ZenJobs.getint("maxbackuplogs"),
+            "filename":
+                os.path.join(ZenJobs.get("logpath"), "zenjobs.log"),
+            "maxBytes": ZenJobs.get("maxlogsize") * 1024,
+            "backupCount": ZenJobs.get("maxbackuplogs"),
             "mode": "a",
             "filters": ["main"],
         },
@@ -85,6 +89,7 @@ _default_config = {
         },
         "zen.zenjobs.job": {
             "level": _default_log_level,
+            "propagate": False,
         },
         "celery": {
             "level": _default_log_level,
@@ -94,7 +99,6 @@ _default_config = {
         "handlers": ["main"],
     },
 }
-
 
 _loglevelconf_filepath = zenPath("etc", "zenjobs_log_levels.conf")
 
@@ -108,14 +112,14 @@ def _get_logger(name=None):
 
 
 def get_default_config():
-    """Return the default logging configuration.
+    """Return the default logging configuration for the given name.
 
     :rtype: dict
     """
     return _default_config
 
 
-def configure_logging(**ignore):
+def configure_logging(logfile=None, **kw):
     """Configure logging for zenjobs."""
     logging.config.dictConfig(get_default_config())
 
@@ -123,13 +127,13 @@ def configure_logging(**ignore):
         levelconfig = load_log_level_config(_loglevelconf_filepath)
         apply_levels(levelconfig)
 
-    stdout = logging.getLogger("STDOUT")
-    outproxy = LoggingProxy(stdout, logging.INFO)
+    stdout_logger = logging.getLogger("STDOUT")
+    outproxy = LoggingProxy(stdout_logger)
     sys.__stdout__ = outproxy
     sys.stdout = outproxy
 
-    stderr = logging.getLogger("STDERR")
-    errproxy = LoggingProxy(stderr, logging.ERROR)
+    stderr_logger = logging.getLogger("STDERR")
+    errproxy = LoggingProxy(stderr_logger)
     sys.__stderr__ = errproxy
     sys.stderr = errproxy
 
@@ -195,41 +199,84 @@ def apply_levels(loggerlevels):
 @inject_logger(log=_get_logger, adapter=FormatStringAdapter)
 def setup_job_instance_logger(log, task_id=None, task=None, **kwargs):
     """Create and configure the job instance logger."""
+    if task.ignore_result:
+        # Switch propagation on so that log messages are written to the
+        # main zenjobs log.
+        get_task_logger().propagate = True
+        log.debug("Task ignores result; skipping job instance log setup")
+        return
+
     log.debug("Adding a logger for job instance {}[{}]", task.name, task_id)
     try:
         storage = getUtility(IJobStore, "redis")
+        if task_id not in storage:
+            get_task_logger().propagate = True
+            log.debug("No job record found")
+            return
+
         logfile = storage.getfield(task_id, "logfile")
         logdir = os.path.dirname(logfile)
-        try:
+        if not os.path.exists(logdir):
             os.makedirs(logdir)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
         handler = TaskLogFileHandler(logfile)
-        for logger in (logging.getLogger("zen"), get_task_logger()):
-            logger.addHandler(handler)
+        get_task_logger().addHandler(handler)
+
+        # Redirect zen logging to task log handler
+        zenlog = logging.getLogger("zen")
+        zenlog.propagate = False
+        zenlog.addHandler(handler)
+
+        # Add a handler to the STDOUT and STDERR loggers
+        newhandler = ForwardingHandler(handler)
+        loggers = (logging.getLogger("STDOUT"), logging.getLogger("STDERR"))
+        for logger in loggers:
+            logger.propagate = False
+            logger.addHandler(newhandler)
+
+        log.debug("Job instance logger added")
     except Exception:
         log.exception("Failed to add job instance logger")
-    finally:
-        log.debug("Job instance logger added")
 
 
 @inject_logger(log=_get_logger, adapter=FormatStringAdapter)
 def teardown_job_instance_logger(log, task=None, **kwargs):
     """Tear down and delete the job instance logger."""
+    get_task_logger().propagate = False
+    if task.ignore_result:
+        return
     log.debug("Removing job instance logger from {}", task.name)
     try:
-        for logger in (logging.getLogger("zen"), get_task_logger()):
-            handlers = []
-            for handler in logger.handlers:
-                if isinstance(handler, TaskLogFileHandler):
-                    handler.close()
-                else:
-                    handlers.append(handler)
+        # Remove handler from STDOUT and STDERR loggers
+        loggers = (logging.getLogger("STDOUT"), logging.getLogger("STDERR"))
+        oldhandlers = set()
+        for logger in loggers:
+            logger.propagate = True
+            removedhandlers, handlers = partition(
+                logger.handlers,
+                lambda x: isinstance(x, ForwardingHandler)
+            )
             logger.handlers = handlers
+            oldhandlers.update(removedhandlers)
+        for h in oldhandlers:
+            h.close()
+
+        # Restore zen logging
+        zenlog = logging.getLogger("zen")
+        zenlog.propagate = True
+        zenlog.handlers = []
+
+        # Close task logger
+        tasklog = get_task_logger()
+        taskhandlers, handlers = partition(
+            tasklog.handlers,
+            lambda x: isinstance(x, TaskLogFileHandler)
+        )
+        tasklog.handlers = handlers
+        for h in taskhandlers:
+            h.close()
     except Exception:
         log.exception("Failed to remove job instance logger")
-    finally:
+    else:
         log.debug("Job instance logger removed")
 
 
@@ -269,6 +316,7 @@ class _LogLevelUpdaterThread(threading.Thread):
 
     def __init__(self, filepath):
         self.__filepath = filepath
+        self.__hashed = _get_hash(load_log_level_config(self.__filepath))
         self.__stop = threading.Event()
         super(_LogLevelUpdaterThread, self).__init__()
         self.daemon = True
@@ -286,16 +334,28 @@ class _LogLevelUpdaterThread(threading.Thread):
                     if not watcher.changed:
                         continue
                     log = self._log()
-                    log.info("log levels config has changed")
                     try:
-                        levelconfig = load_log_level_config(self.__filepath)
-                        apply_levels(levelconfig)
+                        config = load_log_level_config(self.__filepath)
+                        # Verify the file has actually changed.
+                        hashed = _get_hash(config)
+                        if hashed == self.__hashed:
+                            continue
+                        # The configuration has changed.
+                        self.__hashed = hashed
+                        log.info("log levels config has changed")
+                        apply_levels(config)
                     except Exception as ex:
                         log.error("config file bad format: %s", ex)
                     else:
                         log.info("log levels config changes applied")
         finally:
             self._log().info("stopping")
+
+
+def _get_hash(config):
+    return hashlib.md5(
+        ''.join("{0}{1}".format(k, config[k]) for k in sorted(config))
+    ).hexdigest()
 
 
 @contextlib.contextmanager

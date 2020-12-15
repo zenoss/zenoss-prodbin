@@ -430,7 +430,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             job = self.dmd.JobManager.addJob(
                 DeviceSetLocalRolesJob, description="Update Local Roles on %s" % path,
                 kwargs=dict(organizerUid=path))
-            href = "/zport/dmd/joblist#jobs:%s" % (job.getId())
+            href = "/zport/dmd/joblist#jobs:%s" % (job.jobid,)
             messaging.IMessageSender(self).sendToBrowser(
                 'Job Added',
                 'Job Added for setting the roles on the organizer %s, view the <a href="%s"> job log</a>' % (path, href)
