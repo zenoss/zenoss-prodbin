@@ -194,7 +194,7 @@ class AsyncExecutor(object):
             if self._log.isEnabledFor(logging.DEBUG):
                 self._log.exception(message)
             else:
-                self._log.error(message)
+                self._log.error("%s: %s", message, ex)
 
             task.error(ex)
         finally:
