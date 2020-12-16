@@ -190,9 +190,12 @@ class AsyncExecutor(object):
         except _ShutdownException:
             self._log.debug("Executor has stopped  executor=%s", self._id)
         except Exception as ex:
-            self._log.exception(
-                "Bad task  executor=%s task-id=%s", self._id, task.id,
-            )
+            message = "Bad task  executor={} task-id={}".format(self._id, task.id)
+            if self._log.isEnabledFor(logging.DEBUG):
+                self._log.exception(message)
+            else:
+                self._log.error("%s: %s", message, ex)
+
             task.error(ex)
         finally:
             self._tasks_running -= 1
