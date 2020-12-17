@@ -183,17 +183,34 @@ class JobRecordTest(TestCase):
 
 class ComponentsLoadedLayer(object):
 
+    includes = """
+    <configure xmlns="http://namespaces.zope.org/zope">
+        <include package="zope.component" file="meta.zcml"/>
+        <include package="zope.security" file="meta.zcml"/>
+        <include package="zope.browserpage" file="meta.zcml"/>
+    </configure>
+    """
+
     @classmethod
     def setUp(cls):
-        from Zope2.App import zcml
-        import Globals  # noqa: F401
-        import Products.ZenWidgets
         from OFS.Application import import_products
-        from Products.ZenUtils.Utils import load_config_override
+        from zope.configuration import xmlconfig
+        import Globals  # noqa: F401
+        import Products.Jobber
 
         import_products()
-        zcml.load_site()
-        load_config_override('scriptmessaging.zcml', Products.ZenWidgets)
+        cls._ctx = xmlconfig.string(cls.includes)
+        cls._ctx = xmlconfig.file(
+            "/opt/zenoss/Products/Jobber/configure.zcml",
+            Products.Jobber,
+            cls._ctx,
+        )
+
+    @classmethod
+    def tearDown(cls):
+        from zope.testing import cleanup
+        cleanup.cleanUp()
+        del cls._ctx
 
 
 class JobRecordMarshallerTest(TestCase):
