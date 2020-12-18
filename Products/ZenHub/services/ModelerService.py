@@ -7,6 +7,7 @@
 # 
 ##############################################################################
 
+import copy
 
 import Globals
 
@@ -157,26 +158,29 @@ class ModelerService(PerformanceConfig):
         changed = False
         #with pausedAndOptimizedIndexing():
         for map in maps:
-            preadmdata = self.pre_adm_check(map, device)
+            # make a copy because ApplyDataMap will modify the data map.
+            datamap = copy.deepcopy(map)
+
+            preadmdata = self.pre_adm_check(datamap, device)
 
             start_time = time.time()
-            if adm._applyDataMap(device, map, commit=False):
+            if adm._applyDataMap(device, datamap, commit=False):
                 changed = True
 
             end_time = time.time() - start_time
             changesubject = "device" if changed else "nothing"
-            if hasattr(map, "relname"):
+            if hasattr(datamap, "relname"):
                 log.debug(
                     "Time in _applyDataMap for Device %s with relmap %s objects: %.2f, %s changed.",
                     device.getId(),
-                    map.relname,
+                    datamap.relname,
                     end_time,
                     changesubject)
-            elif hasattr(map, "modname"):
+            elif hasattr(datamap, "modname"):
                 log.debug(
                     "Time in _applyDataMap for Device %s with objectmap, size of %d attrs: %.2f, %s changed.",
                     device.getId(),
-                    len(map.items()),
+                    len(datamap.items()),
                     end_time,
                     changesubject)
             else:
@@ -186,7 +190,7 @@ class ModelerService(PerformanceConfig):
                     end_time,
                     changesubject)
 
-            self.post_adm_process(map, device, preadmdata)
+            self.post_adm_process(datamap, device, preadmdata)
 
         if setLastCollection:
             device.setSnmpLastCollection()
