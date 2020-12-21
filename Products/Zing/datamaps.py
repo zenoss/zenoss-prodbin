@@ -34,10 +34,14 @@ log = logging.getLogger("zen.zing.datamaps")
 
 @adapter(IDatamapAppliedEvent)
 def zing_add_datamap(event):
-    log.debug("zing_add_datamap handling event=%s", event)
-    zing_datamap_handler = ZingDatamapHandler(event.datamap._base.dmd)
-    zing_datamap_handler.add_context(event.datamap, event.datamap.target)
-    zing_datamap_handler.add_datamap(event.datamap.target, event.datamap)
+    if event.datamap.target:
+        log.debug("zing_add_datamap handling event=%s", event)
+        zing_datamap_handler = ZingDatamapHandler(event.datamap._base.dmd)
+        zing_datamap_handler.add_context(event.datamap, event.datamap.target)
+        zing_datamap_handler.add_datamap(event.datamap.target, event.datamap)
+    else:
+        log.debug("zing_add_datamap skipped handling of event. Missing 'target': %s", event)
+        return
 
 
 class ObjectMapContext(object):
