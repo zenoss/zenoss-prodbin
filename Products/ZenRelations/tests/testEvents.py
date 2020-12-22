@@ -20,11 +20,16 @@ from OFS.Folder import Folder
 
 from zope import interface
 from zope import component
-from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Products.ZenTestCase.BaseTestCase import (
+    BaseTestCase,
+    init_model_catalog_for_tests,
+)
+from zope.component.hooks import setHooks
 from zope.component.interfaces import IObjectEvent
 from zope.testing import cleanup
 
 from OFS.interfaces import IItem
+from Zope2.App import zcml
 from Products.ZenRelations.RelationshipBase import IRelationship
 from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenRelations.RelSchema import *
@@ -84,6 +89,12 @@ class EventLayer(ZopeLite):
     @classmethod
     def setUp(cls):
         import Products
+
+        zcml.load_site(force=True)
+        setHooks()
+
+        # Register Model Catalog related stuff
+        init_model_catalog_for_tests()
 
         component.provideHandler(eventlog.trace, (ITestItem, IObjectEvent))
         component.provideHandler(eventlog.trace, (IRelationship, IObjectEvent))
