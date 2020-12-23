@@ -22,12 +22,11 @@ from Products.ZenModel.ZenossSecurity import (
     ZEN_DEFINE_COMMANDS_EDIT
 )
 from Products.ZenModel.migrate.UpdateDefineCommandsEditPermission import UpdateDefineCommandsEditPermission
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 class UpdateRolesForDefineCommands(Migrate.Step):
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 13)
 
     def cutover(self, dmd):
         zport = dmd.zport

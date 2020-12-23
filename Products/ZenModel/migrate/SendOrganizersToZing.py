@@ -9,7 +9,6 @@
 
 import logging
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION  # noqa: E501
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 import Migrate
@@ -20,7 +19,7 @@ log = logging.getLogger("zen.migrate")
 class SendOrganizersToZing(Migrate.Step):
     """Update all organizers' catalog entries so they can be sent to Zing."""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 13)
 
     def cutover(self, dmd):
         try:
