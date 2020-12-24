@@ -14,7 +14,7 @@ Defines attributes for how a data source will be graphed
 and builds the nessesary rrd commands.
 """
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *

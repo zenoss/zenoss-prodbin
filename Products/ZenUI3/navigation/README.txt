@@ -7,7 +7,7 @@ selected, the secondary menu will contain its child items.
 
 Test setup: 
 
-    >>> from Products.Five import zcml
+    >>> from Zope2.App import zcml
     >>> import Products.ZenUI3.navigation
     >>> zcml.load_config('testing.zcml', package=Products.ZenUI3.navigation)
 

@@ -30,6 +30,10 @@
         var device;
         if (Zenoss.env.device_uid) {
             device = Zenoss.env.device_uid.split("/").reverse()[0];
+        } else {
+            if (!_has_global_roles()) {
+                device = Ext.getCmp(gridId).getSelectionModel().getSelected().data.device.text
+            }
         }
         var collectors = new Ext.data.ArrayStore({
                         data: Zenoss.env.COLLECTORS,
@@ -76,6 +80,7 @@
                     id: 'add_event_device_textfield',
                     name: 'device',
                     allowBlank: false,
+                    readOnly: !_has_global_roles(),
                     value: device
                 },{
                     xtype: 'textfield',
@@ -1137,8 +1142,33 @@
                             });
                         }
                     }
-                });
+                    // If we don't have global role then set context explicitly for each selection 
+                    if (!_has_global_roles()) {
+                        if (selectionmodel.hasSelection() && selectionmodel.selectState !=='All') {
+                            var selection = selectionmodel.getSelection();
+                            selection.forEach(function(sel) {
+                                Zenoss.Security.setContext(sel.data.device.uid)
+                            });
+                        }
+                        // Disable add_event button for event console context if no global role
+                        // In some contexts we don't have add event button so check it first
+                        if (tbar && tbar.getComponent('add_event_main_button')) {
+                            if (!Zenoss.env.device_uid && !selectionmodel.hasSelection()) {
+                                tbar.getComponent('add_event_main_button').setDisabled(true);
+                            } else {
+                                tbar.getComponent('add_event_main_button').setDisabled(false);
+                            }
+                        }
 
+                    }
+                });
+                Zenoss.Security.onPermissionsChange(function() {
+                    var tbar = this.grid.tbar;
+                    // event-commands-menu is not present on maintenance window page
+                    if (tbar && tbar.getComponent('event-commands-menu')) {
+                        tbar.getComponent('event-commands-menu').setDisabled(!Zenoss.Security.hasPermission("Run Commands"));
+                    }
+                }, this);
 
             },
             getGrid: function() {

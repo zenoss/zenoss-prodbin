@@ -138,7 +138,6 @@ class DerivativeTracker(object):
         @return: change from previous value if a previous value exists
         """
         last_timed_metric = self._timed_metric_cache.get(name)
-
         # Store timed_metric for comparison next time.
         self._timed_metric_cache[name] = timed_metric
 
@@ -252,4 +251,3 @@ class ThresholdNotifier(object):
                 if ev.get("component", None):
                     ev['component_guid'] = context_uuid
                 yield defer.maybeDeferred(self._send_callback, ev)
-

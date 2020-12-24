@@ -102,7 +102,7 @@ class AddSolrService(Migrate.Step):
         with open(zenPath(filename)) as filterFile:
             try:
                 filterDef = filterFile.read()
-            except Exception, e:
+            except Exception as e:
                 log.error("Error reading {0} logfilter file: {1}".format(filename, e))
                 return
             log.info("Updating log filter named {0}".format(filterName))

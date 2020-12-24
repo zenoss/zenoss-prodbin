@@ -48,10 +48,9 @@ class SolrMetricGatherer(MetricGatherer):
 
         if 'metrics' in metricdata:
             data = metricdata['metrics']
-            # the solr metric data is shaped strangely: [string, dict, string, dict], etc,
-            # where each string is a label for its subsequent dictionary of metrics.
-            # these core metrics live at index 1, following the 1st label
-            solr_core = data[1]
+            
+            # solr core metrics
+            solr_core = data['solr.core.zenoss_model.shard1.replica_n1']
             metrics.extend(self._extract_sub_data(solr_core, self.core_value_metrics, ['value']))
             metrics.extend(self._extract_sub_data(solr_core, self.core_counter_metrics, ['count', 'meanRate',
                                                                                          '1minRate','5minRate',
@@ -62,7 +61,7 @@ class SolrMetricGatherer(MetricGatherer):
                                                                                        'p75_ms', 'p95_ms', 'p99_ms']))
 
             # jvm data
-            solr_jvm = data[5]
+            solr_jvm = data['solr.jvm']
             metrics.extend(self._extract_sub_data(solr_jvm, self.jvm_value_metrics, ['value']))
 
         return metrics
@@ -81,7 +80,11 @@ class SolrMetricGatherer(MetricGatherer):
         for dn in dict_names:
             for stat in stat_names:
                 metric_name = '%s.%s.%s' % (self.prefix, dn.replace('/', ''), stat)
-                metric_value = data.get(dn).get(stat)
+                try:
+                    metric_value = data.get(dn).get(stat)
+                except AttributeError:
+                    # for single values Solr 7.7.3 returns value directrly, not dict { 'value': 0 }
+                    metric_value = data.get(dn)
                 log.debug("Adding metric '%s': '%s'", metric_name, metric_value)
                 metrics.append(self.build_metric(metric_name, metric_value,
                                                  timestamp, tags))

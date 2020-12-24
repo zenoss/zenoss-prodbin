@@ -26,7 +26,7 @@ from BTrees.OOBTree import OOBTree
 from OFS.SimpleItem import SimpleItem
 
 from Globals import DTMLFile
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
@@ -88,6 +88,7 @@ class NetworkCache(SimpleItem):
         net_obj = None
         key = self.get_key(netip, netmask)
         net_paths = self.cache.get(key, ())
+        toDelete = []
         for net_path in net_paths:
             try:
                 net = context.dmd.unrestrictedTraverse(net_path)
@@ -95,8 +96,10 @@ class NetworkCache(SimpleItem):
                     net_obj = net
                     break
             except KeyError:
-                self.delete_net(key, net_path)
+                toDelete.append(net_path)
                 net_obj = None
+        for net_path in toDelete:
+            self.delete_net(key, net_path)
         return net_obj
 
     def get_net(self, netip, netmask, basenet, context):
@@ -933,7 +936,7 @@ class AutoDiscoveryJob(SubprocessJob):
     specifying IP ranges, not both. Also accepts a set of zProperties to be
     set on devices that are discovered.
     """
-    def _run(self, nets=(), ranges=(), zProperties=(), collector='localhost'):
+    def _run(self, nets=(), ranges=(), zProperties={}, collector='localhost'):
         # Store the nets and ranges
         self.nets = nets
         self.ranges = ranges

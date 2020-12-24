@@ -23,7 +23,7 @@ def zodb_transaction():
     try:
         txn = transaction.get()
         yield txn
-    except:
+    except Exception:
         if txn is not transaction.get():
             raise InvalidTransactionError(
                 "could not abort transaction, was already aborted/committed within 'with' body")
@@ -49,12 +49,12 @@ def nested_transaction(xaDataManager=None):
         if xaDataManager is not None:
             txn.join(xaDataManager)
         yield
-    except:
+    except Exception:
         try:
             sp.rollback()
             if xaDataManager is not None:
                 xaDataManager.abort(txn)
-        except:
+        except Exception:
             pass
         raise
     else:

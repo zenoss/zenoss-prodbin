@@ -43,7 +43,7 @@ class ExportGraph(BrowserView):
             return
         try:
             plots = json.loads(plots)
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             self.request.response.write("POST data contains invalid json %s" % plots)
         self.request.response.setHeader(

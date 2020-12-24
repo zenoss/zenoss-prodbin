@@ -178,7 +178,7 @@ class ProcessFacade(TreeFacade):
                     m = filterProcessLine.search(processListLine)
                     if m:
                         s += '\n' + m.group('process')
-            except Exception, e:
+            except Exception as e:
                 s += '\n# ' + str(e)
             yield {
                'uid': '0',

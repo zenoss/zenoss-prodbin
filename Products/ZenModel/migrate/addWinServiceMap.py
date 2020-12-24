@@ -42,6 +42,6 @@ class addWinServiceMap(Migrate.Step):
                     win.zCollectorPlugins.remove('zenwin.wmi.WinServiceMap')
                 if 'zenoss.wmi.WinServiceMap' not in win.zCollectorPlugins:
                     win.zCollectorPlugins += ('zenoss.wmi.WinServiceMap',)
-        except: pass
+        except Exception: pass
 
 addWinServiceMap()

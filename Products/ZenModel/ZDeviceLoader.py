@@ -183,6 +183,10 @@ class CreateDeviceJob(Job):
     Create a new device object.
     """
 
+    # Declare DeviceExistsError as an expected exception so that a traceback
+    # is not written to zenjobs' log.
+    throws = Job.throws + (DeviceExistsError,)
+
     @classmethod
     def getJobType(cls):
         return "Create Device"
@@ -362,8 +366,6 @@ class ZDeviceLoader(ZenModelItem, SimpleItem):
                                             priority=priority,
                                             title=title
                                         ))
-        except (SystemExit, KeyboardInterrupt):
-            raise
         except ZentinelException as e:
             log.info(e)
             if xmlrpc:
@@ -463,7 +465,7 @@ class ZDeviceLoader(ZenModelItem, SimpleItem):
         """
         try:
             self.getDmdRoot("Locations").createOrganizer(newLocationPath)
-        except BadRequest, e:
+        except BadRequest as e:
             if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error',
@@ -484,7 +486,7 @@ class ZDeviceLoader(ZenModelItem, SimpleItem):
         """
         try:
             self.getDmdRoot("Systems").createOrganizer(newSystemPath)
-        except BadRequest, e:
+        except BadRequest as e:
             if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error',
@@ -507,7 +509,7 @@ class ZDeviceLoader(ZenModelItem, SimpleItem):
         """
         try:
             self.getDmdRoot("Groups").createOrganizer(newDeviceGroupPath)
-        except BadRequest, e:
+        except BadRequest as e:
             if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error',
@@ -531,7 +533,7 @@ class ZDeviceLoader(ZenModelItem, SimpleItem):
         try:
             self.getDmdRoot("Monitors").setPerformanceMonitor(
                 newPerformanceMonitor)
-        except BadRequest, e:
+        except BadRequest as e:
             if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error',

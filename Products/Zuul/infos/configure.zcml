@@ -221,6 +221,11 @@
              factory=".actions.SnmpTrapActionContentInfo"
              />
 
+    <adapter provides="..interfaces.actions.ISNMPv3ActionContentInfo"
+             for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
+             factory=".actions.SNMPv3ActionContentInfo"
+             />
+
     <adapter provides="..interfaces.actions.ISyslogActionContentInfo"
              for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
              factory=".actions.SyslogActionContentInfo"
@@ -259,11 +264,6 @@
     <adapter provides="Products.Zuul.interfaces.IReportNode"
              for="Products.ZenModel.MultiGraphReport.MultiGraphReport"
              factory="Products.Zuul.infos.report.ReportNode"
-             />
-
-    <adapter provides="Products.Zuul.interfaces.IJobInfo"
-             for="Products.Jobber.manager.JobRecord"
-             factory="Products.Zuul.infos.jobs.JobInfo"
              />
 
     <adapter factory=".software.SoftwareInfo"

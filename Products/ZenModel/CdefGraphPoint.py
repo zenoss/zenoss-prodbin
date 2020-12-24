@@ -13,7 +13,7 @@ __doc__="""CdefGraphPoint
 Handles GraphPoints that define an rrd CDEF
 """
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 from Products.ZenModel.RpnGraphPoint import RpnGraphPoint
 

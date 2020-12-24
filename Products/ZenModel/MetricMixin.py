@@ -243,7 +243,7 @@ class MetricMixin(object):
                         try:
                             thresh = threshold.createThresholdInstance(self)
                             result.append(thresh)
-                        except pythonThresholdException, ex:
+                        except pythonThresholdException as ex:
                             log.warn(ex)
                             zem = self.primaryAq().getEventManager()
                             import socket

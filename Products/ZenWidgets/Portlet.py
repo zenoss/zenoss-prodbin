@@ -17,7 +17,7 @@ from Products.ZenModel.ZenossSecurity import ZEN_COMMON
 from os.path import basename, exists
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Products.ZenUtils.Utils import zenPath
 
 def manage_addPortlet(self, context, REQUEST=None):

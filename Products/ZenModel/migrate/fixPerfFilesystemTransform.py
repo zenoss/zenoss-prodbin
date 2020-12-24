@@ -77,7 +77,7 @@ if device and evt.eventKey:
             # Make a nicer summary
             evt.summary = "disk space threshold: %3.1f%% used (%s free)" % (p, free)
             evt.message = evt.summary
-        except ZeroDivisionError, e:
+        except ZeroDivisionError as e:
             # Total size hasn't been calculated
             pass
 

@@ -99,9 +99,7 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
                 pluginClass = self.importer.importPlugin(self.package,
                                                          self.modPath)
                 return pluginClass()
-            except (SystemExit, KeyboardInterrupt):
-                raise
-            except:
+            except Exception:
                 import traceback
                 log.debug(traceback.format_exc())
                 raise PluginImportError(
@@ -178,7 +176,7 @@ class PackImporter(pb.Copyable, pb.RemoteCopy):
             try:
                 __import__(modulePath, globals(), locals(), classname)
                 mod = sys.modules[modulePath]
-            except (ValueError, ImportError, KeyError), ex:
+            except (ValueError, ImportError, KeyError) as ex:
                 raise ex
 
             return mod
@@ -273,7 +271,7 @@ class PluginManager(object):
                     factory = PackLoaderFactory(OsWalker(), modPathPrefix)
                     package = pack.path(*self.packPath + (self.lastModName,))
                     self._addPluginLoaders(factory, package)
-        except:
+        except Exception:
             log.error('Could not load plugins from ZenPacks.'
                       ' One of the ZenPacks is missing or broken.')
             import traceback
@@ -286,7 +284,7 @@ class PluginManager(object):
             loaders = loaderFactory.genLoaders(package, self.lastModName)
             for loader in loaders:
                 self.pluginLoaders[loader.modPath] = loader
-        except:
+        except Exception:
             log.error('Could not load plugins from %s', package)
             import traceback
             log.debug(traceback.format_exc())

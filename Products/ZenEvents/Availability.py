@@ -12,7 +12,7 @@ import time
 import logging
 from itertools import takewhile, chain
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from collections import defaultdict
 from Products.ZenUtils import Map
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier

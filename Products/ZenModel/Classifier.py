@@ -19,7 +19,7 @@ $Id: Classifier.py,v 1.4 2004/03/26 23:58:44 edahl Exp $"""
 __version__ = "$Revision: 1.4 $"[11:-2]
 
 from AccessControl import ClassSecurityInfo
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import Permissions as permissions
 from Products.ZenModel.ZenossSecurity import *
 from OFS.OrderedFolder import OrderedFolder

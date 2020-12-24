@@ -48,7 +48,7 @@ class CyclingDaemon(ZCmdBase):
             self.syncdb()
             yield self.main_loop()
             self.sendHeartbeat()
-        except Exception, e:
+        except Exception as e:
             self.log.exception("Unexpected exception while running jobs")
         if not self.options.cycle:
             self.finish()
