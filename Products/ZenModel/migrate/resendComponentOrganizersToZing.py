@@ -11,7 +11,6 @@ import logging
 
 import zope.component
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION  # noqa: E501
 
 import Migrate
 
@@ -22,7 +21,7 @@ class ResendComponentOrganizersToZing(Migrate.Step):
     """Cause all organizer fields on devices and their components to be re-sent
     to Zing"""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 13)
 
     def cutover(self, dmd):
         zing_handler = zope.component.createObject("ZingObjectUpdateHandler", dmd)

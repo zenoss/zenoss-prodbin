@@ -9,7 +9,6 @@
 
 import logging
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION  # noqa: E501
 
 import Migrate
 
@@ -37,7 +36,7 @@ class AddEventClassInstancesForZenJobs(Migrate.Step):
     """Adds three EventClassInst objects to the /App/Zenoss event class.
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 13)
 
     def cutover(self, dmd):
         zenoss = dmd.Events.App.Zenoss
