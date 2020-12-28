@@ -617,19 +617,26 @@ class EventsRouter(DirectRouter):
         user = self.context.dmd.ZenUsers.getUserSettings()
         if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
             return True
-        if params.get('excludeNonActionables'):
-            return Zuul.checkPermission('ZenCommon', self.context)
-        if user.hasNoGlobalRoles():
-            try:
-                if uid is not None:
-                    organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
-                else:
-                    return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS, evids)
-            except (AttributeError, KeyError):
-                return False
-            manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
-            return organizer_name in manage_events_for
-        return False
+        if params:
+            if params.get('excludeNonActionables', None):
+                return Zuul.checkPermission('ZenCommon', self.context)
+        try:
+            if uid is not None:
+                organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
+            else:
+                return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS, evids)
+        except (AttributeError, KeyError):
+            return False
+        manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
+        return organizer_name in manage_events_for
+    
+    def can_add_events(self, summary, device, component, severity, evclasskey,
+                  evclass=None, monitor=None, **kwargs):
+        ctx = self.context.dmd.Devices.findDevice(device.strip())
+        if not ctx:
+            ctx = self.context
+
+        return Zuul.checkPermission(ZEN_MANAGE_EVENTS, ctx)
 
     def write_event_logs(self, evid=None, message=None):
         data = self.detail(evid).data['event'][0]
@@ -892,7 +899,7 @@ class EventsRouter(DirectRouter):
         status, response = self.zep.updateEventSummaries(update, event_filter, exclusion_filter, limit, timeout=timeout)
         return DirectResponse.succeed(data=response)
 
-    @require(ZEN_MANAGE_EVENTS)
+    @require(can_add_events)
     def add_event(self, summary, device, component, severity, evclasskey,
                   evclass=None, monitor=None, **kwargs):
         """

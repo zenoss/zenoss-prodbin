@@ -511,7 +511,8 @@ function showComponentLockingDialog(msg, locking, funcs) {
 
             Ext.applyIf(config, {
                 text: _t('Actions'),
-                disabled: Zenoss.Security.doesNotHavePermission('Delete Device'),
+                disabled: Zenoss.Security.doesNotHavePermission('Manage Device') &&
+                          Zenoss.Security.doesNotHavePermission('Change Device Production State'),
                 menu: {
                     items: [
                         new Zenoss.Action({
