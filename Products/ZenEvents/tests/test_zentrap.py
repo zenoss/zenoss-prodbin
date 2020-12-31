@@ -360,11 +360,11 @@ class _SnmpV2Base(object):
         return pckt, task
 
 
-class TestDecodeSnmpV2(TestCase, _SnmpV2Base):
+class TestDecodeSnmpV2OrV3(TestCase, _SnmpV2Base):
 
     def test_UnknownTrapType(self):
         pckt, task = self.makeInputs(trapOID="1.2.3")
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+        eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
         self.assertIn("snmpVersion", result)
         self.assertEqual(result["snmpVersion"], "2")
         self.assertEqual(eventType, "1.2.3")
@@ -377,7 +377,7 @@ class TestDecodeSnmpV2(TestCase, _SnmpV2Base):
 
     def test_KnownTrapType(self):
         pckt, task = self.makeInputs(trapOID="1.3.6.1.6.3.1.1.5.1")
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+        eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
         self.assertIn("oid", result)
         self.assertEqual(eventType, "coldStart")
         self.assertEqual(result["oid"], "1.3.6.1.6.3.1.1.5.1")
@@ -392,21 +392,21 @@ class TestDecodeSnmpV2(TestCase, _SnmpV2Base):
                 "1.3.6.1.6.3.18.1.3": "snmpTrapAddress"
             }
         )
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+        eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
         self.assertIn("snmpTrapAddress", result)
         self.assertEqual(result["snmpTrapAddress"], "192.168.51.100")
         self.assertEqual(result["device"], "192.168.51.100")
 
     def test_RenamedLinkDown(self):
         pckt, task = self.makeInputs(trapOID="1.3.6.1.6.3.1.1.5.3")
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+        eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
         self.assertIn("oid", result)
         self.assertEqual(eventType, "snmp_linkDown")
         self.assertEqual(result["oid"], "1.3.6.1.6.3.1.1.5.3")
 
     def test_RenamedLinkUp(self):
         pckt, task = self.makeInputs(trapOID="1.3.6.1.6.3.1.1.5.4")
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+        eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
         self.assertIn("oid", result)
         self.assertEqual(eventType, "snmp_linkUp")
         self.assertEqual(result["oid"], "1.3.6.1.6.3.1.1.5.4")
@@ -417,7 +417,7 @@ class TestDecodeSnmpV2(TestCase, _SnmpV2Base):
             ((1, 2, 6, 0), None),
         )
         task = MockTrapTask({"1.2.6.0": "testVar"})
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+        eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 1)
         self.assertIn("testVar", result)
@@ -444,7 +444,7 @@ class _VarbindTests(object):
         )
         for test in tests:
             result = yield test
-            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            # eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
             totalVarKeys = sum(1 for k in result if k.startswith("1.2.6"))
             self.assertEqual(totalVarKeys, 1)
             self.assertEqual(result["1.2.6.7"], "foo")
@@ -471,7 +471,7 @@ class _VarbindTests(object):
         )
         for test in tests:
             result = yield test
-            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            # eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
             totalVarKeys = sum(1 for k in result if k.startswith("1.2.6"))
             self.assertEqual(totalVarKeys, 1)
             self.assertEqual(result["1.2.6.7"], "foo,bar,baz")
@@ -507,7 +507,7 @@ class _VarbindTests(object):
         },)
         for test, expected in zip(tests, expected_results):
             result = yield test
-            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            # eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
             totalVarKeys = sum(1 for k in result if k.startswith("1.2.6"))
             self.assertEqual(totalVarKeys, 2)
             for key, value in expected.items():
@@ -543,7 +543,7 @@ class _VarbindTests(object):
         },)
         for test, expected in zip(tests, expected_results):
             result = yield test
-            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            # eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
             totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
             self.assertEqual(totalVarKeys, 1)
             for key, value in expected.items():
@@ -582,7 +582,7 @@ class _VarbindTests(object):
         },)
         for test, expected in zip(tests, expected_results):
             result = yield test
-            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            # eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
             count = sum(1 for k in result if k.startswith("testVar"))
             self.assertEqual(count, len(expected.keys()))
             for key, value in expected.items():
@@ -704,7 +704,7 @@ class _VarbindTests(object):
         },)
         for test, expected in zip(tests, expected_results):
             result = yield test
-            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            # eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
             count = sum(
                 1 for k in result
                 if k.startswith("bar") or k.startswith("foo")
@@ -792,7 +792,7 @@ class _VarbindTests(object):
         },)
         for test, expected in zip(tests, expected_results):
             result = yield test
-            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            # eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
             count = sum(
                 1 for k in result
                 if k.startswith("bar") or k.startswith("foo")
@@ -888,7 +888,7 @@ class _VarbindTests(object):
         },)
         for test, expected in zip(tests, expected_results):
             result = yield test
-            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            # eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
             count = sum(
                 1 for k in result
                 if k.startswith("bar") or k.startswith("foo")
@@ -1030,7 +1030,7 @@ class TestSnmpV2VarbindHandling(TestCase, _SnmpV2Base, _VarbindTests):
         try:
             pckt, task = next(cases)
             while True:
-                eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+                eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
                 pckt, task = cases.send(result)
         except StopIteration:
             pass
@@ -1072,7 +1072,7 @@ def test_suite():
     suite.addTest(makeSuite(DecodersUnitTest))
     suite.addTest(makeSuite(TestOid2Name))
     suite.addTest(makeSuite(TestDecodeSnmpV1))
-    suite.addTest(makeSuite(TestDecodeSnmpV2))
+    suite.addTest(makeSuite(TestDecodeSnmpV2OrV3))
     suite.addTest(makeSuite(TestSnmpV1VarbindHandling))
     suite.addTest(makeSuite(TestSnmpV2VarbindHandling))
     return suite
