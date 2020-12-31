@@ -1961,7 +1961,8 @@ Ext.onReady(function () {
                     msg = [msg, '<br/><br/><strong>',
                         _t('WARNING'), '</strong>:',
                         _t(' This will also delete all devices in this {0}.'),
-                        '<br/>'].join('');
+                        '<br/>',
+                        _t(' Type the full path of the class you want to remove to confirm')].join('');
                 }
                 return Ext.String.format(msg, itemName.toLowerCase(), '/' + node.data.path);
             },
