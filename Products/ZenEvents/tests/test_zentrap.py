@@ -2,16 +2,23 @@ import base64
 import logging
 
 from struct import pack
+from unittest import TestCase
 
-from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenEvents.zentrap import (
-    decode_snmp_value, TrapTask, FakePacket, SNMPv1, SNMPv2
+    decode_snmp_value, TrapTask, FakePacket, SNMPv1, SNMPv2, 
+    LEGACY_VARBIND_COPY_MODE, DIRECT_VARBIND_COPY_MODE, MIXED_VARBIND_COPY_MODE
 )
 
 log = logging.getLogger("test_zentrap")
 
 
-class DecodersUnitTest(BaseTestCase):
+class DecodersUnitTest(TestCase):
+
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
+
+    def tearDown(self):
+        logging.disable(logging.NOTSET)
 
     def test_decode_oid(self):
         value = (1, 2, 3, 4)
@@ -153,12 +160,18 @@ class DecodersUnitTest(BaseTestCase):
 
 class MockTrapTask(TrapTask):
 
-    def __init__(self, oidMap):
+    def __init__(self, oidMap, varbindCopyMode=DIRECT_VARBIND_COPY_MODE):
         self.oidMap = oidMap
         self.log = log
+        if varbindCopyMode is not None:
+            self.varbindCopyMode = varbindCopyMode
+        else:
+            self.varbindCopyMode = MIXED_VARBIND_COPY_MODE
+        processor_class = TrapTask._varbind_processors.get(self.varbindCopyMode)
+        self._process_varbinds = processor_class(self.oid2name)
 
 
-class TestOid2Name(BaseTestCase):
+class TestOid2Name(TestCase):
 
     def test_NoExactMatch(self):
         oidMap = {}
@@ -210,9 +223,9 @@ class TestOid2Name(BaseTestCase):
         self.assertEqual(task.oid2name((1, 2, 3, 4)), "1.2.3.4")
 
 
-class TestDecodeSnmpV1(BaseTestCase):
+class _SnmpV1Base(object):
 
-    def makeInputs(self, trapType=6, oidMap={}, variables=()):
+    def makeInputs(self, trapType=6, oidMap={}, variables=(), varbindCopyMode=None):
         pckt = FakePacket()
         pckt.version = SNMPv1
         pckt.host = "localhost"
@@ -229,7 +242,10 @@ class TestDecodeSnmpV1(BaseTestCase):
         pckt.enterprise_length = len(pckt.enterprise)
         pckt.community = "community"
 
-        return pckt, MockTrapTask(oidMap)
+        return pckt, MockTrapTask(oidMap, varbindCopyMode)
+
+
+class TestDecodeSnmpV1(TestCase, _SnmpV1Base):
 
     def test_NoAgentAddr(self):
         pckt, task = self.makeInputs()
@@ -297,202 +313,8 @@ class TestDecodeSnmpV1(BaseTestCase):
         self.assertEqual(eventType, "1.2.3.4.5")
         self.assertEqual(result["snmpV1GenericTrapType"], 6)
 
-    def test_VarBindOneValue(self):
-        pckt, task = self.makeInputs(variables=(
-            ((1, 2, 6, 7), "foo"),
-        ))
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
-        self.assertEqual(result["1.2.6.7"], "foo")
 
-    def test_VarBindMultiValue(self):
-        pckt, task = self.makeInputs(variables=(
-            ((1, 2, 6, 7), "foo"),
-            ((1, 2, 6, 7), "bar"),
-            ((1, 2, 6, 7), "baz"),
-        ))
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("1.2.6"))
-        self.assertEqual(totalVarKeys, 1)
-        self.assertEqual(result["1.2.6.7"], "foo,bar,baz")
-
-    def test_UnknownMultiVarBind(self):
-        pckt, task = self.makeInputs(variables=(
-            ((1, 2, 6, 0), "foo"),
-            ((1, 2, 6, 1), "bar"),
-        ))
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("1.2.6"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("1.2.6.0", result)
-        self.assertIn("1.2.6.1", result)
-        self.assertEqual(result["1.2.6.0"], "foo")
-        self.assertEqual(result["1.2.6.1"], "bar")
-
-    def test_NamedVarBindOneValue(self):
-        pckt, task = self.makeInputs(
-            variables=(((1, 2, 6, 7), "foo"),),
-            oidMap={"1.2.6.7": "testVar"}
-        )
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
-        self.assertEqual(totalVarKeys, 1)
-        self.assertIn("testVar", result)
-        self.assertEqual(result["testVar"], "foo")
-
-    def test_NamedVarBindMultiValue(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 2, 6, 7), "foo"),
-                ((1, 2, 6, 7), "bar"),
-                ((1, 2, 6, 7), "baz"),
-            ),
-            oidMap={"1.2.6.7": "testVar"}
-        )
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
-        self.assertEqual(totalVarKeys, 1)
-        self.assertIn("testVar", result)
-        self.assertEqual(result["testVar"], "foo,bar,baz")
-
-    def test_PartialNamedVarBindOneValue(self):
-        pckt, task = self.makeInputs(
-            variables=(((1, 2, 6, 7), "foo"),),
-            oidMap={"1.2.6": "testVar"}
-        )
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("testVar.7", result)
-        self.assertIn("testVar.sequence", result)
-        self.assertEqual(result["testVar.7"], "foo")
-        self.assertEqual(result["testVar.sequence"], "7")
-
-    def test_PartialNamedVarBindMultiValue(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 2, 6, 7), "foo"),
-                ((1, 2, 6, 7), "bar"),
-                ((1, 2, 6, 7), "baz"),
-            ),
-            oidMap={"1.2.6": "testVar"}
-        )
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("testVar.7", result)
-        self.assertIn("testVar.sequence", result)
-        self.assertEqual(result["testVar.7"], "foo,bar,baz")
-        self.assertEqual(result["testVar.sequence"], "7,7,7")
-
-    def test_PartialNamedMultiVarBind(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 2, 6, 0), "foo"),
-                ((1, 2, 6, 1), "bar"),
-                ((1, 2, 6, 2), "baz"),
-            ),
-            oidMap={"1.2.6": "testVar"}
-        )
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
-        self.assertEqual(totalVarKeys, 4)
-        self.assertIn("testVar.0", result)
-        self.assertIn("testVar.1", result)
-        self.assertIn("testVar.2", result)
-        self.assertIn("testVar.sequence", result)
-        self.assertEqual(result["testVar.0"], "foo")
-        self.assertEqual(result["testVar.1"], "bar")
-        self.assertEqual(result["testVar.2"], "baz")
-        self.assertEqual(result["testVar.sequence"], "0,1,2")
-
-    def test_PartialNamedVarBindNoneValue(self):
-        pckt, task = self.makeInputs(
-            variables=(((1, 2, 6, 0), None),),
-            oidMap={"1.2.6.0": "testVar"}
-        )
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
-        self.assertEqual(totalVarKeys, 1)
-        self.assertIn("testVar", result)
-        self.assertEqual(result["testVar"], "None")
-
-    def test_PartialNamedMultiVarBindOrder(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 2, 6, 0), "foo"),
-                ((1, 2, 6, 7), "bar"),
-                ((1, 2, 6, 3), "baz"),
-            ),
-            oidMap={"1.2.6": "testVar"}
-        )
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
-        self.assertEqual(totalVarKeys, 4)
-        self.assertIn("testVar.0", result)
-        self.assertIn("testVar.7", result)
-        self.assertIn("testVar.3", result)
-        self.assertIn("testVar.sequence", result)
-        self.assertEqual(result["testVar.0"], "foo")
-        self.assertEqual(result["testVar.7"], "bar")
-        self.assertEqual(result["testVar.3"], "baz")
-        self.assertEqual(result["testVar.sequence"], "0,7,3")
-
-    def test_ifentry_trap(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 1, 143), 143),
-                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 7, 143), 2),
-                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 8, 143), 2),
-                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 2, 143), "F23"),
-                ((1, 3, 6, 1, 2, 1, 31, 1, 1, 1, 18, 143), ""),
-            ),
-            oidMap={
-                "1.3.6.1.2.1.2.2.1.1": "ifIndex",
-                "1.3.6.1.2.1.2.2.1.7": "ifAdminStatus",
-                "1.3.6.1.2.1.2.2.1.8": "ifOperStatus",
-                "1.3.6.1.2.1.2.2.1.2": "ifDescr",
-                "1.3.6.1.2.1.31.1.1.1.18": "ifAlias",
-            }
-        )
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
-
-        totalVarKeys = sum(1 for k in result if k.startswith("ifIndex"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifIndex.143", result)
-        self.assertIn("ifIndex.sequence", result)
-        self.assertEqual(result["ifIndex.143"], "143")
-        self.assertEqual(result["ifIndex.sequence"], "143")
-
-        totalVarKeys = sum(1 for k in result if k.startswith("ifAdminStatus"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifAdminStatus.143", result)
-        self.assertIn("ifAdminStatus.sequence", result)
-        self.assertEqual(result["ifAdminStatus.143"], "2")
-        self.assertEqual(result["ifAdminStatus.sequence"], "143")
-
-        totalVarKeys = sum(1 for k in result if k.startswith("ifOperStatus"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifOperStatus.143", result)
-        self.assertIn("ifOperStatus.sequence", result)
-        self.assertEqual(result["ifOperStatus.143"], "2")
-        self.assertEqual(result["ifOperStatus.sequence"], "143")
-
-        totalVarKeys = sum(1 for k in result if k.startswith("ifDescr"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifDescr.143", result)
-        self.assertIn("ifDescr.sequence", result)
-        self.assertEqual(result["ifDescr.143"], "F23")
-        self.assertEqual(result["ifDescr.sequence"], "143")
-
-        totalVarKeys = sum(1 for k in result if k.startswith("ifAlias"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifAlias.143", result)
-        self.assertIn("ifAlias.sequence", result)
-        self.assertEqual(result["ifAlias.143"], "")
-        self.assertEqual(result["ifAlias.sequence"], "143")
-
-
-class TestDecodeSnmpV2(BaseTestCase):
+class _SnmpV2Base(object):
 
     baseOidMap = {
         # Std var binds in SnmpV2 traps/notifications
@@ -525,16 +347,20 @@ class TestDecodeSnmpV2(BaseTestCase):
         pckt.enterprise_length = 0
         return pckt
 
-    def makeTask(self, extraOidMap={}):
+    def makeTask(self, extraOidMap={}, varbindCopyMode=None):
         oidMap = self.baseOidMap.copy()
         oidMap.update(extraOidMap)
-        return MockTrapTask(oidMap)
+        return MockTrapTask(oidMap, varbindCopyMode)
 
     def makeInputs(
-            self, trapOID="1.3.6.1.6.3.1.1.5.1", variables=(), extraOidMap={}):
+        self, trapOID="1.3.6.1.6.3.1.1.5.1", variables=(), oidMap={}, varbindCopyMode=None
+    ):
         pckt = self.makePacket(trapOID=trapOID, variables=variables)
-        task = self.makeTask(extraOidMap=extraOidMap)
+        task = self.makeTask(extraOidMap=oidMap, varbindCopyMode=varbindCopyMode)
         return pckt, task
+
+
+class TestDecodeSnmpV2(TestCase, _SnmpV2Base):
 
     def test_UnknownTrapType(self):
         pckt, task = self.makeInputs(trapOID="1.2.3")
@@ -562,7 +388,7 @@ class TestDecodeSnmpV2(BaseTestCase):
             variables=(
                 ((1, 3, 6, 1, 6, 3, 18, 1, 3), "192.168.51.100"),
             ),
-            extraOidMap={
+            oidMap={
                 "1.3.6.1.6.3.18.1.3": "snmpTrapAddress"
             }
         )
@@ -585,113 +411,6 @@ class TestDecodeSnmpV2(BaseTestCase):
         self.assertEqual(eventType, "snmp_linkUp")
         self.assertEqual(result["oid"], "1.3.6.1.6.3.1.1.5.4")
 
-    def test_VarBindMultiValue(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 2, 6, 7), "foo"),
-                ((1, 2, 6, 7), "bar"),
-                ((1, 2, 6, 7), "baz"),
-            )
-        )
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
-        self.assertEqual(result["1.2.6.7"], "foo,bar,baz")
-
-    def test_UnknownMultiVarBind(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 2, 6, 0), "foo"),
-                ((1, 2, 6, 1), "bar"),
-            )
-        )
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("1.2.6"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("1.2.6.0", result)
-        self.assertIn("1.2.6.1", result)
-        self.assertEqual(result["1.2.6.0"], "foo")
-        self.assertEqual(result["1.2.6.1"], "bar")
-
-    def test_NamedVarBindOneValue(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 2, 6, 7), "foo"),
-            ),
-            extraOidMap={"1.2.6.7": "testVar"}
-        )
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
-        self.assertEqual(totalVarKeys, 1)
-        self.assertIn("testVar", result)
-        self.assertEqual(result["testVar"], "foo")
-
-    def test_NamedVarBindMultiValue(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 2, 6, 7), "foo"),
-                ((1, 2, 6, 7), "bar"),
-                ((1, 2, 6, 7), "baz"),
-            ),
-            extraOidMap={"1.2.6.7": "testVar"}
-        )
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
-        self.assertEqual(totalVarKeys, 1)
-        self.assertIn("testVar", result)
-        self.assertEqual(result["testVar"], "foo,bar,baz")
-
-    def test_PartialNamedVarBindOneValue(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 2, 6, 7), "foo"),
-            ),
-            extraOidMap={"1.2.6": "testVar"}
-        )
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("testVar.7", result)
-        self.assertIn("testVar.sequence", result)
-        self.assertEqual(result["testVar.7"], "foo")
-        self.assertEqual(result["testVar.sequence"], "7")
-
-    def test_PartialNamedVarBindMultiValue(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 2, 6, 7), "foo"),
-                ((1, 2, 6, 7), "bar"),
-                ((1, 2, 6, 7), "baz"),
-            ),
-            extraOidMap={"1.2.6": "testVar"}
-        )
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("testVar.7", result)
-        self.assertIn("testVar.sequence", result)
-        self.assertEqual(result["testVar.7"], "foo,bar,baz")
-        self.assertEqual(result["testVar.sequence"], "7,7,7")
-
-    def test_PartialNamedMultiVarBind(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 2, 6, 0), "foo"),
-                ((1, 2, 6, 1), "bar"),
-                ((1, 2, 6, 2), "baz"),
-            ),
-            extraOidMap={"1.2.6": "testVar"}
-        )
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
-        self.assertEqual(totalVarKeys, 4)
-        self.assertIn("testVar.0", result)
-        self.assertIn("testVar.1", result)
-        self.assertIn("testVar.2", result)
-        self.assertIn("testVar.sequence", result)
-        self.assertEqual(result["testVar.0"], "foo")
-        self.assertEqual(result["testVar.1"], "bar")
-        self.assertEqual(result["testVar.2"], "baz")
-        self.assertEqual(result["testVar.sequence"], "0,1,2")
-
     def test_PartialNamedVarBindNoneValue(self):
         pckt = self.makePacket("1.3.6.1.6.3.1.1.5.3")
         pckt.variables.append(
@@ -704,80 +423,647 @@ class TestDecodeSnmpV2(BaseTestCase):
         self.assertIn("testVar", result)
         self.assertEqual(result["testVar"], "None")
 
-    def test_PartialNamedMultiVarBindOrder(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 2, 6, 0), "foo"),
-                ((1, 2, 6, 7), "bar"),
-                ((1, 2, 6, 3), "baz"),
-            ),
-            extraOidMap={"1.2.6": "testVar"}
-        )
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
-        totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
-        self.assertEqual(totalVarKeys, 4)
-        self.assertIn("testVar.0", result)
-        self.assertIn("testVar.7", result)
-        self.assertIn("testVar.3", result)
-        self.assertIn("testVar.sequence", result)
-        self.assertEqual(result["testVar.0"], "foo")
-        self.assertEqual(result["testVar.7"], "bar")
-        self.assertEqual(result["testVar.3"], "baz")
-        self.assertEqual(result["testVar.sequence"], "0,7,3")
 
-    def test_ifentry_trap(self):
-        pckt, task = self.makeInputs(
-            variables=(
-                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 1, 143), 143),
-                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 7, 143), 2),
-                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 8, 143), 2),
-                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 2, 143), "F23"),
-                ((1, 3, 6, 1, 2, 1, 31, 1, 1, 1, 18, 143), ""),
+class _VarbindTests(object):
+
+    def case_unknown_id_single(self):
+        variables = (((1, 2, 6, 7), "foo"),)
+        tests = (
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE
             ),
-            extraOidMap={
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE
+            ),
+        )
+        for test in tests:
+            result = yield test
+            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            totalVarKeys = sum(1 for k in result if k.startswith("1.2.6"))
+            self.assertEqual(totalVarKeys, 1)
+            self.assertEqual(result["1.2.6.7"], "foo")
+
+    def case_unknown_id_repeated(self):
+        variables = (
+            ((1, 2, 6, 7), "foo"),
+            ((1, 2, 6, 7), "bar"),
+            ((1, 2, 6, 7), "baz"),
+        )
+        tests = (
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE
+            ),
+        )
+        for test in tests:
+            result = yield test
+            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            totalVarKeys = sum(1 for k in result if k.startswith("1.2.6"))
+            self.assertEqual(totalVarKeys, 1)
+            self.assertEqual(result["1.2.6.7"], "foo,bar,baz")
+
+    def case_unknown_ids_multiple(self):
+        variables = (
+            ((1, 2, 6, 0), "foo"),
+            ((1, 2, 6, 1), "bar"),
+        )
+        tests = (
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE
+            ),
+        )
+        expected_results = ({
+            "1.2.6.0": "foo",
+            "1.2.6.1": "bar",
+        }, {
+            "1.2.6.0": "foo",
+            "1.2.6.1": "bar",
+        }, {
+            "1.2.6.0": "foo",
+            "1.2.6.1": "bar",
+        },)
+        for test, expected in zip(tests, expected_results):
+            result = yield test
+            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            totalVarKeys = sum(1 for k in result if k.startswith("1.2.6"))
+            self.assertEqual(totalVarKeys, 2)
+            for key, value in expected.items():
+                self.assertIn(key, result)
+                self.assertEqual(value, result[key])
+
+    def case_one_id(self):
+        variables = (((1, 2, 6, 7), "foo"),)
+        oidMap = {"1.2.6.7": "testVar"}
+        tests = (
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE
+            ),
+        )
+        expected_results = ({
+            "testVar": "foo",
+        }, {
+            "testVar": "foo",
+        }, {
+            "testVar": "foo",
+        },)
+        for test, expected in zip(tests, expected_results):
+            result = yield test
+            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
+            self.assertEqual(totalVarKeys, 1)
+            for key, value in expected.items():
+                self.assertIn(key, result)
+                self.assertEqual(value, result[key])
+
+    def case_one_id_one_sub_id(self):
+        oidMap = {"1.2.6": "testVar"}
+        variables = (((1, 2, 6, 5), "foo"),)
+        tests = (
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE
+            ),
+        )
+        expected_results = ({
+            "testVar": "foo",
+            "testVar.ifIndex": "5",
+        }, {
+            "testVar.5": "foo",
+            "testVar.sequence": "5",
+        }, {
+            "testVar": "foo",
+            "testVar.ifIndex": "5",
+        },)
+        for test, expected in zip(tests, expected_results):
+            result = yield test
+            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            count = sum(1 for k in result if k.startswith("testVar"))
+            self.assertEqual(count, len(expected.keys()))
+            for key, value in expected.items():
+                self.assertIn(key, result)
+                self.assertEqual(value, result[key])
+
+    def case_one_id_multiple_sub_ids(self):
+        oidMap = {"1.2.6": "testVar"}
+        variables_one = (
+            ((1, 2, 6, 0), "foo"),
+            ((1, 2, 6, 1), "bar"),
+            ((1, 2, 6, 2), "baz"),
+        )
+        variables_two = (
+            ((1, 2, 6, 3), "foo"),
+            ((1, 2, 6, 3), "bar"),
+        )
+
+        tests = (
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
+            ),
+
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
+            ),
+        )
+        expected_results = ({
+            "testVar.0": "foo",
+            "testVar.1": "bar",
+            "testVar.2": "baz",
+            "testVar.sequence": "0,1,2",
+        }, {
+            "testVar.3": "foo,bar",
+            "testVar.sequence": "3,3",
+        }, {
+            "testVar.0": "foo",
+            "testVar.1": "bar",
+            "testVar.2": "baz",
+            "testVar.sequence": "0,1,2",
+        }, {
+            "testVar.3": "foo,bar",
+            "testVar.sequence": "3,3",
+        }, {
+            "testVar": "foo,bar,baz",
+            "testVar.ifIndex": "0,1,2",
+        }, {
+            "testVar": "foo,bar",
+            "testVar.ifIndex": "3,3",
+        })
+        for test, expected in zip(tests, expected_results):
+            result = yield test
+            count = sum(1 for k in result if k.startswith("testVar"))
+            self.assertEqual(count, len(expected.keys()))
+            for key, value in expected.items():
+                self.assertIn(key, result)
+                self.assertEqual(value, result[key])
+
+    def case_multiple_ids(self):
+        oidMap = {
+            "1.2.6": "foo",
+            "1.2.7": "bar",
+        }
+        variables = (
+            ((1, 2, 6), "is a foo"),
+            ((1, 2, 7), "lower the bar"),
+        )
+        tests = (
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
+            ),
+        )
+        expected_results = ({
+            "foo": "is a foo",
+            "bar": "lower the bar",
+        }, {
+            "foo": "is a foo",
+            "bar": "lower the bar",
+        }, {
+            "foo": "is a foo",
+            "bar": "lower the bar",
+        },)
+        for test, expected in zip(tests, expected_results):
+            result = yield test
+            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            count = sum(
+                1 for k in result
+                if k.startswith("bar") or k.startswith("foo")
+            )
+            self.assertEqual(count, len(expected.keys()))
+            for key, value in expected.items():
+                self.assertIn(key, result)
+                self.assertEqual(value, result[key])
+
+    def case_multiple_ids_one_sub_id_each(self):
+        oidMap = {
+            "1.2.6": "foo",
+            "1.2.7": "bar",
+        }
+        variables_one = (
+            ((1, 2, 6, 0), "is a foo"),
+            ((1, 2, 7, 2), "lower the bar"),
+        )
+        variables_two = (
+            ((1, 2, 6, 0, 1), "is a foo"),
+            ((1, 2, 7, 2, 1), "lower the bar"),
+        )
+        tests = (
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
+            ),
+        )
+        expected_results = ({
+            "foo": "is a foo",
+            "foo.ifIndex": "0",
+            "bar": "lower the bar",
+            "bar.ifIndex": "2",
+        }, {
+            "foo": "is a foo",
+            "foo.ifIndex": "0.1",
+            "bar": "lower the bar",
+            "bar.ifIndex": "2.1",
+        }, {
+            "foo.0": "is a foo",
+            "foo.sequence": "0",
+            "bar.2": "lower the bar",
+            "bar.sequence": "2",
+        }, {
+            "foo.0.1": "is a foo",
+            "foo.sequence": "0.1",
+            "bar.2.1": "lower the bar",
+            "bar.sequence": "2.1",
+        }, {
+            "foo": "is a foo",
+            "foo.ifIndex": "0",
+            "bar": "lower the bar",
+            "bar.ifIndex": "2",
+        }, {
+            "foo": "is a foo",
+            "foo.ifIndex": "0.1",
+            "bar": "lower the bar",
+            "bar.ifIndex": "2.1",
+        },)
+        for test, expected in zip(tests, expected_results):
+            result = yield test
+            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            count = sum(
+                1 for k in result
+                if k.startswith("bar") or k.startswith("foo")
+            )
+            self.assertEqual(count, len(expected.keys()))
+            for key, value in expected.items():
+                self.assertIn(key, result)
+                self.assertEqual(value, result[key])
+
+    def case_multiple_ids_multiple_sub_ids(self):
+        oidMap = {
+            "1.2.6": "foo",
+            "1.2.7": "bar",
+        }
+        variables_one = (
+            ((1, 2, 6, 0, 1), "here a foo"),
+            ((1, 2, 6, 1, 1), "there a foo"),
+            ((1, 2, 7, 2, 1), "lower the bar"),
+            ((1, 2, 7, 2, 2), "raise the bar"),
+        )
+        variables_two = (
+            ((1, 2, 6, 0), "here a foo"),
+            ((1, 2, 6, 0), "there a foo"),
+            ((1, 2, 7, 3), "lower the bar"),
+            ((1, 2, 7, 3), "raise the bar"),
+        )
+        tests = (
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_one,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables_two,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
+            ),
+        )
+        expected_results = ({
+            "foo.0.1": "here a foo",
+            "foo.1.1": "there a foo",
+            "foo.sequence": "0.1,1.1",
+            "bar.2.1": "lower the bar",
+            "bar.2.2": "raise the bar",
+            "bar.sequence": "2.1,2.2",
+        }, {
+            "foo.0": "here a foo,there a foo",
+            "foo.sequence": "0,0",
+            "bar.3": "lower the bar,raise the bar",
+            "bar.sequence": "3,3",
+        }, {
+            "foo.0.1": "here a foo",
+            "foo.1.1": "there a foo",
+            "foo.sequence": "0.1,1.1",
+            "bar.2.1": "lower the bar",
+            "bar.2.2": "raise the bar",
+            "bar.sequence": "2.1,2.2",
+        }, {
+            "foo.0": "here a foo,there a foo",
+            "foo.sequence": "0,0",
+            "bar.3": "lower the bar,raise the bar",
+            "bar.sequence": "3,3",
+        }, {
+            "foo": "here a foo,there a foo",
+            "foo.ifIndex": "0.1,1.1",
+            "bar": "lower the bar,raise the bar",
+            "bar.ifIndex": "2.1,2.2",
+        }, {
+            "foo": "here a foo,there a foo",
+            "foo.ifIndex": "0,0",
+            "bar": "lower the bar,raise the bar",
+            "bar.ifIndex": "3,3",
+        },)
+        for test, expected in zip(tests, expected_results):
+            result = yield test
+            # eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+            count = sum(
+                1 for k in result
+                if k.startswith("bar") or k.startswith("foo")
+            )
+            self.assertEqual(count, len(expected.keys()))
+            for key, value in expected.items():
+                self.assertIn(key, result)
+                self.assertEqual(value, result[key])
+
+    def case_ifentry_trap(self):
+        oidMap = {
                 "1.3.6.1.2.1.2.2.1.1": "ifIndex",
                 "1.3.6.1.2.1.2.2.1.7": "ifAdminStatus",
                 "1.3.6.1.2.1.2.2.1.8": "ifOperStatus",
                 "1.3.6.1.2.1.2.2.1.2": "ifDescr",
                 "1.3.6.1.2.1.31.1.1.1.18": "ifAlias",
-            }
+        }
+        variables=(
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 1, 143), 143),
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 7, 143), 2),
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 8, 143), 2),
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 2, 143), "F23"),
+                ((1, 3, 6, 1, 2, 1, 31, 1, 1, 1, 18, 143), ""),
+            )
+        tests = (
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=MIXED_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=DIRECT_VARBIND_COPY_MODE,
+            ),
+            self.makeInputs(
+                variables=variables,
+                oidMap=oidMap,
+                varbindCopyMode=LEGACY_VARBIND_COPY_MODE,
+            ),
         )
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+        expected_results = ({
+            "ifIndex": "143",
+            "ifIndex.ifIndex": "143",
+            "ifAdminStatus": "2",
+            "ifAdminStatus.ifIndex": "143",
+            "ifOperStatus": "2",
+            "ifOperStatus.ifIndex": "143",
+            "ifDescr": "F23",
+            "ifDescr.ifIndex": "143",
+            "ifAlias": "",
+            "ifAlias.ifIndex": "143",
+        }, {
+            "ifIndex.143": "143",
+            "ifIndex.sequence": "143",
+            "ifAdminStatus.143": "2",
+            "ifAdminStatus.sequence": "143",
+            "ifOperStatus.143": "2",
+            "ifOperStatus.sequence": "143",
+            "ifDescr.143": "F23",
+            "ifDescr.sequence": "143",
+            "ifAlias.143": "",
+            "ifAlias.sequence": "143",
+        }, {
+            "ifIndex": "143",
+            "ifIndex.ifIndex": "143",
+            "ifAdminStatus": "2",
+            "ifAdminStatus.ifIndex": "143",
+            "ifOperStatus": "2",
+            "ifOperStatus.ifIndex": "143",
+            "ifDescr": "F23",
+            "ifDescr.ifIndex": "143",
+            "ifAlias": "",
+            "ifAlias.ifIndex": "143",
+        },)
 
-        totalVarKeys = sum(1 for k in result if k.startswith("ifIndex"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifIndex.143", result)
-        self.assertIn("ifIndex.sequence", result)
-        self.assertEqual(result["ifIndex.143"], "143")
-        self.assertEqual(result["ifIndex.sequence"], "143")
+        for test, expected in zip(tests, expected_results):
+            result = yield test
+            # eventType, result = task.decodeSnmpV2OrV3(("localhost", 162), pckt)
+            count = sum(
+                1 for k in result
+                if k.startswith("ifIndex") 
+                or k.startswith("ifAdminStatus") 
+                or k.startswith("ifOperStatus") 
+                or k.startswith("ifDescr") 
+                or k.startswith("ifAlias")
+            )
+            self.assertEqual(count, len(expected.keys()))
+            for key, value in expected.items():
+                self.assertIn(key, result)
+                self.assertEqual(value, result[key])
 
-        totalVarKeys = sum(1 for k in result if k.startswith("ifAdminStatus"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifAdminStatus.143", result)
-        self.assertIn("ifAdminStatus.sequence", result)
-        self.assertEqual(result["ifAdminStatus.143"], "2")
-        self.assertEqual(result["ifAdminStatus.sequence"], "143")
 
-        totalVarKeys = sum(1 for k in result if k.startswith("ifOperStatus"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifOperStatus.143", result)
-        self.assertIn("ifOperStatus.sequence", result)
-        self.assertEqual(result["ifOperStatus.143"], "2")
-        self.assertEqual(result["ifOperStatus.sequence"], "143")
+class TestSnmpV1VarbindHandling(TestCase, _SnmpV1Base, _VarbindTests):
 
-        totalVarKeys = sum(1 for k in result if k.startswith("ifDescr"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifDescr.143", result)
-        self.assertIn("ifDescr.sequence", result)
-        self.assertEqual(result["ifDescr.143"], "F23")
-        self.assertEqual(result["ifDescr.sequence"], "143")
+    def _execute(self, cases):
+        try:
+            pckt, task = next(cases)
+            while True:
+                eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
+                pckt, task = cases.send(result)
+        except StopIteration:
+            pass
 
-        totalVarKeys = sum(1 for k in result if k.startswith("ifAlias"))
-        self.assertEqual(totalVarKeys, 2)
-        self.assertIn("ifAlias.143", result)
-        self.assertIn("ifAlias.sequence", result)
-        self.assertEqual(result["ifAlias.143"], "")
-        self.assertEqual(result["ifAlias.sequence"], "143")
+    def test_unknown_id_single(self):
+        self._execute(self.case_unknown_id_single())
+
+    def test_unknown_id_repeated(self):
+        self._execute(self.case_unknown_id_repeated())
+
+    def test_unknown_ids_multiple(self):
+        self._execute(self.case_unknown_ids_multiple())
+
+    def test_one_id(self):
+        self._execute(self.case_one_id())
+
+    def test_one_id_one_sub_id(self):
+        self._execute(self.case_one_id_one_sub_id())
+
+    def test_one_id_multiple_sub_ids(self):
+        self._execute(self.case_one_id_multiple_sub_ids())
+
+    def test_multiple_ids(self):
+        self._execute(self.case_multiple_ids())
+
+    def test_multiple_ids_one_sub_id_each(self):
+        self._execute(self.case_multiple_ids_one_sub_id_each())
+
+    def test_multiple_ids_multiple_sub_ids(self):
+        self._execute(self.case_multiple_ids_multiple_sub_ids())
+
+    def test_ifentry_trap(self):
+        self._execute(self.case_ifentry_trap())
+
+
+class TestSnmpV2VarbindHandling(TestCase, _SnmpV2Base, _VarbindTests):
+
+    def _execute(self, cases):
+        try:
+            pckt, task = next(cases)
+            while True:
+                eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
+                pckt, task = cases.send(result)
+        except StopIteration:
+            pass
+
+    def test_unknown_id_single(self):
+        self._execute(self.case_unknown_id_single())
+
+    def test_unknown_id_repeated(self):
+        self._execute(self.case_unknown_id_repeated())
+
+    def test_unknown_ids_multiple(self):
+        self._execute(self.case_unknown_ids_multiple())
+
+    def test_one_id(self):
+        self._execute(self.case_one_id())
+
+    def test_one_id_one_sub_id(self):
+        self._execute(self.case_one_id_one_sub_id())
+
+    def test_one_id_multiple_sub_ids(self):
+        self._execute(self.case_one_id_multiple_sub_ids())
+
+    def test_multiple_ids(self):
+        self._execute(self.case_multiple_ids())
+
+    def test_multiple_ids_one_sub_id_each(self):
+        self._execute(self.case_multiple_ids_one_sub_id_each())
+
+    def test_multiple_ids_multiple_sub_ids(self):
+        self._execute(self.case_multiple_ids_multiple_sub_ids())
+
+    def test_ifentry_trap(self):
+        self._execute(self.case_ifentry_trap())
 
 
 def test_suite():
@@ -787,4 +1073,6 @@ def test_suite():
     suite.addTest(makeSuite(TestOid2Name))
     suite.addTest(makeSuite(TestDecodeSnmpV1))
     suite.addTest(makeSuite(TestDecodeSnmpV2))
+    suite.addTest(makeSuite(TestSnmpV1VarbindHandling))
+    suite.addTest(makeSuite(TestSnmpV2VarbindHandling))
     return suite
