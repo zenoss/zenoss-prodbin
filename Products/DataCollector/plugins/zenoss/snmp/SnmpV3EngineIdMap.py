@@ -27,6 +27,10 @@ class SnmpV3EngineIdMap(SnmpPlugin):
         """ collect snmp information from this device """
         log.info('Processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
+        if not getdata.get('setSnmpV3EngineId'):
+            log.warn('Modeler plugin %s returned no results', self.name())
+            return
+            
         om = self.objectMap(getdata)
         om.setSnmpV3EngineId = binascii.hexlify(om.setSnmpV3EngineId)
         return om
