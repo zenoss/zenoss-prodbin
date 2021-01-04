@@ -11,13 +11,13 @@
 import logging
 log = logging.getLogger('zen.actioninfos')
 
-from zope.interface import implements
+from zope.interface import implements, implementsOnly
 
 from Products.Zuul.infos import InfoBase
 from Products.Zuul.interfaces.actions import (
     IEmailActionContentInfo, IPageActionContentInfo,
     ICommandActionContentInfo, ISnmpTrapActionContentInfo,
-    ISyslogActionContentInfo,
+    ISyslogActionContentInfo, ISNMPv3ActionContentInfo
 )
 from zope.schema.fieldproperty import FieldProperty
 
@@ -107,6 +107,21 @@ class SnmpTrapActionContentInfo(ActionContentInfo):
     community = ActionFieldProperty(ISnmpTrapActionContentInfo, 'community')
     version = ActionFieldProperty(ISnmpTrapActionContentInfo, 'version')
     port = ActionFieldProperty(ISnmpTrapActionContentInfo, 'port')
+
+
+class SNMPv3ActionContentInfo(SnmpTrapActionContentInfo):
+    implementsOnly(ISNMPv3ActionContentInfo)
+
+    securityEngineId = ActionFieldProperty(ISNMPv3ActionContentInfo, 'securityEngineId')
+    contextEngineId = ActionFieldProperty(ISNMPv3ActionContentInfo, 'contextEngineId')
+
+    contextName = ActionFieldProperty(ISNMPv3ActionContentInfo, 'contextName')
+
+    authProto = ActionFieldProperty(ISNMPv3ActionContentInfo, 'authProto')
+    securityName = ActionFieldProperty(ISNMPv3ActionContentInfo, 'securityName')
+    securityPassphrase = ActionFieldProperty(ISNMPv3ActionContentInfo, 'securityPassphrase')
+    privProto = ActionFieldProperty(ISNMPv3ActionContentInfo, 'privProto')
+    privacyPassphrase = ActionFieldProperty(ISNMPv3ActionContentInfo, 'privacyPassphrase')
 
 
 class SyslogActionContentInfo(InfoBase):
