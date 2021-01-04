@@ -412,7 +412,7 @@ class EmailAction(IActionBase, TargetableAction):
                 tz_targets.setdefault(user.timezone, set()).add(user.email)
                 targetsCopy.discard(user.email)
         if targetsCopy: #some emails are not from users in the system
-            tz = time.tzname[0] #should be UTC
+            tz = time.tzname[time.daylight] # get current timezone factoring in daylight saving
             tz_targets.setdefault(tz, set()).update(targetsCopy)
         return tz_targets
 
