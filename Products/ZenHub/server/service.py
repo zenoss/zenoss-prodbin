@@ -79,12 +79,12 @@ class ServiceManager(object):
         :type str monitor: Name of a performance monitor
         :rtype: WorkerInterceptor
         """
-        # Sanity check the names given to us
-        if not self.__dmd.Monitors.Performance._getOb(monitor, False):
-            raise RemoteBadMonitor(
-                "Unknown performance monitor: '%s'" % (monitor,), None,
-            )
         if (monitor, name) not in self.__services:
+            # Sanity check the names given to us
+            if not _monitor_exists(self.__dmd, monitor):
+                raise RemoteBadMonitor(
+                    "Unknown performance monitor: '%s'" % (monitor,), None,
+                )
             try:
                 svc = self.__load(self.__dmd, monitor, name)
                 service = self.__build(svc, name, monitor)
@@ -97,6 +97,15 @@ class ServiceManager(object):
                     )
                 raise
         return self.__services[monitor, name]
+
+def _monitor_exists(dmd, monitor):
+    """Return True if the named monitor exists.  Otherwise return False.
+    """
+    if dmd.Monitors.Performance._getOb(monitor, False):
+        return True
+    dmd._p_jar.sync()
+    # Try again
+    return bool(dmd.Monitors.Performance._getOb(monitor, False))
 
 
 class ServiceRegistry(collections.Mapping):
