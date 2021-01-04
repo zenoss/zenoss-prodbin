@@ -14,12 +14,13 @@
 import signal
 import sys
 import logging
+from time import time
 
 # 3rd party
 from twisted.internet import reactor, task
 from twisted.internet.defer import inlineCallbacks
 
-from zope.component import getUtility, adapts, provideUtility, adapter
+from zope.component import getUtility, adapts, provideUtility
 from zope.event import notify
 from zope.interface import implements
 
@@ -215,6 +216,12 @@ class ZenHub(ZCmdBase):
             self.options.invalidation_poll_interval,
         )
 
+        # Start tracking reactor metrics
+        self.report_reactor_delayed_calls_task = task.LoopingCall(
+            report_reactor_delayed_calls, self.options.monitor, self.name
+        )
+        self.report_reactor_delayed_calls_task.start(30)
+
         reactor.run()
 
         self.shutdown = True
@@ -406,17 +413,19 @@ class ParserReadyForOptionsEvent(object):  # noqa: D101
         self.parser = parser
 
 
-@adapter(EventHeartbeat)
-def handle_reactor_delayed_calls_metric(event):
-    deferred_count = len(reactor.getDelayedCalls())
-    writer = getUtility(IMetricManager).metric_writer
+def report_reactor_delayed_calls(monitor, name):
+    try:
+        deferred_count = len(reactor.getDelayedCalls())
+        writer = getUtility(IMetricManager).metric_writer
 
-    writer.write_metric(
-        'zenhub.reactor.delayedcalls',
-        deferred_count,
-        int(event.timestamp * 1000),  # to milliseconds
-        {'monitor': event.device, 'name': event.component},
-    )
+        writer.write_metric(
+            'zenhub.reactor.delayedcalls',
+            deferred_count,
+            int(time() * 1000),  # to milliseconds
+            {'monitor': monitor, 'name': name},
+        )
+    except Exception:
+        log.exception('Failure in report_reactor_delayed_calls')
 
 
 if __name__ == '__main__':
