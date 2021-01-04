@@ -16,10 +16,29 @@ from zope.event import notify
 from Products.DataCollector.plugins.DataMaps import MultiArgs
 from Products.Zuul.catalog.events import IndexingEvent
 
-
 log = logging.getLogger("zen.ApplyDataMap")
 
 MISSINGNO = object()
+
+
+def isSameData(x, y):
+    """
+    A more comprehensive check to see if existing model data is the same as
+    newly modeled data. The primary focus is comparing unsorted lists of
+    dictionaries.
+    """
+    if isinstance(x, (tuple, list)) and isinstance(y, (tuple, list)):
+        if (
+            x and y
+            and all(isinstance(i, dict) for i in x)
+            and all(isinstance(i, dict) for i in y)
+        ):
+            x = set(tuple(sorted(d.items())) for d in x)
+            y = set(tuple(sorted(d.items())) for d in y)
+        else:
+            return sorted(x) == sorted(y)
+
+    return x == y
 
 
 def _check_the_locks(datamap, device):
@@ -98,7 +117,7 @@ def _attribute_diff(obj, attr, value):
     value_prime = _get_attr_value(obj, attr)
     value = _sanitize_value(value, obj)
 
-    if value != value_prime:
+    if not isSameData(value, value_prime):
         return (attr, value)
     else:
         return None
