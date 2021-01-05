@@ -80,6 +80,8 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
     displayName = ""
     minProcessCount = ""
     maxProcessCount = ""
+    minProcessMemory = ""
+    maxProcessMemory = ""
     monitoredProcesses = PersistentList()
 
     modelerLock = None
@@ -91,6 +93,8 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
         {'id':'displayName', 'type':'string', 'mode':'w'},
         {'id':'minProcessCount', 'type':'int', 'mode':'w'},
         {'id':'maxProcessCount', 'type':'int', 'mode':'w'},
+        {'id':'minProcessMemory', 'type':'int', 'mode':'w'},
+        {'id':'maxProcessMemory', 'type':'int', 'mode':'w'},
         {'id':'includeRegex', 'type':'string', 'mode':'w'},
         {'id':'excludeRegex', 'type':'string', 'mode':'w'},
         {'id':'replaceRegex', 'type':'string', 'mode':'w'},
@@ -194,6 +198,44 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
             value = self.osProcessClass().maxProcessCount
         else:
             value = self.maxProcessCount
+
+        return float(value) if value else None
+
+    def getMinProcessMemory(self):
+        """
+        Return the min process memory threshold value
+        """
+        if not self.minProcessMemory and not self.maxProcessMemory \
+            and not self.osProcessClass().minProcessMemory \
+            and self.osProcessClass().getPrimaryParent():
+            try:
+                value = self.osProcessClass().getPrimaryParent().minProcessMemory
+            except AttributeError:
+                value = None
+        elif not self.minProcessMemory and not self.maxProcessMemory \
+            and self.osProcessClass():
+            value = self.osProcessClass().minProcessMemory
+        else:
+            value = self.minProcessMemory
+
+        return float(value) if value else None
+
+    def getMaxProcessMemory(self):
+        """
+        Return the max process memory threshold value
+        """
+        if not self.maxProcessMemory and not self.minProcessMemory \
+            and not self.osProcessClass().maxProcessMemory \
+            and self.osProcessClass().getPrimaryParent():
+            try:
+                value = self.osProcessClass().getPrimaryParent().maxProcessMemory
+            except AttributeError:
+                value = None
+        elif not self.maxProcessMemory and not self.minProcessMemory \
+            and self.osProcessClass():
+            value = self.osProcessClass().maxProcessMemory
+        else:
+            value = self.maxProcessMemory
 
         return float(value) if value else None
 

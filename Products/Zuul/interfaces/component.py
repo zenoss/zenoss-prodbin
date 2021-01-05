@@ -152,6 +152,10 @@ class IOSProcessInfo(IComponentInfo):
                                  group="Details", alwaysEditable=True)
     maxProcessCount = schema.Int(title=u"Max Process Count",
                                  group="Details", alwaysEditable=True)
+    minProcessMemory = schema.Int(title=u"Min Process Memory",
+                                 group="Details", alwaysEditable=True)
+    maxProcessMemory = schema.Int(title=u"Max Process Memory",
+                                 group="Details", alwaysEditable=True)
 
 
 class IWinServiceInfo(IComponentInfo):
