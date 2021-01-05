@@ -272,11 +272,9 @@ class SshRunner(object):
         try:
             connection = yield connection.run()
         except Exception as e:
-            deferredList = self._pool.get(self._poolkey, [])
             self.cleanUpPool(connection)
-            for d in deferredList:
-                d.errback(e)
             log.error("Failed to set up connection  error=%s", e)
+            raise e
         else:
             deferredList = self._pool.get(self._poolkey, [])
             self._pool[self._poolkey] = connection
