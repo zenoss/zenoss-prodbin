@@ -13,6 +13,7 @@ if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
 from Products.ZenModel.Exceptions import *
+from Products.ZenModel.IpNetwork import IpNetwork
 
 from ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenUtils.IpUtil import IP_DELIM
@@ -254,6 +255,20 @@ class TestIpNetwork(ZenModelBaseTest):
         subnet24 = dmdNet.createNet("10.10.10.0", 24)
         assertZPropertiesExist(subnet24)
 
+    def testFindStaleNetOrIp(self):
+        """
+        If we have a record in cache which is not in database it 
+        should be removed from cache and return None when attempt to get it 
+        """
+        dmdNet = self.dmd.Networks
+        # Populate cache without adding object to database
+        dmdNet.get_network_cache().add_net(IpNetwork('1.1.1.0', '24'))
+        net = dmdNet.findNet('1.1.1.0', '24')
+        self.assertIsNone(net)
+    
+        dmdNet.get_network_cache().add_net(IpNetwork('2.2.2.0', '24'))
+        ip = dmdNet.findIp('2.2.2.2', '24')
+        self.assertIsNone(net)
 
 def test_suite():
     from unittest import TestSuite, makeSuite
