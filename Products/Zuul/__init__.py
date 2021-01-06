@@ -94,7 +94,10 @@ def marshal(obj, keys=None, marshallerName='', objs=None):
         marshaller = component.getAdapter(obj, IMarshaller, marshallerName)
         verify.verifyObject(IMarshaller, marshaller)
 
-        if IInfo.providedBy(obj):
+        # Import here to avoid recursive import syndrome.
+        from Products.Zuul.infos import InfoBase
+
+        if isinstance(obj, InfoBase):
             key = (getattr(obj._object, '_p_oid', id(obj)), obj.__class__)
             if key in objs:
                 raise AlreadySeenException()

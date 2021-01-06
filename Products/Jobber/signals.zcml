@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<configure xmlns:celery="http://namespaces.zope.org/celery">
+
+   <!-- worker configuration -->
+
+   <celery:signal
+      name="worker_ready"
+      handler=".log.setup_loglevel_monitor"
+      />
+
+   <celery:signal
+      name="worker_shutdown"
+      handler=".log.teardown_loglevel_monitor"
+      />
+
+   <celery:signal
+      name="setup_logging"
+      handler=".log.configure_logging"
+      />
+
+   <celery:signal
+      name="worker_process_init"
+      handler=".worker.setup_zodb"
+      />
+
+   <celery:signal
+      name="worker_process_shutdown"
+      handler=".worker.teardown_zodb"
+      />
+
+   <celery:signal
+      name="worker_process_init"
+      handler=".log.setup_loglevel_monitor"
+      />
+
+   <celery:signal
+      name="worker_process_shutdown"
+      handler=".log.teardown_loglevel_monitor"
+      />
+
+   <!-- task log handling -->
+
+   <celery:signal
+      name="task_prerun"
+      handler=".log.setup_job_instance_logger"
+      />
+
+   <celery:signal
+      name="task_postrun"
+      handler=".log.teardown_job_instance_logger"
+      />
+
+   <!-- job record handling -->
+
+   <celery:signal
+      name="task_prerun"
+      handler=".model.job_start"
+      />
+
+   <celery:signal
+      name="task_postrun"
+      handler=".model.job_end"
+      />
+
+   <celery:signal
+      name="task_success"
+      handler=".model.job_success"
+      />
+
+   <celery:signal
+      name="task_failure"
+      handler=".model.job_failure"
+      />
+
+   <celery:signal
+      name="task_retry"
+      handler=".model.job_retry"
+      />
+
+</configure>

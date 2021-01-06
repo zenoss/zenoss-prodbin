@@ -118,11 +118,16 @@
                         if (!val) {
                             return "--";
                         }
-                        return Ext.String.format("<a href=\"{2}\" onClick='{0}'> {1}</a>",
-                                                 'Zenoss.quickstart.Wizard.openJobLogFile(\"' + record.get('uuid') + "\",\"" +  record.get('deviceName')  +"\")",
-                                                 val.replace("/opt/zenoss/log/jobs/", ""),
-                                                 window.location.hash
-                                                );
+                        return Ext.String.format(
+                            "<a href=\"{0}\" onClick=\"{1}\">{2}</a>",
+                            "javascript:",
+                            Ext.String.format(
+                                "Zenoss.quickstart.Wizard.openJobLogFile('{0}', '{1}')",
+                                record.get('uuid'),
+                                record.get('deviceName')
+                            ),
+                            val.replace("/opt/zenoss/log/jobs/", "")
+                        );
                     }
                 }, {
                     xtype: 'actioncolumn',

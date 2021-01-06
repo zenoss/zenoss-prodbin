@@ -18,7 +18,6 @@ _daemons = [
     ["zeneventd", ["program running", "not running"]],
     ["zopectl", ["program running", "daemon manager not running"]],
     ["zenhub", ["program running", "not running"]],
-    ["zenjobs", ["program running", "not running"]],
     ["zenping", ["program running", "not running"]],
     ["zensyslog", ["program running", "not running"]],
     ["zenstatus", ["program running", "not running"]],
