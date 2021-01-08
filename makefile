@@ -29,10 +29,9 @@ DOCKER_RUN := docker run --rm \
 		$(BUILD_IMAGE_TAG) \
 		/bin/bash -c
 
-.PHONY: all clean build javascript zensocket
+.PHONY: all clean build javascript
 
 include javascript.mk
-include zensocket.mk
 include zenoss-version.mk
 
 all: build
@@ -44,13 +43,12 @@ mk-dist:
 # To build the tar,
 #     - create the 'dist' subdirectory
 #     - compile & minify the javascript, which is saved in the Products directory tree
-#     - compile the zensocket binary, which is copied into bin
 #     - build the zenoss-version wheel, which is copied into dist
 #
-build: mk-dist build-javascript build-zensocket build-zenoss-version
+build: mk-dist build-javascript build-zenoss-version
 	tar cvfz $(ARTIFACT) Products bin dist etc share legacy/sitecustomize.py
 
-clean: clean-javascript clean-zensocket clean-zenoss-version
+clean: clean-javascript clean-zenoss-version
 	rm -f $(ARTIFACT)
 	rm -rf $(DIST_ROOT)
 #
