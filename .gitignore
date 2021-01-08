@@ -5,7 +5,6 @@ Products/README.txt
 Products/ZenModel/ZMigrateVersion.py
 Products/ZenUI3/browser/resources/js/deploy/
 Products/ZenUI3/node_modules
-bin/zensocket
 #daemons
 bin/runzope
 bin/runzope.bat
