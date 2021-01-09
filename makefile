@@ -1,18 +1,9 @@
-VERSION  ?= 7.0.17
+VERSION = $(shell cat VERSION)
+
 BUILD_NUMBER ?= DEV
-BRANCH   ?= develop
+BRANCH       ?= develop
 ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
-ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
-
-# The SCHEMA_* values define the DB schema version used for upgrades.
-# See the topic "Managing Migrate.Version" in Products/ZenModel/migrate/README.md
-# for more information about setting these values.
-# See zenoss-version.mk for more information about make targets that use these values.
-SCHEMA_MAJOR ?= 300
-SCHEMA_MINOR ?= 0 
-SCHEMA_REVISION ?= 14
-
-DIST_ROOT := dist
+ARTIFACT     := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 
 # Define the name, version and tag name for the docker build image
 # Note that build-tools is derived from zenoss-centos-base which contains JSBuilder
@@ -20,24 +11,21 @@ BUILD_IMAGE = build-tools
 BUILD_VERSION = 0.0.11
 BUILD_IMAGE_TAG = zenoss/$(BUILD_IMAGE):$(BUILD_VERSION)
 
-UID := $(shell id -u)
-GID := $(shell id -g)
+USER_ID := $(shell id -u)
+GROUP_ID := $(shell id -g)
 
 DOCKER_RUN := docker run --rm \
-		-v $(PWD):/mnt \
-		--user $(UID):$(GID) \
-		$(BUILD_IMAGE_TAG) \
-		/bin/bash -c
+	-v $(PWD):/mnt \
+	--user $(USER_ID):$(GROUP_ID) \
+	$(BUILD_IMAGE_TAG) \
+	/bin/bash -c
 
-.PHONY: all clean build javascript
-
-include javascript.mk
-include zenoss-version.mk
+.PHONY: all clean build
 
 all: build
 
-mk-dist:
-	mkdir -p $(DIST_ROOT)
+include javascript.mk
+include zenoss-version.mk
 
 #
 # To build the tar,
@@ -53,5 +41,3 @@ build: build-javascript build-zenoss-version Products/ZenModel/ZMigrateVersion.p
 
 clean: clean-javascript clean-zenoss-version
 	rm -f $(ARTIFACT)
-	rm -rf $(DIST_ROOT)
-#
