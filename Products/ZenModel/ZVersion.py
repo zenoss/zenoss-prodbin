@@ -7,6 +7,12 @@
 #
 ##############################################################################
 
-# this is now generated during the build step; see make generate-zversion
-VERSION="6.6.0"
-BUILD_NUMBER="DEV"
+import os
+import pkg_resources
+
+try:
+    VERSION = pkg_resources.get_distribution("Zenoss").version
+except Exception:
+    VERSION = "unknown"
+
+BUILD_NUMBER = os.environ.get("BUILD_NUMBER", "DEV")

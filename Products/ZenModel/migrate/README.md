@@ -26,6 +26,9 @@ TODO: Expand on this.
 
 ## Service Migrations
 
+*NOTE* This is now deprecated.  Please add service migrations to the zenservicemigration package found
+in the zenoss-service repository.
+
 The [service migration SDK](https://github.com/control-center/service-migration/) provides
 a programmatic way of making changes to service definitions.
 These changes take the form of individual Migrate.Step classes, kept for now in ZenModel's migrate directory.
