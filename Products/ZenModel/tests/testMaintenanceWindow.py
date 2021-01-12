@@ -10,6 +10,8 @@
 
 from time import mktime, time
 
+from ZODB.POSException import ConflictError
+
 from ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenModel.MaintenanceWindow import MaintenanceWindow, DAY_SECONDS
 # Note: The new messaging code inteferes with FakeRequest operations,
@@ -255,7 +257,40 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         self.assert_(mws.dev.getProductionState() == mws.mwObjs[1].startProductionState)
         mws.mwObjs[1].end()
         self.assert_(mws.dev.getProductionState() == dev_orig_state)
+    
+    def testWindowWithFailedDevice(self):
+        """
+        Test maintenance window when one of the devices has a ConflictError. Changing production state 
+        for the batch of devices shouldn't be failed if a single device has a ConflictError (ZEN-33274)
+        """
+        windowDefs = [
+            [0, 3, state_Pre_Production],
+        ]
 
+        mws = self.setupWindows(windowDefs)
+        numberOfDevices = 50
+
+        def setProdStateMock(state, maintWindowChange=False, REQUEST=None):
+            raise ConflictError()
+
+        badDevice = self.dmd.Devices.createInstance("bad-device")
+        badDevice.setProdState = setProdStateMock
+        badDevice.setGroups(mws.grp.id)
+
+        # We already have two devices in mws (the default one and the broken one).
+        # There will be {numberOfDevices} devices in total
+        for i in range(numberOfDevices-2):
+            devid = "mwdev%d" % i
+            dev = self.dmd.Devices.createInstance(devid)
+            dev.setGroups(mws.grp.id)
+
+        mws.mwObjs[0].begin(now=mws.time_tn[0], batchSize=10)
+        changedDevices = [dev for dev in mws.grp.getDevices() 
+                              if dev.getProductionState() == mws.mwObjs[0].startProductionState]
+        
+        # only one device is not changed, not the whole batch
+        numberOfFailedDevices = numberOfDevices - len(changedDevices)
+        self.assert_(numberOfFailedDevices == 1)
 
     def testNestedWindows(self):
         """
