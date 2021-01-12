@@ -46,10 +46,8 @@ generate-zmigrateversion: Products/ZenModel/ZMigrateVersion.py
 
 Products/ZenModel/ZMigrateVersion.py: Products/ZenModel/ZMigrateVersion.py.in SCHEMA_VERSION
 	sed \
-		-e 's/%SCHEMA_MAJOR%/$(SCHEMA_MAJOR)/g' \
-		-e 's/%SCHEMA_MINOR%/$(SCHEMA_MINOR)/g' \
-		-e 's/%SCHEMA_REVISION%/$(SCHEMA_REVISION)/g' \
-		$< > $@
+	    -e "s/%SCHEMA_MAJOR%/$(SCHEMA_MAJOR)/g;s/%SCHEMA_MINOR%/$(SCHEMA_MINOR)/g;s/%SCHEMA_REVISION%/$(SCHEMA_REVISION)/g" \
+	    $< > $@
 
 # The target replace-zmigrationversion should be used just prior to release to lock
 # down the schema versions for a particular release
@@ -58,14 +56,15 @@ replace-zmigrateversion:
 	@echo Replacing SCHEMA_MINOR with $(SCHEMA_MINOR)
 	@echo Replacing SCHEMA_REVISION with $(SCHEMA_REVISION)
 	@cd Products/ZenModel/migrate; \
-		for file in `grep -l ZMigrateVersion *.py`; do \
-		    sed \
-			    -e "/ZMigrateVersion/d" \
-				-e "s/SCHEMA_MAJOR/$(SCHEMA_MAJOR)/g;s/SCHEMA_MINOR/$(SCHEMA_MINOR)/g;s/SCHEMA_REVISION/$(SCHEMA_REVISION)/g" \
-				$$file; \
-		done
+	    for file in `grep -l ZMigrateVersion *.py`; do \
+	        sed \
+	            -i \
+	            -e "/ZMigrateVersion/d" \
+	            -e "s/SCHEMA_MAJOR/$(SCHEMA_MAJOR)/g;s/SCHEMA_MINOR/$(SCHEMA_MINOR)/g;s/SCHEMA_REVISION/$(SCHEMA_REVISION)/g" \
+	            $$file; \
+	    done
 
-SCHEMA_FOUND = $(shell grep Migrate.Version Products/ZenModel/migrate/*.py  | grep SCHEMA_)
+SCHEMA_FOUND = $(shell grep Migrate.Version Products/ZenModel/migrate/*.py  | grep SCHEMA_ | cut -f1 -d':')
 
 # The target verify-explicit-zmigrateversion should be invoked as a first step in all release
 # builds to verify that all of the SCHEMA_* variables were replaced with an actual numeric value.
@@ -73,7 +72,9 @@ verify-explicit-zmigrateversion:
 ifeq ($(SCHEMA_FOUND),)
 	@echo "Good - no SCHEMA_* variables found: $(SCHEMA_FOUND)"
 else
-	$(info grep for SCHEMA_ in Products/ZenModel/migrate/*.py found:)
-	$(info $(SCHEMA_FOUND))
+	$(info Some SCHEMA_* variables found in Products/ZenModel/migrate/*.py:)
+	$(info )
+	$(foreach item,$(SCHEMA_FOUND),$(info $(item)))
+	$(info )
 	$(error At least one of the SCHEMA_* variables found)
 endif
