@@ -8,11 +8,6 @@
 ##############################################################################
 
 import os
-import pkg_resources
 
-try:
-    VERSION = pkg_resources.get_distribution("Zenoss").version
-except Exception:
-    VERSION = "unknown"
-
+VERSION = os.environ.get("ZENOSS_VERSION", "DEV")
 BUILD_NUMBER = os.environ.get("BUILD_NUMBER", "DEV")
