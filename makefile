@@ -32,9 +32,12 @@ include zenoss-version.mk
 #     - create the 'dist' subdirectory
 #     - compile & minify the javascript, which is saved in the Products directory tree
 #     - build the zenoss-version wheel, which is copied into dist
-#
-build: build-javascript build-zenoss-version
-	tar cvfz $(ARTIFACT) Products bin dist etc share legacy/sitecustomize.py
+
+EXCLUSIONS=--exclude Products/ZenModel/ZMigrateVersion.py.in
+INCLUSIONS=Products bin dist etc share legacy/sitecustomize.py
+
+build: build-javascript build-zenoss-version Products/ZenModel/ZMigrateVersion.py
+	tar cvfz $(ARTIFACT) $(EXCLUSIONS) $(INCLUSIONS)
 
 clean: clean-javascript clean-zenoss-version
 	rm -f $(ARTIFACT)
