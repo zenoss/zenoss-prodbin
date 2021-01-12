@@ -77,4 +77,9 @@
       handler=".model.job_retry"
       />
 
+    <celery:signal
+        name="beat_init"
+        handler=".scheduler.handle_beat_init"
+        />
+
 </configure>

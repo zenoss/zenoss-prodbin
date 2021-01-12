@@ -41,62 +41,103 @@ from .utils.log import (
 _default_log_level = logging.getLevelName(ZenJobs.get("logseverity"))
 
 _default_config = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "filters": {
-        "main": {
-            "()": "Products.Jobber.utils.log.WorkerFilter",
+    "worker": {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "filters": {
+            "main": {
+                "()": "Products.Jobber.utils.log.WorkerFilter",
+            },
         },
-    },
-    "formatters": {
-        "main": {
-            "()": "Products.Jobber.utils.log.TaskFormatter",
-            "base": (
-                "%(asctime)s.%(msecs)03d %(levelname)s %(name)s: "
-                "worker=%(instance)s/%(processName)s: %(message)s"
-            ),
-            "task": (
-                "%(asctime)s.%(msecs)03d %(levelname)s %(name)s: "
-                "worker=%(instance)s/%(processName)s "
-                "task=%(taskname)s taskid=%(taskid)s: %(message)s "
-            ),
-            "datefmt": "%Y-%m-%d %H:%M:%S",
+        "formatters": {
+            "main": {
+                "()": "Products.Jobber.utils.log.TaskFormatter",
+                "base": (
+                    "%(asctime)s.%(msecs)03d %(levelname)s %(name)s: "
+                    "worker=%(instance)s/%(processName)s: %(message)s"
+                ),
+                "task": (
+                    "%(asctime)s.%(msecs)03d %(levelname)s %(name)s: "
+                    "worker=%(instance)s/%(processName)s "
+                    "task=%(taskname)s taskid=%(taskid)s: %(message)s "
+                ),
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
         },
-    },
-    "handlers": {
-        "main": {
-            "formatter": "main",
-            "class": "cloghandler.ConcurrentRotatingFileHandler",
-            "filename":
-                os.path.join(ZenJobs.get("logpath"), "zenjobs.log"),
-            "maxBytes": ZenJobs.get("maxlogsize") * 1024,
-            "backupCount": ZenJobs.get("maxbackuplogs"),
-            "mode": "a",
-            "filters": ["main"],
+        "handlers": {
+            "main": {
+                "formatter": "main",
+                "class": "cloghandler.ConcurrentRotatingFileHandler",
+                "filename":
+                    os.path.join(ZenJobs.get("logpath"), "zenjobs.log"),
+                "maxBytes": ZenJobs.get("maxlogsize") * 1024,
+                "backupCount": ZenJobs.get("maxbackuplogs"),
+                "mode": "a",
+                "filters": ["main"],
+            },
         },
-    },
-    "loggers": {
-        "STDOUT": {
-            "level": _default_log_level,
+        "loggers": {
+            "STDOUT": {
+                "level": _default_log_level,
+            },
+            "zen": {
+                "level": _default_log_level,
+            },
+            "zen.zenjobs": {
+                "level": _default_log_level,
+                "propagate": False,
+                "handlers": ["main"],
+            },
+            "zen.zenjobs.job": {
+                "level": _default_log_level,
+                "propagate": False,
+            },
+            "celery": {
+                "level": _default_log_level,
+            },
         },
-        "zen": {
-            "level": _default_log_level,
-        },
-        "zen.zenjobs": {
-            "level": _default_log_level,
-            "propagate": False,
+        "root": {
             "handlers": ["main"],
         },
-        "zen.zenjobs.job": {
-            "level": _default_log_level,
-            "propagate": False,
-        },
-        "celery": {
-            "level": _default_log_level,
-        },
     },
-    "root": {
-        "handlers": ["main"],
+    "beat": {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "beat": {
+                "format": (
+                    "%(asctime)s.%(msecs)03d %(levelname)s %(name)s: "
+                    "%(message)s"
+                ),
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
+        },
+        "handlers": {
+            "beat": {
+                "formatter": "beat",
+                "class": "cloghandler.ConcurrentRotatingFileHandler",
+                "filename": os.path.join(
+                    ZenJobs.get("logpath"), "zenjobs-scheduler.log",
+                ),
+                "maxBytes": ZenJobs.get("maxlogsize") * 1024,
+                "backupCount": ZenJobs.get("maxbackuplogs"),
+                "mode": "a",
+            },
+        },
+        "loggers": {
+            "STDOUT": {
+                "level": _default_log_level,
+            },
+            "zen": {
+                "level": _default_log_level,
+            },
+            "celery": {
+                "level": _default_log_level,
+            },
+        },
+        "root": {
+            "handlers": ["beat"],
+        },
     },
 }
 
@@ -111,17 +152,20 @@ def _get_logger(name=None):
     return get_logger(name)
 
 
-def get_default_config():
+def get_default_config(name):
     """Return the default logging configuration for the given name.
 
     :rtype: dict
     """
-    return _default_config
+    return _default_config[name]
 
 
 def configure_logging(logfile=None, **kw):
     """Configure logging for zenjobs."""
-    logging.config.dictConfig(get_default_config())
+    # Sketchy hack.  Determine the logging config based on whether
+    # the logfile parameter is not None.
+    config_name = "worker" if logfile is None else "beat"
+    logging.config.dictConfig(get_default_config(config_name))
 
     if os.path.exists(_loglevelconf_filepath):
         levelconfig = load_log_level_config(_loglevelconf_filepath)
@@ -136,6 +180,18 @@ def configure_logging(logfile=None, **kw):
     errproxy = LoggingProxy(stderr_logger)
     sys.__stderr__ = errproxy
     sys.stderr = errproxy
+
+    if config_name == "beat":
+        # The celery.beat module has a novel approach to getting its
+        # logger, so fixing things so log messages can get sent where
+        # we see them.
+        from celery import beat
+        from logging import getLogger
+        log = getLogger("celery.beat")
+        beat.info = log.info
+        beat.debug = log.debug
+        beat.error = log.error
+        beat.warning = log.warning
 
     log = FormatStringAdapter(_get_logger())
     log.info("configure_logging: Logging configured")
