@@ -32,7 +32,7 @@ EXCLUSIONS = *.pyc $(MIGRATE_VERSION).in Products/ZenModel/migrate/tests Product
 
 ARCHIVE_EXCLUSIONS = $(foreach item,$(EXCLUSIONS),--exclude=$(item))
 ARCHIVE_INCLUSIONS = Products bin dist etc share legacy/sitecustomize.py
-ARCHIVE_TRANSFORMS = --transform='s/legacy\/sitecustomize.py/lib\/python2.7\/sitecustomize.py/'
+ARCHIVE_TRANSFORMS = --transform='s:legacy/sitecustomize.py:lib/python2.7/sitecustomize.py:'
 
 build: $(ARTIFACT)
 
