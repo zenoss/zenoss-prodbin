@@ -7,6 +7,7 @@
 #
 ##############################################################################
 
-# this is now generated during the build step; see make generate-zversion
-VERSION="7.0.16"
-BUILD_NUMBER="DEV"
+import os
+
+VERSION = os.environ.get("ZENOSS_VERSION", "DEV")
+BUILD_NUMBER = os.environ.get("BUILD_NUMBER", "DEV")

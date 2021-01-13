@@ -1,4 +1,4 @@
-VERSION  ?= 7.0.16
+VERSION  ?= 7.0.17
 BUILD_NUMBER ?= DEV
 BRANCH   ?= develop
 ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
@@ -10,7 +10,7 @@ ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 # See zenoss-version.mk for more information about make targets that use these values.
 SCHEMA_MAJOR ?= 300
 SCHEMA_MINOR ?= 0 
-SCHEMA_REVISION ?= 12
+SCHEMA_REVISION ?= 14
 
 DIST_ROOT := dist
 
@@ -29,10 +29,9 @@ DOCKER_RUN := docker run --rm \
 		$(BUILD_IMAGE_TAG) \
 		/bin/bash -c
 
-.PHONY: all clean build javascript zensocket
+.PHONY: all clean build javascript
 
 include javascript.mk
-include zensocket.mk
 include zenoss-version.mk
 
 all: build
@@ -44,13 +43,15 @@ mk-dist:
 # To build the tar,
 #     - create the 'dist' subdirectory
 #     - compile & minify the javascript, which is saved in the Products directory tree
-#     - compile the zensocket binary, which is copied into bin
 #     - build the zenoss-version wheel, which is copied into dist
-#
-build: mk-dist build-javascript build-zensocket build-zenoss-version
-	tar cvfz $(ARTIFACT) Products bin dist etc share legacy/sitecustomize.py
 
-clean: clean-javascript clean-zensocket clean-zenoss-version
+EXCLUSIONS=--exclude Products/ZenModel/ZMigrateVersion.py.in
+INCLUSIONS=Products bin dist etc share legacy/sitecustomize.py
+
+build: build-javascript build-zenoss-version Products/ZenModel/ZMigrateVersion.py
+	tar cvfz $(ARTIFACT) $(EXCLUSIONS) $(INCLUSIONS)
+
+clean: clean-javascript clean-zenoss-version
 	rm -f $(ARTIFACT)
 	rm -rf $(DIST_ROOT)
 #
