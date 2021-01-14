@@ -1725,8 +1725,9 @@ Ext.onReady(function () {
         if (!Zenoss.settings.enableInfiniteGridForEvents) {
             events_store.buffered = false;
         }
+        var eventsGridId = 'events_grid';
         var event_console = Ext.create('Zenoss.EventGridPanel', {
-            id: 'events_grid',
+            id: eventsGridId,
             stateId: 'infrastructure_events',
             //columns: Zenoss.env.getColumnDefinitions(['DeviceClass']),
             columns: Zenoss.env.getColumnDefinitionsToRender('infrastructure_events'),
@@ -1742,6 +1743,20 @@ Ext.onReady(function () {
             }
         });
 
+        if(!_has_global_roles()) {
+            // take context from selected events, not from selected navigation item
+            Zenoss.EventActionManager.configure({
+                findParams: function() {
+                    var grid = Ext.getCmp(eventsGridId);
+                    if (grid) {
+                        var params = grid.getSelectionParameters();
+                        // delete device uid because can be selected events for different devices
+                        delete params.uid;
+                        return params;
+                    }
+                }
+            });
+        }
         if (re_attach_to_container === true) {
             var container_panel = Ext.getCmp('detail_panel');
             container_panel.items.insert(1, event_console);
