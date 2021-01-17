@@ -21,8 +21,8 @@ setup(
     zip_safe=False,
     install_requires=install_requires,
     entry_points={
-        "celery.commands": {
+        "celery.commands": [
             "monitor=Products.Jobber.monitor:ZenJobsMonitor",
-        },
+        ],
     },
 )
