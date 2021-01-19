@@ -20,6 +20,11 @@ logging.basicConfig()
 log.setLevel(logging.INFO)
 
 
+SOLR_STATS_URL = 'http://localhost:8983/solr/admin/metrics?wt=json'
+SOLR_STATUS_URL = 'http://localhost:8983/solr/admin/cores?action=STATUS'
+COLLECTION_NAME = 'zenoss_model'
+
+
 class SolrMetrics(ServiceMetrics):
 
     def build_gatherer(self):
@@ -28,10 +33,9 @@ class SolrMetrics(ServiceMetrics):
 
 class SolrMetricGatherer(MetricGatherer):
 
-    SOLR_STATS_URL = 'http://localhost:8983/solr/admin/metrics?wt=json'
-
     def __init__(self, interval=30):
         super(SolrMetricGatherer, self).__init__()
+        self.core_name = ""
         self.interval = interval
         self.prefix = 'zenoss.solr'
         self.core_value_metrics = ["INDEX.sizeInBytes"]
@@ -47,10 +51,8 @@ class SolrMetricGatherer(MetricGatherer):
         metrics = []
 
         if 'metrics' in metricdata:
-            data = metricdata['metrics']
-            
-            # solr core metrics
-            solr_core = data['solr.core.zenoss_model.shard1.replica_n1']
+            data = metricdata.get('metrics')
+            solr_core = data.get(self.core_name)
             metrics.extend(self._extract_sub_data(solr_core, self.core_value_metrics, ['value']))
             metrics.extend(self._extract_sub_data(solr_core, self.core_counter_metrics, ['count', 'meanRate',
                                                                                          '1minRate','5minRate',
@@ -61,7 +63,7 @@ class SolrMetricGatherer(MetricGatherer):
                                                                                        'p75_ms', 'p95_ms', 'p99_ms']))
 
             # jvm data
-            solr_jvm = data['solr.jvm']
+            solr_jvm = data.get('solr.jvm')
             metrics.extend(self._extract_sub_data(solr_jvm, self.jvm_value_metrics, ['value']))
 
         return metrics
@@ -75,16 +77,14 @@ class SolrMetricGatherer(MetricGatherer):
     """
     def _extract_sub_data(self, data, dict_names, stat_names):
         metrics = []
+        if not data:
+            return metrics
         tags = {'internal': 'true'}
         timestamp = time.time()
         for dn in dict_names:
             for stat in stat_names:
                 metric_name = '%s.%s.%s' % (self.prefix, dn.replace('/', ''), stat)
-                try:
-                    metric_value = data.get(dn).get(stat)
-                except AttributeError:
-                    # for single values Solr 7.7.3 returns value directrly, not dict { 'value': 0 }
-                    metric_value = data.get(dn)
+                metric_value = data.get(dn)
                 log.debug("Adding metric '%s': '%s'", metric_name, metric_value)
                 metrics.append(self.build_metric(metric_name, metric_value,
                                                  timestamp, tags))
@@ -93,7 +93,13 @@ class SolrMetricGatherer(MetricGatherer):
     def get_metrics(self):
         metrics = []
         s = requests.Session()
-        result = s.get(self.SOLR_STATS_URL)
+        if not self.core_name:
+            name = self.get_zenoss_model_core_name(s)
+            if not name:
+                return metrics
+            else:
+                self.core_name = name
+        result = s.get(SOLR_STATS_URL)
         if result.status_code == 200:
             data = result.json()
             now = time.time()
@@ -104,6 +110,17 @@ class SolrMetricGatherer(MetricGatherer):
                         result.status_code, result.text)
         log.debug("Built metrics: %s" % json.dumps(metrics, indent=2, sort_keys=True))
         return metrics
+
+    def get_zenoss_model_core_name(self, session):
+        result = session.get(SOLR_STATUS_URL)
+        if result.status_code == 200:
+            cores = result.json().get('status')
+            for name, val in cores.items():
+                if val.get('cloud').get('collection') == COLLECTION_NAME:
+                    return name
+        else:
+            log.warning("couldn't get core for %s collection: %d, %s",
+                        COLLECTION_NAME, RESULT.status_code, result.text)
 
 
 if __name__ == '__main__':
