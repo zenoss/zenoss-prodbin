@@ -967,7 +967,7 @@ Ext.onReady(function () {
 
     // page level variables
     var originalMessage,
-        errorMessage = "You can't move devices to organizer root";
+        errorMessage = "You cannot move devices to a top-level organizer";
     function initializeTreeDrop(tree) {
         var rootOrganizers = [
             "/zport/dmd/Devices",
