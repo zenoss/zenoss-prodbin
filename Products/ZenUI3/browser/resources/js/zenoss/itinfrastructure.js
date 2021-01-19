@@ -974,6 +974,14 @@ Ext.onReady(function () {
                 devids,
                 me = this,
                 isOrganizer = true;
+            
+            var rootOrganizers = [
+                "/zport/dmd/Devices",
+                "/zport/dmd/Locations",
+                "/zport/dmd/Groups",
+                "/zport/dmd/Systems",
+            ]
+
             if (e.records) {
                 // the tree drag and drop wraps the model in a node interface so we
                 // need to look at the uid to figure out what they are dropping
@@ -981,6 +989,10 @@ Ext.onReady(function () {
             }
 
             if (!isOrganizer) {
+                // we can't move device under the organizer root
+                if (rootOrganizers.includes(targetnode.data.uid)) {
+                    return false;
+                }
                 // move devices to the target node
                 devids = Ext.Array.pluck(Ext.pluck(e.records, 'data'), 'uid');
                 // show the confirmation about devices
