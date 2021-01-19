@@ -18,33 +18,46 @@
 # get those settings.
 #---------------------------------------------------------------------------#
 
-ZENOSS_JS_BASEDIR   := Products/ZenUI3/browser
-ZENOSS_JSB_FILE     := $(ZENOSS_JS_BASEDIR)/zenoss.jsb2
-ZENOSS_SRC_BASEDIR  := $(ZENOSS_JS_BASEDIR)/resources/js
+JS_BASEDIR     = Products/ZenUI3/browser
+JSB_FILE       = $(JS_BASEDIR)/zenoss.jsb2
+JS_SRC_BASEDIR = $(JS_BASEDIR)/resources/js
 
 #
 # JSB_COMPILED_JS_NAME - the output filename from the jsb2 file; e.g. "zenoss-compiled.js"
 #
-JSB_COMPILED_JS_NAME = $(shell grep '"file":' $(ZENOSS_JSB_FILE) | awk '{print $$2}' | tr -d [\",])
+JSB_COMPILED_JS_NAME = $(shell grep '"file":' $(JSB_FILE) | awk '{print $$2}' | tr -d [\",])
 
 #
 # JSB_DEPLOY_DIR - the output directory name from the jsb2 file; e.g. "resources/js/deploy"
 #
-JSB_DEPLOY_DIR = $(shell grep '"deployDir":' $(ZENOSS_JSB_FILE) | awk '{print $$2}' | tr -d [\",])
+JSB_DEPLOY_DIR = $(shell grep '"deployDir":' $(JSB_FILE) | awk '{print $$2}' | tr -d [\",])
 
 #
-# JS_OUTPUT_DIR - the output directory relative to the repo root; e.g. Products/ZenUI3/browser/resources/js/deploy
+# JS_OUTPUT_DIR - the output directory relative to the repo root;
+# e.g. Products/ZenUI3/browser/resources/js/deploy
 #
-JS_OUTPUT_DIR = $(ZENOSS_JS_BASEDIR)/$(JSB_DEPLOY_DIR)
+JS_OUTPUT_DIR = $(JS_BASEDIR)/$(JSB_DEPLOY_DIR)
 
 # JSBUILDER - the path to the JSBuilder jar in the runtime image
 JSBUILDER = /opt/zenoss/share/java/sencha_jsbuilder-2/JSBuilder2.jar
 
+JSBUILD_COMMAND = java -jar $(JSBUILDER) -p $(JSB_FILE) -d $(JS_BASEDIR) -v
+
+# Dependencies for compilation
+JSB_SOURCES = $(shell jq -r ".pkgs[].fileIncludes[] | \"$(JS_BASEDIR)/\(.path)\(.text)\"" $(JSB_FILE))
+JSB_TARGETS = $(JS_OUTPUT_DIR)/zenoss-compiled.js $(JS_OUTPUT_DIR)/zenoss-compiled-debug.js
+
 .PHONY: clean-javascript build-javascript
 
-clean-javascript:
-	-rm -rf $(JS_OUTPUT_DIR)
+build-javascript: $(JSB_TARGETS)
 
-build-javascript:
-	@echo "Minifying $(ZENOSS_SRC_BASEDIR) -> $(JS_OUTPUT_DIR)/$(JSB_COMPILED_JS_NAME)"
-	$(DOCKER_RUN) "cd /mnt && java -jar $(JSBUILDER) -p $(ZENOSS_JSB_FILE) -d $(ZENOSS_JS_BASEDIR) -v"
+clean-javascript:
+	@-rm -vrf $(JS_OUTPUT_DIR)
+
+$(JSB_TARGETS): $(JSB_SOURCES)
+	@echo "Minifying $(JS_SRC_BASEDIR) -> $@"
+ifeq ($(DOCKER),)
+	$(JSBUILD_COMMAND)
+else
+	$(DOCKER_RUN) "cd /mnt && $(JSBUILD_COMMAND)"
+endif
