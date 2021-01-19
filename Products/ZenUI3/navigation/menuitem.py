@@ -13,6 +13,7 @@ import re
 import zope.interface
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from Products.Five.viewlet import viewlet
+from Products.ZenUtils.GlobalConfig import globalConfToDict
 
 from interfaces import INavigationItem
 from manager import SecondaryNavigationManager
@@ -95,6 +96,9 @@ class SecondaryNavigationMenuItem(PrimaryNavigationMenuItem):
     @property
     def selected(self):
         requestURL = self.request.getURL().replace('/@@', '/')
+        if bool(globalConfToDict().get('zcml-enable-cz-dashboard', '')) and \
+                self.title == "Event Console" and requestURL.endswith("dmd/Events"):
+            return True
         for url in chain((self.url,), self.subviews):
             if re.search(url, requestURL) :
                 return True

@@ -42,9 +42,13 @@
             },{
                 xtype: 'button',
                 id: 'finish-button',
-                text: _t('Finish or Skip to Dashboard'),
+                text: _t('Finish or Skip to home page'),
                 handler: function() {
-                    window.location = "/zport/dmd/Dashboard";
+                    var homePage = "/zport/dmd/Dashboard"
+                    if (Zenoss.env.IS_ACTIVE_CZ_DASHBOARD !== "Feature") {
+                        homePage = "/zport/dmd/Events/evconsole"
+                    }
+                    window.location = homePage;
                 }
             }]
         });
