@@ -965,8 +965,44 @@ Ext.onReady(function () {
         return additionalWarnings.join('<br><br>');
     }
 
-
+    // page level variables
+    var originalMessage,
+        errorMessage = "You can't move devices to organizer root";
     function initializeTreeDrop(tree) {
+        var rootOrganizers = [
+            "/zport/dmd/Devices",
+            "/zport/dmd/Locations",
+            "/zport/dmd/Groups",
+            "/zport/dmd/Systems",
+        ]
+
+        tree.getView().on('nodedragover', function(targetNode, position, dragData, e, eOpts) {
+            var targetUid = targetNode.data.uid,
+                dragText = dragData.ddel.getHTML(),
+                isDevice;
+
+            // get original dragText
+            if (dragText && dragText !== errorMessage) {
+                originalMessage = dragText;
+            }
+
+            // check whether we drag device, not organizer
+            if (dragData.records) {
+                isDevice = dragData.records[0].get("uid").includes('/devices/');
+            }
+
+            // if we drag device over organizer root then show errorMessage
+            if (isDevice && rootOrganizers.includes(targetUid)) {
+                dragData.ddel.update(errorMessage);
+                return false;
+            }
+
+            // if everything became fine then return originalMessage back
+            if (dragText === errorMessage) {
+                dragData.ddel.update(originalMessage);
+            }
+            return true;
+        }, tree);
 
         // fired when the user actually drops a node
         tree.getView().on('beforedrop', function (element, e, targetnode) {
@@ -974,14 +1010,6 @@ Ext.onReady(function () {
                 devids,
                 me = this,
                 isOrganizer = true;
-            
-            var rootOrganizers = [
-                "/zport/dmd/Devices",
-                "/zport/dmd/Locations",
-                "/zport/dmd/Groups",
-                "/zport/dmd/Systems",
-            ]
-
             if (e.records) {
                 // the tree drag and drop wraps the model in a node interface so we
                 // need to look at the uid to figure out what they are dropping
@@ -989,10 +1017,6 @@ Ext.onReady(function () {
             }
 
             if (!isOrganizer) {
-                // we can't move device under the organizer root
-                if (rootOrganizers.includes(targetnode.data.uid)) {
-                    return false;
-                }
                 // move devices to the target node
                 devids = Ext.Array.pluck(Ext.pluck(e.records, 'data'), 'uid');
                 // show the confirmation about devices
