@@ -61,52 +61,62 @@ class SolrMetricGatherer(MetricGatherer):
             "threads.count",
         ]
 
-    def _extract_data(self, metricdata, timestamp):
+    def _extract_metrics(self, data, timestamp):
         metrics = []
-
-        if "metrics" in metricdata:
-            data = metricdata.get("metrics")
-            solr_core = data.get(self.core_name)
-            metrics.extend(
-                self._extract_sub_data(
-                    solr_core, self.core_value_metrics, ["value"]
-                )
-            )
-            metrics.extend(
-                self._extract_sub_data(
-                    solr_core,
-                    self.core_counter_metrics,
-                    ["count", "meanRate", "1minRate", "5minRate", "15minRate"],
-                )
-            )
-            metrics.extend(
-                self._extract_sub_data(
-                    solr_core,
-                    self.core_timer_metrics,
-                    [
-                        "count",
-                        "meanRate",
-                        "1minRate",
-                        "5minRate",
-                        "15minRate",
-                        "mean_ms",
-                        "stddev_ms",
-                        "p75_ms",
-                        "p95_ms",
-                        "p99_ms",
-                    ],
-                )
-            )
-
-            # jvm data
-            solr_jvm = data.get("solr.jvm")
-            metrics.extend(
-                self._extract_sub_data(
-                    solr_jvm, self.jvm_value_metrics, ["value"]
-                )
-            )
-
+        metrics.extend(self._extract_core_metrics(data))
+        metrics.extend(self._extract_jvm_metrics(data))
         return metrics
+
+    def _extract_core_metrics(self, data):
+        solr_core = next(
+            (
+                v
+                for v in data.values()
+                if v.get("CORE.coreName") == self.core_name
+            ),
+            None,
+        )
+        if not solr_core:
+            return []
+
+        metrics = []
+        metrics.extend(
+            self._extract_sub_data(
+                solr_core, self.core_value_metrics, ["value"]
+            )
+        )
+        metrics.extend(
+            self._extract_sub_data(
+                solr_core,
+                self.core_counter_metrics,
+                ["count", "meanRate", "1minRate", "5minRate", "15minRate"],
+            )
+        )
+        metrics.extend(
+            self._extract_sub_data(
+                solr_core,
+                self.core_timer_metrics,
+                [
+                    "count",
+                    "meanRate",
+                    "1minRate",
+                    "5minRate",
+                    "15minRate",
+                    "mean_ms",
+                    "stddev_ms",
+                    "p75_ms",
+                    "p95_ms",
+                    "p99_ms",
+                ],
+            )
+        )
+        return metrics
+
+    def _extract_jvm_metrics(self, data):
+        solr_jvm = data.get("solr.jvm")
+        return self._extract_sub_data(
+            solr_jvm, self.jvm_value_metrics, ["value"]
+        )
 
     """
     data - container of dictionaries of solr data
@@ -123,13 +133,17 @@ class SolrMetricGatherer(MetricGatherer):
         tags = {"internal": "true"}
         timestamp = time.time()
         for dn in dict_names:
+            value = data.get(dn)
             for stat in stat_names:
                 metric_name = "%s.%s.%s" % (
                     self.prefix,
                     dn.replace("/", ""),
                     stat,
                 )
-                metric_value = data.get(dn)
+                if isinstance(value, dict):
+                    metric_value = value.get(stat)
+                else:
+                    metric_value = value
                 log.debug(
                     "Adding metric '%s': '%s'", metric_name, metric_value
                 )
@@ -147,16 +161,20 @@ class SolrMetricGatherer(MetricGatherer):
             name = self.get_zenoss_model_core_name(s)
             if not name:
                 return metrics
-            else:
-                self.core_name = name
+            self.core_name = name
         result = s.get(SOLR_STATS_URL)
         if result.status_code == 200:
             data = result.json()
-            now = time.time()
-            log.debug(
-                "Solr stats : %s", json.dumps(data, indent=2, sort_keys=True)
-            )
-            metrics.extend(self._extract_data(data, now))
+            metric_data = data.get("metrics")
+            if not metric_data:
+                log.warning("stats request returned no metrics")
+            else:
+                now = time.time()
+                log.debug(
+                    "Solr stats : %s",
+                    json.dumps(data, indent=2, sort_keys=True),
+                )
+                metrics.extend(self._extract_metrics(metric_data, now))
         else:
             log.warning(
                 "stats request failed for solr: %d, %s",
