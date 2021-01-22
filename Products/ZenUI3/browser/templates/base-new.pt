@@ -52,6 +52,10 @@
             Zenoss.env.PARENT_CONTEXT = '${container/absolute_url_path}';
         " tal:on-error="string:"></script>
 
+        <script tal:content="string:
+                Zenoss.env.IS_ACTIVE_CZ_DASHBOARD = '${context/zport/isActiveCZDashboard}';
+                " tal:on-error="string:console.error('Unable to load isActiveCZDashboard config')"></script>
+
         <tal:block tal:content="structure provider:jssnippets"/>
 
         <tal:block tal:content="structure provider:head-extra"/>

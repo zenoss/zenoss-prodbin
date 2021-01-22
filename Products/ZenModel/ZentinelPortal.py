@@ -33,6 +33,7 @@ from Products.CMFCore.utils import getToolByName
 from Products.ZenUtils import Security, Time
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.virtual_root import IVirtualRoot
+from Products.ZenUtils.GlobalConfig import globalConfToDict
 
 from ZenossSecurity import *
 
@@ -202,6 +203,9 @@ class ZentinelPortal(PortalObjectBase):
         """
         vr = getUtility(IVirtualRoot)
         return vr.get_prefix()
+
+    def isActiveCZDashboard(self):
+        return globalConfToDict().get('zcml-enable-cz-dashboard', '')
 
 
 Globals.InitializeClass(ZentinelPortal)
