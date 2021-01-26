@@ -44,7 +44,7 @@ JSBUILDER = /opt/zenoss/share/java/sencha_jsbuilder-2/JSBuilder2.jar
 JSBUILD_COMMAND = java -jar $(JSBUILDER) -p $(JSB_FILE) -d $(JS_BASEDIR) -v
 
 # Dependencies for compilation
-JSB_SOURCES = $(shell python2 -c "import json, sys; d=sys.stdin.read(); p=json.loads(d)['pkgs'][0]['fileIncludes']; print ' '.join(sys.path.join('$(JS_BASEDIR)', e['path'], e['text']) for e in p)" < $(JSB_FILE))
+JSB_SOURCES = $(shell python2 -c "import json, sys, os.path; d=sys.stdin.read(); p=json.loads(d)['pkgs'][0]['fileIncludes']; print ' '.join(os.path.join('$(JS_BASEDIR)', e['path'], e['text']) for e in p)" < $(JSB_FILE))
 JSB_TARGETS = $(JS_OUTPUT_DIR)/zenoss-compiled.js $(JS_OUTPUT_DIR)/zenoss-compiled-debug.js
 
 .PHONY: clean-javascript build-javascript
