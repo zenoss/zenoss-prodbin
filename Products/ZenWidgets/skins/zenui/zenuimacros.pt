@@ -303,7 +303,11 @@ mypath python:test(item.action.startswith('javascript'),
 
 <tal:block metal:define-macro="jsutils">
 <script
-tal:define="templateFreeUrl python:here.absolute_url_path()"
+tal:define="
+    templateFreeUrl python:here.absolute_url_path();
+    version python:here.dmd.getZenossVersionShort();
+    product python:here.dmd.productName or 'core'
+    "
 tal:content="string:
 
 var submitFormToMethod = function(formname, method) {
@@ -317,8 +321,8 @@ var submitFormToMethod = function(formname, method) {
 addLoadEvent(function() {
 
     YAHOO.zenoss.templateFreeURL = '${templateFreeUrl}';
-    YAHOO.zenoss.ZENOSS_VERSION = '${here/dmd/getZenossVersionShort}';
-    YAHOO.zenoss.ZENOSS_PRODUCT = '${here/dmd/productName | string:core}';
+    YAHOO.zenoss.ZENOSS_VERSION = '${version}';
+    YAHOO.zenoss.ZENOSS_PRODUCT = '${product}';
 
 });
 
