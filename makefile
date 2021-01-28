@@ -31,8 +31,7 @@ include zenoss-version.mk
 EXCLUSIONS = *.pyc $(MIGRATE_VERSION).in Products/ZenModel/migrate/tests Products/ZenUITests
 
 ARCHIVE_EXCLUSIONS = $(foreach item,$(EXCLUSIONS),--exclude=$(item))
-ARCHIVE_INCLUSIONS = Products bin dist etc share legacy/sitecustomize.py
-ARCHIVE_TRANSFORMS = --transform='s:legacy/sitecustomize.py:lib/python2.7/sitecustomize.py:'
+ARCHIVE_INCLUSIONS = Products bin dist etc share
 
 build: $(ARTIFACT)
 
@@ -40,4 +39,4 @@ clean: clean-javascript clean-migration clean-zenoss-version
 	rm -f $(ARTIFACT)
 
 $(ARTIFACT): $(JSB_TARGETS) $(MIGRATE_VERSION) dist/$(ZENOSS_VERSION_WHEEL)
-	tar cvfz $@ $(ARCHIVE_EXCLUSIONS) $(ARCHIVE_TRANSFORMS) $(ARCHIVE_INCLUSIONS)
+	tar cvfz $@ $(ARCHIVE_EXCLUSIONS) $(ARCHIVE_INCLUSIONS)
