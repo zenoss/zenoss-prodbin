@@ -306,7 +306,7 @@ mypath python:test(item.action.startswith('javascript'),
 tal:define="
     templateFreeUrl python:here.absolute_url_path();
     version python:here.dmd.getZenossVersionShort();
-    product python:here.dmd.productName or 'core'
+    product python:getattr(here.dmd,'productName','core')
     "
 tal:content="string:
 
