@@ -19,7 +19,7 @@ from zope.component.interfaces import ComponentLookupError
 from Products.ZenModel.ComponentGroup import ComponentGroup
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.Location import Location
-from Products.Zuul.utils import getZProperties
+from Products.ZenRelations.ZenPropertyManager import iszprop, iscustprop
 
 from .interfaces import IImpactRelationshipsFactProvider
 from .shortid import shortid
@@ -173,10 +173,9 @@ def device_info_fact(device):
     f.data[MetadataKeys.NAME_KEY] = device.titleOrId()
     f.data[MetadataKeys.PROD_STATE_KEY] = device.getProductionStateString()
     valid_types = (str, int, long, float, bool, list, tuple, set,)
-    zPropNames = getZProperties(device).keys()
     for propdict in device._propertyMap():
         propId = propdict.get("id")
-        if not device.isLocal(propId) or propId in zPropNames:
+        if not device.isLocal(propId) or iszprop(propId) or iscustprop(propId):
             continue
         value = None
         # Some of the device properties can be methods,

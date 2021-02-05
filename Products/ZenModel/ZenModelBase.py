@@ -34,6 +34,7 @@ from Acquisition import aq_base, aq_chain
 from zope.component import getGlobalSiteManager, getUtility
 
 from Products.ZenModel.interfaces import IZenDocProvider
+from Products.ZenRelations.ZenPropertyManager import iscustprop
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin, getDisplayType
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 from Products.ZenUtils.Utils import getObjByPath, unpublished
@@ -48,9 +49,6 @@ from ZenossSecurity import *
 from Products.ZenUtils.virtual_root import IVirtualRoot
 
 _MARKER = object()
-
-# Custom device properties start with c
-iscustprop = re.compile("c[A-Z]").match
 
 class ZenModelBase(object):
     """
