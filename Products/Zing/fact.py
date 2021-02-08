@@ -175,7 +175,12 @@ def device_info_fact(device):
     valid_types = (str, int, long, float, bool, list, tuple, set,)
     for propdict in device._propertyMap():
         propId = propdict.get("id")
-        if not device.isLocal(propId) or iszprop(propId) or iscustprop(propId):
+        if (
+            not device.isLocal(propId)
+            or iszprop(propId)
+            or iscustprop(propId)
+            or device.zenPropIsPassword(propId)
+        ):
             continue
         value = None
         # Some of the device properties can be methods,
