@@ -9,8 +9,6 @@
 
 import logging
 import optparse
-import os
-import subprocess
 import uuid
 
 import relstorage.adapters.mysql
@@ -30,50 +28,11 @@ _DEFAULT_COMMIT_LOCK_TIMEOUT = 30
 log = logging.getLogger("zen.MySqlZodbFactory")
 
 
-def _getZendsConfig():
-    # Check whether the ZenDS configuration should be used.
-    useZends = os.environ.get("USE_ZENDS")
-    if useZends != "1":
-        return {}
-    # Locate the ZenDS configuration file and make sure it exists.
-    base = os.environ.get("ZENDSHOME", "/opt/zends")
-    if not os.path.isdir(base):
-        return {}
-    configfile = os.path.join(base, "etc", "zends.cnf")
-    if not os.path.exists(configfile):
-        return {}
-    # Read the client config sections of the configuration file.
-    output = subprocess.check_output(
-        [
-            # The command
-            os.path.join(base, "bin", "my_print_defaults"),
-            # Specify the config file to read from
-            "--defaults-file=%s" % configfile,
-            # Specify the relevant config groups
-            "mysql",
-            "client",
-        ]
-    )
-    # 'output' is a string of lines having the following pattern:
-    #     --<name>=<value>
-    # so a dict where <name> maps to <value> is created and returned.
-    config = {}
-    lines = output.split("\n")
-    for opt in (line.split("=") for line in lines):
-        config[opt[0][2:]] = opt[1] if len(opt) == 2 else True
-    return config
-
-
-_ZENDS_CONFIG = _getZendsConfig()
-
-
 def _getDefaults(options=None):
     o = globalConfToDict() if options is None else options
     settings = {
         "host": o.get("zodb-host", "localhost"),
-        "port": o.get(
-            "zodb-port", _ZENDS_CONFIG.get("port", _DEFAULT_MYSQLPORT)
-        ),
+        "port": o.get("zodb-port", _DEFAULT_MYSQLPORT),
         "user": o.get("zodb-user", "zenoss"),
         "passwd": o.get("zodb-password", "zenoss"),
         "db": o.get("zodb-db", "zodb"),
@@ -137,9 +96,7 @@ class MySqlZodbFactory(object):
         """Return a ZODB connection."""
         connectionParams = {
             "host": kwargs.get("zodb_host", "localhost"),
-            "port": kwargs.get(
-                "zodb_port", _ZENDS_CONFIG.get("port", _DEFAULT_MYSQLPORT)
-            ),
+            "port": kwargs.get("zodb_port", _DEFAULT_MYSQLPORT),
             "user": kwargs.get("zodb_user", "zenoss"),
             "passwd": kwargs.get("zodb_password", "zenoss"),
             "db": kwargs.get("zodb_db", "zodb"),
@@ -152,8 +109,6 @@ class MySqlZodbFactory(object):
                 "Invalid 'port' value: %s; %s" % (connectionParams["port"], e)
             )
         socket = kwargs.get("zodb_socket")
-        if not socket:
-            socket = _ZENDS_CONFIG.get("socket")
         if socket:
             connectionParams["unix_socket"] = socket
         wrappedModuleName = "wrappedMemcache-" + str(uuid.uuid4())
