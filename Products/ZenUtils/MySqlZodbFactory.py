@@ -13,7 +13,6 @@ import os
 import subprocess
 import uuid
 
-import _mysql_exceptions as db_exceptions
 import relstorage.adapters.mysql
 import relstorage.options
 import relstorage.storage
@@ -82,6 +81,29 @@ def _getDefaults(options=None):
     if "zodb-socket" in o:
         settings["unix_socket"] = o["zodb-socket"]
     return settings
+
+
+def _make_exceptions_module():
+    import types
+    import MySQLdb
+    exceptions = types.ModuleType("_mysql_exceptions")
+    for ex in (
+        MySQLdb.DatabaseError,
+        MySQLdb.DataError,
+        MySQLdb.IntegrityError,
+        MySQLdb.InterfaceError,
+        MySQLdb.InternalError,
+        MySQLdb.MySQLError,
+        MySQLdb.NotSupportedError,
+        MySQLdb.OperationalError,
+        MySQLdb.ProgrammingError,
+    ):
+        setattr(exceptions, ex.__name__, ex)
+    return exceptions
+
+
+db_exceptions = _make_exceptions_module()
+del _make_exceptions_module
 
 
 @implementer(IZodbFactory)
