@@ -11,7 +11,7 @@
 import logging
 log = logging.getLogger("zen.ActionRuleWindow")
 
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl import ClassSecurityInfo
 from Products.ZenModel.MaintenanceWindow import MaintenanceWindow
 from Products.ZenRelations.RelSchema import *

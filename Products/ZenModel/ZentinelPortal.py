@@ -18,8 +18,9 @@ import re
 import time
 import textwrap
 
-import Globals
 from AccessControl import getSecurityManager, ClassSecurityInfo
+from AccessControl.class_init import InitializeClass
+from App.special_dtml import HTMLFile
 
 from Products.Sessions.BrowserIdManager import constructBrowserIdManager
 from Products.BeakerSessionDataManager.sessiondata import (
@@ -216,7 +217,7 @@ class ZentinelPortal(PortalObjectBase):
         return "imok"
 
 
-Globals.InitializeClass(ZentinelPortal)
+InitializeClass(ZentinelPortal)
 
 
 class PortalGenerator:
@@ -352,7 +353,7 @@ class PortalGenerator:
         p.description = description
 
 
-manage_addZentinelPortal = Globals.HTMLFile('dtml/addPortal', globals())
+manage_addZentinelPortal = HTMLFile('dtml/addPortal', globals())
 manage_addZentinelPortal.__name__ = 'addPortal'
 
 

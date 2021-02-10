@@ -20,7 +20,7 @@ $Id: ClassifierEntry.py,v 1.6 2004/03/26 23:58:44 edahl Exp $"""
 __version__ = "$Revision: 1.6 $"[11:-2]
 
 from AccessControl import ClassSecurityInfo
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 
 from Products.ZCatalog.CatalogAwareness import CatalogAware
 from OFS.SimpleItem import SimpleItem

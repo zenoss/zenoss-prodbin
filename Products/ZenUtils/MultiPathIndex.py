@@ -12,7 +12,7 @@ import time
 import logging
 LOG = logging.getLogger('ZenUtils.MultiPathIndex')
 
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 
 from ExtendedPathIndex import ExtendedPathIndex
 from Products.PluginIndexes.common import safe_callable

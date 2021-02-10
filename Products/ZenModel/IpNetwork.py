@@ -25,7 +25,7 @@ from ipaddr import IPAddress, IPNetwork
 from BTrees.OOBTree import OOBTree
 from OFS.SimpleItem import SimpleItem
 
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo

@@ -14,7 +14,7 @@ GraphReportClass contain GraphReports.
 """
 
 from AccessControl import ClassSecurityInfo
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from ReportClass import ReportClass
 from AccessControl.class_init import InitializeClass
 from Products.ZenWidgets import messaging

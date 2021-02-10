@@ -15,7 +15,7 @@ $Id: Location.py,v 1.12 2004/04/22 19:08:47 edahl Exp $"""
 __version__ = "$Revision: 1.12 $"[11:-2]
 
 from AccessControl.class_init import InitializeClass
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 import transaction
 from AccessControl import ClassSecurityInfo
 
