@@ -11,10 +11,8 @@ import os
 import re
 import cgitb
 from cStringIO import StringIO
-import Globals
 from Products.ZenUtils.Utils import unused, zenPath
 
-unused(Globals)
 
 _PATTERN = re.compile(
             r'(?P<message>.* contains the description of this error.)')

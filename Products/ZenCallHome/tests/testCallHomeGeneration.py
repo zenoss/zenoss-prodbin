@@ -13,7 +13,6 @@ import json
 
 from datetime import datetime
 
-import Globals # noqa F401
 
 from zope.interface import Interface, implements
 

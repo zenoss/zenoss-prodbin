@@ -20,7 +20,6 @@ from datetime import datetime
 import platform
 from collections import defaultdict
 
-import Globals
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenModel.DeviceClass import DeviceClass

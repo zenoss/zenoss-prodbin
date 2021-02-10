@@ -11,11 +11,9 @@ import os, logging
 
 log = logging.getLogger('zen.testPBDaemon')
 
-import Globals
 import eventlet
 
 from Products.ZenUtils.Utils import unused
-unused(Globals)
 from twisted.internet.defer import failure
 from zope.interface import implements
 from zope.component import getGlobalSiteManager

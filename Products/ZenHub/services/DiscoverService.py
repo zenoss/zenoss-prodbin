@@ -14,7 +14,6 @@ import logging
 
 log = logging.getLogger('zen.DiscoverService')
 
-import Globals
 import transaction
 from twisted.spread import pb
 from ZODB.transact import transact

@@ -86,7 +86,6 @@ Examples:
                 Changes committed
 '''
 
-import Globals
 
 import argparse
 import cPickle as pickle

@@ -11,7 +11,6 @@
 __doc__='''
 
 '''
-import Globals
 import Migrate
 from Acquisition import aq_base
 

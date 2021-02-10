@@ -33,7 +33,6 @@ import email
 import os
 import socket
 
-import Globals
 import zope.interface
 import zope.component
 from zope.interface import implements
@@ -53,7 +52,7 @@ from Products.ZenCollector.services.config import DeviceProxy
 
 from Products.ZenEvents.MailProcessor import MailProcessor
 from Products.ZenUtils.Utils import unused
-unused(Globals, DeviceProxy)
+unused(DeviceProxy)
 
 
 COLLECTOR_NAME = 'zenmail'

@@ -11,7 +11,6 @@
 import logging
 log = logging.getLogger("zen.zenping.pingcollectionprefs")
 
-import Globals
 import zope.interface
 import zope.component
 from zope.event import notify

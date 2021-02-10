@@ -11,8 +11,6 @@ import logging
 import signal
 import sys
 
-from Globals import *
-
 from multiprocessing import Process, Event
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.Zuul.catalog.model_catalog_init import run as run_model_catalog_init

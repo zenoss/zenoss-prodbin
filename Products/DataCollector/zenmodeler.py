@@ -13,7 +13,6 @@ For instance, find out what Ethernet interfaces and hard disks a server
 has available.
 This information should change much less frequently than performance metrics.
 """
-import Globals
 
 # IMPORTANT! The import of the pysamba.twisted.reactor module should come before
 # any other libraries that might possibly use twisted. This will ensure that

@@ -28,7 +28,6 @@ import stat
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-import Globals
 from zope import interface
 from zope import component
 from Products import ZenCollector
@@ -49,7 +48,6 @@ from Products.ZenStatus.interfaces import IPingTaskFactory, IPingTaskCorrelator
 from Products.ZenStatus import nmap
 from Products.ZenStatus.nmap.util import executeNmapCmd
 
-unused(Globals)
 
 
 _CLEAR = 0

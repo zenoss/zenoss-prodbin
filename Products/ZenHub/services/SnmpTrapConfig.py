@@ -16,7 +16,6 @@ Provides configuration for an OID translation service.
 import logging
 log = logging.getLogger('zen.HubService.SnmpTrapConfig')
 
-import Globals
 
 from twisted.spread import pb
 from twisted.internet import defer

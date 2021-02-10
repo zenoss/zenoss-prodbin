@@ -12,7 +12,6 @@ import re
 import logging
 log = logging.getLogger('zen.HubService.ProcessConfig')
 
-import Globals
 
 from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenUtils.Utils import unused

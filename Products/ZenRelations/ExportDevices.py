@@ -18,7 +18,6 @@ import StringIO
 import re
 import datetime
 
-import Globals
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 

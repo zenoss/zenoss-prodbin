@@ -10,7 +10,6 @@
 
 
 import time
-import Globals
 from Products.ZenEvents.Schedule import Schedule
 from Products.ZenEvents.ActionRule import ActionRule
 

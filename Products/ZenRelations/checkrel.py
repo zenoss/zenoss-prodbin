@@ -14,7 +14,6 @@ logging.basicConfig()
 root = logging.getLogger()
 root.setLevel(logging.CRITICAL)
 
-import Globals
 
 from utils import importClass, importClasses
 from Products.ZenRelations.Exceptions import ZenSchemaError

@@ -9,7 +9,6 @@
 ##############################################################################
 
 
-import Globals
 
 from Products.DataCollector.ApplyDataMap import (
     ApplyDataMap,

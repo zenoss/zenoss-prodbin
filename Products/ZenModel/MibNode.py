@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 from AccessControl import Permissions
 from Products.ZenModel.ZenossSecurity import *
 

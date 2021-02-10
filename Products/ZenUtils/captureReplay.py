@@ -36,7 +36,6 @@ import cPickle
 from exceptions import EOFError, IOError
 import glob
 
-import Globals
 from twisted.internet import defer, reactor
 from Products.ZenUtils.Timeout import timeout
 from Products.ZenEvents.ZenEventClasses import Error, Warning, Info, \
