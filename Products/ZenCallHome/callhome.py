@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals # noqa F401
 import json
 from datetime import datetime
 

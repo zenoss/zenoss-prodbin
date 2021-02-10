@@ -3,7 +3,6 @@
 import os
 import unittest
 
-import Globals
 import common
 
 from Products.ZenUtils.Utils import zenPath

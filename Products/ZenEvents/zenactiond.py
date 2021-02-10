@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 import os
 
 from traceback import format_exc

@@ -23,7 +23,6 @@ import calendar
 import logging
 log = logging.getLogger("zen.MaintenanceWindows")
 
-import Globals
 
 from AccessControl import ClassSecurityInfo
 from zope.interface import implements

@@ -21,7 +21,6 @@ import random
 import logging
 log = logging.getLogger("zen.zenperfsnmp")
 
-import Globals
 import zope.interface
 
 from twisted.internet import defer, error

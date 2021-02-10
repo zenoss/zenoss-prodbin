@@ -9,7 +9,6 @@
 
 
 import Migrate
-import Globals
 from Products.PluggableAuthService import plugins
 from Products.ZenModel.ZenossSecurity import *   
 

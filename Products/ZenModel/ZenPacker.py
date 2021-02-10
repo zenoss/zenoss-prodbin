@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 from AccessControl import ClassSecurityInfo
 from Products.ZenWidgets import messaging
 

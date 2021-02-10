@@ -10,7 +10,6 @@
 
 import re
 
-import Globals
 from Products.ZenReports.AliasPlugin import \
         AliasPlugin, Column, PythonColumnHandler, RRDColumnHandler
 

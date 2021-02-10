@@ -1,5 +1,4 @@
 
-import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 

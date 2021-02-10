@@ -16,7 +16,6 @@ frequency of each message.
 This allows one to test the effectiveness of the drop filtering.
 """
 
-import Globals
 from Products.ZenEvents.SyslogProcessing import SyslogProcessor
 from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenUtils.Utils import zenPath

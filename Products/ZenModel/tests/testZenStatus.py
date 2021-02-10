@@ -13,7 +13,6 @@ import unittest
 
 from DateTime import DateTime
 
-import Globals
 
 from Products.ZenModel.ZenStatus import ZenAvailability
 from Products.ZenModel.tests.ZenModelBaseTest import ZenModelBaseTest

@@ -11,7 +11,6 @@
 __doc__='''
 
 '''
-import Globals
 import Migrate
 from Products.ZenModel.RRDTemplate import CreateRRDTemplatesCatalog, \
                                             RRDTEMPLATE_CATALOG

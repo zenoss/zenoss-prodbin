@@ -9,7 +9,6 @@
 
 
 import unittest
-import Globals
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 from Products.ZenUtils.MultiPathIndex import MultiPathIndex

@@ -16,7 +16,6 @@ import logging
 log = logging.getLogger('zen.HubService.CommandPerformanceConfig')
 import traceback
 
-import Globals
 from ZODB.POSException import ConflictError
 
 from Products.ZenCollector.services.config import CollectorConfigService

@@ -10,7 +10,6 @@
 
 __doc__='Base Classes for loading gunk in a ZenPack'
 
-import Globals
 from Products.ZenReports.ReportLoader import ReportLoader
 from Products.ZenUtils.events import pausedAndOptimizedIndexing
 from Products.ZenUtils.Utils import zenPath, binPath

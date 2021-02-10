@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals # noqa F401
 from zope.interface import implements
 from Products.ZenCallHome import IVersionHistoryCallHomeCollector
 from Products.ZenCallHome.callhome import (REPORT_DATE_KEY,

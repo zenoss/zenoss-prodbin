@@ -95,7 +95,6 @@ class FunctionCache(object):
             return None, None
 
         if FunctionCache._CONFIG is None:
-            import Globals
             from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
             FunctionCache._CONFIG = getGlobalConfiguration()
 

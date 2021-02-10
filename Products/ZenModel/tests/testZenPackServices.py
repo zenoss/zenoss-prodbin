@@ -12,7 +12,6 @@ import cStringIO
 
 from contextlib import contextmanager
 
-import Globals
 from Products.ZenModel.tests.ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenModel.ZenPack import ZenPack, DirectoryConfigContents
 import Products.ZenModel.ZenPack

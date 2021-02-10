@@ -13,11 +13,9 @@ __doc__ = """addTriggersAndNotifications suffered from a bug in 4.0.0 through
 format on systems that were upgraded from 3.x to 4.[01].x and now to 4.2"""
 
 import logging
-import Globals
 from Products.ZenUtils.Utils import unused
 from Products.ZenModel.migrate import Migrate
 
-unused(Globals)
 
 log = logging.getLogger('zen.migrate')
 

@@ -775,7 +775,6 @@ class ZenPack(ZenModelRM):
             fp = file(init, 'w')
             fp.write(
 '''
-import Globals
 from Products.CMFCore.DirectoryView import registerDirectory
 registerDirectory("skins", globals())
 ''')

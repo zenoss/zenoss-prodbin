@@ -27,7 +27,6 @@ from subprocess import Popen, PIPE
 import StringIO
 import signal
 
-import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import zenPath
 

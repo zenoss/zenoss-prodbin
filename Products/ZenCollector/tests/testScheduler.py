@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 import zope.interface
 
 from twisted.internet import defer, reactor

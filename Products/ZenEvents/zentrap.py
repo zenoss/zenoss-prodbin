@@ -33,7 +33,6 @@ from zope.interface import implementer
 
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_WARNING
 
-import Globals
 
 from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import (
@@ -53,7 +52,7 @@ from Products.ZenUtils.captureReplay import CaptureReplay
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenUtils.Utils import unused
 
-unused(Globals, DeviceProxy, User)
+unused(DeviceProxy, User)
 
 log = logging.getLogger("zen.zentrap")
 

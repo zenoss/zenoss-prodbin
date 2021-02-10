@@ -24,9 +24,6 @@ from zope.component import getUtility, adapts, provideUtility
 from zope.event import notify
 from zope.interface import implements
 
-# Import Globals before any Zenoss Products
-import Globals  # noqa: F401
-
 from Products.ZenUtils.Utils import (
     zenPath, load_config, load_config_override,
 )

@@ -16,7 +16,6 @@ restart it.
 
 '''
 
-import Globals
 from Products.ZenUtils.Utils import zenPath
 import logging
 
