@@ -449,6 +449,15 @@ class SshPerformanceCollectionTask(BaseTask):
         @return: Deferred actions to run against a device configuration
         @rtype: Twisted deferred object
         """
+        if self._scheduler.cyberark:
+            old_pass = self._device.zCommandPassword
+            old_name = self._device.zCommandUsername
+            yield self._scheduler.cyberark.update_config(
+                self._device, self)
+            if (old_pass != self._device.zCommandPassword or old_name != self._device.zCommandUsername):
+                self._connector.close()
+                self.__init__(self.name, self.configId, self.interval, self._device)
+
         log.debug(
             "Starting collection task  device=%s interval=%s",
             self._devId, self.interval,
