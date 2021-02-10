@@ -37,6 +37,7 @@ from Products.Zuul.utils import safe_hasattr as hasattr
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.DataCollector import Classifier
 from Products.DataCollector.plugins.DataMaps import PLUGIN_NAME_ATTR
+from Products.ZenCollector.Cyberark import get_cyberark
 from Products.ZenCollector.interfaces import IEventService
 from Products.ZenCollector.daemon import parseWorkerOptions, addWorkerOptions
 
@@ -146,6 +147,7 @@ class ZenModeler(PBDaemon):
 
         self._modeledDevicesMetric = Metrology.meter("zenmodeler.modeledDevices")
         self._failuresMetric = Metrology.counter("zenmodeler.failures")
+        self.cyberark = get_cyberark()
 
     def reportError(self, error):
         """
@@ -894,6 +896,10 @@ class ZenModeler(PBDaemon):
                     if d.skipModelMsg:
                         self.log.info(d.skipModelMsg)
                     else:
+                        if self.cyberark:
+                            yield self.cyberark.update_config(d)
+                            driver.next()
+                            self.log.info('config updated')
                         self.collectDevice(d)
                 else:
                     self.log.info("Device %s not returned is it down?", device)

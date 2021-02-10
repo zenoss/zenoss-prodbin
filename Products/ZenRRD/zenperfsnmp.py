@@ -558,7 +558,12 @@ class SnmpPerformanceCollectionTask(BaseTask):
         self._doTask_start = datetime.now()
         self._responseReceived = False
         # See if we need to connect first before doing any collection
-        d = defer.maybeDeferred(self._connect)
+        if self._scheduler.cyberark:
+            d = defer.maybeDeferred(
+                self._scheduler.cyberark.update_config, self._snmpConnInfo, self)
+            d.addCallback(self._connect)
+        else:
+            d = defer.maybeDeferred(self._connect)
         d.addCallbacks(self._connectCallback, self._failure)
 
 
@@ -588,7 +593,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
         if oidsNotCollected:
             log.debug("%s Oids not collected because %s - %s" % (self.name, reason, str(oidsNotCollected)))
 
-    def _connect(self):
+    def _connect(self, result=None):
         """
         Create a connection to the remote device
         """
