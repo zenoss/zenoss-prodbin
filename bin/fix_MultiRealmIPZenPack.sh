@@ -29,7 +29,6 @@ else
 
 -__import__('pkg_resources').declare_namespace(__name__)
 -
- import Globals
  import os
  import os.path
 __EOF__

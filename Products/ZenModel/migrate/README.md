@@ -153,7 +153,6 @@ Here's an example class that would test the above boilerplate migration:
 import os
 import unittest
 
-import Globals
 import common
 
 

@@ -17,7 +17,6 @@ parse and construct an XML document.
 Descriptions of the XML document format can be found in the
 Developers Guide.
 """
-import Globals
 import sys
 import os
 import transaction

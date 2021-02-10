@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import Globals
 import unittest
 import common
 

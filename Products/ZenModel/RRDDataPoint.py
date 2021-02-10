@@ -18,7 +18,6 @@ and builds the nessesary DEF and CDEF statements for it.
 import logging
 log = logging.getLogger('zen.RRDDatapoint')
 
-import Globals
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenossSecurity import ZEN_VIEW, ZEN_MANAGE_DMD
 from Products.ZenRelations.RelSchema import *

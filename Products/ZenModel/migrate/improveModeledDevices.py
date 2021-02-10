@@ -14,12 +14,10 @@ Change modeledDevices datapoint rrdtype to COUNTER and set 0 to Min Y in
 
 import logging
 import Migrate
-import Globals
 from Products.ZenUtils.Utils import unused
 
 log = logging.getLogger("zen.migrate")
 
-unused(Globals)
 
 _MODELED_DEVICES_ID = 'modeledDevices'
 _MODELED_DEVICES_GRAPH_ID = 'Modeled Devices'

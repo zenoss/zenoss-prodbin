@@ -14,7 +14,6 @@ A small framework for data migration.
 
 '''
 
-import Globals
 import transaction
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Version import Version as VersionBase

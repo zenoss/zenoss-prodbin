@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 import os.path
 
 from Products.DataCollector.Plugins import PluginLoader, CoreImporter

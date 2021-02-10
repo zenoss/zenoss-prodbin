@@ -21,7 +21,6 @@ from twisted.python.failure import Failure
 from twisted.internet import defer, utils
 import time
 
-import Globals
 from zope import interface
 from zope import component
 

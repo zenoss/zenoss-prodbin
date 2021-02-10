@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
 from zope import component
 

@@ -17,7 +17,6 @@ import logging
 from twisted.internet import reactor
 from twisted.python import failure
 
-import Globals
 
 from Products.ZenUtils import PortScan
 

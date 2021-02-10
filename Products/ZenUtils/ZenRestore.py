@@ -21,7 +21,6 @@ import subprocess
 import tarfile
 import ConfigParser
 
-import Globals
 from ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath, binPath, requiresDaemonShutdown
 

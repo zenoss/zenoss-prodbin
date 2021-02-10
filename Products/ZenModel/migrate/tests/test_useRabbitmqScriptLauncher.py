@@ -2,7 +2,6 @@
 
 import unittest
 import common
-import Globals
 
 
 class TestUseRabbitmqScriptLauncher(

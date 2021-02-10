@@ -11,7 +11,6 @@
 from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks
 
-import Globals
 
 from Products.DataCollector import DeviceProxy
 from Products.DataCollector.SshClient import SshClient

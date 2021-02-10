@@ -7,7 +7,6 @@
 # 
 ##############################################################################
 
-import Globals
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenEvents.EventClassInst import EventClassInst

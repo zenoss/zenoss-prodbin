@@ -18,7 +18,6 @@ import logging
 import re
 from AccessControl import Permissions
 
-import Globals
 
 from Products.ZenUtils.ZenTales import talesEvalStr
 from Products.ZenRelations.RelSchema import ToOne, ToManyCont
@@ -27,7 +26,6 @@ from Products.ZenModel.ZenPackable import ZenPackable
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.Utils import unused
 
-unused(Globals)
 
 LOG = logging.getLogger("zen.RRDDataPointAlias")
 

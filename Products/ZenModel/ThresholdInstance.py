@@ -10,7 +10,6 @@
 
 import os
 
-import Globals
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.MonitorClass import MonitorClass
 from Products.ZenUtils.Utils import unused, rrd_daemon_args, rrd_daemon_retry
@@ -22,7 +21,6 @@ from Products.ZenUtils.deprecated import deprecated
 
 log = logging.getLogger('zen.ThresholdInstance')
 
-unused(Globals)
 
 class ThresholdContext(pb.Copyable, pb.RemoteCopy):
     """Remember all the little details about a specific data point

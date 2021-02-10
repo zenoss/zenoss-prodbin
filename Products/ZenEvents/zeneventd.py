@@ -17,7 +17,6 @@ from zope.component.event import objectEventNotify
 from zope.interface import implementer, implements
 from metrology import Metrology
 
-import Globals
 from zenoss.protocols import hydrateQueueMessage
 from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
 from zenoss.protocols.jsonformat import from_dict, to_dict

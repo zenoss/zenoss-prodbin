@@ -13,7 +13,6 @@ __doc__="The threshold report."
 import time
 from collections import defaultdict
 from itertools import chain
-import Globals
 from Products.ZenUtils.Time import Duration, getBeginningOfDay, getEndOfDay
 from Products.ZenReports import Utils
 from Products.Zuul import getFacade

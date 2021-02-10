@@ -18,7 +18,6 @@ import re
 from traceback import format_exc
 import socket
 
-import Globals
 from ZODB.POSException import ConflictError
 from ZODB.transact import transact
 from zope.component import getUtility

@@ -10,7 +10,6 @@
 import logging
 
 import Migrate
-import Globals
 
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 

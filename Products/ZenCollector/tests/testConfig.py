@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 import zope.component
 import zope.interface
 from cryptography.fernet import Fernet

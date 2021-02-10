@@ -27,7 +27,6 @@ from Products.ZenUtils.ZeoConn import ZeoConn
 from Products.ZenTestCase.BaseTestCase import init_model_catalog_for_tests
 
 unused = lambda x: None
-unused(Globals)
 
 
 def load_unittest_site(force=False):
@@ -39,7 +38,6 @@ def load_unittest_site(force=False):
         return
     _zcml._initialized = True
 
-    import Globals
     Globals.INSTANCE_HOME
 
     # load instance site configuration file

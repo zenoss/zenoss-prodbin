@@ -102,7 +102,6 @@ if __name__ == '__main__':
     # The following code assumes we are running from within a Zenoss box
     import logging
     log = logging.getLogger('zen.importEvents')
-    import Globals
     from Products.ZenUtils.ZCmdBase import ZCmdBase
 
     class CmdLineImporter(ZCmdBase):

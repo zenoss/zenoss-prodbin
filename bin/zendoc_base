@@ -11,7 +11,6 @@ import os
 import os.path
 import datetime
 
-import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import importClass, zenPath
 from transaction import commit

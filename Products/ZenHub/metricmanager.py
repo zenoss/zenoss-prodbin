@@ -11,7 +11,6 @@ from __future__ import absolute_import
 
 import os
 
-import Globals  # noqa: required to import zenoss Products
 
 from zope.interface import implementer
 from zope.component.interfaces import Interface, Attribute

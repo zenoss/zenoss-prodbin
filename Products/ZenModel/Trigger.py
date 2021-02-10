@@ -12,7 +12,7 @@ import logging
 log = logging.getLogger("zen.triggers")
 
 from AccessControl.class_init import InitializeClass
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl import ClassSecurityInfo
 from AdministrativeRoleable import AdministrativeRoleable
 from Products.ZenModel.ZenossSecurity import *

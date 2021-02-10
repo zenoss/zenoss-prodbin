@@ -28,7 +28,6 @@ from StringIO import StringIO
 from pkg_resources import parse_requirements, Distribution, DistributionNotFound, get_distribution, parse_version, iter_entry_points, EGG_NAME
 from enum import Enum
 
-import Globals
 import transaction
 from zenoss.protocols.services import ServiceException
 from ZODB.POSException import ConflictError

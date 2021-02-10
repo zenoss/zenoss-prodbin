@@ -26,7 +26,6 @@ from twisted.conch.ssh import (
 from twisted.conch.ssh.keys import Key
 from twisted.internet import defer, reactor
 
-import Globals  # noqa F401
 
 from Products.DataCollector import CollectorClient
 from Products.DataCollector.Exceptions import LoginFailed

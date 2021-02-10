@@ -16,7 +16,6 @@ import tempfile
 import argparse
 import subprocess
 
-import Globals
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 

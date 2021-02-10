@@ -2,7 +2,6 @@
 
 import unittest
 
-import Globals
 import common
 
 class test_removeUCSPMVhostEndpoint(unittest.TestCase, common.ServiceMigrationTestCase):

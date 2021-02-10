@@ -14,7 +14,6 @@ CONF_FILE = os.path.join(os.environ['ZENHOME'], 'etc', 'zope.conf')
 Zope2.configure(CONF_FILE)
 
 import unittest
-import Globals
 from uuid import uuid4
 import logging
 
