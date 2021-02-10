@@ -16,8 +16,8 @@ $Id: ObjectCache.py,v 1.7 2003/04/14 21:08:25 edahl Exp $"""
 
 __version__ = "$Revision: 1.7 $"[11:-2]
 
-from Globals import Persistent
-from Globals import DTMLFile
+from Persistence import Persistent
+from App.special_dtml import DTMLFile
 from AccessControl import ClassSecurityInfo
 import time
 

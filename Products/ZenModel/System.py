@@ -15,7 +15,7 @@ $Id: System.py,v 1.45 2004/04/14 22:11:48 edahl Exp $"""
 __version__ = "$Revision: 1.45 $"[11:-2]
 
 from AccessControl import ClassSecurityInfo
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 
 from AccessControl import Permissions as permissions

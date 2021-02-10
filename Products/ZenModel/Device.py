@@ -23,7 +23,7 @@ from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from BTrees.OOBTree import OOSet
 from DateTime import DateTime
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from ipaddr import IPAddress
 from OFS.CopySupport import CopyError
 from urllib import quote as urlquote

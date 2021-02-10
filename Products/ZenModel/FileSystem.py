@@ -18,7 +18,7 @@ __version__ = "$Revision: 1.12 $"[11:-2]
 
 from math import isnan
 
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 

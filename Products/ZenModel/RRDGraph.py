@@ -23,7 +23,7 @@ RRDGraph defines the global options for an rrdtool graph.
 import os
 import re
 
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 

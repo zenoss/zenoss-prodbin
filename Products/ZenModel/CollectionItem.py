@@ -15,7 +15,7 @@ and builds the nessesary rrd commands.
 """
 
 from AccessControl.class_init import InitializeClass
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
