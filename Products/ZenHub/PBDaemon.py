@@ -392,6 +392,7 @@ class EventQueueManager(object):
     CLEAR_FINGERPRINT_FIELDS = ('device','component','eventKey','eventClass')
 
     def __init__(self, options, log):
+        self.last_sent = time.time()
         self.options = options
         self.transformers = _load_utilities(ICollectorEventTransformer)
         self.log = log
@@ -514,6 +515,7 @@ class EventQueueManager(object):
         prev_perf_event_queue = self.perf_event_queue
         prev_event_queue = self.event_queue
         self._initQueues()
+        self.last_sent = time.time()
 
         perf_events = []
         events = []
@@ -583,6 +585,9 @@ class EventQueueManager(object):
         return len(self.event_queue) + len(self.perf_event_queue) + \
             len(self.heartbeat_event_queue)
 
+    @property
+    def event_queue_age(self):
+        return int(time.time() - self.last_sent)
 
 class PBDaemon(ZenDaemon, pb.Referenceable):
 
@@ -926,6 +931,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
         if self._eventHighWaterMark:
             return self._eventHighWaterMark
+        elif self.eventQueueManager.event_queue_age > self.options.maxqueueage:
+            return self.pushEvents()
         elif self.eventQueueManager.event_queue_length >= self.options.maxqueuelen * self.options.queueHighWaterMark:
             return self.pushEvents()
         else:
@@ -1209,6 +1216,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                default=5000,
                                type='int',
                                help='Maximum number of events to queue')
+
+        self.parser.add_option('--maxqueueage',
+                               dest='maxqueueage',
+                               default=30,
+                               type='int',
+                               help='Maximum time (seconds) events are queued before being pushed')
 
         self.parser.add_option('--queuehighwatermark',
                                dest='queueHighWaterMark',

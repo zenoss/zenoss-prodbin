@@ -595,12 +595,14 @@ class ZDevice(ZDeviceOrComponent):
         return self
 
     def getDeviceComponents(self, collector=None):
+        components = []
         for component in self.getSubComponents():
             if collector is not None:
                 if collector in getattr(component, 'collectors', []):
-                    yield component
+                    components.append(component)
             else:
-                yield component
+                components.append(component)
+        return components
 
     def getDeviceClassPath(self):
         return self.device_class

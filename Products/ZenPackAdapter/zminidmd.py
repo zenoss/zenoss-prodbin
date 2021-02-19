@@ -25,6 +25,7 @@ log = logging.getLogger('zen.zminidmd')
 
 from Products.ZenPackAdapter.db import get_db
 from Products.ZenPackAdapter.impact import update_impact as _update_impact, update_all_impacts
+from Products.ZenPackAdapter.services import ModelerService, PythonConfig
 
 # Load zope adapters so that update_impact is possible
 from OFS.Application import import_products
@@ -41,6 +42,15 @@ _db.load()
 def get(device=None, component=None):
     return _db.get_zobject(device=device, component=component)
 find = get
+
+def get_configs(device=None, component=None):
+    d = _db.get_zobject(device=device, component=component)
+    modSvc = ModelerService()
+    pycfg = PythonConfig(modSvc)
+    configs = pycfg.remote_getDeviceConfig(names=[d.id])
+    if len(configs) > 0:
+        return configs[0]
+    return None
 
 def impacted(zobject):
     print "Local (impactFromDimensions):"

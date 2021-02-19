@@ -49,11 +49,8 @@ def talesEval(express, context, extra=None, skipfails=False):
         msg = "Error when processing tales expression %s on context %s : Exception Class %s Message: %s" % (express,
                                                                                                             context,
                                                                                                             type(e), e)
-        if skipfails:
-            res = express
-            log.debug(msg)
-        else:
-            raise InvalidTalesException(msg)
+        res = express
+        log.warn(msg)
 
     if isinstance(res, Exception):
         raise res

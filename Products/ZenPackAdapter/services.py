@@ -113,10 +113,13 @@ class ZenPackAdapterService(pb.Referenceable):
         self.listenerOptions.pop(listener, None)
 
     def sendEvents(self, events):
-        return
+        if events:
+            self.db.publish_events(events)
+            log.debug("Zinging {} events".format(len(events)))
 
     def sendEvent(self, event, **kw):
-        return
+        if event:
+            self.sendEvents([event])
 
     @translateError
     def remote_propertyItems(self):
@@ -155,10 +158,12 @@ class ZenPackAdapterService(pb.Referenceable):
 class EventService(ZenPackAdapterService):
 
     def remote_sendEvent(self, evt):
-        pass
+        if evt:
+            self.sendEvents([evt])
 
     def remote_sendEvents(self, evts):
-        pass
+        if evts:
+            self.sendEvents(evts)
 
     def remote_getDevicePingIssues(self, *args, **kwargs):
         return None
@@ -770,14 +775,22 @@ class PythonConfig(CollectorConfigService):
         if not ds.plugin_classname:
             return [context.id]
 
-        return self._getPluginClass(ds).config_key(ds, context)
+        try:
+            return self._getPluginClass(ds).config_key(ds, context)
+        except Exception as ex:
+            log.error("Error getting config key for ds %s, context %s: %s", ds, context, ex)
+            return None
 
     def _getParams(self, ds, context):
         """Returns extra parameters needed for collecting this datasource."""
         if not ds.plugin_classname:
             return {}
 
-        params = self._getPluginClass(ds).params(ds, context)
+        try:
+            params = self._getPluginClass(ds).params(ds, context)
+        except Exception as ex:
+            log.error("Error getting params for ds %s, context %s: %s", ds, context, ex)
+            params = {}
 
         return params
 

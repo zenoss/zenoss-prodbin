@@ -72,6 +72,9 @@ class DB(object):
         # The model publisher (set with set_model_publisher before using)
         self.model_publisher = None
 
+        # The event publisher (set with set_event_publisher before using)
+        self.event_publisher = None
+
     def load(self):
         # create snapshot directory if it is missing
         if not os.path.exists(SNAPSHOT_DIR):
@@ -421,4 +424,12 @@ class DB(object):
                 mdf['impactToDimensions'][i] += ",source=" + model['dimensions']['source']
 
         self.model_publisher.put(model)
+
+    def set_event_publisher(self, publisher):
+        self.event_publisher = publisher
+
+    def publish_events(self, events=None, timestamp=time.time(), tags={}):
+        if self.event_publisher is None:
+            raise Exception("publish_events can not be called before set_event_publisher")
+        self.event_publisher.put(events, timestamp, tags)
 

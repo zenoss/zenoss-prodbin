@@ -68,7 +68,7 @@ from Products.ZenPackAdapter.services import (
 )
 from Products.ZenPackAdapter.db import get_db
 from Products.ZenPackAdapter.impact import update_all_impacts
-from Products.ZenPackAdapter.cloudpublisher import CloudModelPublisher
+from Products.ZenPackAdapter.cloudpublisher import CloudModelPublisher, CloudEventPublisher
 from Products.ZenPackAdapter.yamlconfig import DEVICE_YAML
 
 log = logging.getLogger('zen.zminihub')
@@ -135,6 +135,14 @@ class ZMiniHub(ZCmdBase):
         self.db.snapshot()
 
         self.db.set_model_publisher(CloudModelPublisher(
+                self.options.zenossAddress,
+                self.options.zenossApiKey,
+                self.options.zenossHTTPS,
+                self.options.zenossSource,
+                self.options.modelBufferSize
+        ))
+
+        self.db.set_event_publisher(CloudEventPublisher(
                 self.options.zenossAddress,
                 self.options.zenossApiKey,
                 self.options.zenossHTTPS,

@@ -154,7 +154,6 @@ class CloudPublisher(object):
         else:
             return self._put(False)
 
-
     def _put(self, scheduled):
         """
         Push the buffer of messages
@@ -236,6 +235,122 @@ class CloudPublisher(object):
             return self._make_request()
 
 
+class CloudEventPublisher(CloudPublisher):
+    def __init__(self,
+                 address,
+                 apiKey,
+                 useHTTPS=True,
+                 source=None,
+                 buflen=defaultMetricBufferSize,
+                 pubfreq=defaultPublishFrequency):
+        super(CloudEventPublisher, self).__init__(
+            address, apiKey, useHTTPS, source, buflen, pubfreq)
+
+        self._sent_daemon_event = False
+        self._event_publisher = None
+
+    def get_url(self, scheme, address):
+        url = "{scheme}://{address}/v1/data-receiver/events".format(
+            scheme=scheme, address=address)
+        self.log.info("###  Event URL: {}".format(url))
+        return url
+
+    @property
+    def user_agent(self):
+        return 'Zenoss Event Cloud Publisher'
+
+    @property
+    def log(self):
+        if getattr(self, "_eventlog", None) is None:
+            self._eventlog = logging.getLogger("zen.cloudpublisher.event")
+        return self._eventlog
+
+    def put(self, events, timestamp, tags):
+        """
+        Build a message from the event, timestamp, and tags. Then push it into the event queue to be sent.
+
+        @param event: event being published
+        @param timestamp: the time the event was received
+        @param tags: dictionary of tags for the event
+        @return: a deferred that will return the number of events still in the buffer when fired
+        """
+        message = self.build_message(events, timestamp, tags)
+        LOG.debug("Built event message for {} events".format(len(events)))
+        if message:
+            return super(CloudEventPublisher, self).put(message)
+        else:
+            return defer.succeed(len(self._mq))
+
+    def build_message(self, events, timestamp, tags):
+        zing_evts = []
+        for event in events:
+            zing_evt = self.build_event_message(event, timestamp, tags)
+            if zing_evt:
+                zing_evts.append(zing_evt)
+        return zing_evts
+
+    def build_event_message(self, event, timestamp, tags):
+        if not event:
+            return {}
+
+        deviceName = tags.get('device', '')
+        datasources = event.get("datasources", [])
+        if not datasources:
+            datasources = ["Event"]
+        ds0 = datasources[0]
+
+        metadataFields = {
+            "datasources": event.get("datasources", []),
+            "severity": event.get("severity", 0),
+            "eventClassKey": event.get("eventClassKey", ""),
+            "eventKey": event.get("eventKey", ""),
+        }
+
+        zing_event = {
+            "dimensions": {
+                "device": deviceName,
+                "component": tags.get('contextUUID', ''),
+                "source": self._source
+            },
+            "name": "_".join([deviceName, ds0]),
+            "type": "_".join([deviceName, ds0]),
+            "summary": event.get('summary', ""),
+            "status": "STATUS_OPEN",
+            "acknowledge": False,
+            "timestamp": event.get("rcvtime", long(timestamp * 1000)),
+            "metadataFields": metadataFields
+        }
+
+        # ensure that device level metrics have the correct dimensions
+        if zing_event['dimensions']['component'] == zing_event['dimensions']['device']:
+            zing_event['dimensions']['component'] = ''
+
+        # For internal events, include all tags.
+        if tags.get('internal', False):
+
+            del zing_event["dimensions"]["device"]
+            del zing_event["dimensions"]["component"]
+            zing_event["dimensions"]["daemon"] = tags.get('daemon', '')
+
+            for t, v in tags.iteritems():
+                if t == 'daemon':
+                    continue
+                zing_event['metadataFields'][t] = sanitize_field(v)
+
+            return zing_event
+
+        # Set the event name correctly.
+        if '/' in zing_event["type"]:
+            zing_event["type"] = zing_event['type'].replace('/', '_', 1)
+
+        return zing_event
+
+    def serialize_messages(self, messages):
+        return json.dumps({
+            "detailedResponse": True,
+            "events": messages}, indent=4)
+
+
 class CloudMetricPublisher(CloudPublisher):
     def __init__(self,
                  address,
@@ -304,7 +419,6 @@ class CloudMetricPublisher(CloudPublisher):
         model['metadataFields']['name'] = name
 
         self.model_publisher().put(model)
-
 
     def build_metric(self, metricName, value, timestamp, tags):
         metric = {
