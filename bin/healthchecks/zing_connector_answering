@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # NB: this script is duplicated in the product-assembly repo. If you change it here you should change it there too.
-#
 
 if [ $# == 0 ] ; then
   echo "Please provide a port number argument."
