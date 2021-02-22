@@ -252,7 +252,6 @@ class CloudEventPublisher(CloudPublisher):
     def get_url(self, scheme, address):
         url = "{scheme}://{address}/v1/data-receiver/events".format(
             scheme=scheme, address=address)
-        self.log.info("###  Event URL: {}".format(url))
         return url
 
     @property
@@ -298,6 +297,9 @@ class CloudEventPublisher(CloudPublisher):
         if not datasources:
             datasources = ["Event"]
         ds0 = datasources[0]
+        ts = timestamp
+        if event.get("rcvtime", None):
+            ts = int(event.get("rcvtime") * 1000)
 
         metadataFields = {
             "datasources": event.get("datasources", []),
@@ -317,7 +319,7 @@ class CloudEventPublisher(CloudPublisher):
             "summary": event.get('summary', ""),
             "status": "STATUS_OPEN",
             "acknowledge": False,
-            "timestamp": event.get("rcvtime", long(timestamp * 1000)),
+            "timestamp": ts,
             "metadataFields": metadataFields
         }
 
@@ -346,9 +348,13 @@ class CloudEventPublisher(CloudPublisher):
         return zing_event
 
     def serialize_messages(self, messages):
+        if messages and len(messages) > 0 and isinstance(messages[0], list):
+            return json.dumps({
+                "detailedResponse": True,
+                "events": messages[0]}, indent=4)
         return json.dumps({
-            "detailedResponse": True,
-            "events": messages}, indent=4)
+                "detailedResponse": True,
+                "events": []}, indent=4)
 
 
 class CloudMetricPublisher(CloudPublisher):

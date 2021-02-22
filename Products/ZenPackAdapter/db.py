@@ -428,7 +428,7 @@ class DB(object):
     def set_event_publisher(self, publisher):
         self.event_publisher = publisher
 
-    def publish_events(self, events=None, timestamp=time.time(), tags={}):
+    def publish_events(self, events=None, timestamp=None, tags={}):
         if self.event_publisher is None:
             raise Exception("publish_events can not be called before set_event_publisher")
 
@@ -440,5 +440,7 @@ class DB(object):
         comps = events[0].get('components', None)
         if comps:
             tags['components'] = comps.split(',')
-        self.event_publisher.put(events, timestamp, tags)
+        if not timestamp:
+            timestamp = datetime_millis(datetime.datetime.utcnow())
+        self.event_publisher.put(events, int(timestamp), tags)
 
