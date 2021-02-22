@@ -292,7 +292,6 @@ class CloudEventPublisher(CloudPublisher):
         if not event:
             return {}
 
-        deviceName = tags.get('device', '')
         datasources = event.get("datasources", [])
         if not datasources:
             datasources = ["Event"]
@@ -308,10 +307,12 @@ class CloudEventPublisher(CloudPublisher):
             "eventKey": event.get("eventKey", ""),
         }
 
+        deviceName = tags.get('device', '')
+        comps = tags.get('components', '')
         zing_event = {
             "dimensions": {
                 "device": deviceName,
-                "component": tags.get('components', ''),
+                "component": comps,
                 "source": self._source
             },
             "name": "_".join([deviceName, ds0]),
