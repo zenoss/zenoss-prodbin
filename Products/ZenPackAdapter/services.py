@@ -115,11 +115,15 @@ class ZenPackAdapterService(pb.Referenceable):
     def sendEvents(self, events):
         if events:
             self.db.publish_events(events)
-            log.debug("Zinging {} events".format(len(events)))
 
     def sendEvent(self, event, **kw):
         if event:
-            self.sendEvents([event])
+            if isinstance(event, list):
+                self.sendEvents(event)
+            elif isinstance(event, dict):
+                self.sendEvents([event])
+            else:
+                self.log.debug("Unknown event type: {}".format(event))
 
     @translateError
     def remote_propertyItems(self):
@@ -159,7 +163,7 @@ class EventService(ZenPackAdapterService):
 
     def remote_sendEvent(self, evt):
         if evt:
-            self.sendEvents([evt])
+            self.sendEvent(evt)
 
     def remote_sendEvents(self, evts):
         if evts:

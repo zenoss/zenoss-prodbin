@@ -309,7 +309,7 @@ class CloudEventPublisher(CloudPublisher):
         zing_event = {
             "dimensions": {
                 "device": deviceName,
-                "component": tags.get('contextUUID', ''),
+                "component": tags.get('components', ''),
                 "source": self._source
             },
             "name": "_".join([deviceName, ds0]),
