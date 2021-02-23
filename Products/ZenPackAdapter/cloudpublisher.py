@@ -283,7 +283,7 @@ class CloudEventPublisher(CloudPublisher):
     def build_message(self, events, timestamp, tags):
         zing_evts = []
         for event in events:
-            zing_evt = self.build_event_message(event, timestamp, tags)
+            zing_evt = self.build_event_message(event.copy(), timestamp, tags)
             if zing_evt:
                 zing_evts.append(zing_evt)
         return zing_evts
@@ -300,10 +300,10 @@ class CloudEventPublisher(CloudPublisher):
         if event.get("rcvtime", None):
             ts = int(event.get("rcvtime") * 1000)
 
-        deviceName = event.get('device', '')
-        comp = event.get('component', '')
-        summary = event.get("summary", '')
-        severity = event.get('severity', '0')
+        deviceName = event.pop('device', '')
+        comp = event.pop('component', None)
+        summary = event.pop("summary", '')
+        severity = event.pop('severity', '0')
         dimensions = {
             "device": deviceName,
             "source": self._source
@@ -312,12 +312,8 @@ class CloudEventPublisher(CloudPublisher):
             dimensions['component'] = comp
 
         # collect all other unique event fields and add them to the metadata
-        metadata = event.copy()
-        metadata.pop("device", "")
-        metadata.pop("component", "")
-        metadata.pop("summary", "")
         metadataFields = {}
-        for k, v in metadata.items():
+        for k, v in event.items():
             metadataFields[k] = v
 
         zing_event = {
@@ -333,7 +329,7 @@ class CloudEventPublisher(CloudPublisher):
         }
 
         # ensure that device level metrics have the correct dimensions
-        if zing_event['dimensions']['component'] == zing_event['dimensions']['device']:
+        if zing_event['dimensions'].get('component', None) == zing_event['dimensions'].get('device', ""):
             zing_event['dimensions']['component'] = ''
 
         # Set the event name correctly.
