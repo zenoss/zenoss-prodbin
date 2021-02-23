@@ -300,26 +300,31 @@ class CloudEventPublisher(CloudPublisher):
         if event.get("rcvtime", None):
             ts = int(event.get("rcvtime") * 1000)
 
-        metadataFields = {
-            "datasources": event.get("datasources", []),
-            "severity": event.get("severity", 0),
-            "eventClassKey": event.get("eventClassKey", ""),
-            "eventKey": event.get("eventKey", ""),
-        }
-
-        deviceName = tags.get('device', '')
-        comp = tags.get('component', '')
+        deviceName = event.get('device', '')
+        comp = event.get('component', '')
+        summary = event.get("summary", '')
+        severity = event.get('severity', '0')
         dimensions = {
             "device": deviceName,
             "source": self._source
         }
         if comp:
             dimensions['component'] = comp
+
+        # collect all other unique event fields and add them to the metadata
+        event.pop("device", "")
+        event.pop("component", "")
+        event.pop("summary", "")
+        metadataFields = {}
+        for k, v in event:
+            metadataFields[k] = v
+
         zing_event = {
             "dimensions": dimensions,
             "name": "_".join([deviceName, ds0]),
             "type": "_".join([deviceName, ds0]),
-            "summary": event.get('summary', ""),
+            "summary": summary,
+            "severity": severity,
             "status": "STATUS_OPEN",
             "acknowledge": False,
             "timestamp": ts,
@@ -329,20 +334,6 @@ class CloudEventPublisher(CloudPublisher):
         # ensure that device level metrics have the correct dimensions
         if zing_event['dimensions']['component'] == zing_event['dimensions']['device']:
             zing_event['dimensions']['component'] = ''
-
-        # For internal events, include all tags.
-        if tags.get('internal', False):
-
-            del zing_event["dimensions"]["device"]
-            del zing_event["dimensions"]["component"]
-            zing_event["dimensions"]["daemon"] = tags.get('daemon', '')
-
-            for t, v in tags.iteritems():
-                if t == 'daemon':
-                    continue
-                zing_event['metadataFields'][t] = sanitize_field(v)
-
-            return zing_event
 
         # Set the event name correctly.
         if '/' in zing_event["type"]:
