@@ -308,13 +308,15 @@ class CloudEventPublisher(CloudPublisher):
         }
 
         deviceName = tags.get('device', '')
-        comps = tags.get('components', '')
+        comp = tags.get('component', '')
+        dimensions = {
+            "device": deviceName,
+            "source": self._source
+        }
+        if comp:
+            dimensions['component'] = comp
         zing_event = {
-            "dimensions": {
-                "device": deviceName,
-                "component": comps,
-                "source": self._source
-            },
+            "dimensions": dimensions,
             "name": "_".join([deviceName, ds0]),
             "type": "_".join([deviceName, ds0]),
             "summary": event.get('summary', ""),

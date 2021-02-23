@@ -432,14 +432,13 @@ class DB(object):
         if self.event_publisher is None:
             raise Exception("publish_events can not be called before set_event_publisher")
 
-        dev = events[0].get('device', None)
-        if not events or not dev:
+        if not events:
             return
 
-        tags['device'] = dev
-        comps = events[0].get('components', None)
-        if comps:
-            tags['components'] = comps.split(',')
+        tags['device'] = events[0].get('device', None)
+        comp = events[0].get('component', None)
+        if comp:
+            tags['component'] = comp
         if not timestamp:
             timestamp = datetime_millis(datetime.datetime.utcnow())
         self.event_publisher.put(events, int(timestamp), tags)
