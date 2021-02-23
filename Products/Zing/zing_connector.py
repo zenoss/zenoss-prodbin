@@ -35,8 +35,6 @@ GLOBAL_ZING_CONNECTOR_TIMEOUT = "zing-connector-timeout"
 DEFAULT_CLIENT = "ZingConnectorClient"
 DEFAULT_HOST = "http://localhost:9237"
 DEFAULT_ENDPOINT = "/api/model/ingest"
-PING_PORT = "9000"
-PING_ENDPOINT = "/ping"
 DEFAULT_TIMEOUT = 5
 DEFAULT_BATCH_SIZE = 1000
 
@@ -62,17 +60,8 @@ class ZingConnectorConfig(object):
         )
         self.timeout = timeout
 
-        parts = urlparse.urlsplit(host)
-        start = parts.netloc.rfind(":")
-        if start != -1:
-            newNetloc = parts.netloc[:start + 1] + PING_PORT
-        else:
-            newNetloc = parts.netloc + ":" + PING_PORT
-
-        parts = list(parts)
-        parts[1] = newNetloc
-        adminUrl = urlparse.urlunsplit(tuple(parts))
-        self.ping_url = urlparse.urljoin(adminUrl, PING_ENDPOINT)
+        # admin port exists no longer
+        self.ping_url = self.facts_url
 
 
 def _getZingConnectorClient():
@@ -264,7 +253,7 @@ class ZingConnectorClient(object):
             resp_code = resp.status_code
         except Exception:
             log.debug("Zing connector is unavailable at %s", self.ping_url)
-        return resp_code == 200
+        return resp_code == 501 # Not Implemented is correct response code here
 
 
 @implementer(IZingConnectorProxy)
