@@ -312,11 +312,12 @@ class CloudEventPublisher(CloudPublisher):
             dimensions['component'] = comp
 
         # collect all other unique event fields and add them to the metadata
-        event.pop("device", "")
-        event.pop("component", "")
-        event.pop("summary", "")
+        metadata = event.copy()
+        metadata.pop("device", "")
+        metadata.pop("component", "")
+        metadata.pop("summary", "")
         metadataFields = {}
-        for k, v in event:
+        for k, v in metadata.items():
             metadataFields[k] = v
 
         zing_event = {
