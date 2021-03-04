@@ -279,13 +279,13 @@ class ExecutorTask(object):
                 "Result ignored  task-id=%s reason=timeout", self.id,
             )
 
-    def error(self, failure):
+    def error(self, ex):
         if self._ontimeout:
             self._ontimeout.cancel()
-        if failure.check(_ShutdownException):
+        if isinstance(ex, _ShutdownException):
             return
         if not self.deferred.called:
-            self.deferred.errback(failure)
+            self.deferred.errback(ex)
         else:
             self._log.debug(
                 "Failure ignored  task-id=%s reason=timeout", self.id,
