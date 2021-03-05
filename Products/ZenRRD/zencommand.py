@@ -572,9 +572,9 @@ class SshPerformanceCollectionTask(BaseTask):
             results = yield defer.DeferredList(pending)
 
             # Restructure the results data from
-            # (success, (success, command, runner/failure))
+            # (success, (success, (command, runner/failure)))
             # to
-            # (success, command, runner/failure)
+            # (success, (command, runner/failure))
             results = tuple(data for _, data in results)
 
             defer.returnValue(results)
@@ -583,13 +583,9 @@ class SshPerformanceCollectionTask(BaseTask):
             raise
 
     def _handle_completion(self, response, command):
-        # This callback method detects whether the command succeeded or
-        # failed on the remote device.  If the command failed, the response
-        # is converted into an error that's handled by _parse_error.
-        # If the command succeeded, the response is kept has a success
-        # and will be handled by _parse_result.
-        success = bool(response.exitCode == 0)
-        return (success, (command, response))
+        # This callback method is called when the command finishes normally.
+        # "Normally" also means non-zero exit codes.
+        return (True, (command, response))
 
     def _handle_error(self, failure, command):
         # This callback method is called for any error resulting from the
@@ -678,39 +674,6 @@ class SshPerformanceCollectionTask(BaseTask):
         )
         return partial(self._failure_error_result, failure)
 
-    def _exitcode_error_result(self, response, message, datasource):
-        event = makeCmdEvent(
-            self._devId,
-            datasource,
-            "Datasource: %s - Code: %s - Msg: %s" % (
-                datasource.name, response.exitCode, message,
-            ),
-        )
-        stderr = response.stderr.strip()
-        if self._showfullcommand:
-            event["command"] = datasource.command
-        if stderr:
-            # Add the stderr output to the error events
-            event["stderr"] = stderr
-        parsed = ParsedResults()
-        parsed.events.append(event)
-        # Clear the timeout event since this command didn't time out.
-        parsed.events.append(
-            makeCmdTimeoutEvent(self._devId, datasource, severity=Clear),
-        )
-        return parsed
-
-    def _handle_exitcode_error(self, datasources, response):
-        log.error(
-            "Command returned an error  "
-            "device=%s datasources=%s exit-code=%s",
-            self._devId,
-            ",".join(ds.name for ds in datasources),
-            response.exitCode,
-        )
-        exit_message = getExitMessage(response.exitCode)
-        return partial(self._exitcode_error_result, response, exit_message)
-
     def _unexpected_error_result(self, response, datasource):
         event = makeCmdEvent(
             self._devId, datasource, "Unexpected result from command",
@@ -742,8 +705,6 @@ class SshPerformanceCollectionTask(BaseTask):
                 get_results = self._handle_timeout_error(datasources, failure)
             else:
                 get_results = self._handle_failure_error(datasources, failure)
-        elif runner.IRunner.providedBy(failure):
-            get_results = self._handle_exitcode_error(datasources, failure)
         else:
             get_results = self._handle_unexpected_error(datasources, failure)
 
@@ -784,16 +745,12 @@ class SshPerformanceCollectionTask(BaseTask):
         @parameter parsed: Parsed results are added to this object.
         @type parsed: ParsedResults object
         """
-        # Clear any timeout event
-        parsed.events.append(
-            makeCmdTimeoutEvent(self._devId, datasource, severity=Clear),
-        )
-
+        exitCode = response.exitCode
         datasource.result = copy(response)
         output = response.output.strip()
         stderr = response.stderr.strip()
 
-        if not output:
+        if exitCode == 0 and not output:
             msg = "No data returned for command"
             if self._showfullcommand:
                 msg += ": %s" % datasource.command
@@ -814,6 +771,28 @@ class SshPerformanceCollectionTask(BaseTask):
             operation = "Running Parser"
             parser.preprocessResults(datasource, log)
             parser.processResults(datasource, parsed)
+
+            if (
+                not parsed.events
+                and parser.createDefaultEventUsingExitCode
+            ):
+                if exitCode == 0:
+                    msg = ""
+                    severity = Clear
+                else:
+                    msg = "Datasource: %s - Code: %s - Msg: %s" % (
+                        datasource.name, exitCode, getExitMessage(exitCode),
+                    )
+                    severity = datasource.severity
+                event = makeCmdEvent(
+                    self._devId, datasource, msg, severity=severity,
+                )
+                parsed.events.append(event)
+
+            # Clear any timeout event
+            parsed.events.append(
+                makeCmdTimeoutEvent(self._devId, datasource, severity=Clear),
+            )
 
             if stderr:
                 # Add the stderr output to the error events.
