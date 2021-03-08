@@ -262,6 +262,9 @@ class ExecutorTask(object):
             )
             self._ontimeout = defer.Deferred()
             self._ontimeout.addTimeout(self.timeout, reactor, self._timeout)
+            # Add a do-nothing errback handler for when the deferred is
+            # cancelled before time has elapsed.
+            self._ontimeout.addErrback(lambda x: None)
         else:
             self._log.debug("No timeout set  task-id=%s", self.id)
         return d
@@ -276,13 +279,13 @@ class ExecutorTask(object):
                 "Result ignored  task-id=%s reason=timeout", self.id,
             )
 
-    def error(self, failure):
+    def error(self, ex):
         if self._ontimeout:
             self._ontimeout.cancel()
-        if failure.check(_ShutdownException):
+        if isinstance(ex, _ShutdownException):
             return
         if not self.deferred.called:
-            self.deferred.errback(failure)
+            self.deferred.errback(ex)
         else:
             self._log.debug(
                 "Failure ignored  task-id=%s reason=timeout", self.id,
