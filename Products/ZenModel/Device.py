@@ -1863,6 +1863,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         parameter = '--datasource'
         value = '%s/%s' % (dsObj.rrdTemplate.obj.id, dsObj.id)
+        collection_daemon = ''
         if dsObj.sourcetype == 'COMMAND':
             collection_daemon = 'zencommand'
         elif dsObj.__class__.__base__.sourcetype == 'Python':
