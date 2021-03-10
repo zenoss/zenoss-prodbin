@@ -236,6 +236,16 @@ class CloudPublisher(object):
 
 
 class CloudEventPublisher(CloudPublisher):
+
+    severity = {
+        "0": "SEVERITY_INFO",
+        "1": "SEVERITY_CRITICAL",
+        "2": "SEVERITY_ERROR",
+        "3": "SEVERITY_WARNING",
+        "4": "SEVERITY_INFO",
+        "5": "SEVERITY_DEBUG",
+    }
+
     def __init__(self,
                  address,
                  apiKey,
@@ -283,13 +293,17 @@ class CloudEventPublisher(CloudPublisher):
     def build_message(self, events, timestamp, tags):
         zing_evts = []
         for event in events:
+            tags["deviceClass"] = tags.get("deviceclasslist", [None]).pop(0)
+            if event.get('device', None) is 'localhost':
+                # Skip daemon events
+                continue
             zing_evt = self.build_event_message(event.copy(), timestamp, tags)
             if zing_evt:
                 zing_evts.append(zing_evt)
         return zing_evts
 
     def build_event_message(self, event, timestamp, tags):
-        if not event:
+        if not event or not event.get('device', None):
             return {}
 
         datasources = event.get("datasources", [])
@@ -300,7 +314,7 @@ class CloudEventPublisher(CloudPublisher):
         if event.get("rcvtime", None):
             ts = int(event.get("rcvtime") * 1000)
 
-        deviceName = event.pop('device', '')
+        deviceName = event.pop('device')
         comp = event.pop('component', None)
         summary = event.pop("summary", '')
         severity = event.pop('severity', '0')
@@ -315,13 +329,16 @@ class CloudEventPublisher(CloudPublisher):
         metadataFields = {}
         for k, v in event.items():
             metadataFields[k] = v
+        metadataFields['source-type'] = 'zenoss.zenpackadapter'
+        metadataFields["severity"] = self.severity.get(severity, "SEVERITY_INFO")
+        metadataFields["lastSeen"] = ts
 
         zing_event = {
             "dimensions": dimensions,
             "name": "_".join([deviceName, ds0]),
             "type": "_".join([deviceName, ds0]),
             "summary": summary,
-            "severity": severity,
+            "severity": self.severity.get(severity, "SEVERITY_INFO"),
             "status": "STATUS_OPEN",
             "acknowledge": False,
             "timestamp": ts,

@@ -390,9 +390,13 @@ class DB(object):
             }
         }
 
+        # encure 'component' is valid
+        if not model['dimensions']['component']:
+            model['dimensions'].pop('component', None)
+
         # ensure that device level model has the correct dimensions
-        if model['dimensions']['component'] == model['dimensions']['device']:
-            model['dimensions']['component'] = ''
+        if model['dimensions'].get('component', None) == model['dimensions']['device']:
+            model['dimensions'].pop('component', None)
 
         if component is None or component == device:
             datum = mapper.get(device)
@@ -435,11 +439,31 @@ class DB(object):
         if not events:
             return
 
-        tags['device'] = events[0].get('device', None)
-        comp = events[0].get('component', None)
-        if comp:
-            tags['component'] = comp
+        tags["deviceclasslist"] = []
+        for event in events:
+            dc = None
+            dev = event.get('device', None)
+            comp = event.get('component', None)
+            tags["deviceclasslist"].append(self.get_device_class(dev, comp, event))
         if not timestamp:
             timestamp = datetime_millis(datetime.datetime.utcnow())
         self.event_publisher.put(events, int(timestamp), tags)
 
+    def get_device_class(self, dev, comp, event):
+        if event.get("eventClass", None):
+            return event.get("eventClass")
+        dc = "/Unknown"
+        if comp:
+            zobj = self.get_zobject(dev, comp)
+        else:
+            zobj = self.get_zobject(dev)
+        if zobj:
+            try:
+                dc = type(zobj).__name__
+            except Exception as ex:
+                try:
+                    dc = zobj.device.getDeviceClassName()
+                    dc += '/' + type(zobj).__name__
+                except Exception as ex1:
+                    dc = "/Unknown"
+        return dc
