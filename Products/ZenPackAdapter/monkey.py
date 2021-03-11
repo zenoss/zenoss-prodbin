@@ -15,12 +15,15 @@
 
 import time
 import os.path
+import logging
+from twisted.internet import reactor
 
 from Products.ZenUtils.Utils import monkeypatch
 from Products.ZenHub.PBDaemon import PBDaemon
 from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenPackAdapter.cloudpublisher import CloudMetricPublisher
 
+LOG = logging.getLogger("zen.monkeypatches")
 
 @monkeypatch(PBDaemon)
 def publisher(self):
@@ -84,8 +87,21 @@ def parseOptions(self):
     original(self)
 
 
-# disable logging of eventQueueLength metric every 2 seconds.  This is excessive
-# and not interesting.
+# push events every 5 seconds.
 @monkeypatch(PBDaemon)
 def pushEventsLoop(self):
-  pass
+
+    def zpaEventLoop(pbDaemon):
+        try:
+            reactor.callLater(5, zpaEventLoop, pbDaemon)
+            yield pbDaemon.pushEvents()
+        except Exception as ex:
+            LOG.error("Error in zpa event loop: %s", ex)
+
+    try:
+        if not reactor.running:
+            LOG.critical("Reactor not running. Event Loop Disabled")
+            return
+        zpaEventLoop(self)
+    except Exception as outer:
+        LOG.error("Error calling zpa event loop: %s", outer)
