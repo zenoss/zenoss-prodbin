@@ -21,6 +21,7 @@ __version__ = "$$"[11:-2]
 import time
 import os
 import pytz
+import dateutil.tz as tz
 import re
 from datetime import datetime
 from hashlib import sha224
@@ -133,6 +134,12 @@ def isoToTimestamp(value):
     timeTuple = time.strptime(timeStr, '%Y-%m-%d %H:%M:%S')
     timestamp = time.mktime(timeTuple)
     return timestamp
+
+def awareDatetimeToTimestamp(awareDatetime):
+    """
+    converts a datetime that contains a timezone to a timestamp in seconds since 1970
+    """
+    return (awareDatetime.astimezone(tz.tzutc()) - datetime(1970, 1, 1, tzinfo=tz.tzutc())).total_seconds()
 
 def getYear():
     """
