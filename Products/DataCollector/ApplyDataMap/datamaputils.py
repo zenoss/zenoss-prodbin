@@ -20,6 +20,7 @@ log = logging.getLogger("zen.ApplyDataMap")
 
 MISSINGNO = object()
 
+
 def isSameData(x, y):
     """
     A more comprehensive check to see if existing model data is the same as
@@ -145,7 +146,9 @@ def _sanitize_value(value, obj):
             return _decode_value(value, obj)
         except UnicodeDecodeError:
             # We don't know what to do with this, so don't set the value
-            log.exception('unable to decode value')
+            log.exception(
+                'unable to decode value  value=%s obj=%s', value, obj,
+            )
             raise
 
     if isinstance(value, MultiArgs):
@@ -155,7 +158,7 @@ def _sanitize_value(value, obj):
 
 
 def _decode_value(value, obj):
-    # This looks confusing, and it is. The scenario is:
+    #   This looks confusing, and it is. The scenario is:
     #   A collector gathers some data as a raw byte stream,
     #   but really it has a specific encoding specified by
     #   the zCollectorDecoding zProperty. Say, latin-1 or
