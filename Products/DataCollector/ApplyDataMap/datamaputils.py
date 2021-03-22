@@ -146,7 +146,9 @@ def _sanitize_value(value, obj):
             return _decode_value(value, obj)
         except UnicodeDecodeError:
             # We don't know what to do with this, so don't set the value
-            log.exception('unable to decode value')
+            log.exception(
+                'unable to decode value  value=%s obj=%s', value, obj,
+            )
             raise
 
     if isinstance(value, MultiArgs):
