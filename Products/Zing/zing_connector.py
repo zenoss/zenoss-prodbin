@@ -111,6 +111,14 @@ class NullZingClient(object):
     def ping(self):
         return True
 
+def _has_errors(resp):
+    try:
+        json_content = json.loads(resp.content)
+        errors = json_content.get("errors", [])
+        return len(errors) > 0
+    except Exception as e:
+        log.error("response has errors: %s, exception: %s", resp.content, e)
+    return False
 
 @implementer(IZingConnectorClient)
 class ZingConnectorClient(object):
@@ -145,6 +153,8 @@ class ZingConnectorClient(object):
             resp = self.session.put(
                 self.facts_url, data=serialized, timeout=self.client_timeout
             )
+            if _has_errors(resp):
+                return 500
             resp_code = resp.status_code
         except Exception as e:
             log.exception(
