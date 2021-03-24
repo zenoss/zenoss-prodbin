@@ -439,24 +439,27 @@ class DB(object):
         if not events:
             return
 
-        tags["deviceclasslist"] = []
         for event in events:
-            dc = None
             dev = event.get('device', None)
             comp = event.get('component', None)
-            tags["deviceclasslist"].append(self.get_device_class(dev, comp, event))
+            event["deviceClass"] = self.get_device_class(dev, comp, event.get('eventClass', None))
         if not timestamp:
             timestamp = datetime_millis(datetime.datetime.utcnow())
-        self.event_publisher.put(events, int(timestamp), tags)
+        self.event_publisher.put(events, int(timestamp))
 
-    def get_device_class(self, dev, comp, event):
-        if event.get("eventClass", None):
-            return event.get("eventClass")
+    def get_device_class(self, dev, comp, evtCls):
+        if evtCls:
+            return evtCls
+
         dc = "/Unknown"
-        if comp:
-            zobj = self.get_zobject(dev, comp)
-        else:
-            zobj = self.get_zobject(dev)
+        try:
+            if comp:
+                zobj = self.get_zobject(dev, comp)
+            else:
+                zobj = self.get_zobject(dev)
+        except Exception as ex:
+            zobj = None
+
         if zobj:
             try:
                 dc = type(zobj).__name__

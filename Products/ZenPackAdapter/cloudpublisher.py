@@ -274,7 +274,7 @@ class CloudEventPublisher(CloudPublisher):
             self._eventlog = logging.getLogger("zen.cloudpublisher.event")
         return self._eventlog
 
-    def put(self, events, timestamp, tags):
+    def put(self, events, timestamp):
         """
         Build a message from the event, timestamp, and tags. Then push it into the event queue to be sent.
 
@@ -283,26 +283,27 @@ class CloudEventPublisher(CloudPublisher):
         @param tags: dictionary of tags for the event
         @return: a deferred that will return the number of events still in the buffer when fired
         """
-        message = self.build_message(events, timestamp, tags)
+        message = self.build_message(events, timestamp)
         LOG.debug("Built event message for {} events".format(len(events)))
         if message:
             return super(CloudEventPublisher, self).put(message)
         else:
             return defer.succeed(len(self._mq))
 
-    def build_message(self, events, timestamp, tags):
+    def build_message(self, events, timestamp):
         zing_evts = []
         for event in events:
-            tags["deviceClass"] = tags.get("deviceclasslist", [None]).pop(0)
-            if event.get('device', None) is 'localhost':
-                # Skip daemon events
-                continue
-            zing_evt = self.build_event_message(event.copy(), timestamp, tags)
-            if zing_evt:
-                zing_evts.append(zing_evt)
+            dev = event.get('device', None)
+            if dev != 'localhost':
+                try:
+                    zing_evt = self.build_event_message(event.copy(), timestamp)
+                    if zing_evt:
+                        zing_evts.append(zing_evt)
+                except Exception as ex:
+                    LOG.error("Error framing event: %s", ex)
         return zing_evts
 
-    def build_event_message(self, event, timestamp, tags):
+    def build_event_message(self, event, timestamp):
         if not event or not event.get('device', None):
             return {}
 
@@ -318,6 +319,7 @@ class CloudEventPublisher(CloudPublisher):
         comp = event.pop('component', None)
         summary = event.pop("summary", '')
         severity = event.pop('severity', '0')
+        deviceClass = event.pop('deviceClass', None)
         dimensions = {
             "device": deviceName,
             "source": self._source
@@ -332,6 +334,7 @@ class CloudEventPublisher(CloudPublisher):
         metadataFields['source-type'] = 'zenoss.zenpackadapter'
         metadataFields["severity"] = self.severity.get(severity, "SEVERITY_INFO")
         metadataFields["lastSeen"] = ts
+        metadataFields["deviceClass"] = deviceClass
 
         zing_event = {
             "dimensions": dimensions,
@@ -346,8 +349,8 @@ class CloudEventPublisher(CloudPublisher):
         }
 
         # ensure that device level metrics have the correct dimensions
-        if zing_event['dimensions'].get('component', None) == zing_event['dimensions'].get('device', ""):
-            zing_event['dimensions']['component'] = ''
+        if dimensions.get('component', None) == dimensions.get('device', ""):
+            zing_event['dimensions'].pop('component', '')
 
         # Set the event name correctly.
         if '/' in zing_event["type"]:

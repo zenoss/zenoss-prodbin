@@ -16,7 +16,7 @@
 import time
 import os.path
 import logging
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 
 from Products.ZenUtils.Utils import monkeypatch
 from Products.ZenHub.PBDaemon import PBDaemon
@@ -91,17 +91,20 @@ def parseOptions(self):
 @monkeypatch(PBDaemon)
 def pushEventsLoop(self):
 
-    def zpaEventLoop(pbDaemon):
-        try:
-            reactor.callLater(5, zpaEventLoop, pbDaemon)
-            yield pbDaemon.pushEvents()
-        except Exception as ex:
-            LOG.error("Error in zpa event loop: %s", ex)
+    @defer.inlineCallbacks
+    def zpa_EventLoop(pbDaemon):
+        if pbDaemon and getattr(pbDaemon, 'pushEvents', None):
+            try:
+                yield pbDaemon.pushEvents()
+            except Exception as e:
+                LOG.error("Error pushing events: %s.", e)
+        reactor.callLater(5, zpa_EventLoop, pbDaemon)
 
     try:
         if not reactor.running:
             LOG.critical("Reactor not running. Event Loop Disabled")
             return
-        zpaEventLoop(self)
+        reactor.callLater(0, zpa_EventLoop, self)
     except Exception as outer:
         LOG.error("Error calling zpa event loop: %s", outer)
+

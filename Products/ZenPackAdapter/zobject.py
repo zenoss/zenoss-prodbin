@@ -356,7 +356,6 @@ class ZObject(object):
 
                     if hasattr(self.__class__, from_method_name):
                         if isinstance(getattr(self.__class__, from_method_name), property):
-                            self.log.debug("Overriding property '%s' with mapped method.", from_method_name)
                             delattr(self.__class__, from_method_name)
 
                     # if the value is callable, hook it in.

@@ -666,7 +666,13 @@ class PythonConfig(CollectorConfigService):
 
         device = deviceOrComponent.device()
 
-        for template in deviceOrComponent.getRRDTemplates():
+        try:
+            templates = deviceOrComponent.getRRDTemplates()
+        except Exception as ex:
+            log.error("Eror getting RRD Template for Device/Component %s; %s", deviceOrComponent, ex)
+            templates = []
+
+        for template in templates:
             # Get all enabled datasources that are PythonDataSource or
             # subclasses thereof.
             datasources = [ds for ds in template.getRRDDataSources()
@@ -861,7 +867,14 @@ class SnmpPerformanceConfig(CollectorConfigService):
 
         validOID = re.compile(r'(?:\.?\d+)+$')
         metadata = comp.getMetricMetadata()
-        for templ in comp.getRRDTemplates():
+
+        try:
+            templates = comp.getRRDTemplates()
+        except Exception as ex:
+            log.error("Could not get RRD Template for %s; %s", comp, ex)
+            templates = []
+
+        for templ in templates:
             for ds in templ.getRRDDataSources("SNMP"):
                 if not ds.oid:
                     continue
