@@ -12,6 +12,7 @@ import requests
 import threading
 import time
 import urlparse
+import json
 
 from zope.component import createObject
 from zope.component.factory import Factory
@@ -58,6 +59,13 @@ class ZingConnectorConfig(object):
             or getGlobalConfiguration().get(GLOBAL_ZING_CONNECTOR_TIMEOUT)
             or DEFAULT_TIMEOUT
         )
+
+        if type(timeout) is not float:
+            try:
+                timeout = float(timeout)
+            except:
+                log.error("could not coerce timeout to float: %s", timeout)
+
         self.timeout = timeout
 
         # admin port exists no longer
