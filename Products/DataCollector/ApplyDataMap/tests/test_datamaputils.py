@@ -16,6 +16,7 @@ from Products.DataCollector.plugins.DataMaps import ObjectMap
 from Products.ZenModel.Device import Device
 
 from ..datamaputils import (
+    isSameData,
     MultiArgs,
     log,
     MISSINGNO,
@@ -35,6 +36,48 @@ from ..datamaputils import (
 log.setLevel('DEBUG')
 
 PATH = {'src': 'Products.DataCollector.ApplyDataMap.datamaputils'}
+
+
+class TestisSameData(TestCase):
+
+    def test_isSameData(t):
+        ret = isSameData('a', 'a')
+        t.assertTrue(ret)
+
+    # compare unsorted lists of dictionaries
+    def test_unsorted_lists_of_dicts_match(t):
+        a = [{'a': 1, 'b': 2}, {'c': 3}, {'d': 4}]
+        b = [{'d': 4}, {'c': 3}, {'b': 2, 'a': 1}]
+        t.assertTrue(isSameData(a, b))
+
+    def test_unsorted_lists_of_dicts_differ(t):
+        a = [{'a': 1, 'b': 2}, {'c': 3}, {'d': 4}]
+        c = [{'d': 4}, ]
+        t.assertFalse(isSameData(a, c))
+
+    def test_unsorted_tuple_of_dicts_match(t):
+        a = ({'a': 1, 'b': 2}, {'c': 3}, {'d': 4})
+        b = ({'d': 4}, {'c': 3}, {'b': 2, 'a': 1})
+        t.assertTrue(isSameData(a, b))
+
+    def test_unsorted_tuple_of_dicts_differ(t):
+        a = ({'a': 1, 'b': 2}, {'c': 3}, {'d': 4})
+        c = ({'d': 4},)
+        t.assertFalse(isSameData(a, c))
+
+    def test_tuples_match(t):
+        a = (('a', 1, 'b', 2), ('c', 3), ('d', 4))
+        b = (('d', 4), ('c', 3), ('a', 1, 'b', 2))
+        t.assertTrue(isSameData(a, b))
+
+    def test_tuples_differ(t):
+        a = (('a', 1, 'b', 2), ('c', 3), ('d', 4))
+        b = (('d', 4), ('c', 3), ('x', 10, 'y', 20))
+        t.assertFalse(isSameData(a, b))
+
+    def test_type_mismatch(t):
+        a, c = 555, ('x', 'y')
+        t.assertFalse(isSameData(a, c))
 
 
 class GetSetObject():
