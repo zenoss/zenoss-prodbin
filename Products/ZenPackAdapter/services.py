@@ -113,10 +113,17 @@ class ZenPackAdapterService(pb.Referenceable):
         self.listenerOptions.pop(listener, None)
 
     def sendEvents(self, events):
-        return
+        if events:
+            self.db.publish_events(events)
 
     def sendEvent(self, event, **kw):
-        return
+        if event:
+            if isinstance(event, list):
+                self.sendEvents(event)
+            elif isinstance(event, dict):
+                self.sendEvents([event])
+            else:
+                self.log.debug("Unknown event type: {}".format(event))
 
     @translateError
     def remote_propertyItems(self):
@@ -155,10 +162,12 @@ class ZenPackAdapterService(pb.Referenceable):
 class EventService(ZenPackAdapterService):
 
     def remote_sendEvent(self, evt):
-        pass
+        if evt:
+            self.sendEvent(evt)
 
     def remote_sendEvents(self, evts):
-        pass
+        if evts:
+            self.sendEvents(evts)
 
     def remote_getDevicePingIssues(self, *args, **kwargs):
         return None
@@ -657,7 +666,13 @@ class PythonConfig(CollectorConfigService):
 
         device = deviceOrComponent.device()
 
-        for template in deviceOrComponent.getRRDTemplates():
+        try:
+            templates = deviceOrComponent.getRRDTemplates()
+        except Exception as ex:
+            log.error("Eror getting RRD Template for Device/Component %s; %s", deviceOrComponent, ex)
+            templates = []
+
+        for template in templates:
             # Get all enabled datasources that are PythonDataSource or
             # subclasses thereof.
             datasources = [ds for ds in template.getRRDDataSources()
@@ -770,14 +785,22 @@ class PythonConfig(CollectorConfigService):
         if not ds.plugin_classname:
             return [context.id]
 
-        return self._getPluginClass(ds).config_key(ds, context)
+        try:
+            return self._getPluginClass(ds).config_key(ds, context)
+        except Exception as ex:
+            log.error("Error getting config key for ds %s, context %s: %s", ds, context, ex)
+            return None
 
     def _getParams(self, ds, context):
         """Returns extra parameters needed for collecting this datasource."""
         if not ds.plugin_classname:
             return {}
 
-        params = self._getPluginClass(ds).params(ds, context)
+        try:
+            params = self._getPluginClass(ds).params(ds, context)
+        except Exception as ex:
+            log.error("Error getting params for ds %s, context %s: %s", ds, context, ex)
+            params = {}
 
         return params
 
@@ -844,7 +867,14 @@ class SnmpPerformanceConfig(CollectorConfigService):
 
         validOID = re.compile(r'(?:\.?\d+)+$')
         metadata = comp.getMetricMetadata()
-        for templ in comp.getRRDTemplates():
+
+        try:
+            templates = comp.getRRDTemplates()
+        except Exception as ex:
+            log.error("Could not get RRD Template for %s; %s", comp, ex)
+            templates = []
+
+        for templ in templates:
             for ds in templ.getRRDDataSources("SNMP"):
                 if not ds.oid:
                     continue

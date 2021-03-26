@@ -356,7 +356,6 @@ class ZObject(object):
 
                     if hasattr(self.__class__, from_method_name):
                         if isinstance(getattr(self.__class__, from_method_name), property):
-                            self.log.debug("Overriding property '%s' with mapped method.", from_method_name)
                             delattr(self.__class__, from_method_name)
 
                     # if the value is callable, hook it in.
@@ -595,12 +594,14 @@ class ZDevice(ZDeviceOrComponent):
         return self
 
     def getDeviceComponents(self, collector=None):
+        components = []
         for component in self.getSubComponents():
             if collector is not None:
                 if collector in getattr(component, 'collectors', []):
-                    yield component
+                    components.append(component)
             else:
-                yield component
+                components.append(component)
+        return components
 
     def getDeviceClassPath(self):
         return self.device_class

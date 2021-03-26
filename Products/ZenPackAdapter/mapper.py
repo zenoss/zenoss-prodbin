@@ -227,6 +227,7 @@ class DataMapper(object):
             type_name = self.objects.get(object_id, {}).get("type")
 
         if not type_name:
+            log.warn("No type_name for %s", object_id)
             return
 
         if type_name not in self.object_types:

@@ -154,7 +154,6 @@ class CloudPublisher(object):
         else:
             return self._put(False)
 
-
     def _put(self, scheduled):
         """
         Push the buffer of messages
@@ -236,6 +235,139 @@ class CloudPublisher(object):
             return self._make_request()
 
 
+class CloudEventPublisher(CloudPublisher):
+
+    severity = {
+        "0": "SEVERITY_INFO",
+        "1": "SEVERITY_CRITICAL",
+        "2": "SEVERITY_ERROR",
+        "3": "SEVERITY_WARNING",
+        "4": "SEVERITY_INFO",
+        "5": "SEVERITY_DEBUG",
+    }
+
+    def __init__(self,
+                 address,
+                 apiKey,
+                 useHTTPS=True,
+                 source=None,
+                 buflen=defaultMetricBufferSize,
+                 pubfreq=defaultPublishFrequency):
+        super(CloudEventPublisher, self).__init__(
+            address, apiKey, useHTTPS, source, buflen, pubfreq)
+
+        self._sent_daemon_event = False
+        self._event_publisher = None
+
+    def get_url(self, scheme, address):
+        url = "{scheme}://{address}/v1/data-receiver/events".format(
+            scheme=scheme, address=address)
+        return url
+
+    @property
+    def user_agent(self):
+        return 'Zenoss Event Cloud Publisher'
+
+    @property
+    def log(self):
+        if getattr(self, "_eventlog", None) is None:
+            self._eventlog = logging.getLogger("zen.cloudpublisher.event")
+        return self._eventlog
+
+    def put(self, events, timestamp):
+        """
+        Build a message from the event, timestamp, and tags. Then push it into the event queue to be sent.
+
+        @param event: event being published
+        @param timestamp: the time the event was received
+        @param tags: dictionary of tags for the event
+        @return: a deferred that will return the number of events still in the buffer when fired
+        """
+        message = self.build_message(events, timestamp)
+        LOG.debug("Built event message for {} events".format(len(events)))
+        if message:
+            return super(CloudEventPublisher, self).put(message)
+        else:
+            return defer.succeed(len(self._mq))
+
+    def build_message(self, events, timestamp):
+        zing_evts = []
+        for event in events:
+            dev = event.get('device', None)
+            if dev != 'localhost':
+                try:
+                    zing_evt = self.build_event_message(event.copy(), timestamp)
+                    if zing_evt:
+                        zing_evts.append(zing_evt)
+                except Exception as ex:
+                    LOG.error("Error framing event: %s", ex)
+        return zing_evts
+
+    def build_event_message(self, event, timestamp):
+        if not event or not event.get('device', None):
+            return {}
+
+        datasources = event.get("datasources", [])
+        if not datasources:
+            datasources = ["Event"]
+        ds0 = datasources[0]
+        ts = timestamp
+        if event.get("rcvtime", None):
+            ts = int(event.get("rcvtime") * 1000)
+
+        deviceName = event.pop('device')
+        comp = event.pop('component', None)
+        summary = event.pop("summary", '')
+        severity = event.pop('severity', '0')
+        deviceClass = event.pop('deviceClass', None)
+        dimensions = {
+            "device": deviceName,
+            "source": self._source
+        }
+        if comp:
+            dimensions['component'] = comp
+
+        # collect all other unique event fields and add them to the metadata
+        metadataFields = {}
+        for k, v in event.items():
+            metadataFields[k] = v
+        metadataFields['source-type'] = 'zenoss.zenpackadapter'
+        metadataFields["severity"] = self.severity.get(severity, "SEVERITY_INFO")
+        metadataFields["lastSeen"] = ts
+        metadataFields["deviceClass"] = deviceClass
+
+        zing_event = {
+            "dimensions": dimensions,
+            "name": "_".join([deviceName, ds0]),
+            "type": "_".join([deviceName, ds0]),
+            "summary": summary,
+            "severity": self.severity.get(severity, "SEVERITY_INFO"),
+            "status": "STATUS_OPEN",
+            "acknowledge": False,
+            "timestamp": ts,
+            "metadataFields": metadataFields
+        }
+
+        # ensure that device level metrics have the correct dimensions
+        if dimensions.get('component', None) == dimensions.get('device', ""):
+            zing_event['dimensions'].pop('component', '')
+
+        # Set the event name correctly.
+        if '/' in zing_event["type"]:
+            zing_event["type"] = zing_event['type'].replace('/', '_', 1)
+
+        return zing_event
+
+    def serialize_messages(self, messages):
+        if messages and len(messages) > 0 and isinstance(messages[0], list):
+            return json.dumps({
+                "detailedResponse": True,
+                "events": messages[0]}, indent=4)
+        return json.dumps({
+                "detailedResponse": True,
+                "events": []}, indent=4)
+
+
 class CloudMetricPublisher(CloudPublisher):
     def __init__(self,
                  address,
@@ -304,7 +436,6 @@ class CloudMetricPublisher(CloudPublisher):
         model['metadataFields']['name'] = name
 
         self.model_publisher().put(model)
-
 
     def build_metric(self, metricName, value, timestamp, tags):
         metric = {

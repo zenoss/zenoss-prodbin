@@ -72,6 +72,9 @@ class DB(object):
         # The model publisher (set with set_model_publisher before using)
         self.model_publisher = None
 
+        # The event publisher (set with set_event_publisher before using)
+        self.event_publisher = None
+
     def load(self):
         # create snapshot directory if it is missing
         if not os.path.exists(SNAPSHOT_DIR):
@@ -387,9 +390,13 @@ class DB(object):
             }
         }
 
+        # encure 'component' is valid
+        if not model['dimensions']['component']:
+            model['dimensions'].pop('component', None)
+
         # ensure that device level model has the correct dimensions
-        if model['dimensions']['component'] == model['dimensions']['device']:
-            model['dimensions']['component'] = ''
+        if model['dimensions'].get('component', None) == model['dimensions']['device']:
+            model['dimensions'].pop('component', None)
 
         if component is None or component == device:
             datum = mapper.get(device)
@@ -422,3 +429,44 @@ class DB(object):
 
         self.model_publisher.put(model)
 
+    def set_event_publisher(self, publisher):
+        self.event_publisher = publisher
+
+    def publish_events(self, events=None, timestamp=None, tags={}):
+        if self.event_publisher is None:
+            raise Exception("publish_events can not be called before set_event_publisher")
+
+        if not events:
+            return
+
+        for event in events:
+            dev = event.get('device', None)
+            comp = event.get('component', None)
+            event["deviceClass"] = self.get_device_class(dev, comp, event.get('eventClass', None))
+        if not timestamp:
+            timestamp = datetime_millis(datetime.datetime.utcnow())
+        self.event_publisher.put(events, int(timestamp))
+
+    def get_device_class(self, dev, comp, evtCls):
+        if evtCls:
+            return evtCls
+
+        dc = "/Unknown"
+        try:
+            if comp:
+                zobj = self.get_zobject(dev, comp)
+            else:
+                zobj = self.get_zobject(dev)
+        except Exception as ex:
+            zobj = None
+
+        if zobj:
+            try:
+                dc = type(zobj).__name__
+            except Exception as ex:
+                try:
+                    dc = zobj.device.getDeviceClassName()
+                    dc += '/' + type(zobj).__name__
+                except Exception as ex1:
+                    dc = "/Unknown"
+        return dc
