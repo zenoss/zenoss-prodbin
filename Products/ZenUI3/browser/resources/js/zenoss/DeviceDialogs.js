@@ -1,6 +1,6 @@
 /*****************************************************************************
  *
- * Copyright (C) Zenoss, Inc. 2011, all rights reserved.
+ * Copyright (C) Zenoss, Inc. 2011, 2021 all rights reserved.
  *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
@@ -10,6 +10,23 @@
 
 (function(){
     var router = Zenoss.remote.DeviceRouter;
+
+    /**
+     * @class Zenoss.dialog.NotClosableDialogButton
+     * @extends Zenoss.dialog.DialogButton
+     * A button that doesn't close the dialog after click
+     * @constructor
+     */
+    Ext.define("Zenoss.dialog.NotClosableDialogButton", {
+        extend: "Zenoss.dialog.DialogButton",
+        alias: ['widget.NotClosableDialogButton'],
+        constructor: function (config) {
+            Zenoss.dialog.DialogButton.superclass.constructor.call(this, config);
+        },
+        setHandler: function (handler, scope) {
+            Zenoss.dialog.DialogButton.superclass.setHandler.call(this, handler, scope);
+        }
+    });
 
     /**
      * @class Zenoss.form.RenameDevice
@@ -24,8 +41,22 @@
                 height: 410,
                 width: 500,
                 padding: '20 40 20 18',
+                id: 'rename_device_dialog',
                 title: _t('Reidentify Device'),
-                submitHandler: Ext.bind(this.renameDevice, this),
+                submitHandler: Ext.bind(this.handleSubmit, this),
+
+                buttons: [{
+                    xtype: 'NotClosableDialogButton',
+                    text: _t('Submit'),
+                    disabled: true,
+                    type: 'submit',
+                    ref: 'buttonSubmit',
+                },{
+                    xtype: 'DialogButton',
+                    ref: 'buttonCancel',
+                    text: _t('Cancel')
+                }],
+
                 items: [{
                     xtype: 'hidden',
                     name: 'uid',
@@ -89,7 +120,31 @@
                     window.location = uid;
                 }
             });
-        }
+        },
+        closeDialog: function () {
+            Ext.getCmp('rename_device_dialog').destroy();
+        },
+        handleSubmit: function (values) {
+            if(values.retainGraphData) {
+                Ext.create('Zenoss.dialog.SimpleMessageDialog', {
+                    title: _t('Possible Data Loss'),
+                    message: Ext.String.format(_t("Are you sure? Possible data loss for the devices \
+                                                   that has a large number of components")),
+                    buttons: [{
+                        xtype: 'DialogButton',
+                        text: _t('OK'),
+                        handler: Ext.bind(function() {
+                            this.renameDevice(values);
+                            this.closeDialog();
+                        }, this),
+                    }, Zenoss.dialog.CANCEL]
+                }).show();
+
+            } else {
+                this.renameDevice(values);
+                this.closeDialog();
+            }
+        },
     });
 
     /**
