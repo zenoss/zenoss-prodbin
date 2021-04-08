@@ -423,6 +423,10 @@ class MaintenanceWindow(ZenModelRM):
 
         if now < self.start:
             return self.start
+        
+        nowDateTime = datetime.fromtimestamp(now, self.tzInstance)
+        startDateTime = datetime.fromtimestamp(self.start, self.tzInstance)
+        diffBetweenNowAndStart = nowDateTime - startDateTime
 
         if self.repeat == self.NEVER:
             if now > self.start:
@@ -430,16 +434,15 @@ class MaintenanceWindow(ZenModelRM):
             return self.start
 
         elif self.repeat == self.DAILY:   
-            daysSince = (now - self.start) // DAY_SECONDS
+            daysSince = diffBetweenNowAndStart.days
             dateTime = datetime.fromtimestamp(self.start, self.tzInstance) + relativedelta(days=daysSince + self.skip)
             return Time.awareDatetimeToTimestamp(dateTime)
 
         elif self.repeat == self.EVERY_WEEKDAY:
-            weeksSince = (now - self.start) // WEEK_SECONDS
+            weeksSince = diffBetweenNowAndStart.days // 7
             weekdaysSince = weeksSince * 5
             # start at the most recent week-even point from the start
             baseDateTime = datetime.fromtimestamp(self.start, self.tzInstance) + relativedelta(weeks=weeksSince)
-            nowDateTime = datetime.fromtimestamp(now, self.tzInstance)
             while 1:
                 dow = baseDateTime.weekday()
                 if dow not in (5,6):
@@ -451,7 +454,7 @@ class MaintenanceWindow(ZenModelRM):
             return Time.awareDatetimeToTimestamp(baseDateTime)
 
         elif self.repeat == self.WEEKLY:
-            weeksSince = (now - self.start) // WEEK_SECONDS
+            weeksSince = diffBetweenNowAndStart.days // 7
             dateTime = datetime.fromtimestamp(self.start, self.tzInstance) + relativedelta(weeks=weeksSince + self.skip)
             return Time.awareDatetimeToTimestamp(dateTime)
 
