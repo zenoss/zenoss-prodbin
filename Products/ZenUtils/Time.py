@@ -151,5 +151,11 @@ def getLocalTimezone():
     """
     Return a string representing local time zone.
     """
-    return time.strftime("%Z")
+    # try to read serviced variable
+    timezone = os.getenv("TZ", None)
+
+    if not timezone:
+        timezone = time.strftime("%Z")
+
+    return timezone
     
