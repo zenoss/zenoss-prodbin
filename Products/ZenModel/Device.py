@@ -1828,9 +1828,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         )
         collection_daemons = set()
         for ds in datasources:
-            # Use the first acceptable sourcetype value found in the
-            # datasource class's method resolution order (mro) list.
-            daemon = _sourcetype_to_collector_map[ds.sourcetype]
+            daemon = _sourcetype_to_collector_map.get(ds.sourcetype, None)
             if daemon:
                 collection_daemons.add(daemon)
 
