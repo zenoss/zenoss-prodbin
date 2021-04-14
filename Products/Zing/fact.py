@@ -318,24 +318,23 @@ class _FactEncoder(JSONEncoder):
     def _tweak_data(self, data_in):
         data_out = {}
         for k, v in data_in.iteritems():
-            if isinstance(v, (list, tuple, set)):
-                # whatever comes in the list, set etc. needs to be scalar,
-                # if it isn't cast it to string for now.
-                # TODO: Review if we need to support more complex types
-                # (list of lists, etc)
-                values = []
-                for x in v:
-                    if not isinstance(x, (str, int, long, float, bool)):
-                        log.debug(
-                            "Found non scalar type in list (%s). "
-                            "Casting it to str",
-                            x.__class__,
-                        )
-                        x = '' if x is None else str(x)
-                    values.append(x)
-                data_out[k] = sorted(values)
-            else:
-                data_out[k] = [''] if v is None else [v]
+            if not isinstance(v, (list, tuple, set)):
+                v = [v]
+            # whatever comes in the list, set etc. needs to be scalar,
+            # if it isn't cast it to string for now.
+            # TODO: Review if we need to support more complex types
+            # (list of lists, etc)
+            values = []
+            for x in v:
+                if not isinstance(x, (str, int, long, float, bool)):
+                    log.debug(
+                        "Found non scalar type in list (%s). "
+                        "Casting it to str",
+                        x.__class__,
+                    )
+                    x = '' if x is None else str(x)
+                values.append(x)
+            data_out[k] = sorted(values)
         return data_out
 
     def default(self, o):
