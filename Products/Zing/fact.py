@@ -331,11 +331,11 @@ class _FactEncoder(JSONEncoder):
                             "Casting it to str",
                             x.__class__,
                         )
-                        x = str(x)
+                        x = '' if x is None else str(x)
                     values.append(x)
                 data_out[k] = sorted(values)
             else:
-                data_out[k] = [v]
+                data_out[k] = [''] if v is None else [v]
         return data_out
 
     def default(self, o):
