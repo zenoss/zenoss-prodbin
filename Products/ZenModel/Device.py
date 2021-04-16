@@ -13,7 +13,6 @@ Base device (remote computer) class
 """
 
 import cgi
-import inspect
 import itertools
 import logging
 import socket
@@ -87,6 +86,7 @@ from .interfaces import IExpandedLinkProvider
 from .MaintenanceWindowable import MaintenanceWindowable
 from .ManagedEntity import ManagedEntity
 from .OperatingSystem import OperatingSystem
+from .RRDDataSource import isPythonDataSource
 from .ZenMenuable import ZenMenuable
 from .ZenossSecurity import (
     ZEN_ADMIN_DEVICE,
@@ -1828,15 +1828,19 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         )
         collection_daemons = set()
         for ds in datasources:
-            daemon = _sourcetype_to_collector_map.get(ds.sourcetype, None)
+            if isPythonDataSource(ds):
+                daemon = _sourcetype_to_collector_map['Python']
+            else:
+                daemon = _sourcetype_to_collector_map.get(ds.sourcetype)
             if daemon:
                 collection_daemons.add(daemon)
 
         # We support only core collection daemons
         # zenpython; zenperfsnmp; zencommand
-        if not collection_daemons and write:
-            write('Monitoring through UI only support COMMAND, '
-                  'SNMP and ZenPython type of datasources')
+        if not collection_daemons:
+            if write:
+                write('Monitoring through UI only support COMMAND, '
+                      'SNMP and ZenPython type of datasources')
             if xmlrpc: return 1
             return
         # Pass collection_daemons as a list because perfConf.runDeviceMonitor
@@ -1855,21 +1859,23 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         parameter = '--datasource'
         value = '%s/%s' % (dsObj.rrdTemplate.obj.id, dsObj.id)
-        collection_daemon = ''
-        if dsObj.sourcetype == 'COMMAND':
-            collection_daemon = 'zencommand'
-        elif dsObj.__class__.__base__.sourcetype == 'Python':
-            collection_daemon = 'zenpython'
+        if isPythonDataSource(dsObj):
+            collection_daemon = _sourcetype_to_collector_map['Python']
+        elif dsObj.sourcetype == 'COMMAND':
+            collection_daemon = _sourcetype_to_collector_map['COMMAND']
         elif dsObj.sourcetype == 'SNMP':
-            collection_daemon = 'zenperfsnmp'
+            collection_daemon = _sourcetype_to_collector_map['SNMP']
             parameter = '--oid'
             value = dsObj.oid
+        else:
+            collection_daemon = ''
 
         xmlrpc = isXmlRpc(REQUEST)
         perfConf = self.getPerformanceServer()
-        if not collection_daemon and write:
-            write('Modeling through UI only support COMMAND, '
-                  'SNMP and ZenPython type of datasources')
+        if not collection_daemon:
+            if write:
+                write('Modeling through UI only support COMMAND, '
+                      'SNMP and ZenPython type of datasources')
             if xmlrpc: return 1
             return
 
