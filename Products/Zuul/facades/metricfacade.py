@@ -760,19 +760,20 @@ class MetricFacade(ZuulFacade):
             i = 0
             for line in resp:
                 jsonLine = json.loads(line)
-                if jsonLine['type'] == 'info':
+                logtype = jsonLine['type']
+                if logtype == 'info':
                     log.info(jsonLine['content'])
-                if jsonLine['type'] == 'progress':
+                elif logtype == 'progress':
                     if i % logFreq == 0:
                         log.info(jsonLine['content'])
-                elif jsonLine['type'] == 'error':
+                elif logtype == 'error':
                     log.error(jsonLine['content'])
                     nFails += 1
                 else:
                     log.error(
                         'Unknown log msg type received from central query: '
                         'type %s, content %s',
-                        jsonLine['type'],
+                        logtype,
                         jsonLine['content']
                     )
 
