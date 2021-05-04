@@ -205,7 +205,7 @@ class SnmpAgentDiscoverer(object):
         Returns the best SnmpConfig in the provided configs list.
         """
         _LOG.debug("findBestConfig: configs=%s" % configs)
-        self._pending = configs
+        self._pending = list(configs)
         self._d = Deferred()
 
         for c in configs:
