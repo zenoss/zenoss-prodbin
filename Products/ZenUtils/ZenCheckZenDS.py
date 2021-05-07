@@ -17,7 +17,6 @@ import subprocess
 from subprocess import Popen, PIPE
 import sys
 
-import Globals  # noqa
 from Products.ZenUtils.config import ConfigFile
 from Products.ZenUtils.configlog import ZenRotatingFileHandler
 from Products.ZenUtils.Utils import zenPath
