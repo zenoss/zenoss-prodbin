@@ -10,7 +10,6 @@
 
 __doc__ = "Convert old-style zenpacks to zenpack eggs"
 
-import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenModel.ZenPack import ZenPackException
 from Utils import zenPath
@@ -86,7 +85,7 @@ if __name__ == '__main__':
     e = Eggify()
     try:
         e.run()
-    except ZenPackException, e:
+    except ZenPackException as e:
         import sys
         sys.stderr.write('%s\n' % str(e))
         sys.exit(-1)

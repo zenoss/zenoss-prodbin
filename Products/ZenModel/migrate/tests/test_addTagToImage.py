@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import unittest
-import Globals
 import common
 
 class TestAddTagToImage(unittest.TestCase, common.ServiceMigrationTestCase):

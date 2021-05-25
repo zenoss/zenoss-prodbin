@@ -9,7 +9,6 @@
 # 
 ##############################################################################
 
-import Globals
 
 from ZopeRequestLogger import ZopeRequestLogger
 

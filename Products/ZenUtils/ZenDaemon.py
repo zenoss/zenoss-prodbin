@@ -203,7 +203,6 @@ class ZenDaemon(CmdBase):
 
             for handler in (h for h in rootLog.handlers
                     if isinstance(h, logging.StreamHandler)):
-                handler.setLevel(self.options.logseverity)
                 handler.setFormatter(formatter)
 
         self.log = logging.getLogger('zen.%s' % self.logname)
@@ -280,14 +279,14 @@ class ZenDaemon(CmdBase):
             getproxies()
         try:
             pid = os.fork()
-        except OSError, e:
+        except OSError as e:
             raise Exception("%s [%d]" % (e.strerror, e.errno))
 
         if pid == 0:  # The first child.
             os.setsid()
             try:
                 pid = os.fork()  # Fork a second child.
-            except OSError, e:
+            except OSError as e:
                 raise Exception("%s [%d]" % (e.strerror, e.errno))
 
             if pid == 0:  # The second child.

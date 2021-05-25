@@ -20,7 +20,6 @@ from copy import copy
 import logging
 import sys
 
-import Globals # noqa
 from Products.ZenUtils.Utils import executeStreamCommand, executeSshCommand
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 

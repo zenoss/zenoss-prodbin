@@ -68,7 +68,6 @@ Ext.define("Zenoss.model.Job", {
         'started',
         'finished',
         'status',
-        'result',
         'user'
     ]
 });
@@ -131,6 +130,25 @@ Ext.define("Zenoss.JobsWidget", {
                         }, {
                             header: 'started',
                             dataIndex: 'started',
+                            renderer: readableRenderer,
+                            width: 150
+                        }]
+                    },{
+                        id: 'jobs-grid-retry',
+                        xtype: 'grid',
+                        hideHeaders: true,
+                        forceFit: true,
+                        stateful: false,
+                        disableSelection: true,
+                        title: _t('Retry jobs'),
+                        store: pendingJobsStore,
+                        columns: [{
+                            header: 'description',
+                            dataIndex: 'description',
+                            renderer: jobLinkRenderer
+                        }, {
+                            header: 'scheduled',
+                            dataIndex: 'scheduled',
                             renderer: readableRenderer,
                             width: 150
                         }]
@@ -261,6 +279,7 @@ Ext.define("Zenoss.JobsWidget", {
     },
     update_button: function(totals) {
         var pending = lengthOrZero(totals.PENDING),
+            retry = lengthOrZero(totals.RETRY),
             running = lengthOrZero(totals.STARTED),
             text, cl, jobText;
         if (!pending && !running) {
@@ -272,7 +291,9 @@ Ext.define("Zenoss.JobsWidget", {
             }else {
                 jobText = " Job";
             }
-            text = running + jobText + " ("+pending+" Pending)";
+            unfinished = pending + retry;
+            unfinished_text = (retry == 0) ? " Pending" : " Pending/Retry";
+            text = running + jobText + " ("+ unfinished + unfinished_text + ")";
             cl = 'circle_arrows_ani';
         }
         this.setIconCls(cl);
@@ -284,6 +305,10 @@ Ext.define("Zenoss.JobsWidget", {
             Ext.getCmp('jobs-grid-running').setVisible(jobs.STARTED);
             if (jobs.STARTED) {
                 runningJobsStore.loadData(jobs.STARTED);
+            }
+            Ext.getCmp('jobs-grid-retry').setVisible(jobs.RETRY);
+            if (jobs.RETRY) {
+                pendingJobsStore.loadData(jobs.RETRY);
             }
             Ext.getCmp('jobs-grid-pending').setVisible(jobs.PENDING);
             if (jobs.PENDING) {
@@ -297,6 +322,7 @@ Ext.define("Zenoss.JobsWidget", {
         } else {
             Ext.getCmp('nojobspanel').show();
             Ext.getCmp('jobs-grid-running').hide();
+            Ext.getCmp('jobs-grid-retry').hide();
             Ext.getCmp('jobs-grid-pending').hide();
             Ext.getCmp('jobs-grid-finished').hide();
             Ext.getCmp('more-jobs-link').hide();

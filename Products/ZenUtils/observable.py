@@ -45,7 +45,6 @@ This implementation will likely only work with new style classes that have been
 properly implemented.
 """
 
-import Globals
 import zope.interface
 
 class IObservable(zope.interface.Interface):

@@ -16,8 +16,8 @@ import sys
 import logging
 log = logging.getLogger("zen.Relations")
 
-from Globals import DTMLFile
-from Globals import InitializeClass
+from App.special_dtml import DTMLFile
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 

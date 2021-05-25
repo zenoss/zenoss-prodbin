@@ -10,7 +10,6 @@
 
 __doc__='Base Classes for loading gunk in a ZenPack'
 
-import Globals
 from Products.ZenReports.ReportLoader import ReportLoader
 from Products.ZenUtils.events import pausedAndOptimizedIndexing
 from Products.ZenUtils.Utils import zenPath, binPath
@@ -386,7 +385,7 @@ class ZPLAbout(ZenPackLoader):
             for key, value in parser.items(CONFIG_SECTION_ABOUT):
                 try:
                     value = eval(value)
-                except:
+                except Exception:
                     # Blanket exception catchers like this are evil.
                     pass
                 result.append((key, value))

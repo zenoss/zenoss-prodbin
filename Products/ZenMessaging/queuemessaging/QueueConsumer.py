@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 import logging
 from zope.component import getUtility
 from twisted.internet import defer

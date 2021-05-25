@@ -21,7 +21,6 @@ import random
 import logging
 log = logging.getLogger("zen.zenperfsnmp")
 
-import Globals
 import zope.interface
 
 from twisted.internet import defer, error
@@ -299,9 +298,9 @@ class SnmpPerformanceCollectionTask(BaseTask):
         update_x = {}
         try:
             update_x = yield self._snmpProxy.get(oid_chunk, self._snmpConnInfo.zSnmpTimeout, self._snmpConnInfo.zSnmpTries)
-        except (error.TimeoutError, SnmpTimeoutError), e:
+        except (error.TimeoutError, SnmpTimeoutError) as e:
             raise
-        except Exception, e:
+        except Exception as e:
             log.exception('Failed to collect on {0} ({1.__class__.__name__}: {1})'.format(self.configId, e))
             #something happened, not sure what.
             raise
@@ -364,7 +363,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                             yield self._dataService.writeMetricWithMetadata(metric,
                                     value, rrdType, min=rrdMin, max=rrdMax,
                                     metadata=metadata)
-                        except Exception, e:
+                        except Exception as e:
                             log.exception("Failed to write to metric service: {0} {1.__class__.__name__} {1}".format(path, e))
                             continue
             finally:
@@ -387,7 +386,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                     num_checked += 1
                     try:
                         yield self._fetchPerfChunk([oid])
-                    except (error.TimeoutError, SnmpTimeoutError), e:
+                    except (error.TimeoutError, SnmpTimeoutError) as e:
                         log.debug('%s timed out re-checking bad oid %s', self.name, oid)
 
     def _sendStatusEvent(self, summary, eventKey=None, severity=Event.Error, details=None):
@@ -512,7 +511,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
 
         try:
             self._close()
-        except Exception, ex:
+        except Exception as ex:
             log.warn("Failed to close device %s: error %s" %
                      (self._devId, str(ex)))
 

@@ -15,8 +15,8 @@ $Id: DeviceGroup.py,v 1.15 2004/04/04 01:51:19 edahl Exp $"""
 
 __version__ = "$Revision: 1.15 $"[11:-2]
 
-from Globals import DTMLFile
-from Globals import InitializeClass
+from App.special_dtml import DTMLFile
+from AccessControl.class_init import InitializeClass
 
 from Products.ZenRelations.RelSchema import *
 

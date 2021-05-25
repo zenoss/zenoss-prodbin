@@ -10,7 +10,6 @@
 import logging
 log = logging.getLogger('zen.Reports')
 
-import Globals
 import transaction
 from Products.ZenReports.Utils import Record
 from time import time

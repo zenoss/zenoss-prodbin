@@ -735,11 +735,7 @@ class MetricFacade(ZuulFacade):
         return results
 
     # This method is supposed to run as a facade method job.
-    def renameDevice(self, oldId, newId, joblog=None):
-        # joblog is injected in the FacadeMethodJob class when this method runs
-        # as a job. The messages written to joblog will be displayed in the Jobs
-        # pane of Zenoss.
-
+    def renameDevice(self, oldId, newId):
         path = RENAME_URL_PATH
         timeout = 120
         totalFails = 0
@@ -764,22 +760,20 @@ class MetricFacade(ZuulFacade):
             i = 0
             for line in resp:
                 jsonLine = json.loads(line)
-                if jsonLine['type'] == 'info':
+                logtype = jsonLine['type']
+                if logtype == 'info':
                     log.info(jsonLine['content'])
-                    joblog.info(jsonLine['content'])
-                if jsonLine['type'] == 'progress':
+                elif logtype == 'progress':
                     if i % logFreq == 0:
                         log.info(jsonLine['content'])
-                        joblog.info(jsonLine['content'])
-                elif jsonLine['type'] == 'error':
+                elif logtype == 'error':
                     log.error(jsonLine['content'])
-                    joblog.error(jsonLine['content'])
                     nFails += 1
                 else:
                     log.error(
                         'Unknown log msg type received from central query: '
                         'type %s, content %s',
-                        jsonLine['type'],
+                        logtype,
                         jsonLine['content']
                     )
 
@@ -789,7 +783,6 @@ class MetricFacade(ZuulFacade):
             # every once in a while so that the last line can be omitted.
             if jsonLine and jsonLine['type'] == 'progress':
                 log.info(jsonLine['content'])
-                joblog.info(jsonLine['content'])
 
             return nFails
 
@@ -864,10 +857,10 @@ class MetricFacade(ZuulFacade):
                 summary=summary,
                 message=message))
         except Exception as e:
-            msg = 'Exception thrown while re-identifying device {} to {}: {}'.format(
-                    oldId, newId, e)
-            log.error(msg)
-            joblog.error(msg)
+            log.error(
+                "Exception thrown while re-identifying device {} to {}: {}",
+                oldId, newId, e,
+            )
 
         finally:
             if success:
@@ -878,10 +871,10 @@ class MetricFacade(ZuulFacade):
                     from transaction import commit
                     commit()
                 else:
-                    msg = ('Cannot find a device after reidentifying: '
-                        'Old ID %s, new ID %s'.format(oldId, newId))
-                    log.error(msg)
-                    joblog.error(msg)
+                    log.error(
+                        "Cannot find a device after reidentifying  "
+                        "old-id=%s new-id=%s", oldId, newId,
+                    )
                     success = False
 
             return {'success': success, 'message': None}

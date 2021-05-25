@@ -87,6 +87,7 @@
                           case "STARTED":
                             return Ext.String.format("<img src='{0}' alt='{1}' />", "/++resource++zenui/img/ext4/icon/circle_arrows_ani.gif", status);
                           case "PENDING":
+                          case "RETRY":
                             return Ext.String.format("<img src='{0}' alt='{1}' />", "/++resource++zenui/img/ext4/icon/circle_arrows_still.png", status);
                           case "ABORTED":
                             return "<span class=\"tree-severity-icon-small-warning\" style=\"padding-left:18px;padding-top:2px;\">Aborted</span>";
@@ -140,11 +141,16 @@
                         if (!val) {
                             return "--";
                         }
-                        return Ext.String.format("<a href=\"{2}\"onClick='{0}'> {1}</a>",
-                                                 'Zenoss.quickstart.Wizard.openJobLogFile(\"' + record.get('uuid') + "\", \"" + record.get('networks')  +"\")",
-                                                 val.replace("/opt/zenoss/log/jobs/", ""),
-                                                 window.location.hash
-                                                );
+                        return Ext.String.format(
+                            "<a href=\"{0}\" onClick=\"{1}\">{2}</a>",
+                            "javascript:",
+                            Ext.String.format(
+                                "Zenoss.quickstart.Wizard.openJobLogFile('{0}', '{1}')",
+                                record.get('uuid'),
+                                record.get('networks')
+                            ),
+                            val.replace("/opt/zenoss/log/jobs/", "")
+                        );
                     }
                 }, {
                     xtype: 'actioncolumn',

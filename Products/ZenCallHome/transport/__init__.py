@@ -20,7 +20,7 @@ from datetime import datetime
 from persistent.dict import PersistentDict
 from zope.component import getUtilitiesFor
 
-from Globals import Persistent
+from Persistence import Persistent
 from Products.ZenCallHome.transport.crypt import encrypt, decrypt
 from Products.ZenCallHome.transport.interfaces import IReturnPayloadProcessor
 from Products.ZenUtils.Version import Version
@@ -125,7 +125,7 @@ class CallHome(object):
             returnPayload = zlib.decompress(base64.urlsafe_b64decode(
                                                 returnPayload))
             returnPayload = json.loads(returnPayload)
-        except:
+        except Exception:
             logger.debug('Error decoding return payload from server')
             return
 

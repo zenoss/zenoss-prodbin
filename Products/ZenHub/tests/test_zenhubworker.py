@@ -52,6 +52,7 @@ class ZenHubWorkerTest(TestCase):
             'dmd': patch.object(ZenHubWorker, 'dmd', create=True),
             'log': patch.object(ZenHubWorker, 'log', create=True),
             'options': patch.object(ZenHubWorker, 'options', create=True),
+            'connection': patch.object(ZenHubWorker, 'connection', create=True),
         }
         for name, patcher in t.zcmdbase_patchers.items():
             setattr(t, name, patcher.start())

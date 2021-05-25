@@ -29,7 +29,7 @@ import pytz
 from OFS.ObjectManager import checkValidId as globalCheckValidId
 
 from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base, aq_chain
 
 from Products.ZenModel.interfaces import IZenDocProvider
@@ -137,7 +137,7 @@ class ZenModelBase(object):
         try:
             globalCheckValidId(self, new_id)
             return True
-        except:
+        except Exception:
             return str(sys.exc_info()[1])
 
 
@@ -301,7 +301,7 @@ class ZenModelBase(object):
             from Products.ZenModel.Organizer import Organizer
             try:
                 return isinstance(curDir, Organizer)
-            except:
+            except Exception:
                 return False
 
         return ZenModelBase.breadCrumbs(self, terminator, isOrganizer)

@@ -175,7 +175,8 @@ Ext.onReady(function () {
         }
         if (Ext.getCmp('actions-menu')) {
             Ext.getCmp('actions-menu').setDisabled(bool ||
-                Zenoss.Security.doesNotHavePermission('Manage Device'));
+                (Zenoss.Security.doesNotHavePermission('Change Device Production State') &&
+                 Zenoss.Security.doesNotHavePermission('Manage Device')));
         }
 
 
@@ -964,8 +965,44 @@ Ext.onReady(function () {
         return additionalWarnings.join('<br><br>');
     }
 
-
+    // page level variables
+    var originalMessage,
+        errorMessage = "You cannot move devices to a top-level organizer";
     function initializeTreeDrop(tree) {
+        var rootOrganizers = [
+            "/zport/dmd/Devices",
+            "/zport/dmd/Locations",
+            "/zport/dmd/Groups",
+            "/zport/dmd/Systems",
+        ]
+
+        tree.getView().on('nodedragover', function(targetNode, position, dragData, e, eOpts) {
+            var targetUid = targetNode.data.uid,
+                dragText = dragData.ddel.getHTML(),
+                isDevice;
+
+            // get original dragText
+            if (dragText && dragText !== errorMessage) {
+                originalMessage = dragText;
+            }
+
+            // check whether we drag device, not organizer
+            if (dragData.records) {
+                isDevice = dragData.records[0].get("uid").includes('/devices/');
+            }
+
+            // if we drag device over organizer root then show errorMessage
+            if (isDevice && rootOrganizers.includes(targetUid)) {
+                dragData.ddel.update(errorMessage);
+                return false;
+            }
+
+            // if everything became fine then return originalMessage back
+            if (dragText === errorMessage) {
+                dragData.ddel.update(originalMessage);
+            }
+            return true;
+        }, tree);
 
         // fired when the user actually drops a node
         tree.getView().on('beforedrop', function (element, e, targetnode) {
@@ -1517,7 +1554,19 @@ Ext.onReady(function () {
         selModel: new Zenoss.DeviceGridSelectionModel({
             listeners: {
                 selectionchange: function (sm) {
-                    setDeviceButtonsDisabled(!sm.hasSelection());
+                    if (!_has_global_roles()) {
+                        if (sm.hasSelection()) {
+                            var selection = sm.getSelection();
+                            setDeviceButtonsDisabled(false);
+                            selection.forEach(function(sel) {
+                                Zenoss.Security.setContext(sel.data.uid)
+                            });                            
+                        } else {
+                            setDeviceButtonsDisabled(true);
+                        }
+                    } else {
+                        setDeviceButtonsDisabled(!sm.hasSelection());
+                    }
                 }
             }
         }),
@@ -1712,8 +1761,9 @@ Ext.onReady(function () {
         if (!Zenoss.settings.enableInfiniteGridForEvents) {
             events_store.buffered = false;
         }
+        var eventsGridId = 'events_grid';
         var event_console = Ext.create('Zenoss.EventGridPanel', {
-            id: 'events_grid',
+            id: eventsGridId,
             stateId: 'infrastructure_events',
             //columns: Zenoss.env.getColumnDefinitions(['DeviceClass']),
             columns: Zenoss.env.getColumnDefinitionsToRender('infrastructure_events'),
@@ -1729,6 +1779,20 @@ Ext.onReady(function () {
             }
         });
 
+        if(!_has_global_roles()) {
+            // take context from selected events, not from selected navigation item
+            Zenoss.EventActionManager.configure({
+                findParams: function() {
+                    var grid = Ext.getCmp(eventsGridId);
+                    if (grid) {
+                        var params = grid.getSelectionParameters();
+                        // delete device uid because can be selected events for different devices
+                        delete params.uid;
+                        return params;
+                    }
+                }
+            });
+        }
         if (re_attach_to_container === true) {
             var container_panel = Ext.getCmp('detail_panel');
             container_panel.items.insert(1, event_console);
@@ -1948,7 +2012,8 @@ Ext.onReady(function () {
                     msg = [msg, '<br/><br/><strong>',
                         _t('WARNING'), '</strong>:',
                         _t(' This will also delete all devices in this {0}.'),
-                        '<br/>'].join('');
+                        '<br/>',
+                        _t(' Type the full path of the class you want to remove to confirm')].join('');
                 }
                 return Ext.String.format(msg, itemName.toLowerCase(), '/' + node.data.path);
             },

@@ -1,12 +1,20 @@
-<configure xmlns="http://namespaces.zope.org/meta">
+<?xml version="1.0"?>
+<configure xmlns:meta="http://namespaces.zope.org/meta">
 
-<directives namespace="http://namespaces.zope.org/zope">
+   <meta:directives namespace="http://namespaces.zope.org/celery">
+      <meta:directive
+         name="signal"
+         schema=".metadirectives.ICelerySignal"
+         handler=".metaconfigure.signal"
+         />
+   </meta:directives>
 
-    <directive
-        name="job"
-        schema=".metadirectives.IJob"
-        handler=".metaconfigure.job"
-        />
+   <meta:directives namespace="http://namespaces.zope.org/zope">
+      <meta:directive
+         name="job"
+         schema=".metadirectives.IJob"
+         handler=".metaconfigure.job"
+         />
+   </meta:directives>
 
-</directives>
 </configure>

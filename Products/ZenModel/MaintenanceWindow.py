@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, 2009, 2014 all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007, 2009, 2014, 2021 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -19,11 +19,14 @@ WEEK_SECONDS = 7*DAY_SECONDS
 
 import re
 import time
+import dateutil.tz as tz
 import calendar
 import logging
 log = logging.getLogger("zen.MaintenanceWindows")
 
-import Globals
+
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from AccessControl import ClassSecurityInfo
 from zope.interface import implements
@@ -41,37 +44,31 @@ from Products.Zuul.catalog.events import IndexingEvent
 
 import transaction
 from ZODB.transact import transact
+from ZODB.POSException import ConflictError, POSKeyError, ReadConflictError
 
 
-def lastDayPreviousMonth(seconds):
-    parts = list(time.localtime(seconds))
-    # use day 1 of this month
-    parts[2] = 1
-    # and go back DAY_SECONDS
-    return time.mktime(parts) - DAY_SECONDS
+def addMonth(secs, dayOfMonthHint=0, tzInstance=tz.tzutc()):
+    dateTime = datetime.fromtimestamp(secs, tzInstance)
+    newYear = dateTime.year
+    newMonth = dateTime.month + 1
 
-def addMonth(secs, dayOfMonthHint=0):
-    base = list(time.localtime(secs))
-    # add a month
-    base[1] += 1
-    # year wrap
-    if base[1] == 13:
-        base[0] += 1
-        base[1] = 1
-    # Check for the case Jan 31 becomes March 3
-    # in that case, force it back to Feb 28
+    if newMonth > 12:
+        newYear += 1
+        newMonth = 1
 
-    # first, remember the month
-    month = base[1]
-    if dayOfMonthHint:
-        base[2] = dayOfMonthHint
-    # normalize
-    base = list(time.localtime(time.mktime(base)))
-    # if the month changed, walk back to the end of the previous month
-    if base[1] != month:
-        return lastDayPreviousMonth(time.mktime(base))
-    return time.mktime(base)
+    lastDayOfMonth = calendar.monthrange(newYear, newMonth)[1]
+    newDay = min(dayOfMonthHint, lastDayOfMonth)
+    newDateTime = datetime(
+        year=newYear, 
+        month=newMonth, 
+        day=newDay, 
+        hour=dateTime.hour, 
+        minute=dateTime.minute, 
+        second=dateTime.second,
+        tzinfo=tzInstance
+    )
 
+    return Time.awareDatetimeToTimestamp(newDateTime)
 
 RETURN_TO_ORIG_PROD_STATE = -99
 
@@ -93,6 +90,8 @@ class MaintenanceWindow(ZenModelRM):
     stopProductionState = RETURN_TO_ORIG_PROD_STATE
     enabled = True
     skip = 1
+    timezone = 'UTC'
+    tzInstance = tz.tzutc()
 
     _properties = (
         {'id':'name', 'type':'string', 'mode':'w'},
@@ -103,6 +102,7 @@ class MaintenanceWindow(ZenModelRM):
         {'id':'days', 'type':'string', 'mode':'w'},
         {'id':'occurrence', 'type':'string', 'mode':'w'},
         {'id':'skip', 'type':'int', 'mode':'w'},
+        {'id': 'timezone', 'type':'string', 'mode':'w'},
         )
 
     factory_type_information = (
@@ -135,13 +135,15 @@ class MaintenanceWindow(ZenModelRM):
         self.start = time.time()
         self.enabled = False
 
-    def set(self, start, duration, repeat, days='Sunday', occurrence='1st', enabled=True):
+    def set(self, start, duration, repeat, days='Sunday', occurrence='1st', enabled=True, timezone='UTC'):
         self.start = start
         self.duration = duration
         self.repeat = repeat
         self.enabled = enabled
         self.days = days
         self.occurrence = occurrence
+        self.timezone = timezone
+        self.tzInstance = tz.gettz(timezone)
 
     def displayName(self):
         if self.name is not None: return self.name
@@ -174,7 +176,7 @@ class MaintenanceWindow(ZenModelRM):
 
     def niceStartDateTime(self):
         "Return start time as a string with nice sort qualities"
-        return "%s %s" % (Time.LocalDateTime(self.start), Time.getLocalTimezone())
+        return "%s %s" % (Time.convertTimestampToTimeZone(self.start, self.timezone), self.timezone)
 
     def niceStartProductionState(self):
         "Return a string version of the startProductionState"
@@ -185,10 +187,10 @@ class MaintenanceWindow(ZenModelRM):
         return 'Original'
 
     def niceStartHour(self):
-        return time.localtime(self.start)[3]
+        return datetime.fromtimestamp(self.start, self.tzInstance).hour
 
     def niceStartMinute(self):
-        return time.localtime(self.start)[4]
+        return datetime.fromtimestamp(self.start, self.tzInstance).minute
 
     def niceRepeat(self):
         if self.repeat == self.REPEAT[-1]:
@@ -212,7 +214,8 @@ class MaintenanceWindow(ZenModelRM):
                                      enabled=True,
                                      skip=1,
                                      REQUEST=None,
-                                     startDateTime=None):
+                                     startDateTime=None,
+                                     timezone=None):
         "Update the maintenance window from GUI elements"
         def makeInt(v, fieldName, minv=None, maxv=None, acceptBlanks=True):
             if acceptBlanks:
@@ -243,6 +246,15 @@ class MaintenanceWindow(ZenModelRM):
         prodStates = dict((key, value) for (key,value) in self.dmd.getProdStateConversions())
         msgs = []
         self.enabled = bool(enabled)
+
+        if not timezone:
+            # Use container timezone
+            timezone = time.strftime('%Z')
+        try:
+            tzInstance = tz.gettz(timezone)
+        except:
+            msgs.append("'timezone' has wrong value")
+    
         if startDateTime:
             t = int(startDateTime)
         else:
@@ -257,8 +269,8 @@ class MaintenanceWindow(ZenModelRM):
             month = int(month)
             year = int(year)
             if not msgs:
-                t = time.mktime((year, month, day, startHours, startMinutes,
-                             0, 0, 0, -1))
+                startDateTime = datetime(year, month, day, startHours, startMinutes, tzinfo=tzInstance)
+                t = Time.awareDatetimeToTimestamp(startDateTime)
         if repeat not in self.REPEAT:
             msgs.append('\'repeat\' has wrong value.')
         if not isinstance(enabled, bool):
@@ -300,10 +312,12 @@ class MaintenanceWindow(ZenModelRM):
             self.startProductionState = startProductionState
             self.stopProductionState = stopProductionState
             self.skip = skip
+            self.timezone = timezone
+            self.tzInstance = tzInstance
             now = time.time()
             if self.started:
                 if ((t + duration * 60) < now) or (t > now) or (not self.enabled):
-                    # We're running. If we should have already ended OR the start was 
+                    # We're running. If we should have already ended OR the start was
                     # moved into the future OR the MW is now disabled, end().
                     self.end()
             elif (t < now) and ((t + duration * 60) > now) and (self.enabled):
@@ -329,10 +343,10 @@ class MaintenanceWindow(ZenModelRM):
     def nextEvent(self, now):
         "Return the time of the next begin() or end()"
         if self.started:
-            return self.adjustDST(self.started + self.duration * 60 - 1)
+            return self.started + self.duration * 60 - 1
         # ok, so maybe "now" is a little late: start anything that
         # should have been started by now
-        return self.next(self.padDST(now) - self.duration * 60 + 1)
+        return self.next(now - self.duration * 60 + 1)
 
 
     security.declareProtected(ZEN_VIEW, 'breadCrumbs')
@@ -346,13 +360,13 @@ class MaintenanceWindow(ZenModelRM):
 
 
     def occurDay(self, start, now, skip=1, day=6, occur=0):
-        date = time.localtime(start)
-        time_for_mktime = (date.tm_hour, date.tm_min, date.tm_sec, 0, 0, -1)
-        log.debug('start date: %s; day: %d; occur: %d; skip: %d', str(date), day,
+        startDateTime = datetime.fromtimestamp(start, self.tzInstance)
+        timeDelta = relativedelta(hours=startDateTime.hour, minutes=startDateTime.minute, seconds=startDateTime.second)
+        log.debug('start date: %s; day: %d; occur: %d; skip: %d', str(startDateTime), day,
                   occur, skip)
         # get a list of (mday, wday) tuples for current month
         c = calendar.Calendar(firstweekday=0)
-        flatter = sum(c.monthdays2calendar(date.tm_year, date.tm_mon), [])
+        flatter = sum(c.monthdays2calendar(startDateTime.year, startDateTime.month), [])
         if occur == 5:
             flatter = reversed(flatter)
             tmp_occur = 0
@@ -364,26 +378,28 @@ class MaintenanceWindow(ZenModelRM):
             if wday == day and mday > 0:
                 count += 1
                 log.debug('found wday %d, mday %d, count %d', wday, mday, count)
-                if count == tmp_occur + 1 and mday >= date.tm_mday:
+                if count == tmp_occur + 1 and mday >= startDateTime.day:
                     log.debug('count matched, mday %d', mday)
-                    startTime = time.mktime(
-                        (date.tm_year, date.tm_mon, mday) + time_for_mktime)
+                    startDateTime = datetime(startDateTime.year, startDateTime.month, mday, tzinfo=self.tzInstance) + timeDelta
+                    startTimestamp = Time.awareDatetimeToTimestamp(startDateTime)
                     # do we need to skip this day?
                     if skip > 1:
                         log.debug('skipping this occurrence. skip = %d', skip)
-                        return self.occurDay(startTime + DAY_SECONDS, now, skip - 1,
+                        return self.occurDay(startTimestamp + DAY_SECONDS, now, skip - 1,
                                              day, tmp_occur)
-                    elif startTime >= now:
+                    elif startTimestamp >= now:
                         log.debug('Window will start on: %s',
-                                  str(time.localtime(startTime)))
-                        return startTime
-                        # couldn't find start day in current month, switching to 1st day of the next month
-        if date.tm_mon == 12:
-            date = (date.tm_year + 1, 1, 1)
+                                  str(datetime.fromtimestamp(startTimestamp, self.tzInstance)))
+                        return startTimestamp
+        
+        # couldn't find start day in current month, switching to 1st day of the next month
+        if startDateTime.month == 12:
+            startDateTime = datetime(startDateTime.year + 1, 1, 1, tzinfo=self.tzInstance)
         else:
-            date = (date.tm_year, date.tm_mon + 1, 1)
-        date += time_for_mktime
-        return self.occurDay(time.mktime(date), now, skip, day, occur)
+            startDateTime = datetime(startDateTime.year, startDateTime.month + 1, 1, tzinfo=self.tzInstance)
+        startDateTime += timeDelta
+
+        return self.occurDay(Time.awareDatetimeToTimestamp(startDateTime), now, skip, day, occur)
 
 
     def next(self, now=None):
@@ -392,7 +408,7 @@ class MaintenanceWindow(ZenModelRM):
         for the window to start, or None
         This adjusts for DST changes.
         """
-        return self.adjustDST(self._next(now))
+        return self._next(now)
 
 
     def _next(self, now):
@@ -407,48 +423,51 @@ class MaintenanceWindow(ZenModelRM):
 
         if now < self.start:
             return self.start
+        
+        nowDateTime = datetime.fromtimestamp(now, self.tzInstance)
+        startDateTime = datetime.fromtimestamp(self.start, self.tzInstance)
+        diffBetweenNowAndStart = nowDateTime - startDateTime
 
         if self.repeat == self.NEVER:
             if now > self.start:
                 return None
             return self.start
 
-        elif self.repeat == self.DAILY:
-            skip = (DAY_SECONDS * self.skip)
-            last = self.start + ((now - self.start) // skip * skip)
-            return last + skip
+        elif self.repeat == self.DAILY:   
+            daysSince = diffBetweenNowAndStart.days
+            dateTime = datetime.fromtimestamp(self.start, self.tzInstance) + relativedelta(days=daysSince + self.skip)
+            return Time.awareDatetimeToTimestamp(dateTime)
 
         elif self.repeat == self.EVERY_WEEKDAY:
-            weeksSince = (now - self.start) // WEEK_SECONDS
+            weeksSince = diffBetweenNowAndStart.days // 7
             weekdaysSince = weeksSince * 5
             # start at the most recent week-even point from the start
-            base = self.start + weeksSince * DAY_SECONDS * 7
+            baseDateTime = datetime.fromtimestamp(self.start, self.tzInstance) + relativedelta(weeks=weeksSince)
             while 1:
-                dow = time.localtime(base).tm_wday
+                dow = baseDateTime.weekday()
                 if dow not in (5,6):
-                    if base > now and weekdaysSince % self.skip == 0:
+                    if baseDateTime > nowDateTime and weekdaysSince % self.skip == 0:
                         break
                     weekdaysSince += 1
-                base += DAY_SECONDS
-            assert base >= now
-            return base
+                baseDateTime += relativedelta(days=1)
+            assert baseDateTime >= nowDateTime
+            return Time.awareDatetimeToTimestamp(baseDateTime)
 
         elif self.repeat == self.WEEKLY:
-            skip = (WEEK_SECONDS * self.skip)
-            last = self.start + ((now - self.start) // skip * skip)
-            return last + skip
+            weeksSince = diffBetweenNowAndStart.days // 7
+            dateTime = datetime.fromtimestamp(self.start, self.tzInstance) + relativedelta(weeks=weeksSince + self.skip)
+            return Time.awareDatetimeToTimestamp(dateTime)
 
         elif self.repeat == self.MONTHLY:
             months = 0
             m = self.start
-            dayOfMonthHint = time.localtime(self.start).tm_mday
+            dayOfMonthHint = datetime.fromtimestamp(self.start, self.tzInstance).day
             while m < now or months % self.skip:
-                m = addMonth(m, dayOfMonthHint)
+                m = addMonth(m, dayOfMonthHint, self.tzInstance)
                 months += 1
             return m
 
         elif self.repeat == self.NTHWDAY:
-            #return self.occurDay(self.start, now, self.skip)
             return self.occurDay(
                                  self.start,
                                  now,
@@ -563,6 +582,7 @@ class MaintenanceWindow(ZenModelRM):
         #       following takes into account our window state too.
         #       Conversely, self.end() ends the window before calling this code.
         devices = self.fetchDevices()
+        unchangedDevices = []
         minDevProdStates = self.fetchDeviceMinProdStates(devices)
 
         def _setProdState(devices_batch):
@@ -614,6 +634,36 @@ class MaintenanceWindow(ZenModelRM):
                 else:
                     device.setProdState(minProdState, maintWindowChange=True)
 
+        def retrySingleDevices(devices_batch):
+            log.warn("Retrying devices individually")
+            for dev in devices_batch:
+                try:
+                    processFunc([dev])
+                except Exception:
+                    log.exception(
+                        "The production stage change for %s raised the exception.", dev
+                    )
+                    unchangedDevices.append(dev)
+
+        def processBatchOfDevices(devices, batchSize):
+            for i in xrange(0, len(devices), batchSize):
+                log.info('MW %s processing batch #%s', self.displayName(), i / batchSize + 1)
+                dev_chunk = devices[i:i + batchSize]
+                try:
+                    processFunc(dev_chunk)
+                except (ConflictError, POSKeyError, ReadConflictError) as e:
+                    log.warn(
+                        "While processing batch of %d devices exception was raised. %s",
+                        len(dev_chunk), e
+                    )
+                    retrySingleDevices(dev_chunk)
+                except Exception:
+                    # We're expecting ConflictError, POSKeyError, ReadConflictError, and handle them with retries
+                    # production state change. All other exceptions are an unexplored area that should be properly
+                    # processed in the future instead of the stub below.
+                    log.exception("Unexpected Exception encountered")
+                    retrySingleDevices(dev_chunk)
+
         if inTransaction:
             processFunc = transact(_setProdState)
             # Commit transaction as errors during batch processing may
@@ -622,14 +672,37 @@ class MaintenanceWindow(ZenModelRM):
         else:
             processFunc = _setProdState
 
+        # Adding exception handling for the following:
+        # ConflictError, POSKeyError and ReadConflictError.
+        #
+        # If any of the listed exceptions are encountered, we will retry
+        # devices in the batch individually.  If batchSize isn't
+        # specified and we encounter one of these exceptions, we will
+        # then specify a batch size and retry the devices in batches.
+        # If there are exceptions in these batches, we will retry the
+        # devices individually.  This will ensure that maintenance
+        # windows as a whole do not fail due to these exceptions.
+        # Fixes ZEN-31805.
         if batchSize:
-            for i in xrange(0, len(devices), batchSize):
-                log.info('MW %s processing batch #%s', self.displayName(),
-                         i / batchSize + 1)
-                processFunc(devices[i:i + batchSize])
+            processBatchOfDevices(devices, batchSize)
         else:
-            processFunc(devices)
+            try:
+                processFunc(devices)
+            except (ConflictError, POSKeyError, ReadConflictError) as e:
+                log.warn(
+                    "Exception encountered and no batchSize specified. "
+                    "%s. Retrying in batches.",
+                    e
+                )
+                processBatchOfDevices(devices, 10)
+            except Exception:
+                log.exception("Unexpected Exception encountered")
+                processBatchOfDevices(devices, 10)
 
+        if unchangedDevices:
+            log.error(
+                "Unable to change Production State on: %s", unchangedDevices
+            )
 
     def begin(self, now=None, batchSize=None, inTransaction=False):
         """
@@ -667,34 +740,6 @@ class MaintenanceWindow(ZenModelRM):
         else:
             self.begin(now, batchSize, inTransaction)
 
-    def adjustDST(self, result):
-        if result is None:
-            return None
-        if self.started:
-            startTime = time.localtime(self.started)
-        else:
-            startTime = time.localtime(self.start)
-        resultTime = time.localtime(result)
-        if startTime.tm_isdst == resultTime.tm_isdst:
-            return result
-        if startTime.tm_isdst:
-            return result + 60*60
-        return result - 60*60
-
-
-    def padDST(self, now):
-        """
-        When incrementing or decrementing timestamps within a DST switch we
-        need to add or subtract the DST offset accordingly.
-        """
-        startTime = time.localtime(self.start)
-        nowTime = time.localtime(now)
-        if startTime.tm_isdst == nowTime.tm_isdst:
-            return now
-        elif startTime.tm_isdst:
-            return now - 60 * 60
-        else:
-            return now + 60 * 60
 
     def getAuditData(self):
         return {

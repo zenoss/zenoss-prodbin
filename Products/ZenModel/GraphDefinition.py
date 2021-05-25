@@ -18,7 +18,7 @@ import string
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from ZenModelRM import ZenModelRM
 from Products.ZenWidgets import messaging
@@ -494,7 +494,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                         cmds = gp.getGraphCmds(cmds, context, rrdDir,
                                         self.hasSummary, index+idxOffset,
                                         multiid, prefix)
-                    except (KeyError, NameError), e:
+                    except (KeyError, NameError) as e:
                         cmds.append('COMMENT: UNKNOWN VALUE IN '
                             'GRAPHPOINT %s\: %s' % (gp.id, str(e)))
         gpList = [gp for gp in self.getGraphPoints(includeThresholds=False)
@@ -504,13 +504,13 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 cmds = gp.getGraphCmds(cmds, context, rrdDir,
                                         self.hasSummary, index+idxOffset,
                                         multiid, prefix)
-            except (KeyError, NameError), e:
+            except (KeyError, NameError) as e:
                 cmds.append('COMMENT: UNKNOWN VALUE IN GRAPHPOINT '
                         '%s\: %s' % (gp.id, str(e)))
         if self.custom and includeSetup and not upToPoint:
             try:
                 res = talesEval("string:"+str(self.custom), context)
-            except (KeyError, NameError), e:
+            except (KeyError, NameError) as e:
                 res = 'COMMENT:UNKNOWN VALUE IN CUSTOM COMMANDS\: %s' % str(e)
             cmds.extend(l for l in res.split('\n') if l.strip())
             #if self.hasSummary:

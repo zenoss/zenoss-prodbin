@@ -7,9 +7,10 @@
 #
 ##############################################################################
 
+import sys
+
 from unittest import TestCase
 from mock import Mock, patch, create_autospec, call, sentinel
-import sys
 
 from zope.interface.verify import verifyObject
 from zope.component import adaptedBy
@@ -27,10 +28,11 @@ from Products.ZenHub.zenhub import (
     stop_server,
     server_config,
     IHubServerConfig,
-    handle_reactor_delayed_calls_metric,
-    EventHeartbeat,
+    report_reactor_delayed_calls,
     IMetricManager,
     reactor,
+    initServiceManager,
+    ServerConfig
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -61,8 +63,10 @@ class ZenHubInitTest(TestCase):
     @patch('{src}.notify'.format(**PATH), spec=True)
     @patch('{src}.load_config'.format(**PATH), spec=True)
     @patch('__builtin__.super'.format(**PATH), autospec=True)
+    @patch('{src}.initServiceManager'.format(**PATH))
     def test___init__(
         t,
+        initServiceManager,
         _super,
         load_config,
         notify,
@@ -180,6 +184,8 @@ class ZenHubInitTest(TestCase):
 
         signal.signal.assert_called_with(signal.SIGUSR2, zh.sighandler_USR2)
 
+        initServiceManager.assert_called_once_with(zh.options)
+
     def test_PbRegistration(t):
         from twisted.spread.jelly import unjellyableRegistry
         t.assertIn('DataMaps.ObjectMap', unjellyableRegistry)
@@ -234,6 +240,7 @@ class ZenHubTest(TestCase):
             "IHubConfProvider",
             "provideUtility",
             "register_legacy_worklist_metrics",
+            "initServiceManager",
         ]
         t.patchers = {}
         for target in needs_patching:
@@ -243,6 +250,11 @@ class ZenHubTest(TestCase):
             t.patchers[target] = patched
             setattr(t, target, patched.start())
             t.addCleanup(patched.stop)
+
+        from_file_patcher = patch("{src}.ServerConfig.from_file".format(**PATH))
+        t.from_file_mock = from_file_patcher.start()
+        t.addCleanup(from_file_patcher.stop)
+        t.from_file_mock.return_value = ServerConfig({})
 
         t.zh = ZenHub()
 
@@ -269,9 +281,14 @@ class ZenHubTest(TestCase):
             t.reactor, t.make_server_factory.return_value,
         )
 
-        LoopingCall.assert_called_once_with(
-            t.zh._invalidation_manager.process_invalidations,
-        )
+        LoopingCall.assert_has_calls([
+            call(t.zh._invalidation_manager.process_invalidations),
+            call().start(sentinel.inval_poll),
+            call(
+                report_reactor_delayed_calls, t.zh.options.monitor, t.zh.name
+            ),
+            call().start(30),
+        ])
         t.assertEqual(
             LoopingCall.return_value, t.zh.process_invalidations_task,
         )
@@ -448,13 +465,9 @@ class ZenHubTest(TestCase):
 
     @patch('{src}.server_config.ModuleObjectConfig'.format(**PATH))
     @patch('{src}.provideUtility'.format(**PATH))
-    @patch('{src}.super'.format(**PATH))
-    def test_parseOptions(t, super, provideUtility, ModuleObjectConfig):
-        t.zh.parseOptions()
-
-        super.assert_called_with(ZenHub, t.zh)
-        super.return_value.parseOptions.assert_called_with()
-
+    def test_initServiceManager(t, provideUtility, ModuleObjectConfig):
+        
+        initServiceManager(t.zh.options)
         t.assertEqual(
             server_config.modeling_pause_timeout,
             int(t.zh.options.modeling_pause_timeout)
@@ -596,7 +609,7 @@ class ReactorDelayedCallsMetricTest(TestCase):
 
     def setUp(t):
         _patchables = (
-            ("getUtility", Mock(spec=[])),
+            ('getUtility', Mock(spec=[])),
         )
         for name, value in _patchables:
             patcher = patch(
@@ -606,22 +619,18 @@ class ReactorDelayedCallsMetricTest(TestCase):
             setattr(t, name, patcher.start())
             t.addCleanup(patcher.stop)
 
-    def test_handle_reactor_delayed_calls_metric(t):
-        zenhub_monitor = 'zenhub.options.monitor'
-        zenhub_name = 'zenhub.name'
-        zenhub_heartbeat_timeout = 'zenhub.options.heartbeatTimeout'
+    @patch('{src}.time'.format(**PATH))
+    def test_report_reactor_delayed_calls(t, time):
+        time.return_value = 555
         writer = t.getUtility.return_value.metric_writer
-        event = EventHeartbeat(
-            zenhub_monitor, zenhub_name, zenhub_heartbeat_timeout
-        )
-        event.timestamp = 111.0
+        hub = Mock(name="ZenHub")
 
-        handle_reactor_delayed_calls_metric(event)
+        report_reactor_delayed_calls(hub.options.monitor, hub.name)
 
         t.getUtility.assert_called_once_with(IMetricManager)
         writer.write_metric.assert_called_once_with(
             'zenhub.reactor.delayedcalls',
             len(reactor.getDelayedCalls()),
-            event.timestamp * 1000,
-            {'monitor': zenhub_monitor, 'name': zenhub_name},
+            time.return_value * 1000,
+            {'monitor': hub.options.monitor, 'name': hub.name},
         )

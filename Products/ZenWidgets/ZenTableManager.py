@@ -23,7 +23,7 @@ import math
 import re
 import ZTUtils
 import urllib
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from OFS.SimpleItem import SimpleItem
 from OFS.PropertyManager import PropertyManager
@@ -251,7 +251,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
             exec(expression, variables_and_funcs)
             attr = variables_and_funcs['attr']
             log.warning("attr is %s" % attr)
-        except Exception, ex:
+        except Exception as ex:
             attr = str(ex)
         return attr
 
@@ -401,10 +401,10 @@ class ZenTableManager(SimpleItem, PropertyManager):
                             path.append(layer)
                 path = ','.join(path)
                 skinstool.addSkinSelection(skin, path)
-        except ImportError, e:
+        except ImportError as e:
             if "Products.CMFCore.utils" in e.args: pass
             else: raise
-        except AttributeError, e:
+        except AttributeError as e:
             if "portal_skin" in e.args: pass
             else: raise
 

@@ -12,7 +12,7 @@ __doc__="""ComplexGraphPoint
 """
 
 from GraphPoint import GraphPoint                                     
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 
 class ComplexGraphPoint(GraphPoint):

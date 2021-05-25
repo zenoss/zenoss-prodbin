@@ -107,7 +107,7 @@ class BatchNotifier(object):
         for service_uid, notify_function in self._current_item.notify_functions.items():
             try:
                 notify_function(device)
-            except Exception, e:
+            except Exception as e:
                 args = (service_uid, device.getPrimaryId(), type(e).__name__, e)
                 LOG.error("%s failed to notify %s: %s: %s" % args)
 
@@ -125,7 +125,7 @@ class BatchNotifier(object):
             else:
                 LOG.debug("BatchNotifier._callback: no more devices, %s in queue", len(self._queue))
                 self._switch_to_next_item()
-        except Exception, e:
+        except Exception as e:
             args = (self._current_item.device_class_uid, type(e).__name__, e)
             LOG.warn("Failed to get subdevice of %s: %s: %s" % args)
             self._switch_to_next_item()

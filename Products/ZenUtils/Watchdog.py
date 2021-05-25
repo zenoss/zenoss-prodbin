@@ -16,7 +16,6 @@ restart it.
 
 '''
 
-import Globals
 from Products.ZenUtils.Utils import zenPath
 import logging
 
@@ -38,7 +37,7 @@ def _sleep(secs):
     "Sleep, but don't raise an exception if interrupted"
     try:
         time.sleep(secs)
-    except:
+    except Exception:
         pass
 
 class ExitStatus:
@@ -145,7 +144,7 @@ class Watcher:
             try:
                 log.debug('Running %r' % (cmd,))
                 os.execlp(cmd[0], *cmd)
-            except:
+            except Exception:
                 log.exception("Exec failed!")
                 sys.exit(0)
         try:
@@ -213,12 +212,12 @@ class Watcher:
             try:
                 self._runOnce()
                 return
-            except TimeoutError, ex:
+            except TimeoutError as ex:
                 log.error("Timeout: %s" % ex.args)
-            except UnexpectedFailure, ex:
+            except UnexpectedFailure as ex:
                 status = ex.args[0]
                 log.error("Child died: %s" % status)
-            except Exception, ex:
+            except Exception as ex:
                 log.exception(ex)
             if not self.stop:
                 log.debug("Waiting %.2f seconds before restarting", sleepTime)
@@ -240,7 +239,7 @@ class Reporter:
                 self.sock.recv(1)
                 log.error("Received input on report socket: probably EOF")
                 sys.exit(1)
-            except:
+            except Exception:
                 pass
             self.sock.send('%d\n' % cycleTime)
         except Exception:

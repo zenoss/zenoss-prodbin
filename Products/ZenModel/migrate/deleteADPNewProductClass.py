@@ -10,7 +10,6 @@
 
 import Migrate
 
-import Globals
 
 import logging
 log = logging.getLogger("zen.migrate")
@@ -26,7 +25,7 @@ class DeleteADPNewProductClass(Migrate.Step):
             log.info('Could not find the manufacturer ADP')
         except AttributeError:
             log.info('Could not the product new on manufacturer ADP')
-        except:
+        except Exception:
             log.error('Unknown error occurred')
             
 DeleteADPNewProductClass()

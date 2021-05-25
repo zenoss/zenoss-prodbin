@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from ZenMenuItem import ZenMenuItem
 from Products.ZenRelations.RelSchema import *

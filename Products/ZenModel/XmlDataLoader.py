@@ -10,7 +10,6 @@
 
 import os
 import transaction
-import Globals
 
 from Products.ZenRelations.ImportRM import ImportRM
 

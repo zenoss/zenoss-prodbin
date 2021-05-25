@@ -17,7 +17,7 @@ from zope.event import notify
 from zope.interface import implements
 from ZODB.transact import transact
 from AccessControl import ClassSecurityInfo
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 from Organizer import Organizer
 from DeviceManagerBase import DeviceManagerBase
@@ -35,7 +35,7 @@ from ZenossSecurity import ZEN_VIEW, ZEN_MANAGE_DMD, ZEN_COMMON, ZEN_CHANGE_DEVI
 from Products.ZenUtils.Utils import unused, getObjectsFromModelCatalog
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenWidgets import messaging
-from Products.Jobber.zenmodel import DeviceSetLocalRolesJob
+from Products.Jobber.jobs import DeviceSetLocalRolesJob
 
 import logging
 LOG = logging.getLogger('ZenModel.DeviceOrganizer')
@@ -430,7 +430,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             job = self.dmd.JobManager.addJob(
                 DeviceSetLocalRolesJob, description="Update Local Roles on %s" % path,
                 kwargs=dict(organizerUid=path))
-            href = "/zport/dmd/joblist#jobs:%s" % (job.getId())
+            href = "/zport/dmd/joblist#jobs:%s" % (job.jobid,)
             messaging.IMessageSender(self).sendToBrowser(
                 'Job Added',
                 'Job Added for setting the roles on the organizer %s, view the <a href="%s"> job log</a>' % (path, href)

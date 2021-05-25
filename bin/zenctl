@@ -63,27 +63,6 @@ export FRESH_INSTALL=${ZENHOME}/.fresh_install
 # signature of zenoss having been upgraded from a previous install
 export UPGRADED=${ZENHOME}/.upgraded
 
-ZENDSPROFILE=/etc/profile.d/zends_env.sh
-if [ -f "${ZENDSPROFILE}" ];then
-    source ${ZENDSPROFILE}
-    if [ "${USE_ZENDS}" = "1" ];then
-        export PATH=${ZENDSHOME}/bin:${PATH}
-        export LD_LIBRARY_PATH=${ZENDSHOME}/lib:${LD_LIBRARY_PATH}
-        if [ -f "${ZENDSHOME}/scripts/aliases" ];then
-            source ${ZENDSHOME}/scripts/aliases
-        else
-            echo "${BN}: Error:  Missing ${ZENDSHOME}/scripts/aliases."
-            echo
-            echo "You appear to have an incomplete installation of the Zenoss Datastore, ZenDS."
-            echo "ZenDS is a requirement for Zenoss masters and remote hubs."
-            echo "ZenDS is a not a requirement for remote collectors."
-            echo
-            echo "Please cleanup or reinstall ZenDS as appropriate."
-            exit 3
-        fi
-    fi
-fi
-
 # changes the owners and permissions for the zenoss files
 set_perms() {
     for dir in \

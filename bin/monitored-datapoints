@@ -10,7 +10,6 @@
 
 """Report of datapoints being collected."""
 
-import Globals
 
 # stdlib Imports
 import collections
@@ -30,7 +29,6 @@ from Products.ZenUtils.Utils import unused
 
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
-unused(Globals)
 
 
 DEFAULT_FORMAT = 'csv'

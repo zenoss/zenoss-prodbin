@@ -7,9 +7,6 @@
 #
 ##############################################################################
 
-import Globals
-
-from .applydatamap import (
-    ApplyDataMap, notify, isSameData
-)
-from .events import IDatamapUpdateEvent, IDatamapAddEvent
+from .applydatamap import ApplyDataMap, notify  # noqa F401
+from .datamaputils import isSameData  # noqa F401
+from .events import IDatamapAddEvent, IDatamapUpdateEvent  # noqa F401

@@ -386,7 +386,7 @@ try:
         try:
             try:
                 self._pre_pack_main(load_connection, store_connection, pack_tid, get_references)
-            except:
+            except Exception:
                 log.exception("pre_pack: failed")
                 store_connection.rollback_quietly()
                 raise
@@ -629,7 +629,7 @@ try:
                         except Exception as e:
                             MONKEY_HELPER.log_exception(e, "Execption while running tests.")
 
-            except:
+            except Exception:
                 log.exception("pack: failed")
                 conn.rollback()
                 raise

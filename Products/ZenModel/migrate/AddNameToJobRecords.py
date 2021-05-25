@@ -12,10 +12,9 @@ Add a job_name field to JobRecord objects.  This field contains the name of
 job class registered with Celery.
 """
 
-import Globals
 import Migrate
+from celery import current_app
 from Products.Jobber.jobs import Job
-from Products.ZenUtils.celeryintegration import current_app
 from Products.Zuul.utils import safe_hasattr as hasattr
 
 

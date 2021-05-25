@@ -87,6 +87,22 @@ class OSProcessInfo(ComponentInfo):
 
     maxProcessCount = property(getMaxProcessCount, setMaxProcessCount)
 
+    def getMinProcessMemory(self):
+        return self._object.getMinProcessMemory()
+
+    def setMinProcessMemory(self, minProcessMemory):
+        self._object.minProcessMemory = minProcessMemory
+
+    minProcessMemory = property(getMinProcessMemory, setMinProcessMemory)
+
+    def getMaxProcessMemory(self):
+        return self._object.getMaxProcessMemory()
+
+    def setMaxProcessMemory(self, maxProcessMemory):
+        self._object.maxProcessMemory = maxProcessMemory
+
+    maxProcessMemory = property(getMaxProcessMemory, setMaxProcessMemory)
+
     monitor = ServiceMonitor()
 
     @property

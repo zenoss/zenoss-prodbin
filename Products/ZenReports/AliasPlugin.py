@@ -15,7 +15,6 @@ that plugins can subclass and provide minimal information.  The plugin is
 meant to be run from an rpt file.
 """
 
-import Globals
 import logging
 import transaction
 from Products.ZenModel.RRDDataPoint import getDataPointsByAliases
@@ -153,7 +152,7 @@ class PythonColumnHandler(object):
         value = None
         try:
             value = talesEval(self._talesExpression, device, kw)
-        except InvalidTalesException, e:
+        except InvalidTalesException as e:
             log.info(e)
         return value
 

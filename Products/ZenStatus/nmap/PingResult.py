@@ -17,7 +17,6 @@ import collections
 import math
 from lxml import etree
 
-import Globals
 from zope import interface
 from Products.ZenStatus import interfaces, TraceHop
 

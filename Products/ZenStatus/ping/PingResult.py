@@ -19,7 +19,6 @@ log = logging.getLogger("zen.zenping.cmdping.PingResult")
 _STATE_TO_STRING_MAP = { True: 'up', False: 'down'}
 _NAN = float('nan')
 
-import Globals
 from Products.ZenStatus import TraceHop, interfaces
 from zope import interface 
 import time

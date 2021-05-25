@@ -13,7 +13,7 @@ __doc__="""VdefGraphPoint
 Handles GraphPoints that define an rrd VDEF
 """
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 from Products.ZenModel.RpnGraphPoint import RpnGraphPoint
 from Products.ZenUtils.deprecated import deprecated

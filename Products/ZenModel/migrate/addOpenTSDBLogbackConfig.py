@@ -35,7 +35,7 @@ class addOpenTSDBLogbackConfig(Migrate.Step):
         with open(zenPath('Products/ZenModel/migrate/data/opentsdb-logback.xml')) as fcontent:
             try:
                 content = fcontent.read()
-            except Exception, e:
+            except Exception as e:
                 log.error("Error reading logback configuration file: {}".format(e))
                 return
 

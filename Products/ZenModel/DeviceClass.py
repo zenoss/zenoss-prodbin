@@ -18,8 +18,8 @@ log = logging.getLogger('zen.DeviceClass')
 
 import DateTime
 from zope.event import notify
-from Globals import DTMLFile
-from Globals import InitializeClass
+from App.special_dtml import DTMLFile
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base, aq_chain
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
@@ -263,8 +263,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                             root.removeChild(obj)
 
                     elif obj.tagName == 'toone' and \
-                         name in ('perfServer', 'location'):
-                        pass # Preserve collector name and location
+                         name in ('perfServer', 'location', 'ipaddress'):
+                        pass # Preserve collector name, location, and ipaddress
 
                     elif obj.tagName == 'tomany' and \
                          name in ('systems', 'groups'):

@@ -7,13 +7,13 @@
 #
 ##############################################################################
 
+import copy
 import logging
 from collections import defaultdict
 
 from ZODB.transact import transact
 from zope.event import notify
 
-import Globals  # noqa. required to import zenoss Products
 from Products.ZenUtils.Utils import importClass
 from Products.ZenUtils.deprecated import deprecated
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
@@ -35,33 +35,6 @@ from .events import DatamapAddEvent
 log = logging.getLogger("zen.ApplyDataMap")
 
 CLASSIFIER_CLASS = '/Classifier'
-
-'''TODO: get dmd from utility
-from zope.component import getUtility
-from Products.Zuul.interfaces import IDataRootFactory
-get_dmd = getUtility(IDataRootFactory)
-dmd = get_dmd()
-'''
-
-
-def isSameData(x, y):
-    """
-    A more comprehensive check to see if existing model data is the same as
-    newly modeled data. The primary focus is comparing unsorted lists of
-    dictionaries.
-    """
-    if isinstance(x, (tuple, list)) and isinstance(y, (tuple, list)):
-        if (
-            x and y
-            and all(isinstance(i, dict) for i in x)
-            and all(isinstance(i, dict) for i in y)
-        ):
-            x = set(tuple(sorted(d.items())) for d in x)
-            y = set(tuple(sorted(d.items())) for d in y)
-        else:
-            return sorted(x) == sorted(y)
-
-    return x == y
 
 
 class ApplyDataMap(object):
@@ -124,7 +97,7 @@ class ApplyDataMap(object):
             relname=relname,
             compname=compname,
             modname=modname,
-            parentId=parentId
+            parentId=parentId,
         )
 
         # Preprocess datamap, setting directive and diff
@@ -161,7 +134,6 @@ class ApplyDataMap(object):
         for object_map in relmap:
             if isinstance(object_map, IncrementalDataMap):
                 object_map.apply()
-
             elif isinstance(object_map, ZenModelRM):
                 # add the relationship to the device
                 device.addRelation(relname, object_map)
@@ -192,10 +164,10 @@ class ApplyDataMap(object):
             log.info(
                 'applied RelationshipMap changes:'
                 ' target=%s.%s, change_counts=%s',
-                device.id, datamap.relname, counts
+                device.id, datamap.relname, counts,
             )
             changecount = sum(
-                v for k, v in counts.iteritems() if k is not 'nochange'
+                v for k, v in counts.iteritems() if k != 'nochange'
             )
             changed = bool(changecount or datamap._diff['removed'])
 
@@ -258,12 +230,18 @@ class ApplyDataMap(object):
 
 
 ##############################################################################
-# Preproce, diff and set directives
+# Preprocess, diff and set directives
 ##############################################################################
+
 
 def _validate_datamap(
     device, datamap, relname=None, compname=None, modname=None, parentId=None
 ):
+    """Converts a datamap into a RelationshipMap or IncrementalDataMap.
+
+    The datamap returns as is if already a RelationshipMap or an
+    IncrementalDataMap.
+    """
     if isinstance(datamap, RelationshipMap):
         log.debug('_validate_datamap: got valid RelationshipMap')
     elif relname:
@@ -273,7 +251,7 @@ def _validate_datamap(
             compname=compname,
             modname=modname,
             objmaps=datamap,
-            parentId=parentId
+            parentId=parentId,
         )
     elif isinstance(datamap, IncrementalDataMap):
         log.debug('_validate_datamap: got valid IncrementalDataMap')
@@ -286,6 +264,23 @@ def _validate_datamap(
         datamap = IncrementalDataMap(device, datamap)
 
     return datamap
+
+
+def _clone_datamap(datamap):
+    """Return a copy of the given datamap.
+    """
+    if isinstance(datamap, RelationshipMap):
+        clone = RelationshipMap(
+            relname=datamap.relname,
+            compname=datamap.compname,
+            parentId=datamap.parentId,
+            plugin_name=datamap.plugin_name,
+        )
+        clone.maps = [_clone_datamap(submap) for submap in datamap]
+        return clone
+
+    # It's an IncrementalDataMap, ObjectMap, etc.
+    return copy.copy(datamap)
 
 
 def _get_relmap_target(device, relmap):
@@ -347,7 +342,7 @@ def _validate_device_class(device):
     if new_device:
         log.debug(
             "changed device class during modeling: device=%s, class=%s",
-            new_device.titleOrId(), new_device.getDeviceClassName()
+            new_device.titleOrId(), new_device.getDeviceClassName(),
         )
         return new_device
 
@@ -370,49 +365,62 @@ def _get_object_by_pid(device, parent_id):
 
 
 def _process_relationshipmap(relmap, base_device):
+    """Returns a new, normalized, RelationshipMap object.
+
+    Returns None if the RelationshipMap cannot be normalized.
+    """
     relname = relmap.relname
     parent = _get_relmap_target(base_device, relmap)
-    if parent:
-        relmap._parent = parent
-    else:
-        log.warn('parent device for relationship not found. relmap=%s', relmap)
-        return False
 
-    if not hasattr(relmap._parent, relname):
+    if not parent:
+        log.warn('parent device for relationship not found. relmap=%s', relmap)
+        return None
+
+    if not hasattr(parent, relname):
         log.warn(
             'relationship not found: parent=%s, relationship=%s',
-            relmap._parent.id, relname,
+            parent.id,
+            relname,
         )
-        return False
+        return None
 
-    relmap._relname = relname
+    new_relmap = RelationshipMap(
+        relname=relname,
+        compname=relmap.compname,
+        parentId=relmap.parentId,
+        plugin_name=relmap.plugin_name,
+    )
+    new_relmap._parent = parent
+    new_relmap._relname = relname
 
     seenids = defaultdict(int)
-    for object_map in relmap:
-        seenids[object_map.id] += 1
-        object_map.relname = relname
-        if seenids[object_map.id] > 1:
-            object_map.id = "%s_%s" % (object_map.id, seenids[object_map.id])
+    object_maps = []
+    for objmap in (_clone_datamap(dm) for dm in relmap):
+        seenids[objmap.id] += 1
+        if seenids[objmap.id] > 1:
+            objmap.id = "%s_%s" % (objmap.id, seenids[objmap.id])
+        objmap.relname = relname
+        object_maps.append(objmap)
 
     # remove any objects no longer included in the relationshipmap
     # to be deleted (device, relationship_name, object/id)
-    relmap._diff = _get_relationshipmap_diff(relmap._parent, relmap)
+    new_relmap._diff = _get_relationshipmap_diff(parent, relname, object_maps)
 
     new_maps = [
         _validate_datamap(parent, object_map)
-        for object_map in relmap.maps
+        for object_map in object_maps
     ]
-    relmap.maps = new_maps
+    new_relmap.maps = new_maps
 
-    return relmap
+    return new_relmap
 
 
-def _get_relationshipmap_diff(device, relmap):
+def _get_relationshipmap_diff(device, relname, datamaps):
     '''Return a list of objects on the device, that are not in the relmap
     '''
-    relationship = getattr(device, relmap.relname)
-    relids = _get_relationship_ids(device, relmap.relname)
-    removed = set(relids) - set([o.id for o in relmap])
+    relationship = getattr(device, relname)
+    relids = _get_relationship_ids(device, relname)
+    removed = set(relids) - set([o.id for o in datamaps])
     missing_objects = (relationship._getOb(id) for id in removed)
 
     diff = {'removed': [], 'locked': []}
@@ -433,6 +441,7 @@ def _get_relationship_ids(device, relationship_name):
 ##############################################################################
 # Apply Changes
 ##############################################################################
+
 
 def _remove_relationship(parent, relname, obj):
     '''Remove a related object from a parent's relationship

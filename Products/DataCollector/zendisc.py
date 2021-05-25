@@ -29,7 +29,6 @@ from optparse import SUPPRESS_HELP
 from twisted.internet import defer, reactor
 from twisted.names.error import DNSNameError
 
-import Globals
 
 from Products.DataCollector.zenmodeler import ZenModeler
 from Products.ZenEvents.Event import Info
@@ -48,7 +47,7 @@ from Products.ZenUtils.snmp import (
 )
 from Products.ZenUtils.Utils import unused
 
-unused(Globals, DiscoverService, ModelerService, JobPropertiesProxy)
+unused(DiscoverService, ModelerService, JobPropertiesProxy)
 
 DEFAULT_COMMUNITIES = ['public', 'private']
 

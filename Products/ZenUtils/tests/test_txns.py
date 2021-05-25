@@ -44,7 +44,7 @@ def revertAttributeOnError(obj, attrname):
     prev_value = getattr(obj, attrname)
     try:
         yield
-    except:
+    except Exception:
         log.debug( "restore %s to previous value %r" % (attrname, prev_value) )
         setattr(obj, attrname, prev_value)
         raise
@@ -55,7 +55,7 @@ def msg_publish(chan):
         log.debug( "enable tx channel methods for channel 0x%08x" % id(chan))
         chan.tx_select()
         yield
-    except:
+    except Exception:
         log.debug( "cancel sending messages for channel 0x%08x" % id(chan))
         chan.tx_rollback()
         raise

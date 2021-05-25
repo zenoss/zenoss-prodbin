@@ -11,7 +11,6 @@
 import os
 import socket
 
-import Globals
 from Products.ZenUtils.Utils import zenPath
 
 def main():

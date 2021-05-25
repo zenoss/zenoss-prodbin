@@ -10,7 +10,6 @@
 
 import Migrate
 
-import Globals
 
 from Products.CMFCore.utils import getToolByName
 from Products.ZenUtils.Search import makeMultiPathIndex

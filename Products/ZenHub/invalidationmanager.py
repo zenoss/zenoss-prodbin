@@ -20,7 +20,6 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     SEVERITY_CRITICAL, SEVERITY_CLEAR
 )
 
-import Globals  # required to import zenoss Products
 from Products.ZenUtils.Utils import unused
 
 from Products.ZenRelations.PrimaryPathObjectManager import (
@@ -36,7 +35,6 @@ from Products.ZenHub.interfaces import (
     IInvalidationOid,
 )
 
-unused(Globals)
 
 log = logging.getLogger('zen.ZenHub.invalidationmanager')
 

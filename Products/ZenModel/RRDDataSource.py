@@ -15,6 +15,7 @@ __doc__="""RRDDataSource
 Base class for DataSources
 """
 
+import inspect
 import os
 import zope.component
 
@@ -234,7 +235,8 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         environ = {'dev' : d,
                    'device': d,
                    'devname': d.id,
-                   'here' : context, 
+                   'here' : context,
+                   'context' : context,
                    'nothing' : None,
                    'now' : DateTime() }
         res = compiled(getEngine().getContext(environ))
@@ -443,3 +445,15 @@ class SimpleRRDDataSourceZenDocProvider(ZenModelZenDocProvider):
             dataPointAdapter.setZendoc( zendocText )
         else:
             return super( SimpleRRDDataSourceZenDocProvider, self ).setZendoc( zendocText )
+
+
+def isPythonDataSource(ds):
+    """Returns True if the RRDDataSource's sourcetype is Python (or derived).
+    """
+    if ds.sourcetype == "Python":
+        return True
+    return any(
+        cls.sourcetype == "Python"
+        for cls in inspect.getmro(ds.__class__)
+        if hasattr(cls, "sourcetype")
+    )

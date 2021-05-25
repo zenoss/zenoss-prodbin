@@ -948,32 +948,38 @@
                             name: 'name',
                             fieldLabel: _t('Device Name'),
                             id: 'device-name-textfield',
-                            allowBlank: false
+                            allowBlank: false,
+                            disabled: Zenoss.Security.doesNotHavePermission('Manage Device')
                         },{
                             xtype: 'ProductionStateCombo',
                             fieldLabel: _t('Production State'),
                             id: 'production-state-combo',
-                            name: 'productionState'
+                            name: 'productionState',
+                            disabled: Zenoss.Security.doesNotHavePermission('Change Device Production State')
                         },{
                             xtype: 'PriorityCombo',
                             fieldLabel: _t('Priority'),
                             id: 'priority-combo',
-                            name: 'priority'
+                            name: 'priority',
+                            disabled: Zenoss.Security.doesNotHavePermission('Manage Device')
                         },{
                             fieldLabel: _t('Tag'),
                             name: 'tagNumber',
                             id: 'tagnumber-textfield',
-                            xtype: 'textfield'
+                            xtype: 'textfield',
+                            disabled: Zenoss.Security.doesNotHavePermission('Manage Device')
                         },{
                             fieldLabel: _t('Serial Number'),
                             name: 'serialNumber',
                             id: 'serialnumber-textfield',
-                            xtype: 'textfield'
+                            xtype: 'textfield',
+                            disabled: Zenoss.Security.doesNotHavePermission('Manage Device')
                         },{
                             fieldLabel: _t('Rack Slot'),
                             name: 'rackSlot',
                             id: 'rackslot-textfield',
-                            xtype: 'textfield'
+                            xtype: 'textfield',
+                            disabled: Zenoss.Security.doesNotHavePermission('Manage Device')
                         }]
                     },{
                         id:'deviceoverviewpanel_descriptionsummary',

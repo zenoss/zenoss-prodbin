@@ -128,10 +128,10 @@ def serviceConnectionError(func, *args, **kwargs):
         f = func(*args, **kwargs)
         setattr(attempts, 'value', 0)
         return f
-    except ZepConnectionTimeout, e:
+    except ZepConnectionTimeout as e:
         log.warn('Connection to zeneventserver timed out.')
         msg = 'Connection to zeneventserver timed out, please try again.'
-    except ZepConnectionError, e:
+    except ZepConnectionError as e:
         count += 1
         setattr(attempts, 'value', count)
         log.warn('Connection refused. Check zeneventserver status on Services. Exception on thread: %s' % threading.current_thread().ident)
@@ -140,6 +140,6 @@ def serviceConnectionError(func, *args, **kwargs):
             setattr(attempts, 'value', 0)
         else:
             return
-    except ServiceConnectionError, e:
+    except ServiceConnectionError as e:
         msg = 'Connection refused to a required daemon. Check status on <a href="zport/dmd/daemons">Services</a>'
     return DirectResponse.fail(msg, sticky=True)

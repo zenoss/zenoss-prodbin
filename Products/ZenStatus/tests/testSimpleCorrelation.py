@@ -13,7 +13,6 @@ from StringIO import StringIO
 from copy import copy
 from pprint import pprint
 
-import Globals
 import zope.component
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase

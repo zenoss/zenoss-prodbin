@@ -17,8 +17,8 @@ $Id: ServiceClass.py,v 1.9 2003/03/11 23:32:13 edahl Exp $"""
 
 __version__ = "$Revision: 1.9 $"[11:-2]
 
-from Globals import DTMLFile
-from Globals import InitializeClass
+from App.special_dtml import DTMLFile
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 import zope.interface

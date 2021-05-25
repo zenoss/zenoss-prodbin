@@ -4,7 +4,7 @@
 
 import logging
 
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from BTrees.IIBTree import IISet, intersection, union, multiunion
 from BTrees.OOBTree import OOBTree
 from BTrees.OIBTree import OIBTree

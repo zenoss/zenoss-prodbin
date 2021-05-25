@@ -21,7 +21,6 @@ import re
 from pprint import pformat
 import os.path
 
-import Globals
 
 import zope.component
 import zope.interface
@@ -437,7 +436,7 @@ class ZenProcessTask(ObservableMixin):
         """
         try:
             self._close()
-        except Exception, e:
+        except Exception as e:
             log.warn("Failed to close device %s: error %s" %
                      (self._devId, str(e)))
 
@@ -468,7 +467,7 @@ class ZenProcessTask(ObservableMixin):
             with open(name, "w") as capFile:
                 capFile.write(pformat(data))
             self.captureSerialNum += 1
-        except Exception, ex:
+        except Exception as ex:
             log.warn("Couldn't write capture data to '%s' because %s",
                      name, str(ex))
 
@@ -790,7 +789,7 @@ class ZenProcessTask(ObservableMixin):
         try:
             self._dataService.writeMetricWithMetadata(statName, value, rrdType,
                     min=min, metadata=metadata)
-        except Exception, ex:
+        except Exception as ex:
             summary = "Unable to save data for process-monitor metric %s" % (
                       metadata.get('contextKey'))
             log.critical(summary)

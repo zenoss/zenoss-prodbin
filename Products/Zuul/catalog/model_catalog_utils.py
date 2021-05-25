@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 
 import argparse
 import zope.component
@@ -38,7 +37,7 @@ class ModelCatalogUtils(object):
             self._get_zodb_connection()
         try:
             obj = self.dmd.unrestrictedTraverse(uid)
-        except:
+        except Exception:
             print "Object not found: {}".format(uid)
         return obj
 

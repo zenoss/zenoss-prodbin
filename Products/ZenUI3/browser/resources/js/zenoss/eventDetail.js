@@ -480,6 +480,7 @@ Ext.onReady(function() {
             this.addSection(eventDetailsSection);
 
             this.checkCustomizations();
+            Zenoss.Security.onPermissionsChange(this.updateEventActions, this);
         },
 
         checkCustomizations: function() {
@@ -656,6 +657,7 @@ Ext.onReady(function() {
         },
 
         update: function(eventData) {
+            this.eventData = eventData;
             // render event data
             eventData.firstTime = Zenoss.date.renderWithTimeZone(eventData.firstTime);
             eventData.lastTime = Zenoss.date.renderWithTimeZone(eventData.lastTime);
@@ -701,10 +703,19 @@ Ext.onReady(function() {
             Ext.getCmp('evdetail_log').update(logHtml);
             this.doLayout();
             if (this.showActions) {
-                this.updateEventActions(eventData);
+                if (!_has_global_roles()) {
+                    var deviceClass = eventData.DeviceClass[0]['uid'],
+                    device = eventData.device,
+                    context = deviceClass+'/devices/'+device;
+                    Zenoss.Security.setContext(context);
+                } else { 
+                    this.updateEventActions();
+                }
             }
         },
-        updateEventActions: function(eventData) {
+        updateEventActions: function() {
+            var eventData = this.eventData;
+            if (!this.showActions) return;
             Zenoss.EventActionManager.configure({
                 onFinishAction: Ext.bind(this.refresh, this),
 

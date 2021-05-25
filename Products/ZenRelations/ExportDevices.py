@@ -18,7 +18,6 @@ import StringIO
 import re
 import datetime
 
-import Globals
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
@@ -116,7 +115,7 @@ class ExportDevices(ZCmdBase):
                 @rtype: boolean
                 """
                 try: return not elem.getAttribute('module') in _retain_class
-                except: return True
+                except Exception: return True
 
             try: elems = node.getElementsByTagName('object')
             except AttributeError: pass

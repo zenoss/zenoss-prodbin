@@ -103,6 +103,10 @@ class IIpInterfaceInfo(IComponentInfo):
         title=_t(u"MTU"), group="Details",
         order=12)
 
+    ifindex = schema.TextLine(
+        title=_t(u"SNMP Index"), group="Details",
+        order=13)
+
 
 class IFileSystemInfo(IComponentInfo):
     """
@@ -147,6 +151,10 @@ class IOSProcessInfo(IComponentInfo):
     minProcessCount = schema.Int(title=u"Min Process Count",
                                  group="Details", alwaysEditable=True)
     maxProcessCount = schema.Int(title=u"Max Process Count",
+                                 group="Details", alwaysEditable=True)
+    minProcessMemory = schema.Int(title=u"Min Process Memory",
+                                 group="Details", alwaysEditable=True)
+    maxProcessMemory = schema.Int(title=u"Max Process Memory",
                                  group="Details", alwaysEditable=True)
 
 

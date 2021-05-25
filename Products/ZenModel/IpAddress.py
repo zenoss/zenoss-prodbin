@@ -23,8 +23,8 @@ from ManagedEntity import ManagedEntity
 from ipaddr import IPAddress
 
 from AccessControl import ClassSecurityInfo
-from Globals import DTMLFile
-from Globals import InitializeClass
+from App.special_dtml import DTMLFile
+from AccessControl.class_init import InitializeClass
 import zope.interface
 from Products import Zuul
 from Products.Zuul.interfaces import IInfo
@@ -108,7 +108,7 @@ class IpAddress(ManagedEntity, IpAddressIndexable):
         try:
             data = socket.gethostbyaddr(ipunwrap(self.id))
             if data: self.ptrName = data[0]
-        except socket.error, e:
+        except socket.error as e:
             self.ptrName = ""
             log.warn("%s: %s", self.title, e)
 

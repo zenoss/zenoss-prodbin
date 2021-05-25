@@ -14,17 +14,15 @@
 import signal
 import sys
 import logging
+from time import time
 
 # 3rd party
 from twisted.internet import reactor, task
 from twisted.internet.defer import inlineCallbacks
 
-from zope.component import getUtility, adapts, provideUtility, adapter
+from zope.component import getUtility, adapts, provideUtility
 from zope.event import notify
 from zope.interface import implements
-
-# Import Globals before any Zenoss Products
-import Globals  # noqa: F401
 
 from Products.ZenUtils.Utils import (
     zenPath, load_config, load_config_override,
@@ -63,6 +61,7 @@ from Products.ZenHub.server import (
     XmlRpcManager,
     ZenHubStatusReporter,
 )
+from Products.ZenHub.server.config import ServerConfig
 
 
 def _load_modules():
@@ -137,6 +136,9 @@ class ZenHub(ZCmdBase):
         self.sendEvent(eventClass=App_Start,
                        summary="%s started" % self.name,
                        severity=0)
+
+        # Init and install service manager
+        initServiceManager(self.options)
 
         # Initialize ZenHub's RPC servers
         self._monitor = StatsMonitor()
@@ -214,6 +216,12 @@ class ZenHub(ZCmdBase):
         self.process_invalidations_task.start(
             self.options.invalidation_poll_interval,
         )
+
+        # Start tracking reactor metrics
+        self.report_reactor_delayed_calls_task = task.LoopingCall(
+            report_reactor_delayed_calls, self.options.monitor, self.name
+        )
+        self.report_reactor_delayed_calls_task.start(30)
 
         reactor.run()
 
@@ -345,19 +353,12 @@ class ZenHub(ZCmdBase):
             type='int', default=server_config.defaults.modeling_pause_timeout,
             help='Maximum number of seconds to pause modeling during ZenPack'
                  ' install/upgrade/removal (default: %default)')
-
+        self.parser.add_option(
+            '--server-config', dest='serverconfig',
+            type='string', default='/opt/zenoss/etc/zenhub-server.yaml',
+            help='Configuration file to customize routes to zenhubworkers')
         notify(ParserReadyForOptionsEvent(self.parser))
 
-    def parseOptions(self):
-        # Override parseOptions to initialize and install the
-        # ServiceManager configuration utility.
-        super(ZenHub, self).parseOptions()
-        server_config.modeling_pause_timeout = \
-            int(self.options.modeling_pause_timeout)
-        server_config.xmlrpcport = int(self.options.xmlrpcport)
-        server_config.pbport = int(self.options.pbport)
-        config_util = server_config.ModuleObjectConfig(server_config)
-        provideUtility(config_util, IHubServerConfig)
 
 
 class DefaultConfProvider(object):  # noqa: D101
@@ -406,17 +407,41 @@ class ParserReadyForOptionsEvent(object):  # noqa: D101
         self.parser = parser
 
 
-@adapter(EventHeartbeat)
-def handle_reactor_delayed_calls_metric(event):
-    deferred_count = len(reactor.getDelayedCalls())
-    writer = getUtility(IMetricManager).metric_writer
+def initServiceManager(options):
+    # init and install the ServiceManager configuration utility.
+    server_config.modeling_pause_timeout = \
+        int(options.modeling_pause_timeout)
+    server_config.xmlrpcport = int(options.xmlrpcport)
+    server_config.pbport = int(options.pbport)
+    if options.serverconfig:
+        cfg = ServerConfig.from_file(options.serverconfig)
+        server_config.routes.update(cfg.routes)
+        server_config.executors.update(cfg.executors)
+        server_config.pools.update(cfg.pools)
+    log.info("\nZenhub-server configuration:\n"
+        "executors: %s\n"
+        "pools: %s\n"
+        "routes: %s",
+        server_config.executors,
+        server_config.pools,
+        server_config.routes)
+    config_util = server_config.ModuleObjectConfig(server_config)
+    provideUtility(config_util, IHubServerConfig)
 
-    writer.write_metric(
-        'zenhub.reactor.delayedcalls',
-        deferred_count,
-        int(event.timestamp * 1000),  # to milliseconds
-        {'monitor': event.device, 'name': event.component},
-    )
+
+def report_reactor_delayed_calls(monitor, name):
+    try:
+        deferred_count = len(reactor.getDelayedCalls())
+        writer = getUtility(IMetricManager).metric_writer
+
+        writer.write_metric(
+            'zenhub.reactor.delayedcalls',
+            deferred_count,
+            int(time() * 1000),  # to milliseconds
+            {'monitor': monitor, 'name': name},
+        )
+    except Exception:
+        log.exception('Failure in report_reactor_delayed_calls')
 
 
 if __name__ == '__main__':

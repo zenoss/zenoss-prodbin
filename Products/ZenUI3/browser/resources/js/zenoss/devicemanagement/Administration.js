@@ -25,6 +25,16 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
             }
             return false;
         },
+        getStartTime: function(startTime){
+            // @startTime format: 2012/10/22 08:05:00.000
+            // break it up for the form elements
+            var t = startTime.split(" ");
+            var _start = {}
+            _start.date = t[0].split("/")[1]+"/"+t[0].split("/")[2]+"/"+t[0].split("/")[0];        
+            _start.hr = t[1].split(":")[0];
+            _start.min = t[1].split(":")[1];
+            return _start;
+        },
         getDuration: function(duration){
             var patt1=/(?:(\d+) days )?(?:(\d\d):)?(\d\d):00/g;
             var match = patt1.exec(duration);
@@ -139,7 +149,10 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                 uid:                    grid.uid,
                 id:                     c.id,
                 name:                   c.name,
-                startDateTime:          c.startdatetime,
+                startDate:              c.start_date,
+                startHours:             padZero(c.start_hr),
+                startMinutes:           padZero(c.start_min),
+                timezone:               c.timezone,
                 durationDays:           c.duration_days,
                 durationHours:          padZero(c.duration_hrs),
                 durationMinutes:        padZero(c.duration_mins),
@@ -178,12 +191,15 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                         e.setTitle(_t("Edit Maintenance Window"));
                         var fields = e.getForm().getForm().getFields();
                         var prodState = Zenoss.devicemanagement.getProdStateValue(data.startProdState);
+                        var startTime = Zenoss.devicemanagement.getStartTime(data.startTime_data);
                         var duration = Zenoss.devicemanagement.getDuration(data.duration_data); // returns object with days,hrs,mins
                         fields.findBy(
                             function(record){
                                 switch(record.getName()){
                                     case "start_state"    : record.setValue(prodState);  break;
-                                    case "startdatetime"  : record.setValue(data.start); break;
+                                    case "start_date"     : record.setValue(startTime.date);  break;
+                                    case "start_hr"       : record.setValue(startTime.hr); break;
+                                    case "start_min"      : record.setValue(startTime.min); break;
                                     case "name"           : record.setValue(data.name);  break;
                                     case "id"             : record.setValue(data.name);  break;
                                     case "duration_days"  : record.setValue(duration.days);  break;
@@ -193,6 +209,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                     case "enabled"        : record.setValue(data.enabled);  break;
                                     case "days"           : record.setValue(data.days);  break;
                                     case "occurrence"     : record.setValue(data.occurrence);  break;
+                                    case "timezone"       : record.setValue(data.timezone);  break;
                                 }
                             }
                         );
@@ -242,12 +259,81 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                     margin: '0 0 30px 0',
                     items: [
                         {
-                            xtype: 'zendatetimefield',
+                            xtype: 'datefield',
                             allowBlank: false,
-                            name: 'startdatetime',
-                            fieldLabel: _t('Start Date and Time')
-                        }
-                    ]
+                            name: 'start_date',
+                            fieldLabel: _t('Start Date')
+                        }]
+                },{
+                    xtype: 'panel',
+                    layout: 'hbox',
+                    margin: '30px 0 30px 0px',
+                    items: [{
+                        xtype: 'panel',
+                        layout: 'hbox',
+                        items: [{
+                            xtype: 'panel',
+                            layout: 'hbox',
+                            margin: '14px 0 0 0',
+                            items:[
+                            {
+                                xtype: 'label',
+                                text: _t('Time: '),
+                                margin: labelmargin
+                            },{
+                                xtype: 'numberfield',
+                                maxValue: 23,
+                                minValue: 0,
+                                value: 0,
+                                step: 1,
+                                name: 'start_hr',
+                                width: 45,
+                                allowDecimals: false,
+                                margin: '0 0px 0 0',
+                                allowBlank: false
+                            },{
+                                xtype: 'label',
+                                text: _t(':'),
+                                margin: '5px 1px 0 1px'
+                            },{
+                                xtype: 'numberfield',
+                                name: 'start_min',
+                                maxValue: 59,
+                                minValue: 0,
+                                value: 0,
+                                step: 1,
+                                allowDecimals: false,
+                                width: 45,
+                                allowBlank: false
+                            }]
+                        },{
+                                xtype: 'combo',
+                                name: 'timezone',
+                                fieldLabel: _t('Time Zone'),
+                                margin: '0 0 0 20px',
+                                valueField: 'name',
+                                displayField: 'name',
+                                width: 170,
+                                forceSelection: true,
+                                queryMode: 'local',
+                                store: Ext.create('Ext.data.Store', {
+                                    fields: ['name'],
+                                    data: moment.tz.names().map(function(tz){
+                                        return {
+                                            name: tz,
+                                        }
+                                    })
+                                }),
+                                listeners: {
+                                    afterrender: function(combo){
+                                        if(combo.value === null) {
+                                            combo.setValue(combo.store.findRecord('name', Zenoss.USER_TIMEZONE));
+                                        }
+                                    }
+                                },
+                            },
+                        ]
+                    }]
                 },{
                     xtype: 'panel',
                     layout: 'hbox',
@@ -724,7 +810,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             {name: 'niceRepeat'},
             {name: 'startProdState'},
             {name: 'days'},
-            {name: 'occurrence'}
+            {name: 'occurrence'},
+            {name: 'timezone'}
         ]
     });
 
@@ -849,6 +936,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                             data = selected[0].data;
                             if (grid.uid) {
                                 var prodState = Zenoss.devicemanagement.getProdStateValue(data.startProdState);
+                                var startTime = Zenoss.devicemanagement.getStartTime(data.startTime_data);
                                 var duration = Zenoss.devicemanagement.getDuration(data.duration_data);
                                 var enabled = (!data.enabled);
 
@@ -856,7 +944,9 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                                     uid:                    grid.uid,
                                     id:                     data.name,
                                     name:                   data.name,
-                                    startDateTime:          data.start,
+                                    startDate:              startTime.date,
+                                    startHours:             startTime.hr,
+                                    startMinutes:           startTime.min,
                                     durationDays:           duration.days,
                                     durationHours:          duration.hrs,
                                     durationMinutes:        duration.mins,
@@ -904,13 +994,13 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         hidden:true
                     },{
                         id: 'maint_start',
-                        dataIndex: 'start',
+                        dataIndex: 'startTime',
                         header: _t('Start'),
                         width: 140,
                         filter: false,
                         sortable: true,
                         renderer: function(val){
-                            return moment.tz(moment.unix(val), Zenoss.USER_TIMEZONE).format(Zenoss.USER_DATE_FORMAT+' '+Zenoss.USER_TIME_FORMAT);
+                            return val;
                         }
                     },{
                         id: 'maint_duration_data',

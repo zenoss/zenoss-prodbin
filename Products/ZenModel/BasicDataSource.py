@@ -17,7 +17,7 @@ and builds the nessesary DEF and CDEF statements for it.
 from Products.ZenModel import RRDDataSource
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD, ZEN_CHANGE_DEVICE
 from AccessControl import ClassSecurityInfo, Permissions
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Products.ZenModel.Commandable import Commandable
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
 from Products.ZenUtils.Utils import executeStreamCommand, executeSshCommand, escapeSpecChars

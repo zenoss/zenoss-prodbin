@@ -1,4 +1,3 @@
-
 ##############################################################################
 # 
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
@@ -24,8 +23,8 @@ log = logging.getLogger("zen.Relations")
 from PrimaryPathObjectManager import PrimaryPathObjectManager
 from ZenPropertyManager import ZenPropertyManager
 
-from Globals import DTMLFile
-from Globals import InitializeClass
+from App.special_dtml import DTMLFile
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 from App.Management import Tabs
@@ -283,11 +282,22 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
             zendocAdapter.exportZendoc( ofile )
         self.exportXmlProperties(ofile, exportPasswords)
         self.exportXmlRelationships(ofile, ignorerels)
+
+        try:
+            self.exportProdState(ofile)
+        except AttributeError:
+            pass
+
         exportHook = getattr(aq_base(self), 'exportXmlHook', None)
         if exportHook and callable(exportHook): 
             self.exportXmlHook(ofile, ignorerels)
         ofile.write("</object>\n")
 
+    def exportProdState(self, ofile):
+        stag = "<property id='prodstate' mode='w' type='string'>%s</property>" % (
+            self.getProductionState()
+        )
+        ofile.write(stag)
 
     def exportXmlProperties(self,ofile, exportPasswords=False):
         """Return an xml representation of a RelationshipManagers properties
@@ -328,7 +338,6 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
             if valuestr:
                 ofile.write(valuestr+"\n")
             ofile.write("</property>\n")
-
 
     def exportXmlRelationships(self, ofile, ignorerels=[]):
         """Return an xml representation of Relationships"""

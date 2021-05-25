@@ -162,13 +162,13 @@ def checkip(ip):
     >>> checkip('10.10.20.5')
     True
     >>> try: checkip(10)
-    ... except IpAddressError, ex: print ex
+    ... except IpAddressError as ex: print ex
     10 is an invalid address
     >>> try: checkip('10')
-    ... except IpAddressError, ex: print ex
+    ... except IpAddressError as ex: print ex
     10 is an invalid address
     >>> try: checkip('10.10.20.500')
-    ... except IpAddressError, ex: print ex
+    ... except IpAddressError as ex: print ex
     10.10.20.500 is an invalid address
     >>> checkip('10.10.20.0')
     True
@@ -197,7 +197,7 @@ def ipToDecimal(ip):
     >>> ipToDecimal('10.10.20.5')
     168432645L
     >>> try: ipToDecimal('10.10.20.500')
-    ... except IpAddressError, ex: print ex
+    ... except IpAddressError as ex: print ex
     10.10.20.500 is an invalid address
     """
     checkip(ip)

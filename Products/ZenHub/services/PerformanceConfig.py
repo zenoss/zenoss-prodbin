@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
 from zope import component
 
@@ -194,7 +193,7 @@ class PerformanceConfig(HubService, ThresholdMixin):
             try:
                 listener.callRemote('updateThresholdClasses',
                                     self.remote_getThresholdClasses())
-            except Exception, ex:
+            except Exception as ex:
                 self.log.warning("Error notifying a listener of new classes")
 
     @onUpdate(Device)

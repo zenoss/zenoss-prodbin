@@ -17,7 +17,6 @@ import logging
 slog = logging.getLogger("zen.Syslog")
 import socket
 
-import Globals
 from Products.ZenEvents.syslog_h import *
 from Products.ZenUtils.IpUtil import isip
 
@@ -91,7 +90,7 @@ for regex in parsers:
     try:
         compiled = re.compile(regex, re.DOTALL)
         compiledParsers.append((compiled, keepEntry))
-    except:
+    except Exception:
         pass
 
 
@@ -301,7 +300,7 @@ class SyslogProcessor(object):
             slog.debug("eventClassKey=%s", evt['eventClassKey'])
             try:
                 evt['eventClassKey'] = evt['eventClassKey'].decode('latin-1')
-            except:
+            except Exception:
                 evt['eventClassKey'] = evt['eventClassKey'].decode('utf-8')
         else:
             slog.debug("No eventClassKey assigned")

@@ -73,13 +73,13 @@ class ZuulFacade(object):
         """
         try:
             return self.context.dmd.primaryAq()
-        except:
+        except Exception:
             return get_dmd()
 
     def _getObject(self, uid):
         try:
             obj = self._dmd.unrestrictedTraverse(str(uid))
-        except Exception, e:
+        except Exception as e:
             args = (uid, e.__class__.__name__, e)
             raise ObjectNotFoundException('Cannot find "%s". %s: %s' % args)
         return obj

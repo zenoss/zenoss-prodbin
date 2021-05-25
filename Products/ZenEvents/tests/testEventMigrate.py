@@ -24,8 +24,7 @@ import logging
 log = logging.getLogger('zen.testEventMigrate')
 
 #lookup
-import Globals
-from Products.Five import zcml
+from Zope2.App import zcml
 import Products.ZenossStartup
 zcml.load_site()
 

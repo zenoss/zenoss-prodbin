@@ -17,7 +17,7 @@ import logging
 log = logging.getLogger("zen.Events")
 
 from zope.interface import implements
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Products.ZenModel.ManagedEntity import ManagedEntity
@@ -347,7 +347,7 @@ class EventClass(EventClassPropertyMixin, Organizer,
         try:
             if self.transform:
                 compile(self.transform, "<string>", "exec")
-        except:
+        except Exception:
             return "color:#FF0000;"
 
     security.declareProtected(

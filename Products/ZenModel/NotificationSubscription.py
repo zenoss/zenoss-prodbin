@@ -13,8 +13,8 @@ log = logging.getLogger("zen.notifications")
 
 
 from zope.interface import implements
-from Globals import InitializeClass
-from Globals import DTMLFile
+from AccessControl.class_init import InitializeClass
+from App.special_dtml import DTMLFile
 from AccessControl import ClassSecurityInfo
 from AdministrativeRoleable import AdministrativeRoleable
 from Products.ZenRelations.RelSchema import *

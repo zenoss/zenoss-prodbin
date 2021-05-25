@@ -27,7 +27,6 @@ from twisted.internet import defer, reactor, error, task
 from twisted.spread import pb
 from zope.component import getGlobalSiteManager
 
-import Globals  # noqa: F401
 import Products.ZenHub as ZENHUB_MODULE
 
 from Products.DataCollector.Plugins import loadPlugins
@@ -257,6 +256,7 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         @param monitor {str} Name of the collection monitor
         """
         try:
+            self.syncdb()
             return self.__manager.getService(name, monitor)
         except RemoteBadMonitor:
             # Catch and rethrow this Exception derived exception.

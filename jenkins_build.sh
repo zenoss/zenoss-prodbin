@@ -69,7 +69,7 @@ echo Checking ASSEMBLY_BRANCH;check_var $ASSEMBLY_BRANCH;echo OK
 echo Creating a virtual env...
 if [ ! -d venv ]; then virtualenv venv; fi
 source venv/bin/activate
-pip install --upgrade pip
+wget -qO- https://bootstrap.pypa.io/pip/2.7/get-pip.py | python;
 if [ ! -d zendev ]; then git clone ${ZENDEV_REPO} zendev; fi
 cd zendev;git checkout ${ZENDEV_BRANCH}
 pip install -e .
@@ -114,18 +114,20 @@ zendev devimg --clean
 echo Copying zenoss-prodbin/bin/ to zenhome/bin
 rsync -av --exclude=metrics/ ${REPO_PATH}/bin/ ${ZENDEV_ROOT}/zenhome/bin
 
-echo Running the tests...
-pushd ${ZENDEV_ROOT}/src/github.com/zenoss/product-assembly
-export PRODUCT_IMAGE_ID=zendev/devimg:${ZENDEV_ENV}
-export MARIADB_IMAGE_ID=zendev/mariadb:${ZENDEV_ENV}
-./test_image.sh \
-	--no-zenpacks \
-	--mount ${HOME}/.m2:/home/zenoss/.m2 \
-	--mount ${ZENDEV_ROOT}/zenhome:/opt/zenoss \
-	--mount ${ZENDEV_ROOT}/var_zenoss:/var/zenoss \
-	--mount ${ZENDEV_ROOT}/src/github.com/zenoss:/mnt/src \
-	--env SRCROOT=/mnt/src
-popd
+if [ "$1" != "--no-tests" ]; then
+    echo Running the tests...
+    pushd ${ZENDEV_ROOT}/src/github.com/zenoss/product-assembly
+    export PRODUCT_IMAGE_ID=zendev/devimg:${ZENDEV_ENV}
+    export MARIADB_IMAGE_ID=zendev/mariadb:${ZENDEV_ENV}
+    ./test_image.sh \
+    	--no-zenpacks \
+    	--mount ${HOME}/.m2:/home/zenoss/.m2 \
+    	--mount ${ZENDEV_ROOT}/zenhome:/opt/zenoss \
+    	--mount ${ZENDEV_ROOT}/var_zenoss:/var/zenoss \
+    	--mount ${ZENDEV_ROOT}/src/github.com/zenoss:/mnt/src \
+    	--env SRCROOT=/mnt/src
+    popd
+fi
 
 echo Building the artifacts...
 cdz ${REPO_NAME};make clean build
