@@ -69,7 +69,7 @@ echo Checking ASSEMBLY_BRANCH;check_var $ASSEMBLY_BRANCH;echo OK
 echo Creating a virtual env...
 if [ ! -d venv ]; then virtualenv venv; fi
 source venv/bin/activate
-pip install --upgrade "pip<21"
+wget -qO- https://bootstrap.pypa.io/pip/2.7/get-pip.py | python;
 if [ ! -d zendev ]; then git clone ${ZENDEV_REPO} zendev; fi
 cd zendev;git checkout ${ZENDEV_BRANCH}
 pip install -e .
