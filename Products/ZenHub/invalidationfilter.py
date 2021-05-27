@@ -14,7 +14,6 @@ import logging
 from cStringIO import StringIO
 from zope.interface import implements
 
-import Globals  # required to import zenoss Products
 from Products.ZenUtils.Utils import unused
 
 from Products.ZenModel.DeviceClass import DeviceClass
@@ -31,7 +30,6 @@ from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from .interfaces import IInvalidationFilter, FILTER_EXCLUDE, FILTER_CONTINUE
 
-unused(Globals)
 
 
 log = logging.getLogger('zen.InvalidationFilter')

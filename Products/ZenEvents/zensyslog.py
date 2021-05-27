@@ -24,7 +24,6 @@ from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor, defer, udp
 from twisted.python import failure
 
-import Globals
 import zope.interface
 import zope.component
 
@@ -46,7 +45,7 @@ from Products.ZenUtils.IpUtil import asyncNameLookup
 from Products.ZenEvents.EventServer import Stats
 from Products.ZenUtils.Utils import unused
 from Products.ZenCollector.services.config import DeviceProxy
-unused(Globals, DeviceProxy)
+unused(DeviceProxy)
 
 COLLECTOR_NAME = 'zensyslog'
 log = logging.getLogger("zen.%s" % COLLECTOR_NAME)

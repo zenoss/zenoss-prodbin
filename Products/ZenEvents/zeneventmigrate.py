@@ -48,7 +48,6 @@ from uuid import uuid4
 from signal import signal, siginterrupt, SIGTERM, SIGINT
 from time import sleep
 
-import Globals
 
 from Products.ZenUtils.mysql import MySQLdb
 from MySQLdb import connect

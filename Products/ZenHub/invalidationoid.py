@@ -12,7 +12,6 @@ import logging
 from zope.interface import implements
 from zope.component import adapts
 
-import Globals  # required to import zenoss Products
 from Products.ZenUtils.Utils import unused
 
 from Products.ZenRelations.PrimaryPathObjectManager import (
@@ -20,7 +19,6 @@ from Products.ZenRelations.PrimaryPathObjectManager import (
 )
 from Products.ZenHub.interfaces import IInvalidationOid
 
-unused(Globals)
 
 
 log = logging.getLogger('zen.InvalidationOid')

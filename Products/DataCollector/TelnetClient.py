@@ -32,7 +32,6 @@ zCommandExistanceCheck - shell command issued to look for executible
 
 """
 
-import Globals
 
 from twisted.conch import telnet
 from twisted.internet import reactor

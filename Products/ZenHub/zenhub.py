@@ -24,8 +24,6 @@ from zope.component import getUtility, adapts, provideUtility
 from zope.event import notify
 from zope.interface import implementer
 
-# Import Globals before any Zenoss Products
-import Globals  # noqa: F401
 import Products.ZenMessaging.queuemessaging as QUEUEMESSAGING_MODULE
 
 from Products.ZenEvents.Event import Event, EventHeartbeat

@@ -10,16 +10,16 @@
 
 import marshal, re, sys, time
 
-import Globals, Acquisition
 import App
 import App.Management
 import AccessControl
 import AccessControl.Role, AccessControl.Owned, App.Common
+from App.special_dtml import DTMLFile, HTML
 from ExtensionClass import Base
 from ComputedAttribute import ComputedAttribute
 from AccessControl import getSecurityManager, Unauthorized
 from AccessControl.ZopeSecurityPolicy import getRoles
-from Acquisition import aq_base, aq_parent, aq_inner
+from Acquisition import aq_base, aq_parent, aq_inner, Acquired
 from DocumentTemplate.html_quote import html_quote
 from DocumentTemplate.ustr import ustr
 from zExceptions.ExceptionFormatter import format_exception
@@ -31,7 +31,6 @@ from OFS.Traversable import Traversable
 from Products.ZenUtils.Utils import unused
 
 
-HTML=Globals.HTML
 
 import logging
 logger = logging.getLogger()
@@ -86,7 +85,7 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
         )
 
     # Attributes that must be acquired
-    REQUEST=Acquisition.Acquired
+    REQUEST=Acquired
 
     # Allow (reluctantly) access to unprotected attributes
     __allow_access_to_unprotected_subobjects__=1
@@ -128,7 +127,7 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
         # My sub-objects as used by the tree tag
         return ()
 
-    _manage_editedDialog=Globals.DTMLFile('dtml/editedDialog', globals())
+    _manage_editedDialog=DTMLFile('dtml/editedDialog', globals())
     def manage_editedDialog(self, REQUEST, **args):
         return apply(self._manage_editedDialog,(self, REQUEST), args)
 

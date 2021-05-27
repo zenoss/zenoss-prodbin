@@ -10,7 +10,6 @@
 
 import logging
 
-import Globals
 
 from twisted.spread import pb
 

@@ -2,7 +2,6 @@
 
 import unittest
 
-import Globals
 import common
 
 class Test_EnableZproxyNginxPagespeedOrigConfig(unittest.TestCase, common.ServiceMigrationTestCase):

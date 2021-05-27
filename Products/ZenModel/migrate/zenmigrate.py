@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 from Products.ZenModel.migrate import Migrate
 
 def main():

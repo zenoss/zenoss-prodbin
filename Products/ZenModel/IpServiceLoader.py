@@ -19,7 +19,6 @@ __version__ = "$Revision: 1.5 $"[11:-2]
 import os
 import re
 
-import Globals #initalize imports correctly magic!
 
 from Products.ZenUtils.BasicLoader import BasicLoader
 

@@ -10,7 +10,6 @@
 
 import Migrate
 
-import Globals
 
 from Products.ZenModel.LinkManager import manage_addLinkManager
 

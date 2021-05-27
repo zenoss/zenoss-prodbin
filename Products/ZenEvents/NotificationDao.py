@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.guid.guid import GUIDManager

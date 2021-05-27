@@ -13,7 +13,6 @@ from collections import defaultdict
 from ZODB.transact import transact
 from zope.event import notify
 
-import Globals  # noqa. required to import zenoss Products
 from Products.ZenUtils.Utils import importClass
 from Products.ZenUtils.deprecated import deprecated
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap

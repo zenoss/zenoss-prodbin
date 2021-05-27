@@ -199,7 +199,6 @@ if __name__ == "__main__":
             pass
         sync = commit
 
-    import Globals
     from Products.ZenUtils.ZCmdBase import ZCmdBase
 
     cmd = ZCmdBase()

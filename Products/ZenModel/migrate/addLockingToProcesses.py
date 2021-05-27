@@ -11,7 +11,6 @@
 Adds locking zproperties to the osprocess classes and organizers. 
 """
 
-import Globals
 import Migrate
 from Acquisition import aq_base
 from Products.ZenModel.Lockable import UNLOCKED

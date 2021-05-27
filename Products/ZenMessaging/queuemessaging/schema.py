@@ -20,7 +20,6 @@ from zenoss.protocols.queueschema import Schema
 from zenoss.protocols.data.queueschema import SCHEMA
 from zenoss.protocols.interfaces import IQueueSchema, IAMQPConnectionInfo
 
-import Globals
 from Products.ZenUtils.PkgResources import pkg_resources
 from Products.ZenUtils.Utils import zenPath
 

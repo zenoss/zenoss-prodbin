@@ -23,7 +23,7 @@ from ManagedEntity import ManagedEntity
 from ipaddr import IPAddress
 
 from AccessControl import ClassSecurityInfo
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 import zope.interface
 from Products import Zuul

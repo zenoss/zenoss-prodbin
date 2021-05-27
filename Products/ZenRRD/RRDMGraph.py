@@ -16,7 +16,7 @@ $Id: RRDMGraph.py,v 1.1 2003/04/25 15:50:19 edahl Exp $"""
 
 __version__ = "$Revision: 1.1 $"[11:-2]
 
-from Globals import Persistent
+from Persistence import Persistent
 
 class RRDMGraph(Persistent):
 

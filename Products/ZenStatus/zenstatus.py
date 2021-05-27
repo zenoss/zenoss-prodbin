@@ -19,7 +19,6 @@ import logging
 
 from twisted.internet import defer
 
-import Globals
 import zope.component
 import zope.interface
 from Products.ZenStatus.ZenTcpClient import ZenTcpClient

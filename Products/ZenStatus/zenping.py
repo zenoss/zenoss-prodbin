@@ -20,7 +20,6 @@ import os.path
 import logging
 log = logging.getLogger("zen.zenping")
 
-import Globals
 import zope.interface
 import zope.component
 
@@ -36,7 +35,6 @@ from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.services.PingPerformanceConfig import PingPerformanceConfig
 unused(DeviceProxy)
 unused(PingPerformanceConfig)
-unused(Globals)
 
 # define some constants strings
 COLLECTOR_NAME = "zenping"

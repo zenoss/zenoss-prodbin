@@ -9,7 +9,7 @@
 
 import logging
 
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions

@@ -27,7 +27,6 @@ import re
 import gzip
 from itertools import imap
 
-import Globals
 from ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath, binPath, readable_time, unused
 from ZenBackupBase import *
@@ -36,7 +35,6 @@ from Products.Zuul.interfaces import IPreBackupEvent, IPostBackupEvent
 from zope.event import notify
 from ZenDB import ZenDB
 
-unused(Globals)
 
 MAX_UNIQUE_NAME_ATTEMPTS = 1000
 

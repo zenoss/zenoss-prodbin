@@ -10,7 +10,6 @@
 
 __doc__ = "Convert old-style zenpacks to zenpack eggs"
 
-import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenModel.ZenPack import ZenPackException
 from Utils import zenPath

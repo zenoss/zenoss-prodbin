@@ -56,7 +56,6 @@ import sys
 import tempfile
 import transaction
 
-import Globals
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.mib import (
@@ -65,7 +64,6 @@ from Products.ZenUtils.mib import (
 )
 from Products.ZenUtils.Utils import zenPath, unused
 
-unused(Globals)
 
 
 def _logException(log, mesg, *args):

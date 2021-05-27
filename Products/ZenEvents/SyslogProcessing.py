@@ -17,7 +17,6 @@ import logging
 slog = logging.getLogger("zen.Syslog")
 import socket
 
-import Globals
 from Products.ZenEvents.syslog_h import *
 from Products.ZenUtils.IpUtil import isip
 

@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 from Products.ZenReports.AliasPlugin import AliasPlugin, Column, \
                                             RRDColumnHandler, \
                                             PythonColumnHandler

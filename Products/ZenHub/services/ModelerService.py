@@ -9,7 +9,6 @@
 
 import copy
 
-import Globals
 
 from itertools import ifilter
 from zope import component
