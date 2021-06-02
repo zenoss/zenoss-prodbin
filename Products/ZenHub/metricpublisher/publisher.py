@@ -276,7 +276,12 @@ class RedisListPublisher(BasePublisher):
                     self._flushing = False
 
             return _flush(metrics)
-        return defer.fail()
+        return defer.fail(
+            RuntimeError(
+                "Bad connection state (metricpublisher): %s"
+                % (self._connection.state,)
+            )
+        )
 
     def _shutdown(self):
         def disconnect():
