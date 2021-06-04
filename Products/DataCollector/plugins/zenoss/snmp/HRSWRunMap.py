@@ -80,7 +80,7 @@ class HRSWRunMap(SnmpPlugin):
 
         log.debug("=== Process information received ===")
         for p in sorted(pidtable.keys()):
-            log.debug("snmpidx: %s\tprocess: %s" % (p, pidtable[p]))
+            log.debug("snmpidx: %s\tprocess: %s", p, pidtable[p])
 
         if not pidtable.values():
             log.warning("No process information from hrSWRunEntry %s",

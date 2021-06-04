@@ -136,7 +136,7 @@ class PortscanClient(BaseClient):
         @param plugin: performance data collector plugin
         @type plugin: plugin object
         """
-        log.info("portscan client finished collection for %s" % self.hostname)
+        log.info("portscan client finished collection for %s", self.hostname)
         # ApplyDataMap.processClient() expect an iterable with two
         # elements: the plugin name and the results, so we set this
         # here.        

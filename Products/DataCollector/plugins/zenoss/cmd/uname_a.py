@@ -23,11 +23,11 @@ class uname_a(CommandPlugin):
 
     def process(self, device, results, log):
         """Collect command-line information from this device"""
-        log.info("Processing the uname -a info for device %s" % device.id)
+        log.info("Processing the uname -a info for device %s", device.id)
         om = self.objectMap()
         om.snmpDescr = results.strip()
         om.setHWProductKey, om.snmpSysName, kernelRelease = results.split()[:3]
         om.setOSProductKey = " ".join([om.setHWProductKey, kernelRelease])
-        log.debug("snmpSysName=%s, setOSProductKey=%s" % (
-                om.snmpSysName, om.setOSProductKey))
+        log.debug("snmpSysName=%s, setOSProductKey=%s",
+                om.snmpSysName, om.setOSProductKey)
         return om

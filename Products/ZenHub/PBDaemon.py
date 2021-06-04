@@ -643,9 +643,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             try:
                 port = int(port)
             except ValueError:
-                self.log.exception("redis url contains non-integer port " +
-                                   "value {port}, defaulting to {default}".
-                                   format(port=port, default=publisher.defaultRedisPort))
+                self.log.exception("redis url contains non-integer port "
+                                   "value %s, defaulting to %s",
+                                   port, publisher.defaultRedisPort)
                 port = publisher.defaultRedisPort
             self._publisher = publisher.RedisListPublisher(
                 host, port, self.options.metricBufferSize,
@@ -730,11 +730,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         pingInterval = self.options.zhPingInterval
         factory = ReconnectingPBClientFactory(connectTimeout=60, pingPerspective=self.options.pingPerspective,
                                               pingInterval=pingInterval, pingtimeout=pingInterval * 5)
-        self.log.info("Connecting to %s:%d" % (self.options.hubhost, self.options.hubport))
+        self.log.info("Connecting to %s:%d", self.options.hubhost, self.options.hubport)
         factory.connectTCP(self.options.hubhost, self.options.hubport)
         username = self.options.hubusername
         password = self.options.hubpassword
-        self.log.debug("Logging in as %s" % username)
+        self.log.debug("Logging in as %s", username)
         c = credentials.UsernamePassword(username, password)
         factory.gotPerspective = self.gotPerspective
         factory.connecting = self.connecting
@@ -756,7 +756,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def getServiceNow(self, svcName):
         if not svcName in self.services:
-            self.log.warning('No service named %r: ZenHub may be disconnected' % svcName)
+            self.log.warning('No service named %r: ZenHub may be disconnected', svcName)
         return self.services.get(svcName, None) or FakeRemote()
 
     def getService(self, serviceName, serviceListeningInterface=None):
@@ -771,19 +771,19 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             return defer.succeed(self.services[serviceName])
 
         def removeService(ignored):
-            self.log.debug('Removing service %s' % serviceName)
+            self.log.debug('Removing service %s', serviceName)
             if serviceName in self.services:
                 del self.services[serviceName]
 
         def callback(result, serviceName):
-            self.log.debug('Loaded service %s from zenhub' % serviceName)
+            self.log.debug('Loaded service %s from zenhub', serviceName)
             self.services[serviceName] = result
             result.notifyOnDisconnect(removeService)
             return result
 
         def errback(error, serviceName):
-            self.log.debug('errback after getting service %s' % serviceName)
-            self.log.error('Could not retrieve service %s' % serviceName)
+            self.log.debug('errback after getting service %s', serviceName)
+            self.log.error('Could not retrieve service %s', serviceName)
             if serviceName in self.services:
                 del self.services[serviceName]
             return error
@@ -803,14 +803,13 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """
         def errback(error):
             if isinstance(error, Failure):
-                self.log.critical( "Invalid monitor: %s" % self.options.monitor)
+                self.log.critical( "Invalid monitor: %s: %s", self.options.monitor, error)
                 reactor.stop()
                 return defer.fail(RemoteBadMonitor(
                            "Invalid monitor: %s" % self.options.monitor, ''))
             return error
 
-        self.log.debug('Setting up initial services: %s' % \
-                ', '.join(self.initialServices))
+        self.log.debug('Setting up initial services: %s', ', '.join(self.initialServices))
         d = defer.DeferredList(
             [self.getService(name) for name in self.initialServices],
             fireOnOneErrback=True, consumeErrors=True)
@@ -1088,7 +1087,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.log.debug('_checkZenHub: entry')
 
         def callback(result):
-            self.log.debug('ZenHub health check: Got result %s' % result)
+            self.log.debug('ZenHub health check: Got result %s', result)
             if result == 'pong':
                 self.log.debug('ZenHub health check: Success - received pong from ZenHub ping service.')
                 self._signalZenHubAnswering(True)
@@ -1097,7 +1096,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 self._signalZenHubAnswering(False)
 
         def errback(error):
-            self.log.error('Error pinging ZenHub: %s (%s).' % (error, getattr(error, 'message', '')))
+            self.log.error('Error pinging ZenHub: %s (%s).', error, getattr(error, 'message', ''))
             self._signalZenHubAnswering(False)
 
         try:
@@ -1114,7 +1113,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.log.warning("ZenHub health check: DeadReferenceError - lost connection to ZenHub.")
             self._signalZenHubAnswering(False)
         except Exception as e:
-            self.log.error('ZenHub health check: caught %s exception: %s' % (e.__class__, e.message))
+            self.log.error('ZenHub health check: caught %s exception: %s', e.__class__, e.message)
             self._signalZenHubAnswering(False)
 
 
@@ -1123,18 +1122,18 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         Write or remove file that the ZenHub_answering health check uses to report status.
         @param answering: true if ZenHub is answering, False, otherwise.
         """
-        self.log.debug('_signalZenHubAnswering(%s)' % answering)
+        self.log.debug('_signalZenHubAnswering(%s)', answering)
         filename = 'zenhub_connected'
         signalFilePath = zenPath('var', filename)
         if answering:
-            self.log.debug('writing file at %s' % signalFilePath)
+            self.log.debug('writing file at %s', signalFilePath)
             atomicWrite(signalFilePath, '')
         else:
             try:
-                self.log.debug('removing file at %s' % signalFilePath)
+                self.log.debug('removing file at %s', signalFilePath)
                 os.remove(signalFilePath)
             except Exception as e:
-                self.log.debug('ignoring %s exception (%s) removing file %s' % (e.__class__, e.message, signalFilePath))
+                self.log.debug('ignoring %s exception (%s) removing file %s', e.__class__, e.message, signalFilePath)
 
 
     def buildOptions(self):

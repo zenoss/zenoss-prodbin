@@ -40,8 +40,9 @@ class ZenPackDaemons(ZenScriptBase):
                 module = entry.load()
                 dList += zpl.list(os.path.dirname(module.__file__), None)
             except Exception as ex:
-                summary = "The ZenPack %s cannot be imported -- skipping." % entry.name
-                self.log.exception(summary)
+                self.log.exception(
+                    "The ZenPack %s cannot be imported -- skipping.", entry.name
+                )
 
         # Get daemons from non-egg ZenPacks
         prodDir = zenPath('Products')

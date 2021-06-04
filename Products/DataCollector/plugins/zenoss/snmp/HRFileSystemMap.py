@@ -70,7 +70,7 @@ class HRFileSystemMap(SnmpPlugin):
         fstable = tabledata.get("fsTableOid")
         if fstable is None:
             log.error("Unable to get data for %s from fsTableOid"
-                          " -- skipping model" % device.id)
+                          " -- skipping model", device.id)
             return None
 
         dskTable = tabledata.get("dskTable")

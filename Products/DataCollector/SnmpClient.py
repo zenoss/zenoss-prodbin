@@ -104,7 +104,7 @@ class SnmpClient(BaseClient):
         try:
             driver.next()
         except TimeoutError:
-            log.info("Device timed out: " + self.connInfo.summary())
+            log.info("Device timed out: %s", self.connInfo.summary())
             if self.options.discoverCommunity:
                 yield self.findSnmpCommunity()
                 snmp_config = driver.next()
@@ -124,10 +124,10 @@ class SnmpClient(BaseClient):
             else:
                 raise
         except Snmpv3Error:
-            log.error("Cannot connect to SNMP agent: {0}".format(self.connInfo.summary()))
+            log.error("Cannot connect to SNMP agent: %s", self.connInfo.summary())
             raise
         except Exception:
-            log.exception("Unable to talk: " + self.connInfo.summary())
+            log.exception("Unable to talk: %s", self.connInfo.summary())
             raise
 
         changed = True
@@ -229,7 +229,7 @@ class SnmpClient(BaseClient):
                                      eventKey=eventKey, summary=summary)
 
     def clientFinished(self, result):
-        log.info("snmp client finished collection for %s" % self.hostname)
+        log.info("snmp client finished collection for %s", self.hostname)
         if isinstance(result, failure.Failure):
             from twisted.internet import error
             if isinstance(result.value, error.TimeoutError):
@@ -238,7 +238,7 @@ class SnmpClient(BaseClient):
                 summary = "SNMP agent down - no response received"
                 log.info("Sending event: %s", summary)
             elif isinstance(result.value, Snmpv3Error):
-                log.error("Connection to device {0.hostname} failed: {1.value.message}".format(self, result))
+                log.error("Connection to device %s failed: %s", self.hostname, result.value.message)
                 summary = "SNMP v3 specific error during SNMP collection"
             else:
                 log.exception("Device %s had an error: %s",self.hostname,result)

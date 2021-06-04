@@ -100,7 +100,7 @@ class EventView(object):
                 acked = counts.get('acknowledged_count', 0)
                 sevsum.append([getCssClass(sev), acked, count])
         except TypeError as e:
-            log.warn("Attempted to query events for %r which does not have a uuid" % self)
+            log.warn("Attempted to query events for %r which does not have a uuid", self)
         return sevsum
 
     def getStatusImgSrc(self, status):
@@ -194,7 +194,7 @@ class EventView(object):
                                                  status=[STATUS_NEW,STATUS_ACKNOWLEDGED],
                                                  event_class=filter(None, [statusclass]))
         except TypeError as e:
-            log.warn("Attempted to query events for %r which does not have a uuid" % self)
+            log.warn("Attempted to query events for %r which does not have a uuid", self)
             return 0
         result = zep.getEventSummaries(0, filter=event_filter, limit=0)
         return int(result['total'])
@@ -211,7 +211,7 @@ class EventView(object):
             sevs = (SEVERITY_CRITICAL,SEVERITY_ERROR,SEVERITY_WARNING,SEVERITY_INFO,SEVERITY_DEBUG)
             severities = zep.getEventSeveritiesByUuid(self.getUUID(), severities=sevs)
         except TypeError as e:
-            log.warn("Attempted to query events for %r which does not have a uuid" % self)
+            log.warn("Attempted to query events for %r which does not have a uuid", self)
             return {}
         results = dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
         return results
@@ -225,7 +225,7 @@ class EventView(object):
         try:
             result =  zep.getWorstSeverityByUuid(self.getUUID())
         except TypeError as e:
-            log.warn("Attempted to query events for %r which does not have a uuid" % self)
+            log.warn("Attempted to query events for %r which does not have a uuid", self)
             result = 0
         return result
 

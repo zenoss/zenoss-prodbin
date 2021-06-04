@@ -1806,7 +1806,7 @@ class DeviceRouter(TreeRouter):
             old_templateIds = [t.id for t in facade.getBoundTemplates(uid)]
             facade.setBoundTemplates(uid, templateIds)
         except DatapointNameConfict as e:
-            log.info("Failed to bind templates for {}: {}".format(uid, e))
+            log.info("Failed to bind templates for %s: %s", uid, e)
             return DirectResponse.exception(e, 'Failed to bind templates.')
         audit('UI.Device.BindTemplates', uid,new_bound_templates=templateIds, old_bound_templates=old_templateIds )
         return DirectResponse.succeed()

@@ -27,7 +27,7 @@ class Unix_df_k(CommandParser):
         return "Linux" in pp or "Darwin" in pp
 
     def parse(self, device, results, log):
-        log.info("collecting filesystems from device %s" % device.id)
+        log.info("collecting filesystems from device %s", device.id)
         rm = self.newRelationshipMap("filesystems")
         rlines = results.split("\n")
         for line in rlines:

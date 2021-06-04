@@ -291,21 +291,21 @@ class ConfigListener(object):
         """
         Called when a configuration is deleted from the collector
         """
-        log.debug('ConfigListener: configuration %s deleted' % configurationId)
+        log.debug('ConfigListener: configuration %s deleted', configurationId)
         ZenProcessTask.DEVICE_STATS.pop(configurationId, None)
 
     def added(self, configuration):
         """
         Called when a configuration is added to the collector
         """
-        log.debug('ConfigListener: configuration %s added' % configuration)
+        log.debug('ConfigListener: configuration %s added', configuration)
 
 
     def updated(self, newConfiguration):
         """
         Called when a configuration is updated in collector
         """
-        log.debug('ConfigListener: configuration %s updated' % newConfiguration)
+        log.debug('ConfigListener: configuration %s updated', newConfiguration)
 
 # Create an implementation of the IScheduledTask interface that will perform
 # the actual collection work needed by this collector.
@@ -419,14 +419,14 @@ class ZenProcessTask(ObservableMixin):
             self._sendSnmpError(summary, "resource_mib", resolution=resolution)
 
         except error.TimeoutError as e:
-            log.debug('Timeout fetching tables on device %s' % self._devId)
+            log.debug('Timeout fetching tables on device %s', self._devId)
             self._sendSnmpError('%s; Timeout on device' % PROC_SCAN_ERROR % self._devId, 'table_scan_timeout')
         except Snmpv3Error as e:
             msg = "Cannot connect to SNMP agent on {0._devId}: {1.value}".format(self, str(e))
             log.debug(msg)
             self._sendSnmpError('%s; %s' % (PROC_SCAN_ERROR % self._devId, msg), 'table_scan_v3_error')
         except Exception as e:
-            log.exception('Unexpected Error on device %s' % self._devId)
+            log.exception('Unexpected Error on device %s', self._devId)
             msg = '%s; error: %s' % (PROC_SCAN_ERROR % self._devId, e)
             self._sendSnmpError(msg)
 
@@ -437,8 +437,7 @@ class ZenProcessTask(ObservableMixin):
         try:
             self._close()
         except Exception as e:
-            log.warn("Failed to close device %s: error %s" %
-                     (self._devId, str(e)))
+            log.warn("Failed to close device %s: error %s", self._devId, e)
 
 
     def cleanup(self):
@@ -488,7 +487,7 @@ class ZenProcessTask(ObservableMixin):
                                          component=pConfig.originalName,
                                          eventKey=pConfig.processClass,
                                          severity=pConfig.severity)
-            log.info("(%s) %s" % (self._devId, message))
+            log.info("(%s) %s", self._devId, message)
 
     def sendFoundProcsEvents(self, afterByConfig, restarted):
         # report alive processes
@@ -505,7 +504,7 @@ class ZenProcessTask(ObservableMixin):
                                          component=processStat._config.originalName,
                                          eventKey=processStat._config.processClass,
                                          severity=Event.Clear)
-            log.debug("(%s) %s" % (self._devId, message))
+            log.debug("(%s) %s", self._devId, message)
 
     def _parseProcessNames(self, results):
         """
@@ -548,7 +547,7 @@ class ZenProcessTask(ObservableMixin):
                                              component=procConfig.originalName,
                                              eventKey=procConfig.processClass,
                                              severity=procConfig.severity)
-            log.warning("(%s) %s" % (self._devId, message))
+            log.warning("(%s) %s", self._devId, message)
 
     def _sendProcessEvents(self, results):
         (afterByConfig, afterPidToProcessStats,
@@ -558,9 +557,9 @@ class ZenProcessTask(ObservableMixin):
         self.sendFoundProcsEvents(afterByConfig, restarted)
 
         for pid in newPids:
-            log.debug("Found new %s %s pid %d on %s " % (
+            log.debug("Found new %s %s pid %d on %s ",
                 afterPidToProcessStats[pid]._config.originalName, afterPidToProcessStats[pid]._config.name, pid,
-                self._devId))
+                self._devId)
         self._deviceStats._pidToProcess = afterPidToProcessStats
         self.sendMissingProcsEvents(missing)
 
@@ -592,7 +591,7 @@ class ZenProcessTask(ObservableMixin):
         afterPidToProcessStats = {}
 
         for pid, name_with_args in procs:
-            log.debug("pid: %s --- name_with_args: %s" % (pid, name_with_args))
+            log.debug("pid: %s --- name_with_args: %s", pid, name_with_args)
             for pStats in self._deviceStats.processStats:
                 if pStats._config.name is not None:
                     if pStats.matches(name_with_args):
@@ -646,7 +645,7 @@ class ZenProcessTask(ObservableMixin):
             while oidsToTest:
                 for oidChunk in chunk(oidsToTest, chunkSize):
                     try:
-                        log.debug("%s fetching oid(s) %s" % (self._devId, oidChunk))
+                        log.debug("%s fetching oid(s) %s", self._devId, oidChunk)
                         result = yield self._get(oidChunk)
                         results.update(result)
                     except (error.TimeoutError, Snmpv3Error) as e:
@@ -655,7 +654,7 @@ class ZenProcessTask(ObservableMixin):
                 oidsToTest = []
                 if singleOids and chunkSize > 1:
                     chunkSize = 1
-                    log.debug("running oids for %s in single mode %s" % (self._devId, singleOids))
+                    log.debug("running oids for %s in single mode %s", self._devId, singleOids)
                     oidsToTest = list(singleOids)
             self._storePerfStats(results)
 

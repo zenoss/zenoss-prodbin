@@ -123,7 +123,7 @@ class ToManyRelationship(ToManyRelationshipBase):
                 rel._remove(self.__primary_parent__)
             except ObjectNotFound:
                 message = log_tb(sys.exc_info())
-                log.error('Remote remove failed. Run "zenchkrels -r -x1". ' + message)
+                log.error('Remote remove failed. Run "zenchkrels -r -x1". %s', message)
 
 
     def _setObject(self,id,object,roles=None,user=None,set_owner=1):

@@ -317,8 +317,7 @@ class UncataloguedObjectException(Exception):
     """
     def __init__(self, ob):
         self.ob = ob
-        log.critical('Object %s has not been catalogued. Skipping.' %
-                     ob.getPrimaryUrlPath())
+        log.critical('Object %s has not been catalogued. Skipping.', ob.getPrimaryUrlPath())
 
 
 def catalogAwareImap(f, iterable):
@@ -437,7 +436,7 @@ class RedisGraphLinksTool(object):
             client = redis.StrictRedis(**parseRedisUrl(redis_url))
             client.config_get()  # test the connection
         except Exception as e:
-            log.warning("Exception trying to connect to redis: {0}".format(e))
+            log.warning("Exception trying to connect to redis: %s", e)
             client = None
         return client
 
@@ -464,9 +463,7 @@ class RedisGraphLinksTool(object):
             log.debug("Success pushed to Redis")
             return True
         except Exception as e:
-            log.warning(
-                "Exception trying to push data to redis: {0}".format(e)
-            )
+            log.warning("Exception trying to push data to redis: %s", e)
             self._redis_client = None
             return False
 
@@ -480,7 +477,6 @@ class RedisGraphLinksTool(object):
             log.debug("Success received data for key %s from Redis", key)
             return data
         except Exception as e:
-            log.warning(
-                "Exception trying to receive data from redis: {0}".format(e))
+            log.warning("Exception trying to receive data from redis: %s", e)
             self._redis_client = None
             return None

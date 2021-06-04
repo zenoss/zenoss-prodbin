@@ -82,7 +82,7 @@ class ModelChangePublisher(object):
                     serializer.fill(proto)
             return event
         except TypeError:
-            log.debug("Could not adapt %r to a protobuf serializer." % (ob))
+            log.debug("Could not adapt %r to a protobuf serializer.", ob)
 
 
     def _getGUID(self, ob):
@@ -217,7 +217,7 @@ class ModelChangePublisher(object):
 
     @property
     def events(self):
-        log.debug("discarded %s messages of %s total" % (self._discarded, self._total))
+        log.debug("discarded %s messages of %s total", self._discarded, self._total)
         for fn, args in self._msgs:
             fn(*args)
         return self._events
@@ -230,7 +230,7 @@ def getModelChangePublisher():
     import transaction
     tx = transaction.get()
     # check to see if there is a publisher on the transaction
-    log.debug("getting publisher on tx %s" % tx)
+    log.debug("getting publisher on tx %s", tx)
     if not getattr(tx, '_synchronizedPublisher', None):
         tx._synchronizedPublisher = ModelChangePublisher()
         # create new PublishSynchronizer also add after completion hook so that client/channel can be closed
@@ -285,7 +285,7 @@ class PublishSynchronizer(object):
         msgs.append(returnMsg)
         for event in eventsToKeep:
             if count >= batchSize:
-                log.debug("ModelEventList starting new batch after %s events" % count)
+                log.debug("ModelEventList starting new batch after %s events", count)
                 returnMsg = queueSchema.getNewProtobuf("$ModelEventList")
                 returnMsg.event_uuid = generate()
                 msgs.append(returnMsg)
@@ -297,13 +297,13 @@ class PublishSynchronizer(object):
             newEvent.ClearField('event_uuid')
             count += 1
         else:
-            log.debug("ModelEventList batch size %s" % count)
+            log.debug("ModelEventList batch size %s", count)
         return msgs
 
     @Metrology.utilization_timer('zen.queuepublisher.beforeCompletionHookTimer')
     def beforeCompletionHook(self, tx):
         try:
-            log.debug("beforeCompletionHook on tx %s" % tx)
+            log.debug("beforeCompletionHook on tx %s", tx)
             publisher = getattr(tx, '_synchronizedPublisher', None)
             if publisher:
                 msgs = self.correlateEvents(publisher.events)
@@ -318,7 +318,7 @@ class PublishSynchronizer(object):
                     for msg in msgs:
                         self._queuePublisher.publish("$ModelChangeEvents", "zenoss.event.modelchange", msg)
             else:
-                log.debug("no publisher found on tx %s" % tx)
+                log.debug("no publisher found on tx %s", tx)
         finally:
             if hasattr(tx, '_synchronizedPublisher'):
                 tx._synchronizedPublisher = None
@@ -326,7 +326,7 @@ class PublishSynchronizer(object):
     @Metrology.utilization_timer('zen.queuepublisher.afterCompletionHookTimer')
     def afterCompletionHook(self, status, tx):
         try:
-            log.debug("afterCompletionHook status:%s for tx %s" % (status, tx))
+            log.debug("afterCompletionHook status:%s for tx %s", status, tx)
             if self._queuePublisher:
                 try:
                     self._queuePublisher.close()
@@ -366,7 +366,7 @@ class EventPublisherBase(object):
             eventClass = event.event_class
         routing_key = "zenoss.zenevent%s" % eventClass.replace('/', '.').lower()
         log.debug("About to publish this event to the raw event "
-                  "queue:%s, with this routing key: %s" % (event, routing_key))
+                  "queue:%s, with this routing key: %s", event, routing_key)
         try:
             self._publish("$RawZenEvents", routing_key, event,
                           mandatory=mandatory)

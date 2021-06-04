@@ -48,7 +48,8 @@ class DurationMetricBuffer(object):
                 for update in updates:
                     pipe.lpush("metrics", json.dumps(update))
                 pipe.execute()
-                log.debug("Flush {0} metrics to redis took {1} seconds".format(len(updates), time.time()-start))
+                log.debug("Flush %s metrics to redis took %s seconds",
+                          len(updates), time.time()-start)
 
 
 class OngoingRequestsBuffer(object):
@@ -92,7 +93,8 @@ class OngoingRequestsBuffer(object):
                     else:
                         pipe.delete(fingerprint)
                 pipe.execute()
-                log.debug("Flush {0} ongoing requests to redis took {1} seconds".format(len(items), time.time()-start))
+                log.debug("Flush %s ongoing requests to redis took %s seconds",
+                          len(items), time.time()-start)
 
 
 class ZopeRequestLogger(object):
@@ -150,7 +152,7 @@ class ZopeRequestLogger(object):
         self._redis_client = None
 
         if self._log_duration > 0:
-            log.info("Zope request debug enabled. Logging requests that take longer than: {0} seconds".format(self._log_duration))
+            log.info("Zope request debug enabled. Logging requests that take longer than: %s seconds", self._log_duration)
 
         self.duration_metric_buffer = DurationMetricBuffer()
         self.ongoing_request_buffer = OngoingRequestsBuffer()
@@ -225,7 +227,7 @@ class ZopeRequestLogger(object):
             request._request_fingerprint = fingerprint
             request._data_to_log = data
         except Exception as ex:
-            log.warning("Exception extracting request fingerprint {0}".format(ex))
+            log.warning("Exception extracting request fingerprint %s", ex)
 
     def _connected_to_redis(self):
         """ ensures we have a connection to redis """
@@ -307,7 +309,7 @@ class ZopeRequestLogger(object):
             try:
                 self.duration_metric_buffer.push_to_redis(self._redis_client)
             except Exception as e:
-                log.info("Exception trying to push metric to redis: {0}".format(e))
+                log.info("Exception trying to push metric to redis: %s", e)
                 self._redis_client = None
                 return
 
@@ -322,7 +324,7 @@ class ZopeRequestLogger(object):
             try:
                 self.ongoing_request_buffer.push_to_redis(self._redis_client)
             except Exception as e:
-                log.info("Exception trying to push metric to redis: {0}".format(e))
+                log.info("Exception trying to push metric to redis: %s", e)
                 self._redis_client = None
 
 
@@ -331,5 +333,5 @@ class ZopeRequestLogger(object):
             self._log_request(request, finished)
         except Exception as e:
             # Ensure debugging functinality does not affect the application
-            log.debug("Exception logging zope request: {0}".format(e))
+            log.debug("Exception logging zope request: %s", e)
 

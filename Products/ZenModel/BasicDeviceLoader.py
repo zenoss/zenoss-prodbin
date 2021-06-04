@@ -37,8 +37,7 @@ class BasicDeviceLoader:
                             loginName, loginPassword)
 
         if manufacturer and model:
-            info("setting manufacturer to %s model to %s"
-                            % (manufacturer, model))
+            info("setting manufacturer to %s model to %s", manufacturer, model)
             device.setModel(manufacturer, model)
 
         if not locationPath: locationPath = self.getLocationPath()

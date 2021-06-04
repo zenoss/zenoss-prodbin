@@ -34,7 +34,7 @@ class swap(CommandPlugin):
 
 
     def process(self, device, results, log):
-        log.info('Collecting swap for device %s' % device.id)
+        log.info('Collecting swap for device %s', device.id)
 
         rm = self.relMap()
         maps = []

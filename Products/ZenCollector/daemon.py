@@ -49,20 +49,20 @@ class DummyListener(object):
         """
         Called when a configuration is deleted from the collector
         """
-        log.debug('DummyListener: configuration %s deleted' % configurationId)
+        log.debug('DummyListener: configuration %s deleted', configurationId)
 
     def added(self, configuration):
         """
         Called when a configuration is added to the collector
         """
-        log.debug('DummyListener: configuration %s added' % configuration)
+        log.debug('DummyListener: configuration %s added', configuration)
 
 
     def updated(self, newConfiguration):
         """
         Called when a configuration is updated in collector
         """
-        log.debug('DummyListener: configuration %s updated' % newConfiguration)
+        log.debug('DummyListener: configuration %s updated', newConfiguration)
 
 
 class ConfigListenerNotifier(object):
@@ -634,7 +634,7 @@ class CollectorDaemon(RRDDaemon):
         Delete and re-add the configuration tasks to start on new interval.
         """
         if oldValue != newValue:
-            self.log.debug("Changing config task interval from %s to %s minutes" % (oldValue, newValue))
+            self.log.debug("Changing config task interval from %s to %s minutes", oldValue, newValue)
             self._scheduler.removeTasksForConfig(CONFIG_LOADER_NAME)
             #values are in minutes, scheduler takes seconds
             self._startConfigCycle(startDelay=newValue * 60)
@@ -752,7 +752,7 @@ class CollectorDaemon(RRDDaemon):
             self._deleteDevice(configId)
 
     def _deleteDevice(self, deviceId):
-        self.log.debug("Device %s deleted" % deviceId)
+        self.log.debug("Device %s deleted", deviceId)
 
         self._devices.discard(deviceId)
         self._configListener.deleted(deviceId)

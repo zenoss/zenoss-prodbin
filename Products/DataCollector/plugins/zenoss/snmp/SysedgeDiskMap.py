@@ -41,7 +41,7 @@ class SysedgeDiskMap(SnmpPlugin):
 
     def collect(self, device, snmpsess, log):
         """collect snmp information from this device"""
-        log.info('Collecting disks for device %s' % device.id)
+        log.info('Collecting disks for device %s', device.id)
         disktable = snmpsess.collectSnmpTableMap(self.diskStatsTable, 
                                                 self.diskMap)
         datamaps = []

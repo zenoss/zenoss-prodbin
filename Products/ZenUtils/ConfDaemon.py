@@ -119,7 +119,7 @@ class ConfDaemon(CmdBase):
     def sigTerm(self, signum=None, frame=None):
         from Products.ZenUtils.Utils import unused
         unused(signum, frame)
-        self.log.info('Daemon %s shutting down' % self.__class__.__name__)
+        self.log.info('Daemon %s shutting down', self.__class__.__name__)
         sys.exit(0)
 
 
@@ -144,8 +144,8 @@ class ConfDaemon(CmdBase):
                         time.sleep(self.options.configsleep)
                     else:
                         self.log.critical(
-                            "initial config load failed %d times exiting"
-                                    % self.options.configtries)
+                            "initial config load failed %d times exiting",
+                            self.options.configtries)
                         sys.exit(2)
 
 

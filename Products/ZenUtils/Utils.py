@@ -670,7 +670,7 @@ def createHierarchyObj(root, name, factory, relpath="", llog=None):
         if not getattr(aq_base(root), id, False):
             if id == relpath:
                 raise AttributeError("relpath %s not found" % relpath)
-            log.debug("Creating object with id %s in object %s",id,root.getId())
+            log.debug("Creating object with id %s in object %s", id, root.getId())
             newobj = factory(id)
             root._setObject(id, newobj)
         root = getattr(root, id)
@@ -1215,7 +1215,7 @@ def executeCommand(cmd, REQUEST, write=None):
                 response.write(s)
                 response.flush()
             write = _write
-        log.info('Executing command: %s' % ' '.join(cmd))
+        log.info('Executing command: %s', ' '.join(cmd))
         f = Popen4(cmd)
         while 1:
             s = f.fromchild.readline()

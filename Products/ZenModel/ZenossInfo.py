@@ -660,7 +660,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         xml_default_name = zenPath( "etc", daemon + ".xml" )
         try:
             # Always recreate the defaults file in order to avoid caching issues
-            log.debug("Creating XML config file for %s" % daemon)
+            log.debug("Creating XML config file for %s", daemon)
             make_xml = ' '.join([binPath(daemon), "genxmlconfigs", ">", xml_default_name])
             proc = Popen(make_xml, shell=True, stdout=PIPE, stderr=PIPE)
             output, errors = proc.communicate()
@@ -816,7 +816,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         try:
             shutil.copy(configfile, config_file_save)
         except Exception:
-            log.error("Unable to make backup copy of %s" % configfile)
+            log.error("Unable to make backup copy of %s", configfile)
             # Don't bother telling the user
         try:
             shutil.move(config_file_pre, configfile)
@@ -859,13 +859,13 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         daemonPath = binPath(daemonName)
         if not self.isValidDaemon(daemonName):
             return
-        log.info('Telling %s to %s' % (daemonName, action))
+        log.info('Telling %s to %s', daemonName, action)
         proc = subprocess.Popen([daemonPath, action], stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT)
         output, _ = proc.communicate()
         code = proc.wait()
         if code:
-            log.info('Error from %s: %s (%s)' % (daemonName, output, code))
+            log.info('Error from %s: %s (%s)', daemonName, output, code)
         if action in ('stop', 'restart'):
             time.sleep(2)
         return False if code else action

@@ -151,7 +151,7 @@ class DashboardStateManager(object):
             else:
                 group_names = user.getUserGroupSettingsNames()
         except Exception as e:
-            log.warn("Could not retrieve user {}'s groups: {}".format(user, e))
+            log.warn("Could not retrieve user %s's groups: %s", user, e)
         return group_names
 
     def load_available_dashboards(self):
@@ -213,7 +213,7 @@ class DashboardStateManager(object):
             pickle.dump(dashboards_states, f)
         saved = set(dashboards_states.keys())
         not_found = set() if not dashboard_names else set(dashboard_names) - saved
-        log.debug("Dashboard's states saved to file: {}".format(filename))
+        log.debug("Dashboard's states saved to file: %s", filename)
         return filename, saved, not_found
 
     def get_dashboard_states_from_file(self, filename, dashboard_names=None):
@@ -225,7 +225,7 @@ class DashboardStateManager(object):
                 if dashboard_names:
                     dashboards_states = { k:v for k,v in dashboards_states.iteritems() if k in dashboard_names }
         except Exception:
-            log.error("Error loading dashboard's states from file: {}".format(filename))
+            log.error("Error loading dashboard's states from file: %s", filename)
         return dashboards_states
 
     def get_dashboard_states_from_zodb(self, dashboard_names=None):
@@ -298,13 +298,13 @@ class DashboardStateManager(object):
         for d_path, d_state in dashboard_states.iteritems():
             dashboard = self.dashboards.get(d_path)
             if not dashboard:
-                log.warn("Dashboard not available: {}".format(d_path))
+                log.warn("Dashboard not available: %s", d_path)
             else:
                 affected_users = self._get_dashboard_users(dashboard, user_names)
                 for user_name in affected_users:
                     if not filename and user_name == dashboard.owner:
                         continue # Do not set onwer state unless we are loading for file
-                    log.info("Restoring dashboard {} state for user ({})".format(dashboard.id, user_name))
+                    log.info("Restoring dashboard %s state for user (%s)", dashboard.id, user_name)
                     user_state = self._get_user_state(user_name)
                     user_state.update(d_state.portlet_states)
                     self._save_user_state(user_name, user_state)

@@ -147,7 +147,7 @@ class ZenDaemon(CmdBase):
         mypid = str(os.getpid())
         fp.write(mypid)
         fp.close()
-        self.log.info("current pid: %s" % mypid)
+        self.log.info("current pid: %s", mypid)
 
     @property
     def logname(self):

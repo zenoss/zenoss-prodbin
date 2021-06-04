@@ -48,7 +48,7 @@ class QueueHeartbeatSender(object):
         heartbeat = DaemonHeartbeat(monitor=self._monitor,
                                     daemon=self._daemon,
                                     timeout_seconds=self._timeout)
-        log.debug('sending heartbeat %s' % heartbeat)
+        log.debug('sending heartbeat %s', heartbeat)
         publisher = getUtility(IQueuePublisher)
         publisher.publish('$Heartbeats', 'zenoss.heartbeat.%s' % heartbeat.monitor, heartbeat)
 

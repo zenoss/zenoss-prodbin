@@ -36,7 +36,7 @@ class Linux_netstat_rn(CommandParser):
         return osver.find("Linux") > -1
 
     def parse(self, device, results, log):
-        log.info('Collecting routes for device %s' % device.id)
+        log.info('Collecting routes for device %s', device.id)
         indirectOnly = getattr(device, 'zRouteMapCollectOnlyIndirect', False)
         rm = self.newRelationshipMap("routes", "os")
         rlines = results.split("\n")

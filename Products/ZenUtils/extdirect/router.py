@@ -185,7 +185,7 @@ class DirectRouter(object):
         except Exception as e:
             import traceback
             log.info("Direct request failed: {0}: {1[action]}.{1[method]} {1[data]}".format(e, redact(directRequest, ["managerPassword"])))
-            log.info("DirectRouter suppressed the following exception (Response {0}):\n{1}".format(response.uuid, traceback.format_exc()))
+            log.info("DirectRouter suppressed the following exception (Response %s):\n%s", response.uuid, traceback.format_exc())
             response.result = DirectResponse.exception(e)
 
         if isinstance(response.result, DirectResponse) and response.result.type == 'exception':
@@ -260,7 +260,7 @@ class DirectProviderDefinition(object):
             value = os.environ.get(env_var)
             if value:
                 config[cfg_var] = int(value)
-                log.info('Setting extdirect config variable from environment. {0} = {1}'.format(cfg_var, value))
+                log.info('Setting extdirect config variable from environment. %s = %s', cfg_var, value)
         if self.ns:
             config['namespace'] = self.ns
         return config

@@ -831,7 +831,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             if organizer is None:
                 if xmlrpc: return 1 # XML-RPC error
                 log.error("Couldn't obtain a network entry for '%s' "
-                            "-- does it exist?" % organizerName)
+                            "-- does it exist?", organizerName)
                 continue
 
             zDiscCommand = getattr(organizer, "zZenDiscCommand", None)

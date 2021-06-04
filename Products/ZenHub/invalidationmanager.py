@@ -74,7 +74,7 @@ class InvalidationManager(object):
 
         self.initialize_invalidation_filters()
         self.processor = getUtility(IInvalidationProcessor)
-        log.debug('got InvalidationProcessor %s' % self.processor)
+        log.debug('got InvalidationProcessor %s', self.processor)
         app = self.__dmd.getPhysicalRoot()
         self.invalidation_pipeline = InvalidationPipeline(
             app, self._invalidation_filters, self._queue
@@ -117,7 +117,7 @@ class InvalidationManager(object):
 
             oids = self._poll_invalidations()
             if not oids:
-                log.debug('no invalidations found: oids=%s' % oids)
+                log.debug('no invalidations found: oids=%s', oids)
                 return
 
             for oid in oids:
