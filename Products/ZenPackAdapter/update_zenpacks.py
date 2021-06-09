@@ -80,7 +80,7 @@ def update_zenpack_yaml_index():
     for zenpack in zenpack_names():
         if zenpack not in zenpack_yaml_index:
             yaml_list = []
-            def load_yaml(yaml_doc=None, **kwargs):
+            def load_yaml(yaml_doc=None, verbose=False, level=0, **kwargs):
                 if yaml_doc is None:
                     # Load all of the yaml files in the top level directory
                     yaml_list.extend([x for x in zenpack_listdir(zenpack, '.') if x.endswith(".yaml")])
@@ -97,7 +97,6 @@ def update_zenpack_yaml_index():
             try:
                 if zenpack in sys.modules:
                     reload(sys.modules[zenpack])
-
                 __import__(zenpack)
             except Exception, e:
                 print "Exception on %s: %s" % (zenpack, e)
@@ -138,7 +137,6 @@ def update_system_deviceclasses_yaml():
     for zenpack in zenpack_names():
         yamlfiles = zenpack_yaml_index.get(zenpack, [])
         if yamlfiles:
-            print "Loading %d yaml files from %s" % (len(yamlfiles), zenpack)
             CFG = zenpacklib.load_yaml(yamlfiles)
 
             for dcname, dcspec in CFG.device_classes.iteritems():
@@ -441,6 +439,7 @@ def update_modeler_yaml():
     from Products.DataCollector.Plugins import ModelingManager
     loaders = ModelingManager.getInstance().getPluginLoaders(packs)
     for loader in loaders:
+        print "Loading modeler plugins for %s / %s" % (loader.modPath, loader.pluginName)
         try:
             plugin = loader.create()
             modeler_data[loader.modPath] = {

@@ -154,7 +154,7 @@ class DB(object):
             try:
                 self.store_parserplugin(ParserPlugin(**d))
             except ValueError, e:
-                log.error("Unable to load modelerplugin %s: %s", id_, e)
+                log.error("Unable to load parserplugin %s: %s", id_, e)
 
     def load_classmodels(self):
         log.info("Loading class model")

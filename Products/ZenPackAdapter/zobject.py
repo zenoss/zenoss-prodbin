@@ -149,6 +149,31 @@ METHOD_MAP = {
             'get_filesystem': 'get_filesystem',
             'getLUNs': 'getLUNs'
         }
+    },
+    'ZenPacks.zenoss.Microsoft.Windows.Device': {
+        'method': {
+            #'osProcessClassMatchData': 'osProcessClassMatchData',
+            #'windows_servername': 'windows_servername',
+            #'windows_password': 'windows_password',
+            #'windows_user': 'windows_user',
+            'all': lambda x: [],
+            'all_clusterdevices': lambda x: [],
+            'all_winsqlinstances': 'all_winsqlinstances',
+            'all_winrmiis': 'all_winrmiis',
+            'all_filesystems': 'all_filesystems',
+            'all_ipservices': 'all_ipservices',
+            'all_cpus': 'all_cpus',
+            'all_interfaces': 'all_interfaces',
+            'all_clusterservices': 'all_clusterservices',
+            'all_clusternodes': 'all_clusternodes',
+            'all_clusternetworks': 'all_clusternetworks',
+            'all_winservices': 'all_winservices',
+            'all_harddisks': 'all_harddisks',
+            'all_hyperv': 'all_hyperv'
+            }
+    },
+    'ZenPacks.zenoss.Microsoft.Windows.OperatingSystem': {
+        'method': {}
     }
 }
 
@@ -167,9 +192,11 @@ def get_submodule(parent_module, new_module_name):
 
     return module
 
+
 def adapted_base_module():
     base_module = importlib.import_module(ZObject.__module__)
     return get_submodule(base_module, "adapted")
+
 
 def get_adapted_class(typename, zobject_cls):
     class_name = typename.split('.')[-1]
@@ -215,7 +242,7 @@ class ZObject(object):
 
         # Change our class to a dynamically created subclass that has
         # the right @properties on it.
-        self.__class__ =  get_adapted_class(self._datumType, self.__class__)
+        self.__class__ = get_adapted_class(self._datumType, self.__class__)
 
         # Load the custom subclass with "property" methods that pull the
         # data in from its source.  Doing it this way makes dir, hasattr,
