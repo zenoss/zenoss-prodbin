@@ -25,7 +25,7 @@ from .interfaces import IZingConnectorProxy
 )
 def send_organizers(self):
     facts = {}
-    for root_name in ("Devices", "Groups", "Locations"):
+    for root_name in ("Devices", "Groups", "Locations", "Systems"):
         root = getattr(self.dmd, root_name, None)
         if root is None:
             continue
