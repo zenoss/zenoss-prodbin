@@ -431,7 +431,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             return
 
         from traceback import format_exception
-        error_formatted = ''.join(format_exception(error_type, error_value, error_traceback))
+        error_formatted = ''.join(format_exception(error_type, error_value))
         return self.zenoss_feedback_error_message(error_type=error_type,
                                         error_value=error_value,
                                         error_traceback=error_traceback,
