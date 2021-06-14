@@ -26,6 +26,8 @@ def obj_db():
         _DB.load()
     return _DB
 
+# Catches exceptions that can cause ZP loading errors
+# Attempts an alternate loading method, and logs an error if errors occur
 def wrapper_getParserLoader(_getParserLoader, instance, args, kwargs):
     try:
         _dmd = args[0]
@@ -41,10 +43,9 @@ def wrapper_getParserLoader(_getParserLoader, instance, args, kwargs):
             parser = None
             LOG.error("Wrapt caught exception in Products.DataCollector.Plugins.getParserLoader; %s", exc)
     return parser
-import Products.DataCollector.Plugins as Plugins
-wrapt.wrap_function_wrapper(Plugins, 'getParserLoader', wrapper_getParserLoader)
 
-
+# The Windows ZP method params(), loads data via DMD, which does not exist in ZPA's zobject.
+# This updates the reference and logs errors versus allowing exceptions be thrown during collection
 def wrapped_params(_params, instance, args, kwargs):
     rrrdDS = args[0]
     winDev = args[1]
@@ -56,10 +57,10 @@ def wrapped_params(_params, instance, args, kwargs):
         return _params(*args, **kwargs)
     except Exception as ex:
         LOG.error("Wrapt caught exception in setting params for ShellDataSourcePlugin: %s", ex)
-from ZenPacks.zenoss.Microsoft.Windows.datasources.ShellDataSource import ShellDataSourcePlugin as WinDSPlugin
-wrapt.wrap_function_wrapper(WinDSPlugin, 'params', wrapped_params)
 
 
+# Windows ZP uses methods as @properties, which don't translate to ZPA, (causing twisted pb.jelly errors).
+# To correct this, @properties and not ported then are re-insert as attributes here.
 def wrapped_txwinrm_createConnectionInfo(_createConnectionInfo, instance, args, kwargs):
     mod = "txwinrm.createConnectionInfo"
     device_proxy = args[0]
@@ -82,13 +83,12 @@ def wrapped_txwinrm_createConnectionInfo(_createConnectionInfo, instance, args, 
             set_prop('windows_user', 'zWinUser')
         result = _createConnectionInfo(*args, **kwargs)
     except Exception as exConn:
-        LOG.error("Error creating connection: %s  \n%s", exConn, traceback.format_exc())
+        LOG.error("Error creating connection: %s", exConn)
         result = None
     return result
-import ZenPacks.zenoss.Microsoft.Windows.txwinrm_utils as WinMod
-wrapt.wrap_function_wrapper(WinMod, 'createConnectionInfo', wrapped_txwinrm_createConnectionInfo)
 
-
+# Windows ZP uses methods as @properties, which don't translate to ZPA, (causing twisted pb.jelly errors).
+# To correct this, @properties and not ported then are re-insert as attributes here.
 def wrapped_shellDSCollect(_collect, instance, args, kwargs):
     config = args[0]
     dsconf0 = config.datasources[0]
@@ -103,9 +103,27 @@ def wrapped_shellDSCollect(_collect, instance, args, kwargs):
         set_prop('zWinRMUser')
         set_prop('zWinRMPassword')
     except Exception as exConn:
-        LOG.error("Error updating dsconf[0]: %s  \n%s", exConn, traceback.format_exc())
+        LOG.error("Error updating dsconf[0]: %s", exConn)
         result = None
     _collect(*args, **kwargs)
 
-from ZenPacks.zenoss.Microsoft.Windows.datasources.ShellDataSource import ShellDataSourcePlugin as ShellDS
-wrapt.wrap_function_wrapper(ShellDS, 'collect', wrapped_shellDSCollect)
+
+loaded = False
+def initialize():
+    global loaded
+    if loaded:
+        return
+    loaded = True
+
+    import Products.DataCollector.Plugins as Plugins
+    wrapt.wrap_function_wrapper(Plugins, 'getParserLoader', wrapper_getParserLoader)
+
+    from ZenPacks.zenoss.Microsoft.Windows.datasources.ShellDataSource import ShellDataSourcePlugin as WinDSPlugin
+    wrapt.wrap_function_wrapper(WinDSPlugin, 'params', wrapped_params)
+
+    import ZenPacks.zenoss.Microsoft.Windows.txwinrm_utils as WinMod
+    wrapt.wrap_function_wrapper(WinMod, 'createConnectionInfo', wrapped_txwinrm_createConnectionInfo)
+
+    from ZenPacks.zenoss.Microsoft.Windows.datasources.ShellDataSource import ShellDataSourcePlugin as ShellDS
+    wrapt.wrap_function_wrapper(ShellDS, 'collect', wrapped_shellDSCollect)
+

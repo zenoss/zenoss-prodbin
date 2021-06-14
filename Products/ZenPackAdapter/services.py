@@ -67,11 +67,6 @@ def translateError(callable):
     return inner
 
 
-def get(device=None, component=None):
-    return get_db().get_zobject(device=device, component=component)
-find = get
-
-
 class ZenPackAdapterService(pb.Referenceable):
 
     def __init__(self):
