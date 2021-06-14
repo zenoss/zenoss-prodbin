@@ -13,7 +13,10 @@ from celery import signals
 
 
 def job(_context, class_, name=None):
-    """Hold place for unused job directive."""
+    """Nothing to do.
+
+    When the task is loaded, it's registered with Celery.
+    """
     pass
 
 
