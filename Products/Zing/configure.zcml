@@ -3,7 +3,15 @@
    xmlns="http://namespaces.zope.org/zope"
    xmlns:five="http://namespaces.zope.org/five"
    xmlns:browser="http://namespaces.zope.org/browser"
+   xmlns:celery="http://namespaces.zope.org/celery"
    xmlns:meta="http://namespaces.zope.org/meta">
+
+   <include package="Products.Jobber" file="meta.zcml"/>
+
+   <celery:job
+      name="send_organizers"
+      class=".send_organizers.send_organizers"
+      />
 
    <subscriber
       handler=".datamaps.zing_add_datamap"

@@ -48,7 +48,8 @@ class DMD(object):
         """
         # NOTE: work-around for Celery >= 4.0
         # userid = getattr(self.request, "userid", None)
-        userid = self.request.headers.get("userid")
+        headers = self.request.headers
+        userid = headers.get("userid") if headers else None
         with zodb(self.app.db, userid, self.log) as dmd:
             self.__dmd = dmd
             try:
