@@ -13,6 +13,11 @@
       class=".send_organizers.send_organizers"
       />
 
+   <celery:job
+      name="send_component_groups"
+      class=".send_component_groups.send_component_groups"
+      />
+
    <subscriber
       handler=".datamaps.zing_add_datamap"
       />
