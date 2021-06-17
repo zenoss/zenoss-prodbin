@@ -291,7 +291,6 @@ class ZMiniHub(ZCmdBase):
 @implementer(portal.IRealm)
 class ZMiniHubRealm(object):
     """Defines realm from which avatars are retrieved.
-
     NOTE: Only one avatar is used.  Only one set of credentials are used to
     log into ZenHub, so the Realm cannot distingish between different clients.
     All connections look like the same user so they all get same avatar.
@@ -299,7 +298,6 @@ class ZMiniHubRealm(object):
 
     def __init__(self, avatar):
         """Initialize an instance of ZMiniHubRealm.
-
         :param avatar: Represents the logged in client.
         :type avatar: HubAvatar
         """
@@ -307,7 +305,6 @@ class ZMiniHubRealm(object):
 
     def requestAvatar(self, name, mind, *interfaces):
         """Return an avatar.
-
         Raises NotImplementedError if interfaces does not include
         pb.IPerspective.
         """
@@ -335,7 +332,6 @@ class ZMiniHubAvatar(pb.Avatar):
 
     def __init__(self, services):
         """Initialize an instance of ZMiniHubAvatar.
-
         :param services: The service manager
         :type services: ServiceManager
         """
@@ -352,10 +348,8 @@ class ZMiniHubAvatar(pb.Avatar):
     def perspective_getService(
             self, name, monitor=None, listener=None, options=None):
         """Return a reference to a ZenHub service.
-
         It also associates the service with a collector so that changes can be
         pushed back out to collectors.
-
         :param str name: The name of the service, e.g. "EventService"
         :param str monitor: The name of a collector, e.g. "localhost"
         :param listener: A remote reference to the client

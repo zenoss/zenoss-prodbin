@@ -48,7 +48,6 @@ def translateError(callable):
     """
     Decorator function to wrap remote exceptions into something
     understandable by our daemon.
-
     @parameter callable: function to wrap
     @type callable: function
     @return: function's return or an exception
@@ -215,8 +214,13 @@ class ModelerService(ZenPackAdapterService):
             proxy._snmpLastCollection = 0
             proxy._snmpStatus = 0
 
+            # Add zproperties from config zenoss-zenpackadapter.datasource.yaml
+            for zName, zVal in device.zProperties.items():
+                setattr(proxy, zName, zVal)
 
+            zObjDev = self.db.get_zobject(device=device.id)
             plugin_ids = device.getProperty('zCollectorPlugins')
+            skipped_pids = []
             for plugin_id in plugin_ids:
                 plugin = self.db.modelerplugin.get(plugin_id)
                 if not plugin:
@@ -224,20 +228,33 @@ class ModelerService(ZenPackAdapterService):
 
                 proxy.plugins.append(plugin.pluginLoader)
                 for pid in plugin.deviceProperties:
+
+                    if hasattr(proxy, pid):
+                       continue
+
+                    # modeled properties via zobject
+                    if zObjDev and hasattr(zObjDev, pid):
+                        setattr(proxy, pid, getattr(zObjDev, pid))
+                        continue
+
                     # zproperties
                     if device.hasProperty(pid):
                         setattr(proxy, pid, device.getProperty(pid))
-
-                    # modeled properties (TODO- convert to use zobject for this)
-                    elif hasattr(device, pid):
-                        setattr(proxy, pid, getattr(device, pid))
+                        continue
 
                     # special cases
-                    elif pid == '_snmpStatus' or pid == '_snmpLastCollection':
+                    elif pid == '_snmpStatus' or pid == '_snmpLastCollection' \
+                            or pid == 'kerberos_rdns' or pid == 'zWinRMEncoding':
                         continue
 
                     else:
-                        self.log.error("device property %s not found on %s", pid, id)
+                        if pid not in skipped_pids:
+                            skipped_pids.append(pid)
+
+            # double check skipped_pids
+            for pid in skipped_pids:
+                if not hasattr(proxy, pid):
+                    self.log.warning("device property %s not found on %s", pid, id)
 
             result.append(proxy)
 
@@ -288,10 +305,8 @@ class CollectorConfigService(ZenPackAdapterService):
     def __init__(self, deviceProxyAttributes=()):
         """
         Constructs a new CollectorConfig instance.
-
         Subclasses must call this __init__ method but cannot do so with
         the super() since parents of this class are not new-style classes.
-
         @param deviceProxyAttributes: a tuple of names for device attributes
                that should be copied to every device proxy created
         @type deviceProxyAttributes: tuple
@@ -313,7 +328,6 @@ class CollectorConfigService(ZenPackAdapterService):
     def _wrapFunction(self, functor, *args, **kwargs):
         """
         Call the functor using the arguments, and trap any unhandled exceptions.
-
         @parameter functor: function to call
         @type functor: method
         @parameter args: positional arguments
@@ -394,11 +408,9 @@ class CollectorConfigService(ZenPackAdapterService):
     def _createDeviceProxy(self, device, proxy=None):
         """
         Creates a device proxy object that may be copied across the network.
-
         Subclasses should override this method, call it for a basic DeviceProxy
         instance, and then add any additional data to the proxy as their needs
         require.
-
         @param device: the regular device zobject to create a proxy from
         @return: a new device proxy object, or None if no proxy can be created
         @rtype: DeviceProxy
@@ -797,7 +809,10 @@ class PythonConfig(CollectorConfigService):
             return {}
 
         try:
-            params = self._getPluginClass(ds).params(ds, context)
+            if not hasattr(context.device(), 'title'):
+                setattr(context.device(), 'title', "")
+            plugin = self._getPluginClass(ds)
+            params = plugin.params(ds, context) if plugin else {}
         except Exception as ex:
             log.error("Error getting params for ds %s, context %s: %s", ds, context, ex)
             params = {}

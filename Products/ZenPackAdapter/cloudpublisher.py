@@ -112,7 +112,6 @@ class CloudPublisher(object):
         """
         Push as many of the unpublished messages as possible back into the
         message queue
-
         @param reason: what went wrong
         @param messages: messages that still need to be published
         @return: the number of messages still in the queue. Note, this
@@ -138,7 +137,6 @@ class CloudPublisher(object):
     def put(self, message):
         """
         Enqueue the specified message for publishing
-
         @return: a deferred that will return the number of messages still
         in the buffer when fired
         """
@@ -277,7 +275,6 @@ class CloudEventPublisher(CloudPublisher):
     def put(self, events, timestamp):
         """
         Build a message from the event, timestamp, and tags. Then push it into the event queue to be sent.
-
         @param event: event being published
         @param timestamp: the time the event was received
         @param tags: dictionary of tags for the event
@@ -401,7 +398,6 @@ class CloudMetricPublisher(CloudPublisher):
         """
         Build a message from the metric, value, timestamp, and tags, and
         push it into the message queue to be sent.
-
         @param metric: metric being published
         @param value: the metric's value
         @param timestamp: just that
@@ -438,29 +434,33 @@ class CloudMetricPublisher(CloudPublisher):
         self.model_publisher().put(model)
 
     def build_metric(self, metricName, value, timestamp, tags):
+        dimensions = {
+            'device': tags.get('device', ''),
+            'source': self._source
+        }
+        comp = tags.get('contextUUID', None)
+        if comp:
+            dimensions['component'] = comp
+
         metric = {
             "metric": metricName,
             "value": sanitized_float(value),
             "timestamp": long(timestamp * 1000),
-            "dimensions": {
-                'device': tags.get('device', ''),
-                'component': tags.get('contextUUID', ''),
-                'source': self._source
-            },
+            "dimensions": dimensions,
             "metadataFields": {
                 'source-type': "zenoss.zenpackadapter"
             }
         }
 
         # ensure that device level metrics have the correct dimensions
-        if metric['dimensions']['component'] == metric['dimensions']['device']:
-            metric['dimensions']['component'] = ''
+        if metric['dimensions'].get('component', None) == metric['dimensions'].get('device', ''):
+            metric['dimensions'].pop('component', '')
 
         # For internal metrics, include all tags.
         if tags.get('internal', False):
 
-            del metric["dimensions"]["device"]
-            del metric["dimensions"]["component"]
+            metric["dimensions"].pop("device", '')
+            metric["dimensions"].pop("component", '')
             metric["dimensions"]["daemon"] = tags.get('daemon', '')
 
             for t, v in tags.iteritems():

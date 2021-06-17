@@ -23,6 +23,8 @@ from Products.ZenHub.PBDaemon import PBDaemon
 from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenPackAdapter.cloudpublisher import CloudMetricPublisher
 
+import zenwrapt
+zenwrapt.initialize()
 LOG = logging.getLogger("zen.monkeypatches")
 
 @monkeypatch(PBDaemon)
