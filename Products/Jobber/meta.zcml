@@ -9,7 +9,7 @@
          />
    </meta:directives>
 
-   <meta:directives namespace="http://namespaces.zope.org/celery">
+   <meta:directives namespace="http://namespaces.zope.org/zope">
       <meta:directive
          name="job"
          schema=".metadirectives.IJob"

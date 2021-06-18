@@ -8,7 +8,7 @@
 
    <include package="Products.Jobber" file="meta.zcml"/>
 
-   <celery:job
+   <job
       name="send_organizers"
       class=".send_organizers.send_organizers"
       />
