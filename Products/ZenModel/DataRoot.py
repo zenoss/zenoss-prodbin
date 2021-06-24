@@ -430,8 +430,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             self.REQUEST.response.status = httplib.UNAUTHORIZED
             return
 
-        from traceback import format_exception
-        error_formatted = ''.join(format_exception(error_type, error_value))
+        from traceback import format_exception_only
+        error_formatted = ''.join(format_exception_only(error_type, error_value))
         return self.zenoss_feedback_error_message(error_type=error_type,
                                         error_value=error_value,
                                         error_traceback=error_traceback,
