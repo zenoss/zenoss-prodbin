@@ -120,14 +120,6 @@ class NullZingClient(object):
     def ping(self):
         return True
 
-def _has_errors(resp):
-    try:
-        json_content = json.loads(resp.content)
-        errors = json_content.get("errors", [])
-        return len(errors) > 0
-    except Exception as e:
-        log.error("response has errors: %s, exception: %s", resp.content, e)
-    return False
 
 def _has_errors(resp):
     try:
@@ -234,9 +226,7 @@ class ZingConnectorClient(object):
         while facts:
             batch = facts[:batch_size]
             del facts[:batch_size]
-            success = success and self.zing_connector.send_facts(
-                batch, ping=False
-            )
+            success = success and self.send_facts(batch, ping=False)
         return bool(success)
 
     def send_fact_generator_in_batches(
