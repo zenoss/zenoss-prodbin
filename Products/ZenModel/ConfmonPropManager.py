@@ -17,7 +17,7 @@ $Id: ConfmonPropManager.py,v 1.4 2002/12/08 18:27:53 edahl Exp $"""
 __version__ = "$Revision: 1.4 $"[11:-2]
 
 from OFS.PropertyManager import PropertyManager
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 
 class ConfmonPropManager(PropertyManager):

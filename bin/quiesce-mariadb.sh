@@ -87,15 +87,6 @@ function do_status()
 
     logInfo "status dbnames:${dbnames[@]}"
 
-    # for fedora19 pgrep version 3.3.8 - pgrep needs -a flag
-    # output of: pgrep -fl 'mysql.*quiesce-mysql.sh.*hold-lock-zodb'
-    # 7246 /opt/zends/bin/.mysql --defaults-file=/opt/zends/etc/zends.cnf -A --unbuffered --quick --user=root --host=localhost --port=13306 --database=zodb -e FLUSH TABLES WITH READ LOCK \G; SELECT "2014-02-01T21h33m39sZ: 7151 quiesce-mysql.sh hold-lock-zodb LOCKED" AS ""; SELECT SLEEP(600);
-    # output of: pgrep -fl 'mysql.*quiesce-mysql.sh.*hold-lock-zodb' | cut -f2 -d\"
-    # 2014-02-01T21h33m39sZ: 7151 quiesce-mysql.sh hold-lock-zodb LOCKED
-    # output of: tail -2 /opt/zenoss/var/quiesce-mysql.sh-hold-lock-zodb.txt
-    # 2014-02-01T21h33m39sZ: 7151 quiesce-mysql.sh hold-lock-zodb Retrieving read lock for zodb
-    # 2014-02-01T21h33m39sZ: 7151 quiesce-mysql.sh hold-lock-zodb LOCKED
-
     local allLocked=true
     for dbname in "${dbnames[@]}"; do
         local msg_prepend="$(datetimestamp): $$ $(basename $0) hold-lock-$dbname"

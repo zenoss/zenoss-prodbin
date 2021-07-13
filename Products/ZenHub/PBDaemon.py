@@ -29,7 +29,6 @@ from metrology import Metrology
 from metrology.instruments import Gauge
 from metrology.registry import registry
 
-import Globals  # required to import zenoss Products
 
 from Products.ZenHub.metricpublisher import publisher
 from twisted.cred import credentials
@@ -57,7 +56,6 @@ from Products.ZenUtils.metricwriter import DerivativeTracker
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.ZenUtils.MetricReporter import TwistedMetricReporter
 
-unused(Globals)
 
 
 #field size limits for events

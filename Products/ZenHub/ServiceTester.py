@@ -32,7 +32,6 @@ from pprint import pprint
 import logging
 log = logging.getLogger('zen.ServiceTester')
 
-import Globals
 
 from Products.ZenUtils.Utils import setLogLevel
 from Products.ZenUtils.ZCmdBase import ZCmdBase

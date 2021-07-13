@@ -11,7 +11,7 @@
     </select>
 </p><br><br>
 
-<p>
+<p tal:condition="python: here.has_permission('Manage Users', here)">
     Create a new user to add to this group<br>
     <input type="text" id="add_new_user_to_group">
     <input type="submit" value="Add New User" onclick="

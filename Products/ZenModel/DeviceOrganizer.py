@@ -133,7 +133,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             devices.extend(subgroup.getSubDevices_recursive(devfilter, devrel))
         return devices
 
-    security.declareProtected(ZEN_VIEW, "getSubDevicesGen")
+    security.declareProtected(ZEN_VIEW, "getSubDevicesGen_recursive")
     def getSubDevicesGen_recursive(self, devrel="devices"):
         """get all the devices under and instance of a DeviceGroup"""
         devrelobj = getattr(self, devrel, None)

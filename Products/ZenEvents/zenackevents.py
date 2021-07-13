@@ -9,7 +9,6 @@
 ##############################################################################
 
 
-import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.Zuul.facades import getFacade
 import logging

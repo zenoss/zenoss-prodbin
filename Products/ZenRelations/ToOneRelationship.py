@@ -23,7 +23,7 @@ log = logging.getLogger("zen.Relations")
 from RelationshipBase import RelationshipBase
 
 from AccessControl.class_init import InitializeClass
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl import ClassSecurityInfo
 from App.Dialogs import MessageDialog
 from Acquisition import aq_base

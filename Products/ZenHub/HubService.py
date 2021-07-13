@@ -13,11 +13,9 @@ import logging
 import time
 import socket
 
-import Globals   # required to import zenoss Products
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.deprecated import deprecated
 
-unused(Globals)
 
 
 class HubService(pb.Referenceable):

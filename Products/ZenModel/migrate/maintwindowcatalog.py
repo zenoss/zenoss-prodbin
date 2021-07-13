@@ -10,7 +10,6 @@
 
 import Migrate
 
-import Globals
 
 from Products.ZenModel.MaintenanceWindow import createMaintenanceWindowCatalog
 

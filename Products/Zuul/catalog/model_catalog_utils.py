@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 
 import argparse
 import zope.component

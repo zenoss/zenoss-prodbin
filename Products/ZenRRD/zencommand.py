@@ -29,7 +29,6 @@ from twisted.spread import pb
 from zope.component import queryUtility
 from zope.interface import implementer
 
-import Globals  # noqa F401
 
 from Products.DataCollector.SshClient import SshClient
 from Products.ZenCollector.daemon import CollectorDaemon

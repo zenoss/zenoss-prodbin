@@ -21,7 +21,6 @@ Turn email messages obtained from POP3 accounts into events.
 import logging
 import socket
 
-import Globals
 import zope.interface
 
 from twisted.mail.pop3client import POP3Client

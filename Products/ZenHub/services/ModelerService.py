@@ -9,7 +9,6 @@
 
 import copy
 
-import Globals
 
 from itertools import ifilter
 from zope import component
@@ -147,8 +146,8 @@ class ModelerService(PerformanceConfig):
     def post_adm_process(self, map, device, preadmdata):
         pass
 
-    @transact
     @translateError
+    @transact
     def remote_applyDataMaps(self, device, maps, devclass=None, setLastCollection=False):
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
         device = self.getPerformanceMonitor().findDeviceByIdExact(device)
@@ -224,8 +223,8 @@ class ModelerService(PerformanceConfig):
                 log.info(msg)
 
 
-    @transact
     @translateError
+    @transact
     def remote_setSnmpConnectionInfo(self, device, version, port, community):
         device = self.getPerformanceMonitor().findDeviceByIdExact(device)
         device.updateDevice(zSnmpVer=version,

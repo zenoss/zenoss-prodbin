@@ -195,7 +195,6 @@ class ComponentsLoadedLayer(object):
     def setUp(cls):
         from OFS.Application import import_products
         from zope.configuration import xmlconfig
-        import Globals  # noqa: F401
         import Products.Jobber
 
         import_products()

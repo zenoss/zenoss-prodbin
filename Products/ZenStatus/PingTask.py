@@ -23,7 +23,6 @@ log = logging.getLogger("zen.zenping")
 from twisted.python.failure import Failure
 from twisted.internet import defer
 
-import Globals
 from zope import interface
 from zope import component
 

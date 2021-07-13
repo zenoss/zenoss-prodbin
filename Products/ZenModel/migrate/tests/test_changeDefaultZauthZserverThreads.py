@@ -2,7 +2,6 @@
 
 import unittest
 
-import Globals
 import common
 
 class Test_ChangeDefaultZauthZserverThreads(unittest.TestCase, common.ServiceMigrationTestCase):

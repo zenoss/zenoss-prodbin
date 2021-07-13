@@ -238,8 +238,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         if "zodb-socket" in cfg:
             params["unix_socket"] = cfg["zodb-socket"]
         db = None
-        useZenDS = os.environ.get("USE_ZENDS", False)
-        name = "ZenDS" if useZenDS else "MySQL"
+        name = "MySQL"
         try:
             db = MySQLdb.connect(**params)
             db.query("select version()")

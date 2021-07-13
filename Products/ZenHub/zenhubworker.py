@@ -27,7 +27,6 @@ from twisted.internet import defer, reactor, error, task
 from twisted.spread import pb
 from zope.component import getGlobalSiteManager
 
-import Globals  # noqa: F401
 import Products.ZenHub as ZENHUB_MODULE
 
 from Products.DataCollector.Plugins import loadPlugins

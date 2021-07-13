@@ -11,7 +11,7 @@ SCHEMA_MAJOR    = $(call pick_version_part,1,$(SCHEMA_VERSION))
 SCHEMA_MINOR    = $(call pick_version_part,2,$(SCHEMA_VERSION))
 SCHEMA_REVISION = $(call pick_version_part,3,$(SCHEMA_VERSION))
 
-.PHONY: clean-migration generate-zversion generate-zmigrateversion
+.PHONY: clean-migration generate-zversion generate-zmigrateversion replace-zmigrateversion verify-explicit-zmigrateversion
 
 clean-migration:
 	rm -f $(MIGRATE_VERSION)

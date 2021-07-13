@@ -7,7 +7,6 @@
 #
 ##############################################################################
 
-import Globals
 import Queue
 import multiprocessing
 import sys

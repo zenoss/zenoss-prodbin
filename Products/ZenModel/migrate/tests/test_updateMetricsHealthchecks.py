@@ -3,7 +3,6 @@
 import os
 import unittest
 
-import Globals
 import common
 
 class Test_UpdateMetricsHealthChecks(unittest.TestCase, common.ServiceMigrationTestCase):

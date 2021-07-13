@@ -154,7 +154,6 @@ serv = ServerProxy(url)
 if opts.input_file:
     import sys
     try:
-        import Globals
         from Products.ZenEvents.XmlEvents import sendXMLEvents
     except ImportError:
         try:

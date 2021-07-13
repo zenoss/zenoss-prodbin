@@ -46,7 +46,6 @@ For any questions please contact Zenoss Support
 ---------------------------------------------------------------------------------------------------------------
 """
 
-import Globals
 
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 

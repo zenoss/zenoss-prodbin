@@ -11,7 +11,7 @@
 import logging
 log = logging.getLogger("zen.EventView")
 
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl import ClassSecurityInfo
 from AccessControl.class_init import InitializeClass
 from Acquisition import aq_parent

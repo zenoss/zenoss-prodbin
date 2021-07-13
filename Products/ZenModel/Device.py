@@ -23,7 +23,7 @@ from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from BTrees.OOBTree import OOSet
 from DateTime import DateTime
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from ipaddr import IPAddress
 from OFS.CopySupport import CopyError
 from urllib import quote as urlquote
@@ -1802,7 +1802,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             audit('UI.Device.Remodel', self)
         if xmlrpc: return 0
 
-    security.declareProtected(ZEN_MANAGE_DEVICE, 'collectDevice')
+    security.declareProtected(ZEN_MANAGE_DEVICE, 'runDeviceMonitor')
     def runDeviceMonitor(self, REQUEST=None, write=None, debug=False):
         """
         Run monitoring daemon agains the device ones
@@ -1856,7 +1856,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             audit('UI.Device.Remodel', self)
         if xmlrpc: return 0
 
-    security.declareProtected(ZEN_MANAGE_DEVICE, 'collectDevice')
+    security.declareProtected(ZEN_MANAGE_DEVICE, 'monitorPerDatasource')
     def monitorPerDatasource(self, dsObj, REQUEST=None, write=None):
         """
         Run monitoring daemon against one device and one datasource ones

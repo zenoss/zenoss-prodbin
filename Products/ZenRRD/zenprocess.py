@@ -21,7 +21,6 @@ import re
 from pprint import pformat
 import os.path
 
-import Globals
 
 import zope.component
 import zope.interface

@@ -8,6 +8,7 @@
 ##############################################################################
 
 import logging
+import httplib
 import requests
 import threading
 import time
@@ -63,7 +64,7 @@ class ZingConnectorConfig(object):
         if type(timeout) is not float:
             try:
                 timeout = float(timeout)
-            except:
+            except Exception:
                 log.error("could not coerce timeout to float: %s", timeout)
 
         self.timeout = timeout
@@ -119,6 +120,7 @@ class NullZingClient(object):
     def ping(self):
         return True
 
+
 def _has_errors(resp):
     try:
         json_content = json.loads(resp.content)
@@ -127,6 +129,7 @@ def _has_errors(resp):
     except Exception as e:
         log.error("response has errors: %s, exception: %s", resp.content, e)
     return False
+
 
 @implementer(IZingConnectorClient)
 class ZingConnectorClient(object):
@@ -153,7 +156,7 @@ class ZingConnectorClient(object):
         resp_code = -1
         try:
             if not facts:  # nothing to send
-                return 200
+                return httplib.OK
             if already_serialized:
                 serialized = facts
             else:
@@ -162,7 +165,7 @@ class ZingConnectorClient(object):
                 self.facts_url, data=serialized, timeout=self.client_timeout
             )
             if _has_errors(resp):
-                return 500
+                return httplib.INTERNAL_SERVER_ERROR
             resp_code = resp.status_code
         except Exception as e:
             log.exception(
@@ -175,7 +178,7 @@ class ZingConnectorClient(object):
         for fact in facts:
             serialized = serialize_facts([fact])
             resp_code = self._send_facts(serialized, already_serialized=True)
-            if resp_code != 200:
+            if resp_code != httplib.OK:
                 failed += 1
                 log.warn("Error sending fact: %s", serialized)
         log.warn("%s out of %s facts were not processed.", failed, len(facts))
@@ -198,15 +201,15 @@ class ZingConnectorClient(object):
             self.log_zing_connector_not_reachable()
             return False
         resp_code = self._send_facts(facts)
-        if resp_code != 200:
+        if resp_code != httplib.OK:
             log.error(
                 "Error sending datamaps: zing-connector returned an "
                 "unexpected response code (%s)", resp_code,
             )
-            if resp_code == 500:
+            if resp_code == httplib.INTERNAL_SERVER_ERROR:
                 log.info("Sending facts one by one to minimize data loss")
                 return self._send_one_by_one(facts)
-        return resp_code == 200
+        return resp_code == httplib.OK
 
     def send_facts_in_batches(self, facts, batch_size=DEFAULT_BATCH_SIZE):
         """
@@ -223,9 +226,7 @@ class ZingConnectorClient(object):
         while facts:
             batch = facts[:batch_size]
             del facts[:batch_size]
-            success = success and self.zing_connector.send_facts(
-                batch, ping=False
-            )
+            success = success and self.send_facts(batch, ping=False)
         return bool(success)
 
     def send_fact_generator_in_batches(
@@ -271,7 +272,9 @@ class ZingConnectorClient(object):
             resp_code = resp.status_code
         except Exception:
             log.debug("Zing connector is unavailable at %s", self.ping_url)
-        return resp_code == 501 # Not Implemented is correct response code here
+        # We expect zing-connector to return 501 (NOT IMPLEMENTED) for
+        # ping requests.
+        return resp_code == httplib.NOT_IMPLEMENTED
 
 
 @implementer(IZingConnectorProxy)

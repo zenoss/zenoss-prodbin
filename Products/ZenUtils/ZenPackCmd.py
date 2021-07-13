@@ -10,7 +10,6 @@
 
 __doc__ = "Manage ZenPacks"
 
-import Globals
 from ZODB.transact import transact
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, getObjByPath,atomicWrite, varPath

@@ -7,7 +7,6 @@
 # 
 ##############################################################################
 
-import Globals
 
 import logging
 log = logging.getLogger("zen.migrate")

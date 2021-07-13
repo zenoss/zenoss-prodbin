@@ -13,12 +13,10 @@ as it is considered confusing. See ZEN-1101.
 """
 import os
 import logging
-import Globals
 from Products.ZenUtils.Utils import unused, zenPath
 from Products.ZenModel.migrate import Migrate
 from Products.Zuul import getFacade
 
-unused(Globals)
 
 log = logging.getLogger('zen.migrate')
 

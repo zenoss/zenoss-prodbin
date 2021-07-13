@@ -15,7 +15,6 @@ from twisted.internet import defer
 from BTrees.IIBTree import IITreeSet
 from ZODB.utils import u64
 
-import Globals  # required to import zenoss Products
 from Products.ZenUtils.Utils import unused
 
 from Products.ZenRelations.PrimaryPathObjectManager import (
@@ -26,7 +25,6 @@ from Products.ZenUtils.Utils import giveTimeToReactor
 from .interfaces import IInvalidationProcessor, IHubCreatedEvent
 from .zodb import UpdateEvent, DeletionEvent
 
-unused(Globals)
 
 
 log = logging.getLogger('zen.ZenHub')
