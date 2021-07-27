@@ -133,7 +133,7 @@ class AsyncExecutor(object):
     def queued(self):
         return len(self._queue.pending)
 
-    def submit(self, call, timeout=None, label=None):
+    def submit(self, call, timeout=None, label=""):
         """Submit a callable to run asynchronously.
 
         @param call: A callable to be executed
@@ -266,12 +266,12 @@ class ExecutorTask(object):
     @ivar call: The callable called when the task is invoked.
     """
 
-    def __init__(self, deferred, call, timeout, log, label=None):
+    def __init__(self, deferred, call, timeout, log, label=""):
         self.id = "%x" % uuid.uuid4().time
         self.deferred = deferred
         self.timeout = timeout
         self.call = call
-        self.label = label if label is not None else ""
+        self.label = label
         self._log = log
         self._ontimeout = None
 
