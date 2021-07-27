@@ -322,7 +322,12 @@ class SshRunner(object):
                 # Last task is using connection so can be closed
                 self.connection.clientFinished()
                 self.cleanUpPool(close=True)
+                log.debug(
+                    "Connection closed  connection=%s", self.connection,
+                )
             self.connection = None
+        else:
+            log.debug("No connection to close")
 
     def cleanUpPool(self, connection=None, close=False):
         """
@@ -331,6 +336,12 @@ class SshRunner(object):
         connection = connection or self.connection
 
         if self._poolkey in self._pool:
+            # Cancel the deferreds from other tasks waiting on a connection.
+            content = self._pool.get(self._poolkey)
+            if isinstance(content, list):
+                for d in content:
+                    if not d.called:
+                        d.cancel()
             del self._pool[self._poolkey]
             log.debug(
                 "Deleted connection from pool  device=%s connection=%s",
@@ -345,6 +356,10 @@ class SshRunner(object):
         Deliver ourselves to the starter with the proper attributes
         """
         if isinstance(result, Failure):
+            log.debug(
+                "Command failed  device=%s failure=%r",
+                self.deviceId, result,
+            )
             return result
 
         self.output, self.exitCode, self.stderr = result
