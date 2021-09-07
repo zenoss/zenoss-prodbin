@@ -226,9 +226,7 @@ class ZingConnectorClient(object):
         while facts:
             batch = facts[:batch_size]
             del facts[:batch_size]
-            success = success and self.zing_connector.send_facts(
-                batch, ping=False
-            )
+            success = success and self.send_facts(batch, ping=False)
         return bool(success)
 
     def send_fact_generator_in_batches(

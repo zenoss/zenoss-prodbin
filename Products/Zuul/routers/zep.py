@@ -17,6 +17,7 @@ Available at:  /zport/dmd/evconsole_router
 import logging
 import re
 import time
+from dateutil.parser import parse as parse_to_dt
 from json import loads
 from lxml.html.clean import clean_html
 from zope.component import getUtility
@@ -255,6 +256,11 @@ class EventsRouter(DirectRouter):
         except ValueError:
             log.warning("Invalid timestamp: %s", value)
             return ()
+        except AttributeError:
+            if isinstance(value, dict):
+                return [float(parse_to_dt(value["dateFrom"]).strftime("%s"))*1000.0,
+                        float(parse_to_dt(value["dateTo"]).strftime("%s"))*1000.0]
+
 
     def _filterInvalidUuids(self, events):
         """

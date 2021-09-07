@@ -452,7 +452,10 @@ class SshPerformanceCollectionTask(BaseTask):
         @return: Deferred actions to run against a device configuration
         @rtype: Twisted deferred object
         """
-        log.debug("Starting collection task  device=%s", self._devId)
+        log.debug(
+            "Starting collection task  device=%s interval=%s",
+            self._devId, self.interval,
+        )
         self._doTask_start = datetime.now()
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
         try:
@@ -492,11 +495,14 @@ class SshPerformanceCollectionTask(BaseTask):
 
         except Exception as e:
             self.state = TaskStates.STATE_PAUSED
-            err_msg = "Task paused  name=%s device-id=%s ip=%s message=%s" % (
-                self.name,
-                self._devId,
-                self._manageIp,
-                e.message)
+            err_msg = (
+                "Task paused  device=%s ip=%s interval=%s message=%s" % (
+                    self._devId,
+                    self._manageIp,
+                    self.interval,
+                    e.message,
+                )
+            )
             if log.isEnabledFor(logging.DEBUG):
                 log.exception(err_msg)
             else:
@@ -508,6 +514,9 @@ class SshPerformanceCollectionTask(BaseTask):
                 component=COLLECTOR_NAME,
                 severity=Error,
             )
+            # Re-raise the exception to the scheduler, which will increment
+            # the failed task counter.
+            raise
         else:
             self._returnToNormalSchedule()
 
@@ -534,8 +543,11 @@ class SshPerformanceCollectionTask(BaseTask):
         d = self._runner(self._connector.connection).send(datasource)
         if self._showfullcommand:
             log.info(
-                "Datasource added  name=%s command=%r",
-                datasource.name, datasource.command,
+                "Datasource added  device=%s interval=%s name=%s command=%r",
+                self._devId,
+                self.interval,
+                datasource.name,
+                datasource.command,
             )
         datasource.lastStart = time.time()
         d.addBoth(datasource.processCompleted)
@@ -548,13 +560,17 @@ class SshPerformanceCollectionTask(BaseTask):
         Sends commands to run the monitored device then waits for and
         processes the results.
         """
-        log.debug("Fetching data  device=%s", self._devId)
+        log.debug(
+            "Fetching data  device=%s interval=%s",
+            self._devId, self.interval,
+        )
         self.state = SshPerformanceCollectionTask.STATE_FETCH_DATA
 
         try:
             # Collect the Deferred objects into this list.
             pending = []
 
+            label = "{}/{}".format(self.interval, self._devId)
             # Submit the commands to the executor.
             for command, datasources in self._commandMap.items():
                 first_ds = datasources[0]
@@ -562,7 +578,9 @@ class SshPerformanceCollectionTask(BaseTask):
                 # Note: 'd' is not the same deferred object returned from
                 # the _fetchFromDatasource method.
                 d = self._executor.submit(
-                    call, timeout=self._device.zCommandCommandTimeout,
+                    call,
+                    timeout=self._device.zCommandCommandTimeout,
+                    label=label,
                 )
                 d.addCallback(self._handle_completion, command)
                 d.addErrback(self._handle_error, command)
@@ -588,6 +606,14 @@ class SshPerformanceCollectionTask(BaseTask):
         return (True, (command, response))
 
     def _handle_error(self, failure, command):
+        log.debug(
+            "Datasource command failed  "
+            "device=%s interval=%s command=%r failure=%r",
+            self._devId,
+            self.interval,
+            command,
+            failure,
+        )
         # This callback method is called for any error resulting from the
         # command being unable to complete, e.g. timeouts.
         return (False, (command, failure))
@@ -629,7 +655,10 @@ class SshPerformanceCollectionTask(BaseTask):
         @parameter resultList: results of running the commands
         @type resultList: array of (boolean, (str, IRunner|Failure))
         """
-        log.debug("Parsing fetched data  device=%s", self._devId)
+        log.debug(
+            "Parsing fetched data  device=%s interval=%s",
+            self._devId, self.interval,
+        )
         self.state = SshPerformanceCollectionTask.STATE_PARSE_DATA
 
         parsed_results = []
@@ -649,8 +678,9 @@ class SshPerformanceCollectionTask(BaseTask):
             self._connector.connection.timed_out = True
         log.warn(
             "Command timed out.  Connection flagged for closure  "
-            "device=%s datasources=%s",
+            "device=%s interval=%s datasources=%s",
             self._devId,
+            self.interval,
             ",".join(ds.name for ds in datasources),
         )
         return self._timeout_error_result
@@ -669,8 +699,13 @@ class SshPerformanceCollectionTask(BaseTask):
 
     def _handle_failure_error(self, datasources, failure):
         log.error(
-            "Command failed  device=%s datasource=%s error=%s reason=%s",
-            self._devId, datasources[0].name, failure.type, failure.value,
+            "Command failed  "
+            "device=%s interval=%s datasource=%s error=%s reason=%s",
+            self._devId,
+            self.interval,
+            datasources[0].name,
+            failure.type,
+            failure.value,
         )
         return partial(self._failure_error_result, failure)
 
@@ -692,8 +727,9 @@ class SshPerformanceCollectionTask(BaseTask):
     def _handle_unexpected_error(self, datasources, response):
         log.error(
             "Command failed with unexpected result  "
-            "device=%s datasources=%s result=%s",
+            "device=%s interval=%s datasources=%s result=%s",
             self._devId,
+            self.interval,
             ",".join(ds.name for ds in datasources),
             response,
         )
@@ -713,8 +749,10 @@ class SshPerformanceCollectionTask(BaseTask):
     def _parse_result(self, datasources, response):
         ds = datasources[0]
         log.debug(
-            "Command succeeded  device=%s datasource=%s elapsed-seconds=%.2f",
+            "Command succeeded  "
+            "device=%s interval=%s datasource=%s elapsed-seconds=%.2f",
             self._devId,
+            self.interval,
             ",".join(ds.name for ds in datasources),
             ds.lastStop - ds.lastStart,
         )
@@ -838,7 +876,10 @@ class SshPerformanceCollectionTask(BaseTask):
         @type resultList: array of tuples which have the following layout:
            (Cmd object, ParsedResults object)
         """
-        log.debug("Store parsed data  device=%s", self._devId)
+        log.debug(
+            "Store parsed data  device=%s interval=%s",
+            self._devId, self.interval,
+        )
         self.state = SshPerformanceCollectionTask.STATE_STORE_PERF
 
         try:
@@ -846,9 +887,19 @@ class SshPerformanceCollectionTask(BaseTask):
             #   'datasource' is a Cmd object.
             #   'results' is a ParsedResults object.
             for datasource, results in resultList:
-                log.debug("Store values  datasource=%s", datasource.name)
+                log.debug(
+                    "Store values  device=%s interval=%s datasource=%s",
+                    self._devId, self.interval, datasource.name,
+                )
                 for dp, value in results.values:
-                    log.debug("Store datapoint  datapoint=%s", dp.dpName)
+                    log.debug(
+                        "Store datapoint  "
+                        "device=%s interval=%s datasource=%s datapoint=%s",
+                        self._devId,
+                        self.interval,
+                        datasource.name,
+                        dp.dpName,
+                    )
                     threshData = {
                         "eventKey": datasource.getEventKey(dp),
                         "component": dp.component,
@@ -874,7 +925,12 @@ class SshPerformanceCollectionTask(BaseTask):
                     except Exception as e:
                         log.exception(
                             "Failed to write to metric service  "
+                            "device=%s interval=%s datasource=%s datapoint=%s "
                             "metadata=%s type=%s message=%s",
+                            self._devId,
+                            self.interval,
+                            datasource.name,
+                            dp.dpName,
                             dp.metadata, e.__class__.__name__, e,
                         )
 
