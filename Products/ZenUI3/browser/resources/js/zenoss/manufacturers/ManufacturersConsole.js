@@ -47,6 +47,7 @@ Ext.onReady(function () {
                                 allowBlank: true
                             }, {
                                 xtype: 'textfield',
+                                vtype: 'url',
                                 name: 'URL',
                                 fieldLabel: _t('URL'),
                                 width: 420
