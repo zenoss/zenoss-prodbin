@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2013, 2021 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -14,6 +14,7 @@ from Products.ZenUtils.Ext import DirectResponse
 from Products import Zuul
 from Products.Zuul.decorators import require, serviceConnectionError
 from Products.Zuul.routers import TreeRouter
+from Products.Zuul.utils import sanitizeUrl
 from Products.ZenMessaging.audit import audit
 
 
@@ -48,7 +49,7 @@ class ManufacturersRouter(TreeRouter):
         )
 
     @serviceConnectionError        
-    @require('Manage DMD')    
+    @require('Manage DMD')
     def editProduct(self, params=None):
         """
         Edit a product
@@ -125,6 +126,7 @@ class ManufacturersRouter(TreeRouter):
         """
         edit a manufacturer
         """
+        params['URL'] = sanitizeUrl(params.get('URL'))
         facade = self._getFacade()
         facade.editManufacturer(params)
         audit('UI.Manufacturers.EditManufacturer', Manufacturer=params['name'])        
