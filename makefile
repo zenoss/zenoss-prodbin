@@ -1,6 +1,6 @@
-VERSION  ?= 7.0.15
+VERSION ?= 7.0.15
 BUILD_NUMBER ?= DEV
-BRANCH   ?= develop
+BRANCH ?= zenpackadapter
 ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
 ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 
@@ -29,6 +29,7 @@ DOCKER_RUN := docker run --rm \
 		$(BUILD_IMAGE_TAG) \
 		/bin/bash -c
 
+.DEFAULT_GOAL := build
 .PHONY: all clean build javascript zensocket
 
 include javascript.mk
@@ -48,7 +49,7 @@ mk-dist:
 #     - build the zenoss-version wheel, which is copied into dist
 #
 build: mk-dist build-javascript build-zensocket build-zenoss-version
-	tar cvfz $(ARTIFACT) Products bin dist etc share legacy/sitecustomize.py
+	tar cvfz $(ARTIFACT) --exclude='*.pyc' --exclude='*.sw?' Products bin dist etc share legacy/sitecustomize.py
 
 clean: clean-javascript clean-zensocket clean-zenoss-version
 	rm -f $(ARTIFACT)
