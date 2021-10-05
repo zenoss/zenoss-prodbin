@@ -473,7 +473,8 @@ class UserSettingsManager(ZenModelRM):
         groupid = prepId(groupid)
         try:
             self.acl_users.groupManager.addGroup(groupid)
-        except KeyError: pass
+        except KeyError:
+            pass
         self.getGroupSettings(groupid)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
@@ -539,6 +540,74 @@ class UserSettingsManager(ZenModelRM):
                     audit('UI.User.AddToGroup', username=userid, group=groupid)
             return self.callZenScreen(REQUEST)
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_removeUsersFromGroups')
+    @validate_csrf_token
+    def manage_removeUsersFromGroups(self, userids=(), groupids=(), REQUEST=None):
+        """ Remove users from a group
+        """
+        if isinstance(userids, basestring):
+            userids = [userids]
+        if isinstance(groupids, basestring):
+            groupids = [groupids]
+
+        for groupid in groupids:
+            self._getOb(groupid).manage_deleteUsersFromGroup(userids)
+
+        if REQUEST:
+            if not groupids:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No groups were selected.',
+                    priority=messaging.WARNING
+                )
+            else:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Groups Modified',
+                    'Users %s were removed from groups %s.' % (
+                        ', '.join(userids), ', '.join(groupids))
+                )
+            for userid in userids:
+                for groupid in groupids:
+                    audit('UI.User.RemoveFromGroup', username=userid, group=groupid)
+            return self.callZenScreen(REQUEST)
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_assignAdminRolesToUsers')
+    @validate_csrf_token
+    def manage_assignAdminRolesToUsers(self, userids=(), REQUEST=None):
+        """ Assign admin roles to users
+        """
+        if isinstance(userids, basestring):
+            userids = [userids]
+        for user in userids:
+            try:
+                userObj = self._getOb(user)
+                roleManager = userObj.acl_users.roleManager
+                roleManager.assignRoleToPrincipal("Manager", userObj.id)
+                roleManager.assignRoleToPrincipal("ZenManager", userObj.id)
+                audit('UI.User.AssignAdminRolesToUsers', user=user)
+            except Exception as ex:
+                log.error("Could not assign 'Manager' roles to user %s; %s", user, ex)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_removeAdminRolesFromUsers')
+    @validate_csrf_token
+    def manage_removeAdminRolesFromUsers(self, userids=(), REQUEST=None):
+        """ Remove admin roles from users
+        """
+        if isinstance(userids, basestring):
+            userids = [userids]
+        for user in userids:
+            try:
+                userObj = self._getOb(user)
+                roleManager = userObj.acl_users.roleManager
+                roleManager.removeRoleFromPrincipal("Manager", userObj.id)
+                roleManager.removeRoleFromPrincipal("ZenManager", userObj.id)
+                audit('UI.User.RemoveAdminRolesFromUsers', user=user)
+            except Exception as ex:
+                log.error("Could not remove 'Manager' roles from user %s; %s", user, ex)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_emailTestAdmin')
     def manage_emailTestAdmin(self, userid, REQUEST=None):

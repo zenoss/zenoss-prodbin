@@ -47,3 +47,36 @@ class UserFacade(ZuulFacade):
         user = self._root.getUserSettings(propertiedUser.getId())
         user.email = email
         return IInfo(user)
+
+    def getGroups(self, start=0, limit=50, sort='id', dir='ASC', name=None):
+        groups = map(IInfo, self._dmd.ZenUsers.getAllGroupSettings())
+        sortedGroups = sorted(groups, key=lambda u: getattr(u, sort))
+        if dir == "DESC":
+            sortedGroups.reverse()
+        total = len(sortedGroups)
+        return SearchResults(iter(sortedGroups[start:limit]), total, total, areBrains=False)
+
+    def createGroup(self, groupName):
+        self._root.manage_addGroup(groupName)
+        group = self._root.getGroupSettings(groupName)
+        return IInfo(group)
+
+    def removeGroups(self, groupIds):
+        ids = groupIds
+        if isinstance(ids, basestring):
+            groupIds = [ids]
+        return self._root.manage_deleteGroups(groupIds)
+
+    def addUsersToGroups(self, userIds, groupIds):
+        # can pass string or list of strings
+        return self._root.manage_addUsersToGroups(userIds, groupIds)
+
+    def removeUsersFromGroups(self, userIds, groupIds):
+        # can pass string or list of strings
+        return self._root.manage_removeUsersFromGroups(userIds, groupIds)
+
+    def assignAdminRolesToUsers(self, userIds):
+        return self._root.manage_assignAdminRolesToUsers(userIds)
+
+    def removeAdminRolesFromUsers(self, userIds):
+        return self._root.manage_removeAdminRolesFromUsers(userIds)
