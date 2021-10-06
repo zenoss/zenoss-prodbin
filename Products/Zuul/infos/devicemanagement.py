@@ -20,6 +20,7 @@ class MaintenanceWindowInfo(InfoBase):
     days = ProxyProperty('days')
     occurrence = ProxyProperty('occurrence')
     startState = ProxyProperty('startProductionState')
+    timezone = ProxyProperty('timezone')
 
     @property
     def startProdState(self):
@@ -50,7 +51,8 @@ class MaintenanceWindowInfo(InfoBase):
                                      days=p.get('days', 'Sunday'),
                                      occurrence=p.get('occurrence', '1st'),
                                      startProductionState=p['startProductionState'],
-                                     enabled=p['enabled']
+                                     enabled=p['enabled'],
+                                     timezone=p.get('timezone', None),
                                 )
 
 class UserCommandManagementInfo(InfoBase):
