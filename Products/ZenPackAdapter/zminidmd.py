@@ -23,15 +23,16 @@ from IPython import embed
 logging.basicConfig()
 log = logging.getLogger('zen.zminidmd')
 
-from Products.ZenPackAdapter.db import get_db
-from Products.ZenPackAdapter.impact import update_impact as _update_impact, update_all_impacts
-from Products.ZenPackAdapter.services import ModelerService, PythonConfig
-
 # Load zope adapters so that update_impact is possible
 from OFS.Application import import_products
 import_products()
 from Zope2.App.zcml import load_site
 load_site()
+
+from Products.ZenPackAdapter.db import get_db
+from Products.ZenPackAdapter.impact import update_impact as _update_impact, update_all_impacts
+from Products.ZenPackAdapter.services import ModelerService, PythonConfig
+
 
 logging.getLogger('zen').setLevel(logging.INFO)
 
