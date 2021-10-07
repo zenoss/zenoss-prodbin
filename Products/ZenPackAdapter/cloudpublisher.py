@@ -329,7 +329,7 @@ class CloudEventPublisher(CloudPublisher):
         for k, v in event.items():
             metadataFields[k] = v
         metadataFields['source-type'] = 'zenoss.zenpackadapter'
-        metadataFields["severity"] = self.severity.get(severity, "SEVERITY_INFO")
+        metadataFields["severity"] = self.severity.get(str(severity), "SEVERITY_INFO")
         metadataFields["lastSeen"] = ts
         metadataFields["deviceClass"] = deviceClass
 
