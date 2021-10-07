@@ -615,6 +615,12 @@ class ZDeviceOrComponent(ZObject):
 
         return False
 
+    def getLastChange(self):
+        return DateTime(float(self._device._lastChange))
+
+    def getLastChangeString(self):
+        return Time.LocalDateTimeSecsResolution(float(self._device._lastChange))
+
 
 class ZDevice(ZDeviceOrComponent):
     def device(self):
@@ -645,11 +651,6 @@ class ZDevice(ZDeviceOrComponent):
                 result.append(template)
         return result
 
-    def getLastChange(self):
-        return DateTime(float(self._device._lastChange))
-
-    def getLastChangeString(self):
-        return Time.LocalDateTimeSecsResolution(float(self._device._lastChange))
 
 class ZDeviceComponent(ZDeviceOrComponent):
     def device(self):
