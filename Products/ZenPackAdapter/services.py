@@ -12,9 +12,12 @@ import logging
 from pprint import pformat
 import re
 import sys
+import datetime
 import time
 import traceback
+from collections import defaultdict
 
+from zope import component
 from twisted.spread import pb
 from twisted.internet import defer, task
 from twisted.internet.threads import deferToThread
@@ -22,6 +25,7 @@ from twisted.internet.threads import deferToThread
 from Products.ZenRRD.zencommand import Cmd, DataPointConfig
 from Products.ZenUtils.Utils import importClass
 from Products.DataCollector.DeviceProxy import DeviceProxy as ModelDeviceProxy
+from Products.ZenCollector.interfaces import IConfigurationDispatchingFilter
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.PBDaemon import RemoteException
 from Products.ZenHub.services.Procrastinator import Procrastinate
@@ -38,10 +42,12 @@ from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
 from .utils import replace_prefix, all_parent_dcs
 from .utils.tales import talesEvalStr
 from .applydatamapper import ApplyDataMapper
-from .db import get_db
+from .db import get_db, snapshot_to_file
 from .modelevents import onZenPackAdapterDeviceUpdate, onZenPackAdapterDeviceAdd, onZenPackAdapterDeviceDelete
+from .configdispatch import getWorkerDispatchPool
 
 log = logging.getLogger('zen.zminihub.services')
+clog = logging.getLogger('zen.zminihub.services.pushconfig')
 
 
 def translateError(callable):
@@ -75,6 +81,7 @@ class ZenPackAdapterService(pb.Referenceable):
         self.listenerOptions = {}
         self.callTime = 0
         self.db = get_db()
+        self.workerpool = getWorkerDispatchPool()
 
     def remoteMessageReceived(self, broker, message, args, kw):
         self.log.debug("Servicing %s in %s", message, self.name())
@@ -99,6 +106,7 @@ class ZenPackAdapterService(pb.Referenceable):
         self.listeners.append(remote)
         if options:
             self.listenerOptions[remote] = options
+            self.workerpool.add_worker(options)
 
     def removeListener(self, listener):
         self.log.info(
@@ -109,7 +117,11 @@ class ZenPackAdapterService(pb.Referenceable):
         except ValueError:
             self.warning("Unable to remove listener... ignoring")
 
+        if listener in self.listenerOptions:
+            self.workerpool.remove_worker(self.listenerOptions[listener])
+
         self.listenerOptions.pop(listener, None)
+
 
     def sendEvents(self, events):
         if events:
@@ -260,16 +272,30 @@ class ModelerService(ZenPackAdapterService):
 
         return result
 
+    def _getOptionsFilter(self, options):
+        deviceFilter = lambda x: True
+        if options:
+            dispatchFilterName = 'rendezvous'
+            filterFactories = dict(component.getUtilitiesFor(IConfigurationDispatchingFilter))
+            filterFactory = filterFactories.get(dispatchFilterName, None) or \
+                            filterFactories.get('', None)
+            if filterFactory:
+                deviceFilter = filterFactory.getFilter(options) or deviceFilter
+        return deviceFilter
+
     @translateError
     def remote_getDeviceListByMonitor(self, monitor=None):
         return [x.id for x in self.db.devices]
 
     @translateError
     def remote_getDeviceListByOrganizer(self, organizer, monitor=None, options=None):
+        deviceFilter = self._getOptionsFilter(options)
+
         dc = replace_prefix(organizer, "/Devices", "/")
         if dc not in self.db.device_classes:
             return []
-        return [x.id for x in self.db.child_devices[dc]]
+        return [x.id for x in self.db.child_devices[dc] if deviceFilter(x) ]
+
 
     @translateError
     def remote_applyDataMaps(self, device, maps, devclass=None, setLastCollection=False):
@@ -317,6 +343,7 @@ class CollectorConfigService(ZenPackAdapterService):
         self.db = get_db()
         self.procrastinator = Procrastinate(self.pushConfig)
         self.last_schemaversion = {}
+        self.last_listeners = defaultdict(set)
 
         # push configs down to the collectors when the models change.
         # (every 15 minutes)
@@ -354,15 +381,28 @@ class CollectorConfigService(ZenPackAdapterService):
 
     @translateError
     def remote_getDeviceNames(self, options=None):
-        # (note, this should be filtered by _filterDevices)
-        return [x.id for x in self.db.devices]
+        devices = filter(self._getOptionsFilter(options), self.db.devices.values())
+        return [x.id for x in devices]
+
+    def _getOptionsFilter(self, options):
+        deviceFilter = lambda x: True
+        if options:
+            dispatchFilterName = 'rendezvous'
+            filterFactories = dict(component.getUtilitiesFor(IConfigurationDispatchingFilter))
+            filterFactory = filterFactories.get(dispatchFilterName, None) or \
+                            filterFactories.get('', None)
+            if filterFactory:
+                deviceFilter = filterFactory.getFilter(options) or deviceFilter
+        return deviceFilter
+
 
     @translateError
     def remote_getDeviceConfigs(self, deviceNames=None, options=None):
-        # (note, the device list should be filtered)
-
-        if deviceNames is None or len(deviceNames) == 0:
-            deviceNames = self.db.devices.keys()
+        if deviceNames is not None:
+            devices = filter(self._getOptionsFilter(options), [self.db.devices[x] for x in deviceNames if x in self.db.devices])
+        else:
+            devices = filter(self._getOptionsFilter(options), self.db.devices.values())
+        deviceNames = [x.id for x in devices]
 
         deviceConfigs = []
         for deviceName in deviceNames:
@@ -440,27 +480,61 @@ class CollectorConfigService(ZenPackAdapterService):
 
     @defer.inlineCallbacks
     def pushConfig(self, deviceId):
+        try:
+            yield self._pushConfig(deviceId)
+        except Exception, e:
+            clog.exception(e)
+            raise e
+
+    @defer.inlineCallbacks
+    def _pushConfig(self, deviceId):
         deferreds = []
-        log.info("pushConfig self=%s, deviceId=%s, listeners=%s", self, deviceId, self.listeners)
-        device = self.db.devices.get(deviceId, None)
+        clog.info("pushConfig self=%s, deviceId=%s, listeners=%s", self, deviceId, self.listeners)
+        device = self.db.get_zobject(device=deviceId)
+
         if device is None:
             for listener in self.listeners:
-                log.info('  Performing remote call to delete device %s', deviceId)
-                deferreds.append(listener.callRemote('deleteDevice', deviceId))
+                options = self.listenerOptions.get(listener, None)
+                deviceFilter = self._getOptionsFilter(options)
+                if deviceFilter(device):
+                    clog.info('  Performing remote call to delete device %s', deviceId)
+                    deferreds.append(listener.callRemote('deleteDevice', deviceId))
+                    if deviceId in self.last_listeners:
+                        del self.last_listeners[deviceId]
         else:
             proxy = yield deferToThread(self._createDeviceProxy, device)
+            accepted = set()
 
             for listener in self.listeners:
-                log.info('  Performing remote call to update device %s (proxy=%s)', deviceId, proxy)
-                deferreds.append(listener.callRemote('updateDeviceConfig', proxy))
+                options = self.listenerOptions.get(listener, None)
+                deviceFilter = self._getOptionsFilter(options)
+                if deviceFilter(device):
+                    if deviceId in accepted:
+                        clog.error("Device %s accepted by multiple collectors - ignoring duplicates", deviceId)
+                    else:
+                        accepted.add(deviceId)
+                        # log.debug("deviceFilter accepted %s for %s", deviceId, listener)
+                        self.last_listeners[deviceId].add(listener)
+                        clog.info('  Performing remote call to update device %s (proxy=%s)', deviceId, proxy)
+                        deferreds.append(listener.callRemote('updateDeviceConfig', proxy))
+                else:
+                    # log.debug("deviceFilter rejected %s for %s", deviceId, listener)
+                    if deviceId in self.last_listeners:
+                        if listener in self.last_listeners[deviceId]:
+                            self.last_listeners[deviceId].remove(listener)
 
         yield defer.DeferredList(deferreds)
 
     def pushConfigsIfNeeded(self):
-        log.info("Checking for model changes on %s" % self)
-        deferreds = []
+        if len(self.listeners) == 0:
+            # no collectors are registered, so we can bail.
+            return
+
+        clog.info("Checking for model changes on %s" % self)
+        needs_update = set()
         for deviceId in self.db.devices:
             mapper = self.db.get_mapper(deviceId)
+            device = self.db.get_zobject(device=deviceId)
 
             # If components have been added, removed, or links between
             # them changed, the mapper schemaversion is incremented, and
@@ -468,12 +542,71 @@ class CollectorConfigService(ZenPackAdapterService):
             last_schemaversion = self.last_schemaversion.get(deviceId)
             if mapper and mapper.schemaversion != last_schemaversion:
                 self.last_schemaversion[deviceId] = mapper.schemaversion
-                log.info("  Model for %s has changed.  Pushing new configs", deviceId)
+                clog.info("  Model for %s has changed.  Pushing new configs", deviceId)
+                needs_update.add(deviceId)
 
-                deferreds.append(self.pushConfig(deviceId))
+            # figure out if the device is not being monitored by the
+            # same collector worker any more (for instance, if the one
+            # it was on no longer exists)
+            current_listeners = set()
+            for listener in self.listeners:
+                options = self.listenerOptions.get(listener, None)
+                collectorId = options.get('zpaCollectorId', listener)
 
+                deviceFilter = self._getOptionsFilter(options)
+                if deviceFilter(device):
+                    current_listeners.add(listener)
+
+            if len(current_listeners) == 0:
+                # note that even if a particuler collector type isn't used for
+                # this device, there should still be one that is *eligible*
+                # to be used for any deviceId for each collector type.. for now,
+                # we're just checking that there are some of *any* collector type
+                # because that's a bare minimum that certainly must be true.
+                # this indicates a probable bug in the configdispatch filtering.
+                clog.error("No eligible collectors (of any type) were found for device %s!", deviceId)
+
+            # If it has changed, push the config to the new collector worker.
+            if current_listeners != self.last_listeners[deviceId]:
+                if len(self.last_listeners[deviceId]):
+                    clog.info("  Collector worker for %s has changed.  Pushing new configs", deviceId)
+                needs_update.add(deviceId)
+
+        self.updateCollectorReport()
+
+        deferreds = [self.pushConfig(deviceId) for deviceId in needs_update]
         return defer.DeferredList(deferreds)
 
+    def updateCollectorReport(self):
+        # update a file in the snapshot directory with the current
+        # device -> collector mappings for this service, for troubleshooting
+        # and reference
+
+        if len(self.listeners) == 0:
+            # no collectors are registered, so we can bail.
+            return
+
+        serviceName = self.__class__.__name__
+        log.info("Updating collector report for %s", serviceName)
+        collector_devices = defaultdict(set)
+        for deviceId in self.db.devices:
+            device = self.db.get_zobject(device=deviceId)
+
+            for listener in self.listeners:
+                options = self.listenerOptions.get(listener, None)
+                collectorId = options.get('zpaCollectorId', listener)
+                collector_devices.setdefault(collectorId, set())
+
+                deviceFilter = self._getOptionsFilter(options)
+                if deviceFilter(device):
+                    collector_devices[collectorId].add(deviceId)
+
+        with snapshot_to_file("collectors-%s.txt" % serviceName) as f:
+            f.write("Current collectors for %s as of %s\n" % (serviceName, datetime.datetime.now()))
+            for collector in sorted(collector_devices.keys()):
+                f.write("\nCollector %s Devices:\n" % collector)
+                for deviceId in sorted(collector_devices[collector]):
+                    f.write("  %s\n" % deviceId)
 
 class CommandPerformanceConfig(CollectorConfigService):
     dsType = 'COMMAND'
@@ -681,7 +814,7 @@ class PythonConfig(CollectorConfigService):
         try:
             templates = deviceOrComponent.getRRDTemplates()
         except Exception as ex:
-            log.error("Eror getting RRD Template for Device/Component %s; %s", deviceOrComponent, ex)
+            log.error("Error getting RRD Template for Device/Component %s; %s", deviceOrComponent, ex)
             templates = []
 
         for template in templates:

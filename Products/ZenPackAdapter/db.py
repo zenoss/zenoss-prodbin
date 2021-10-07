@@ -11,6 +11,7 @@
 # In-memory database holding all devices, device classes, and monitoring
 # templates.
 
+from contextlib import contextmanager
 import datetime
 import logging
 import os
@@ -53,6 +54,17 @@ def get_db():
     if _DB is None:
         _DB = DB()
     return _DB
+
+@contextmanager
+def snapshot_to_file(filename):
+    if '/' in filename:
+        raise ValueError("Invalid snapshot_file filename: %s" % filename)
+
+    file = open("%s/%s" % (SNAPSHOT_DIR, filename), 'w')
+    try:
+        yield file
+    finally:
+        file.close()
 
 
 class DB(object):

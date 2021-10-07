@@ -16,4 +16,9 @@
         factory=".guid.GUIDManager"
         />
 
+    <utility factory=".configdispatch.RendezvousHashDispatchingFilter"
+             provides="Products.ZenCollector.interfaces.IConfigurationDispatchingFilter"
+             name="rendezvous"
+             />
+
 </configure>

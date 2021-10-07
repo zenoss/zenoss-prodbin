@@ -13,6 +13,8 @@
 #
 # This file is loaded by Products.ZenUtils (__init__.py)
 
+import socket
+import sys
 import time
 import os.path
 import logging
@@ -66,6 +68,17 @@ def buildOptions(self):
                        default=None,
                        help='Source tag data sent to Zenoss Cloud')
 
+    self.parser.add_option('--collector-type',
+                       dest='zpaCollectorType',
+                       type='string',
+                       default=os.path.basename(sys.argv[0]),
+                       help='Type of collector process (process name, generally)')
+
+    self.parser.add_option('--collector-instance-id',
+                       dest='zpaCollectorId',
+                       type='string',
+                       default=socket.gethostname(),
+                       help='Unique Identifier for this collector process/container')
 @monkeypatch(CmdBase)
 def parseOptions(self):
     from Products.ZenPackAdapter.yamlconfig import load_config_yaml, CONFIG_YAML
