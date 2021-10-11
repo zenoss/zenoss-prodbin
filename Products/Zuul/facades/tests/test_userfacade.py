@@ -33,47 +33,49 @@ class UserFacadeTest(ZuulFacadeTestCase):
         verifyClass(IComponent, Service)
 
     def test_addUsers(self):
-        u1 = self.facade.addUser("heman",  "MotU",  "heman@master.universe", ("ZenUser", "ZenManager", "Manager"))
-        u2 = self.facade.addUser("shera",  "MotU",  "shera@master.universe", ("ZenUser",))
-        u3 = self.facade.addUser("duncan", "MotU", "duncan@master.universe", ("ZenUser",))
-        self.assertEqual(u1.id, 'heman')
-        self.assertEqual(u2.id, 'shera')
-        self.assertEqual(u3.id, 'duncan')
+        u1 = self.facade.addUser("Blitz", "Seahawks!", "blitz@seahawks.loc", ("Mascots",), ("ZenUser", "ZenManager", "Manager"))
+        u2 = self.facade.addUser("Swoop", "Seahawks!", "swoop@seahawks.loc", ("Mascots",), ("ZenUser",))
+        u3 = self.facade.addUser("Boom",  "Seahawks!",  "bool@seahawks.loc", ("Mascots",), ("ZenUser",))
+        self.assertEqual(u1.id, 'Blitz')
+        self.assertEqual(u2.id, 'Swoop')
+        self.assertEqual(u3.id, 'Boom')
         users = self.facade._root.getAllUserSettingsNames()
-        self.assertTrue('heman' in users)
-        self.assertTrue('orco' not in users)
+        self.assertTrue('Blitz' in users)
+        self.assertTrue('Taima' not in users)
 
     def test_deleteUsers(self):
-        if 'duncan' not in self.facade._root.getAllUserSettingsNames():
+        if 'Taima' not in self.facade._root.getAllUserSettingsNames():
             # User needs to be in users list before removal
-            u = self.facade.addUser("duncan", "MotU", "duncan@master.universe", ("ZenUser",))
-            self.assertTrue('duncan' in self.facade._root.getAllUserSettingsNames())
+            u = self.facade.addUser("Taima", "SeaHawks!", "taima@seahawks.loc", ("Animal",), ("ZenUser",))
+            self.assertTrue('Taima' in self.facade._root.getAllUserSettingsNames())
 
-        self.facade.removeUsers("duncan")
-        self.assertTrue('duncan' not in self.facade._root.getAllUserSettingsNames())
+        self.facade.removeUsers("Taima")
+        self.assertTrue('Taima' not in self.facade._root.getAllUserSettingsNames())
 
     def test_createGroups(self):
-        g1 = self.facade.createGroup("Universe Masters")
-        g2 = self.facade.createGroup("Man at Arms")
+        g1 = self.facade.createGroups(["Mascots"])
+        g2 = self.facade.createGroups(["Animals"])
         groups = self.facade._root.getAllGroupSettingsNames()
-        self.assertTrue(g1.id in groups)
-        self.assertTrue(g2.id in groups)
+        for g in g1:
+            self.assertTrue(g.id in groups)
+        for g in g2:
+            self.assertTrue(g.id in groups)
 
     def test_deleteGroups(self):
-        groupName = "Man at Arms"
+        groupName = "Animals"
         if groupName not in self.facade._root.getAllGroupSettingsNames():
             # need to add the groups list before removal
-            g = self.facade.createGroup(groupName)
+            g = self.facade.createGroups([groupName])
             self.assertTrue(groupName, self.facade._root.getAllGroupSettingsNames())
 
-        self.facade.removeGroups(groupName)
+        self.facade.removeGroups([groupName])
         self.assertTrue(groupName not in self.facade._root.getAllGroupSettingsNames())
 
     def test_assignAdminRoles(self):
-        userName = 'shera'
+        userName = 'Taima'
         if userName not in self.facade._root.getAllUserSettingsNames():
             # User needs to be in users list before removal
-            u = self.facade.addUser(userName, "MotU", "shera@master.universe", ("ZenUser",))
+            u = self.facade.addUser(userName, "Seahawks!", "taima@seahawks.loc", ("Animals",), ("ZenUser",))
             self.assertTrue(userName in self.facade._root.getAllUserSettingsNames())
 
         # test assignment of admin
@@ -87,6 +89,7 @@ class UserFacadeTest(ZuulFacadeTestCase):
         self.facade.removeAdminRolesFromUsers(userName)
         roles = self.facade._root.getUser(userName).getRoles()
         self.assertTrue("Manager" not in roles)
+
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(UserFacadeTest),))
