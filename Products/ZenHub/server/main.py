@@ -63,6 +63,13 @@ def start_server(reactor, server_factory):
     dfr.addCallback(lambda listener: setKeepAlive(listener.socket))
 
 
+def stop_server():
+    # Stop the executors:
+    global _executors
+    for executor in _executors.values():
+        executor.stop()
+
+
 def make_server_factory(pools, manager, authenticators):
     """Return a ZenPBServerFactory instance.
 
@@ -108,7 +115,7 @@ def make_pools():
 def make_executors(config, pools):
     global _executors
     for name, spec in config.executors.items():
-        modpath, clsname = spec.split(":")
+        modpath, clsname = spec.split(":", 1)
         cls = import_name(modpath, clsname)
         executor = cls.create(name, config=config, pool=pools.get(name))
         _executors[name] = executor

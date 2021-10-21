@@ -47,7 +47,7 @@ class DotNetSession(object):
         url = urljoin(self.base_url, quote(url))
         try:
             response = self.opener.open(url, params)
-        except HTTPError, e:
+        except HTTPError as e:
             print "Unable to access the Zenoss.net url:" + e.geturl()
             return None
         else:

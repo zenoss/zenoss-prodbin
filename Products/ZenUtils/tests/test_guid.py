@@ -16,7 +16,7 @@ would like to run these tests from python, simply to the following:
 '''
 import unittest
 from zope.interface import implements
-from Products.Five import zcml
+from Zope2.App import zcml
 
 from OFS.SimpleItem import SimpleItem
 from Products.ZenTestCase.BaseTestCase import BaseTestCase

@@ -12,7 +12,7 @@ __doc__ = """Organizer
 Base class for all Zenoss organizers
 """
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_parent
 from AccessControl import ClassSecurityInfo, getSecurityManager
 
@@ -168,7 +168,7 @@ class Organizer(ZenModelRM, EventView):
 
 
     security.declareProtected(ZEN_ADD, 'manage_addOrganizer')
-    def manage_addOrganizer(self, newPath, factory=None, REQUEST=None):
+    def manage_addOrganizer(self, newPath, factory=None, properties=None, REQUEST=None):
         """
         Adds a new organizer under this organizer. if given a fully qualified
         path it will create an organizer at that path
@@ -178,7 +178,6 @@ class Organizer(ZenModelRM, EventView):
         @raise: ZentinelException
         @permission: ZEN_ADD
 
-        >>> dmd.Devices.manage_addOrganizer('/Devices/DocTest')
         """
         if factory is None:
             factory = self.__class__
@@ -186,6 +185,7 @@ class Organizer(ZenModelRM, EventView):
         try:
             if newPath.startswith("/"):
                 org = self.createOrganizer(newPath)
+                name = org.titleOrId()
             else:
                 # Strip out invalid characters from the newPath
                 name = newPath
@@ -194,8 +194,16 @@ class Organizer(ZenModelRM, EventView):
                 self._setObject(org.id, org)
                 # Set the display name to the original string
                 org = self._getOb(newPath)
-                org.setTitle(name)
-        except ZentinelException, e:
+
+            # Allow adding additional properties to the organizer.
+            # All organizers use this to set description.
+            # Locations use this to set address.
+            if properties:
+                for k, v in properties.items():
+                    setattr(org, k, v)
+
+            org.setTitle(name)
+        except ZentinelException as e:
             if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error', e, priority=messaging.WARNING)

@@ -19,7 +19,7 @@ __version__ = "$Revision: 1.12 $"[11:-2]
 from math import isnan
 
 from Globals import DTMLFile
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenUtils.Utils import convToUnits

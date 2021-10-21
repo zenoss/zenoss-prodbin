@@ -121,21 +121,57 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                     listeners: {
                         click: function() {
                             var itemName = options.onGetItemName();
-                            new Zenoss.dialog.SimpleMessageDialog({
-                                message: options.onGetDeleteMessage(itemName),
-                                buttonAlign: 'center',
-                                title: Ext.String.format(_t('Delete {0}'), options.onGetItemName()),
-                                buttons: [{
-                                    xtype: 'DialogButton',
-                                    text: _t('OK'),
-                                    handler: function(){
-                                        footerBar.fireEvent('buttonClick', 'delete');
-                                    }
-                                }, {
-                                    xtype: 'DialogButton',
-                                    text: _t('Cancel')
-                                }]
-                            }).show();
+                            // Special hendler for Device Class organizer to fix ZEN-15212
+                            if (itemName == 'Device Class') {
+                                var nodePath = '/' + Ext.getCmp('devices').getSelectionModel().getSelectedNode().data.path;
+                                var dialog = new Zenoss.SmartFormDialog({
+                                    buttonAlign: 'center',
+                                    title: Ext.String.format(_t('Delete {0}'), options.onGetItemName()),
+                                    formId: 'confDevClsForm',
+                                    items: [{
+                                        xtype: 'panel',
+                                        html: options.onGetDeleteMessage(itemName)
+                                    },{
+                                        xtype: 'textfield',
+                                        name: 'devCls',
+                                        anchor:'80%',
+                                        allowBlank: false,
+                                        emptyText: nodePath,
+                                        margin: '10 0 0 0',
+                                        isValid: function() {
+                                            var devCls = Ext.getCmp('confDevClsForm').getForm().findField('devCls').getValue();
+                                            return (devCls === nodePath);
+                                        }
+                                    }],
+                                    buttons: [{
+                                        xtype: 'DialogButton',
+                                        text: _t('Delete'),
+                                        handler: function(){
+                                            footerBar.fireEvent('buttonClick', 'delete');
+                                        }
+                                    }, {
+                                        xtype: 'DialogButton',
+                                        text: _t('Cancel')
+                                    }]
+                                });
+                            } else {
+                                dialog = new Zenoss.dialog.SimpleMessageDialog({
+                                    message: options.onGetDeleteMessage(itemName),
+                                    buttonAlign: 'center',
+                                    title: Ext.String.format(_t('Delete {0}'), options.onGetItemName()),
+                                    buttons: [{
+                                        xtype: 'DialogButton',
+                                        text: _t('OK'),
+                                        handler: function () {
+                                            footerBar.fireEvent('buttonClick', 'delete');
+                                        }
+                                    }, {
+                                        xtype: 'DialogButton',
+                                        text: _t('Cancel')
+                                    }]
+                                });
+                            }
+                            dialog.show();
                         }
                     }
                 }]

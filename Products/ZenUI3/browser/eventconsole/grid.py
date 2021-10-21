@@ -47,7 +47,7 @@ def _find_column_fields():
         for item in details:
             if item['key'] not in DEFAULT_COLUMN_ORDER:
                 DEFAULT_COLUMN_ORDER.append(item['key'])
-    except ZepConnectionError, e:
+    except ZepConnectionError as e:
         log.error(e.message)
 
     return DEFAULT_COLUMN_ORDER
@@ -67,7 +67,7 @@ def _find_column_definitions(archive=False):
 
     try:
         details = getFacade('zep').getUnmappedDetails()
-    except ZepConnectionError, e:
+    except ZepConnectionError as e:
         log.error(e.message)
         return columns
 
@@ -137,10 +137,7 @@ def column_config(request=None, archive=False):
 
 class EventClasses(JavaScriptSnippet):
     def snippet(self):
-        orgs = self.context.dmd.Events.getSubOrganizers()
-        paths = ['/'.join(x.getPrimaryPath()) for x in orgs]
-        paths = [p.replace('/zport/dmd/Events','') for p in paths]
-        paths.sort()
+        paths = self.context.dmd.Events.getOrganizerNames()
         return """
         Ext.onReady(function(){
             Zenoss.env.EVENT_CLASSES = %s;
@@ -179,7 +176,7 @@ class GridColumnDefinitions(JavaScriptSnippet):
                     rulecmp = 'Zenoss.form.rule.NUMBERCOMPARISONS'
                 zpdetails.append("{{ text: _t('{name}'), value: '{key}', comparisons: {cmp} }}".format(name=detail['name'], key=detail['key'], cmp=rulecmp))
             result.append(',\n'.join(zpdetails))
-        except ZepConnectionError, e:
+        except ZepConnectionError as e:
             log.error(e.message)
         result.append('];')
 

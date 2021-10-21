@@ -23,7 +23,7 @@ class StringifyExpansionCardSlot(Migrate.Step):
                 card = brain.getObject()
                 if isinstance(card.slot, int):
                     card.slot = str(card.slot)
-        except Exception, ex:
+        except Exception as ex:
             log.error('Error converting expansion card slots to strings: %s',
                 ex)
 

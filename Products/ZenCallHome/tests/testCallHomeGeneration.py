@@ -18,7 +18,7 @@ import Globals # noqa F401
 from zope.interface import Interface, implements
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from Products.Five import zcml
+from Zope2.App import zcml
 
 import Products.ZenCallHome
 from Products.ZenCallHome import ICallHomeCollector

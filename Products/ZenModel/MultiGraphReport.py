@@ -9,7 +9,7 @@
 
 
 import sys
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from zope.component import getUtility
 from Products.ZenUtils.virtual_root import IVirtualRoot

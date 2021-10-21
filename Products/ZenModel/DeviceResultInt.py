@@ -17,7 +17,7 @@ The primary object must implement device.
 
 
 from AccessControl import ClassSecurityInfo
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 
 from cgi import escape
 

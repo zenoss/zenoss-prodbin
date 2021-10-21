@@ -19,7 +19,7 @@ import logging
 log = logging.getLogger("zen.MaintenanceWindowable")
 
 from AccessControl import ClassSecurityInfo
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from ZenossSecurity import *
 from MaintenanceWindow import MaintenanceWindow
 from Products.ZenUtils.Utils import prepId

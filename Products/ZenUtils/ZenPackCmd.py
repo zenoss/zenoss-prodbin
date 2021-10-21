@@ -257,7 +257,7 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
                                               ignoreServiceInstall=ignoreServiceInstall)
                     zenPacks.append(zp)
                     audit('Shell.ZenPack.Install', zp.id)
-                except NonCriticalInstallError, ex:
+                except NonCriticalInstallError as ex:
                     nonCriticalErrorEncountered = True
                     if sendEvent:
                         ZPEvent(dmd, 3, ex.message)
@@ -315,7 +315,7 @@ def InstallEgg(dmd, eggPath, link=False):
                          (returncode, err))
                 try:
                     DoEasyUninstall(eggPath)
-                except:
+                except Exception:
                     pass
             else:
                 break
@@ -326,7 +326,7 @@ def InstallEgg(dmd, eggPath, link=False):
     else:
         try:
             zpDists = DoEasyInstall(eggPath)
-        except:
+        except Exception:
             DoEasyUninstall(eggPath)
             raise
         # cmd = 'easy_install --always-unzip --site-dirs=%s -d %s %s' % (
@@ -480,7 +480,7 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                         zenPack.packables.addRelation(p)
                     except (KeyError, zExceptions.NotFound):
                         log.debug('did not find packable %s',pId)
-            except AttributeError, e:
+            except AttributeError as e:
                 # If this happens in the child process or during the non-upgrade
                 # flow, reraise the exception
                 if not runExternalZenpack:
@@ -771,7 +771,7 @@ def FetchAndInstallZenPack(dmd, zenPackName, sendEvent=True):
         zpDists = FetchZenPack(dmd, zenPackName)
         for d in zpDists:
             zenPacks.append(InstallDistAsZenPack(dmd, d, d.location))
-    except Exception, ex:
+    except Exception as ex:
         log.exception("Error fetching ZenPack %s" % zenPackName)
         if sendEvent:
             ZPEvent(dmd, SEVERITY_ERROR, 'Failed to install ZenPack %s' % zenPackName,
@@ -906,7 +906,7 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
             zp = None
             try:
                 zp = dmd.ZenPackManager.packs._getOb(packName)
-            except AttributeError, ex:
+            except AttributeError as ex:
                 raise ZenPackNotFoundException('No ZenPack named %s is installed' %
                                                 packName)
             # If zencatalog hasn't finished yet, we get ugly messages that don't
@@ -971,9 +971,9 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
                     shutil.rmtree(eggDir)
         cleanupSkins(dmd)
         transaction.commit()
-    except ZenPackDependentsException, ex:
+    except ZenPackDependentsException as ex:
         log.error(ex)
-    except Exception, ex:
+    except Exception as ex:
         # Get that exception out there in case it gets blown away by ZPEvent
         log.exception("Error removing ZenPack %s" % packName)
         if sendEvent:
@@ -1150,7 +1150,7 @@ class ZenPackCmd(ZenScriptBase):
             try:
                 RemoveZenPack(self.dmd, self.options.removePackName)
                 print('Removed ZenPack: %s' % self.options.removePackName)
-            except ZenPackNotFoundException, e:
+            except ZenPackNotFoundException as e:
                 sys.stderr.write(str(e) + '\n')
         elif self.options.list:
             self.list()
@@ -1246,6 +1246,6 @@ if __name__ == '__main__':
     try:
         zp = ZenPackCmd()
         zp.run()
-    except ZenPackException, e:
+    except ZenPackException as e:
         sys.stderr.write('%s\n' % str(e))
         sys.exit(-1)

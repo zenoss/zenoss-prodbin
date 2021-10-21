@@ -332,8 +332,9 @@ class PublishSynchronizer(object):
                     self._queuePublisher.close()
                 except Exception:
                     log.exception("Error closing queue publisher")
-            if self._postPublishingEventArgs:
-                notify(MessagePostPublishingEvent(*self._postPublishingEventArgs))
+            if status:
+                if self._postPublishingEventArgs:
+                    notify(MessagePostPublishingEvent(*self._postPublishingEventArgs))
         finally:
             self._queuePublisher=None
             self._postPublishingEventArgs=()

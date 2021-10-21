@@ -190,7 +190,7 @@ class ZCmdBase(ZenDaemon):
             try:
                 self.connection.sync()
 
-            except MySQLdb.OperationalError, e:
+            except MySQLdb.OperationalError as e:
                 if timedOut():
                     self.log.info("Timed out trying to reconnect to ZODB.")
                     self.log.exception(e)
@@ -209,7 +209,7 @@ class ZCmdBase(ZenDaemon):
                 
                 try:
                     time.sleep(retryDelay)
-                except Exception, e:
+                except Exception as e:
                     break
 
             else:

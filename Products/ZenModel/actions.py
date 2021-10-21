@@ -36,7 +36,7 @@ from Products.ZenUtils.Utils import sendEmail
 from Products.Zuul.interfaces.actions import (
     IEmailActionContentInfo, IPageActionContentInfo,
     ICommandActionContentInfo, ISnmpTrapActionContentInfo,
-    ISyslogActionContentInfo,
+    ISyslogActionContentInfo, ISNMPv3ActionContentInfo
 )
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.ZenModel.UserSettings import GroupSettings
@@ -320,7 +320,7 @@ class TargetableAction(object):
                 try:
                     log.debug("Executing batch action for targets.")
                     self.executeBatch(notification, signal, targets)
-                except Exception, e:
+                except Exception as e:
                     self.handleExecuteError(e, notification, targets)
                     exceptionTargets.extend(targets)
             else:
@@ -329,7 +329,7 @@ class TargetableAction(object):
                     try:
                         self.executeOnTarget(notification, signal, target)
                         log.debug('Done executing action for target: %s' % target)
-                    except Exception, e:
+                    except Exception as e:
                         self.handleExecuteError(e, notification, target)
                         exceptionTargets.append(target)
 
@@ -398,19 +398,19 @@ class EmailAction(IActionBase, TargetableAction):
             plain_body = MIMEText(body.decode('ascii', 'ignore'))
         return plain_body
 
-    def _targetsByTz(self, dmd, targets):
+    def _targetsByTz(self, notification, signal, targets):
         """
         Take timezone from user property to convert a event time in
         notification and also group targets emails by those timezones.
         """
         tz_targets = {}
         targetsCopy = set(targets)
-        for user in dmd.ZenUsers.getAllUserSettings():
-            if user.email in targets:
-                tz_targets.setdefault(user.timezone, set()).add(user.email)
-                targetsCopy.discard(user.email)
+        for recipient in self._get_recipients_from_signal(notification, signal):
+            if recipient.email in targets:
+                tz_targets.setdefault(recipient.timezone, set()).add(recipient.email)
+                targetsCopy.discard(recipient.email)
         if targetsCopy: #some emails are not from users in the system
-            tz = time.tzname[0] #should be UTC
+            tz = time.tzname[time.daylight] # get current timezone factoring in daylight saving
             tz_targets.setdefault(tz, set()).update(targetsCopy)
         return tz_targets
 
@@ -425,7 +425,7 @@ class EmailAction(IActionBase, TargetableAction):
     def executeBatch(self, notification, signal, targets):
         log.debug("Executing %s action for targets: %s", self.name, targets)
         self.setupAction(notification.dmd)
-        tz_targets = self._targetsByTz(notification.dmd, targets)
+        tz_targets = self._targetsByTz(notification, signal, targets)
         original_lst = signal.event.last_seen_time
         original_fst = signal.event.first_seen_time
         original_sct = signal.event.status_change_time
@@ -813,7 +813,7 @@ class SNMPTrapAction(IActionBase):
     implements(IAction)
 
     id = 'trap'
-    name = 'SNMP Trap'
+    name = 'SNMP Trap (v1/v2c)'
     actionContentInfo = ISnmpTrapActionContentInfo
 
     _sessions = defaultdict(dict)
@@ -964,6 +964,83 @@ class SNMPTrapAction(IActionBase):
                 session.agent_addr = agent_addr
             session.open()
             self._sessions[destination][version] = session
+
+        return session
+
+
+class SNMPv3Action(SNMPTrapAction):
+    id = "snmpv3_trap"
+    name = "SNMP Trap (v3)"
+    actionContentInfo = ISNMPv3ActionContentInfo
+
+    def _getSession(self, content):
+        """
+        Override to build an SNMPv3 Session
+        """
+
+        ###
+        # Get configs
+
+        traphost = content['action_destination']
+        port = content.get('port', 162)
+        destination = '{}:{}'.format(traphost, port)
+        if not traphost or port <= 0:
+            log.error("%s: SNMP trap host information %s is incorrect ", destination)
+            return None
+
+        contextName = content['contextName']
+        securityEngineId = content['securityEngineId']
+        contextEngineId = content['contextEngineId']
+        securityName = content['securityName']
+        securityPassphrase = content['securityPassphrase']
+        privacyPassphrase = content['privacyPassphrase']
+        authProto = content['authProto'] if content['authProto'] != "None" else None
+        privProto = content['privProto'] if content['privProto'] != "None" else None
+
+        version = 'v3'
+
+        usingAuth = False
+        usingPriv = False
+
+        ###
+        # Build Session
+
+        args = ('-%s' % version, )
+        if contextName:
+            args += ( '-n', contextName)
+        if securityEngineId:
+            args += ('-e', securityEngineId)
+        if contextEngineId:
+            args += ('-E', contextEngineId)
+        args += ( '-u', securityName)
+        if authProto:
+            usingAuth = True
+            args += (
+                '-a', authProto,
+                '-A', securityPassphrase,
+            )
+        if privProto:
+            usingPriv = True
+            args += (
+                '-x', privProto,
+                '-X', privacyPassphrase,
+            )
+        securityLevel = 'noAuthNoPriv'
+        if usingAuth:
+            if usingPriv:
+                securityLevel = 'authPriv'
+            else:
+                securityLevel = 'authNoPriv'
+        args += (
+            '-l', securityLevel,
+            destination
+        )
+
+        session = netsnmp.Session(args)
+        agent_addr = os.getenv('CONTROLPLANE_HOST_IPS', '').split(' ')[0]
+        if agent_addr:
+            session.agent_addr = agent_addr
+        session.open()
 
         return session
 

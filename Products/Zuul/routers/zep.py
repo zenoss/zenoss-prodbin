@@ -17,8 +17,10 @@ Available at:  /zport/dmd/evconsole_router
 import logging
 import re
 import time
+from dateutil.parser import parse as parse_to_dt
 from json import loads
 from lxml.html.clean import clean_html
+from zope.component import getUtility
 from zenoss.protocols.exceptions import NoConsumersException, PublishException
 from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED
 from zenoss.protocols.services import ServiceResponseError
@@ -28,6 +30,7 @@ from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenEvents.EventClass import EventClass
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.ZenossSecurity import (
@@ -50,6 +53,7 @@ ZEN_MANAGER_EDIT_PERM = (
     'event_age_disable_severity',
     'event_age_interval_minutes',
     'event_archive_interval_minutes',
+    'event_age_severity_inclusive',
     'default_syslog_priority',
     'default_availability_days',
     'event_time_purge_interval_days',
@@ -252,6 +256,11 @@ class EventsRouter(DirectRouter):
         except ValueError:
             log.warning("Invalid timestamp: %s", value)
             return ()
+        except AttributeError:
+            if isinstance(value, dict):
+                return [float(parse_to_dt(value["dateFrom"]).strftime("%s"))*1000.0,
+                        float(parse_to_dt(value["dateTo"]).strftime("%s"))*1000.0]
+
 
     def _filterInvalidUuids(self, events):
         """
@@ -632,10 +641,12 @@ class EventsRouter(DirectRouter):
         user = self.context.dmd.ZenUsers.getUserSettings()
         if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
             return True
-        if params.get('excludeNonActionables'):
-            return Zuul.checkPermission('ZenCommon', self.context)
+        if params:
+            if params.get('excludeNonActionables', None):
+                return Zuul.checkPermission('ZenCommon', self.context)
         try:
             if uid is not None:
+                uid = getUtility(IVirtualRoot).strip_virtual_root(uid)
                 organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
             else:
                 return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS, evids)
@@ -643,6 +654,14 @@ class EventsRouter(DirectRouter):
             return False
         manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
         return organizer_name in manage_events_for
+    
+    def can_add_events(self, summary, device, component, severity, evclasskey,
+                  evclass=None, monitor=None, **kwargs):
+        ctx = self.context.dmd.Devices.findDevice(device.strip())
+        if not ctx:
+            ctx = self.context
+
+        return Zuul.checkPermission(ZEN_MANAGE_EVENTS, ctx)
 
     def write_event_logs(self, evid=None, message=None):
         data = self.detail(evid).data['event'][0]
@@ -905,7 +924,7 @@ class EventsRouter(DirectRouter):
         status, response = self.zep.updateEventSummaries(update, event_filter, exclusion_filter, limit, timeout=timeout)
         return DirectResponse.succeed(data=response)
 
-    @require(ZEN_MANAGE_EVENTS)
+    @require(can_add_events)
     def add_event(self, summary, device, component, severity, evclasskey,
                   evclass=None, monitor=None, **kwargs):
         """
@@ -939,7 +958,7 @@ class EventsRouter(DirectRouter):
             # currently running.
             msg = 'Queued event. Check zeneventd status on <a href="/zport/dmd/daemons">Services</a>'
             return DirectResponse.succeed(msg, sticky=True)
-        except PublishException, e:
+        except PublishException as e:
             # This occurs if there is a failure publishing the event to the queue.
             log.exception("Failed creating event")
             return DirectResponse.exception(e, "Failed to create event")

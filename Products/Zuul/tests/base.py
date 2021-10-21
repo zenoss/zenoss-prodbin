@@ -10,7 +10,7 @@
 
 import unittest
 import zope.component
-from Products.Five import zcml
+from Zope2.App import zcml
 import Products.ZenTestCase
 from zope.traversing.adapters import DefaultTraversable
 from Products.ZenTestCase.BaseTestCase import BaseTestCase

@@ -14,4 +14,4 @@ CFG="/etc/sysconfig/memcached"
 
 source $CFG
 
-/bin/memcached -u $USER -p $PORT -c $MAXCONN -m $CACHESIZE $OPTIONS
+exec /bin/memcached -u $USER -p $PORT -c $MAXCONN -m $CACHESIZE $OPTIONS

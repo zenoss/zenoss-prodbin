@@ -153,7 +153,7 @@ class PythonColumnHandler(object):
         value = None
         try:
             value = talesEval(self._talesExpression, device, kw)
-        except InvalidTalesException, e:
+        except InvalidTalesException as e:
             log.info(e)
         return value
 

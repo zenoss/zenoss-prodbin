@@ -13,6 +13,7 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
     xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
     xmlns:five="http://namespaces.zope.org/five">
 
     <include package="Products.Five" file="meta.zcml"/>
@@ -32,15 +33,17 @@
         permission="zope2.Public"
         />
 
-    <browser:viewlet
-        name="Dashboard"
-        url="/zport/dmd/Dashboard"
-        weight="0"
-        manager="..navigation.interfaces.IPrimaryNavigationMenu"
-        class="..navigation.menuitem.PrimaryNavigationMenuItem"
-        permission="zenoss.Common"
-        layer="..navigation.interfaces.IZenossNav"
-        />
+    <configure zcml:condition="have enable-cz-dashboard">
+        <browser:viewlet
+            name="Dashboard"
+            url="/zport/dmd/Dashboard"
+            weight="0"
+            manager="..navigation.interfaces.IPrimaryNavigationMenu"
+            class="..navigation.menuitem.PrimaryNavigationMenuItem"
+            permission="zenoss.Common"
+            layer="..navigation.interfaces.IZenossNav"
+            />
+    </configure>
 
     <!-- Ignore the NOC view for now
     <browser:viewlet

@@ -41,6 +41,7 @@ from Products.Zuul.catalog.events import IndexingEvent
 
 import transaction
 from ZODB.transact import transact
+from ZODB.POSException import ConflictError, POSKeyError, ReadConflictError
 
 
 def lastDayPreviousMonth(seconds):
@@ -195,6 +196,37 @@ class MaintenanceWindow(ZenModelRM):
             return self.occurrence + ' ' + self.days + ' of the month'
         return self.repeat
 
+    @staticmethod
+    def durationStringParser(duration_string):
+        parsed_duration = {}
+        if 'days' not in duration_string:
+            hours_minutes_seconds = duration_string.split(':')
+            if len(hours_minutes_seconds) == 3:
+                parsed_duration.update({
+                    'hours': str(hours_minutes_seconds[0]),
+                    'minutes': str(hours_minutes_seconds[1]),
+                    'seconds': str(hours_minutes_seconds[2])
+                })
+            elif len(hours_minutes_seconds) == 2:
+                parsed_duration.update({
+                    'minutes': str(hours_minutes_seconds[0]),
+                    'seconds': str(hours_minutes_seconds[1])
+                })
+            elif len(hours_minutes_seconds) == 1:
+                parsed_duration.update({
+                    'seconds': str(hours_minutes_seconds[0])
+                })
+        else:
+            days_hours_minutes = duration_string.split(' days ')
+            hours_minutes_seconds = days_hours_minutes[1].split(':')
+            parsed_duration.update({
+                'days': str(days_hours_minutes[0]),
+                'hours': str(hours_minutes_seconds[0]),
+                'minutes': str(hours_minutes_seconds[1]),
+                'seconds': str(hours_minutes_seconds[2])
+            })
+        return parsed_duration
+
     security.declareProtected(ZEN_MAINTENANCE_WINDOW_EDIT,
                               'manage_editMaintenanceWindow')
     def manage_editMaintenanceWindow(self,
@@ -303,7 +335,7 @@ class MaintenanceWindow(ZenModelRM):
             now = time.time()
             if self.started:
                 if ((t + duration * 60) < now) or (t > now) or (not self.enabled):
-                    # We're running. If we should have already ended OR the start was 
+                    # We're running. If we should have already ended OR the start was
                     # moved into the future OR the MW is now disabled, end().
                     self.end()
             elif (t < now) and ((t + duration * 60) > now) and (self.enabled):
@@ -563,6 +595,7 @@ class MaintenanceWindow(ZenModelRM):
         #       following takes into account our window state too.
         #       Conversely, self.end() ends the window before calling this code.
         devices = self.fetchDevices()
+        unchangedDevices = []
         minDevProdStates = self.fetchDeviceMinProdStates(devices)
 
         def _setProdState(devices_batch):
@@ -614,6 +647,36 @@ class MaintenanceWindow(ZenModelRM):
                 else:
                     device.setProdState(minProdState, maintWindowChange=True)
 
+        def retrySingleDevices(devices_batch):
+            log.warn("Retrying devices individually")
+            for dev in devices_batch:
+                try:
+                    processFunc([dev])
+                except Exception:
+                    log.exception(
+                        "The production stage change for %s raised the exception.", dev
+                    )
+                    unchangedDevices.append(dev)
+
+        def processBatchOfDevices(devices, batchSize):
+            for i in xrange(0, len(devices), batchSize):
+                log.info('MW %s processing batch #%s', self.displayName(), i / batchSize + 1)
+                dev_chunk = devices[i:i + batchSize]
+                try:
+                    processFunc(dev_chunk)
+                except (ConflictError, POSKeyError, ReadConflictError) as e:
+                    log.warn(
+                        "While processing batch of %d devices exception was raised. %s",
+                        len(dev_chunk), e
+                    )
+                    retrySingleDevices(dev_chunk)
+                except Exception:
+                    # We're expecting ConflictError, POSKeyError, ReadConflictError, and handle them with retries
+                    # production state change. All other exceptions are an unexplored area that should be properly
+                    # processed in the future instead of the stub below.
+                    log.exception("Unexpected Exception encountered")
+                    retrySingleDevices(dev_chunk)
+
         if inTransaction:
             processFunc = transact(_setProdState)
             # Commit transaction as errors during batch processing may
@@ -622,14 +685,37 @@ class MaintenanceWindow(ZenModelRM):
         else:
             processFunc = _setProdState
 
+        # Adding exception handling for the following:
+        # ConflictError, POSKeyError and ReadConflictError.
+        #
+        # If any of the listed exceptions are encountered, we will retry
+        # devices in the batch individually.  If batchSize isn't
+        # specified and we encounter one of these exceptions, we will
+        # then specify a batch size and retry the devices in batches.
+        # If there are exceptions in these batches, we will retry the
+        # devices individually.  This will ensure that maintenance
+        # windows as a whole do not fail due to these exceptions.
+        # Fixes ZEN-31805.
         if batchSize:
-            for i in xrange(0, len(devices), batchSize):
-                log.info('MW %s processing batch #%s', self.displayName(),
-                         i / batchSize + 1)
-                processFunc(devices[i:i + batchSize])
+            processBatchOfDevices(devices, batchSize)
         else:
-            processFunc(devices)
+            try:
+                processFunc(devices)
+            except (ConflictError, POSKeyError, ReadConflictError) as e:
+                log.warn(
+                    "Exception encountered and no batchSize specified. "
+                    "%s. Retrying in batches.",
+                    e
+                )
+                processBatchOfDevices(devices, 10)
+            except Exception:
+                log.exception("Unexpected Exception encountered")
+                processBatchOfDevices(devices, 10)
 
+        if unchangedDevices:
+            log.error(
+                "Unable to change Production State on: %s", unchangedDevices
+            )
 
     def begin(self, now=None, batchSize=None, inTransaction=False):
         """

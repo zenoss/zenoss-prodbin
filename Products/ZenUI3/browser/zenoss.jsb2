@@ -2,7 +2,7 @@
     "projectName": "Zenoss",
     "deployDir": "resources/js/deploy",
     "licenseText": "Copyright (c) 2009-2011 Zenoss, Inc.\n\nThis program is free software; you can redistribute it and/or\nmodify it under the terms of the GNU General Public License\nversion 2 as published by the Free Software Foundation.\n\nFor complete information please visit http://www.zenoss.com/oss/",
-        "pkgs": [{
+    "pkgs": [{
         "name": "Zenoss Application",
         "file": "zenoss-compiled.js",
         "isDebug": false,

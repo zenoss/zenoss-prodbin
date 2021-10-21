@@ -448,6 +448,22 @@ var maxCountThreshold = {
     allowBlank: true
 };
 
+var minProcessMemoryThreshold = {
+    xtype: 'numberfield',
+    id: 'minProcessMemory',
+    fieldLabel: _t('Minimum'),
+    name: 'minProcessMemory',
+    allowBlank: true
+};
+
+var maxProcessMemoryThreshold = {
+    xtype: 'numberfield',
+    id: 'maxProcessMemory',
+    fieldLabel: _t('Maximum'),
+    name: 'maxProcessMemory',
+    allowBlank: true
+};
+
 var zMonitor = {
     xtype: 'zprop',
     ref: '../../zMonitor',
@@ -556,6 +572,18 @@ var processCountThreshold = {
     ]
 }; // processCountThreshold
 
+var processMemoryThreshold = {
+    xtype: 'fieldset',
+    id: 'processMemoryFieldSet',
+    title: _t("Process Memory Threshold (bytes)"),
+    hidden: false,
+    style: 'padding: 5px 0 0 0',
+    items: [
+        minProcessMemoryThreshold,
+        maxProcessMemoryThreshold
+    ]
+}; // processMemoryThreshold
+
 // the items that make up the form
 var processFormItems = {
     layout: 'column',
@@ -566,7 +594,7 @@ var processFormItems = {
         columnWidth: 0.5
     },
     items: [
-        {defaults:{anchor:'95%'}, items: [nameTextField2, descriptionTextField, regexFieldSet, processCountThreshold]},
+        {defaults:{anchor:'95%'}, items: [nameTextField2, descriptionTextField, regexFieldSet, processCountThreshold, processMemoryThreshold]},
         {defaults:{anchor:'95%'}, items: [zMonitor, zAlertOnRestart, zFailSeverity, zModelerLock, zSendEventWhenBlockedFlag]}
     ]
 }; // processFormItems

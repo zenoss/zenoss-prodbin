@@ -11,8 +11,9 @@
 import os
 import md5
 
-from Globals import InitializeClass, DevelopmentMode
+from Globals import DevelopmentMode
 from AccessControl import getSecurityManager
+from AccessControl.class_init import InitializeClass
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenMessaging.audit import audit

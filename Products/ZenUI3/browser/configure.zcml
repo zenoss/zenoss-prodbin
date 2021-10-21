@@ -280,7 +280,7 @@
     class=".command.CommandView"
     name="run_command"
     for="*"
-    permission="zenoss.RunCommands"
+    permission="zenoss.Common"
     />
 
 <browser:page

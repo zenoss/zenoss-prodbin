@@ -51,15 +51,30 @@ class ZenHubWorklistTest(TestCase):  # noqa: D101
 
     def test_initial_state(self):
         self.assertEqual(0, len(self.worklist))
-        self.assertIsNone(self.worklist.pop())
+        ret = self.worklist.pop()
+        # empty worklists return an uncalled deferred
+        self.assertFalse(ret.called)
 
     def test_push(self):
         item = NonCallableMock(spec_set=[])
         self.worklist.push('a', item)
         self.assertEqual(1, len(self.worklist))
         popped_item = self.worklist.pop()
-        self.assertEqual(item, popped_item)
+        self.assertEqual(item, popped_item.result)
         self.assertEqual(0, len(self.worklist))
+
+    def test_push_later(self):
+        # Ask for an item from the worklist
+        ret = self.worklist.pop()
+        # It is an empy, uncalled deferred
+        self.assertFalse(ret.called)
+        # Push an item to the worklist later
+        item = NonCallableMock(spec_set=[])
+        self.worklist.push('a', item)
+        # now the item we got before, will be called,
+        # and contain the item we pushed
+        self.assertTrue(ret.called)
+        self.assertEqual(item, ret.result)
 
     def test_pushfront(self):
         item1 = NonCallableMock(spec_set=[])
@@ -68,7 +83,7 @@ class ZenHubWorklistTest(TestCase):  # noqa: D101
         self.worklist.pushfront('a', item2)
 
         popped_item = self.worklist.pop()
-        self.assertEqual(item2, popped_item)
+        self.assertEqual(item2, popped_item.result)
         self.assertEqual(1, len(self.worklist))
 
     def test_push_bad_priority(self):
@@ -76,14 +91,20 @@ class ZenHubWorklistTest(TestCase):  # noqa: D101
         with self.assertRaises(KeyError):
             self.worklist.push('bad', item)
         self.assertEqual(0, len(self.worklist))
-        self.assertIsNone(self.worklist.pop())
+
+        # returns an uncalled deferred
+        ret = self.worklist.pop()
+        self.assertFalse(ret.called)
 
     def test_pushfront_bad_priority(self):
         item = NonCallableMock(spec_set=[])
         with self.assertRaises(KeyError):
             self.worklist.pushfront('bad', item)
         self.assertEqual(0, len(self.worklist))
-        self.assertIsNone(self.worklist.pop())
+
+        # returns an uncalled deferred
+        ret = self.worklist.pop()
+        self.assertFalse(ret.called)
 
     def test_multiple_priorities(self):
         item1 = NonCallableMock(spec_set=[])
@@ -93,11 +114,13 @@ class ZenHubWorklistTest(TestCase):  # noqa: D101
         self.assertEqual(2, len(self.worklist))
 
         items = []
-        items.append(self.worklist.pop())
-        items.append(self.worklist.pop())
+        items.append(self.worklist.pop().result)
+        items.append(self.worklist.pop().result)
         self.assertEqual([item1, item2], items)
 
     def test_when_available_differs(self):
+        '''The ignored item1, is not returned from the worklist
+        '''
         self.selection.ignored = "a"
         item1 = NonCallableMock(spec_set=[])
         self.worklist.push('a', item1)
@@ -105,7 +128,10 @@ class ZenHubWorklistTest(TestCase):  # noqa: D101
         self.worklist.push('b', item2)
         self.assertEqual(2, len(self.worklist))
 
-        items = []
-        items.append(self.worklist.pop())
-        items.append(self.worklist.pop())
-        self.assertEqual([item2, None], items)
+        # item2 is returned as the result of the deferred
+        ret = self.worklist.pop()
+        self.assertTrue(ret.called)
+        self.assertEqual(ret.result, item2)
+        # the next returned value is an uncalled deferred, not item1
+        ret = self.worklist.pop()
+        self.assertFalse(ret.called)
