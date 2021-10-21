@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
     # load zcml for the product
     import Products.ZenossStartup
-    from Products.Five import zcml
+    from Zope2.App import zcml
     zcml.load_site()
     pingBackend = getPingBackend()
 

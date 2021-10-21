@@ -23,7 +23,7 @@ import re
 from copy import copy
 import zope.component
 from zope.traversing.adapters import DefaultTraversable
-from Products.Five import zcml
+from Zope2.App import zcml
 
 from optparse import (
         OptionParser, OptionGroup, Option,
