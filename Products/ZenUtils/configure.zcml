@@ -1,20 +1,12 @@
 <?xml version="1.0"?>
 <configure
     xmlns="http://namespaces.zope.org/zope"
-    xmlns:five="http://namespaces.zope.org/five"
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:meta="http://namespaces.zope.org/meta"
     >
     <include package=".extdirect.zope"/>
     <include package=".guid"/>
     <include package=".controlplane"/>
-
-    <browser:page
-            for="*"
-            name="csrf_token"
-            class=".csrf.CSRFTokenView"
-            permission="zope.Public"
-            />
 
     <utility provides=".ZenPackInstallFilter.IZenPackInstallFilter"
              factory=".ZenPackInstallFilter.ZenPackInstallFilter"

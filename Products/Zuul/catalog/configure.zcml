@@ -1,6 +1,5 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
-    xmlns:five="http://namespaces.zope.org/five"
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:meta="http://namespaces.zope.org/meta">
 
@@ -65,37 +64,45 @@
         provides = ".interfaces.IPathReporter"
         />
 
-    <five:implements
-        interface=".interfaces.IGloballyIndexed"
-        class="Products.ZenModel.ZenModelRM.ZenModelRM"/>
+    <class class="Products.ZenModel.System.System">
+        <implements interface=".interfaces.IGloballyIndexed"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.ITreeSpanningComponent"
-        class="Products.ZenModel.Service.Service"/>
 
-    <five:implements
-        interface=".interfaces.ITreeSpanningComponent"
-        class="Products.ZenModel.IpInterface.IpInterface"/>
+    <class class="Products.ZenModel.Location.Location">
+        <implements interface=".interfaces.ITreeSpanningComponent"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.ITreeSpanningComponent"
-        class="Products.ZenModel.OSProcess.OSProcess"/>
 
-    <five:implements
-        interface=".interfaces.ITreeSpanningComponent"
-        class="Products.ZenModel.IpAddress.IpAddress"/>
+    <class class="Products.ZenModel.DeviceGroup.DeviceGroup">
+        <implements interface=".interfaces.ITreeSpanningComponent"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.IDeviceOrganizer"
-        class="Products.ZenModel.DeviceGroup.DeviceGroup"/>
 
-    <five:implements
-        interface=".interfaces.IDeviceOrganizer"
-        class="Products.ZenModel.Location.Location"/>
+    <class class="Products.ZenModel.IpAddress.IpAddress">
+        <implements interface=".interfaces.ITreeSpanningComponent"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.IDeviceOrganizer"
-        class="Products.ZenModel.System.System"/>
+
+    <class class="Products.ZenModel.OSProcess.OSProcess">
+        <implements interface=".interfaces.ITreeSpanningComponent"/>
+    </class>
+
+
+    <class class="Products.ZenModel.IpInterface.IpInterface">
+        <implements interface=".interfaces.IDeviceOrganizer"/>
+    </class>
+
+
+    <class class="Products.ZenModel.Service.Service">
+        <implements interface=".interfaces.IDeviceOrganizer"/>
+    </class>
+
+
+    <class class="Products.ZenModel.ZenModelRM.ZenModelRM">
+        <implements interface=".interfaces.IDeviceOrganizer"/>
+    </class>
+
 
     <subscriber handler=".events.onIndexingEvent"/>
     <subscriber handler=".events.onObjectRemoved"/>

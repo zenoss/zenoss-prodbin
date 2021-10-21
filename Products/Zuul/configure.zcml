@@ -10,63 +10,51 @@
 -->
 
 
-<configure xmlns="http://namespaces.zope.org/zope"
-           xmlns:five="http://namespaces.zope.org/five">
+<configure xmlns="http://namespaces.zope.org/zope">
 
-    <five:implements
-        interface=".interfaces.IProcessEntity"
-        class="Products.ZenModel.OSProcessClass.OSProcessClass"
-        />
+    <class class="Products.Zuul.infos.metricserver.MetricServiceGraph">
+        <implements interface=".interfaces.IProcessEntity"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.IComponent"
-        class="Products.ZenModel.OSComponent.OSComponent"
-        />
+    <class class="Products.ZenModel.GraphDefinition.GraphDefinition">
+        <implements interface=".interfaces.IComponent"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.IComponent"
-        class="Products.ZenModel.HWComponent.HWComponent"
-        />
+    <class class="Products.ZenModel.Device.Device">
+        <implements interface=".interfaces.IComponent"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.IProcessEntity"
-        class="Products.ZenModel.OSProcessOrganizer.OSProcessOrganizer"
-        />
+    <class class="Products.ZenModel.MibModule.MibModule">
+        <implements interface=".interfaces.IProcessEntity"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.IServiceEntity"
-        class="Products.ZenModel.ServiceClass.ServiceClass"
-        />
+    <class class="Products.ZenModel.MibOrganizer.MibOrganizer">
+        <implements interface=".interfaces.IServiceEntity"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.IServiceEntity"
-        class="Products.ZenModel.ServiceOrganizer.ServiceOrganizer"
-        />
+    <class class="Products.ZenModel.ServiceOrganizer.ServiceOrganizer">
+        <implements interface=".interfaces.IServiceEntity"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.IMibEntity"
-        class="Products.ZenModel.MibOrganizer.MibOrganizer"
-        />
+    <class class="Products.ZenModel.ServiceClass.ServiceClass">
+        <implements interface=".interfaces.IMibEntity"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.IMibEntity"
-        class="Products.ZenModel.MibModule.MibModule"
-        />
+    <class class="Products.ZenModel.OSProcessOrganizer.OSProcessOrganizer">
+        <implements interface=".interfaces.IMibEntity"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.IDevice"
-        class="Products.ZenModel.Device.Device"
-        />
+    <class class="Products.ZenModel.HWComponent.HWComponent">
+        <implements interface=".interfaces.IDevice"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.IMarshallable"
-        class="Products.ZenModel.GraphDefinition.GraphDefinition"
-        />
+    <class class="Products.ZenModel.OSComponent.OSComponent">
+        <implements interface=".interfaces.IMarshallable"/>
+    </class>
 
-    <five:implements
-        interface=".interfaces.IMarshallable"
-        class="Products.Zuul.infos.metricserver.MetricServiceGraph"
-        />
+    <class class="Products.ZenModel.OSProcessClass.OSProcessClass">
+        <implements interface=".interfaces.IMarshallable"/>
+    </class>
 
     <adapter factory=".facades.UserFacade"
              provides=".interfaces.IUserFacade"
