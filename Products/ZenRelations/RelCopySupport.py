@@ -24,7 +24,7 @@ from cgi import escape
 
 # base class for RelCopyContainer
 from OFS.ObjectManager import checkValidId
-from OFS.CopySupport import CopyContainer, eNotSupported
+from OFS.CopySupport import CopyContainer
 
 from webdav.Lockable import ResourceLockedError
 
@@ -32,7 +32,7 @@ from Acquisition import aq_base
 from AccessControl import getSecurityManager
 
 from OFS import Moniker
-from OFS.CopySupport import CopyError, _cb_decode, eInvalid, eNotFound, eNoData
+from OFS.CopySupport import CopyError, _cb_decode
                             
 from App.Dialogs import MessageDialog
 
@@ -139,10 +139,10 @@ class RelCopyContainer(CopyContainer):
             if REQUEST and REQUEST.has_key('__cp'):
                 cp=REQUEST['__cp']
         if cp is None:
-            raise CopyError, eNoData
+            raise CopyError('No clipboard data found.')
         
         try:    cp=_cb_decode(cp)
-        except: raise CopyError, eInvalid
+        except: raise CopyError('Clipboard Error')
 
         oblist=[]
         app = self.getPhysicalRoot()
@@ -150,7 +150,7 @@ class RelCopyContainer(CopyContainer):
         for mdata in cp[1]:
             m = Moniker.loadMoniker(mdata)
             try: ob = m.bind(app)
-            except: raise CopyError, eNotFound
+            except: raise CopyError('Item Not Found')
             self._verifyObjectLink() 
             oblist.append(ob)
         return oblist
