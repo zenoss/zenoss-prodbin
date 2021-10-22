@@ -805,7 +805,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """
         def errback(error):
             if isinstance(error, Failure):
-                self.log.critical( "Invalid monitor: %s : %s" % (self.options.monitor, error))
+                self.log.critical( "Invalid monitor: %s" % self.options.monitor)
                 reactor.stop()
                 return defer.fail(RemoteBadMonitor(
                            "Invalid monitor: %s" % self.options.monitor, ''))
