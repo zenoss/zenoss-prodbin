@@ -1,0 +1,146 @@
+diff --git a/Products/ZenHub/PBDaemon.py b/Products/ZenHub/PBDaemon.py
+index 14adc018b..12f0cdc14 100644
+--- a/Products/ZenHub/PBDaemon.py
++++ b/Products/ZenHub/PBDaemon.py
+@@ -14,14 +14,13 @@ Base for daemons that connect to zenhub
+ 
+ """
+ 
+-import cPickle as pickle
+ import collections
+ import sys
+ import time
+ import traceback
+ import os
++import socket
+ 
+-from urlparse import urlparse
+ from hashlib import sha1
+ from itertools import chain
+ from functools import partial
+@@ -52,6 +51,7 @@ from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
+ from Products.ZenHub.interfaces import (ICollectorEventFingerprintGenerator,
+                                         ICollectorEventTransformer,
+                                         TRANSFORM_DROP, TRANSFORM_STOP)
++from Products.ZenPackAdapter.cloudpublisher import CloudMetricPublisher
+ from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
+ from Products.ZenUtils.metricwriter import DerivativeTracker
+ from Products.ZenUtils.metricwriter import ThresholdNotifier
+@@ -641,17 +641,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
+ 
+     def publisher(self):
+         if not self._publisher:
+-            host, port = urlparse(self.options.redisUrl).netloc.split(':')
+-            try:
+-                port = int(port)
+-            except ValueError:
+-                self.log.exception("redis url contains non-integer port " +
+-                                   "value {port}, defaulting to {default}".
+-                                   format(port=port, default=publisher.defaultRedisPort))
+-                port = publisher.defaultRedisPort
+-            self._publisher = publisher.RedisListPublisher(
+-                host, port, self.options.metricBufferSize,
+-                channel=self.options.metricsChannel, maxOutstandingMetrics=self.options.maxOutstandingMetrics
++            self._publisher = CloudMetricPublisher(
++                self.options.zenossAddress,
++                self.options.zenossApiKey,
++                self.options.zenossHTTPS,
++                self.options.zenossSource,
++                self.options.metricBufferSize,
+             )
+         return self._publisher
+ 
+@@ -805,7 +800,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
+         """
+         def errback(error):
+             if isinstance(error, Failure):
+-                self.log.critical( "Invalid monitor: %s" % self.options.monitor)
++                self.log.critical( "Invalid monitor: %s : %s" % (self.options.monitor, error))
+                 reactor.stop()
+                 return defer.fail(RemoteBadMonitor(
+                            "Invalid monitor: %s" % self.options.monitor, ''))
+@@ -955,15 +950,23 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
+     def pushEventsLoop(self):
+         """Periodially, wake up and flush events to ZenHub.
+         """
+-        reactor.callLater(self.options.eventflushseconds, self.pushEventsLoop)
+-        yield self.pushEvents()
+ 
+-        # Record the number of events in the queue up to every 2 seconds.
+-        now = time.time()
+-        if self.rrdStats.name and now >= (self.lastStats + 2):
+-            self.lastStats = now
+-            self.rrdStats.gauge(
+-                'eventQueueLength', self.eventQueueManager.event_queue_length)
++        @defer.inlineCallbacks
++        def zpa_EventLoop(pbDaemon):
++            if pbDaemon and getattr(pbDaemon, "pushEvents", None):
++                try:
++                    yield pbDaemon.pushEvents()
++                except Exception as e:
++                    self.log.error("Error pushing events: %s.", e)
++            reactor.callLater(5, zpa_EventLoop, pbDaemon)
++
++        try:
++            if not reactor.running:
++                self.log.critical("Reactor not running. Event Loop Disabled")
++                return
++            reactor.callLater(0, zpa_EventLoop, self)
++        except Exception as outer:
++            self.log.error("Error calling zpa event loop: %s", outer)
+ 
+     @defer.inlineCallbacks
+     def pushEvents(self):
+@@ -1258,3 +1261,52 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
+                                type='int',
+                                default=30,
+                                help='How often to write internal statistics value in seconds')
++
++        self.parser.add_option(
++            "--zenoss-address",
++            dest="zenossAddress",
++            type="string",
++            default="api.zenoss.io:443",
++            help="Zenoss Cloud API URL, default: %default",
++        )
++
++        self.parser.add_option(
++            "--zenoss-http",
++            dest="zenossHTTPS",
++            action="store_false",
++            default=True,
++            help="Use http rather than https for Zenoss Cloud API, "
++            "default: %default",
++        )
++
++        self.parser.add_option(
++            "--zenoss-api-key",
++            dest="zenossApiKey",
++            type="string",
++            default=None,
++            help="Zenoss Cloud API Key",
++        )
++
++        self.parser.add_option(
++            "--zenoss-source",
++            dest="zenossSource",
++            type="string",
++            default=None,
++            help="Source tag data sent to Zenoss Cloud",
++        )
++
++        self.parser.add_option(
++            "--collector-type",
++            dest="zpaCollectorType",
++            type="string",
++            default=os.path.basename(sys.argv[0]),
++            help="Type of collector process (process name, generally)",
++        )
++
++        self.parser.add_option(
++            "--collector-instance-id",
++            dest="zpaCollectorId",
++            type="string",
++            default=socket.gethostname(),
++            help="Unique Identifier for this collector process/container",
++        )

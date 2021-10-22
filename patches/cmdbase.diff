@@ -1,0 +1,43 @@
+diff --git a/Products/ZenUtils/CmdBase.py b/Products/ZenUtils/CmdBase.py
+index 6ac50b3f8..6e4b0726f 100644
+--- a/Products/ZenUtils/CmdBase.py
++++ b/Products/ZenUtils/CmdBase.py
+@@ -17,6 +17,7 @@ to command-line programs
+ import os
+ import os.path
+ import sys
++import time
+ import datetime
+ import logging
+ import re
+@@ -212,6 +213,30 @@ class CmdBase(object):
+         """
+         Uses the optparse parse previously populated and performs common options.
+         """
++        from Products.ZenPackAdapter.yamlconfig import (
++            load_config_yaml,
++            CONFIG_YAML,
++        )
++
++        while not os.path.exists(CONFIG_YAML):
++            print "  waiting for %s" % CONFIG_YAML
++            time.sleep(3)
++
++        config = load_config_yaml()
++
++        option_type = {}
++        for opt in self.parser.option_list:
++            if opt.dest and opt.type:
++                option_type[opt.dest] = opt.type
++
++        for k, v in config.iteritems():
++            if k in option_type:
++                self.parser.defaults[k] = str(v)
++            else:
++                print(
++                    'WARNING: While parsing %s, "%s" is not '
++                    'a valid option (ignoring)' % (CONFIG_YAML, k)
++                )
+ 
+         if self.noopts:
+             args = []

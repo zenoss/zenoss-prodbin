@@ -31,7 +31,7 @@ include zenoss-version.mk
 EXCLUSIONS = *.pyc $(MIGRATE_VERSION).in Products/ZenModel/migrate/tests Products/ZenUITests
 
 ARCHIVE_EXCLUSIONS = $(foreach item,$(EXCLUSIONS),--exclude=$(item))
-ARCHIVE_INCLUSIONS = Products bin dist etc share
+ARCHIVE_INCLUSIONS = Products bin dist etc share patches
 
 build: $(ARTIFACT)
 
