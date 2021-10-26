@@ -29,11 +29,12 @@ import pytz
 from OFS.ObjectManager import checkValidId as globalCheckValidId
 
 from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base, aq_chain
 from zope.component import getGlobalSiteManager, getUtility
 
 from Products.ZenModel.interfaces import IZenDocProvider
+from Products.ZenRelations.ZenPropertyManager import iscustprop
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin, getDisplayType
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 from Products.ZenUtils.Utils import getObjByPath, unpublished
@@ -48,9 +49,6 @@ from ZenossSecurity import *
 from Products.ZenUtils.virtual_root import IVirtualRoot
 
 _MARKER = object()
-
-# Custom device properties start with c
-iscustprop = re.compile("c[A-Z]").match
 
 class ZenModelBase(object):
     """
@@ -74,6 +72,12 @@ class ZenModelBase(object):
             newpath = INewPath(self)
             newpath = getUtility(IVirtualRoot).ensure_virtual_root(newpath)
             self.REQUEST.response.redirect(newpath)
+
+    def __repr__(self):
+        """Return a short string describing the object."""
+        return "<{0} at {1}>".format(
+            self.__class__.__name__, '/'.join(self.getPhysicalPath()),
+        )
 
     index_html = None  # This special value informs ZPublisher to use __call__
 
@@ -134,7 +138,7 @@ class ZenModelBase(object):
         try:
             globalCheckValidId(self, new_id)
             return True
-        except:
+        except Exception:
             return str(sys.exc_info()[1])
 
 
@@ -300,7 +304,7 @@ class ZenModelBase(object):
             from Products.ZenModel.Organizer import Organizer
             try:
                 return isinstance(curDir, Organizer)
-            except:
+            except Exception:
                 return False
 
         return ZenModelBase.breadCrumbs(self, terminator, isOrganizer)

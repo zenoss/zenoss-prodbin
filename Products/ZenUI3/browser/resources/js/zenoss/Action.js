@@ -19,16 +19,13 @@
             this.setDisabled(this.checkDisabled());
         },
         checkDisabled: function() {
-            if (!this.permitted) {
-                return true;
-            }
             if (this.externallyDisabled) {
                 return true;
             }
-            if (!this.permitted && !this.filtered) {
-                return true;
+            if (this.permitted || this.filtered) {
+                return false;
             }
-            return false;
+            return true;
         },
         checkPermitted: function() {
             if (this.permission) {

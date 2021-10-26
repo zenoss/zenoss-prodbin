@@ -72,7 +72,7 @@ class JSON(CommandParser):
 
         try:
             data = json.loads(cmd.result.output)
-        except Exception, ex:
+        except Exception as ex:
             # See NOTE below. If this event ever occurs it will not auto-clear.
             result.events.append({
                 'severity': cmd.severity,

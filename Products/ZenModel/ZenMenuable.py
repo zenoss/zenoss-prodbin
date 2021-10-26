@@ -10,7 +10,7 @@
 
 from AccessControl import ClassSecurityInfo, Permissions
 from ZenMenu import ZenMenu
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base, aq_chain
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import cmpClassNames

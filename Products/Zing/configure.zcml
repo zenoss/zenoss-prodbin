@@ -1,26 +1,46 @@
+<?xml version="1.0"?>
 <configure
-    xmlns="http://namespaces.zope.org/zope"
-    xmlns:five="http://namespaces.zope.org/five"
-    xmlns:browser="http://namespaces.zope.org/browser"
-    xmlns:meta="http://namespaces.zope.org/meta">
+   xmlns="http://namespaces.zope.org/zope"
+   xmlns:five="http://namespaces.zope.org/five"
+   xmlns:browser="http://namespaces.zope.org/browser"
+   xmlns:celery="http://namespaces.zope.org/celery"
+   xmlns:meta="http://namespaces.zope.org/meta">
 
-    <subscriber handler=".datamaps.zing_add_datamap" />
+   <include package="Products.Jobber" file="meta.zcml"/>
 
-    <adapter provides=".interfaces.IZingConnectorProxy"
-            for="*"
-            factory=".zing_connector.ZingConnectorProxy"
-        />
+   <job
+      name="send_organizers"
+      class=".send_organizers.send_organizers"
+      />
 
-    <utility component=".zing_connector.CLIENT_FACTORY"
-            name="ZingConnectorClient"
-    />
+   <subscriber
+      handler=".datamaps.zing_add_datamap"
+      />
 
-    <utility component=".datamaps.DATAMAP_HANDLER_FACTORY"
-            name="ZingDatamapHandler"
-    />
+   <adapter
+      provides=".interfaces.IZingConnectorProxy"
+      for="*"
+      factory=".zing_connector.ZingConnectorProxy"
+      />
 
-    <utility component=".model_updates.OBJECT_UPDATE_HANDLER_FACTORY"
-            name="ZingObjectUpdateHandler"
-    />
+   <utility
+      component=".zing_connector.CLIENT_FACTORY"
+      name="ZingConnectorClient"
+      />
+
+   <utility
+      component=".zing_connector.NULL_CLIENT_FACTORY"
+      name="NullZingClient"
+      />
+
+   <utility
+      component=".datamaps.DATAMAP_HANDLER_FACTORY"
+      name="ZingDatamapHandler"
+      />
+
+   <utility
+      component=".model_updates.OBJECT_UPDATE_HANDLER_FACTORY"
+      name="ZingObjectUpdateHandler"
+      />
 
 </configure>

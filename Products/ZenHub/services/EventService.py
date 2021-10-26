@@ -35,7 +35,7 @@ class EventService(HubService, ThresholdMixin):
         try:
             val =  self.zem.sendEvent(evt)
             return val
-        except Exception, ex:
+        except Exception as ex:
             log.exception(ex)
 
     @translateError
@@ -47,7 +47,7 @@ class EventService(HubService, ThresholdMixin):
         zep = getFacade('zep')
         try:
             return zep.getDevicePingIssues()
-        except ServiceConnectionError, e:
+        except ServiceConnectionError as e:
             # ZEN-503: Don't print a traceback in this case
             log.warn("Unable to contact ZEP.")
             return None
@@ -57,7 +57,7 @@ class EventService(HubService, ThresholdMixin):
         zep = getFacade('zep')
         try:
             return zep.getDeviceIssues()
-        except ServiceConnectionError, e:
+        except ServiceConnectionError as e:
             # ZEN-503: Don't print a traceback in this case
             log.warn("Unable to contact ZEP.")
             return None

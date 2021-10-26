@@ -1,10 +1,10 @@
 ##############################################################################
-#
+# 
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-#
+# 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-#
+# 
 ##############################################################################
 
 
@@ -19,20 +19,20 @@ import Globals
 # any other libraries that might possibly use twisted. This will ensure that
 # the proper WmiReactor is installed before anyone else grabs a reference to
 # the wrong reactor.
-# try:
-#     import pysamba.twisted.reactor
-#     from ZenPacks.zenoss.WindowsMonitor.WMIClient import WMIClient
-#     from ZenPacks.zenoss.WindowsMonitor.utils import addNTLMv2Option, setNTLMv2Auth
-#     USE_WMI = True
-# except ImportError:
-USE_WMI = False
+try:
+    import pysamba.twisted.reactor
+    from ZenPacks.zenoss.WindowsMonitor.WMIClient import WMIClient
+    from ZenPacks.zenoss.WindowsMonitor.utils import addNTLMv2Option, setNTLMv2Auth
+    USE_WMI = True
+except ImportError:
+    USE_WMI = False
 
 import zope.component
 
-from Products.ZenUtils.Utils import unused, atomicWrite, zenPath
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon, HubDown
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive, driveLater
+from Products.ZenUtils.Utils import unused, atomicWrite, zenPath
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
 from Products.Zuul.utils import safe_hasattr as hasattr
 from Products.ZenUtils.metricwriter import ThresholdNotifier
@@ -166,7 +166,7 @@ class ZenModeler(PBDaemon):
         d.addCallback(self.heartbeat)
         d.addErrback(self.reportError)
 
-
+    
     def _checkConfigLoad(self):
         """
         Looping call to check whether zenmodeler got configuration
@@ -179,7 +179,7 @@ class ZenModeler(PBDaemon):
             )
             reactor.callLater(_CONFIG_PULLING_TIMEOUT, self._checkConfigLoad)
 
-
+    
     def configure(self):
         """
         Get our configuration from zenhub
@@ -258,12 +258,7 @@ class ZenModeler(PBDaemon):
                 self.log.debug( "Loaded plugin %s" % plugin.name() )
                 plugins.append( plugin )
                 valid_loaders.append( loader )
-
-            except (SystemExit, KeyboardInterrupt), ex:
-                self.log.info( "Interrupted by external signal (%s)" % str(ex) )
-                raise
-
-            except Plugins.PluginImportError, import_error:
+            except Plugins.PluginImportError as import_error:
                 import socket
                 component, _ = os.path.splitext( os.path.basename( sys.argv[0] ) )
                 collector_host= socket.gethostname()
@@ -367,8 +362,6 @@ class ZenModeler(PBDaemon):
             if not client or not plugins:
                 self.log.warn("WMI collector creation failed")
                 return
-        except (SystemExit, KeyboardInterrupt):
-            raise
         except Exception:
             self.log.exception("Error opening WMI collector")
         self.addClient(client, timeout, 'WMI', device.id)
@@ -398,8 +391,7 @@ class ZenModeler(PBDaemon):
             if not client or not plugins:
                 self.log.warn("Python client creation failed")
                 return
-        except (SystemExit, KeyboardInterrupt): raise
-        except:
+        except Exception:
             self.log.exception("Error opening pythonclient")
         self.addClient(client, timeout, 'python', device.id)
 
@@ -469,8 +461,7 @@ class ZenModeler(PBDaemon):
             else:
                 self.log.info("plugins: %s",
                     ", ".join(map(lambda p: p.name(), plugins)))
-        except (SystemExit, KeyboardInterrupt): raise
-        except:
+        except Exception:
             self.log.exception("Error opening command collector")
         self.addClient(client, timeout, clientType, device.id)
 
@@ -511,8 +502,7 @@ class ZenModeler(PBDaemon):
             if not client or not plugins:
                 self.log.warn("SNMP collector creation failed")
                 return
-        except (SystemExit, KeyboardInterrupt): raise
-        except:
+        except Exception:
             self.log.exception("Error opening the SNMP collector")
         self.addClient(client, timeout, 'SNMP', device.id)
 
@@ -601,8 +591,7 @@ class ZenModeler(PBDaemon):
             if not client or not plugins:
                 self.log.warn("Portscan collector creation failed")
                 return
-        except (SystemExit, KeyboardInterrupt): raise
-        except:
+        except Exception:
             self.log.exception("Error opening portscan collector")
         self.addClient(client, timeout, 'portscan', device.id)
 
@@ -616,7 +605,7 @@ class ZenModeler(PBDaemon):
         @type: boolean
         """
         delay = device.getSnmpLastCollection() + self.collage
-        if delay >= float(DateTime.DateTime()) or device.getSnmpStatusNumber() > 0:
+        if delay >= float(DateTime.DateTime()) and device.getSnmpStatusNumber() == 0:
             self.log.info("Skipped collection of %s" % device.id)
             return False
         return True
@@ -672,14 +661,12 @@ class ZenModeler(PBDaemon):
                             datamaps = plugin.process(device, results, self.log)
                         if datamaps:
                             pluginStats.setdefault(plugin.name(), plugin.weight)
-
-                    except (SystemExit, KeyboardInterrupt), ex:
+                    except (SystemExit, KeyboardInterrupt) as ex:
                         self.log.info( "Plugin %s terminated due to external"
                                       " signal (%s)" % (plugin.name(), str(ex) )
                                       )
                         continue
-
-                    except Exception, ex:
+                    except Exception as ex:
                         # NB: don't discard the plugin, as it might be a
                         #     temporary issue
                         #     Also, report it against the device, rather than at
@@ -731,7 +718,7 @@ class ZenModeler(PBDaemon):
                 else:
                     self.log.info("No change in configuration detected")
 
-            except Exception, ex:
+            except Exception as ex:
                 self.log.exception(ex)
                 raise
 
@@ -952,7 +939,7 @@ class ZenModeler(PBDaemon):
 
         curtime = time.localtime()
         # match minutes, hours, date, and month fields
-        if all(match_entity(self.startat[a],curtime[b])
+        if all(match_entity(self.startat[a],curtime[b]) 
                    for a,b in ((0,4),(1,3),(2,2),(3,1))):
             dayofweek = curtime[6]+1
             if (match_entity(self.startat[4], dayofweek) or

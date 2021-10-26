@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.deprecated import deprecated
@@ -93,7 +93,7 @@ class GraphReportElement(ZenModelRM):
             result = compiled(getEngine().getContext(e))
             if isinstance(result, Exception):
                 result = 'Error: %s' % str(result)
-        except Exception, e:
+        except Exception as e:
             result = 'Error: %s' %  str(e)
         return result
 

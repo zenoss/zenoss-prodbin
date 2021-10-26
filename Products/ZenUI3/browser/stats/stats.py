@@ -45,7 +45,7 @@ def logRequestStartAfterTraversal(event):
     # in event.request
     try:
         _request_logger.log_request(event.request)
-    except:
+    except Exception:
         pass
 
 @component.adapter(ZPublisher.interfaces.IPubEnd)
@@ -65,7 +65,7 @@ def logRequestEnd(event):
 
     try:
         _request_logger.log_request(event.request, finished=True)
-    except:
+    except Exception:
         pass
 
 _STATS_PERIOD = 60 * 15   # keep in-memory stats for 15 minutes

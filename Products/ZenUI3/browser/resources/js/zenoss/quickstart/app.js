@@ -60,7 +60,11 @@
             this.params = Ext.Object.fromQueryString(window.location.search);
         },
         doneButtonPressed: function() {
-            var link = Zenoss.render.link(undefined, this.params.came_from || '/zport/dmd/Dashboard');
+            var homePage = '/zport/dmd/Dashboard';
+            if (Zenoss.env.IS_ACTIVE_CZ_DASHBOARD !== "Feature") {
+                homePage = "/zport/dmd/Events/evconsole"
+            }
+            var link = Zenoss.render.link(undefined, this.params.came_from || homePage);
 
             window.location = link;
         }

@@ -200,7 +200,7 @@ class AddTriggersAndNotifications(Migrate.Step):
                 trigger = self._createTrigger(rule)
                 self._createNotification(rule, trigger)
                 log.info('Done processing rule: %s.' % rule.id)
-            except InvalidTriggerActionType, e:
+            except InvalidTriggerActionType as e:
                 failed = True
                 log.warn(" %s: Successfully migrated rule to Trigger, but was "
                     "unable to create a Notification - rule has invalid or "
@@ -208,7 +208,7 @@ class AddTriggersAndNotifications(Migrate.Step):
             except TriggerRuleSourceError:
                 failed = True
                 log.warn('Unable to parse existing rule: %s' % rule.id)
-            except PythonConversionException, e:
+            except PythonConversionException as e:
                 failed = True
                 log.debug("Exception: %s", e)
                 log.warn("Failed to convert existing rule: %s" % rule.id)

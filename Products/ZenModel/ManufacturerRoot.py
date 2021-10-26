@@ -22,7 +22,7 @@ log = logging.getLogger('zen')
 
 import transaction
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from AccessControl import Permissions as permissions, ClassSecurityInfo
 from Products.ZenModel.ZenossSecurity import *

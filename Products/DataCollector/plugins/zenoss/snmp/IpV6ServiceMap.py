@@ -71,7 +71,7 @@ class IpV6ServiceMap(SnmpPlugin):
             # Any IPv6 address is inclusive of any IPv4 addresses as well
             if addr == IpUtil.IPV6_ANY_ADDRESS:
                 result.append((IpUtil.IPV4_ANY_ADDRESS, port))
-        except Exception, e:
+        except Exception as e:
             log.debug("Unable to process oid %s: %s", oid, e)
             return []
 

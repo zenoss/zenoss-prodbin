@@ -68,13 +68,13 @@ def main():
 
     try:
         consumer.wait()
-    except (SystemExit,KeyboardInterrupt):
-        consumer.close()
-        print "exiting..."
     except Exception as e:
         printout("exiting with error...")
         printout(e)
         raise
+    finally:
+        consumer.close()
+        print "exiting..."
 
 if __name__ == "__main__":
     main()

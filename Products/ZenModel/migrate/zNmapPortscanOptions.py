@@ -50,7 +50,7 @@ class zNmapPortscanOptions(Migrate.Step):
                 if not ppath in ppaths:
                     ppaths.append(ppath)
                     self._tryMigrate(ppath, dmd)
-        except Exception, e:
+        except Exception as e:
             log.error(str(e))
             pass 
 

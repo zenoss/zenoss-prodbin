@@ -1,0 +1,27 @@
+diff --git a/Products/ZenUtils/ZCmdBase.py b/Products/ZenUtils/ZCmdBase.py
+index a1f309be2..43416d44e 100644
+--- a/Products/ZenUtils/ZCmdBase.py
++++ b/Products/ZenUtils/ZCmdBase.py
+@@ -30,7 +30,6 @@ from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
+ from Exceptions import ZentinelException
+ from ZenDaemon import ZenDaemon
+ 
+-from Products.ZenRelations.ZenPropertyManager import setDescriptors
+ from Products.ZenUtils.mysql import MySQLdb
+ from Products.ZenUtils.Utils import wait
+ 
+@@ -92,13 +91,8 @@ class ZCmdBase(ZenDaemon):
+         self.dataroot = None
+         self.app = app
+         self.db = None
+-        if not app:
+-            self.zodbConnect()
+         self.poollock = Lock()
+-        self.getDataRoot()
+-        self.login()
+-
+-        setDescriptors(self.dmd)
++        self.dmd = None
+ 
+     def zodbConnect(self):
+         connectionFactory = getUtility(IZodbFactoryLookup).get()

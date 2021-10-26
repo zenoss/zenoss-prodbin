@@ -14,7 +14,7 @@ $Id: Location.py,v 1.12 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.12 $"[11:-2]
 
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Globals import DTMLFile
 import transaction
 from AccessControl import ClassSecurityInfo
@@ -28,6 +28,7 @@ from ZenPackable import ZenPackable
 from zExceptions import NotFound
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.Utils import extractPostContent
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 def manage_addLocation(context, id, description = "",
                        address="", REQUEST = None):
@@ -188,7 +189,7 @@ class Location(DeviceOrganizer, ZenPackable):
         """
         cache = extractPostContent(REQUEST)
         try: cache = cache.decode('utf-8')
-        except: pass
+        except Exception: pass
         from json import loads
         geocode = loads(cache)
         for uid, geo in geocode.iteritems():
@@ -196,6 +197,8 @@ class Location(DeviceOrganizer, ZenPackable):
                 loc = self.unrestrictedTraverse(str(uid))
                 if loc.latlong != geo['latlong']:
                     loc.latlong = geo['latlong']
+                    # ensure new latlong gets to the catalog and cloud
+                    IModelCatalogTool(loc).update(loc)
             except (KeyError, NotFound):
                 # the location might have been removed or renamed
                 # and the client still had the cache.

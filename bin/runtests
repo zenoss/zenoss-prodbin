@@ -8,33 +8,81 @@
 #
 ##############################################################################
 
-export SOLR_TEST_PORT="8993"
+SOLR_TEST_PORT="8993"
+ZK_TEST_PORT="9993"  # embedded ZK port is SOLR_TEST_PORT + 1000
 
-echo "Preparing configuration files..."
-mkdir -p /tmp/testing/solr
-cp -rf /opt/solr/server/solr/configsets/zenoss_model/ /tmp/testing/solr/
-cp -f /opt/solr/server/solr/solr.xml /tmp/testing/solr/
-cp -f /opt/solr/server/solr/zoo.cfg /tmp/testing/solr/
-echo "name=zenoss_model" > /tmp/testing/solr/zenoss_model/core.properties
+start_solr() {
+	echo "Preparing configuration files..."
+	mkdir -p /tmp/testing/solr/configsets /tmp/testing/solr/data
+	cp -rf /opt/solr/server/solr/configsets/zenoss_model/ /tmp/testing/solr/configsets
+	cp -f /opt/solr/server/solr/solr.xml /tmp/testing/solr/data
+	cp -f /opt/solr/server/solr/zoo.cfg /tmp/testing/solr/data
+	echo "name=zenoss_model" > /tmp/testing/solr/configsets/zenoss_model/core.properties
 
-echo "Starting Solr for testing purposes..."
-/opt/solr/bin/solr -a -Dsolr.log.muteconsole -cloud -DzkRun -f -p $SOLR_TEST_PORT -DnumShards=1 -Dbootstrap_confdir=/tmp/testing/solr/zenoss_model/conf -s /tmp/testing/solr \
--Dcollection.configName=zenoss_model -Dsolr.jetty.request.header.size=1000000 1> "/tmp/testing/solr-console.log" 2>&1 &
-export SOLR_TEST_PID=$!
-echo "SOLR_TEST_PID=$SOLR_TEST_PID"
-echo "SOLR_TEST_PORT=$SOLR_TEST_PORT"
-echo "Waiting for Solr to start..."
-until $(curl -A 'Solr answering healthcheck' -sI http://localhost:$SOLR_TEST_PORT/solr/admin/cores | grep -q 200); do
-sleep 5
-done
-echo "Solr is running"
+	echo "Starting Solr for testing purposes..."
+	/opt/solr/bin/solr start \
+		-f \
+		-p $SOLR_TEST_PORT \
+		-s /tmp/testing/solr/data \
+		-v \
+		-cloud \
+		-Dsolr.log.muteconsole \
+		-DzkRun \
+		-DnumShards=1 \
+		-Dbootstrap_confdir=/tmp/testing/solr/configsets/zenoss_model/conf \
+		-Dcollection.configName=zenoss_model \
+		-Dsolr.jetty.request.header.size=1000000 \
+		> "/tmp/testing/solr-console.log" \
+		2>&1 \
+		&
+	export SOLR_TEST_PID=$!
+	echo "SOLR_TEST_PID=$SOLR_TEST_PID"
+	echo "SOLR_TEST_PORT=$SOLR_TEST_PORT"
+	echo "Waiting for Solr to start..."
+	until $(curl -A 'Solr answering healthcheck' -sI http://localhost:$SOLR_TEST_PORT/solr/admin/cores | grep -q 200); do
+	sleep 5
+	done
+	echo "Solr is running"
 
-echo "Starting runtest.py"
-$PYTHON $ZENHOME/bin/runtests.py $@
-EXIT_CODE=$?
-echo "Tests finished with exit_code=$EXIT_CODE"
+	echo "Creating zenoss_model collection"
+	/opt/solr/bin/solr create_collection \
+		-c zenoss_model \
+		-d /tmp/testing/solr/configsets/zenoss_model/conf \
+		-n zenoss_model \
+		-p $SOLR_TEST_PORT 1> "/tmp/testing/solr-console.log" \
+		2>&1 \
+		&
+	until $(/opt/solr/bin/solr healthcheck -c zenoss_model -z localhost:$ZK_TEST_PORT | grep -q "zenoss_model"); do
+	sleep 5
+	done
+	echo "Collection is created"
+}
 
-echo "Stopping Solr (up to 180 sec)..."
-/opt/solr/bin/solr stop -p $SOLR_TEST_PORT 1> /dev/null
+stop_solr() {
+	echo "Stopping Solr (up to 180 sec)..."
+	/opt/solr/bin/solr stop -p $SOLR_TEST_PORT 1> /dev/null
+}
+
+run_tests() {
+	echo "Starting runtest.py"
+	$PYTHON $ZENHOME/bin/runtests.py $@
+	local exit_code=$?
+	echo "Tests finished with exit_code=$exit_code"
+	return $exit_code
+}
+
+if [ "$1" == "--no-solr" ]; then
+	shift
+	run_tests $@
+	EXIT_CODE=$?
+elif [ "$1" == "--help" ]; then
+	run_tests $@
+	EXIT_CODE=$?
+else
+	start_solr
+	run_tests $@
+	EXIT_CODE=$?
+	stop_solr
+fi
 
 exit $EXIT_CODE

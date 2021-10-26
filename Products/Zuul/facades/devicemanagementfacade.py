@@ -14,6 +14,7 @@ log = logging.getLogger('zen.DeviceManagementFacade')
 from zope.interface import implements
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IDeviceManagementFacade, IInfo
+from Products.ZenMessaging.audit import audit
 
 class DeviceManagementFacade(ZuulFacade):
     implements(IDeviceManagementFacade)
@@ -69,12 +70,29 @@ class DeviceManagementFacade(ZuulFacade):
         @param params: 
         """
         obj = self._getObject(params['uid'])
-        maintenanceWindows = [IInfo(s) for s in obj.maintenanceWindows()]
-        for entry in maintenanceWindows:
-            if(entry.id == params['id']):
-                entry.updateWindow(params)
-            
-        return maintenanceWindows   
+        maintenanceWindows = []
+        oldData = {}
+        for s in obj.maintenanceWindows():
+            maintenanceWindowInfo = IInfo(s)
+            if (maintenanceWindowInfo.id == params['id']):
+                durationString = s.niceDuration()
+                durationDict = s.durationStringParser(durationString)
+                oldData.update({
+                    'repeat': s.repeat,
+                    'durationMinutes': durationDict.get('minutes', '00'),
+                    'uid': maintenanceWindowInfo.uid,
+                    'durationHours': durationDict.get('hours', '00'),
+                    'startProductionState': s.startProductionState,
+                    'enabled': s.enabled,
+                    'durationDays': durationDict.get('days', '0'),
+                    'startDateTime': s.start,
+                    'id': s.id
+                })
+                maintenanceWindowInfo.updateWindow(params)
+            maintenanceWindows.append(maintenanceWindowInfo)
+
+        audit('UI.MaintenanceWindow.Edit', params['uid'] + '/' + params['id'], oldData_=oldData, data_=params)
+        return maintenanceWindows
         
 # ---------------------------------------------------- User Commands:        
         

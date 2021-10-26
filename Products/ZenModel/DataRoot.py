@@ -24,7 +24,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
 from OFS.OrderedFolder import OrderedFolder
 from Globals import DTMLFile
-from Globals import InitializeClass
+from AccessControl.class_init import InitializeClass
 from Globals import DevelopmentMode
 from Products.ZenModel.SiteError import SiteError
 from Products.ZenModel.ZenModelBase import ZenModelBase
@@ -45,6 +45,7 @@ from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import zenPath, binPath, unpublished
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
+from Products.ZenUtils.GlobalConfig import globalConfToDict
 
 from Products.ZenEvents.Exceptions import (
     MySQLConnectionError, pythonThresholdException, rpnThresholdException)
@@ -208,6 +209,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             )
           },
         )
+
+    if not bool(globalConfToDict().get('zcml-enable-cz-dashboard', '')):
+        factory_type_information[0]['immediate_view'] = "Events"
+        del factory_type_information[0]['factory']
 
     security = ClassSecurityInfo()
 
@@ -425,8 +430,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             self.REQUEST.response.status = httplib.UNAUTHORIZED
             return
 
-        from traceback import format_exception
-        error_formatted = ''.join(format_exception(error_type, error_value, error_traceback))
+        from traceback import format_exception_only
+        error_formatted = ''.join(format_exception_only(error_type, error_value))
         return self.zenoss_feedback_error_message(error_type=error_type,
                                         error_value=error_value,
                                         error_traceback=error_traceback,
@@ -587,7 +592,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             devid = objid
             if not devid.endswith('*'): devid += '*'
             obj = self.Devices.findDevice(devid)
-        except:
+        except Exception:
             obj=None
         if not obj:
             try:
@@ -610,7 +615,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             devid = objid
             if not devid.endswith('*'): devid += '*'
             obj = self.Networks.getNet(objid)
-        except: obj=None
+        except Exception: obj=None
         if not obj:
             obj = self.Devices.findDevice(devid)
         if not obj:

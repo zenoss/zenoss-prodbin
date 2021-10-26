@@ -92,13 +92,13 @@ class ZCmdBase(ZenDaemon):
         self.dataroot = None
         self.app = app
         self.db = None
-        # if not app:
-        #     self.zodbConnect()
+        if not app:
+            self.zodbConnect()
         self.poollock = Lock()
-        # self.getDataRoot()
-        # self.login()
-        self.dmd = None
-        # setDescriptors(self.dmd)
+        self.getDataRoot()
+        self.login()
+
+        setDescriptors(self.dmd)
 
     def zodbConnect(self):
         connectionFactory = getUtility(IZodbFactoryLookup).get()
@@ -136,7 +136,7 @@ class ZCmdBase(ZenDaemon):
 
 
     def opendb(self):
-        if self.app: return
+        if self.app: return 
         self.connection=self.db.open()
         root=self.connection.root()
         app=root['Application']
@@ -190,7 +190,7 @@ class ZCmdBase(ZenDaemon):
             try:
                 self.connection.sync()
 
-            except MySQLdb.OperationalError, e:
+            except MySQLdb.OperationalError as e:
                 if timedOut():
                     self.log.info("Timed out trying to reconnect to ZODB.")
                     self.log.exception(e)
@@ -209,7 +209,7 @@ class ZCmdBase(ZenDaemon):
                 
                 try:
                     time.sleep(retryDelay)
-                except Exception, e:
+                except Exception as e:
                     break
 
             else:

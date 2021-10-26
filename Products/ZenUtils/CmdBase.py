@@ -23,7 +23,7 @@ import re
 from copy import copy
 import zope.component
 from zope.traversing.adapters import DefaultTraversable
-from Products.Five import zcml
+from Zope2.App import zcml
 
 from optparse import (
         OptionParser, OptionGroup, Option,
@@ -103,9 +103,9 @@ class CmdBase(object):
         Globals.DevelopmentMode = False
         # We must import ZenossStartup at this point so that all Zenoss daemons
         # and tools will have any ZenPack monkey-patched methods available.
-        #import Products.ZenossStartup
-        #unused(Products.ZenossStartup)
-        #zcml.load_site()
+        import Products.ZenossStartup
+        unused(Products.ZenossStartup)
+        zcml.load_site()
         import Products.ZenWidgets
         load_config_override('scriptmessaging.zcml', Products.ZenWidgets)
 

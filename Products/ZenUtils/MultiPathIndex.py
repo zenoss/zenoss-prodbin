@@ -66,7 +66,7 @@ class MultiPathIndex(ExtendedPathIndex):
         orig_comps = [''] + comps[:]
 
         if depth > 0:
-            raise ValueError, "Can't do depth searches anymore"
+            raise ValueError("Can't do depth searches anymore")
         if not comps:
             comps = ['dmd']
             startlevel = 1
@@ -77,7 +77,7 @@ class MultiPathIndex(ExtendedPathIndex):
                 comps = comps[1:]
 
         if comps[0] != 'dmd':
-            raise ValueError, "Depth searches must start with 'dmd'"
+            raise ValueError("Depth searches must start with 'dmd'")
         startlevel = len(comps)
 
         if len(comps) == 0:

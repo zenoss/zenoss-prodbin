@@ -49,19 +49,19 @@ class MysqlStatsGatherer(MetricGatherer):
         config = {
             'zodb-host': '127.0.0.1',
             'zodb-port': '3306',
-            'zodb-admin-user': 'root',
-            'zodb-admin-password': '',
+            'zodb-user': 'zenoss',
+            'zodb-password': 'zenoss',
             'zep-host': '127.0.0.1',
             'zep-port': '3306',
-            'zep-admin-user': 'root',
-            'zep-admin-password': ''}
+            'zep-user': 'zenoss',
+            'zep-password': 'zenoss'}
 
         with open(self.global_config, 'r') as fp:
             lines = fp.readlines()
             for line in lines:
-                option = line.lower().split(' ')
-                if len(option) == 2 and option[0] in config:
-                    config[option[0]] = option[1].strip('\n')
+                option = line.split(' ')
+                if len(option) == 2 and option[0].lower() in config:
+                    config[option[0].lower()] = option[1].strip('\n')
             log.debug("Configuration is: %s" % config)
             return config
 
@@ -80,8 +80,8 @@ class MysqlStatsGatherer(MetricGatherer):
         try:
             mysql_connection = MySQLdb.connect(host=self.config[self.db + '-host'],
                                                port=int(self.config[self.db + '-port']),
-                                               user=self.config[self.db + '-admin-user'],
-                                               passwd=self.config[self.db + '-admin-password'],
+                                               user=self.config[self.db + '-user'],
+                                               passwd=self.config[self.db + '-password'],
                                                db=self.db if self.db == 'zodb' else 'zenoss_zep',
                                                connect_timeout=5)
             mysql_cursor = mysql_connection.cursor()

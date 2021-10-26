@@ -234,7 +234,8 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         environ = {'dev' : d,
                    'device': d,
                    'devname': d.id,
-                   'here' : context, 
+                   'here' : context,
+                   'context' : context,
                    'nothing' : None,
                    'now' : DateTime() }
         res = compiled(getEngine().getContext(environ))

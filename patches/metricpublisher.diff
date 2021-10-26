@@ -1,0 +1,10 @@
+diff --git a/Products/ZenHub/metricpublisher/publisher.py b/Products/ZenHub/metricpublisher/publisher.py
+index 2d33a6ef6..eb8b1e326 100644
+--- a/Products/ZenHub/metricpublisher/publisher.py
++++ b/Products/ZenHub/metricpublisher/publisher.py
+@@ -435,5 +435,4 @@ class ResponseReceiver(protocol.Protocol):
+         self._buffer += data
+ 
+     def connectionLost(self, reason):
+-        log.debug("connection closed")
+         self._deferred.callback(self._buffer)

@@ -8,18 +8,18 @@
  ****************************************************************************/
 (function(){
 
-    //Zenoss.quickstart.Wizard.openJobLogFile("4527f0fe-7860-412d-86b7-fe7c9cc794d5")
+    //Zenoss.quickstart.Wizard.openJobLogFile("4527f0fe-7860-412d-86b7-fe7c9cc794d5", "qa-test.zenoss.eng")
     Ext.ns("Zenoss.quickstart.Wizard");
     var router = Zenoss.remote.JobsRouter;
     Zenoss.quickstart.Wizard.openJobLogFile = function(jobid, deviceName) {
         router.getInfo({
             jobid: jobid
         }, function(response){
-            var window = Ext.create("Zenoss.quickstart.Wizard.view.JobLog", {
+            var dialog = Ext.create("Zenoss.quickstart.Wizard.view.JobLog", {
                 job: response.data,
                 deviceName: deviceName
             });
-            window.show();
+            dialog.show();
         }, this);
     };
 

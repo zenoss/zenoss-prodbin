@@ -23,7 +23,7 @@ def importClass(classpath, baseModule=None):
             base = ".".join(parts[:-1])
             mod = __import__(base)
             mod = sys.modules[base]
-        except:
+        except Exception:
             raise ZenImportError("failed importing class %s" % classpath)
     return getattr(mod, parts[-1], mod)
 

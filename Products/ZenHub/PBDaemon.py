@@ -121,11 +121,11 @@ def translateError(callable):
         """
         try:
             return callable(*args, **kw)
-        except ConflictError, ex:
+        except ConflictError as ex:
             raise RemoteConflictError(
                 'Remote exception: %s: %s' % (ex.__class__, ex),
                 traceback.format_exc())
-        except Exception, ex:
+        except Exception as ex:
             raise RemoteException(
                 'Remote exception: %s: %s' % (ex.__class__, ex),
                 traceback.format_exc())
@@ -805,7 +805,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """
         def errback(error):
             if isinstance(error, Failure):
-                self.log.critical( "Invalid monitor: %s : %s" % (self.options.monitor, error))
+                self.log.critical( "Invalid monitor: %s" % self.options.monitor)
                 reactor.stop()
                 return defer.fail(RemoteBadMonitor(
                            "Invalid monitor: %s" % self.options.monitor, ''))
