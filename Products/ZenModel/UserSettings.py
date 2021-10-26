@@ -134,7 +134,6 @@ class UserSettingsManager(ZenModelRM):
          },
         )
 
-
     def getAllUserSettings(self):
         """Return list user settings objects.
         """
@@ -172,7 +171,6 @@ class UserSettingsManager(ZenModelRM):
             if user: users.append(user.__of__(uset))
         return users
 
-
     def getUser(self, userid=None):
         """Return a user object.  If userid is not passed return current user.
         """
@@ -186,6 +184,12 @@ class UserSettingsManager(ZenModelRM):
             user = self.acl_users.getUser(userid)
         if user: return user.__of__(self.acl_users)
 
+    def getUserRoles(self, userid=None):
+        if userid:
+            userObj = self._getOb(userid)
+            if userObj:
+                return userObj.getUserRoles()
+        return []
 
     def getAllActionRules(self):
         for u in self.getAllUserSettings() + self.getAllGroupSettings():
@@ -193,14 +197,13 @@ class UserSettingsManager(ZenModelRM):
                 yield ar
 
     def getUserSettings(self, userid=None):
-        """Return a user folder.  If userid is not passed return current user.
-        """
+        """Return a user folder.  If userid is not passed return current user."""
         user=None
         if userid is None:
             user = getSecurityManager().getUser()
             userid = user.getId()
         if not userid: raise Unauthorized
-        folder = self._getOb(userid,None)
+        folder = self._getOb(userid, None)
         if not folder and userid:
             userid = str(userid)
             ufolder = UserSettings(userid)
@@ -221,14 +224,12 @@ class UserSettingsManager(ZenModelRM):
                 folder.manage_setLocalRoles(userid, ("Owner",))
         return folder
 
-
     def getGroupSettings(self, groupid):
         groupid = prepId(groupid)
         if not self._getOb(groupid, False):
             gfolder = GroupSettings(groupid)
             self._setObject(gfolder.getId(), gfolder)
         return self._getOb(groupid)
-
 
     def setDashboardState(self, userid=None, REQUEST=None):
         """ Store a user's portlets and layout. If userid is not passed
@@ -302,14 +303,12 @@ class UserSettingsManager(ZenModelRM):
         else:
             return user
 
-
     def generatePassword(self):
         """ Generate a valid password.
         """
         # we don't use these to avoid typos: OQ0Il1
         chars = 'ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
         return ''.join(choice(chars) for i in range(6))
-
 
     def authenticateCredentials(self, login, password, auth0_userid=None):
         """
@@ -351,7 +350,6 @@ class UserSettingsManager(ZenModelRM):
 
         # indicate no successful authentications
         return False
-
 
     security.declarePrivate('manage_changeUser')
     def manage_changeUser(self, userid, password=None, sndpassword=None,
@@ -401,7 +399,6 @@ class UserSettingsManager(ZenModelRM):
             return self.callZenScreen(REQUEST)
         else:
             return user
-
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteUsers')
     @validate_csrf_token
@@ -463,7 +460,6 @@ class UserSettingsManager(ZenModelRM):
                 audit('UI.User.Delete', username=userid)
             return self.callZenScreen(REQUEST)
 
-
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addGroup')
     @validate_csrf_token
     def manage_addGroup(self, groupid, REQUEST=None):
@@ -473,8 +469,9 @@ class UserSettingsManager(ZenModelRM):
         groupid = prepId(groupid)
         try:
             self.acl_users.groupManager.addGroup(groupid)
-        except KeyError: pass
-        self.getGroupSettings(groupid)
+        except KeyError:
+            pass
+        grp = self.getGroupSettings(groupid)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Group Added',
@@ -482,7 +479,8 @@ class UserSettingsManager(ZenModelRM):
             )
             audit('UI.Group.Add', groupid)
             return self.callZenScreen(REQUEST)
-
+        else:
+            return grp
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteGroups')
     @validate_csrf_token
@@ -509,6 +507,44 @@ class UserSettingsManager(ZenModelRM):
                 audit('UI.Group.Delete', groupid)
             return self.callZenScreen(REQUEST)
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_listGroupNamesForUser')
+    @validate_csrf_token
+    def manage_listGroupNamesForUser(self, userids=(), REQUEST=None):
+        userGroups = {}
+        if not userids:
+            userids = self.getAllUserSettingsNames()
+
+        for user in userids:
+            userGroups[user] = self._getOb(user).getUserGroupSettingsNames()
+
+        if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Users Modified',
+                'Listing groups for each user.' % (', '.join(userids))
+            )
+            return self.callZenScreen(REQUEST)
+        else:
+            return userGroups
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_listGroupMembers')
+    @validate_csrf_token
+    def manage_listGroupMembers(self, groupids=(), REQUEST=None):
+        """ List all users belonging to each zenoss group """
+        groupMembers = {}
+        if not groupids:
+            groupids = self.getAllGroupSettingsNames()
+
+        for groupid in groupids:
+            groupMembers[groupid] = self._getOb(groupid).getMemberUserIds()
+
+        if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Groups Modified',
+                'Listing members of groups %s.' % (', '.join(groupids))
+            )
+            return self.callZenScreen(REQUEST)
+        else:
+            return groupMembers
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUsersToGroups')
     @validate_csrf_token
@@ -551,7 +587,6 @@ class UserSettingsManager(ZenModelRM):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
-
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_pagerTestAdmin')
     def manage_pagerTestAdmin(self, userid, REQUEST=None):
         ''' Do pager test for given user
@@ -562,7 +597,6 @@ class UserSettingsManager(ZenModelRM):
             messaging.IMessageSender(self).sendToBrowser('Pager Test', msg)
         if REQUEST:
             return self.callZenScreen(REQUEST)
-
 
     security.declareProtected(ZEN_MANAGE_DMD, 'cleanUserFolders')
     def cleanUserFolders(self):
@@ -578,7 +612,6 @@ class UserSettingsManager(ZenModelRM):
         """Get list of all roles without Anonymous and Authenticated.
         """
         return filter(rolefilter, self.valid_roles())
-
 
     def exportXmlHook(self,ofile, ignorerels):
         map(lambda x: x.exportXml(ofile, ignorerels), self.getAllUserSettings())
