@@ -24,4 +24,6 @@ class UserInfo(InfoBase):
     userTheme = ProxyProperty('userTheme')
     netMapStartObject = ProxyProperty('netMapStartObject')
 
-    # TODO: implement editing passwords and roles
+    groups = ProxyProperty('groups')
+    roles = ProxyProperty('roles')
+    # TODO: implement editing passwords

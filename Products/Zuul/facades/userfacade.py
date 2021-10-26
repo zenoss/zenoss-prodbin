@@ -74,6 +74,14 @@ class UserFacade(ZuulFacade):
             groups = [ids]
         return self._root.manage_deleteGroups(groups)
 
+    def listGroupsForEachUser(self, users):
+        usergroups = self._root.manage_listGroupNamesForUser(userids=users)
+        return IInfo(usergroups)
+
+    def listGroupMembers(self, groups=()):
+        groupusers = self._root.manage_listGroupMembers(groupids=groups)
+        return IInfo(groupusers)
+
     def addUsersToGroups(self, users, groups):
 
         # Create any new groups and add the user to the listed groups
@@ -88,6 +96,26 @@ class UserFacade(ZuulFacade):
     def removeUsersFromGroups(self, users, groups):
         # can pass string or list of strings
         return self._root.manage_removeUsersFromGroups(users, groups)
+
+    def assignZenUserRoleToUsers(self, users):
+        infoUsers = []
+        for user in users:
+            roles = self._root.getUserRoles(user)
+            if "ZenUser" not in roles:
+                roles.append("ZenUser")
+                iusr = self._root.manage_changeUser(user, roles=roles)
+                infoUsers.append(iusr)
+        return infoUsers
+
+    def removeZenUserRoleFromUsers(self, users):
+        infoUsers = []
+        for user in users:
+            roles = self._root.getUserRoles(user)
+            if "ZenUser" in roles:
+                roles.remove("ZenUser")
+                iusr = self._root.manage_changeUser(user, roles=roles)
+                infoUsers.append(iusr)
+        return infoUsers
 
     def assignAdminRolesToUsers(self, users):
         return self._root.manage_assignAdminRolesToUsers(users)
