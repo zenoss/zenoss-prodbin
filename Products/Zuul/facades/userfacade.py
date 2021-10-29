@@ -74,13 +74,13 @@ class UserFacade(ZuulFacade):
             groups = [ids]
         return self._root.manage_deleteGroups(groups)
 
-    def listGroupsForEachUser(self, users):
+    def listGroupsForEachUser(self, users=()):
         usergroups = self._root.manage_listGroupNamesForUser(userids=users)
-        return IInfo(usergroups)
+        return usergroups
 
     def listGroupMembers(self, groups=()):
         groupusers = self._root.manage_listGroupMembers(groupids=groups)
-        return IInfo(groupusers)
+        return groupusers
 
     def addUsersToGroups(self, users, groups):
 

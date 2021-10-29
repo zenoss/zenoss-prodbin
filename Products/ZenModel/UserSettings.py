@@ -186,7 +186,7 @@ class UserSettingsManager(ZenModelRM):
 
     def getUserRoles(self, userid=None):
         if userid:
-            userObj = self._getOb(userid)
+            userObj = self._getOb(userid, None)
             if userObj:
                 return userObj.getUserRoles()
         return []
@@ -384,10 +384,14 @@ class UserSettingsManager(ZenModelRM):
             if password: updates['password'] = '****'
             if roles: updates['roles': roles]
             if domains: updates['domains': domains]
-        if password is None: password = user._getPassword()
-        if roles is None: roles = user.roles
-        if domains is None: domains = user.domains
-        self.acl_users._doChangeUser(userid,password,roles,domains)
+        userSettingObj = self._getOb(userid)
+        if userSettingObj:
+            userSettingObj.manage_editUserSettings(
+                password=password,
+                sndpassword=sndpassword,
+                roles=roles,
+                domains=domains,
+                REQUEST=REQUEST)
         ufolder = self.getUserSettings(userid)
         ufolder.updatePropsFromDict(kw)
         if REQUEST:
