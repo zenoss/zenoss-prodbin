@@ -80,6 +80,9 @@ class UserFacade(ZuulFacade):
 
     def addUsersToGroups(self, users, groups):
 
+        if not groups:
+            return
+
         # Create any new groups and add the user to the listed groups
         curGrpNames = self._dmd.ZenUsers.getAllGroupSettingsNames()
         for group in groups:

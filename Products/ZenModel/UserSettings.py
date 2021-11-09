@@ -256,8 +256,8 @@ class UserSettingsManager(ZenModelRM):
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUser')
     @validate_csrf_token
-    def manage_addUser(self, userid, password=None,roles=("ZenUser",),
-                    REQUEST=None,**kw):
+    def manage_addUser(self, userid, password=None, roles=("ZenUser",),
+                    REQUEST=None, **kw):
         """
         Add a Zenoss user to the system and set the user's default properties.
 
@@ -272,7 +272,7 @@ class UserSettingsManager(ZenModelRM):
 
         illegal_usernames= [ 'user', ]
 
-        user_name= userid.lower()
+        user_name = userid.lower()
         if user_name in illegal_usernames:
             if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
