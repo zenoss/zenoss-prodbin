@@ -24,6 +24,12 @@ class UserInfo(InfoBase):
     userTheme = ProxyProperty('userTheme')
     netMapStartObject = ProxyProperty('netMapStartObject')
 
-    groups = ProxyProperty('groups')
-    roles = ProxyProperty('roles')
+    @property
+    def groups(self):
+        return self._object.getUserGroupSettingsNames()
+
+    @property
+    def roles(self):
+        return self._object.getUserRoles()
+
     # TODO: implement editing passwords
