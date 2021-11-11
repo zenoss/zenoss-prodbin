@@ -41,16 +41,17 @@ class UsersRouter(DirectRouter):
         self.facade.setAdminPassword(newPassword)
         return DirectResponse.succeed()
 
-    def deleteUsers(self, userIds):
+    @require('Manage DMD')
+    def deleteUsers(self, users):
         """
         Removes all the users with the given user ids. Will continue
         upon removing users if an invalid id is specified.
-        @type  userIds: List of Strings
-        @param userIds: (optional) list of ids to remove.
+        @type  users: List of Strings
+        @param users: (optional) list of user ids to remove.
         """
         facade = self._getFacade()
-        facade.removeUsers(userIds)
-        audit('UI.Users.RemoveUsers', userIds=userIds)
+        facade.removeUsers(users)
+        audit('UI.Users.RemoveUsers', userIds=users)
         return DirectResponse.succeed()
 
     def getUsers(self, keys=None, start=0, limit=50, page=0,
@@ -84,13 +85,15 @@ class UsersRouter(DirectRouter):
         return DirectResponse.succeed(data=data, totalCount=total)
 
     @require('Manage DMD')
-    def addUser(self, id, password, email, roles=('ZenUser',)):
+    def addUser(self, name, password, email, groups=(), roles=()):
         """
         Adds a new user to the system.
-        @type  id: string
-        @param id: The unique identifier of the user, same as their login
+        @type  name: string
+        @param name: The unique identifier of the user, same as their login
         @type  password: string
         @param password: the password of the new user
+        @type  groups: list of strings
+        @param groups: (optional) groups to be applied to the new user
         @type  roles: list of strings
         @param roles: (optional) roles to be applied to the new user
         @rtype:   DirectResponse
@@ -98,10 +101,11 @@ class UsersRouter(DirectRouter):
              - data: properties of the new users
         """
         facade = self._getFacade()
-        newUser = facade.addUser(id, password, email, roles)
-        audit('UI.Users.Add', id, email=email, roles=roles)
+        newUser = facade.addUser(name, password, email, groups, roles)
+        audit('UI.Users.Add', name, email=email, roles=roles)
         return DirectResponse.succeed(data=Zuul.marshal(newUser))
 
+    @require('Manage DMD')
     def getGroups(self, keys=None, start=0, limit=50, page=0, sort='name', dir='ASC', name=None):
         """
         Retrieves a list of groups. This method supports pagination.
@@ -131,75 +135,133 @@ class UsersRouter(DirectRouter):
         return DirectResponse.succeed(data=data, totalCount=total)
         pass
 
-    def createGroup(self, groupName):
+    @require('Manage DMD')
+    def createGroups(self, groups):
         """
         Adds a new group to the system.
-        @type  groupName: string
-        @param groupName: The unique name of the group
+        @type  groups: list of string
+        @param groups: The unique names of each group
         @rtype:   DirectResponse
         @return:  B{Properties}:
              - data: properties of the new users
         """
         facade = self._getFacade()
-        newGroup = facade.createGroup(groupName)
-        audit('UI.Users.CreateGroup', groupName)
-        return DirectResponse.succeed(data=Zuul.marshal(newGroup))
+        newGroups = facade.createGroups(groups)
+        audit('UI.Users.CreateGroups', groups)
+        return DirectResponse.succeed(data=Zuul.marshal(newGroups))
 
-    def deleteGroups(self, groupIds):
+    @require('Manage DMD')
+    def deleteGroups(self, groups):
         """
         Removes all the users from the given group then deletes the group.
-        @type  groupId: List of Strings
-        @param groupId: (optional) group ids to remove.
+        @type  groups: List of Strings
+        @param groups: (optional) group ids to remove.
         """
         facade = self._getFacade()
-        facade.removeGroups(groupIds)
-        audit('UI.Users.RemoveGroups', groupIds=groupIds)
+        facade.removeGroups(groups)
+        audit('UI.Users.RemoveGroups', groupIds=groups)
         return DirectResponse.succeed()
 
-    def addUsersToGroup(self, userIds, groupIds):
+    @require('Manage DMD')
+    def listGroupsForUser(self, users):
+        """
+        Lists all the groups for each provided user.
+        @type  users: List of Strings
+        @param users: user ids to get group info.
+        """
+        facade = self._getFacade()
+        usermap = facade.listGroupsForEachUser(users)
+        total = len(usermap)
+        data = Zuul.marshal(usermap)
+        audit('UI.Users.ListGroupsForUser', userIds=users)
+        return DirectResponse.succeed(data=data, totalCount=total)
+
+    @require('Manage DMD')
+    def listUsersInGroup(self, groups):
+        """
+        Lists all the users belonging to each provided group.
+        @type  groups: List of Strings
+        @param groups: groups to get user ids.
+        """
+        facade = self._getFacade()
+        groupmap = facade.listGroupMembers(groups)
+        total = len(groupmap)
+        data = Zuul.marshal(groupmap)
+        audit('UI.Users.ListUsersInGroup', groupIds=groups)
+        return DirectResponse.succeed(data=data, totalCount=total)
+
+    @require('Manage DMD')
+    def addUsersToGroups(self, users, groups):
         """
         Adds listed users to the given group.
-        @type  userIds: List of Strings
-        @param userIds: (optional) user ids to add to groups.
-        @type  groupIds: List of Strings
-        @param groupIds: (optional) group ids users will be added to.
+        @type  users: List of Strings
+        @param users: (optional) user ids to add to groups.
+        @type  groups: List of Strings
+        @param groups: (optional) group ids users will be added to.
         """
         facade = self._getFacade()
-        facade.addUsersToGroups(userIds, groupIds)
-        audit('UI.Users.AddUsersToGroups', userIds=userIds, groupIds=groupIds)
+        facade.addUsersToGroups(users, groups)
+        audit('UI.Users.AddUsersToGroups', userIds=users, groupIds=groups)
         return DirectResponse.succeed()
 
-    def removeUsersFromGroup(self, userIds, groupIds):
+    @require('Manage DMD')
+    def removeUsersFromGroups(self, users, groups):
         """
         Removes listed users from the given group.
-        @type  userIds: List of Strings
-        @param userIds: (optional) user ids to add to groups.
-        @type  groupIds: List of Strings
-        @param groupIds: (optional) group ids users will be removed from.
+        @type  users: List of Strings
+        @param users: (optional) user ids to add to groups.
+        @type  groups: List of Strings
+        @param groups: (optional) group ids users will be removed from.
         """
         facade = self._getFacade()
-        facade.removeUsersFromGroups(userIds, groupIds)
-        audit('UI.Users.RemoveUsersFromGroups', userIds=userIds, groupIds=groupIds)
+        facade.removeUsersFromGroups(users, groups)
+        audit('UI.Users.RemoveUsersFromGroups', userIds=users, groupIds=groups)
         return DirectResponse.succeed()
 
-    def assignAdminRolesToUsers(self, userIds):
+    @require('Manage DMD')
+    def assignZenUserRoleToUsers(self, users):
         """
-        Assign the listed roles to the given users.
-        @type  userIds: List of Strings
-        @param userIds: (optional) user ids to assign admin roles to.
+        Assign the ZenUser role to the given users.
+        @type  users: List of Strings
+        @param users: (optional) user ids to assign zenuser roles to.
         """
         facade = self._getFacade()
-        facade.assignAdminRolesToUsers(userIds, roles)
-        audit('UI.Users.AssignAdminRolesToUsers', userIds=userIds, roles=roles)
+        facade.assignZenUserRoleToUsers(users)
+        audit('UI.Users.AssignZenUserRoleToUsers', userIds=users)
         return DirectResponse.succeed()
 
-    def removeAdminRolesFromUsers(self, userIds):
+    @require('Manage DMD')
+    def removeZenUserRoleFromUsers(self, users):
         """
-        Removes the listed roles from the given users.
-        @type  userIds: List of Strings
-        @param userIds: (optional) user ids to remove admin roles from.
+        Removes the ZenUser role from the given users.
+        @type  users: List of Strings
+        @param users: (optional) user ids to remove zenuser role from.
         """
         facade = self._getFacade()
-        facade.removeAdminRolesFromUsers(userIds, roles)
-        audit('UI.Users.RemoveAdminRolesFromUsers', userIds=userIds, roles=roles)
+        facade.removeZenUserRoleFromUsers(users)
+        audit('UI.Users.RemoveZenUserRoleFromUsers', userIds=users)
+        return DirectResponse.succeed()
+
+    @require('Manage DMD')
+    def assignAdminRolesToUsers(self, users):
+        """
+        Assign the admin roles to the given users.
+        @type  users: List of Strings
+        @param users: (optional) user ids to assign admin roles to.
+        """
+        facade = self._getFacade()
+        facade.assignAdminRolesToUsers(users)
+        audit('UI.Users.AssignAdminRolesToUsers', userIds=users)
+        return DirectResponse.succeed()
+
+    @require('Manage DMD')
+    def removeAdminRolesFromUsers(self, users):
+        """
+        Removes the admin roles from the given users.
+        @type  users: List of Strings
+        @param users: (optional) user ids to remove admin roles from.
+        """
+        facade = self._getFacade()
+        facade.removeAdminRolesFromUsers(users)
+        audit('UI.Users.RemoveAdminRolesFromUsers', userIds=users)
         return DirectResponse.succeed()
