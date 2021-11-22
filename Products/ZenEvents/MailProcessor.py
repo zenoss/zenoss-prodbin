@@ -83,6 +83,7 @@ class MessageProcessor(object):
         self.two_part_email = re.compile(r'(.*) <(.*?)>$')
 
     def parse_email_address(self, address):
+        address = address.replace('\n', '').replace('\t', ' ')
         match = self.two_part_email.match(address)
         if match:
             return self.parse_email_address(match.group(2))
