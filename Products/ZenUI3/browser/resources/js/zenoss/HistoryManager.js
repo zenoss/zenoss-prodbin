@@ -8,12 +8,16 @@ Ext.onReady(function(){
     H.DELIMITER = ':';
     H.selectByToken = function(token) {
         if(token) {
-            var parts = token.split(H.DELIMITER),
-            mgr = Ext.getCmp(parts[0]),
-            remainder = parts.slice(1).join(H.DELIMITER);
-            if (mgr) {
-                mgr.selectByToken(remainder);
-            }
+            var parts = token.split(H.DELIMITER);
+            var stateProvider = Ext.state.Manager.getProvider();
+            // wait until state is ready;
+            stateProvider.onStateReady(function() {
+                var mgr = Ext.getCmp(parts[0]),
+                remainder = parts.slice(1).join(H.DELIMITER);
+                if (mgr) {
+                    mgr.selectByToken(remainder);
+                }
+            });
         }
     };
     H.events = H.events || {};
