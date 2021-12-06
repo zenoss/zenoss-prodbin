@@ -287,21 +287,17 @@ class UsersRouter(DirectRouter):
         return DirectResponse.succeed()
 
     @require('Manage DMD')
-    def removeAdministeredObject(self, users, groups, objname, guid, uid):
+    def removeAdministeredObject(self, users, groups, objid):
         """
         Exclude the provided object to the list of Adminstered Objects for the users and/or groups.
         @type  users: List of Strings
         @param users: (optional) user ids to remove admin roles from.
         @type  groups: List of Strings
         @param groups: (optional) group ids users will be removed from.
-        @type  objname: String
-        @param objname: (optional) name of the device/object to be administered by user/group
-        @type  guid: String
-        @param guid: (optional) guid for a device/object to be administered by user/group
-        @type  uid: String
-        @param uid: (optional) uid for a device/object to be administered by user/group
+        @type  objid: String
+        @param objid: (optional) object id of the device/object to be administered by user/group
         """
         facade = self._getFacade()
-        facade.removeAdministeredObject(users, groups, objname, guid, uid)
-        audit('UI.Users.RemoveAdministeredObject', userIds=users, groupids=groups, name=objname, guid=guid, uid=uid)
+        facade.removeAdministeredObject(users, groups, objid)
+        audit('UI.Users.RemoveAdministeredObject', userIds=users, groupids=groups, objid=objid)
         return DirectResponse.succeed()

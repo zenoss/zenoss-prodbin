@@ -127,15 +127,7 @@ class UserFacade(ZuulFacade):
         return self._root.manage_removeAdminRolesFromUsers(users)
 
     def addAdministeredObject(self, users, groups, objname, guid, uid):
-        if not users and not groups:
-            return
-        if not objname and not guid and not uid:
-            return
         return self._root.manage_assignAdminObject(users, groups,  objname=objname, guid=guid, uid=uid)
 
     def removeAdministeredObject(self, users, groups, objid):
-        if not users and not groups:
-            return
-        if not objid:
-            return
         return self._root.manage_removeAdminObject(users, groups,  objid=objid)
