@@ -265,3 +265,43 @@ class UsersRouter(DirectRouter):
         facade.removeAdminRolesFromUsers(users)
         audit('UI.Users.RemoveAdminRolesFromUsers', userIds=users)
         return DirectResponse.succeed()
+
+    @require('Manage DMD')
+    def addAdministeredObject(self, users, groups, objname, guid, uid):
+        """
+        Include the provided object to the list of Adminstered Objects for the users and/or groups.
+        @type  users: List of Strings
+        @param users: (optional) user ids to assign admin roles to.
+        @type  groups: List of Strings
+        @param groups: (optional) group ids users will be removed from.
+        @type  objname: String
+        @param objname: (optional) name of the device/object to be administered by user/group
+        @type  guid: String
+        @param guid: (optional) guid for a device/object to be administered by user/group
+        @type  uid: String
+        @param uid: (optional) uid for a device/object to be administered by user/group
+        """
+        facade = self._getFacade()
+        facade.addAdministeredObject(users, groups, objname, guid, uid)
+        audit('UI.Users.AddAdministeredObject', userIds=users, groupids=groups, name=objname, guid=guid, uid=uid)
+        return DirectResponse.succeed()
+
+    @require('Manage DMD')
+    def removeAdministeredObject(self, users, groups, objname, guid, uid):
+        """
+        Exclude the provided object to the list of Adminstered Objects for the users and/or groups.
+        @type  users: List of Strings
+        @param users: (optional) user ids to remove admin roles from.
+        @type  groups: List of Strings
+        @param groups: (optional) group ids users will be removed from.
+        @type  objname: String
+        @param objname: (optional) name of the device/object to be administered by user/group
+        @type  guid: String
+        @param guid: (optional) guid for a device/object to be administered by user/group
+        @type  uid: String
+        @param uid: (optional) uid for a device/object to be administered by user/group
+        """
+        facade = self._getFacade()
+        facade.removeAdministeredObject(users, groups, objname, guid, uid)
+        audit('UI.Users.RemoveAdministeredObject', userIds=users, groupids=groups, name=objname, guid=guid, uid=uid)
+        return DirectResponse.succeed()

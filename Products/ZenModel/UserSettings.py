@@ -648,6 +648,51 @@ class UserSettingsManager(ZenModelRM):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_assignAdminObject')
+    @validate_csrf_token
+    def manage_assignAdminObject(self, userids=(), groupids=(), type='device', objname=None, guid=None, uid=None, REQUEST=None):
+        """ Assign admin object to users and groups
+            Note, Only one of the three is required: objename, guid, uid
+        """
+        def addAminObject(usergroups):
+            if isinstance(usergroups, basestring):
+                usergroups = [usergroups]
+            for usergroup in usergroups:
+                try:
+                    ugObj = self._getOb(usergroup)
+                    ugObj.manage_addAdministrativeRole(name=objname, type=type, guid=guid, uid=uid, REQUEST=REQUEST)
+                    audit('UI.User.assignAdminObject', user=usergroup)
+                except Exception as ex:
+                    log.error("Could not assign Admin Objects to user %s; %s", usergroup, ex)
+
+        addAminObject(userids)
+        addAminObject(groupids)
+
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_removeAdminObject')
+    @validate_csrf_token
+    def manage_removeAdminObject(self, userids=(), groupids=(), objid=None, REQUEST=None):
+        """ Remove administered object (objid) from users and groups
+        """
+        def removeAdminObj(usergroups):
+            if isinstance(usergroups, basestring):
+                usergroups = [usergroups]
+            for usergroup in usergroups:
+                try:
+                    ugObj = self._getOb(usergroup)
+                    ugObj.manage_deleteAdministrativeRole(objid=objid, REQUEST=REQUEST)
+                    audit('UI.User.removeAdminObject', user=usergroup)
+                except Exception as ex:
+                    log.error("Could not remove Admin Objects from user/group %s; %s", usergroup, ex)
+
+        removeAdminObj(userids)
+        removeAdminObj(groupids)
+
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_emailTestAdmin')
     def manage_emailTestAdmin(self, userid, REQUEST=None):
         ''' Do email test for given user
