@@ -13,7 +13,6 @@ ZenPacks base definitions
 """
 
 import logging
-log = logging.getLogger('zen.ZenPack')
 
 import datetime
 import glob
@@ -22,7 +21,6 @@ import string
 import subprocess
 import os
 import os.path
-import posixpath
 import sys
 import shutil
 import zipfile
@@ -54,6 +52,7 @@ from Products.ZenUtils.virtual_root import IVirtualRoot
 
 import servicemigration
 servicemigration.require("1.0.0")
+log = logging.getLogger('zen.ZenPack')
 
 class ZenPackException(Exception):
     pass
@@ -321,6 +320,7 @@ class ZenPack(ZenModelRM):
         #self.dependencies = {'zenpacksupport':''}
         self.dependencies = {}
         ZenModelRM.__init__(self, id, title, buildRelations)
+        self._modulename = None
 
     def install(self, app):
         """
@@ -1006,11 +1006,12 @@ registerDirectory("skins", globals())
         """
         Return the importable dotted module name for this zenpack.
         """
-        if self.isEggPack():
-            name = self.getModule().__name__
-        else:
-            name = 'Products.%s' % self.id
-        return name
+        if self._modulename is None:
+            if self.isEggPack():
+                self._modulename = self.getModule().__name__
+            else:
+                self._modulename = 'Products.%s' % self.id
+        return self._modulename
 
 
     def installConfFile(self, filename):
