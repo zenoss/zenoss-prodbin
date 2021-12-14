@@ -43,6 +43,7 @@
         />
 
     <browser:view
+        zcml:condition="installed ZenPacks.zenoss.PS.QFramework"
         class=".modelapi.QFrameworkDaemons"
         name="QFrameworkDaemons"
         for="Products.ZenModel.interfaces.IDataRoot"
