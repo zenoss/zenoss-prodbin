@@ -9,6 +9,9 @@
 
 
 Ext.onReady(function(){
+var stateProvider = Ext.state.Manager.getProvider();
+// wait until state is ready;
+stateProvider.onStateReady(function() {
 var REMOTE = Zenoss.remote.DeviceRouter,
     UID = Zenoss.env.device_uid;
     Zenoss.device.componentNode = {
@@ -1296,5 +1299,5 @@ Ext.getCmp('footer_bar').add([{
         Ext.History.add("deviceDetailNav:device_overview");
     }
 
-
+}); // stateProvider.onStateReady
 });
