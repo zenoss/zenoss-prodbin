@@ -185,7 +185,30 @@ class EventDaemons(BaseApiView):
         return (
             ('zenEventDs', 'zeneventd'),
             ('zenEventServers', 'zeneventserver'),
+        )
+
+
+class ZenActionDDaemon(BaseApiView):
+    """
+    This views emits info for zenactiond. Not exposed if QFramework is installed.
+    """
+    @property
+    def _services(self):
+        return (
             ('zenActionDs', 'zenactiond'),
+        )
+
+
+class QFrameworkDaemons(BaseApiView):
+    """
+    This view emits info for zenmwd, zennotify, and zennotifyworker
+    """
+    @property
+    def _services(self):
+        return (
+            ('zenMWDs', 'zenmwd'),
+            ('zenNotifys', 'zennotify'),
+            ('zenNotifyWorkers', 'zennotifyworker'),
         )
 
 
