@@ -1007,7 +1007,7 @@ registerDirectory("skins", globals())
         """
         Return the importable dotted module name for this zenpack.
         """
-        if self._modulename is None:
+        if not hasattr(self, "_modulename") or self._modulename is None:
             if self.isEggPack():
                 self._modulename = self.getModule().__name__
             else:
