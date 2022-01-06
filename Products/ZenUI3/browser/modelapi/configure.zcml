@@ -35,6 +35,22 @@
         />
 
     <browser:view
+        zcml:condition="not-installed ZenPacks.zenoss.PS.QFramework"
+        class=".modelapi.ZenActionDDaemon"
+        name="ZenActionDDaemon"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        zcml:condition="installed ZenPacks.zenoss.PS.QFramework"
+        class=".modelapi.QFrameworkDaemons"
+        name="QFrameworkDaemons"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
         class=".modelapi.MetricServices"
         name="MetricServices"
         for="Products.ZenModel.interfaces.IDataRoot"

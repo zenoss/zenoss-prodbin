@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009, 2021 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -10,9 +10,11 @@
 import logging
 import redis
 import time
+import cgi
 import transaction
 from copy import deepcopy
 from types import ClassType
+from urlparse import urlparse
 
 from AccessControl import getSecurityManager
 from AccessControl.PermissionRole import rolesForPermissionOn
@@ -294,6 +296,20 @@ def mutateRPN(prefix, knownDatapointNames, rpn):
         else:
             newRPN.append(token)
     return ",".join(newRPN)
+
+def sanitizeUrl(url):
+    """
+    For XSS injections javascript scheme can be used. 
+    Check if URL scheme is safe and sanitizes URL
+    """
+    safeSchemes = ['', 'http', 'https']
+
+    sanitizedUrl = cgi.escape(url)
+    parsedUrl = urlparse(sanitizedUrl)
+    if parsedUrl.scheme not in safeSchemes:
+        raise ValueError("URL is not valid")
+
+    return sanitizedUrl 
 
 class UncataloguedObjectException(Exception):
     """

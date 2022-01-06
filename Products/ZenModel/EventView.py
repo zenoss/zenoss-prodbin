@@ -13,10 +13,12 @@ log = logging.getLogger("zen.EventView")
 
 from decorator import decorator
 from copy import deepcopy
+from zope.component import getUtility
 from AccessControl import ClassSecurityInfo, getSecurityManager
 from AccessControl.class_init import InitializeClass
 from zope.interface import Interface, implements
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.Zuul import getFacade
 from Products.ZenWidgets import messaging
 from zenoss.protocols.services import ServiceResponseError
@@ -120,7 +122,7 @@ class EventView(object):
                                                      priority=messaging.INFO)
         if REQUEST:
             dest = '/zport/dmd/Events/evconsole'
-            REQUEST['RESPONSE'].redirect(dest)
+            REQUEST['RESPONSE'].redirect(getUtility(IVirtualRoot).ensure_virtual_root(dest))
 
     security.declareProtected('Manage Events','manage_ackEvents')
     @zepConnectionError()
