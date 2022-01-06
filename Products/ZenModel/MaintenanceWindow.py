@@ -28,6 +28,9 @@ log = logging.getLogger("zen.MaintenanceWindows")
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
 from AccessControl import ClassSecurityInfo
 from zope.interface import implements
 from ZenossSecurity import *
