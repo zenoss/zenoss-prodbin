@@ -30,6 +30,21 @@ class ExpiringCache(object):
         for key, value in d.iteritems():
             self.set(key, value, asof=asof, set_fn=set_fn)
 
+    def validate(self, key):
+        """Returns True if the key is still valid.
+        """
+        now = time.time()
+        if key not in self.data:
+            return False
+        added, value = self.data[key]
+        if added + self.seconds < now:
+            self.invalidate(key)
+            return False
+        return True
+
+    def __contains__(self, key):
+        return self.validate(key)
+
     def set(self, key, value, asof=None, set_fn=None):
         """Set key to value in cache.
         Specify asof as a time.time()-style timestamp to update as of

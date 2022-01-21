@@ -37,7 +37,7 @@ from Products.Zuul.utils import safe_hasattr as hasattr
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.DataCollector import Classifier
 from Products.DataCollector.plugins.DataMaps import PLUGIN_NAME_ATTR
-from Products.ZenCollector.Cyberark import get_cyberark
+from Products.ZenCollector.cyberark import get_cyberark
 from Products.ZenCollector.interfaces import IEventService
 from Products.ZenCollector.daemon import parseWorkerOptions, addWorkerOptions
 
