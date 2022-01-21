@@ -30,7 +30,7 @@ import zope.interface
 from twisted.internet import defer, reactor, task
 from twisted.python.failure import Failure
 
-from Products.ZenCollector.Cyberark import get_cyberark
+from Products.ZenCollector.cyberark import get_cyberark
 from Products.ZenCollector.interfaces import IScheduler, IScheduledTask, IPausingScheduledTask
 from Products.ZenCollector.tasks import TaskStates
 from Products.ZenEvents import Event
