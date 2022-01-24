@@ -135,7 +135,7 @@ class TestCyberArk(TestCase):
         vault = CyberArk(query, t.manager)
         conf = t.Conf(query)
 
-        vault.update_config(conf)
+        vault.update_config(conf.configId, conf)
 
         t.assertTrue(getattr(conf, _cyberark_flag, None))
         t.assertEqual(conf.zProp2, "")
@@ -158,7 +158,7 @@ class TestCyberArk(TestCase):
         result = """{"Content": "stuff"}"""
         t.client.request.return_value = (status, result)
 
-        vault.update_config(conf)
+        vault.update_config(conf.configId, conf)
 
         t.assertTrue(getattr(conf, _cyberark_flag, None))
         t.assertEqual(conf.zProp2, "stuff")
@@ -178,7 +178,7 @@ class TestCyberArk(TestCase):
         conf = t.Conf(query)
         conf.zProp2 = "value2"
 
-        vault.update_config(conf)
+        vault.update_config(conf.configId, conf)
 
         t.assertFalse(None)
         t.assertFalse(getattr(conf, _cyberark_flag, None))

@@ -897,7 +897,7 @@ class ZenModeler(PBDaemon):
                         self.log.info(d.skipModelMsg)
                     else:
                         if self.cyberark:
-                            yield self.cyberark.update_config(d)
+                            yield self.cyberark.update_config(d.id, d)
                             driver.next()
                             self.log.info('config updated')
                         self.collectDevice(d)
