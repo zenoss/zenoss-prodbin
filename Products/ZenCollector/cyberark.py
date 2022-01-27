@@ -115,19 +115,7 @@ class CyberArk(object):
         self._base_query = query
 
     @defer.inlineCallbacks
-    def update_datasource(self, task):
-        if hasattr(task, 'config'):
-            if hasattr(task.config, 'datasources') and task.config.datasources:
-                ds0 = task.config.datasources[0]
-                # we update single config first, to get values for other
-                # configs from cache
-                yield self.update_config(ds0)
-                for ds in task.config.datasources[1:]:
-                    yield self.update_config(ds)
-        defer.returnValue(None)
-
-    @defer.inlineCallbacks
-    def update_config(self, config, device_info_object=None):
+    def update_config(self, deviceId, config):
         """Updates particular zproperties of the given device config.
 
         The particular zproperties are identifiable by their value.  If a
@@ -137,14 +125,9 @@ class CyberArk(object):
         If the value is not found in CyberArk, an empty string is used as
         the value of the zproperty.
 
+        :param str deviceId: Identifies the device
         :param config: The device config object.
-        :param device_info_object: Optional object to pass in if config's
-            device ID can't be guessed from the config.
         """
-        if not device_info_object:
-            device_info_object = config
-        deviceId = _get_device_id(device_info_object)
-
         has_queries = getattr(config, _cyberark_flag, None)
 
         # A value of None for the cyberark flag indicates we need to
@@ -175,26 +158,6 @@ class CyberArk(object):
                 self._manager.add(deviceId, name, value.strip())
                 has_queries = True
         return has_queries
-
-
-def _get_device_id(info):
-    # This is a hack to determine the device ID.
-    # It would be better if the caller passed in the device ID since it
-    # already knows that value.
-
-    # zencommand and zenperfsnmp
-    if hasattr(info, '_devId'):
-        return info._devId
-    # zenpython
-    if hasattr(info, 'device'):
-        return info.device
-    # zenmodeler
-    if hasattr(info, 'id'):
-        return info.id
-    # zenvsphere
-    if hasattr(info, 'configId'):
-        return info.configId
-    return 'default'
 
 
 class CyberArkManager(object):
