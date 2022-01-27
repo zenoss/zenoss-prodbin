@@ -396,7 +396,7 @@ _base_event_data = {
 def _makeClearEvent(deviceId):
     return dict(_base_event_data, **{
         "device": deviceId,
-        "summary": "Successful CyberArk collection.",
+        "summary": "Successful CyberArk request.",
         "severity": Event.Clear,
     })
 
@@ -420,7 +420,7 @@ class CyberArkClient(object):
         :param conf: Contains the CyberArk configuration data
         :type conf: A dict-like object providing the 'get' method.
         """
-        url = unicode(conf.get(_CFG_URL))
+        url = conf.get(_CFG_URL)
         port = conf.get(_CFG_PORT)
         cert_path = conf.get(_CFG_CERT_PATH)
         log.debug("Using config '%s' = '%s'", _CFG_URL, url)
@@ -467,7 +467,7 @@ class CyberArkClient(object):
             query = query[1:]
         path = "/".join((self.base_path, query))
         url = urlparse.urljoin(self.base_url, path)
-        log.debug("Request url: %s", url)
+        log.debug("Request URL is %s", url)
 
         try:
             response = yield self.agent.request("GET", url, None, None)
