@@ -737,7 +737,10 @@ class SnmpPerformanceCollectionTask(BaseTask):
         # See if we need to connect first before doing any collection
         if self._scheduler.cyberark:
             d = defer.maybeDeferred(
-                self._scheduler.cyberark.update_config, self._snmpConnInfo, self)
+                self._scheduler.cyberark.update_config,
+                self._devId,
+                self._snmpConnInfo,
+            )
             d.addCallback(self._connect)
         else:
             d = defer.maybeDeferred(self._connect)

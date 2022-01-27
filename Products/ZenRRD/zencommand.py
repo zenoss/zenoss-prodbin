@@ -453,7 +453,8 @@ class SshPerformanceCollectionTask(BaseTask):
             old_pass = self._device.zCommandPassword
             old_name = self._device.zCommandUsername
             yield self._scheduler.cyberark.update_config(
-                self._device, self)
+                self._devId, self._device,
+            )
             if (old_pass != self._device.zCommandPassword or old_name != self._device.zCommandUsername):
                 self._connector.close()
                 self.__init__(self.name, self.configId, self.interval, self._device)
