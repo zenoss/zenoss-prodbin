@@ -30,6 +30,7 @@ import zope.interface
 from twisted.internet import defer, reactor, task
 from twisted.python.failure import Failure
 
+from Products.ZenCollector.cyberark import get_cyberark
 from Products.ZenCollector.interfaces import IScheduler, IScheduledTask, IPausingScheduledTask
 from Products.ZenCollector.tasks import TaskStates
 from Products.ZenEvents import Event
@@ -125,6 +126,7 @@ class CallableTask(object):
         else:
             self.task = task
 
+        self.task._scheduler = scheduler
         self._scheduler = scheduler
         self._executor = executor
         self.paused = False
@@ -308,6 +310,7 @@ class Scheduler(object):
         self._cleanupTask.start(Scheduler.CLEANUP_TASKS_INTERVAL)
 
         self._executor = TwistedExecutor(1)
+        self.cyberark = get_cyberark()
 
         # Ensure that we can cleanly shutdown all of our tasks
         reactor.addSystemEventTrigger('before', 'shutdown', self.shutdown, 'before')
