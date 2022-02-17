@@ -57,8 +57,12 @@ def get_cyberark():
         cyberark = CyberArk.from_dict(
             _Config(global_config, _default_config),
         )
-    except Exception:
-        log.exception("CyberArk failed to initialize.")
+    except Exception as ex:
+        mesg = "CyberArk failed to initialize"
+        if log.isEnabledFor(logging.DEBUG):
+            log.exception(mesg)
+        else:
+            log.error(mesg + " - %s", ex)
     else:
         log.info("CyberArk ready.")
         return cyberark
@@ -422,13 +426,15 @@ class CyberArkClient(object):
         try:
             response = yield self.agent.request("GET", url, None, None)
         except Exception as ex:
-            log.exception("Request failed url=%s", url)
+            if log.isEnabledFor(logging.DEBUG):
+                log.exception("Request failed  url=%s", url)
             raise Failure(ex)
 
         try:
             result = yield client.readBody(response)
         except Exception as ex:
-            log.exception("Failed to read message body  url=%s", url)
+            if log.isEnabledFor(logging.DEBUG):
+                log.exception("Failed to read message body  url=%s", url)
             raise Failure(ex)
 
         defer.returnValue((response.code, result))
