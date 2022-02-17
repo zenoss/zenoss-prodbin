@@ -67,7 +67,7 @@ class TestFunctions(TestCase):
         result = get_cyberark()
         t.assertIsNone(result)
         t.log.exception.assert_called_once_with(
-            "CyberArk failed to initialize.",
+            "CyberArk failed to initialize",
         )
 
     @patch("{src}.load_certificates".format(**PATH))
@@ -80,7 +80,7 @@ class TestFunctions(TestCase):
         result = get_cyberark()
         t.assertIsNone(result)
         t.log.exception.assert_called_once_with(
-            "CyberArk failed to initialize.",
+            "CyberArk failed to initialize",
         )
 
     @patch("{src}.CyberArkManager".format(**PATH), autospec=True)
@@ -451,7 +451,7 @@ class TestCyberArkClient(TestCase):
         dfr.addErrback(lambda x: x.value)
         t.assertEqual(ex, dfr.result)
         t.log.exception.assert_called_once_with(
-            "Request failed url=%s",
+            "Request failed  url=%s",
             "https://vault/bar/baz?appid=foo&object=foo",
         )
 

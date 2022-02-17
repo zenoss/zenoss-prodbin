@@ -42,8 +42,12 @@ def get(args):
     log.info("Retrieving value for %s", args.query)
     try:
         code, result = yield client.request(args.query)
-    except Exception:
-        log.exception("Unable to send request")
+    except Exception as ex:
+        mesg = "Unable to send request"
+        if log.isEnabledFor(logging.DEBUG):
+            log.exception(mesg)
+        else:
+            log.error(mesg + ": %s", ex)
         raise SystemExit(1)
 
     result = result.strip()
