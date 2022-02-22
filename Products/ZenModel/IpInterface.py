@@ -371,7 +371,7 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
                     try:
                         self.addIpAddress(ip)
                     except IpAddressError:
-                        log.info("Ignoring invalid IP address {rawip}".format(rawip=rawip))
+                        log.info("Ignoring invalid IP address %s", rawip)
                 elif len(ipmatch) == 1:
                     ipids.remove(ipmatch[0])
 

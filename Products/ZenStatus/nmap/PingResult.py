@@ -73,13 +73,13 @@ class PingResult(object):
                 pr._rtt, pr._rttVariance = pr._parseTimes(hostTree)
             except Exception as ex:
                 traceback = format_exc()
-                log.debug("Error parsing times %s %s " % (ex, traceback))
+                log.debug("Error parsing times %s %s ", ex, traceback)
                 pr._rtt, pr._rttVariace = (_NAN, _NAN)
         try:
             pr._trace = pr._parseTraceroute(hostTree)
         except Exception as ex:
             traceback = format_exc()
-            log.debug("Error parsing trace routes %s %s " % (ex, traceback))
+            log.debug("Error parsing trace routes %s %s ", ex, traceback)
             pr._trace = _NO_TRACE
         return pr
 
@@ -105,7 +105,7 @@ class PingResult(object):
             return None
         except Exception as ex:
             traceback = format_exc()
-            log.debug("Error parsing timestamp %s %s " % (ex, traceback))
+            log.debug("Error parsing timestamp %s %s ", ex, traceback)
         return timestamp
 
     def _parseTimes(self, hostTree):

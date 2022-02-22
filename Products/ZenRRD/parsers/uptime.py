@@ -69,7 +69,7 @@ def parseUptime(output):
 
     if match:
         uptime = dict((k, int(v)) for k, v in match.groupdict(0).items())
-        log.debug(UPTIME_FORMAT % uptime)
+        log.debug(UPTIME_FORMAT, uptime)
     else:
         uptime = None
         log.debug("uptime: no match")

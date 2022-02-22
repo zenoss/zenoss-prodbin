@@ -134,7 +134,7 @@ def serviceConnectionError(func, *args, **kwargs):
     except ZepConnectionError as e:
         count += 1
         setattr(attempts, 'value', count)
-        log.warn('Connection refused. Check zeneventserver status on Services. Exception on thread: %s' % threading.current_thread().ident)
+        log.warn('Connection refused. Check zeneventserver status on Services. Exception on thread: %s', threading.current_thread().ident)
         if count >= 10:
             msg = 'Connection refused. Check zeneventserver status on <a href="zport/dmd/daemons">Services</a>'
             setattr(attempts, 'value', 0)

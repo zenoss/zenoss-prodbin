@@ -104,7 +104,7 @@ class MetricReporter(Reporter):
         self.session.headers.update({'Content-Type': 'application/json'})
         self.session.headers.update({'User-Agent': 'Zenoss Service Metrics'})
         post_data = {'metrics': metrics}
-        log.debug("Sending metric payload: %s" % post_data)
+        log.debug("Sending metric payload: %s", post_data)
         response = self.session.post(self.metric_destination,
                                      data=json.dumps(post_data))
         if response.status_code != 200:
@@ -112,7 +112,7 @@ class MetricReporter(Reporter):
                         response.status_code, response.text.replace('\n', '\\n'))
             self.session = None
         else:
-            log.debug("%d Metrics posted" % len(metrics))
+            log.debug("%d Metrics posted", len(metrics))
 
 
 class TwistedMetricReporter(object):

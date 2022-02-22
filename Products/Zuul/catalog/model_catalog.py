@@ -206,7 +206,7 @@ class ModelCatalogClient(object):
             try:
                 self._data_manager.add_model_update(ObjectUpdate(obj, op=INDEX, idxs=idxs))
             except IndexException as e:
-                log.error("EXCEPTION {0} {1}".format(e, e.message))
+                log.error("EXCEPTION %s %s", e, e.message)
                 self._data_manager.raise_model_catalog_error("Exception indexing object")
 
     def uncatalog_object(self, obj):
@@ -214,7 +214,7 @@ class ModelCatalogClient(object):
             try:
                 self._data_manager.add_model_update(ObjectUpdate(obj, op=UNINDEX))
             except IndexException as e:
-                log.error("EXCEPTION {0} {1}".format(e, e.message))
+                log.error("EXCEPTION %s %s", e, e.message)
                 self._data_manager.raise_model_catalog_error("Exception unindexing object")
 
     def get_brain_from_object(self, obj, context, fields=None):
@@ -470,7 +470,7 @@ class ModelCatalogDataManager(object):
             search_params = self._add_tx_state_query(search_params, None)
             catalog_results = self.model_index.cursor_search(search_params)
         except SearchException as e:
-            log.error("EXCEPTION: {0}".format(e.message))
+            log.error("EXCEPTION: %s", e.message)
             self.raise_model_catalog_error("Exception performing search")
         else:
             results = IterResults(catalog_results, self._parse_catalog_results, context)
@@ -495,7 +495,7 @@ class ModelCatalogDataManager(object):
             search_params.fields = self._get_fields_to_return(search_params.fields)
             catalog_results = self.model_index.search(search_params)
         except SearchException as e:
-            log.error("EXCEPTION: {0}".format(e.message))
+            log.error("EXCEPTION: %s", e.message)
             self.raise_model_catalog_error("Exception performing search")
 
         brains = iter(self._parse_catalog_results(catalog_results, context))
@@ -588,7 +588,7 @@ class ModelCatalogDataManager(object):
                 query = {TX_STATE_FIELD:tx_state.tid}
                 self.model_index.unindex_search(SearchParams(query))
             except Exception as e:
-                log.fatal("Exception trying to abort current transaction. {0} / {1}".format(e, e.message))
+                log.fatal("Exception trying to abort current transaction. %s / %s", e, e.message)
                 raise ModelCatalogError("Model Catalog error trying to abort transaction")
 
     #---------------------------------------------------------------------------
@@ -608,7 +608,7 @@ class ModelCatalogDataManager(object):
         if tx_state:
             start = time.time()
             tx_state.prepare_updates_to_finish_transaction()
-            log.debug("Preparing updates to finish tx took {}".format(time.time()-start))
+            log.debug("Preparing updates to finish tx took %s", time.time()-start)
 
     def commit(self, transaction):
         pass
@@ -627,9 +627,9 @@ class ModelCatalogDataManager(object):
                 try:
                     self.model_index.process_batched_updates(updates)
                     self._delete_temporary_tx_documents()
-                    log.debug("COMMIT_METRIC: {0}. MID-TX COMMITS? {1}".format(tx_state.commits_metric, dirty_tx))
+                    log.debug("COMMIT_METRIC: %s. MID-TX COMMITS? %s", tx_state.commits_metric, dirty_tx)
                 except Exception as e:
-                    log.exception("Exception in tcp_finish: {0} / {1}".format(e, e.message))
+                    log.exception("Exception in tcp_finish: %s / %s", e, e.message)
                     self.abort(transaction)
                     raise
         finally:
@@ -735,7 +735,7 @@ def get_solr_config(test=False):
         return config.get('solr-test-server', 'localhost:8993')
     if not SOLR_CONFIG:
         SOLR_CONFIG.append(config.get('solr-servers', 'localhost:8983'))
-        log.info("Loaded Solr config from global.conf. Solr Servers: {}".format(SOLR_CONFIG))
+        log.info("Loaded Solr config from global.conf. Solr Servers: %s", SOLR_CONFIG)
     return SOLR_CONFIG[0]
 
 

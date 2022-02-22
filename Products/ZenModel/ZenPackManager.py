@@ -297,7 +297,7 @@ class ZenPackManager(ZenModelRM):
             # TODO: show the output in a scrollable window.
             # format command result for HTML
             #msg = '<br>'.join(line.strip() for line in msg.split('\n') if line.strip())
-            log.info("Output from installing ZenPack %s:\n%s" % (zenpack.filename, msg))
+            log.info("Output from installing ZenPack %s:\n%s", zenpack.filename, msg)
             success = 'ERROR' not in msg
             msg = "Successfully installed ZenPack %s" % zenpack.filename if success \
                     else "Failed to install ZenPack %s. " \

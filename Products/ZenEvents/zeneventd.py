@@ -329,7 +329,7 @@ class ZenEventD(ZCmdBase):
 
     def sighandler_USR1(self, signum, frame):
         super(ZenEventD, self).sighandler_USR1(signum, frame)
-        log.debug('sighandler_USR1 called %s' % signum)
+        log.debug('sighandler_USR1 called %s', signum)
         objectEventNotify(SigUsr1Event(self, signum))
 
     def buildOptions(self):

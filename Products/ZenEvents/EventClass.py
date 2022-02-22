@@ -204,7 +204,7 @@ class EventClass(EventClassPropertyMixin, Organizer,
                     path = path[1:]
                 return self.getDmdRoot('Events').findChild(path)
             except (AttributeError, KeyError):
-                log.debug("Unable to find '%s' organizer" % evt.eventClass)
+                log.debug("Unable to find '%s' organizer", evt.eventClass)
 
         # Use defaultmapping if no eventClassKey is set, or if it blank.
         eventClassKey = getattr(evt, 'eventClassKey', 'defaultmapping') \

@@ -105,7 +105,7 @@ class RRDDaemon(PBDaemon):
             value = table.get(name, None)
             if value is not None:
                 if getattr(self, name) != value:
-                    self.log.debug('Updated %s config to %s' % (name, value))
+                    self.log.debug('Updated %s config to %s', name, value)
                 setattr(self, name, value)
 
 

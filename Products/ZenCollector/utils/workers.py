@@ -85,7 +85,7 @@ class ProcessWorkers(object):
 
     def sendSignal(self, signum):
         for worker in self._workers.values():
-            log.debug("Sending signal %s to %s" % (signum, worker.pid))
+            log.debug("Sending signal %s to %s", signum, worker.pid)
             os.kill(worker.pid, signum)
             
     def startWorkers(self):
@@ -130,7 +130,7 @@ class ProcessWorkers(object):
         """
         no_problem_children = True
         for worker in self._workers.values():
-            log.info("Stopping worker %s..." % worker)
+            log.info("Stopping worker %s...", worker)
             if not worker.is_alive():
                 no_problem_children = False  # Worker may be starting up.
             worker.terminate()
@@ -167,11 +167,11 @@ class ProcessWorkers(object):
                     os.kill(worker.pid, signal.SIGKILL)
                     os.waitpid(worker.pid, os.WNOHANG)
                     worker.join()
-                    log.info("Force killed worker pid %s" % worker.pid)
+                    log.info("Force killed worker pid %s", worker.pid)
                 except OSError:
                     # It hasn't fully started, or it died, or we already force killed it.
                     # We'll try again but log it just in case.
-                    log.info("Could not kill worker pid %s" % worker.pid)
+                    log.info("Could not kill worker pid %s", worker.pid)
 
             if i < MAX_SECONDS_TO_FORCE_KILL_WORKERS - 1:
                 sleep(1) # Give them another second to finish up.
@@ -183,13 +183,13 @@ class ProcessWorkers(object):
             return
         try:
             self._checking = True
-            log.debug("checking workers: current %s, max %s"%(len(self._workers), self._maxWorkers))
+            log.debug("checking workers: current %s, max %s", len(self._workers), self._maxWorkers)
             renewed_workers={}
             for worker_id in self._workers:  
                 if not self._workers[worker_id].is_alive():
                     # It's possible this worker hasn't fully registered with the OS
                     # and will soon start, but it's unlikely we'd be here that soon.
-                    log.info("worker %s is dead. Starting worker again" % self._workers[worker_id])
+                    log.info("worker %s is dead. Starting worker again", self._workers[worker_id])
                     renewed_workers[worker_id] = self._startWorker(worker_id)
             self._workers.update(renewed_workers)
         finally:
@@ -199,7 +199,7 @@ class ProcessWorkers(object):
         workerName = worker_id
         if self._workerName:
             workerName = '%s %s' % (self._workerName, worker_id)
-        log.warning('Starting worker %s' % workerName)
+        log.warning('Starting worker %s', workerName)
         # if self._workerTarget is None, we just call exec_worker with _workerCount + 1 as worker_id
         target = self._workerTarget
         target_kwargs= {}
@@ -213,5 +213,5 @@ class ProcessWorkers(object):
             )
         p.daemon = True
         p.start()
-        log.info("Started worker {0}: current pid={0.pid}".format(p))
+        log.info("Started worker %s: current pid=%s", p, p.pid)
         return p

@@ -77,7 +77,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
             try:
                 objs.append(ob.__of__(self))
             except AttributeError:
-                log.info("Ignoring unresolvable object '%s'", str(ob))
+                log.info("Ignoring unresolvable object '%s'", ob)
         return objs
 
     def __call__(self):
@@ -192,7 +192,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
                 rel._remove(self.__primary_parent__)
             except ObjectNotFound:
                 message = log_tb(sys.exc_info())
-                log.error('Remote remove failed. Run "zenchkrels -r -x1". ' + message)
+                log.error('Remote remove failed. Run "zenchkrels -r -x1". %s', message)
                 continue
 
 

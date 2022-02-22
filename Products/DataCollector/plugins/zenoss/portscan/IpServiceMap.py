@@ -45,7 +45,7 @@ class IpServiceMap(CollectorPlugin):
         """
         Collect open port information from this device.
         """
-        log.info('processing Ip Services for device %s' % device.id)
+        log.info('processing Ip Services for device %s', device.id)
         addr, ports = results
         rm = self.relMap()
         for port in ports:

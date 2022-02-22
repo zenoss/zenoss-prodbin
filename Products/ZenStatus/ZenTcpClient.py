@@ -47,7 +47,7 @@ class ZenTcpTest(protocol.Protocol):
         Connected successfully to the remote device, now test against any
         regex that we might have and record the result.
         """
-        log.debug("Connected to %s" % self.transport.getPeer().host)
+        log.debug("Connected to %s", self.transport.getPeer().host)
         self.factory.msg = "pass"
         self.cfg = self.factory.cfg
 

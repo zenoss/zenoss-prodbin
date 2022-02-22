@@ -393,10 +393,10 @@ class Scheduler(object):
         doesn't return a deferred, here for sanity and debug"""
         if task_name in self._loopingCalls:
             loopingCall = self._loopingCalls[task_name]
-            log.debug("call finished %s : %s" % (loopingCall, result))
+            log.debug("call finished %s : %s", loopingCall, result)
         if isinstance(result, Failure):
-            log.warn("Failure in looping call, will not reschedule %s" % task_name)
-            log.error("%s" % result)
+            log.warn("Failure in looping call, will not reschedule %s", task_name)
+            log.error("%s", result)
 
     def _startTask(self, result, task_name, interval, configId, delayed, attempts=0):
         """start the task using a callback so that its put at the bottom of
@@ -774,7 +774,7 @@ class Scheduler(object):
         Twisted callback to remove a task from the cleanup queue once it has
         completed its cleanup work.
         """
-        log.debug("Scheduler._cleanupTaskComplete: result=%s task.name=%s" % (result, task.name))
+        log.debug("Scheduler._cleanupTaskComplete: result=%s task.name=%s", result, task.name)
         self._tasksToCleanup.discard(task)
         return result
 

@@ -43,11 +43,11 @@ class IpServiceMap(PythonPlugin):
             readyopts = readyopts + " " + device.manageIp
         #if there was an error make a best effort
         except Exception as e:
-            log.error("zNmapPortscanOptions contain illegal Tales expression, please review: %s" % e)
+            log.error("zNmapPortscanOptions contain illegal Tales expression, please review: %s", e)
             readyopts = NMAPDEFAULTS + " " + device.manageIp
         nmapoptions = readyopts.split(" ") 
-        log.info("running the following nmap command: %s %s" % \
-                  ("/usr/bin/nmap", " ".join(nmapoptions)))
+        log.info("running the following nmap command: %s %s",
+                 "/usr/bin/nmap", " ".join(nmapoptions))
         return getProcessOutput("/usr/bin/nmap", nmapoptions)
 
 

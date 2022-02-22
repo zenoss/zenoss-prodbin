@@ -63,10 +63,10 @@ class IpV6ServiceMap(SnmpPlugin):
 
             addr = IpUtil.bytesToCanonIp(addr_parts)
             if not self.ignoredAddr(addr):
-                log.debug("Adding addr: %s" % addr)
+                log.debug("Adding addr: %s", addr)
                 result.append((addr, port))
             else:
-                log.debug("Ignoring addr: %s" % addr)
+                log.debug("Ignoring addr: %s", addr)
 
             # Any IPv6 address is inclusive of any IPv4 addresses as well
             if addr == IpUtil.IPV6_ANY_ADDRESS:

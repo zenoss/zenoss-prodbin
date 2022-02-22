@@ -59,7 +59,7 @@ class ShardedBTree(SimpleItem):
             try:
                 s_id = self.hash_func(key) % self.n_shards
             except Exception:
-                log.warn("Could not hash key: {}".format(key))
+                log.warn("Could not hash key: %s", key)
         return s_id
 
     def _get_shard(self, key):
