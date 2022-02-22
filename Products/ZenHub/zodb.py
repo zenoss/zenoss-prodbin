@@ -60,7 +60,7 @@ def _listener_decorator_factory(eventtype):
             def inner(self, obj, event):
                 # Log that we've called this listener
                 fname = '.'.join((self.__class__.__name__, f.__name__))
-                log.debug('%s is interested in %r for %r' % (fname, event, obj))
+                log.debug('%s is interested in %r for %r', fname, event, obj)
 
                 # Call the original function
                 return f(self, obj, event)

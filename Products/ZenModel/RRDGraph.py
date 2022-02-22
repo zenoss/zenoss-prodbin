@@ -206,7 +206,7 @@ class RRDGraph(ZenModelRM):
                     i, color)
         import logging
         log = logging.getLogger("debug")
-        log.error('%r' % gopts)
+        log.error('%r', gopts)
         return gopts
 
 

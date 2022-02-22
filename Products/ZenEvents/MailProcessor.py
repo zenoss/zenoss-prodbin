@@ -101,7 +101,7 @@ class MessageProcessor(object):
 
         fromAddr = message.get('From')
         origFromAddr = fromAddr
-        log.debug("Found a 'from' address of %s" % fromAddr)
+        log.debug("Found a 'from' address of %s", fromAddr)
         if not fromAddr or fromAddr.find('@') == -1:
             log.warning("Unable to process the 'from' address %s -- ignoring mail", fromAddr)
             return
@@ -111,13 +111,13 @@ class MessageProcessor(object):
             log.warning("Could not parse email address in the 'from' address %s -- ignoring mail",
                         origFromAddr)
             return
-        log.debug("The from address after processing is '%s'" % fromAddr)
+        log.debug("The from address after processing is '%s'", fromAddr)
         fromHost = fromAddr.split('@')[-1]
         try:
             fromIp = socket.gethostbyname(fromHost)
         except socket.gaierror:
             fromIp = None
-            log.info('Hostname lookup failed for host: %s' % fromHost)
+            log.info('Hostname lookup failed for host: %s', fromHost)
 
         subject = message.get('Subject').replace("\r","").replace("\n", "")
 

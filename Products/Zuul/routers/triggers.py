@@ -45,7 +45,7 @@ class TriggersRouter(DirectRouter):
         try:
             data = self._getFacade().addTrigger(newId)
         except DuplicateTriggerName as tnc:
-            log.debug("Exception DuplicateTriggerName: %s" % tnc)
+            log.debug("Exception DuplicateTriggerName: %s", tnc)
             return DirectResponse.fail(str(tnc))
         else:
             audit('UI.Trigger.Add', newId)
@@ -117,7 +117,7 @@ class TriggersRouter(DirectRouter):
             (dict(id=id, name=util.name) for id, util in utils),
             key=itemgetter('id')
         )
-        log.debug('notification action types are: %s' % actionTypes)
+        log.debug('notification action types are: %s', actionTypes)
         return DirectResponse.succeed(data=actionTypes)
 
     @serviceConnectionError
@@ -205,7 +205,7 @@ class TriggersRouter(DirectRouter):
             audit('UI.TriggerNotification.Import',
                   "Failed to import trigger/notification data")
             log.exception(
-                "Unable to import data:\ntriggers=%s\nnotifications=%s",
-                repr(triggers), repr(notifications)
+                "Unable to import data:\ntriggers=%r\nnotifications=%r",
+                triggers, notifications
             )
             return DirectResponse.fail(str(ex))

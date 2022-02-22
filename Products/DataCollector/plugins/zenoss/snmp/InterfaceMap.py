@@ -102,7 +102,7 @@ class InterfaceMap(SnmpPlugin):
                 sourceTable = 'ipNetToMediaTable'
             else:
                 log.warn("Unable to get data for %s from either ipAddrTable or"
-                          " ipNetToMediaTable" % device.id)
+                          " ipNetToMediaTable", device.id)
                 iptable = dict()
 
         # Add in IPv6 info
@@ -115,7 +115,7 @@ class InterfaceMap(SnmpPlugin):
 
         iftable = tabledata.get("iftable")
         if iftable is None:
-            log.error("Unable to get data for %s for iftable -- skipping model" % device.id)
+            log.error("Unable to get data for %s for iftable -- skipping model", device.id)
             return None
 
         ifalias = tabledata.get("ifalias", {})
@@ -133,7 +133,7 @@ class InterfaceMap(SnmpPlugin):
         for ip, row in iptable.items():
             #FIXME - not getting ifindex back from HP printer
             if 'ifindex' not in row:
-                log.debug( "IP entry for %s is missing ifindex" % ip)
+                log.debug( "IP entry for %s is missing ifindex", ip)
                 continue
 
             ip_parts = ip.split('.')
@@ -153,8 +153,8 @@ class InterfaceMap(SnmpPlugin):
                 elif len(ip_parts) == 5 and sourceTable == 'ipNetToMediaTable':
                     addr_type = IpUtil.IPV4_ADDR_TYPE
                     if row['iptype'] != 1:
-                        log.debug("iptype (%s) is not 1 -- skipping" % (
-                                 row['iptype'] ))
+                        log.debug("iptype (%s) is not 1 -- skipping",
+                                 row['iptype'] )
                         continue
                     ip = IpUtil.bytesToCanonIp(ip_parts[1:])
                     log.warn("Can't find netmask -- using /24")
@@ -185,8 +185,8 @@ class InterfaceMap(SnmpPlugin):
             elif strindex in omtable:
                 om = omtable[strindex]
             else:
-                log.warn("The IP %s points to missing ifindex %s -- skipping" % (
-                         ip, strindex) )
+                log.warn("The IP %s points to missing ifindex %s -- skipping",
+                         ip, strindex)
                 continue
 
             if not hasattr(om, 'setIpAddresses'):
@@ -217,10 +217,9 @@ class InterfaceMap(SnmpPlugin):
         Sanity check speed
         """
         for ifidx, data in ifalias.items():
-            log.debug( "ifalias %s raw data = %s" % (ifidx,data) )
+            log.debug( "ifalias %s raw data = %s", ifidx, data)
             if ifidx not in iftable:
-                log.debug( "ifidx %s is not in iftable -- skipping" % (
-                           ifidx))
+                log.debug( "ifidx %s is not in iftable -- skipping", ifidx)
                 continue
 
             # Use row's index if no ifIndex column exists for the row.
@@ -268,22 +267,22 @@ class InterfaceMap(SnmpPlugin):
         om.title = om.id
         om.id = self.prepId(om.interfaceName)
         if not om.id:
-            log.debug( "prepId(%s) doesn't return an id -- skipping" % (
-                        om.interfaceName))
+            log.debug( "prepId(%s) doesn't return an id -- skipping",
+                        om.interfaceName)
             return None
 
         dontCollectIntNames = getattr(device, 'zInterfaceMapIgnoreNames', None)
         if dontCollectIntNames and re.search(dontCollectIntNames, om.interfaceName):
-            log.debug( "Interface %s matched the zInterfaceMapIgnoreNames zprop '%s'" % (
-                      om.interfaceName, getattr(device, 'zInterfaceMapIgnoreNames')))
+            log.debug( "Interface %s matched the zInterfaceMapIgnoreNames zprop '%s'",
+                      om.interfaceName, getattr(device, 'zInterfaceMapIgnoreNames'))
             return None
 
         om.type = self.ifTypes.get(str(getattr(om, 'type', 1)), "Unknown")
         dontCollectIntTypes = getattr(device, 'zInterfaceMapIgnoreTypes', None)
         if dontCollectIntTypes and re.search(dontCollectIntTypes, om.type):
-            log.debug( "Interface %s type %s matched the zInterfaceMapIgnoreTypes zprop '%s'" % (
+            log.debug( "Interface %s type %s matched the zInterfaceMapIgnoreTypes zprop '%s'",
                       om.interfaceName, om.type,
-                      getattr(device, 'zInterfaceMapIgnoreTypes')))
+                      getattr(device, 'zInterfaceMapIgnoreTypes'))
             return None
 
         if hasattr(om, 'description'):
@@ -320,8 +319,8 @@ class InterfaceMap(SnmpPlugin):
         # http://whocares.de/2007/12/28/speed-up-your-bonds/
         if om.id.startswith('bond') and om.speed == 1e7:
             newspeed = 1000000000
-            log.debug( "Resetting bond interface %s speed from %s to %s" % (
-                      om.interfaceName, om.speed, newspeed))
+            log.debug( "Resetting bond interface %s speed from %s to %s",
+                      om.interfaceName, om.speed, newspeed)
             om.speed = newspeed
 
         # Clear out all IP addresses for interfaces that no longer have any.

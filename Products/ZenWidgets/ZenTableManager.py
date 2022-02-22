@@ -157,9 +157,9 @@ class ZenTableManager(SimpleItem, PropertyManager):
         """
         if log.isEnabledFor(logging.DEBUG):
             import os
-            fmt = 'getBatch pid={0}, tableName={1}, {2} objects'
+            fmt = 'getBatch pid=%s, tableName=%s, %s objects'
             pid = os.getpid()
-            log.debug(fmt.format(pid, tableName, len(objects)))
+            log.debug(fmt, pid, tableName, len(objects))
         if not objects:
             objects = []
         tableState = self.setupTableState(tableName, **keys)
@@ -242,7 +242,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
 
     def evaluateTales(self, expression, dev):
-        log.warning("evaluating %s" % dev.__dict__)
+        log.warning("evaluating %s", dev.__dict__)
         variables_and_funcs = {
             'device':dev, 'dev':dev
         }
@@ -250,7 +250,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
         try:
             exec(expression, variables_and_funcs)
             attr = variables_and_funcs['attr']
-            log.warning("attr is %s" % attr)
+            log.warning("attr is %s", attr)
         except Exception as ex:
             attr = str(ex)
         return attr

@@ -157,7 +157,7 @@ class Manager(object):
                 # Lookup cache must be invalid, try looking up again
                 self.getElementUuidById.clear()
                 log.warning(
-                        'Clearing ElementUuidById cache becase we could not find %s' % uuid)
+                        'Clearing ElementUuidById cache becase we could not find %s', uuid)
                 uuid = self.getElementUuidById(catalog, element_type_id, id)
                 element = self.getElementByUuid(uuid)
             return element
@@ -250,7 +250,7 @@ class Manager(object):
                 try:
                     uuids.add(self.getElementUuid(obj))
                 except TypeError:
-                    log.debug("Unable to get a uuid for %s " % obj)
+                    log.debug("Unable to get a uuid for %s ", obj)
 
         return filter(None, uuids)
 
@@ -403,7 +403,7 @@ class BaseEventIdentifierPlugin(object):
         """
         Update eventContext in place, updating/resolving identifiers and respective uuid's
         """
-        eventContext.log.debug('Identifying event (%s)' % self.__class__.__name__)
+        eventContext.log.debug('Identifying event (%s)', self.__class__.__name__)
 
         # Get element, most likely a Device
         self._resolveElement(
@@ -447,7 +447,7 @@ class IdentifierPipe(EventProcessorPipe):
         # iterate over all event identifier plugins
         for name, plugin in evtIdentifierPlugins:
             try:
-                eventContext.log.debug("running identifier plugin, name=%s, plugin=%s" % (name,plugin))
+                eventContext.log.debug("running identifier plugin, name=%s, plugin=%s", name, plugin)
                 plugin.resolveIdentifiers(eventContext, self._manager)
             except EventIdentifierPluginAbort as e:
                 eventContext.log.debug(e)
@@ -629,7 +629,7 @@ class UpdateDeviceContextAndTagsPipe(AddDeviceContextAndTagsPipe):
             actor.ClearField(EventField.Actor.ELEMENT_UUID)
             actor.ClearField(EventField.Actor.ELEMENT_SUB_TITLE)
             actor.ClearField(EventField.Actor.ELEMENT_SUB_UUID)
-            eventContext.log.debug("device was cleared, must purge references in current event: %s" % to_dict(eventContext._zepRawEvent))
+            eventContext.log.debug("device was cleared, must purge references in current event: %s", to_dict(eventContext._zepRawEvent))
             # clear out device-specific tags and details
             deviceOrganizerTypeNames = list(type for function,type in self.DEVICE_TAGGERS.values())
             deviceDetailNames = set(deviceOrganizerTypeNames +
@@ -648,7 +648,7 @@ class UpdateDeviceContextAndTagsPipe(AddDeviceContextAndTagsPipe):
 
             # clear device-dependent tags
             evtproxy.tags.clearType(self.DEVICE_TAGGERS.keys())
-            eventContext.log.debug("reset device values in event before reidentifying: %s" % to_dict(eventContext._zepRawEvent))
+            eventContext.log.debug("reset device values in event before reidentifying: %s", to_dict(eventContext._zepRawEvent))
 
         return eventContext
 
@@ -682,7 +682,7 @@ class AssignDefaultEventClassAndTagPipe(EventProcessorPipe):
                 if eventClassUuids:
                     eventContext.eventProxy.tags.addAll(TransformPipe.EVENT_CLASS_TAG, eventClassUuids)
             except (KeyError, AttributeError):
-                log.info("Event has nonexistent event class %s." % eventClass)
+                log.info("Event has nonexistent event class %s.", eventClass)
 
         if eventClass:
             self._setEventFlappingSettings(eventContext, eventClass)
@@ -718,7 +718,7 @@ class FingerprintPipe(EventProcessorPipe):
         if event.HasField(EventField.FINGERPRINT):
             fp = event.fingerprint
             eventContext.eventProxy.dedupid = fp
-            eventContext.log.debug("incoming event has a preset fingerprint %s" % fp)
+            eventContext.log.debug("incoming event has a preset fingerprint %s", fp)
         else:
             dedupFields = self.DEFAULT_FINGERPRINT_FIELDS
             if not (event.HasField(EventField.EVENT_KEY) and
@@ -804,7 +804,7 @@ class TransformPipe(EventProcessorPipe):
             if eventClassUuids:
                 eventContext.eventProxy.tags.addAll(self.EVENT_CLASS_TAG, eventClassUuids)
         except (KeyError, AttributeError):
-            log.info("Event has nonexistent event class %s." % eventClass)
+            log.info("Event has nonexistent event class %s.", eventClass)
 
     def __call__(self, eventContext):
         eventContext.log.debug('Mapping and Transforming event')
@@ -844,7 +844,7 @@ class EventPluginPipe(EventProcessorPipe):
                 plugin.apply(eventContext._eventProxy, self._manager.dmd)
             except Exception as e:
                 eventContext.log.error(
-                        'Event plugin %s encountered an error -- skipping.' % name)
+                        'Event plugin %s encountered an error -- skipping.', name)
                 eventContext.log.exception(e)
                 continue
 

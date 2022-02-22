@@ -109,8 +109,7 @@ class SnmpTrapConfig(CollectorConfigService):
             user = self._create_user(device)
             if user is not None:
                 users.append(user)
-        fmt = 'SnmpTrapConfig.remote_createAllUsers {0} users'
-        log.debug(fmt.format(len(users)))
+        log.debug('SnmpTrapConfig.remote_createAllUsers %s users', len(users))
         return users
 
     def _objectUpdated(self, object):

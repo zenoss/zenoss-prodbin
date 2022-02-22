@@ -372,9 +372,7 @@ def _extractUserIds( self, request, plugins ):
         try:
             credentials = extractor.extractCredentials( request )
         except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
-            log.info( 'ExtractionPlugin %s error' % extractor_id
-                        , exc_info=True
-                        )
+            log.info('ExtractionPlugin %s error', extractor_id, exc_info=True)
             continue
 
         if credentials:
@@ -384,9 +382,7 @@ def _extractUserIds( self, request, plugins ):
                 items = credentials.items()
                 items.sort()
             except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
-                log.info( 'Credentials error: %s' % credentials
-                            , exc_info=True
-                            )
+                log.info('Credentials error: %s', credentials, exc_info=True)
                 continue
 
             # First try to authenticate against the emergency
@@ -431,9 +427,11 @@ def _extractUserIds( self, request, plugins ):
                         user_id, info = uid_and_info
 
                     except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
-                        msg = 'AuthenticationPlugin %s error' % (
-                                authenticator_id, )
-                        log.info(msg, exc_info=True)
+                        log.info(
+                            'AuthenticationPlugin %s error',
+                            authenticator_id,
+                            exc_info=True,
+                        )
                         continue
                     except Locked:
                         break
@@ -498,8 +496,8 @@ def updateLdapUserInGroupAssignments(auth, user_settings_manager, user_id):
     user = auth.getUser(user_id)
     group_id_list = auth.getGroupsForPrincipal(user)
 
-    log.debug("LDAP> user: [%s]" % user_id)
-    log.debug("LDAP> user's groups from LDAP: [%s]" % ",".join(group_id_list))
+    log.debug("LDAP> user: [%s]", user_id)
+    log.debug("LDAP> user's groups from LDAP: [%s]", ",".join(group_id_list))
 
     for group_id in group_id_list:
         group_settings = user_settings_manager.getGroupSettings(group_id)

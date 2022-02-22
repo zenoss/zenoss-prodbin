@@ -81,7 +81,7 @@ class ReportFacade(TreeFacade):
             except AttributeError:
                 # if they remove or move a graphdef then we might not
                 # be able to find it
-                log.warning("%s has an invalid graph definition, skipping" % element)
+                log.warning("%s has an invalid graph definition, skipping", element)
                 continue
             defs.append(info)
         return defs

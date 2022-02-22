@@ -163,7 +163,7 @@ class NetworkFacade(TreeFacade):
         organizer = orgroot.getOrganizer(ip)
         if organizer is None:
             log.error("Couldn't obtain a network entry for '%s' "
-                        "-- does it exist?" % ip)
+                      "-- does it exist?" % ip)
             return False
 
         zDiscCommand = getattr(organizer, "zZenDiscCommand", None)

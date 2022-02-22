@@ -55,9 +55,9 @@ class ModelerService(PerformanceConfig):
             result.plugins = []
             for name in dev.zCollectorPlugins:
                 plugin = self.plugins.get(name, None)
-                log.debug('checking plugin %s for device %s' % (name, dev.getId()))
+                log.debug('checking plugin %s for device %s', name, dev.getId())
                 if plugin and plugin.condition(dev, log):
-                    log.debug('adding plugin %s for device %s' % (name,dev.getId()))
+                    log.debug('adding plugin %s for device %s', name, dev.getId())
                     result.plugins.append(plugin.loader)
                     plugin.copyDataToProxy(dev, result)
             result.temp_device = dev.isTempDevice()

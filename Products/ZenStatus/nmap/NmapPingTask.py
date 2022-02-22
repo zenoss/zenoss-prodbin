@@ -395,12 +395,12 @@ class NmapPingTask(BaseTask):
                         log.debug("%s is down, %r", ipTask.config.ip, ipTask.trace)
                         ipTask.delayedIsUp = False
                     else:
-                        fmt = '{0} is down. {1} ping downs received. ' \
-                              'Delaying events until more than {2} ping ' \
-                              'downs are received.'
-                        args = (ipTask.config.ip, dcs[taskName][0],
-                                delayCount)
-                        log.debug(fmt.format(*args))
+                        log.debug(
+                            '%s is down. %s ping downs received. '
+                            'Delaying events until more than %s ping '
+                            'downs are received.',
+                            ipTask.config.ip, dcs[taskName][0], delayCount
+                        )
 
                 ipTask.storeResults()
                 # give time to reactor to send events if necessary

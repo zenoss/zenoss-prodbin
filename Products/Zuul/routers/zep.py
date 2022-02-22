@@ -712,7 +712,7 @@ class EventsRouter(DirectRouter):
                                               specificEventUuids=excludeIds.keys(),
                                               includeContextInUid=False)
 
-        log.debug('The exclude filter:' + str(excludeFilter))
+        log.debug('The exclude filter: %s', excludeFilter)
         log.debug('Finished building request filters.')
 
         return includeFilter, excludeFilter
@@ -748,7 +748,7 @@ class EventsRouter(DirectRouter):
 
         device = params['device']
 
-        log.debug('Clearing heartbeats for device: {device}'.format(device=device))
+        log.debug('Clearing heartbeats for device: %s', device)
 
         params['eventState'] = [STATUS_NEW, STATUS_ACKNOWLEDGED]
         params['eventClass'] = '/Status/Heartbeat'
@@ -761,7 +761,7 @@ class EventsRouter(DirectRouter):
             limit=limit,
         )
 
-        log.debug('Done clearing heartbeats for device: {device}'.format(device=device))
+        log.debug('Done clearing heartbeats for device: %s', device)
         log.debug(summaryUpdateResponse)
         audit('UI.Device.ClearHeartbeats', device=device)
 

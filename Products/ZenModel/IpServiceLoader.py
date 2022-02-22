@@ -57,7 +57,7 @@ class IpServiceLoader(BasicLoader):
                 self.privserv.serviceclasses._setObject(svc.id, svc)
             else:
                 self.regserv.serviceclasses._setObject(svc.id, svc)
-            self.log.info("Added IpServiceClass %s" % keyword)
+            self.log.info("Added IpServiceClass %s", keyword)
         else:
             svc.addServiceKey(portkey)
 

@@ -56,10 +56,10 @@ class ZenDB(object):
         self.dbtype = dsn.pop('db-type')
         if self.dbtype not in ('mysql', 'postgresql'):
             raise ZenDBError('%s is not a valid database type.' % self.dbtype)
-        log.debug('db type: %s' % self.dbtype)
+        log.debug('db type: %s', self.dbtype)
         
         self.dbparams = dsn
-        log.debug('connection params: %s' % str(self.dbparams))
+        log.debug('connection params: %s', self.dbparams)
     
     def _getParamsFromGlobalConf(self, defaultDb):
         zenhome = os.environ.get('ZENHOME')
@@ -265,5 +265,5 @@ if __name__ == '__main__':
         log.error(e.msg)
         sys.exit(-1)
     except subprocess.CalledProcessError as e:
-        log.error('Error executing command: %s' % repr(e.cmd))
+        log.error('Error executing command: %r', e.cmd)
         sys.exit(e.returncode)

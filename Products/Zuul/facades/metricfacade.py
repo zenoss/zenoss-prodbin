@@ -208,9 +208,9 @@ class MetricConnection(object):
 
                 if not (resp.status_code >= 200 and resp.status_code <= 299):
                     log.error(
-                            'Centralquery responded with an error code {} while'
-                            'processing request {}: {}'.format(
-                                resp.status_code, request, resp.reason))
+                        'Centralquery responded with an error code %s '
+                        'while processing request %s: %s',
+                        resp.status_code, request, resp.reason)
 
                 if resp.status_code == 200:
                     for line in resp.iter_lines():

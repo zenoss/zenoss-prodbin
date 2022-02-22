@@ -341,7 +341,7 @@ class HttpPostPublisher(BasePublisher):
             log.warn("Unexpected result: %s", result)
 
     def _shutdown(self):
-        log.debug('shutting down http [publishing %s metrics]' % len(self._mq))
+        log.debug('shutting down http [publishing %s metrics]', len(self._mq))
         if len(self._mq):
             return self._make_request()
 
@@ -366,7 +366,7 @@ class HttpPostPublisher(BasePublisher):
             headers.addRawHeader('Authorization',
                                  basic_auth_string_content(self._username, self._password))
 
-        log.debug("Posting %s metrics" % len(metrics))
+        log.debug("Posting %s metrics", len(metrics))
         d = self._agent.request(
             'POST', self._url, headers,
             body_writer)

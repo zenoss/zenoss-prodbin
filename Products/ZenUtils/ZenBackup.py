@@ -159,10 +159,10 @@ class ZenBackup(ZenBackupBase):
             if not os.path.exists(name):
                 break
         else:
-            self.log.critical('Cannot determine an unique file name to use'
-                    ' in the backup directory (%s).' % backupDir +
-                    ' Use --outfile to specify location for the backup'
-                    ' file.\n')
+            self.log.critical(
+                'Cannot determine an unique file name to use in the backup '
+                'directory (%s). Use --outfile to specify location for the '
+                'backup file.\n', backupDir)
             sys.exit(-1)
         return name
 
@@ -428,7 +428,7 @@ class ZenBackup(ZenBackupBase):
         (output, warnings, returncode) = self.runCommand(cmd)
         if returncode:
             raise ZenBackupException("Backup packaging failed.", True)
-        self.log.info('Backup written to %s' % outfile)
+        self.log.info('Backup written to %s', outfile)
         return outfile
 
 
@@ -436,7 +436,7 @@ class ZenBackup(ZenBackupBase):
         """
         Remove temporary files in staging directory.
         """
-        self.log.info('Cleaning up staging directory %s' % self.rootTempDir)
+        self.log.info('Cleaning up staging directory %s', self.rootTempDir)
         cmd = ['rm', '-r', self.rootTempDir]
         (output, warnings, returncode) = self.runCommand(cmd)
         if returncode:

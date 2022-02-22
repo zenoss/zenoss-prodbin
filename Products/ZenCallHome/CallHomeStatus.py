@@ -62,7 +62,7 @@ class CallHomeStatus(object):
             self._redis_client.set(k, data)
             log.debug("Success pushed to Redis")
         except Exception as e:
-            log.warning("Exception trying to push metric to redis: {0}".format(e))
+            log.warning("Exception trying to push metric to redis: %s", e)
             self._redis_client = None
             return
 
@@ -75,7 +75,7 @@ class CallHomeStatus(object):
             return self._redis_client.get(k)
         except Exception as e:
             log.warning(
-                "Exception trying to recive data from redis: {0}".format(e))
+                "Exception trying to recive data from redis: %s", e)
             self._redis_client = None
             return
 
@@ -150,7 +150,7 @@ class CallHomeStatus(object):
             }
             self.push_to_redis(pickle.dumps(data))
         except Exception as e:
-            log.warning("Failed to update stage in the report: {0}".format(e))
+            log.warning("Failed to update stage in the report: %s", e)
 
     def status(self):
         l = list()
@@ -158,7 +158,7 @@ class CallHomeStatus(object):
         try:
             d = self._pickleLoadRedis()
         except Exception as e:
-            log.warning("Failed to load pickle loads: {0}".format(e))
+            log.warning("Failed to load pickle loads: %s", e)
         for key, val in d.iteritems():
             if isinstance(val, dict):
                 if val['status'] != "FINISHED":

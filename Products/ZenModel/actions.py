@@ -330,7 +330,7 @@ class TargetableAction(object):
                 for target in targets:
                     try:
                         self.executeOnTarget(notification, signal, target)
-                        log.debug('Done executing action for target: %s' % target)
+                        log.debug('Done executing action for target: %s', target)
                     except Exception as e:
                         self.handleExecuteError(e, notification, target)
                         exceptionTargets.append(target)
@@ -381,7 +381,7 @@ class EmailAction(IActionBase, TargetableAction):
         if signal:
             signal_targets = self._get_recipients_from_signal(notification, signal)
             if signal_targets:
-                log.debug('Adding recipients found in the event details: {0}'.format(','.join(signal_targets)))
+                log.debug('Adding recipients found in the event details: %s', ','.join(signal_targets))
                 targets = targets.union(signal_targets)
         return targets
 
@@ -770,7 +770,7 @@ class CommandAction(IActionBase, TargetableAction):
         # Get the proper command
         command = processTalSource(command, **environ)
 
-        log.debug('Executing this compiled command: "%s"' % command)
+        log.debug('Executing this compiled command: "%s"', command)
         _protocol = EventCommandProtocol(command, notification)
 
         log.debug('Queueing up command action process.')

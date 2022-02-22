@@ -658,7 +658,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         name = device_specs['deviceName']
         devobj = self.dmd.Devices.findDevice(name)
         if devobj is not None:
-            self.log.info("Found existing device %s" % name)
+            self.log.info("Found existing device %s", name)
             return devobj
 
         specs = {}

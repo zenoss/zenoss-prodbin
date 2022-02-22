@@ -87,7 +87,7 @@ class PythonClient(BaseClient):
         """
         Stop the collection of performance data
         """
-        log.info("Python client finished collection for %s" % self.device.id)
+        log.info("Python client finished collection for %s", self.device.id)
         if self.datacollector:
             self.datacollector.clientFinished(self)
 

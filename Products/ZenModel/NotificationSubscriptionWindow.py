@@ -41,7 +41,8 @@ class NotificationSubscriptionWindow(MaintenanceWindow):
     def begin(self, now=None, batchSize=None, inTransaction=False):
         if self.started is not None:
             log.debug('Notification Subscription Window is trying to begin after'
-                ' it is already started: Start: %s, Duration: %s' % (self.started, self.duration))
+                ' it is already started: Start: %s, Duration: %s',
+                self.started, self.duration)
 
         self.target().enabled = True
         if not now:

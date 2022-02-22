@@ -79,7 +79,7 @@ def _parseMessagingConf(path=zenPath("etc", "messaging.conf")):
             s.seek(0)
     except IOError:
         log = logging.getLogger('zen.ZenMessaging')
-        log.debug("No user configuration of queues at {path}".format(path=path))
+        log.debug("No user configuration of queues at %s", path)
         return {}
     parser = ConfigParser()
     # Prevent lowercasing of option names
