@@ -14,10 +14,10 @@ configure-user:
 	usermod -u %UID% zenoss
 	chown -R zenoss:zenoss $(ZENHOME)
 
-$(TARGET)/Zenoss.egg-info: | configure-user
-	su - zenoss -c "cd $(TARGET); python setup.py develop"
+$(TARGET)/Zenoss.egg-info: $(ZENHOME)/$(PTH_FILE)
 
-$(ZENHOME)/$(PTH_FILE): $(TARGET)/Zenoss.egg-info
+$(ZENHOME)/$(PTH_FILE): | configure-user
+	su - zenoss -c "cd $(TARGET); python setup.py develop"
 
 $(TARGET)/$(SITE_PACKAGES):
 	su - zenoss -c "mkdir -p $@"
