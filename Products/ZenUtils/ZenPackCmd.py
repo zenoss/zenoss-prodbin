@@ -262,7 +262,7 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
                         ZPEvent(dmd, 3, ex.message)
         except Exception as e:
             # Get that exception out there in case it gets blown away by ZPEvent
-            log.exception("Error installing ZenPack %s" % eggPath)
+            log.exception("Error installing ZenPack %s", eggPath)
             if sendEvent:
                 ZPEvent(dmd, SEVERITY_ERROR, 'Error installing ZenPack %s' % eggPath,
                     '%s: %s' % sys.exc_info()[:2])
@@ -310,8 +310,8 @@ def InstallEgg(dmd, eggPath, link=False):
             p.wait()
             returncode = p.returncode
             if returncode:
-                log.info("Error installing the egg (%s): %s" %
-                         (returncode, err))
+                log.info("Error installing the egg (%s): %s",
+                         returncode, err)
                 try:
                     DoEasyUninstall(eggPath)
                 except Exception:
@@ -377,11 +377,11 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
         def doesExist():
             existing = dmd.ZenPackManager.packs._getOb(packName, None)
             if existing:
-                log.info("Previous ZenPack exists with same name %s" % packName)
+                log.info("Previous ZenPack exists with same name %s", packName)
             return existing
         if filesOnly or not doesExist():
             if filesOnly:
-                log.info("ZenPack files only install: %s" % packName)
+                log.info("ZenPack files only install: %s", packName)
             #running files only or zenpack by same name doesn't already exists
             # so no need to install the zenpack in an external process
             runExternalZenpack = False
@@ -431,7 +431,7 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                                     deleteFiles=False)
 
             if runExternalZenpack or forceRunExternal:
-                log.info("installing zenpack %s; launching process" % packName)
+                log.info("installing zenpack %s; launching process", packName)
                 cmd = [binPath('zenpack')]
                 if link:
                     cmd += ["--link"]
@@ -446,7 +446,7 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                     cmd += ['--ignore-service-install']
 
                 cmdStr = " ".join(cmd)
-                log.debug("launching sub process command: %s" % cmdStr)
+                log.debug("launching sub process command: %s", cmdStr)
                 p = subprocess.Popen(cmdStr,
                                 shell=True)
                 out, err = p.communicate()
@@ -771,7 +771,7 @@ def FetchAndInstallZenPack(dmd, zenPackName, sendEvent=True):
         for d in zpDists:
             zenPacks.append(InstallDistAsZenPack(dmd, d, d.location))
     except Exception as ex:
-        log.exception("Error fetching ZenPack %s" % zenPackName)
+        log.exception("Error fetching ZenPack %s", zenPackName)
         if sendEvent:
             ZPEvent(dmd, SEVERITY_ERROR, 'Failed to install ZenPack %s' % zenPackName,
                 '%s: %s' % sys.exc_info()[:2])
@@ -974,7 +974,7 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
         log.error(ex)
     except Exception as ex:
         # Get that exception out there in case it gets blown away by ZPEvent
-        log.exception("Error removing ZenPack %s" % packName)
+        log.exception("Error removing ZenPack %s", packName)
         if sendEvent:
             ZPEvent(dmd, SEVERITY_ERROR, 'Error removing ZenPack %s' % packName,
                 '%s: %s' % sys.exc_info()[:2])
@@ -1012,7 +1012,7 @@ def DoEasyUninstall(name):
     try:
         easy_install.main(args)
     except AttributeError:
-        log.info("%s not found by easy_install.  Continuing to remove." % name)
+        log.info("%s not found by easy_install.  Continuing to remove.", name)
         pass
 
 

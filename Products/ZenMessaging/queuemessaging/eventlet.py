@@ -42,11 +42,11 @@ class BasePubSubMessageTask(object):
 
         except DropEvent as e:
             if log.isEnabledFor(logging.DEBUG):
-                log.debug('%s - %s' % (e.message, to_dict(e.event)))
+                log.debug('%s - %s', e.message, to_dict(e.event))
             message.ack()
 
         except ProcessingException as e:
-            log.error('%s - %s' % (e.message, to_dict(e.event)))
+            log.error('%s - %s', e.message, to_dict(e.event))
             log.exception(e)
             message.reject()
 

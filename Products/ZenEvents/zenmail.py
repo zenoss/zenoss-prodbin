@@ -226,8 +226,8 @@ class MailListeningTask(BaseTask):
 
         self.factory = SMTPFactory(self.processor)
 
-        log.info("listening on %s:%d" % (
-            self.options.listenip, self.options.listenPort))
+        log.info("listening on %s:%d",
+            self.options.listenip, self.options.listenPort)
         if self.options.useFileDescriptor != -1:
             self.useTcpFileDescriptor(int(self.options.useFileDescriptor),
                                       self.factory)

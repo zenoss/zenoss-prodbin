@@ -27,7 +27,7 @@ class Linux_netstat_an(CommandParser):
         return "Linux" in pp
 
     def parse(self, device, results, log):
-        log.info('Collecting Ip Services for device %s' % device.id)
+        log.info('Collecting Ip Services for device %s', device.id)
         rm = self.newRelationshipMap("ipservices")
         rlines = results.split("\n")
         services = {}
@@ -52,7 +52,7 @@ class Linux_netstat_an(CommandParser):
             om['setProtocol'] = proto
             om['discoveryAgent'] = 'IpServiceMap-' + __version__
             rm.append(om)
-            log.debug('Adding TCP Service %s %s' % (addr, port))
+            log.debug('Adding TCP Service %s %s', addr, port)
         return rm
 
     def description(self):

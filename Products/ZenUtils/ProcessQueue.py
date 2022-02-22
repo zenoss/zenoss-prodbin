@@ -72,8 +72,8 @@ class ProcessQueue(object):
                                                     gid, usePTY, 
                                                     childFDs,timeout,
                                                     timeout_callback)
-        log.debug("Adding process %s to queue" % processQProtocol)
-        log.debug("Processes in queue: %s" % len(self._processes))
+        log.debug("Adding process %s to queue", processQProtocol)
+        log.debug("Processes in queue: %s", len(self._processes))
         
         self._processes.append(processQProtocol)
         
@@ -115,14 +115,14 @@ class ProcessQueue(object):
             self._maxQtime = max(self._maxQtime, qTime)
             self._maxExecTime = max(self._maxExecTime, execTime)
             log.debug("execution time %s seconds; queue time %s seconds; "
-                      "process %s" 
-                      % ( execTime, qTime, processProtocol))
+                      "process %s",
+                      execTime, qTime, processProtocol)
             if (self._num_running == 0 
                 and self._stopped 
                 and not self._stopped.called 
                 and len(self._processes) == 0):
                 self._stopped.callback("process queue is empty and stopped")
-        log.debug("Number of process being executed: %s" % self._num_running)
+        log.debug("Number of process being executed: %s", self._num_running)
         if self._num_running < self._parallel:
             processQProtocol = None
             if self._processes:
@@ -169,7 +169,7 @@ class _ProcessQueueProtocol(ProcessProtocol):
             return "process %s" % self._executable 
 
     def start(self):
-        log.debug("spawning %s " % self)
+        log.debug("spawning %s ", self)
         now = time.time()
         self.queueStopTime = now
         self.execStartTime = now
@@ -189,10 +189,9 @@ class _ProcessQueueProtocol(ProcessProtocol):
                 self.execStopTime = time.time()
 
             self.transport.signalProcess('KILL')
-            log.warning("timed out after %s seconds: %s" % (self._time_out, 
-                                                           self))
+            log.warning("timed out after %s seconds: %s", self._time_out, self)
         except error.ProcessExitedAlready:
-            log.debug("Process already exited: %s" % self)
+            log.debug("Process already exited: %s", self)
         return value
     
     def processEnded(self, reason):

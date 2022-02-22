@@ -61,11 +61,11 @@ def handle_oid(dmd, oid):
         except (AttributeError, KeyError) as ex:
             # Object has been removed from its primary path (i.e. was
             # deleted), so make a DeletionEvent
-            log.debug("Notifying services that %r has been deleted" % obj)
+            log.debug("Notifying services that %r has been deleted", obj)
             event = DeletionEvent(obj, oid)
         else:
             # Object was updated, so make an UpdateEvent
-            log.debug("Notifying services that %r has been updated" % obj)
+            log.debug("Notifying services that %r has been updated", obj)
             event = UpdateEvent(obj, oid)
         # Fire the event for all interested services to pick up
         return betterObjectEventNotify(event)

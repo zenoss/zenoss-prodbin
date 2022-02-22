@@ -46,7 +46,7 @@ class BasicLoader(ZCmdBase):
         if self.filename and os.path.exists(self.filename):
             lines = open(self.filename).readlines()
         else:
-            self.log.critical("filename %s not found" % self.filename)
+            self.log.critical("filename %s not found", self.filename)
             sys.exit(1)
     
         for line in lines:
@@ -57,7 +57,7 @@ class BasicLoader(ZCmdBase):
                 quit = self.loaderBody(line)
                 if quit == True: break # return True to stop
             except Exception:
-                self.log.exception("Line Number %i" % (self.lineNumber))
+                self.log.exception("Line Number %i", self.lineNumber)
             if (not self.options.noCommit 
                 and not self.lineNumber % self.options.commitCount):
                 trans = transaction.get()

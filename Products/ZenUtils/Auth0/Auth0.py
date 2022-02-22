@@ -214,13 +214,13 @@ class Auth0(BasePlugin):
             # Check the jwt for the globalkey setting.
             is_global_key = payload.get('https://dev.zing.ninja/globalkey', None)
             if not is_global_key and not tenant:
-                log.warn('No auth0 tenant specified in jwt for tenantkey: {}'.format(tenantkey))
+                log.warn('No auth0 tenant specified in jwt for tenantkey: %s', tenantkey)
                 Auth0.removeToken(request)
                 return None
             # + Get the whitelist from global.conf and verify that it's in the list.
             whitelist = conf.get('whitelist', [])
             if not is_global_key and tenant not in whitelist:
-                log.warn('Tenant {} is invalid. Not in whitelist: {}'.format(tenant, whitelist))
+                log.warn('Tenant %s is invalid. Not in whitelist: %s', tenant, whitelist)
                 Auth0.removeToken(request)
                 return None
 
@@ -237,7 +237,7 @@ class Auth0(BasePlugin):
             sessionInfo.roles = Auth0.getRoleAssignments(payload.get('https://zenoss.com/roles', []))
             return sessionInfo
         except Exception as ex:
-            log.debug('Error storing jwt token: {}'.format(ex.message))
+            log.debug('Error storing jwt token: %s', ex.message)
             Auth0.removeToken(request)
             return None
 
@@ -258,7 +258,7 @@ class Auth0(BasePlugin):
         response.expireCookie(Auth0.zc_token_exp_key)
         conf = getAuth0Conf()
         if conf:
-            log.info('Redirecting user to Auth0 logout: %s' % conf)
+            log.info('Redirecting user to Auth0 logout: %s', conf)
             response.redirect("/logout.html")
 
 
@@ -307,7 +307,7 @@ class Auth0(BasePlugin):
             Auth0.removeToken(request)
             return {}
         
-        log.info('sessionInfo.roles: {}'.format(sessionInfo.roles))
+        log.info('sessionInfo.roles: %s', sessionInfo.roles)
         if len(sessionInfo.roles) < 1:
             log.info('No roles for this CZ - redirecting ...')
             return {'has_roles': False}
@@ -366,7 +366,7 @@ class Auth0(BasePlugin):
             EXPIRATION_KEY = 'auth0_{}_expiration_key'.format(sessionInfo.userid)
             auth_exp = mc.get(EXPIRATION_KEY)
             if auth_exp == sessionInfo.expiration:
-                log.warn('Unauthorized access (user {}): {}'.format(sessionInfo.userid, request.PATH_INFO))
+                log.warn('Unauthorized access (user %s): %s', sessionInfo.userid, request.PATH_INFO)
                 # This is a redirect loop. send them to the Zing UI
                 mc.delete(EXPIRATION_KEY)
                 request['RESPONSE'].redirect('/', lock=1)

@@ -36,7 +36,7 @@ class Linux_ifconfig(CommandPlugin):
 
 
     def process(self, device, results, log):
-        log.info('Collecting interfaces for device %s' % device.id)
+        log.info('Collecting interfaces for device %s', device.id)
         rm = self.relMap()
         rlines = results.split("\n")
         for line in rlines:

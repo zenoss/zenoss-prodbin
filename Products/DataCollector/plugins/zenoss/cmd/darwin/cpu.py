@@ -31,7 +31,7 @@ class cpu(CommandPlugin):
 
     def process(self, device, results, log):
         """parse command output from this device"""
-        log.info('processing processor resources %s' % device.id)
+        log.info('processing processor resources %s', device.id)
         maps = []
         rm = self.relMap()
         

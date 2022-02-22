@@ -143,7 +143,7 @@ class SnmpPerformanceConfig(CollectorConfigService):
         for component in components:
             manage_ip = get_component_manage_ip(component, device.manageIp)
             if manage_ip not in manage_ips:
-                log.debug("Adding manage IP %s from %r" % (manage_ip, component))
+                log.debug("Adding manage IP %s from %r", manage_ip, component)
                 manage_ips[manage_ip] = ([], True)
             manage_ips[manage_ip][0].append(component)
         proxies = []

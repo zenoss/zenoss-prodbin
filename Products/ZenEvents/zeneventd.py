@@ -260,10 +260,10 @@ class TwistedQueueConsumerTask(BaseQueueConsumerTask):
                 )
                 yield self.queueConsumer.acknowledge(message)
             except DropEvent as e:
-                log.debug('%s - %s' % (e.message, to_dict(e.event)))
+                log.debug('%s - %s', e.message, to_dict(e.event))
                 yield self.queueConsumer.acknowledge(message)
             except ProcessingException as e:
-                log.error('%s - %s' % (e.message, to_dict(e.event)))
+                log.error('%s - %s', e.message, to_dict(e.event))
                 log.exception(e)
                 yield self.queueConsumer.reject(message)
             except Exception as e:
@@ -333,7 +333,7 @@ class ZenEventD(ZCmdBase):
 
     def sighandler_USR1(self, signum, frame):
         super(ZenEventD, self).sighandler_USR1(signum, frame)
-        log.debug('sighandler_USR1 called %s' % signum)
+        log.debug('sighandler_USR1 called %s', signum)
         objectEventNotify(SigUsr1Event(self, signum))
 
     def buildOptions(self):

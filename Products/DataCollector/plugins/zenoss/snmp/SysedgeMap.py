@@ -32,7 +32,7 @@ class SysedgeMap(SnmpPlugin):
 
     def collect(self, device, snmpsess, log):
         """collect snmp information from this device"""
-        log.info('Collecting sysedge info for device %s' % device.id)
+        log.info('Collecting sysedge info for device %s', device.id)
         data = snmpsess.get(self.sysedgeMap.keys())
         retdata = {}
         for oid in data.keys():

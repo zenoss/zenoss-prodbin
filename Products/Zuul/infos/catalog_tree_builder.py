@@ -71,8 +71,7 @@ class ModelCatalogTreeBuilder(object):
         # Build the tree
         start = time.time()
         self.build_tree()
-        msg = "Building tree for {} took {} seconds."
-        log.debug(msg.format(self.root_path, time.time()-start))
+        log.debug("Building tree for %s took %s seconds.", self.root_path, time.time()-start)
 
     def _query_catalog(self, objectImplements, filter_permissions=True, limit=None, fields=None, facet_field=None):
         requested_fields = set([ UID, "name", "id", "uuid", "meta_type" ])
@@ -159,7 +158,7 @@ class ModelCatalogTreeBuilder(object):
                 # add the leaf uid to the organizers it belongs to
                 for node_uid in nodes:
                     if node_uid in self.trees:
-                        log.debug("adding leaf {} to node {} ".format(leaf_brain.uid, node_uid))
+                        log.debug("adding leaf %s to node %s", leaf_brain.uid, node_uid)
                         self.trees[node_uid].leaves.add(leaf_brain.uid)
 
     def _load_leaf_counts(self):

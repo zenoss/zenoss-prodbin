@@ -291,7 +291,7 @@ Transform:
                 except Exception as e:
                     log.exception("Unable to delete %s: %s", filepath, e)
         if pickles_count:
-            log.info("Deleted %s old pickle files." % pickles_count)
+            log.info("Deleted %s old pickle files.", pickles_count)
         filename = pickle_dir + '/%s_%s.pickle' % (evt.device, evt.evid)        
         try:
             with open(filename, 'w') as f:

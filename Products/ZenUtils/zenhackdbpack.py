@@ -153,7 +153,7 @@ class HackWorker(multiprocessing.Process):
             self.cursor.executemany(sql, task)
             self.conn.commit()
         except MySQLdb.Error as e:
-            log.exception("{0}: Exception removing objects: {1}.".format(self.name, e))
+            log.exception("%s: Exception removing objects: %s.", self.name, e)
             self.conn.rollback()
             raise e
         #print "{0}: Processing batch took {1} seconds".format(self.name, time.time()-start)
@@ -179,9 +179,9 @@ class HackWorker(multiprocessing.Process):
                         self.results_queue.put( (self.name, self.oids_processed) )
             except (KeyboardInterrupt, Exception) as e:
                 if isinstance(e, KeyboardInterrupt):
-                    log.info("{0}: Stopping worker...".format(self.name))
+                    log.info("%s: Stopping worker...", self.name)
                 else:
-                    log.exception("{0}: Exception in worker: {1}".format(self.name, e))
+                    log.exception("%s: Exception in worker: %s", self.name, e)
                 self.conn.rollback()
                 break
             finally:
@@ -228,7 +228,7 @@ class ZodbPackHack(object):
         @return collections.deque
         """
         get_task_start = time.time()
-        log.debug("Retrieving {0} objects...".format(self.n_oids_to_remove))
+        log.debug("Retrieving %s objects...", self.n_oids_to_remove)
         sql = """ SELECT zoid, keep_tid FROM pack_object WHERE {0} keep=0 ORDER BY zoid {1}; """
         zoid_query = ""
         if last_zoid:
@@ -247,9 +247,9 @@ class ZodbPackHack(object):
             task = oids[step:step+self.OIDS_PER_TASK]
             tasks.append(task)
         duration = time.time()-get_task_start
-        log.debug("Retrieving oids took {0}.".format(duration_to_pretty_text(duration)))
+        log.debug("Retrieving oids took %s.", duration_to_pretty_text(duration))
         if duration > self.report_period:
-            log.warn("Retrieving oids is taking too long ({0}).".format(duration_to_pretty_text(duration)))
+            log.warn("Retrieving oids is taking too long (%s).", duration_to_pretty_text(duration))
         return (deque(tasks), last_zoid)
 
     def _log_progress(self, reports, proccessed_last_report):
@@ -261,8 +261,10 @@ class ZodbPackHack(object):
         txt_processed = str(processed).rjust(9)
         txt_remaining = str(self.n_oids_to_remove - processed).rjust(9)
         txt_proccessed_since_last_report = str(proccessed_since_last_report).rjust(8)
-        log_text = "{0}  | Processed: {1} | Remaining: {2} | Processed since last report: {3}"
-        log.info(log_text.format(txt_progress, txt_processed, txt_remaining, txt_proccessed_since_last_report))
+        log.info(
+            "%s  | Processed: %s | Remaining: %s | Processed since last report: %s",
+            txt_progress, txt_processed, txt_remaining, txt_proccessed_since_last_report,
+        )
 
     def _pack(self):
         """ """
@@ -270,7 +272,7 @@ class ZodbPackHack(object):
         if not tasks:
             log.warning("Nothing to pack. Please make sure zenossdbpack internal tables are up-to-date.")
             return
-        log.info("Starting {0} workers to pack {1} objects...".format(self.n_workers, self.n_oids_to_remove))
+        log.info("Starting %s workers to pack %s objects...", self.n_workers, self.n_oids_to_remove)
         # Create work queues
         tasks_queue = multiprocessing.JoinableQueue()
         results_queue = multiprocessing.Queue()        
@@ -343,7 +345,7 @@ class ZodbPackHack(object):
             if isinstance(e, KeyboardInterrupt):
                 log.warn("Hack interrupted.")
             else:
-                log.exception("Exception while packing. {0}".format(e))
+                log.exception("Exception while packing. %s", e)
             while not results_queue.empty():
                 results_queue.get(block=False)
             for worker in workers:
@@ -363,7 +365,7 @@ class ZodbPackHack(object):
         if user_confirmation:
             log.info("Calculating total number of unreferenced objects...")
             to_remove, to_keep = self.check_pack_object_table()
-            log.info("Detected {0}{1}{2} stale objects in your system.".format(BCOLORS.YELLOW, to_remove, BCOLORS.ENDC))
+            log.info("Detected %s%s%s stale objects in your system.", BCOLORS.YELLOW, to_remove, BCOLORS.ENDC)
             # Ask for user confirmation
             msg = "{0}Are you sure to continue? {1} objects will be removed.{2}\nPress Enter to continue: "
             u_sure = raw_input(msg.format(BCOLORS.YELLOW, self.n_oids_to_remove, BCOLORS.ENDC))
@@ -372,7 +374,7 @@ class ZodbPackHack(object):
         pack_start = time.time()
         self._pack()
         duration = duration_to_pretty_text(time.time()-pack_start)
-        log.info("{0}Removing {1} objects using {2} workers took {3}{4}".format(BCOLORS.GREEN, self.queued, self.n_workers, duration, BCOLORS.ENDC))
+        log.info("%sRemoving %s objects using %s workers took %s%s", BCOLORS.GREEN, self.queued, self.n_workers, duration, BCOLORS.ENDC)
 
 
 class ConfigChecker(object):
@@ -444,7 +446,7 @@ def run_hack(db_config, cli_options):
 
     for i in xrange(n_iterations):
         log_msg = "Starting iteration {0} out of {1}".format(i+1, n_iterations)
-        log.info("{0}{1}{2}".format(BCOLORS.BLUE, log_msg, BCOLORS.ENDC))
+        log.info("%s%s%s", BCOLORS.BLUE, log_msg, BCOLORS.ENDC)
         hack = ZodbPackHack(db_config, n_oids, n_workers)
         hack.pack(user_confirmation)
         user_confirmation = False # ask for confirmation only first time

@@ -486,7 +486,7 @@ class PerformanceConf(Monitor, StatusColor):
         if REQUEST:
             zendiscOptions.append("--weblog")
         zendiscCmd.extend(zendiscOptions)
-        log.info('local zendiscCmd is "%s"' % ' '.join(zendiscCmd))
+        log.info('local zendiscCmd is "%s"', ' '.join(zendiscCmd))
         return zendiscCmd
 
     def getCollectorCommand(self, command):
@@ -586,7 +586,7 @@ class PerformanceConf(Monitor, StatusColor):
             '--collect={}'.format(collectPlugins)
         ]
         cmd.extend(options)
-        log.info('local zenmodelerCmd is "%s"' % ' '.join(cmd))
+        log.info('local zenmodelerCmd is "%s"', ' '.join(cmd))
         return cmd
 
     def _executeCommand(self, remoteCommand, REQUEST=None, write=None):
