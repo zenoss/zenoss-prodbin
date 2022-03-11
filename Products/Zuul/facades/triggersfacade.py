@@ -539,6 +539,19 @@ class TriggersFacade(ZuulFacade):
             notification_guid, subscriptionSet
         )
 
+    def getPasswordFields(self, uid):
+        notification = self._getObject(uid)
+        action = getUtility(IAction, notification.action)
+        passwordFields = set()
+
+        for iface in providedBy(action.getInfo(notification)):
+            f = getFields(iface)
+            if f:
+                for key, value in f.iteritems():
+                    if isinstance(value, Password):
+                        passwordFields.add(key)
+        return passwordFields
+
     def updateNotification(self, **data):
         log.debug(data)
 
@@ -561,14 +574,8 @@ class TriggersFacade(ZuulFacade):
         ):
             # update the action content data
             action = getUtility(IAction, note.action)
+            passwordFields = self.getPasswordFields(uid)
 
-            passwordFields = set()
-            for iface in providedBy(action.getInfo(note)):
-                f = getFields(iface)
-                if f:
-                    for key, value in f.iteritems():
-                        if isinstance(value, Password):
-                            passwordFields.add(key)
             for fieldName in passwordFields:
                 if fieldName in data:
                     currValue = note.content.get(fieldName)
