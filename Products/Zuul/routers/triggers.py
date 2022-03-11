@@ -128,9 +128,11 @@ class TriggersRouter(DirectRouter):
     @serviceConnectionError
     def updateNotification(self, **data):
         notificationUid = data['uid']
-        response = self._getFacade().updateNotification(**data)
+        facade = self._getFacade()
+        passwordFields = facade.getPasswordFields(notificationUid)
+        response = facade.updateNotification(**data)
         audit('UI.Notification.Edit', object_=notificationUid,
-              data_=data, maskFields_='password')
+              data_=data, maskFields_=passwordFields)
         return DirectResponse.succeed(
             msg="Notification updated successfully.",
             data=Zuul.marshal(response)
