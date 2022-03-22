@@ -19,9 +19,9 @@ from uuid import uuid4
 
 log = logging.getLogger('extdirect')
 
+
 class DirectException(Exception):
     pass
-
 
 
 class DirectResponse(object):
@@ -30,6 +30,7 @@ class DirectResponse(object):
     the front end.
     """
     _data = None
+
     def __init__(self, msg=None, success=True, **kwargs):
         self._data = {}
         self._data.update(kwargs)
@@ -74,10 +75,12 @@ class DirectResponse(object):
     def __json__(self):
         return self.data
 
+
 class DirectMethodResponse(object):
     """
     Encapsulation of the response of a method call for Ext Direct.
     """
+
     def __init__(self, tid, action, method, uuid):
         self.tid = tid
         self.type = 'rpc'
@@ -89,12 +92,13 @@ class DirectMethodResponse(object):
     def __json__(self):
         return {
             'tid': self.tid,
-            'type' : self.type,
+            'type': self.type,
             'action': self.action,
             'method': self.method,
             'uuid': self.uuid,
             'result': self.result
         }
+
 
 class DirectRouter(object):
     """
@@ -106,7 +110,7 @@ class DirectRouter(object):
 
     This base class parses an Ext.Direct request, which contains the name of
     the method and any data that should be passed, and routes the data to the
-    approriate method. It then receives the output of that call and puts it
+    appropriate method. It then receives the output of that call and puts it
     into the data structure expected by Ext.Direct.
 
     Call an instance of this class with the JSON from an Ext.Direct request.
@@ -149,7 +153,7 @@ class DirectRouter(object):
         clsname = self.__class__.__name__
         if action != clsname:
             raise DirectException(("Action specified in request ('%s') is"
-                                  " not named %s.") % (action, clsname))
+                                   " not named %s.") % (action, clsname))
 
         # Pull out the method name and make sure it exists on this class
         method = directRequest.get('method')
@@ -174,8 +178,15 @@ class DirectRouter(object):
         if isinstance(data, (int, basestring)):
             data = {'id': data}
 
+        # Set default value for event class for transform getting without chosen event class
+        if not data:
+            if action == 'EventClassesRouter' and (method == 'getTransformTree' or method == 'isTransformEnabled'):
+                data = {'uid': 'zport/dmd/Events'}
+            elif action == 'DetailNavRouter' and method == 'getSecurityPermissions':
+                data = {'uid': 'zport/dmd/Events'}
+
         # Cast all keys as strings, in case of encoding or other wrinkles
-        data = dict((str(k), v) for k,v in data.iteritems())
+        data = dict((str(k), v) for k, v in data.iteritems())
         self._data = data
         response = DirectMethodResponse(tid=directRequest['tid'], method=method, action=action, uuid=uuid)
 
@@ -184,8 +195,10 @@ class DirectRouter(object):
             response.result = _targetfn(**data)
         except Exception as e:
             import traceback
-            log.info("Direct request failed: {0}: {1[action]}.{1[method]} {1[data]}".format(e, redact(directRequest, ["managerPassword"])))
-            log.info("DirectRouter suppressed the following exception (Response %s):\n%s", response.uuid, traceback.format_exc())
+            log.info("Direct request failed: {0}: {1[action]}.{1[method]} {1[data]}".format(e, redact(directRequest, [
+                "managerPassword"])))
+            log.info("DirectRouter suppressed the following exception (Response %s):\n%s", response.uuid,
+                     traceback.format_exc())
             response.result = DirectResponse.exception(e)
 
         if isinstance(response.result, DirectResponse) and response.result.type == 'exception':
@@ -208,6 +221,7 @@ class DirectProviderDefinition(object):
     See http://www.sencha.com/products/extjs/extdirect for a full explanation of
     protocols and features of Ext.Direct.
     """
+
     def __init__(self, routercls, url, timeout, ns=None):
         """
         @param routercls: A L{DirectRouter} subclass
@@ -241,6 +255,7 @@ class DirectProviderDefinition(object):
     def _extdirect_config(self):
         def strategy(method_info, method):
             method_info["len"] = 1
+
         method_infos = self._gen_method_infos(strategy)
         config = {
             'id': self.routercls.__name__,
@@ -255,7 +270,7 @@ class DirectProviderDefinition(object):
         env_vars = {'ZENOSS_EXTDIRECT_ENABLEBUFFER': 'enableBuffer',
                     'ZENOSS_EXTDIRECT_MAXRETRIES': 'maxRetries',
                     'ZENOSS_EXTDIRECT_TIMEOUT': 'timeout'
-        }
+                    }
         for env_var, cfg_var in env_vars.iteritems():
             value = os.environ.get(env_var)
             if value:
@@ -269,11 +284,12 @@ class DirectProviderDefinition(object):
         def strategy(method_info, method):
             method_info['args'] = inspect.formatargspec(*inspect.getargspec(method))
             method_info['doc'] = method.__doc__
+
         method_infos = self._gen_method_infos(strategy)
         config = {"action": self.routercls.__name__,
                   "url": self.url,
                   "methods": list(method_infos),
-                 }
+                  }
         return config
 
     def render(self):
