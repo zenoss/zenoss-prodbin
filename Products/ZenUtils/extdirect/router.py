@@ -178,13 +178,6 @@ class DirectRouter(object):
         if isinstance(data, (int, basestring)):
             data = {'id': data}
 
-        # Set default value for event class for transform getting without chosen event class
-        if not data:
-            if action == 'EventClassesRouter' and (method == 'getTransformTree' or method == 'isTransformEnabled'):
-                data = {'uid': 'zport/dmd/Events'}
-            elif action == 'DetailNavRouter' and method == 'getSecurityPermissions':
-                data = {'uid': 'zport/dmd/Events'}
-
         # Cast all keys as strings, in case of encoding or other wrinkles
         data = dict((str(k), v) for k, v in data.iteritems())
         self._data = data
