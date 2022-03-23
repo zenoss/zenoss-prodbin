@@ -155,7 +155,7 @@ Ext.onReady(function(){
                         Ext.getCmp('footer_bar').setContext(uid);
                         Zenoss.env.contextUid = uid;
                         // explicitly set the new security context (to update permissions)
-                        Zenoss.Security.setContext(uid);
+                        Zenoss.Security.setContext(uid || 'zport/dmd/Events');
                     }
                 }
             }
@@ -212,7 +212,7 @@ Ext.onReady(function(){
                         // set the context for the active item:
                         var contentPanel = classtree.getContentPanel();
                         contentPanel.setContext(Zenoss.env.contextUid);
-                        Zenoss.Security.setContext(Zenoss.env.contextUid);
+                        Zenoss.Security.setContext(Zenoss.env.contextUid || 'zport/dmd/Events');
                     }
                 },
                 store:  Ext.create('Ext.data.ArrayStore', {
