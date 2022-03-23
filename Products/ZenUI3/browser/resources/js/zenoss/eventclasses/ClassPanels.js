@@ -276,8 +276,8 @@ Ext.onReady(function(){
                                             fieldLabel: _t('Instance Name'),
                                             margin: '0 10px 0 0',
                                             width:320,
-                                            regex: Zenoss.env.textMasks.allowedNameTextDash,
-                                            regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDash,
+                                            regex: Zenoss.env.textMasks.allowedNameTextDashDot,
+                                            regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDashDot,
                                             allowBlank: false
                                         },{
                                             xtype: 'hidden',
