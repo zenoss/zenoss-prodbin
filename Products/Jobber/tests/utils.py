@@ -14,7 +14,9 @@ import logging
 import sys
 import traceback
 
-import redis
+from urlparse import urlparse
+
+from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
 
 @contextlib.contextmanager
@@ -46,7 +48,9 @@ class RedisLayer(object):
 
     @classmethod
     def setUp(cls):
-        cls.redis = redis.StrictRedis(db=cls.db)
+        parsed = urlparse(getRedisUrl())
+        url = "redis://{0}/{1}".format(parsed.netloc, cls.db)
+        cls.redis = getRedisClient(url)
 
     @classmethod
     def tearDown(cls):
