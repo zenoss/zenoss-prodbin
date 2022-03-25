@@ -11,9 +11,12 @@ from __future__ import absolute_import, print_function
 
 import contextlib
 import logging
-import redis
 import sys
 import traceback
+
+from urlparse import urlparse
+
+from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
 
 @contextlib.contextmanager
@@ -43,7 +46,9 @@ class RedisLayer(object):
 
     @classmethod
     def setUp(cls):
-        cls.redis = redis.StrictRedis(db=cls.db)
+        parsed = urlparse(getRedisUrl())
+        url = "redis://{0}/{1}".format(parsed.netloc, cls.db)
+        cls.redis = getRedisClient(url)
 
     @classmethod
     def tearDown(cls):
