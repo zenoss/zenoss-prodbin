@@ -42,7 +42,7 @@
         var first = true;
         var componentName = "";
         pts.forEach(function(pt){
-            var cname = pt.legend.substr(0,pt.legend.indexOf(" "));
+            var cname = pt.legend.substr(0,pt.legend.indexOf(""));
             allTheSame = allTheSame && ( componentName === cname || first );
             componentName = cname;
             first = false;
