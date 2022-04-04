@@ -1931,7 +1931,7 @@ class DeviceRouter(TreeRouter):
 
     def addOSProcess(self, uid, newClassName, example, userCreated=True):
         """
-        Adds an os processes
+        Adds an OS Process
         """
         facade = self._getFacade()
         data = facade.addOSProcess(uid, newClassName, example, userCreated)
@@ -1939,7 +1939,7 @@ class DeviceRouter(TreeRouter):
 
     def addFileSystem(self, uid, newId, userCreated=True):
         """
-        Adds an Ip Interface
+        Adds a File System
         """
         facade = self._getFacade()
         data = facade.addFileSystem(uid, newId, userCreated)
@@ -1956,7 +1956,7 @@ class DeviceRouter(TreeRouter):
 
     def addWinService(self, uid, newClassName, userCreated=True):
         """
-        Adds an Ip Service
+        Adds a Windows Service
         """
         facade = self._getFacade()
         data = facade.addWinService(uid, newClassName, userCreated)
