@@ -158,7 +158,7 @@ def _decode_value(value, obj):
     # This looks confusing, and it is. The scenario is:
     #   A collector gathers some data as a raw byte stream,
     #   but really it has a specific encoding specified by
-    #   by the zCollectorDecoding zProperty. Say, latin-1 or
+    #   the zCollectorDecoding zProperty. Say, latin-1 or
     #   utf-16, etc. We need to decode that byte stream to get
     #   back a UnicodeString object. But, this version of Zope
     #   doesn't like UnicodeString objects for a variety of
@@ -166,18 +166,55 @@ def _decode_value(value, obj):
     #   that UnicodeString back into a regular string of bytes,
     #   and for that we use the system default encoding, which
     #   is now utf-8.
+
     try:
         codec = obj.zCollectorDecoding
     except AttributeError:
         codec = sys.getdefaultencoding()
 
-    value = value.decode(codec)
-    value = value.encode(sys.getdefaultencoding())
+    if not codec:
+        log.warn(
+            "zCollectorDecoding is not defined! It can cause problems "
+            "with the modeling and even can crash it, therefore specify "
+            "the correct data encoding as a value of "
+            "zCollectorDecoding.")
+
+        obj.zCollectorDecoding = 'utf-8'
+        codec = obj.zCollectorDecoding
+
+    try:
+        value = value.decode(codec)
+    except UnicodeDecodeError as ex1:
+        log.warn("The string %s cannot be correctly decoded using '%s' and "
+                 "causes error: %s! Please verify and specify the correct "
+                 "data encoding as a value of zCollectorDecoding.", value,
+                 codec, ex1)
+        try:
+            obj.zCollectorDecoding = 'latin-1'
+            codec = obj.zCollectorDecoding
+            value = value.decode(codec)
+        except UnicodeDecodeError as ex2:
+            log.warn("The string %s cannot be correctly decoded using '%s' "
+                     "and causes error: %s! Please verify and specify the "
+                     "correct data encoding as a value of zCollectorDecoding",
+                     value, codec, ex2)
+
+            value = value.decode(codec, errors='ignore')
+
+            log.warn("The string %s was decoded to %s ignoring symbols "
+                     "which is impossible to decode into '%s' ",
+                     value, codec, codec)
+
+    encoder = sys.getdefaultencoding()
+    if not encoder:
+        encoder = 'utf-8'
+    value = value.encode(encoder)
+
     return value
 
 
 def _update_object(obj, diff):
-    '''given an object map, with a _diff containing sanitized attributes
+    '''Given an object map, with a _diff containing sanitized attributes
     update the object
     '''
     log.debug('_update_object: obj=%s, diff=%s', obj, diff)
