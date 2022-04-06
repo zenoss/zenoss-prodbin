@@ -212,8 +212,10 @@ def filterUidsByPermission(dmd, permission, uids):
 
 def checkAdministeredObjectPermission(uid, permission, context=None):
     """
-    Return true if the current user has administrative object permission on the given
-    context or the dmd; otherwise, return false.
+    Return true if the current user has the specified permission as a admin role 
+    for the specified uid on the given context or the dmd; 
+    return none if user has no roles for requested item;
+    otherwise, return false.
     
     @type  uid: string
     @param uid: The UID of the object to check for permissions.
@@ -226,10 +228,13 @@ def checkAdministeredObjectPermission(uid, permission, context=None):
     """
     context = context or get_dmd()
     mobj = context.unrestrictedTraverse(uid)
-    if mobj:
-        for admin_role in mobj.adminRoles():
-            if permission == admin_role.role:
-                return True
+    if not mobj:
+        return None
+
+    for admin_role in mobj.adminRoles():
+        if permission == admin_role.role:
+            return True
+        
     return False
 
 def checkPermission(permission, context=None):
