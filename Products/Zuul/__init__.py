@@ -224,7 +224,13 @@ def checkAdministeredObjectPermission(uid, permission, context=None):
     @type  context: DMD
     @param context: you must pass in the dmd to this function to look up the objects.
     """
-    pass
+    context = context or get_dmd()
+    mobj = context.unrestrictedTraverse(uid)
+    if mobj:
+        for admin_role in mobj.adminRoles():
+            if permission == admin_role.role:
+                return True
+    return False
 
 def checkPermission(permission, context=None):
     """
