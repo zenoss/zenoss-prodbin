@@ -24,7 +24,7 @@ from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
 from Products.ZenModel.Device import Device
 from Products.ZenModel.ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_MANAGE_DMD, \
-    ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE, ZEN_DELETE_DEVICE
+    ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE, ZEN_DELETE_DEVICE, ZEN_MANAGER_ROLE, MANAGER_ROLE
 from Products.Zuul import filterUidsByPermission
 from Products.Zuul.facades import ObjectNotFoundException
 from Products.Zuul.routers import TreeRouter
