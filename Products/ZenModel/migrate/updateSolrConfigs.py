@@ -55,6 +55,14 @@ class UpdateSolrConfigs(Migrate.Step):
             service.configFiles.append(cfg_obj)
             service.originalConfigs.append(cfg_obj)
 
+        for volume in service.volumes:
+            if volume.containerPath == "/opt/solr/server/logs":
+                volume.containerPath = '/var/solr/logs'
+
+        logPath = "/var/solr/logs/solr_slow_requests.log"
+        if len(filter(lambda x: x.path == logPath, service.logConfigs)) == 0:
+            service.logConfigs.append(sm.logconfig.LogConfig(path=logPath, logType='solr'))
+
         for cfg in filter(lambda x: x.name == "/opt/solr/server/solr/configsets/zenoss_model/conf/solrconfig.xml",
                           configFiles):
             cfg.content = self.__read_file_content('solrconfig-8.11.1.xml')
