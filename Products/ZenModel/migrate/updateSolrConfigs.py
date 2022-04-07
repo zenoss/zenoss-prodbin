@@ -45,10 +45,10 @@ class UpdateSolrConfigs(Migrate.Step):
         service = filter(lambda s: s.name == "Solr", ctx.services)[0]
         configFiles = service.originalConfigs + service.configFiles
 
-        # TODO add snapshot.0
-
         for (name, cfg_name) in (('log4j2-8.11.1.xml', '/var/solr/log4j2.xml'),
                                  ('zoo-8.11.1.cfg', '/opt/solr/zenoss/bin/zoo.cfg')):
+            if len(filter(lambda x: x.name == cfg_name, configFiles)) > 0:
+                continue
             content = self.__read_file_content(name)
             cfg_obj = sm.configfile.ConfigFile(name=cfg_name, filename=cfg_name, owner="root:root",
                                                permissions="0664", content=content)
