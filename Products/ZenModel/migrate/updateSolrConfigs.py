@@ -20,7 +20,7 @@ from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA
 log = logging.getLogger("zen.migrate")
 
 SOLR_IN = '''
-SOLR_JAVA_MEM="-Xmx{{.RAMCommitment}}"
+SOLR_JAVA_MEM="-Xmx{{.RAMCommitment}} -Xms{{.RAMCommitment}}"
 SOLR_OPTS="-Dsolr.http1=true"
 '''
 
