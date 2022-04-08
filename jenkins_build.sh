@@ -119,6 +119,7 @@ if [ "$1" != "--no-tests" ]; then
     pushd ${ZENDEV_ROOT}/src/github.com/zenoss/product-assembly
     export PRODUCT_IMAGE_ID=zendev/devimg:${ZENDEV_ENV}
     export MARIADB_IMAGE_ID=zendev/mariadb:${ZENDEV_ENV}
+    export REDIS_IMAGE_ID=zenoss/redis:latest
     ./test_image.sh \
     	--no-zenpacks \
     	--mount ${HOME}/.m2:/home/zenoss/.m2 \
