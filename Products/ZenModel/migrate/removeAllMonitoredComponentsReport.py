@@ -14,8 +14,7 @@ large amount of devices.
 
 import logging
 import Migrate
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, \
-    SCHEMA_REVISION
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 
