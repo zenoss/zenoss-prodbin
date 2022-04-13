@@ -180,8 +180,8 @@ def _decode_value(value, obj):
         value = value.decode(codec, errors="ignore")
         log.warn(
             "Unable to decode string using codec '%s'.  "
-            "Using a modified string without errors.  "
             "Please set zCollectorDecoding to the correct codec. "
+            "Using a modified string to avoid errors.  "
             "object=%r modified-value='%s' error=%s",
             codec, obj, value, ex,
         )
