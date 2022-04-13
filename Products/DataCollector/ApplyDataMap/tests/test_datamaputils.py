@@ -390,13 +390,13 @@ class TestSanitizeValue(TestCase):
         original_str = 'some_string'
         obj = Mock(zCollectorDecoding='')
         ret = _sanitize_value(original_str, obj)
-        t.assertEqual(ret, original_str)
+        t.assertEqual(ret, original_str.encode('utf-8'))
 
     def test_decodes_strings_with_non_unicode(t):
         original_str = 'David Mu\xf1oz'
         obj = Mock(zCollectorDecoding='utf-8')
         ret = _sanitize_value(original_str, obj)
-        t.assertEqual(ret, original_str.decode('latin-1').encode('utf-8'))
+        t.assertEqual(ret, 'David Muoz'.encode('utf-8'))
 
     def test_handles_MultiArgs(t):
         args = (sentinel.a, 'some_string', {'a': 1})

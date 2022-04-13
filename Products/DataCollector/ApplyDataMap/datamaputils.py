@@ -169,48 +169,24 @@ def _decode_value(value, obj):
 
     try:
         codec = obj.zCollectorDecoding
+        if not codec:
+            codec = sys.getdefaultencoding()
     except AttributeError:
         codec = sys.getdefaultencoding()
 
-    if not codec:
-        log.warn(
-            "zCollectorDecoding is not defined! It can cause problems "
-            "with the modeling and even can crash it, therefore specify "
-            "the correct data encoding as a value of "
-            "zCollectorDecoding.")
-
-        obj.zCollectorDecoding = 'utf-8'
-        codec = obj.zCollectorDecoding
-
     try:
         value = value.decode(codec)
-    except UnicodeDecodeError as ex1:
-        log.warn("The string %s cannot be correctly decoded using '%s' and "
-                 "causes error: %s! Please verify and specify the correct "
-                 "data encoding as a value of zCollectorDecoding.", value,
-                 codec, ex1)
-        try:
-            obj.zCollectorDecoding = 'latin-1'
-            codec = obj.zCollectorDecoding
-            value = value.decode(codec)
-        except UnicodeDecodeError as ex2:
-            log.warn("The string %s cannot be correctly decoded using '%s' "
-                     "and causes error: %s! Please verify and specify the "
-                     "correct data encoding as a value of zCollectorDecoding",
-                     value, codec, ex2)
+    except UnicodeDecodeError as ex:
+        value = value.decode(codec, errors="ignore")
+        log.warn(
+            "Unable to decode string using codec '%s'.  "
+            "Using a modified string without errors.  "
+            "Please set zCollectorDecoding to the correct codec. "
+            "object=%r modified-value='%s' error=%s",
+            codec, obj, value, ex,
+        )
 
-            value = value.decode(codec, errors='ignore')
-
-            log.warn("The string %s was decoded to %s ignoring symbols "
-                     "which is impossible to decode into '%s' ",
-                     value, codec, codec)
-
-    encoder = sys.getdefaultencoding()
-    if not encoder:
-        encoder = 'utf-8'
-    value = value.encode(encoder)
-
-    return value
+    return value.encode(sys.getdefaultencoding())
 
 
 def _update_object(obj, diff):
