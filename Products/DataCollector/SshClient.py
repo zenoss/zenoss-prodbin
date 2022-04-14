@@ -89,8 +89,6 @@ def sendEvent(
         else:
             log.debug("Couldn't get the remote device's hostname")
 
-    log.debug('Device name is: "%s"', device)
-
     error_event = {
         "agent": component,
         "summary": message,
