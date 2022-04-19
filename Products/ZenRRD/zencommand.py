@@ -23,7 +23,7 @@ from datetime import datetime, timedelta
 from functools import partial
 from pprint import pformat
 
-from twisted.internet import defer
+from twisted.internet import defer, error
 from twisted.python.failure import Failure
 from twisted.spread import pb
 from zope.component import queryUtility
@@ -451,6 +451,29 @@ class SshPerformanceCollectionTask(BaseTask):
         @return: Deferred actions to run against a device configuration
         @rtype: Twisted deferred object
         """
+
+        def twisted_exception_handler(summary):
+            self.state = TaskStates.STATE_PAUSED
+            err_msg = (
+                "Task paused  device=%s ip=%s interval=%s message=%s" % (
+                    self._devId,
+                    self._manageIp,
+                    self.interval,
+                    summary,
+                )
+            )
+            if log.isEnabledFor(logging.DEBUG):
+                log.exception(err_msg)
+            else:
+                log.error(err_msg)
+            self._eventService.sendEvent(
+                STATUS_EVENT,
+                device=self._devId,
+                summary=summary,
+                component=COLLECTOR_NAME,
+                severity=Error,
+            )
+
         if self._scheduler.cyberark:
             old_pass = self._device.zCommandPassword
             old_name = self._device.zCommandUsername
@@ -467,6 +490,7 @@ class SshPerformanceCollectionTask(BaseTask):
         )
         self._doTask_start = datetime.now()
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
+
         try:
             if not self._manageIp and self._useSsh:
                 self._eventService.sendEvent(
@@ -502,30 +526,24 @@ class SshPerformanceCollectionTask(BaseTask):
                         self._devId, "timeout",
                     )
 
+        except defer.CancelledError:
+            message = "Twisted deferred was cancelled."
+            log.error(
+                "Task paused  device=%s ip=%s interval=%s error=%s",
+                self._devId, self._manageIp, self.interval, message
+            )
+
+        except error.ConnectionLost:
+            message = "Connection to the other side was lost in a " \
+                      "non-clean fashion."
+            twisted_exception_handler(message)
+
         except Exception as e:
-            self.state = TaskStates.STATE_PAUSED
-            err_msg = (
-                "Task paused  device=%s ip=%s interval=%s message=%s" % (
-                    self._devId,
-                    self._manageIp,
-                    self.interval,
-                    e.message,
-                )
-            )
-            if log.isEnabledFor(logging.DEBUG):
-                log.exception(err_msg)
-            else:
-                log.error(err_msg)
-            self._eventService.sendEvent(
-                STATUS_EVENT,
-                device=self._devId,
-                summary=e.message,
-                component=COLLECTOR_NAME,
-                severity=Error,
-            )
+            twisted_exception_handler(e.message)
             # Re-raise the exception to the scheduler, which will increment
             # the failed task counter.
             raise
+
         else:
             self._returnToNormalSchedule()
 
