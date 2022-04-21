@@ -528,8 +528,8 @@ class SshPerformanceCollectionTask(BaseTask):
 
         except defer.CancelledError:
             message = "Twisted deferred was cancelled."
-            log.error(
-                "Task paused  device=%s ip=%s interval=%s error=%s",
+            log.debug(
+                "Connection lost  device=%s ip=%s interval=%s description=%s",
                 self._devId, self._manageIp, self.interval, message
             )
 
