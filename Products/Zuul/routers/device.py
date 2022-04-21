@@ -24,7 +24,7 @@ from Products.ZenUtils.jsonutils import unjson
 from Products import Zuul
 from Products.ZenModel.Device import Device
 from Products.ZenModel.ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_MANAGE_DMD, \
-    ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE, ZEN_DELETE_DEVICE
+    ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE, ZEN_DELETE_DEVICE, ZEN_MANAGER_ROLE, MANAGER_ROLE
 from Products.Zuul import filterUidsByPermission
 from Products.Zuul.facades import ObjectNotFoundException
 from Products.Zuul.routers import TreeRouter
@@ -323,12 +323,17 @@ class DeviceRouter(TreeRouter):
         @rtype: DirectResponse
         """
         facade = self._getFacade()
-        if not (Zuul.checkPermission(ZEN_MANAGE_DEVICE, self.context) or (
-                Zuul.checkPermission(ZEN_CHANGE_DEVICE_PRODSTATE,
-                                     self.context) and
-                                     sorted(data.keys()) == ['productionState', 'uid'])):
-            pass
-            #raise Exception('You do not have permission to save changes.')
+        
+        isManagedDevice = Zuul.checkPermission(ZEN_MANAGE_DEVICE, self.context)
+        isProdDevice = ( Zuul.checkPermission(ZEN_CHANGE_DEVICE_PRODSTATE, self.context) 
+            and sorted(data.keys()) == ['productionState', 'uid'] )
+        isAdministeredObject = ( Zuul.checkAdministeredObjectPermission(data['uid'], ZEN_MANAGER_ROLE, self.context) or
+            Zuul.checkAdministeredObjectPermission(data['uid'], MANAGER_ROLE, self.context) )
+        
+        if not (isManagedDevice or isProdDevice or isAdministeredObject):
+            raise Exception('You do not have permission to save changes.')
+        log.info("access granted.")
+        
         the_uid = data['uid']  # gets deleted
         process = facade.getInfo(the_uid)
         oldData = self._getInfoData(process, data.keys())
@@ -337,6 +342,8 @@ class DeviceRouter(TreeRouter):
         # reindex the object if necessary
         if hasattr(process._object, 'index_object'):
             process._object.index_object()
+            
+        log.info("checked")
 
         # Ex: ('UI.Device.Edit', uid, data_={'productionState': 'High'})
         # Ex: ('UI.Location.Edit', uid, description='Blah', old_description='Foo')

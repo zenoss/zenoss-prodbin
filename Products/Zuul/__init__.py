@@ -46,6 +46,7 @@ from interfaces import IMarshaller
 from interfaces import IUnmarshaller
 from utils import safe_hasattr as hasattr, get_dmd
 from BTrees.OOBTree import OOSet
+from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenWidgets import messaging
 from Products.Zuul.catalog.events import IndexingEvent
 from DateTime import DateTime
@@ -226,15 +227,17 @@ def checkAdministeredObjectPermission(uid, permission, context=None):
     @type  context: DMD
     @param context: you must pass in the dmd to this function to look up the objects.
     """
+    log = logging.getLogger('zen.Zuul')
     context = context or get_dmd()
-    mobj = context.unrestrictedTraverse(uid)
-    if not mobj:
-        return None
-
-    for admin_role in mobj.adminRoles():
-        if permission == admin_role.role:
-            return True
-        
+    us = context.dmd.ZenUsers.getUserSettings()
+    manager = IGUIDManager(context.dmd)
+    list_guid = us.getAllAdminGuids(returnChildrenForRootObj=True)
+    log.info("User has Amdinistered Objects access for [{}].".format(list_guid))
+    for device_guid in list_guid:
+        manager.getObject(device_guid)
+        if manager.getObject(device_guid).getPrimaryId() == uid:
+            log.info("User has Administered Object Permissions to uid='{}', guid='{}'.".format(uid, device_guid))
+            return True;
     return False
 
 def checkPermission(permission, context=None):
