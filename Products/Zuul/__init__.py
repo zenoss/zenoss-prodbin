@@ -46,7 +46,6 @@ from interfaces import IMarshaller
 from interfaces import IUnmarshaller
 from utils import safe_hasattr as hasattr, get_dmd
 from BTrees.OOBTree import OOSet
-from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenWidgets import messaging
 from Products.Zuul.catalog.events import IndexingEvent
 from DateTime import DateTime
@@ -213,33 +212,13 @@ def filterUidsByPermission(dmd, permission, uids):
 
 def checkAdministeredObjectPermission(uid, permission, context=None):
     """
-    Return true if the current user has the specified permission as a admin role 
-    for the specified uid on the given context or the dmd; 
-    return none if user has no roles for requested item;
-    otherwise, return false.
-    
-    @type  uid: string
-    @param uid: The UID of the object to check for permissions.
-
-    @type  permission: string
-    @param permission: Permission we are looking up.
-
-    @type  context: DMD
-    @param context: you must pass in the dmd to this function to look up the objects.
+    Return true if the current user has the specified Administrated object permission 
+    on the given context or the dmd; otherwise, return false.
     """
-    log = logging.getLogger('zen.Zuul')
     context = context or get_dmd()
-    us = context.dmd.ZenUsers.getUserSettings()
-    manager = IGUIDManager(context.dmd)
-    list_guid = us.getAllAdminGuids(returnChildrenForRootObj=True)
-    log.info("User has Amdinistered Objects access for [{}].".format(list_guid))
-    for device_guid in list_guid:
-        manager.getObject(device_guid)
-        if manager.getObject(device_guid).getPrimaryId() == uid:
-            log.info("User has Administered Object Permissions to uid='{}', guid='{}'.".format(uid, device_guid))
-            return True;
-    return False
-
+    return checkPermission(permission, context.dmd.unrestrictedTraverse(uid))
+    
+    
 def checkPermission(permission, context=None):
     """
     Return true if the current user has the specified permission on the given
