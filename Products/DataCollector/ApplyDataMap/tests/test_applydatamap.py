@@ -18,11 +18,9 @@ from ..applydatamap import (
     IncrementalDataMap,
     ZenModelRM,
     NotFound,
-
     CLASSIFIER_CLASS,
-    isSameData,
     ApplyDataMap,
-
+    _clone_datamap,
     _get_relationship_ids,
     _validate_device_class,
     _get_objmap_target,
@@ -31,7 +29,6 @@ from ..applydatamap import (
     _validate_datamap,
     _get_relationshipmap_diff,
     _process_relationshipmap,
-
     _remove_relationship,
     _create_object,
 )
@@ -39,48 +36,6 @@ from ..applydatamap import (
 log.setLevel('DEBUG')
 
 PATH = {'src': 'Products.DataCollector.ApplyDataMap.applydatamap'}
-
-
-class TestisSameData(TestCase):
-
-    def test_isSameData(t):
-        ret = isSameData('a', 'a')
-        t.assertTrue(ret)
-
-    # compare unsorted lists of dictionaries
-    def test_unsorted_lists_of_dicts_match(t):
-        a = [{'a': 1, 'b': 2}, {'c': 3}, {'d': 4}]
-        b = [{'d': 4}, {'c': 3}, {'b': 2, 'a': 1}]
-        t.assertTrue(isSameData(a, b))
-
-    def test_unsorted_lists_of_dicts_differ(t):
-        a = [{'a': 1, 'b': 2}, {'c': 3}, {'d': 4}]
-        c = [{'d': 4}, ]
-        t.assertFalse(isSameData(a, c))
-
-    def test_unsorted_tuple_of_dicts_match(t):
-        a = ({'a': 1, 'b': 2}, {'c': 3}, {'d': 4})
-        b = ({'d': 4}, {'c': 3}, {'b': 2, 'a': 1})
-        t.assertTrue(isSameData(a, b))
-
-    def test_unsorted_tuple_of_dicts_differ(t):
-        a = ({'a': 1, 'b': 2}, {'c': 3}, {'d': 4})
-        c = ({'d': 4},)
-        t.assertFalse(isSameData(a, c))
-
-    def test_tuples_match(t):
-        a = (('a', 1, 'b', 2), ('c', 3), ('d', 4))
-        b = (('d', 4), ('c', 3), ('a', 1, 'b', 2))
-        t.assertTrue(isSameData(a, b))
-
-    def test_tuples_differ(t):
-        a = (('a', 1, 'b', 2), ('c', 3), ('d', 4))
-        b = (('d', 4), ('c', 3), ('x', 10, 'y', 20))
-        t.assertFalse(isSameData(a, b))
-
-    def test_type_mismatch(t):
-        a, c = 555, ('x', 'y')
-        t.assertFalse(isSameData(a, c))
 
 
 class ApplyDataMapTests(TestCase):
@@ -275,8 +230,6 @@ class ApplyDataMapTests(TestCase):
             'setFoo': "foo"
         }))
         device.setFoo.assert_called_once_with("foo")
-
-
 
     @patch('{src}.transact'.format(**PATH), autospec=True)
     def test_applyDataMap_IncrementalDataMap(t, transact):
@@ -754,7 +707,7 @@ class Test_process_relationshipmap(TestCase):
 
     @patch('{src}._get_relmap_target'.format(**PATH), autospec=True)
     def test_missing_relname(t, _get_relmap_target):
-        '''returns false if the parent device does not have the specified
+        '''Returns None if the parent device does not have the specified
         relationship
         '''
         parent_device = Mock(
@@ -767,7 +720,7 @@ class Test_process_relationshipmap(TestCase):
 
         ret = _process_relationshipmap(relmap, parent_device)
 
-        t.assertEqual(ret, False)
+        t.assertIsNone(ret, None)
 
     @patch('{src}._get_relationshipmap_diff'.format(**PATH), autospec=True)
     def test_process_relationshipmap(t, _get_relationshipmap_diff):
@@ -781,14 +734,17 @@ class Test_process_relationshipmap(TestCase):
         om2 = ObjectMap({'id': 'eth1'})
         relmap.maps = [om1, om2, ]
 
-        _process_relationshipmap(relmap, device)
+        processed = _process_relationshipmap(relmap, device)
 
-        t.assertEqual(len(relmap.maps), 2)
-        for omap in relmap.maps:
-            t.assertEqual(omap.relname, relmap.relname)
-            t.assertEqual(omap.parent, relmap._parent)
+        t.assertNotEqual(id(relmap), id(processed))
+        t.assertEqual(len(processed.maps), 2)
+        t.assertIsNot(relmap.maps[0], processed.maps[0])
+        t.assertIsNot(relmap.maps[1], processed.maps[1])
+        for omap in processed.maps:
+            t.assertEqual(omap.relname, processed.relname)
+            t.assertEqual(omap.parent, processed._parent)
             t.assertEqual(omap.plugin_name, relmap.plugin_name)
-        t.assertEqual(relmap._diff, _get_relationshipmap_diff.return_value)
+        t.assertEqual(processed._diff, _get_relationshipmap_diff.return_value)
 
     @patch('{src}._get_relationshipmap_diff'.format(**PATH), autospec=True)
     def test_handles_duplicate_ids(t, _get_relationshipmap_diff):
@@ -809,15 +765,17 @@ class Test_process_relationshipmap(TestCase):
             objmaps=objmaps
         )
 
-        _process_relationshipmap(relmap, device)
+        processed = _process_relationshipmap(relmap, device)
 
-        t.assertEqual(relmap.plugin_name, 'test.plugin')
-        t.assertEqual(len(relmap.maps), 3)
-        t.assertEqual(relmap.maps[0].id, 'eth0')
-        t.assertEqual(relmap.maps[0].plugin_name, 'test.plugin')
-        t.assertEqual(relmap.maps[1].id, 'eth0_2')
-        t.assertEqual(relmap.maps[1].id, 'eth0_2')
-        t.assertEqual(relmap.maps[2].id, 'eth0_3')
+        t.assertEqual(processed.plugin_name, 'test.plugin')
+        t.assertEqual(len(processed.maps), 3)
+        t.assertEqual(om1.id, 'eth0')
+        t.assertEqual(processed.maps[0].id, 'eth0')
+        t.assertEqual(processed.maps[0].plugin_name, 'test.plugin')
+        t.assertEqual(om2.id, 'eth0')
+        t.assertEqual(processed.maps[1].id, 'eth0_2')
+        t.assertEqual(om3.id, 'eth0')
+        t.assertEqual(processed.maps[2].id, 'eth0_3')
 
 
 class Test__get_relationshipmap_diff(TestCase):
@@ -835,7 +793,8 @@ class Test__get_relationshipmap_diff(TestCase):
         t.relmap = MagicMock(
             RelationshipMap, name='object_map', relname=relname, id='device_id'
         )
-        t.relmap.__iter__.return_value = [Mock(id='id3'), Mock(id='id4')]
+        t.objmaps = [Mock(id='id3'), Mock(id='id4')]
+        t.relmap.__iter__.return_value = t.objmaps
         t.device = Mock(
             name='device', id=t.relmap.id,
             spec_set=['id', t.relmap.relname, 'removeRelation'],
@@ -845,7 +804,7 @@ class Test__get_relationshipmap_diff(TestCase):
     def test_remove_from_relationship(t):
         t.object_1.isLockedFromDeletion.return_value = False
         t.object_2.isLockedFromDeletion.return_value = False
-        ret = _get_relationshipmap_diff(t.device, t.relmap)
+        ret = _get_relationshipmap_diff(t.device, t.relmap.relname, t.objmaps)
 
         t.relationship._getOb.assert_called_with('id1')
         t.assertEqual(
@@ -855,7 +814,7 @@ class Test__get_relationshipmap_diff(TestCase):
     def test_does_not_remove_locked_devices(t):
         t.object_1.isLockedFromDeletion.return_value = False
         t.object_2.isLockedFromDeletion.return_value = True
-        ret = _get_relationshipmap_diff(t.device, t.relmap)
+        ret = _get_relationshipmap_diff(t.device, t.relmap.relname, t.objmaps)
 
         t.relationship._getOb.assert_called_with('id1')
         t.assertEqual(
@@ -908,9 +867,104 @@ class Test__get_objmap_target(TestCase):
         t.assertEqual(ret, sentinel.component)
 
 
+class Test__clone_datamap(TestCase):
+
+    def test_RelationshipMap(t):
+        relname = 'rel'
+        compname = 'comp'
+        objmaps = [{'a': 1}, {'b': 2}]
+        parentId = 'parent'
+        plugin_name = 'plugin'
+
+        original = RelationshipMap(
+            relname=relname,
+            compname=compname,
+            objmaps=objmaps,
+            parentId=parentId,
+            plugin_name=plugin_name,
+        )
+        o_om1 = original.maps[0]
+        o_om2 = original.maps[1]
+
+        clone = _clone_datamap(original)
+
+        t.assertIsNot(original, clone)
+        t.assertEqual(original.relname, clone.relname)
+        t.assertEqual(original.compname, clone.compname)
+        t.assertEqual(original.parentId, clone.parentId)
+        t.assertEqual(original.plugin_name, clone.plugin_name)
+
+        c_om1 = clone.maps[0]
+        t.assertIsNot(o_om1, c_om1)
+        t.assertTrue(hasattr(c_om1, 'a'))
+        t.assertEqual(o_om1.a, c_om1.a)
+
+        c_om2 = clone.maps[1]
+        t.assertIsNot(o_om2, c_om2)
+        t.assertTrue(hasattr(c_om2, 'b'))
+        t.assertEqual(o_om2.b, c_om2.b)
+
+    def test_IncrementalDataMap(t):
+        classname = 'class'
+        compname = 'comp'
+        plugin_name = 'plugin'
+        device = Device(id='device')
+        device.comp = Mock(name='comp')
+        device.dmd = Mock(name='dmd')
+
+        om = ObjectMap(
+            data={'a': 1},
+            compname=compname,
+            classname=classname,
+            plugin_name=plugin_name,
+        )
+        original = IncrementalDataMap(device, om)
+
+        clone = _clone_datamap(original)
+
+        t.assertIsNot(original, clone)
+        t.assertEqual(original.path, clone.path)
+        t.assertEqual(original.modname, clone.modname)
+        t.assertEqual(original.classname, clone.classname)
+        t.assertEqual(original.parent, clone.parent)
+        t.assertEqual(original.relname, clone.relname)
+        t.assertEqual(original.target, clone.target)
+        t.assertEqual(original.directive, clone.directive)
+        t.assertSequenceEqual(
+            list(original.iteritems()), list(clone.iteritems()),
+        )
+
+    def test_ObjectMap(t):
+        classname = 'class'
+        compname = 'comp'
+        plugin_name = 'plugin'
+        original = ObjectMap(
+            data={'a': 1},
+            compname=compname,
+            classname=classname,
+            plugin_name=plugin_name,
+        )
+
+        clone = _clone_datamap(original)
+
+        t.assertIsNot(original, clone)
+        t.assertEqual(original.classname, clone.classname)
+        t.assertEqual(original.compname, clone.compname)
+        t.assertEqual(original.plugin_name, clone.plugin_name)
+        t.assertDictEqual(dict(original.items()), dict(clone.items()))
+
+    def test_dict(t):
+        original = {'a': 1}
+        clone = _clone_datamap(original)
+
+        t.assertIsNot(original, clone)
+        t.assertDictEqual(dict(original.items()), dict(clone.items()))
+
+
 ##############################################################################
 # Apply Changes
 ##############################################################################
+
 
 class Test__remove_relationship(TestCase):
 
