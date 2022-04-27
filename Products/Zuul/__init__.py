@@ -210,15 +210,16 @@ def filterUidsByPermission(dmd, permission, uids):
                 priority=messaging.WARNING)
     return validUids
 
+
 def checkAdministeredObjectPermission(uid, permission, context=None):
     """
-    Return true if the current user has the specified Administrated object permission 
-    on the given context or the dmd; otherwise, return false.
+    Return True if the current user has the specified Administrated object
+    permission on the given context or the dmd; otherwise, return False.
     """
     context = context or get_dmd()
     return checkPermission(permission, context.dmd.unrestrictedTraverse(uid))
-    
-    
+
+
 def checkPermission(permission, context=None):
     """
     Return true if the current user has the specified permission on the given

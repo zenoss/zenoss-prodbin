@@ -323,15 +323,18 @@ class DeviceRouter(TreeRouter):
         @rtype: DirectResponse
         """
         facade = self._getFacade()
-        
-        isManagedDevice = Zuul.checkPermission(ZEN_MANAGE_DEVICE, self.context)
-        isProdDevice = ( Zuul.checkPermission(ZEN_CHANGE_DEVICE_PRODSTATE, self.context) 
-            and sorted(data.keys()) == ['productionState', 'uid'] )
-        isAdministeredObject = Zuul.checkAdministeredObjectPermission(data.get('uid'), ZEN_MANAGE_DMD, self.context)
-        
-        if not (isManagedDevice or isProdDevice or isAdministeredObject):
+        if not (
+            Zuul.checkPermission(ZEN_MANAGE_DEVICE, self.context)
+            or (
+                Zuul.checkPermission(ZEN_CHANGE_DEVICE_PRODSTATE, self.context)
+                and sorted(data.keys()) == ['productionState', 'uid']
+            )
+            or Zuul.checkAdministeredObjectPermission(
+                data.get('uid'), ZEN_MANAGE_DMD, self.context
+            )
+        ):
             raise Exception('You do not have permission to save changes.')
-        
+
         the_uid = data['uid']  # gets deleted
         process = facade.getInfo(the_uid)
         oldData = self._getInfoData(process, data.keys())
@@ -340,7 +343,6 @@ class DeviceRouter(TreeRouter):
         # reindex the object if necessary
         if hasattr(process._object, 'index_object'):
             process._object.index_object()
-            
 
         # Ex: ('UI.Device.Edit', uid, data_={'productionState': 'High'})
         # Ex: ('UI.Location.Edit', uid, description='Blah', old_description='Foo')
