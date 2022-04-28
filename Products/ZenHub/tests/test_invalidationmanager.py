@@ -16,47 +16,46 @@ from mock_interface import create_interface_mock
 
 from Products.ZenHub.zenhub import ZenHub
 from Products.ZenHub.invalidationmanager import (
-    InvalidationManager,
-    IInvalidationProcessor,
-    IInvalidationFilter,
-    PrimaryPathObjectManager,
-    DeviceComponent,
-    FILTER_INCLUDE,
-    FILTER_EXCLUDE,
-    POSKeyError,
     coroutine,
-    oid_to_obj,
+    DeviceComponent,
+    FILTER_EXCLUDE,
+    FILTER_INCLUDE,
     filter_obj,
-    transform_obj,
+    IInvalidationFilter,
+    IInvalidationProcessor,
+    InvalidationManager,
     InvalidationPipeline,
+    oid_to_obj,
+    POSKeyError,
+    PrimaryPathObjectManager,
     set_sink,
+    transform_obj,
 )
 
 
-PATH = {'src': 'Products.ZenHub.invalidationmanager'}
+PATH = {"src": "Products.ZenHub.invalidationmanager"}
 
 
 class InvalidationManagerTest(TestCase):
-
     def setUp(t):
         logging.disable(logging.CRITICAL)
 
         t.get_utility_patcher = patch(
-            '{src}.getUtility'.format(**PATH), autospec=True
+            "{src}.getUtility".format(**PATH), autospec=True
         )
         t.getUtility = t.get_utility_patcher.start()
         t.addCleanup(t.get_utility_patcher.stop)
 
         t.dmd = Mock(
-            name='dmd', spec_set=['getPhysicalRoot', 'pauseHubNotifications']
+            name="dmd", spec_set=["getPhysicalRoot", "pauseHubNotifications"]
         )
-        t.log = Mock(name='log', spec_set=['debug', 'warn', 'info'])
-        t.syncdb = Mock(name='ZenHub.async_syncdb', spec_set=[])
+        t.log = Mock(name="log", spec_set=["debug", "warn", "info"])
+        t.syncdb = Mock(name="ZenHub.async_syncdb", spec_set=[])
         t.poll_invalidations = Mock(
-            name='ZenHub.storage.poll_invalidations', spec_set=[]
+            name="ZenHub.storage.poll_invalidations", spec_set=[]
         )
 
-        t.send_event = Mock(ZenHub.sendEvent, name='ZenHub.sendEvent')
+        t.send_event = Mock(ZenHub.sendEvent, name="ZenHub.sendEvent")
         t.im = InvalidationManager(
             t.dmd, t.log, t.syncdb, t.poll_invalidations, t.send_event
         )
@@ -66,8 +65,7 @@ class InvalidationManagerTest(TestCase):
         t.assertEqual(t.im.log, t.log)
         t.assertEqual(t.im._InvalidationManager__syncdb, t.syncdb)
         t.assertEqual(
-            t.im._InvalidationManager__poll_invalidations,
-            t.poll_invalidations
+            t.im._InvalidationManager__poll_invalidations, t.poll_invalidations
         )
         t.assertEqual(t.im._InvalidationManager__send_event, t.send_event)
 
@@ -77,7 +75,7 @@ class InvalidationManagerTest(TestCase):
         t.getUtility.assert_called_with(IInvalidationProcessor)
         t.assertEqual(t.im.processor, t.getUtility.return_value)
 
-    @patch('{src}.getUtilitiesFor'.format(**PATH), autospec=True)
+    @patch("{src}.getUtilitiesFor".format(**PATH), autospec=True)
     def test_initialize_invalidation_filters(t, getUtilitiesFor):
         MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
         filters = [MockIInvalidationFilter() for i in range(3)]
@@ -85,7 +83,7 @@ class InvalidationManagerTest(TestCase):
         for i, filter in enumerate(filters):
             filter.weight = 10 - i
         getUtilitiesFor.return_value = [
-            ('f%s' % i, f) for i, f in enumerate(filters)
+            ("f%s" % i, f) for i, f in enumerate(filters)
         ]
 
         t.im.initialize_invalidation_filters()
@@ -97,11 +95,11 @@ class InvalidationManagerTest(TestCase):
         filters.reverse()
         t.assertEqual(t.im._invalidation_filters, filters)
 
-    @patch('{src}.time'.format(**PATH), autospec=True)
+    @patch("{src}.time".format(**PATH), autospec=True)
     def test_process_invalidations(t, time):
-        '''synchronize with the database, and poll invalidated oids from it,
+        """synchronize with the database, and poll invalidated oids from it,
         filter the oids,  send them to the invalidation_processor
-        '''
+        """
         timestamps = [10, 20]
         time.side_effect = timestamps
         t.im._paused = create_autospec(t.im._paused, return_value=False)
@@ -166,20 +164,20 @@ class InvalidationManagerTest(TestCase):
 
 
 class InvalidationPipelineTest(TestCase):
-    '''A Pipeline that filters and transforms an invalidated oid,
+    """A Pipeline that filters and transforms an invalidated oid,
     before sending it to IInvalidationProcessor
-    '''
+    """
 
     def setUp(t):
         t.mocks = {}
-        for obj in ['subscribers', 'getUtility']:
-            patcher = patch('{src}.{}'.format(obj, **PATH), autospec=True)
+        for obj in ["subscribers", "getUtility"]:
+            patcher = patch("{src}.{}".format(obj, **PATH), autospec=True)
             t.mocks[obj] = patcher.start()
             t.addCleanup(patcher.stop)
 
         # constructor parameters
-        t.app = MagicMock(name='dmd.root', spec_set=['_p_jar', 'zport'])
-        t.filters = [Mock(name='filter_a'), Mock(name='filter_b')]
+        t.app = MagicMock(name="dmd.root", spec_set=["_p_jar", "zport"])
+        t.filters = [Mock(name="filter_a"), Mock(name="filter_b")]
         t.sink = set()
         # Environment, and args
         t.device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
@@ -188,10 +186,10 @@ class InvalidationPipelineTest(TestCase):
 
         t.oid = 111
         t.app._p_jar = {t.oid: t.device}
-        adapter = Mock(name='transform adapter', spec_set=['transformOid'])
+        adapter = Mock(name="transform adapter", spec_set=["transformOid"])
         adapter.transformOid.side_effect = lambda x: x
         adapters = [adapter]
-        t.mocks['subscribers'].return_value = adapters
+        t.mocks["subscribers"].return_value = adapters
 
         t.invalidation_pipeline = InvalidationPipeline(
             t.app, t.filters, t.sink
@@ -208,13 +206,13 @@ class InvalidationPipelineTest(TestCase):
 
         t.assertEqual(t.sink, set([t.oid]))
 
-    @patch('{src}.log'.format(**PATH), autospec=True)
+    @patch("{src}.log".format(**PATH), autospec=True)
     def test_run_handles_exceptions(t, log):
-        '''An exception in any of the coroutines will first raise the exception
+        """An exception in any of the coroutines will first raise the exception
         then cause StopIteration exceptions on subsequent runs.
         we handle the first exception and rebuild the pipeline
-        '''
-        x = 'invalid key'
+        """
+        x = "invalid key"
         with t.assertRaises(KeyError):
             t.invalidation_pipeline._InvalidationPipeline__pipeline.send(x)
 
@@ -225,24 +223,24 @@ class InvalidationPipelineTest(TestCase):
         t.assertEqual(t.sink, set([t.oid]))
         # ensure the dereferenced pipeline is cleaned up safely
         import gc
+
         gc.collect()
 
 
 class coroutine_Test(TestCase):
-
     def test_coroutine_decorator(t):
-        '''Used to create our pipe segments.
+        """Used to create our pipe segments.
         parameters configure the segment
         call .send(<args>) to provide input through yield
-        '''
+        """
 
         @coroutine
         def magnitude(mag, output):
             while True:
-                input = (yield)
+                input = yield
                 output.send(mag * input)
 
-        output = Mock(spec_set=['send'])
+        output = Mock(spec_set=["send"])
         mag10 = magnitude(10, output)
 
         mag10.send(1)
@@ -252,10 +250,9 @@ class coroutine_Test(TestCase):
 
 
 class oid_to_obj_Test(TestCase):
-
     def setUp(t):
-        t.sink = Mock(name='sink', spec_set=['send'])
-        t.out_pipe = Mock(name='output_pipe', spec_set=['send'])
+        t.sink = Mock(name="sink", spec_set=["send"])
+        t.out_pipe = Mock(name="output_pipe", spec_set=["send"])
 
     def test_oid_to_obj(t):
         device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
@@ -272,10 +269,10 @@ class oid_to_obj_Test(TestCase):
         t.out_pipe.send.assert_called_with((111, device_obj))
 
     def test__oid_to_object_poskeyerror(t):
-        '''oids not found in dmd are considered deletions,
+        """oids not found in dmd are considered deletions,
         and sent straight to the output sink
-        '''
-        app = MagicMock(name='dmd.root', spec_set=['_p_jar'])
+        """
+        app = MagicMock(name="dmd.root", spec_set=["_p_jar"])
         app._p_jar.__getitem__.side_effect = POSKeyError()
 
         oid_to_obj_pipe = oid_to_obj(app, t.sink, t.out_pipe)
@@ -284,9 +281,9 @@ class oid_to_obj_Test(TestCase):
         t.sink.send.assert_called_with([111])
 
     def test__oid_to_object_deleted_primaryaq_keyerror(t):
-        '''objects without a primaryAq ar considered deletions,
+        """objects without a primaryAq ar considered deletions,
         and sent straight to the output sink
-        '''
+        """
         deleted = MagicMock(DeviceComponent, __of__=Mock())
         deleted.__of__.return_value.primaryAq.side_effect = KeyError
         app = sentinel.dmd_root
@@ -298,9 +295,8 @@ class oid_to_obj_Test(TestCase):
         t.sink.send.assert_called_with([111])
 
     def test__oid_to_object_exclude_unsuported_types(t):
-        '''Exclude any unspecified object types
-        '''
-        unsuported = MagicMock(name='unsuported type', __of__=Mock())
+        """Exclude any unspecified object types"""
+        unsuported = MagicMock(name="unsuported type", __of__=Mock())
         app = sentinel.dmd_root
         app._p_jar = {111: unsuported}
 
@@ -312,9 +308,9 @@ class oid_to_obj_Test(TestCase):
 
 
 class filter_obj_Test(TestCase):
-    '''Run the given object through each registered IInvalidationFilter
+    """Run the given object through each registered IInvalidationFilter
     drop any that are specifically Excluded by a filter
-    '''
+    """
 
     def setUp(t):
         MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
@@ -333,7 +329,7 @@ class filter_obj_Test(TestCase):
 
         t.filter.include = include
 
-        t.out_pipe = Mock(name='output_pipe', spec_set=['send'])
+        t.out_pipe = Mock(name="output_pipe", spec_set=["send"])
         t.filter_object_pipe = filter_obj([t.filter], t.out_pipe)
 
     def test__filters_object(t):
@@ -350,45 +346,45 @@ class filter_obj_Test(TestCase):
 
 
 class transform_obj_Test(TestCase):
-
-    @patch('{src}.IInvalidationOid'.format(**PATH), autospec=True)
-    @patch('{src}.subscribers'.format(**PATH), autospec=True)
+    @patch("{src}.IInvalidationOid".format(**PATH), autospec=True)
+    @patch("{src}.subscribers".format(**PATH), autospec=True)
     def test__transform_obj(t, subscribers, IInvalidationOid):
-        '''given an oid: object pair
+        """given an oid: object pair
         gets a list of transforms for the object
         executes the transforms given the oid
         returns a set of oids returned by the transforms
-        '''
-        target = Mock(name='target', set_attr=['send'])
+        """
+        target = Mock(name="target", set_attr=["send"])
         adapter_a = Mock(
-            name='adapter_a', spec_set=['transformOid'],
-            transformOid=lambda x: x + '0'
+            name="adapter_a",
+            spec_set=["transformOid"],
+            transformOid=lambda x: x + "0",
         )
         subscribers.return_value = [adapter_a]
         adapter_b = Mock(
-            name='adapter_b', spec_set=['transformOid'],
-            transformOid=lambda x: [x + '1', x + '2']
+            name="adapter_b",
+            spec_set=["transformOid"],
+            transformOid=lambda x: [x + "1", x + "2"],
         )
         IInvalidationOid.return_value = adapter_b
-        oid = 'oid'
+        oid = "oid"
         obj = sentinel.object
 
         transform_pipe = transform_obj(target)
         transform_pipe.send((oid, obj))
 
-        target.send.assert_called_with({'oid0', 'oid1', 'oid2'})
+        target.send.assert_called_with({"oid0", "oid1", "oid2"})
 
 
 class set_sink_Test(TestCase):
-
     def test_set_sink_accepts_a_set(t):
         output = set()
         set_sink_pipe = set_sink(output)
-        set_sink_pipe.send({'a', 'a', 'b', 'c'} or ('a',))
-        t.assertEqual(output, {'a', 'b', 'c'})
+        set_sink_pipe.send({"a", "a", "b", "c"} or ("a",))
+        t.assertEqual(output, {"a", "b", "c"})
 
     def test_set_sink_accepts_a_tuple(t):
         output = set()
         set_sink_pipe = set_sink(output)
-        set_sink_pipe.send(None or ('a',))
-        t.assertEqual(output, {'a'})
+        set_sink_pipe.send(None or ("a",))
+        t.assertEqual(output, {"a"})

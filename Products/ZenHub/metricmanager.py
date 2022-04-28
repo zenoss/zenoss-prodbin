@@ -11,40 +11,35 @@ from __future__ import absolute_import
 
 import os
 
-
 from zope.interface import implementer
 from zope.component.interfaces import Interface, Attribute
 
-from Products.ZenUtils.MetricReporter import TwistedMetricReporter
-from Products.ZenUtils.DaemonStats import DaemonStats
-from Products.ZenUtils.metricwriter import (
-    ThresholdNotifier,
-    DerivativeTracker,
-    MetricWriter,
-    FilteredMetricWriter,
-    AggregateMetricWriter,
-)
-
 from Products.ZenModel.BuiltInDS import BuiltInDS
-
-from Products.ZenHub.metricpublisher.publisher import (
-    RedisListPublisher,
-    HttpPostPublisher
+from Products.ZenUtils.DaemonStats import DaemonStats
+from Products.ZenUtils.MetricReporter import TwistedMetricReporter
+from Products.ZenUtils.metricwriter import (
+    AggregateMetricWriter,
+    DerivativeTracker,
+    FilteredMetricWriter,
+    MetricWriter,
+    ThresholdNotifier,
 )
+
+from .metricpublisher.publisher import RedisListPublisher, HttpPostPublisher
 
 
 class IMetricManager(Interface):
-    metric_writer = Attribute('metric writer instance')
+    metric_writer = Attribute("metric writer instance")
 
 
 @implementer(IMetricManager)
 class MetricManager(object):
-    '''General interface for storing and reporting metrics
+    """General interface for storing and reporting metrics
     metric publisher: publishes metrics to an external system (redis, http)
     metric writer: drives metric pulisher(s), calling their .put method
     metric reporter: once its .start method is called,
         periodically calls writer.write_metric, to publish stored metrics
-    '''
+    """
 
     def __init__(self, daemon_tags):
         self.daemon_tags = daemon_tags
@@ -80,11 +75,11 @@ class MetricManager(object):
         derivative_tracker = DerivativeTracker()
 
         rrd_stats.config(
-            'zenhub',
+            "zenhub",
             hub_config.id,
             self.metric_writer,
             threshold_notifier,
-            derivative_tracker
+            derivative_tracker,
         )
 
         return rrd_stats

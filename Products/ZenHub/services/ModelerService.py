@@ -1,30 +1,32 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 import copy
-
-
-from itertools import ifilter
-from zope import component
-from Acquisition import aq_base
-from twisted.internet import defer, reactor
-from ZODB.transact import transact
-from PerformanceConfig import PerformanceConfig
-from Products.ZenHub.PBDaemon import translateError
-from Products.DataCollector.DeviceProxy import DeviceProxy
-from Products.DataCollector.Plugins import loadPlugins
-from Products.ZenEvents import Event
-from Products.ZenCollector.interfaces import IConfigurationDispatchingFilter
-from Products.ZenUtils.events import pausedAndOptimizedIndexing
 import time
 import logging
-log = logging.getLogger('zen.ModelerService')
+
+from itertools import ifilter
+
+from Acquisition import aq_base
+from ZODB.transact import transact
+from zope import component
+
+from Products.DataCollector.DeviceProxy import DeviceProxy
+from Products.DataCollector.Plugins import loadPlugins
+from Products.ZenCollector.interfaces import IConfigurationDispatchingFilter
+from Products.ZenEvents import Event
+from Products.ZenHub.PBDaemon import translateError
+
+from Products.ZenHub.services.PerformanceConfig import PerformanceConfig
+
+log = logging.getLogger("zen.ModelerService")
+
 
 class ModelerService(PerformanceConfig):
 
@@ -34,7 +36,7 @@ class ModelerService(PerformanceConfig):
         PerformanceConfig.__init__(self, dmd, instance)
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
 
-    def createDeviceProxy(self, dev, skipModelMsg=''):
+    def createDeviceProxy(self, dev, skipModelMsg=""):
         if self.plugins is None:
             self.plugins = {}
             for loader in loadPlugins(self.dmd):
@@ -56,9 +58,13 @@ class ModelerService(PerformanceConfig):
             result.plugins = []
             for name in dev.zCollectorPlugins:
                 plugin = self.plugins.get(name, None)
-                log.debug('checking plugin %s for device %s', name, dev.getId())
+                log.debug(
+                    "checking plugin %s for device %s", name, dev.getId()
+                )
                 if plugin and plugin.condition(dev, log):
-                    log.debug('adding plugin %s for device %s', name, dev.getId())
+                    log.debug(
+                        "adding plugin %s for device %s", name, dev.getId()
+                    )
                     result.plugins.append(plugin.loader)
                     plugin.copyDataToProxy(dev, result)
             result.temp_device = dev.isTempDevice()
@@ -68,8 +74,9 @@ class ModelerService(PerformanceConfig):
     def remote_getClassCollectorPlugins(self):
         result = []
         for dc in self.dmd.Devices.getSubOrganizers():
-            localPlugins = getattr(aq_base(dc), 'zCollectorPlugins', False)
-            if not localPlugins: continue
+            localPlugins = getattr(aq_base(dc), "zCollectorPlugins", False)
+            if not localPlugins:
+                continue
             result.append((dc.getOrganizerName(), localPlugins))
         return result
 
@@ -81,24 +88,34 @@ class ModelerService(PerformanceConfig):
             if not device:
                 continue
             device = device.primaryAq()
-            skipModelMsg = ''
+            skipModelMsg = ""
 
             if device.isLockedFromUpdates():
-                skipModelMsg = "device %s is locked, skipping modeling" % device.id
-                self.dmd.ZenEventManager.sendEvent({
-                    'device': device.id,
-                    'severity': Event.Warning,
-                    'component': 'zenmodeler',
-                    'eventClass': '/Status/Update',
-                    'summary': skipModelMsg,
-                })
+                skipModelMsg = (
+                    "device %s is locked, skipping modeling" % device.id
+                )
+                self.dmd.ZenEventManager.sendEvent(
+                    {
+                        "device": device.id,
+                        "severity": Event.Warning,
+                        "component": "zenmodeler",
+                        "eventClass": "/Status/Update",
+                        "summary": skipModelMsg,
+                    }
+                )
 
-            if checkStatus and (device.getPingStatus() > 0
-                                or device.getSnmpStatus() > 0):
-                skipModelMsg = "device %s is down skipping modeling" % device.id
-            if (device.getProductionState() <
-                device.getProperty('zProdStateThreshold', 0)):
-                skipModelMsg = "device %s is below zProdStateThreshold" % device.id
+            if checkStatus and (
+                device.getPingStatus() > 0 or device.getSnmpStatus() > 0
+            ):
+                skipModelMsg = (
+                    "device %s is down skipping modeling" % device.id
+                )
+            if device.getProductionState() < device.getProperty(
+                "zProdStateThreshold", 0
+            ):
+                skipModelMsg = (
+                    "device %s is below zProdStateThreshold" % device.id
+                )
             if skipModelMsg:
                 log.info(skipModelMsg)
 
@@ -113,49 +130,67 @@ class ModelerService(PerformanceConfig):
         return [d.id for d in monitor.devices.objectValuesGen()]
 
     def _getOptionsFilter(self, options):
-        deviceFilter = lambda x: True
+        def deviceFilter(x):
+            return True
+
         if options:
-            dispatchFilterName = options.get('configDispatch', '') if options else ''
-            filterFactories = dict(component.getUtilitiesFor(IConfigurationDispatchingFilter))
-            filterFactory = filterFactories.get(dispatchFilterName, None) or \
-                            filterFactories.get('', None)
+            dispatchFilterName = (
+                options.get("configDispatch", "") if options else ""
+            )
+            filterFactories = dict(
+                component.getUtilitiesFor(IConfigurationDispatchingFilter)
+            )
+            filterFactory = filterFactories.get(
+                dispatchFilterName, None
+            ) or filterFactories.get("", None)
             if filterFactory:
                 deviceFilter = filterFactory.getFilter(options) or deviceFilter
         return deviceFilter
 
     @translateError
-    def remote_getDeviceListByOrganizer(self, organizer, monitor=None, options=None):
+    def remote_getDeviceListByOrganizer(
+        self, organizer, monitor=None, options=None
+    ):
         if monitor is None:
             monitor = self.instance
         filter = self._getOptionsFilter(options)
         root = self.dmd.Devices.getOrganizer(organizer)
-        #If getting all devices for a monitor, get them from the monitor
-        if root.getPrimaryId() == '/zport/dmd/Devices':
+        # If getting all devices for a monitor, get them from the monitor
+        if root.getPrimaryId() == "/zport/dmd/Devices":
             monitor = self.dmd.Monitors.Performance._getOb(monitor)
-            devices = ((d.id, d.snmpLastCollection) for d in ifilter(filter, monitor.devices.objectValuesGen()))
+            devices = (
+                (d.id, d.snmpLastCollection)
+                for d in ifilter(filter, monitor.devices.objectValuesGen())
+            )
         else:
-            devices= ((d.id, d.snmpLastCollection) for d in ifilter(filter, root.getSubDevicesGen())
-                if d.getPerformanceServerName() == monitor)
-        return [d[0] for d in sorted(devices, key=lambda x:x[1])]
+            devices = (
+                (d.id, d.snmpLastCollection)
+                for d in ifilter(filter, root.getSubDevicesGen())
+                if d.getPerformanceServerName() == monitor
+            )
+        return [d[0] for d in sorted(devices, key=lambda x: x[1])]
 
-    #monkeypatched in MultiRealmIP, for ticket ZEN-21781
+    # monkeypatched in MultiRealmIP, for ticket ZEN-21781
     def pre_adm_check(self, map, device):
         return None
 
-    #monkeypatched in MultiRealmIP, for ticket ZEN-21781
+    # monkeypatched in MultiRealmIP, for ticket ZEN-21781
     def post_adm_process(self, map, device, preadmdata):
         pass
 
     @translateError
     @transact
-    def remote_applyDataMaps(self, device, maps, devclass=None, setLastCollection=False):
+    def remote_applyDataMaps(
+        self, device, maps, devclass=None, setLastCollection=False
+    ):
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
+
         device = self.getPerformanceMonitor().findDeviceByIdExact(device)
         adm = ApplyDataMap(self)
         adm.setDeviceClass(device, devclass)
 
         changed = False
-        #with pausedAndOptimizedIndexing():
+        # with pausedAndOptimizedIndexing():
         for map in maps:
             # make a copy because ApplyDataMap will modify the data map.
             datamap = copy.deepcopy(map)
@@ -170,24 +205,30 @@ class ModelerService(PerformanceConfig):
             changesubject = "device" if changed else "nothing"
             if hasattr(datamap, "relname"):
                 log.debug(
-                    "Time in _applyDataMap for Device %s with relmap %s objects: %.2f, %s changed.",
+                    "Time in _applyDataMap for Device %s with relmap %s "
+                    "objects: %.2f, %s changed.",
                     device.getId(),
                     datamap.relname,
                     end_time,
-                    changesubject)
+                    changesubject,
+                )
             elif hasattr(datamap, "modname"):
                 log.debug(
-                    "Time in _applyDataMap for Device %s with objectmap, size of %d attrs: %.2f, %s changed.",
+                    "Time in _applyDataMap for Device %s with objectmap, "
+                    "size of %d attrs: %.2f, %s changed.",
                     device.getId(),
                     len(datamap.items()),
                     end_time,
-                    changesubject)
+                    changesubject,
+                )
             else:
                 log.debug(
-                    "Time in _applyDataMap for Device %s: %.2f . Could not find if relmap or objmap, %s changed.",
+                    "Time in _applyDataMap for Device %s: %.2f. "
+                    "Could not find if relmap or objmap, %s changed.",
                     device.getId(),
                     end_time,
-                    changesubject)
+                    changesubject,
+                )
 
             self.post_adm_process(datamap, device, preadmdata)
 
@@ -211,33 +252,35 @@ class ModelerService(PerformanceConfig):
 
     def _do_with_retries(self, action):
         from ZODB.POSException import StorageError
+
         max_attempts = 3
         for attempt_num in range(max_attempts):
             try:
                 return action()
             except StorageError as e:
-                if attempt_num == max_attempts-1:
+                if attempt_num == max_attempts - 1:
                     msg = "{0}, maximum retries reached".format(e)
                 else:
                     msg = "{0}, retrying".format(e)
                 log.info(msg)
 
-
     @translateError
     @transact
     def remote_setSnmpConnectionInfo(self, device, version, port, community):
         device = self.getPerformanceMonitor().findDeviceByIdExact(device)
-        device.updateDevice(zSnmpVer=version,
-                            zSnmpPort=port,
-                            zSnmpCommunity=community)
+        device.updateDevice(
+            zSnmpVer=version, zSnmpPort=port, zSnmpCommunity=community
+        )
 
     def pushConfig(self, device):
         from twisted.internet.defer import succeed
+
         return succeed(device)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from Products.ZenHub.ServiceTester import ServiceTester
+
     tester = ServiceTester(ModelerService)
 
     def configprinter(config):

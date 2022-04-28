@@ -7,15 +7,16 @@
 #
 ##############################################################################
 
-
 import logging
-log = logging.getLogger('zen.ZenHub')
 
-from zope.interface import implements
-from zope.interface.advice import addClassAdvisor
 from zope.component import provideHandler
 from zope.component.interfaces import ObjectEvent
-from Products.ZenHub.interfaces import IUpdateEvent, IDeletionEvent
+from zope.interface.advice import addClassAdvisor
+from zope.interface import implements
+
+from .interfaces import IUpdateEvent, IDeletionEvent
+
+log = logging.getLogger("zen.ZenHub")
 
 
 class InvalidationEvent(ObjectEvent):
@@ -41,6 +42,7 @@ def _listener_decorator_factory(eventtype):
     @param eventtype: The event interface to which the subscribers should
     listen.
     """
+
     def factory(*types):
         """
         The eventtype-specific decorator factory. Calling this factory both
@@ -57,10 +59,11 @@ def _listener_decorator_factory(eventtype):
             The decorator. All it does is print a log message, then call the
             original function.
             """
+
             def inner(self, obj, event):
                 # Log that we've called this listener
-                fname = '.'.join((self.__class__.__name__, f.__name__))
-                log.debug('%s is interested in %r for %r', fname, event, obj)
+                fname = ".".join((self.__class__.__name__, f.__name__))
+                log.debug("%s is interested in %r for %r", fname, event, obj)
 
                 # Call the original function
                 return f(self, obj, event)
@@ -81,15 +84,17 @@ def _listener_decorator_factory(eventtype):
             # Set one flag per fname on the class so we don't double-register
             # when we override in a subclass (once for super, once for sub)
             fname = _f.keys()[0]
-            cls.__registered = getattr(cls, '__registered', {})
+            cls.__registered = getattr(cls, "__registered", {})
 
             # Check our flag
-            if fname not in cls.__registered or not issubclass(cls, tuple(cls.__registered[fname])):
+            if fname not in cls.__registered or not issubclass(
+                cls, tuple(cls.__registered[fname])
+            ):
                 # Decorator for __init__
                 def registerHandlers(f):
                     def __init__(self, *args, **kwargs):
-                        # Call the original constructor; we'll register handlers
-                        # afterwards
+                        # Call the original constructor;
+                        # we'll register handlers afterwards
                         f(self, *args, **kwargs)
                         handler = getattr(self, fname)
                         for t in types:
@@ -106,7 +111,6 @@ def _listener_decorator_factory(eventtype):
                 cls.__init__ = registerHandlers(cls.__init__)
                 # Set the flag for this fname
                 cls.__registered.setdefault(fname, []).append(cls)
-
 
             # Return the class, which will replace the original class.
             return cls
