@@ -7,22 +7,21 @@
 #
 ##############################################################################
 
-
-import re
-from hashlib import md5
 import logging
+import re
+
 from cStringIO import StringIO
+from hashlib import md5
+
 from zope.interface import implements
 
-from Products.ZenUtils.Utils import unused
-
 from Products.ZenModel.DeviceClass import DeviceClass
-from Products.ZenModel.IpAddress import IpAddress
-from Products.ZenModel.IpNetwork import IpNetwork
-from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
-from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.GraphPoint import GraphPoint
+from Products.ZenModel.IpAddress import IpAddress
+from Products.ZenModel.IpNetwork import IpNetwork
+from Products.ZenModel.OSProcessClass import OSProcessClass
+from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 from Products.ZenModel.ProductClass import ProductClass
 from Products.ZenModel.Software import Software
 from Products.ZenWidgets.Portlet import Portlet
@@ -30,9 +29,7 @@ from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from .interfaces import IInvalidationFilter, FILTER_EXCLUDE, FILTER_CONTINUE
 
-
-
-log = logging.getLogger('zen.InvalidationFilter')
+log = logging.getLogger("zen.InvalidationFilter")
 
 
 class IgnorableClassesFilter(object):
@@ -40,6 +37,7 @@ class IgnorableClassesFilter(object):
     This filter specifies which classes we want to ignore the
     invalidations on.
     """
+
     implements(IInvalidationFilter)
 
     CLASSES_TO_IGNORE = (
@@ -67,6 +65,7 @@ class BaseOrganizerFilter(object):
     Base invalidation filter for organizers. Calculates a checksum for
     the organizer based on its sorted z/c properties.
     """
+
     implements(IInvalidationFilter)
 
     weight = 10
@@ -94,7 +93,7 @@ class BaseOrganizerFilter(object):
         for zId in sorted(organizer.zenPropertyIds(pfilt=self.iszorcustprop)):
             try:
                 if organizer.zenPropIsPassword(zId):
-                    propertyString = organizer.getProperty(zId, '')
+                    propertyString = organizer.getProperty(zId, "")
                 else:
                     propertyString = organizer.zenPropertyString(zId)
                 yield zId, propertyString
@@ -108,7 +107,7 @@ class BaseOrganizerFilter(object):
     def generateChecksum(self, organizer, md5_checksum):
         # Checksum all zProperties and custom properties
         for zId, propertyString in self.getZorCProperties(organizer):
-            md5_checksum.update('%s|%s' % (zId, propertyString))
+            md5_checksum.update("%s|%s" % (zId, propertyString))
 
     def organizerChecksum(self, organizer):
         m = md5()
@@ -122,15 +121,15 @@ class BaseOrganizerFilter(object):
 
         # Checksum the device class
         current_checksum = self.organizerChecksum(obj)
-        organizer_path = '/'.join(obj.getPrimaryPath())
+        organizer_path = "/".join(obj.getPrimaryPath())
 
         # Get what we have right now and compare
         existing_checksum = self.checksum_map.get(organizer_path)
         if current_checksum != existing_checksum:
-            log.debug('%r has a new checksum! Including.', obj)
+            log.debug("%r has a new checksum! Including.", obj)
             self.checksum_map[organizer_path] = current_checksum
             return FILTER_CONTINUE
-        log.debug('%r checksum unchanged. Skipping.', obj)
+        log.debug("%r checksum unchanged. Skipping.", obj)
         return FILTER_EXCLUDE
 
 
@@ -162,10 +161,9 @@ class DeviceClassInvalidationFilter(BaseOrganizerFilter):
             tpl.exportXml(s)
             md5_checksum.update(s.getvalue())
         # Include z/c properties from base class
-        super(
-            DeviceClassInvalidationFilter,
-            self
-        ).generateChecksum(organizer, md5_checksum)
+        super(DeviceClassInvalidationFilter, self).generateChecksum(
+            organizer, md5_checksum
+        )
 
 
 class OSProcessOrganizerFilter(BaseOrganizerFilter):
@@ -197,12 +195,11 @@ class OSProcessClassFilter(BaseOrganizerFilter):
     def generateChecksum(self, organizer, md5_checksum):
         # Include properties of OSProcessClass
         for prop in organizer._properties:
-            prop_id = prop['id']
+            prop_id = prop["id"]
             md5_checksum.update(
-                "%s|%s" % (prop_id, getattr(organizer, prop_id, ''))
+                "%s|%s" % (prop_id, getattr(organizer, prop_id, ""))
             )
         # Include z/c properties from base class
-        super(
-            OSProcessClassFilter,
-            self
-        ).generateChecksum(organizer, md5_checksum)
+        super(OSProcessClassFilter, self).generateChecksum(
+            organizer, md5_checksum
+        )

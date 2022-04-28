@@ -7,21 +7,19 @@
 #
 ##############################################################################
 
-
 import logging
+
 from zope.interface import implements
 from zope.component import adapts
-
-from Products.ZenUtils.Utils import unused
 
 from Products.ZenRelations.PrimaryPathObjectManager import (
     PrimaryPathObjectManager,
 )
-from Products.ZenHub.interfaces import IInvalidationOid
+
+from .interfaces import IInvalidationOid
 
 
-
-log = logging.getLogger('zen.InvalidationOid')
+log = logging.getLogger("zen.InvalidationOid")
 
 
 class DefaultOidTransform(object):
@@ -44,7 +42,7 @@ class DeviceOidTransform(object):
     def transformOid(self, oid):
         # get device oid
         result = oid
-        device = getattr(self._obj, 'device', lambda: None)()
+        device = getattr(self._obj, "device", lambda: None)()
         if device:
             result = device._p_oid
             log.debug(
