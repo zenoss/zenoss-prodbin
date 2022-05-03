@@ -354,7 +354,7 @@ class ModelCatalogDataManager(object):
     def __init__(self, solr_servers, context):
         config = getGlobalConfiguration()
         self.model_index = zope.component.createObject('ModelIndex', solr_servers)
-        self.model_index.searcher.default_row_count = config.get('solr-search-limit', DEFAULT_SEARCH_LIMIT)
+        self.model_index.searcher.default_row_count = int(config.get('solr-search-limit', DEFAULT_SEARCH_LIMIT))
         self.context = context
         self._current_transactions = {} # { transaction_id : ModelCatalogTransactionState }
         # @TODO ^^ Make that an OOBTREE to avoid concurrency issues? I dont think we need it since we have one per thread
