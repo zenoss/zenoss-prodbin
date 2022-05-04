@@ -7,42 +7,45 @@
 #
 ##############################################################################
 
-import os, logging
+import logging
+import os
 
-log = logging.getLogger('zen.testPBDaemon')
-
-import eventlet
-
-from Products.ZenUtils.Utils import unused
 from twisted.internet.defer import failure
 from zope.interface import implements
 from zope.component import getGlobalSiteManager
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenHub.interfaces import (
-    ICollectorEventTransformer, TRANSFORM_DROP
+    ICollectorEventTransformer,
+    TRANSFORM_DROP,
 )
 from Products.ZenHub.PBDaemon import (
-    DeDupingEventQueue, DequeEventQueue, EventQueueManager,
-    DefaultFingerprintGenerator, PBDaemon
+    DeDupingEventQueue,
+    DequeEventQueue,
+    EventQueueManager,
+    DefaultFingerprintGenerator,
+    PBDaemon,
 )
 
 _TEST_EVENT = dict(
-    device='device1',
-    component='component1',
-    eventClass='/MyEventClass',
-    eventKey='MyEventKey',
+    device="device1",
+    component="component1",
+    eventClass="/MyEventClass",
+    eventKey="MyEventKey",
     severity=5,
-    summary='My summary',
+    summary="My summary",
 )
+
+log = logging.getLogger("zen.testPBDaemon")
+
 
 def createTestEvent(**kwargs):
     evt = _TEST_EVENT.copy()
     evt.update(kwargs)
     return evt
 
-class BaseEventQueueTest(BaseTestCase):
 
+class BaseEventQueueTest(BaseTestCase):
     def __init__(self, queue_type, maxlen, *args, **kwargs):
         super(BaseEventQueueTest, self).__init__(*args, **kwargs)
         self.queue_type = queue_type
@@ -73,8 +76,9 @@ class BaseEventQueueTest(BaseTestCase):
         self.queue.append(evt2)
         self.assertEquals(2, len(self.queue))
 
-        additional_events = [createTestEvent(device="device_00%d" % i)
-                             for i in range(25)]
+        additional_events = [
+            createTestEvent(device="device_00%d" % i) for i in range(25)
+        ]
         discarded = self.queue.extendleft(additional_events)
         self.assertEquals(10, len(self.queue))
         queued = list(self.queue)
@@ -85,73 +89,78 @@ class BaseEventQueueTest(BaseTestCase):
 
 
 class TestDeDupingEventQueue(BaseEventQueueTest):
-
     def __init__(self, *args, **kwargs):
-        super(TestDeDupingEventQueue, self).__init__(DeDupingEventQueue, 10,
-            *args, **kwargs)
+        super(TestDeDupingEventQueue, self).__init__(
+            DeDupingEventQueue, 10, *args, **kwargs
+        )
 
     def testDeDuping(self):
         for i in range(100):
-            self.queue.append(createTestEvent(mydetail='detailvalue'))
+            self.queue.append(createTestEvent(mydetail="detailvalue"))
         self.assertEquals(1, len(self.queue))
         queued = list(self.queue)
-        self.assertEquals(100, queued[0]['count'])
+        self.assertEquals(100, queued[0]["count"])
         # Ensure that the most recent event is on the queue
-        self.assertEquals('detailvalue', queued[0]['mydetail'])
+        self.assertEquals("detailvalue", queued[0]["mydetail"])
 
-        evt_unique = createTestEvent(component='component2')
+        evt_unique = createTestEvent(component="component2")
         self.queue.append(evt_unique.copy())
         self.queue.append(evt_unique.copy())
         self.assertEquals(2, len(self.queue))
         queued = list(self.queue)
-        self.assertEquals(100, queued[0]['count'])
-        self.assertEquals(2, queued[1]['count'])
+        self.assertEquals(100, queued[0]["count"])
+        self.assertEquals(2, queued[1]["count"])
 
     def testExtendLeftDedup(self):
-        self.queue.append(createTestEvent(device='dev1'))
-        self.queue.append(createTestEvent(device='dev2'))
-        self.queue.append(createTestEvent(device='dev4'))
+        self.queue.append(createTestEvent(device="dev1"))
+        self.queue.append(createTestEvent(device="dev2"))
+        self.queue.append(createTestEvent(device="dev4"))
         self.assertEquals(3, len(self.queue))
         events = []
         events.append(self.queue.popleft())
         events.append(self.queue.popleft())
         events.append(self.queue.popleft())
         self.assertEquals(0, len(self.queue))
-        self.queue.append(createTestEvent(device='dev1'))
-        self.queue.append(createTestEvent(device='dev2'))
-        self.queue.append(createTestEvent(device='dev3'))
+        self.queue.append(createTestEvent(device="dev1"))
+        self.queue.append(createTestEvent(device="dev2"))
+        self.queue.append(createTestEvent(device="dev3"))
         self.assertEquals(3, len(self.queue))
         self.queue.extendleft(events)
         queued = list(self.queue)
         self.assertEquals(4, len(queued))
-        self.assertEquals('dev4', queued[0]['device'])
-        self.assertEquals(0, queued[0].get('count', 0))
-        self.assertEquals('dev1', queued[1]['device'])
-        self.assertEquals(2, queued[1]['count'])
-        self.assertEquals('dev2', queued[2]['device'])
-        self.assertEquals(2, queued[2]['count'])
-        self.assertEquals('dev3', queued[3]['device'])
-        self.assertEquals(0, queued[3].get('count', 0))
+        self.assertEquals("dev4", queued[0]["device"])
+        self.assertEquals(0, queued[0].get("count", 0))
+        self.assertEquals("dev1", queued[1]["device"])
+        self.assertEquals(2, queued[1]["count"])
+        self.assertEquals("dev2", queued[2]["device"])
+        self.assertEquals(2, queued[2]["count"])
+        self.assertEquals("dev3", queued[3]["device"])
+        self.assertEquals(0, queued[3].get("count", 0))
 
 
 class TestDequeEventQueue(BaseEventQueueTest):
-
     def __init__(self, *args, **kwargs):
-        super(TestDequeEventQueue, self).__init__(DequeEventQueue, 10, *args,
-            **kwargs)
+        super(TestDequeEventQueue, self).__init__(
+            DequeEventQueue, 10, *args, **kwargs
+        )
 
 
 class TestEventQueueManager(BaseTestCase):
-
     def afterSetUp(self):
         super(TestEventQueueManager, self).afterSetUp()
         self.gsm = getGlobalSiteManager()
 
-    def createOptions(self, deduplicate_events=True, maxqueuelen=5000,
-                      allowduplicateclears=False, duplicateclearinterval=0,
-                      eventflushchunksize=50):
+    def createOptions(
+        self,
+        deduplicate_events=True,
+        maxqueuelen=5000,
+        allowduplicateclears=False,
+        duplicateclearinterval=0,
+        eventflushchunksize=50,
+    ):
         class MockOptions(object):
             pass
+
         options = MockOptions()
         options.deduplicate_events = deduplicate_events
         options.maxqueuelen = maxqueuelen
@@ -184,10 +193,10 @@ class TestEventQueueManager(BaseTestCase):
 
     def testDiscarded(self):
         eqm = EventQueueManager(self.createOptions(maxqueuelen=1), log)
-        evt1 = createTestEvent(device='foo')
+        evt1 = createTestEvent(device="foo")
         eqm.addEvent(evt1)
         self.assertEquals(0, eqm.discarded_events)
-        evt2 = createTestEvent(device='foo2')
+        evt2 = createTestEvent(device="foo2")
         eqm.addEvent(evt2)
         self.assertEquals(1, eqm.discarded_events)
         self.assertEquals(list(eqm.event_queue), [evt2])
@@ -208,19 +217,24 @@ class TestEventQueueManager(BaseTestCase):
         opts = self.createOptions(allowduplicateclears=True)
         eqm = EventQueueManager(opts, log)
         sent_events = []
+
         def send_events(evts):
             sent_events.extend(evts)
+
         for i in range(5):
             eqm.addEvent(createTestEvent(severity=0))
             eqm.sendEvents(send_events)
         self.assertEquals(5, len(sent_events))
 
     def testDuplicateClearInterval(self):
-        opts = self.createOptions(allowduplicateclears=True,
-            duplicateclearinterval=5)
+        opts = self.createOptions(
+            allowduplicateclears=True, duplicateclearinterval=5
+        )
         sent_events = []
+
         def send_events(evts):
             sent_events.extend(evts)
+
         eqm = EventQueueManager(opts, log)
         for i in range(10):
             eqm.addEvent(createTestEvent(severity=0))
@@ -241,8 +255,10 @@ class TestEventQueueManager(BaseTestCase):
         clearevt = createTestEvent(severity=0)
         eqm.addEvent(clearevt)
         sent_events = []
+
         def send_events(evts):
             sent_events.extend(evts)
+
         eqm.sendEvents(send_events)
         self.assertEquals([clearevt], sent_events)
 
@@ -251,22 +267,25 @@ class TestEventQueueManager(BaseTestCase):
         eqm = EventQueueManager(opts, log)
         events = []
         for i in range(10):
-            events.append(createTestEvent(device='dev%d' % i))
+            events.append(createTestEvent(device="dev%d" % i))
             eqm.addEvent(events[-1])
         perf_events = []
         for i in range(10):
-            perf_events.append(createTestEvent(device='perfdev%d' % i))
+            perf_events.append(createTestEvent(device="perfdev%d" % i))
             eqm.addPerformanceEvent(perf_events[-1])
-        heartbeat_events = [createTestEvent(eventClass='/Heartbeat')]
+        heartbeat_events = [createTestEvent(eventClass="/Heartbeat")]
         eqm.addHeartbeatEvent(heartbeat_events[-1])
         sent_event_chunks = []
+
         def send_events(events):
             sent_event_chunks.append(events)
+
         eqm.sendEvents(send_events)
         self.assertEquals(5, len(sent_event_chunks))
         # First chunk should be heartbeat + 4 perf
-        self.assertEquals(heartbeat_events + perf_events[:4],
-            sent_event_chunks[0])
+        self.assertEquals(
+            heartbeat_events + perf_events[:4], sent_event_chunks[0]
+        )
         # Second chunk should be 5 perf
         self.assertEquals(perf_events[4:9], sent_event_chunks[1])
         # Third chunk should be 1 perf + 4 events
@@ -281,21 +300,23 @@ class TestEventQueueManager(BaseTestCase):
         eqm = EventQueueManager(opts, log)
         events = []
         for i in range(10):
-            events.append(createTestEvent(device='dev%d' % i))
+            events.append(createTestEvent(device="dev%d" % i))
             eqm.addEvent(events[-1])
         perf_events = []
         for i in range(7):
-            perf_events.append(createTestEvent(device='perfdev%d' % i))
+            perf_events.append(createTestEvent(device="perfdev%d" % i))
             eqm.addPerformanceEvent(perf_events[-1])
 
         sent_event_chunks = []
+
         def send_events(events):
             # Send an exception on the second batch
             if len(sent_event_chunks) == 1:
-                raise Exception('Test Exception')
+                raise Exception("Test Exception")
             sent_event_chunks.append(events)
 
         results = []
+
         def finished_events(result):
             results.append(result)
 
@@ -318,19 +339,20 @@ class TestEventQueueManager(BaseTestCase):
         events = []
         for i in range(10):
             if i == 0:
-                events.append(createTestEvent(device='dev%d' % i, severity=0))
+                events.append(createTestEvent(device="dev%d" % i, severity=0))
             else:
-                events.append(createTestEvent(device='dev%d' % i))
+                events.append(createTestEvent(device="dev%d" % i))
             eqm.addEvent(events[-1])
 
         def send_events(ignored_events):
             # Add 3 new events to the queue (while sending)
             for i in range(3):
-                events.append(createTestEvent(device='dev%d' % (10+i)))
+                events.append(createTestEvent(device="dev%d" % (10 + i)))
                 eqm.addEvent(events[-1])
             raise Exception("Failed on first send.")
 
         results = []
+
         def finished_events(result):
             results.append(result)
 
@@ -353,46 +375,59 @@ class TestEventQueueManager(BaseTestCase):
 
 
 class TestDefaultFingerprintGenerator(BaseTestCase):
-
     def afterSetUp(self):
         super(TestDefaultFingerprintGenerator, self).afterSetUp()
         self.generator = DefaultFingerprintGenerator()
 
     def testGenerate(self):
         evt = createTestEvent()
-        self.assertEquals('65e9075c8b854688217c45471bb837ede3157d53', self.generator.generate(evt))
-        del evt['eventKey']
-        self.assertEquals('4f39c417bdee2731336bf6a9f22c89fbe4d987b0', self.generator.generate(evt))
+        self.assertEquals(
+            "65e9075c8b854688217c45471bb837ede3157d53",
+            self.generator.generate(evt),
+        )
+        del evt["eventKey"]
+        self.assertEquals(
+            "4f39c417bdee2731336bf6a9f22c89fbe4d987b0",
+            self.generator.generate(evt),
+        )
 
     def testDeDupingSensitivity(self):
-        evt = createTestEvent(device='dev1')
+        evt = createTestEvent(device="dev1")
         # changing an attribute should change fingerprint
         for attr in "device component eventKey summary eventClass".split():
             fp1 = self.generator.generate(evt)
-            evt[attr] += '***'
+            evt[attr] += "***"
             fp2 = self.generator.generate(evt)
-            self.assertNotEquals(fp1, fp2, "changing %s not detected in fingerprint" % attr)
+            self.assertNotEquals(
+                fp1, fp2, "changing %s not detected in fingerprint" % attr
+            )
 
         # adding a new attribute should change fingerprint
         fp1 = self.generator.generate(evt)
-        evt['new_attribute'] = 'zillion'
+        evt["new_attribute"] = "zillion"
         fp2 = self.generator.generate(evt)
-        self.assertNotEquals(fp1, fp2, "adding new key not detected in fingerprint")
+        self.assertNotEquals(
+            fp1, fp2, "adding new key not detected in fingerprint"
+        )
 
         # changing these attributes should NOT change fingerprint
-        for attr in 'rcvtime firstTime lastTime'.split():
-            evt[attr] = 'qwertyuiop'
+        for attr in "rcvtime firstTime lastTime".split():
+            evt[attr] = "qwertyuiop"
             fp1 = self.generator.generate(evt)
-            evt[attr] += '***'
+            evt[attr] += "***"
             fp2 = self.generator.generate(evt)
-            self.assertEquals(fp1, fp2, "changing %s not ignored in fingerprint" % attr)
+            self.assertEquals(
+                fp1, fp2, "changing %s not ignored in fingerprint" % attr
+            )
+
 
 class Publisher(object):
     def __init__(self):
         self.queue = []
 
     def put(self, *args):
-        self.queue.append( args)
+        self.queue.append(args)
+
 
 class TestMetricWriter(BaseTestCase):
     def setUp(self):
@@ -402,9 +437,10 @@ class TestMetricWriter(BaseTestCase):
         self.metric_writer = self.daemon.metricWriter()
 
     def testWriteMetric(self):
-        metric = [ "name", 0.0, "now", {}]
-        self.metric_writer.write_metric( *metric)
-        self.assertEquals( [tuple(metric)], self.daemon._publisher.queue)
+        metric = ["name", 0.0, "now", {}]
+        self.metric_writer.write_metric(*metric)
+        self.assertEquals([tuple(metric)], self.daemon._publisher.queue)
+
 
 class TestInternalMetricWriter(BaseTestCase):
     def setUp(self):
@@ -416,26 +452,34 @@ class TestInternalMetricWriter(BaseTestCase):
 
     def testWriteInternalMetric(self):
         metric = ["name", 0.0, "now", {}]
-        internal_metric = ["name", 0.0, "now", {"internal":True}]
-        self.metric_writer.write_metric( *metric)
-        self.metric_writer.write_metric( *internal_metric)
-        self.assertEquals( [tuple(internal_metric)], self.daemon._internal_publisher.queue)
-        self.assertEquals( [tuple(metric), tuple(internal_metric)], self.daemon._publisher.queue)
+        internal_metric = ["name", 0.0, "now", {"internal": True}]
+        self.metric_writer.write_metric(*metric)
+        self.metric_writer.write_metric(*internal_metric)
+        self.assertEquals(
+            [tuple(internal_metric)], self.daemon._internal_publisher.queue
+        )
+        self.assertEquals(
+            [tuple(metric), tuple(internal_metric)],
+            self.daemon._publisher.queue,
+        )
 
     def testInternalPublisherIsNone(self):
         self.daemon._internal_publisher = None
         del os.environ["CONTROLPLANE_CONSUMER_URL"]
-        self.assertIsNone( self.daemon.internalPublisher())
+        self.assertIsNone(self.daemon.internalPublisher())
 
     def testInternalPublisherIsInstance(self):
         self.daemon._internal_publisher = None
         os.environ["CONTROLPLANE_CONSUMER_URL"] = "http://localhost"
         publisher = self.daemon.internalPublisher()
         from Products.ZenHub.metricpublisher.publisher import HttpPostPublisher
-        self.assertIsInstance( publisher, HttpPostPublisher)
+
+        self.assertIsInstance(publisher, HttpPostPublisher)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
+
     suite = TestSuite()
     suite.addTest(makeSuite(TestDeDupingEventQueue))
     suite.addTest(makeSuite(TestDequeEventQueue))
