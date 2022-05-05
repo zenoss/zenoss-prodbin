@@ -1,18 +1,20 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-from Products.ZenRRD.CommandParser import CommandParser
-from Products.ZenUtils.Utils import prepId as globalPrepId
-import re
-from pprint import pformat
 import logging
+import re
+
+from pprint import pformat
+
+from Products.ZenUtils.Utils import prepId as globalPrepId
+
+from .CommandParser import CommandParser
 
 log = logging.getLogger("zen.ComponentCommandParser")
 
@@ -28,11 +30,12 @@ log = logging.getLogger("zen.ComponentCommandParser")
 # rrdMax               - max value
 # data                 - result of parser.dataForParser(comp, dp)
 
+
 class ComponentCommandParser(CommandParser):
 
     # This default equates a 'part' of the output as being a line.
     # In other words, assume one line has data about one component.
-    componentSplit = '\n'
+    componentSplit = "\n"
 
     # This item helps to find the component name in a 'part' (ie a line)
     # This MUST contain a regex which has a regex item called 'component'.
@@ -40,7 +43,7 @@ class ComponentCommandParser(CommandParser):
     # eg     componentScanner = '% (?P<component>/.*)'
     #
     # The above says that a component entry starts with a '%'
-    componentScanner = ''
+    componentScanner = ""
 
     # Once we've found a part that contains component data, a scanner
     # regex is used to match the part and return the name of the datapoint
@@ -50,21 +53,25 @@ class ComponentCommandParser(CommandParser):
     #   r' (?P<totalBlocks>\d+) +(?P<usedBlocks>\d+) '
     scanners = ()
 
-    # What is the attribute of the component that matches the name from the command?
-    # This will be used in the zenhub service to grab the attribute value.
+    # What is the attribute of the component that matches the name from the
+    # command? This will be used in the zenhub service to grab the attribute
+    # value.
     #
-    # If this is 'id', then run prepId on the command output to match the name in ZODB.
-    # Otherwise, the component name is assumed to not require cleaning.
-    # Components with non-HTML friendly bits in them (eg ':?%/') will
-    # need to be cleaned.  Examples are things like filesystems.
-    componentScanValue = 'id'
+    # If this is 'id', then run prepId on the command output to match the
+    # name in ZODB. Otherwise, the component name is assumed to not require
+    # cleaning. Components with non-HTML friendly bits in them (eg ':?%/')
+    # will need to be cleaned.  Examples are things like filesystems.
+    componentScanValue = "id"
 
-    def prepId(self, id, subchar='_'):
+    def prepId(self, id, subchar="_"):
         return globalPrepId(id, subchar)
 
     def dataForParser(self, context, dp):
-        # This runs in the zenhub service, so it has access to the actual ZODB object
-        return dict(componentScanValue = getattr(context, self.componentScanValue))
+        # This runs in the zenhub service,
+        # so it has access to the actual ZODB object.
+        return dict(
+            componentScanValue=getattr(context, self.componentScanValue)
+        )
 
     def processResults(self, cmd, result):
 
@@ -72,7 +79,7 @@ class ComponentCommandParser(CommandParser):
         # the component name to datapoints.
         ifs = {}
         for dp in cmd.points:
-            dp.component = dp.data['componentScanValue']
+            dp.component = dp.data["componentScanValue"]
             points = ifs.setdefault(dp.component, {})
             points[dp.id] = dp
 
@@ -86,8 +93,8 @@ class ComponentCommandParser(CommandParser):
                 continue
 
             # Search for the componentScanner regex 'component' item
-            component = match.groupdict()['component'].strip()
-            if self.componentScanValue == 'id':
+            component = match.groupdict()["component"].strip()
+            if self.componentScanValue == "id":
                 component = self.prepId(component)
 
             points = ifs.get(component, None)
@@ -107,6 +114,6 @@ class ComponentCommandParser(CommandParser):
                 for name, value in match.groupdict().items():
                     dp = points.get(name, None)
                     if dp is not None:
-                        if value in ('-', ''): value = 0
-                        result.values.append( (dp, float(value) ) )
-
+                        if value in ("-", ""):
+                            value = 0
+                        result.values.append((dp, float(value)))

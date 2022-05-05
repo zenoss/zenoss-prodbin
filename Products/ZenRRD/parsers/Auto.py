@@ -1,20 +1,19 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-from Products.ZenRRD.parsers.Cacti import Cacti
-from Products.ZenRRD.parsers.Nagios import Nagios
 from Products.ZenRRD.CommandParser import CommandParser, ParsedResults
 
+from .Cacti import Cacti
+from .Nagios import Nagios
+
+
 class Auto(CommandParser):
-
-
     def processResults(self, cmd, result):
 
         # best effort.  Try Nagios first, if that doesn't return data values
@@ -23,7 +22,7 @@ class Auto(CommandParser):
         # and the nagios parser puts more data in the event.  Both parsers
         # have the same logic for event severity based on exit code
 
-        cactiResult= None
+        cactiResult = None
         nagiosResult = ParsedResults()
 
         nagiosParser = Nagios()
@@ -31,11 +30,11 @@ class Auto(CommandParser):
 
         if not nagiosResult.values:
             cactiParser = Cacti()
-            cactiResult= ParsedResults()
+            cactiResult = ParsedResults()
             cactiParser.processResults(cmd, cactiResult)
 
         if cactiResult and cactiResult.values:
-           #use cacti results
+            # use cacti results
             parserResult = cactiResult
         else:
             parserResult = nagiosResult

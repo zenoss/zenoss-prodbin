@@ -7,24 +7,23 @@
 #
 ##############################################################################
 
-
-import re
 import logging
+import re
 
 from Products.ZenRRD.CommandParser import CommandParser
 
-
 log = logging.getLogger("zen.zencommand")
-
 
 UPTIME_SENTENCE_PATTERN = re.compile(
     r"up +(?:(?:(?P<days>\d+) day\(?(?:s?)\)?(?: +)?,?(?: +)?))?"
     r"(?:(?P<hours>\d+) (?:hour(?:s?)|hr(?:s?))(?:, +)?)?"
-    r"(?:(?P<minutes>\d+) (?:min(?:s?)|minute(?:s?)))?")
+    r"(?:(?P<minutes>\d+) (?:min(?:s?)|minute(?:s?)))?"
+)
 
 UPTIME_COLON_PATTERN = re.compile(
     r"up +(?:(?:(?P<days>\d+) day\(?(?:s?)\)?(?: +)?,?(?: +)?))?"
-    "(?:(?P<hours>\d+):(?P<minutes>\d+))")
+    r"(?:(?P<hours>\d+):(?P<minutes>\d+))"
+)
 
 UPTIME_FORMAT = "uptime: days=%(days)s, hours=%(hours)s, minutes=%(minutes)s"
 
@@ -62,7 +61,7 @@ def parseUptime(output):
     'uptime: days=2, hours=8, minutes=0'
     """
 
-    if re.search("\d+:\d+, +\d+ user", output):
+    if re.search(r"\d+:\d+, +\d+ user", output):
         match = UPTIME_COLON_PATTERN.search(output)
     else:
         match = UPTIME_SENTENCE_PATTERN.search(output)
@@ -88,15 +87,15 @@ def parseSysUpTime(output):
     """
     uptime = parseUptime(output)
 
-    if uptime: sysUpTime = asTimeticks(**uptime)
-    else     : sysUpTime = None
+    if uptime:
+        sysUpTime = asTimeticks(**uptime)
+    else:
+        sysUpTime = None
 
     return sysUpTime
 
 
 class uptime(CommandParser):
-
-
     def processResults(self, cmd, result):
         """
         Parse the results of the uptime command to get sysUptime and load
@@ -106,16 +105,19 @@ class uptime(CommandParser):
 
         dps = dict((dp.id, dp) for dp in cmd.points)
 
-        if 'sysUpTime' in dps:
+        if "sysUpTime" in dps:
             sysUpTime = parseSysUpTime(output)
             if sysUpTime:
-                result.values.append((dps['sysUpTime'], sysUpTime))
+                result.values.append((dps["sysUpTime"], sysUpTime))
 
-        match = re.search(r' load averages?: '
-                          r'([0-9.]+),? ([0-9.]+),? ([0-9.]+).*$',
-                          output)
+        match = re.search(
+            r" load averages?: " r"([0-9.]+),? ([0-9.]+),? ([0-9.]+).*$",
+            output,
+        )
         if match:
-            for i, dp in enumerate(['laLoadInt1', 'laLoadInt5', 'laLoadInt15']):
+            for i, dp in enumerate(
+                ("laLoadInt1", "laLoadInt5", "laLoadInt15")
+            ):
                 if dp in dps:
-                    result.values.append( (dps[dp], float(match.group(i + 1))) )
+                    result.values.append((dps[dp], float(match.group(i + 1))))
         return result
