@@ -776,7 +776,9 @@ table.x-container:before, tbody.x-container:before, tr.x-container:before {
   display: block; }
 
 .x-item-disabled, .x-item-disabled * {
-  cursor: default; }
+  cursor: default;
+  background: none;
+}
 
 .x-cycle-fixed-width .x-btn-inner {
   text-align: inherit; }
