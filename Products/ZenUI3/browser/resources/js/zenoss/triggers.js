@@ -153,7 +153,7 @@ Ext.onReady(function () {
             if (Ext.isFunction(this.disable)) {
                 this.disable();
                 if (this.xtype === 'panel'){
-                    this.cls = 'x-item-disabled';
+                    this.addCls('x-item-disabled');
                 }
             }
         });
