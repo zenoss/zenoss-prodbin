@@ -385,8 +385,10 @@ class Auth0(BasePlugin):
                 request['RESPONSE'].redirect('/#/?errcode=1', lock=1)
                 return True
 
-        currentLocation = getUtility(IVirtualRoot).ensure_virtual_root(request.PATH_INFO)
-        redirect = base64.urlsafe_b64encode(currentLocation)
+        path = request.PATH_INFO if not request.QUERY_STRING else "{}?{}".format(request.PATH_INFO, request.QUERY_STRING)
+        currentLocation = getUtility(IVirtualRoot).ensure_virtual_root(path)
+        # python base64 url safe encoding conflict with js atob decoding
+        redirect = base64.standard_b64encode(currentLocation)
         request['RESPONSE'].redirect('/czlogin.html?redirect={}'.format(redirect), lock=1)
         return True
 
