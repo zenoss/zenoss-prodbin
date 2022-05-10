@@ -320,3 +320,6 @@ def secureSessionCookie(event):
                 and 'secure' not in event.request.response.cookies['_ZopeId']:
             event.request.response.cookies['_ZopeId']['secure'] = True
 
+
+class SensitiveData(str):
+    pass

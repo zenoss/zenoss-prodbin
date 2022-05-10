@@ -23,6 +23,7 @@ from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.System import System
 from Products.ZenModel.Location import Location
 from Products.ZenRelations.ZenPropertyManager import iszprop, iscustprop
+from Products.ZenUtils.Security import SensitiveData
 
 from .interfaces import IImpactRelationshipsFactProvider
 from .shortid import shortid
@@ -188,7 +189,8 @@ def device_info_fact(device):
     for propdict in device._propertyMap():
         propId = propdict.get("id")
         if (
-            not device.isLocal(propId)
+            not isinstance(propId, SensitiveData)
+            or not device.isLocal(propId)
             or iszprop(propId)
             or iscustprop(propId)
             or device.zenPropIsPassword(propId)
