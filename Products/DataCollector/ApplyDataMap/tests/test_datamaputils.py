@@ -30,13 +30,14 @@ from ..datamaputils import (
     _update_object,
     _update_callable_attribute,
 )
+from .utils import BaseTestCase
 
 log.setLevel("DEBUG")
 
 PATH = {"src": "Products.DataCollector.ApplyDataMap.datamaputils"}
 
 
-class TestisSameData(TestCase):
+class TestisSameData(BaseTestCase):
     def test_isSameData(t):
         ret = isSameData("a", "a")
         t.assertTrue(ret)
@@ -49,9 +50,7 @@ class TestisSameData(TestCase):
 
     def test_unsorted_lists_of_dicts_differ(t):
         a = [{"a": 1, "b": 2}, {"c": 3}, {"d": 4}]
-        c = [
-            {"d": 4},
-        ]
+        c = [{"d": 4}]
         t.assertFalse(isSameData(a, c))
 
     def test_unsorted_tuple_of_dicts_match(t):
@@ -90,8 +89,9 @@ class GetSetObject:
         return self.Attr
 
 
-class TestCheckTheLocks(TestCase):
+class TestCheckTheLocks(BaseTestCase):
     def setUp(t):
+        super(TestCheckTheLocks, t).setUp()
         t.datamap = Mock(name="datamap")
         t.device = Mock(name="device")
         t.device.isLockedFromUpdates.return_value = False
@@ -140,7 +140,7 @@ class TestCheckTheLocks(TestCase):
         t.assertEqual(t.datamap._directive, "delete_locked")
 
 
-class TestLockedFromUpdates(TestCase):
+class TestLockedFromUpdates(BaseTestCase):
     def test_locked(t):
         obj = Mock(spec=["isLockedFromUpdates"])
         obj.isLockedFromUpdates.return_value = True
@@ -160,7 +160,7 @@ class TestLockedFromUpdates(TestCase):
         t.assertEqual(ret, False)
 
 
-class TestLockedFromDeletion(TestCase):
+class TestLockedFromDeletion(BaseTestCase):
     def test_locked(t):
         obj = Mock(spec=["isLockedFromDeletion"])
         obj.isLockedFromDeletion.return_value = True
@@ -180,9 +180,16 @@ class TestLockedFromDeletion(TestCase):
         t.assertEqual(ret, False)
 
 
-class TestEvaluateLegacyDirective(TestCase):
+class TestEvaluateLegacyDirective(BaseTestCase):
     def setUp(t):
+        super(TestEvaluateLegacyDirective, t).setUp()
         t.object_map = ObjectMap()
+
+    def test_legacy__add_false_flag(t):
+        t.object_map._add = False
+        ret = _evaluate_legacy_directive(t.object_map)
+        t.assertEqual(ret._directive, "update")
+        t.assertEqual(t.object_map._directive, "update")
 
     def test_legacy__add_flag(t):
         t.object_map._add = True
@@ -221,7 +228,7 @@ class TestEvaluateLegacyDirective(TestCase):
         t.assertEqual(t.object_map._directive, "nochange")
 
 
-class TestObjectMapToDeviceDiff(TestCase):
+class TestObjectMapToDeviceDiff(BaseTestCase):
     def test_no_change(t):
         """Unchanged objects return an empty dict"""
         object_map = ObjectMap(
@@ -339,7 +346,7 @@ class TestObjectMapToDeviceDiff(TestCase):
                 t.assertEqual(val, getattr(objectmap, key).decode(enc))
 
 
-class TestAttributeDiff(TestCase):
+class TestAttributeDiff(BaseTestCase):
     def test_changed(t):
         obj = Mock(name="object")
         obj.attr = sentinel.original
@@ -379,7 +386,7 @@ class TestAttributeDiff(TestCase):
         t.assertEqual(ret, None)
 
 
-class TestGetAttrValue(TestCase):
+class TestGetAttrValue(BaseTestCase):
     def test_set_methods(t):
         """given an attribute that starts with 'set'
         returns the value from the attribute's 'get' method
@@ -413,7 +420,7 @@ class TestGetAttrValue(TestCase):
         t.assertEqual(ret, MISSINGNO)
 
 
-class TestSanitizeValue(TestCase):
+class TestSanitizeValue(BaseTestCase):
     def test_handles_strings(t):
         value = "some_string"
         ret = _sanitize_value(value, sentinel.obj)
@@ -452,7 +459,7 @@ class TestSanitizeValue(TestCase):
             _sanitize_value(value, sentinel.obj)
 
 
-class TestDecodeValue(TestCase):
+class TestDecodeValue(BaseTestCase):
     def test_decodes_strings(t):
         original_str = "some_string"
         value = b64encode(original_str)
@@ -463,7 +470,7 @@ class TestDecodeValue(TestCase):
         t.assertEqual(ret, original_str)
 
 
-class TestUpdateObject(TestCase):
+class TestUpdateObject(BaseTestCase):
     def test_update(t):
         obj = Device("deviceid")
         obj.attr = sentinel.a
@@ -485,12 +492,12 @@ class TestUpdateObject(TestCase):
         obj.setAttr("x")
         t.assertEqual(obj.Attr, "x")
 
-        _update_object(obj, diff)
+        changed = _update_object(obj, diff)
 
         _update_callable_attribute.assert_called_with(
             obj.setAttr, "sanitized sentinel.value"
         )
-        obj.setLastChange.assert_called_with()
+        t.assertTrue(changed)
 
     def test_ignores_undefined_attributes(t):
         """does not add attributes that do not exist on the target"""
@@ -506,7 +513,7 @@ class TestUpdateObject(TestCase):
         t.assertTrue(ret)
 
 
-class TestUpdateCallableAttribute(TestCase):
+class TestUpdateCallableAttribute(BaseTestCase):
     def test_uses_set_method_to_update(t):
         obj = Mock(name="object", spec_set=["setAttr"])
         value = (

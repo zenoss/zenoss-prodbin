@@ -26,6 +26,7 @@ from Products.ZenUtils.Utils import NotFound
 from .datamaputils import (
     _check_the_locks,
     _evaluate_legacy_directive,
+    _object_changed,
     _objectmap_to_device_diff,
     _update_object,
 )
@@ -271,22 +272,45 @@ class IncrementalDataMap(object):
 
     def _add(self):
         """Add the target device to the parent relationship"""
-        self._create_target()
-        self._add_target_to_relationship()
-        self.target = self.relationship._getOb(self._target_id)
-        self._update()
+        changed = False
+        self._target = next(
+            (
+                obj
+                for objId, obj in self.relationship.objectItemsAll()
+                if objId == self._target_id
+            ),
+            _NOTSET
+        )
+        if self._target is _NOTSET:
+            changed = True
+            self._create_target()
+            self._add_target_to_relationship()
+            self._target = self.relationship._getOb(self._target_id)
+
+        changed |= _update_object(self._target, self._diff)
+
+        if changed:
+            _object_changed(self._target)
+            notify(
+                DatamapUpdateEvent(
+                    self._base.dmd, self.__original_object_map, self._target
+                )
+            )
+        self.changed = changed
 
     def _update(self):
         """Update the target object using diff"""
-        _update_object(self.target, self._diff)
+        changed = _update_object(self.target, self._diff)
 
-        notify(
-            DatamapUpdateEvent(
-                self._base.dmd, self.__original_object_map, self.target
+        if changed:
+            _object_changed(self.target)
+            notify(
+                DatamapUpdateEvent(
+                    self._base.dmd, self.__original_object_map, self.target
+                )
             )
-        )
 
-        self.changed = True
+        self.changed = changed
 
     def _remove(self):
         """Remove the target object from the relationship"""
@@ -304,11 +328,11 @@ class IncrementalDataMap(object):
         """create a new zodb object from the object map we were given"""
         mod = import_module(self.modname)
         constructor = getattr(mod, self.classname)
-        self.target = constructor(self._target_id)
+        self._target = constructor(self._target_id)
 
     def _add_target_to_relationship(self):
         if self.relationship.hasobject(self.target):
-            return True
+            return
 
         log.debug(
             "%s add related object: "  # pragma: no mutate
@@ -334,8 +358,6 @@ class IncrementalDataMap(object):
                     self.id,
                 )
             )
-
-        return True
 
     def _rebuild(self):
         log.debug(
