@@ -7,7 +7,6 @@
 #
 ##############################################################################
 
-from unittest import TestCase
 from mock import Mock, create_autospec, patch, sentinel, MagicMock, call
 
 from Products.ZenModel.Device import Device
@@ -16,7 +15,6 @@ from ..applydatamap import (
     ApplyDataMap,
     CLASSIFIER_CLASS,
     IncrementalDataMap,
-    log,
     NotFound,
     ObjectMap,
     RelationshipMap,
@@ -33,14 +31,15 @@ from ..applydatamap import (
     _validate_datamap,
     _validate_device_class,
 )
-
-log.setLevel("DEBUG")
+from .utils import BaseTestCase
 
 PATH = {"src": "Products.DataCollector.ApplyDataMap.applydatamap"}
 
 
-class ApplyDataMapTests(TestCase):
+class ApplyDataMapTests(BaseTestCase):
     def setUp(t):
+        super(ApplyDataMapTests, t).setUp()
+
         patches = [
             "notify",
             "_get_relmap_target",
@@ -524,7 +523,7 @@ class ApplyDataMapTests(TestCase):
 ##############################################################################
 
 
-class Test_get_relmap_target(TestCase):
+class Test_get_relmap_target(BaseTestCase):
     def test__get_relmap_target(t):
         device = Mock(name="device", id=sentinel.pid)
         datamap = Mock(name="datamap", parentId=None, compname=None)
@@ -577,7 +576,7 @@ class Test_get_relmap_target(TestCase):
         t.assertIs(None, ret)
 
 
-class Test_validate_device_class(TestCase):
+class Test_validate_device_class(BaseTestCase):
     def test__validate_device_class(t):
         device = Mock(name="device", deviceClass=lambda: "some class")
         ret = _validate_device_class(device)
@@ -607,7 +606,7 @@ class Test_validate_device_class(TestCase):
         t.assertEqual(ret, None)
 
 
-class Test_get_object_by_pid(TestCase):
+class Test_get_object_by_pid(BaseTestCase):
     def test_finds_object(t):
         device = Mock(name="device")
         device.componentSearch.return_value = [
@@ -645,7 +644,7 @@ class Test_get_object_by_pid(TestCase):
         t.assertEqual(ret, None)
 
 
-class Test__validate_datamap(TestCase):
+class Test__validate_datamap(BaseTestCase):
     def test_relationshipmap(t):
         datamap = RelationshipMap()
         ret = _validate_datamap(
@@ -706,7 +705,7 @@ class Test__validate_datamap(TestCase):
         t.assertEqual(ret.path, sentinel.compname)
 
 
-class Test_process_relationshipmap(TestCase):
+class Test_process_relationshipmap(BaseTestCase):
     @patch("{src}._get_relmap_target".format(**PATH), autospec=True)
     def test_missing_relname(t, _get_relmap_target):
         """Returns None if the parent device does not have the specified
@@ -792,8 +791,9 @@ class Test_process_relationshipmap(TestCase):
         t.assertEqual(processed.maps[2].id, "eth0_3")
 
 
-class Test__get_relationshipmap_diff(TestCase):
+class Test__get_relationshipmap_diff(BaseTestCase):
     def setUp(t):
+        super(Test__get_relationshipmap_diff, t).setUp()
         current_ids = ["id1", "id2", "id3"]
         relname = "relationship"
         t.object_1 = Mock(id="id1")
@@ -832,7 +832,7 @@ class Test__get_relationshipmap_diff(TestCase):
         t.assertEqual(ret, {"removed": [t.object_1], "locked": [t.object_2]})
 
 
-class Test_get_relationship_ids(TestCase):
+class Test_get_relationship_ids(BaseTestCase):
     def test__get_relationship_ids(t):
         relname = "relationship_name"
         relationship = Mock(name="relatinoship")
@@ -845,7 +845,7 @@ class Test_get_relationship_ids(TestCase):
         t.assertEqual(ret, set(["r1", "r2", "r3"]))
 
 
-class Test__get_objmap_target(TestCase):
+class Test__get_objmap_target(BaseTestCase):
     def test__get_objmap_target(t):
         device = Mock(name="device")
         relname = "relationship_name"
@@ -876,7 +876,7 @@ class Test__get_objmap_target(TestCase):
         t.assertEqual(ret, sentinel.component)
 
 
-class Test__clone_datamap(TestCase):
+class Test__clone_datamap(BaseTestCase):
     def test_RelationshipMap(t):
         relname = "rel"
         compname = "comp"
@@ -975,7 +975,7 @@ class Test__clone_datamap(TestCase):
 ##############################################################################
 
 
-class Test__remove_relationship(TestCase):
+class Test__remove_relationship(BaseTestCase):
     def test_remove_object_from_devices_relationship(t):
         device = Mock(name="device", spec_set=["removeRelation"])
         ret = _remove_relationship(device, sentinel.relname, sentinel.obj)
@@ -999,8 +999,9 @@ class Test__remove_relationship(TestCase):
         t.assertEqual(ret, False)
 
 
-class Test__create_object(TestCase):
+class Test__create_object(BaseTestCase):
     def setUp(t):
+        super(Test__create_object, t).setUp()
         patches = [
             "importClass",
         ]
