@@ -1,32 +1,41 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2011, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-__doc__ = """PingJob
+"""PingJob
 Class that contains the information about pinging an individual IP address.
 """
 
-from math import fsum, sqrt, pow
 import logging
-log = logging.getLogger("zen.PingJob")
 import socket
 
+from math import fsum, sqrt, pow
+
 from twisted.internet import defer
+
+log = logging.getLogger("zen.PingJob")
 
 
 class PingJob(object):
     """
     Class representing a single target to be pinged.
     """
-    def __init__(self, ipaddr, hostname="", status=0,
-                 ttl=60, maxtries=2, sampleSize=1,
-                 iface=''):
+
+    def __init__(
+        self,
+        ipaddr,
+        hostname="",
+        status=0,
+        ttl=60,
+        maxtries=2,
+        sampleSize=1,
+        iface="",
+    ):
         self.ipaddr = ipaddr
         self.iface = iface
         self.hostname = hostname
@@ -51,8 +60,10 @@ class PingJob(object):
             if family in (socket.AF_INET, socket.AF_INET6):
                 return family, sockaddr
 
-        raise StandardError("Could not resolve IP address '%s' on %s for family %s" % (
-                            self.ipaddr, self.hostname, family))
+        raise StandardError(
+            "Could not resolve IP address '%s' on %s for family %s"
+            % (self.ipaddr, self.hostname, family)
+        )
 
     def reset(self):
         self.deferred = defer.Deferred()
@@ -103,17 +114,19 @@ class PingJob(object):
         if n < 1:
             return 0
         # sum of squared differences from the average
-        total = fsum( map(lambda x: pow(x - avg, 2), self.results) )
+        total = fsum(map(lambda x: pow(x - avg, 2), self.results))
         # Bessel's correction uses n - 1 rather than n
-        return sqrt( total / (n - 1) )
+        return sqrt(total / (n - 1))
 
     def pingArgs(self):
         self._lastSequenceNumber += 1
         echo_kwargs = dict(
-                           sequence=self._lastSequenceNumber,
-                           data_size=self.data_size,
-                           )
-        socket_kwargs = dict(ttl=self._ttl,)
+            sequence=self._lastSequenceNumber,
+            data_size=self.data_size,
+        )
+        socket_kwargs = dict(
+            ttl=self._ttl,
+        )
         return self.family, self._sockaddr, echo_kwargs, socket_kwargs
 
     def __str__(self):

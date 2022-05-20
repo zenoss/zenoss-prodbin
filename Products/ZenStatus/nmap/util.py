@@ -29,40 +29,60 @@ _NMAP_BINARY = "/usr/bin/nmap"
 
 @defer.inlineCallbacks
 def executeNmapForIps(
-        ips, traceroute=False, outputType='xml', dataLength=0,
-        pingTries=2, pingTimeOut=1.5, pingCycleInterval=60):
+    ips,
+    traceroute=False,
+    outputType="xml",
+    dataLength=0,
+    pingTries=2,
+    pingTimeOut=1.5,
+    pingCycleInterval=60,
+):
     """
     Execute nmap and return its output.
     """
-    with tempfile.NamedTemporaryFile(prefix='nmap_ips_') as tfile:
+    with tempfile.NamedTemporaryFile(prefix="nmap_ips_") as tfile:
         for ip in ips:
             tfile.write("%s\n" % ip)
         tfile.flush()
         results = yield executeNmapCmd(
-            tfile.name, traceroute, outputType, len(ips),
-            dataLength, pingTries, pingTimeOut, pingCycleInterval
+            tfile.name,
+            traceroute,
+            outputType,
+            len(ips),
+            dataLength,
+            pingTries,
+            pingTimeOut,
+            pingCycleInterval,
         )
         defer.returnValue(results)
 
 
 @defer.inlineCallbacks
 def executeNmapCmd(
-        inputFileFilename, traceroute=False, outputType='xml',
-        num_devices=0, dataLength=0, pingTries=2, pingTimeOut=1.5,
-        pingCycleInterval=60):
+    inputFileFilename,
+    traceroute=False,
+    outputType="xml",
+    num_devices=0,
+    dataLength=0,
+    pingTries=2,
+    pingTimeOut=1.5,
+    pingCycleInterval=60,
+):
     """
     Execute nmap and return its output.
     """
     args = ["-iL", inputFileFilename]  # input file
 
-    args.extend([
-        "-sn",           # don't port scan the hosts
-        "-PE",           # use ICMP echo
-        "-n",            # don't resolve hosts internally
-        "--privileged",  # assume we can open raw socket
-        "--send-ip",     # don't allow ARP responses
-        "-T5",           # "insane" speed
-    ])
+    args.extend(
+        [
+            "-sn",  # don't port scan the hosts
+            "-PE",  # use ICMP echo
+            "-n",  # don't resolve hosts internally
+            "--privileged",  # assume we can open raw socket
+            "--send-ip",  # don't allow ARP responses
+            "-T5",  # "insane" speed
+        ]
+    )
 
     if dataLength > 0:
         args.extend(["--data-length", str(dataLength)])
@@ -83,21 +103,21 @@ def executeNmapCmd(
 
     # Make sure we can safely complete the number of tries within one cycle.
     if (ping_tries * ping_timeout + MAX_NMAP_OVERHEAD) > cycle_interval:
-        ping_tries = int(math.floor(
-            (cycle_interval - MAX_NMAP_OVERHEAD) / ping_timeout
-        ))
+        ping_tries = int(
+            math.floor((cycle_interval - MAX_NMAP_OVERHEAD) / ping_timeout)
+        )
     args.extend(["--max-retries", "%d" % (ping_tries - 1)])
 
     # Try to force nmap to go fast enough to finish within one cycle.
-    min_rate = int(math.ceil(
-        num_devices / (1.0 * cycle_interval / ping_tries)
-    ))
+    min_rate = int(
+        math.ceil(num_devices / (1.0 * cycle_interval / ping_tries))
+    )
     args.extend(["--min-rate", "%d" % min_rate])
 
     if num_devices > 0:
-        min_parallelism = int(math.ceil(
-            2 * num_devices * ping_timeout / cycle_interval
-        ))
+        min_parallelism = int(
+            math.ceil(2 * num_devices * ping_timeout / cycle_interval)
+        )
         if min_parallelism > MAX_PARALLELISM:
             min_parallelism = MAX_PARALLELISM
         if min_parallelism > DEFAULT_PARALLELISM:
@@ -107,15 +127,15 @@ def executeNmapCmd(
         args.append("--traceroute")
         # FYI, all bets are off as far as finishing within the cycle interval.
 
-    if outputType != 'xml':
+    if outputType != "xml":
         raise ValueError("Unsupported nmap output type: %s" % outputType)
-    args.extend(["-oX", '-'])  # outputXML to stdout
+    args.extend(["-oX", "-"])  # outputXML to stdout
 
     # execute nmap
     if log.isEnabledFor(logging.DEBUG):
         log.debug("executing nmap %s", " ".join(args))
     args = ["-n", _NMAP_BINARY] + args
-    log.info("Executing /bin/sudo %s", ' '.join(args))
+    log.info("Executing /bin/sudo %s", " ".join(args))
     out, err, exitCode = yield utils.getProcessOutputAndValue(
         "/bin/sudo", args
     )
