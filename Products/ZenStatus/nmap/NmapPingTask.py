@@ -7,48 +7,35 @@
 #
 #
 
-
-__doc__ = """NmapPingTask
+"""NmapPingTask
 
 Pings a all devices in the current device list.
 """
 
 import logging
-log = logging.getLogger("zen.NmapPingTask")
 import tempfile
-import subprocess
-import math
-from twisted.internet import utils
-from twisted.internet import task as twistedTask
-from twisted.internet import defer
-from twisted.internet import reactor
-import os.path
-from cStringIO import StringIO
-import stat
+
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-from zope import interface
-from zope import component
+from twisted.internet import defer, reactor, task as twistedTask
+from zope import component, interface
+
 from Products import ZenCollector
-from Products.ZenCollector.tasks import BaseTask, TaskStates
 from Products.ZenCollector import interfaces
-from Products.ZenCollector.tasks import SimpleTaskFactory
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenCollector.tasks import BaseTask, TaskStates
 from Products.ZenEvents import ZenEventClasses
-from Products.ZenUtils.Utils import unused
-from zenoss.protocols.protobufs import zep_pb2 as events
-
-# imports from within ZenStatus
-from Products.ZenStatus import PingTask
-from Products.ZenStatus.ping.CmdPingTask import CmdPingTask
-from PingResult import PingResult
-from Products.ZenStatus.PingCollectionPreferences import PingCollectionPreferences
+from Products.ZenStatus import nmap, PingTask
 from Products.ZenStatus.interfaces import IPingTaskFactory, IPingTaskCorrelator
-from Products.ZenStatus import nmap
 from Products.ZenStatus.nmap.util import executeNmapCmd
+from Products.ZenStatus.ping.CmdPingTask import CmdPingTask
+from Products.ZenStatus.PingCollectionPreferences import (
+    PingCollectionPreferences,
+)
 
+from .PingResult import PingResult
 
+log = logging.getLogger("zen.NmapPingTask")
 
 _CLEAR = 0
 _CRITICAL = 5
@@ -71,36 +58,38 @@ _NEVER_INTERVAL = 60 * 60 * 24 * 365 * 100
 
 
 class NmapPingCollectionPreferences(PingCollectionPreferences):
-
     def postStartup(self):
         """
         Hook in to application startup and start background NmapPingTask.
         """
         daemon = component.getUtility(interfaces.ICollector)
         task = NmapPingTask(
-            'NmapPingTask',
-            'NmapPingTask',
-            taskConfig=daemon._prefs
+            "NmapPingTask", "NmapPingTask", taskConfig=daemon._prefs
         )
         # introduce a small delay to can have a chance to load some config
         task.startDelay = 5
         daemon._scheduler.addTask(task)
         if not daemon.options.disableCorrelator:
             correlationBackend = daemon.options.correlationBackend
-            task._correlate = component.getUtility(IPingTaskCorrelator, correlationBackend)
+            task._correlate = component.getUtility(
+                IPingTaskCorrelator, correlationBackend
+            )
         task.disable_correlator = daemon.options.disableCorrelator
 
     def buildOptions(self, parser):
         super(NmapPingCollectionPreferences, self).buildOptions(parser)
-        parser.add_option('--connected-ip-suppress',
-                          dest='connectedIps',
-                          default=False,
-                          action="store_true",
-                          help="Suppress ping downs using interfaces on a device whose IPs may not be monitored")
+        parser.add_option(
+            "--connected-ip-suppress",
+            dest="connectedIps",
+            default=False,
+            action="store_true",
+            help="Suppress ping downs using interfaces on a device whose "
+            "IPs may not be monitored",
+        )
 
     def runPostConfigTasks(self):
         daemon = component.getUtility(interfaces.ICollector)
-        daemon._scheduler.resetStats('NmapPingTask')
+        daemon._scheduler.resetStats("NmapPingTask")
 
 
 class NPingTaskFactory(object):
@@ -109,6 +98,7 @@ class NPingTaskFactory(object):
     A Factory to create PingTasks that do not run. This allows NmapPingTask
     to use the created PingTasks as placeholders for configuration.
     """
+
     interface.implements(IPingTaskFactory)
 
     def __init__(self):
@@ -118,7 +108,9 @@ class NPingTaskFactory(object):
         # Task spliter will gurantee every task has exactly one monitoredIp
         if self.config.monitoredIps[0].ipVersion == 6:
             # nmap does not support IPV6 ping/traceroute, use CmdPing
-            log.debug("Creating an IPv6 task: %s", self.config.monitoredIps[0].ip)
+            log.debug(
+                "Creating an IPv6 task: %s", self.config.monitoredIps[0].ip
+            )
             task = CmdPingTask(
                 self.name,
                 self.configId,
@@ -126,7 +118,9 @@ class NPingTaskFactory(object):
                 self.config,
             )
         else:
-            log.debug("Creating an IPv4 task: %s", self.config.monitoredIps[0].ip)
+            log.debug(
+                "Creating an IPv4 task: %s", self.config.monitoredIps[0].ip
+            )
             task = PingTask(
                 self.name,
                 self.configId,
@@ -151,10 +145,9 @@ class NmapPingTask(BaseTask):
     NmapPingTask pings all PingTasks using using nmap.
     """
 
-    def __init__(self,
-                 taskName, configId,
-                 scheduleIntervalSeconds=60,
-                 taskConfig=None):
+    def __init__(
+        self, taskName, configId, scheduleIntervalSeconds=60, taskConfig=None
+    ):
         """
         @param deviceId: the Zenoss deviceId to watch
         @type deviceId: string
@@ -166,8 +159,7 @@ class NmapPingTask(BaseTask):
         @param taskConfig: the configuration for this task
         """
         super(NmapPingTask, self).__init__(
-            taskName, configId,
-                 scheduleIntervalSeconds, taskConfig=None
+            taskName, configId, scheduleIntervalSeconds, taskConfig=None
         )
 
         # Needed for interface
@@ -181,13 +173,19 @@ class NmapPingTask(BaseTask):
         self._preferences = taskConfig
 
         self._daemon = component.getUtility(ZenCollector.interfaces.ICollector)
-        self._dataService = component.queryUtility(ZenCollector.interfaces.IDataService)
-        self._eventService = component.queryUtility(ZenCollector.interfaces.IEventService)
+        self._dataService = component.queryUtility(
+            ZenCollector.interfaces.IDataService
+        )
+        self._eventService = component.queryUtility(
+            ZenCollector.interfaces.IEventService
+        )
 
         self._pings = 0
-        self._nmapPresent = False    # assume nmap is not present at startup
-        self._nmapIsSuid = False     # assume nmap is not SUID at startup
-        self._cycleIntervalReasonable = True  # assume interval is fine at startup
+        self._nmapPresent = False  # assume nmap is not present at startup
+        self._nmapIsSuid = False  # assume nmap is not SUID at startup
+        self._cycleIntervalReasonable = (
+            True  # assume interval is fine at startup
+        )
         self.collectorName = self._daemon._prefs.collectorName
 
         # maps task name to ping down count and time of last ping down
@@ -199,7 +197,7 @@ class NmapPingTask(BaseTask):
         """
         cycleInterval = self._daemon._prefs.pingCycleInterval
         minCycleInterval = MIN_PING_TIMEOUT + MAX_NMAP_OVERHEAD
-        newValue = (cycleInterval >= minCycleInterval)
+        newValue = cycleInterval >= minCycleInterval
         if self._cycleIntervalReasonable != newValue:
             self._cycleIntervalReasonable = newValue
             if self._cycleIntervalReasonable is False:
@@ -215,13 +213,16 @@ class NmapPingTask(BaseTask):
             severity = _CLEAR
         else:
             minimum = MIN_PING_TIMEOUT + MAX_NMAP_OVERHEAD
-            msg = "ping cycle time (%.1f seconds) is too short (keep it under %.1f seconds)" % (
-                cycleInterval, minimum)
+            msg = (
+                "ping cycle time (%.1f seconds) is too short "
+                "(keep it under %.1f seconds)"
+                % (cycleInterval, minimum)
+            )
             severity = _CRITICAL
         evt = dict(
             device=self.collectorName,
             eventClass=ZenEventClasses.Status_Ping,
-            eventGroup='Ping',
+            eventGroup="Ping",
             eventKey="cycle_interval",
             severity=severity,
             summary=msg,
@@ -241,7 +242,7 @@ class NmapPingTask(BaseTask):
         evt = dict(
             device=self.collectorName,
             eventClass=ZenEventClasses.Status_Ping,
-            eventGroup='Ping',
+            eventGroup="Ping",
             eventKey="correlation_execution",
             severity=severity,
             summary=msg,
@@ -261,7 +262,7 @@ class NmapPingTask(BaseTask):
         evt = dict(
             device=self.collectorName,
             eventClass=ZenEventClasses.Status_Ping,
-            eventGroup='Ping',
+            eventGroup="Ping",
             eventKey="nmap_execution",
             severity=severity,
             summary=msg,
@@ -273,17 +274,18 @@ class NmapPingTask(BaseTask):
         """
         BatchPingDevices !
         """
-        log.debug('---- BatchPingDevices ----')
+        log.debug("---- BatchPingDevices ----")
 
         if self.interval != self._daemon._prefs.pingCycleInterval:
-            log.info("Changing ping interval from %r to %r ",
-                     self.interval,
-                     self._daemon._prefs.pingCycleInterval,
-                     )
+            log.info(
+                "Changing ping interval from %r to %r ",
+                self.interval,
+                self._daemon._prefs.pingCycleInterval,
+            )
             self.interval = self._daemon._prefs.pingCycleInterval
 
         try:
-            yield self._batchPing()   # will clear nmap_execution
+            yield self._batchPing()  # will clear nmap_execution
 
         except nmap.ShortCycleIntervalError:
             self._sendShortCycleInterval(self.interval)
@@ -318,7 +320,7 @@ class NmapPingTask(BaseTask):
 
         # only increment if we have tasks to ping
         self._pings += 1
-        with tempfile.NamedTemporaryFile(prefix='zenping_nmap_') as tfile:
+        with tempfile.NamedTemporaryFile(prefix="zenping_nmap_") as tfile:
             ips = []
             for taskName, ipTask in ipTasks.iteritems():
                 ips.append(ipTask.config.ip)
@@ -338,6 +340,7 @@ class NmapPingTask(BaseTask):
                     doTraceroute = True  # try to traceroute on next ping
 
             import time
+
             i = 0
             for attempt in range(0, self._daemon._prefs.pingTries):
 
@@ -349,7 +352,7 @@ class NmapPingTask(BaseTask):
                     dataLength=self._daemon.options.dataLength,
                     pingTries=self._daemon._prefs.pingTries,
                     pingTimeOut=self._preferences.pingTimeOut,
-                    pingCycleInterval=self._daemon._prefs.pingCycleInterval
+                    pingCycleInterval=self._daemon._prefs.pingCycleInterval,
                 )
                 elapsed = time.time() - start
                 log.debug("Nmap execution took %f seconds", elapsed)
@@ -385,14 +388,18 @@ class NmapPingTask(BaseTask):
                     ipTask.sendPingUp()
                     averageRtt = ipTask.averageRtt()
                     if averageRtt is not None:
-                        if averageRtt / 1000.0 > pingTimeOut:  # millisecs to secs
+                        if (
+                            averageRtt / 1000.0 > pingTimeOut
+                        ):  # millisecs to secs
                             ipTask.sendPingDegraded(rtt=averageRtt)
                         else:
                             ipTask.clearPingDegraded(rtt=averageRtt)
                 else:
                     dcs[taskName] = (dcs[taskName][0] + 1, datetime.now())
                     if dcs[taskName][0] > delayCount:
-                        log.debug("%s is down, %r", ipTask.config.ip, ipTask.trace)
+                        log.debug(
+                            "%s is down, %r", ipTask.config.ip, ipTask.trace
+                        )
                         ipTask.delayedIsUp = False
                     else:
                         log.debug(
@@ -412,12 +419,15 @@ class NmapPingTask(BaseTask):
                     yield defer.maybeDeferred(self._correlate, ipTasks)
                 except Exception as ex:
                     self._correlationExecution(ex)
-                    log.critical("There was a problem performing correlation: %s", ex)
+                    log.critical(
+                        "There was a problem performing correlation: %s", ex
+                    )
                 else:
                     self._correlationExecution()  # send clear
             else:
                 downTasks = (
-                    ipTask for ipTask in ipTasks.values()
+                    ipTask
+                    for ipTask in ipTasks.values()
                     if not (ipTask.isUp or ipTask.delayedIsUp)
                 )
                 for ipTask in downTasks:
@@ -442,4 +452,4 @@ class NmapPingTask(BaseTask):
         Called by the collector framework scheduler, and allows us to
         see how each task is doing.
         """
-        return ''
+        return ""
