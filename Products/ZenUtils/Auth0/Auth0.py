@@ -509,10 +509,16 @@ class Auth0(BasePlugin):
         if not request:
             return {}
         sessionInfo = request.SESSION.get(Auth0.session_key)
-        if getattr(sessionInfo, "userid"):
-            # userid is not always an email; see method storeToken
-            if email_pattern.match(sessionInfo.userid):
-                return {"email": sessionInfo.userid}
+        if not sessionInfo:
+            log.debug("No Auth0 session - not getting properties for user")
+            return {}
+        userid = getattr(sessionInfo, "userid", None)
+        if not userid:
+            log.debug("No 'userid' in Auth0 session")
+            return {}
+        # userid is not always an email; see method storeToken
+        if email_pattern.match(userid):
+            return {"email": userid}
         return {}
 
 
