@@ -3,7 +3,7 @@ BRANCH       ?= $(shell git rev-parse --abbrev-ref HEAD)
 ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
 ARTIFACT      = prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 
-IMAGE = zenoss/zenoss-centos-base:1.4.0.devtools
+IMAGE = zenoss/zenoss-centos-base:1.4.1.devtools
 
 USER_ID := $(shell id -u)
 GROUP_ID := $(shell id -g)
