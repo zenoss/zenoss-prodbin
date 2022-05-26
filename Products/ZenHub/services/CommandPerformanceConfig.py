@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function
+
 """CommandPerformanceConfig
 
 Provides configuration to zencommand clients.
@@ -313,21 +315,25 @@ if __name__ == "__main__":
     tester = ServiceTester(CommandPerformanceConfig)
 
     def printer(proxy):
-        print "\t".join(
-            ["", "Name", "Use SSH?", "CycleTime", "Component", "Points"]
+        print(
+            "\t".join(
+                ["", "Name", "Use SSH?", "CycleTime", "Component", "Points"]
+            )
         )
         for cmd in sorted(proxy.datasources):
-            print "\t".join(
-                map(
-                    str,
-                    [
-                        "",
-                        cmd.name,
-                        cmd.useSsh,
-                        cmd.cycleTime,
-                        cmd.component,
-                        cmd.points,
-                    ],
+            print(
+                "\t".join(
+                    map(
+                        str,
+                        [
+                            "",
+                            cmd.name,
+                            cmd.useSsh,
+                            cmd.cycleTime,
+                            cmd.component,
+                            cmd.points,
+                        ],
+                    )
                 )
             )
 

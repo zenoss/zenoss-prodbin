@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function
+
 """SnmpTrapConfig
 
 Provides configuration for an OID translation service.
@@ -204,7 +206,7 @@ if __name__ == "__main__":
             pprint(proxy.oidMap)
 
         def printer(self, config):
-            print "\t%s => %s" % (config.id, config.oidMap)
+            print("\t%s => %s" % (config.id, config.oidMap))
 
         def run(self):
             if self.options.request:

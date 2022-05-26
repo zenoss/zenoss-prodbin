@@ -48,7 +48,8 @@ class ModuleObjectConfigTest(TestCase):
 
     def test_task_max_retries(self):
         self.assertIs(
-            self.source.task_max_retries, self.config.task_max_retries,
+            self.source.task_max_retries,
+            self.config.task_max_retries,
         )
 
     def test_pbport(self):

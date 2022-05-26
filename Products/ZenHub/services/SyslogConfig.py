@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function
+
 """SyslogConfig
 
 Provides configuration for syslog message to Zenoss event conversions.
@@ -43,7 +45,7 @@ if __name__ == "__main__":
     tester = ServiceTester(SyslogConfig)
 
     def printer(config):
-        print "Default syslog priority = ", config.defaultPriority
+        print("Default syslog priority = ", config.defaultPriority)
 
     tester.printDeviceProxy = printer
     tester.showDeviceInfo()
