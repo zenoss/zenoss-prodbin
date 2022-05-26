@@ -16,7 +16,7 @@ from ..avatar import HubAvatar, RemoteBadMonitor, pb
 from ..service import ServiceManager
 from ..workerpool import WorkerPool
 
-PATH = {'src': 'Products.ZenHub.server.avatar'}
+PATH = {"src": "Products.ZenHub.server.avatar"}
 
 
 class HubAvatarTest(TestCase):
@@ -24,7 +24,8 @@ class HubAvatarTest(TestCase):
 
     def setUp(self):
         self.getLogger_patcher = patch(
-            "{src}.getLogger".format(**PATH), autospec=True,
+            "{src}.getLogger".format(**PATH),
+            autospec=True,
         )
         self.getLogger = self.getLogger_patcher.start()
         self.addCleanup(self.getLogger_patcher.stop)
@@ -38,9 +39,9 @@ class HubAvatarTest(TestCase):
 
     def test_perspective_ping(self):
         ret = self.avatar.perspective_ping()
-        self.assertEqual(ret, 'pong')
+        self.assertEqual(ret, "pong")
 
-    @patch('{src}.os.environ'.format(**PATH), name='os.environ', autospec=True)
+    @patch("{src}.os.environ".format(**PATH), name="os.environ", autospec=True)
     def test_perspective_getHubInstanceId_normal(self, os_environ):
         key = "CONTROLPLANE_INSTANCE_ID"
         hubId = "hub"
@@ -56,7 +57,7 @@ class HubAvatarTest(TestCase):
 
         self.assertEqual(actual, hubId)
 
-    @patch('{src}.os.environ'.format(**PATH), name='os.environ', autospec=True)
+    @patch("{src}.os.environ".format(**PATH), name="os.environ", autospec=True)
     def test_perspective_getHubInstanceId_unknown(self, os_environ):
         os_environ.get.side_effect = lambda k, d: d
         actual = self.avatar.perspective_getHubInstanceId()
@@ -81,7 +82,10 @@ class HubAvatarTest(TestCase):
 
         expected = self.services.getService.return_value
         actual = self.avatar.perspective_getService(
-            service_name, monitor, listener=listener, options=options,
+            service_name,
+            monitor,
+            listener=listener,
+            options=options,
         )
 
         self.services.getService.assert_called_with(service_name, monitor)
@@ -89,9 +93,9 @@ class HubAvatarTest(TestCase):
         self.assertEqual(expected, actual)
 
     def test_perspective_getService_raises_RemoteBadMonitor(self):
-        self.services.getService.side_effect = RemoteBadMonitor('tb', 'msg')
+        self.services.getService.side_effect = RemoteBadMonitor("tb", "msg")
         with self.assertRaises(RemoteBadMonitor):
-            self.avatar.perspective_getService('service_name')
+            self.avatar.perspective_getService("service_name")
 
     @patch("{src}.getLogger".format(**PATH))
     def test_perspective_getService_raises_error(self, getLogger):
@@ -103,13 +107,19 @@ class HubAvatarTest(TestCase):
         with self.assertRaises(pb.Error):
             self.avatar.perspective_getService(service_name)
             logger.exception.assert_called_once_with(
-                "Failed to get service '%s'", service_name,
+                "Failed to get service '%s'",
+                service_name,
             )
 
     def test_perspective_reportingForWork_nominal(self):
-        worker = Mock(spec_set=[
-            "workerId", "sessionId", "queue_name", "notifyOnDisconnect",
-        ])
+        worker = Mock(
+            spec_set=[
+                "workerId",
+                "sessionId",
+                "queue_name",
+                "notifyOnDisconnect",
+            ]
+        )
         workerId = "default-1"
 
         disconnect_callback = []
@@ -129,7 +139,9 @@ class HubAvatarTest(TestCase):
 
         # Remove the worker
         self.assertEqual(
-            1, len(disconnect_callback), "notifyOnDisconnect not called",
+            1,
+            len(disconnect_callback),
+            "notifyOnDisconnect not called",
         )
         disconnect_callback[0](worker)
         self.pools["foo"].remove.assert_called_once_with(worker)

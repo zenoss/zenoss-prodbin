@@ -150,14 +150,13 @@ def _build_weighted_list(data):
 
     # Generate a series of weights.  The first element should have the
     # highest weight.
-    weights = [(2 ** n) - 1 for n in range(len(elements), 0, -1)]
+    weights = [(2**n) - 1 for n in range(len(elements), 0, -1)]
 
     # Build a list of element lists where each element list has a length
     # matching their weight. E.g. given elements ('a', 'b') and weights
     # [3, 1], the result is [['a', 'a', 'a'], ['b']].
     weighted_series = (
-        [element] * weight
-        for element, weight in zip(elements, weights)
+        [element] * weight for element, weight in zip(elements, weights)
     )
 
     # Give each series element an index between 0 and 1. E.g. given
@@ -228,7 +227,7 @@ class IntEnumFactory(object):
 
 # A priority class defined by the priorities defined in the config module.
 ServiceCallPriority = IntEnumFactory.build(
-    "ServiceCallPriority", _priority_names,
+    "ServiceCallPriority", _priority_names
 )
 
 
@@ -323,5 +322,5 @@ class ServiceCallPriorityMap(collections.Mapping):
 
 # Global map of service calls to priority, as defined in the config module.
 servicecall_priority_map = ServiceCallPriorityMap(
-    _priority_servicecall_map, ServiceCallPriority,
+    _priority_servicecall_map, ServiceCallPriority
 )

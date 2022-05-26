@@ -65,8 +65,7 @@ class ModuleObjectConfig(object):
 
 
 class ServerConfig(object):
-    """Load zenhub server configuration from a file.
-    """
+    """Load zenhub server configuration from a file."""
 
     @classmethod
     def from_file(cls, filename):
@@ -169,7 +168,6 @@ priorities = {
         "CONFIG",
         "MODELING",
     ),
-
     # Associates service calls with priorities.
     # The ("*:*") mapping must be defined.
     "servicecall_map": {
@@ -181,7 +179,6 @@ priorities = {
         "*:getDeviceConfig": "CONFIG",
         "*:applyDataMaps": "MODELING",
     },
-
     # Identifies the priority associated with modeling.
     # This is used to pause applyDataMaps processing.
     "modeling": "MODELING",

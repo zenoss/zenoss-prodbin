@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function
+
 """SnmpPerformanceConfig
 
 Provides configuration to zenperfsnmp clients.
@@ -226,7 +228,7 @@ if __name__ == "__main__":
 
     def printer(proxy):
         for oid in sorted(proxy.oids):
-            print oid
+            print(oid)
 
     tester.printDeviceProxy = printer
     tester.showDeviceInfo()

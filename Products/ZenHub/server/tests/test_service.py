@@ -16,14 +16,21 @@ from zope.interface.verify import verifyObject
 from Products.ZenHub.PBDaemon import RemoteException
 from ..exceptions import UnknownServiceError
 from ..service import (
-    ServiceManager, ServiceRegistry, ServiceLoader, ServiceCall,
-    ServiceReference, ServiceReferenceFactory, WorkerInterceptor,
-    ServiceAddedEvent, RemoteBadMonitor,
-    pb, defer,
+    ServiceManager,
+    ServiceRegistry,
+    ServiceLoader,
+    ServiceCall,
+    ServiceReference,
+    ServiceReferenceFactory,
+    WorkerInterceptor,
+    ServiceAddedEvent,
+    RemoteBadMonitor,
+    pb,
+    defer,
 )
 from ..events import IServiceAddedEvent
 
-PATH = {'src': 'Products.ZenHub.server.service'}
+PATH = {"src": "Products.ZenHub.server.service"}
 
 
 class ServiceCallTest(TestCase):
@@ -82,13 +89,15 @@ class ServiceManagerTest(TestCase):
 
     def setUp(self):
         self.getLogger_patcher = patch(
-            "{src}.getLogger".format(**PATH), autospec=True,
+            "{src}.getLogger".format(**PATH),
+            autospec=True,
         )
         self.getLogger = self.getLogger_patcher.start()
         self.addCleanup(self.getLogger_patcher.stop)
 
         self.getUtility_patcher = patch(
-            "{src}.getUtility".format(**PATH), autospec=True,
+            "{src}.getUtility".format(**PATH),
+            autospec=True,
         )
         self.getUtility = self.getUtility_patcher.start()
         self.addCleanup(self.getUtility_patcher.stop)
@@ -211,7 +220,9 @@ class ServiceReferenceFactoryTest(TestCase):
         self.routes = Mock()
         self.target = Mock()
         self.factory = ServiceReferenceFactory(
-            self.target, self.routes, self.executors,
+            self.target,
+            self.routes,
+            self.executors,
         )
 
     def test_build(self):
@@ -224,8 +235,11 @@ class ServiceReferenceFactoryTest(TestCase):
 
         self.assertEqual(expected, actual)
         self.target.assert_called_once_with(
-            service, name, monitor,
-            routes=self.routes, executors=self.executors,
+            service,
+            name,
+            monitor,
+            routes=self.routes,
+            executors=self.executors,
         )
 
 
@@ -234,7 +248,8 @@ class ServiceReferenceTest(TestCase):
 
     def setUp(self):
         self.getLogger_patcher = patch(
-            "{src}.getLogger".format(**PATH), autospec=True,
+            "{src}.getLogger".format(**PATH),
+            autospec=True,
         )
         self.getLogger = self.getLogger_patcher.start()
         self.addCleanup(self.getLogger_patcher.stop)
@@ -245,7 +260,11 @@ class ServiceReferenceTest(TestCase):
         self.routes = Mock()
         self.executors = Mock()
         self.reference = ServiceReference(
-            self.service, self.name, self.monitor, self.routes, self.executors,
+            self.service,
+            self.name,
+            self.monitor,
+            self.routes,
+            self.executors,
         )
         self.reference.perspective = sentinel.perspective
 
@@ -265,7 +284,10 @@ class ServiceReferenceTest(TestCase):
 
         handler = Mock()
         dfr = self.reference.remoteMessageReceived(
-            self.broker, method, args, kwargs,
+            self.broker,
+            method,
+            args,
+            kwargs,
         )
         dfr.addErrback(handler)
         _, args, _ = handler.mock_calls[0]
@@ -287,7 +309,10 @@ class ServiceReferenceTest(TestCase):
 
         handler = Mock()
         dfr = self.reference.remoteMessageReceived(
-            self.broker, method, args, kwargs,
+            self.broker,
+            method,
+            args,
+            kwargs,
         )
         dfr.addErrback(handler)
         _, args, _ = handler.mock_calls[0]
@@ -312,7 +337,10 @@ class ServiceReferenceTest(TestCase):
         self.executors.get.return_value = executor
 
         dfr = self.reference.remoteMessageReceived(
-            self.broker, method, args, kwargs,
+            self.broker,
+            method,
+            args,
+            kwargs,
         )
 
         self.assertIs(result, dfr.result)
@@ -335,14 +363,20 @@ class ServiceReferenceTest(TestCase):
             executor.submit.side_effect = lambda j: defer.fail(expected_ex)
             cb = Mock()
             dfr = self.reference.remoteMessageReceived(
-                self.broker, "method", args, kwargs,
+                self.broker,
+                "method",
+                args,
+                kwargs,
             )
             dfr.addErrback(cb)
 
             try:
-                self.broker.unserialize.assert_has_calls([
-                    call(args), call(kwargs),
-                ])
+                self.broker.unserialize.assert_has_calls(
+                    [
+                        call(args),
+                        call(kwargs),
+                    ]
+                )
                 self.broker.serialize.assert_not_called()
                 self.assertTrue(cb.called)
                 self.assertEqual(1, cb.call_count)
@@ -362,14 +396,20 @@ class ServiceReferenceTest(TestCase):
         self.executors.get.return_value = executor
 
         dfr = self.reference.remoteMessageReceived(
-            self.broker, "method", args, kwargs,
+            self.broker,
+            "method",
+            args,
+            kwargs,
         )
         dfr.addErrback(lambda f: (f.trap(pb.Error), f))
         exType, failure = dfr.result
 
-        self.broker.unserialize.assert_has_calls([
-            call(args), call(kwargs),
-        ])
+        self.broker.unserialize.assert_has_calls(
+            [
+                call(args),
+                call(kwargs),
+            ]
+        )
         self.broker.serialize.assert_not_called()
         self.assertIs(exType, pb.Error)
         self.assertEqual(
@@ -392,7 +432,8 @@ class WorkerInterceptorTest(TestCase):
         expected = {"__doc__", "__module__"}
         actual = set(WorkerInterceptor.__dict__)
         self.assertSetEqual(
-            expected, actual,
+            expected,
+            actual,
             "Add functionality to ServiceReference, not WorkerInterceptor",
         )
 
@@ -401,7 +442,7 @@ class ServiceAddedEventTest(TestCase):
     """Test the ServiceAddedEvent class."""
 
     def test___init__(t):
-        name, instance = 'name', 'instance'
+        name, instance = "name", "instance"
         service_added_event = ServiceAddedEvent(name, instance)
         # the class Implements the Interface
         t.assertTrue(IServiceAddedEvent.implementedBy(ServiceAddedEvent))

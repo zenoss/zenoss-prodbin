@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function
+
 import logging
 
 from twisted.spread import pb
@@ -104,9 +106,9 @@ if __name__ == "__main__":
     tester = ServiceTester(ZenStatusConfig)
 
     def printer(proxy):
-        print "\t".join(["", "Hostname", "Service name", "Port"])
+        print("\t".join(["", "Hostname", "Service name", "Port"]))
         for component in proxy.components:
-            print "\t", component
+            print("\t", component)
 
     tester.printDeviceProxy = printer
     tester.showDeviceInfo()

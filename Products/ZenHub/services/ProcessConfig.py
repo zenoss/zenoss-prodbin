@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function
+
 import logging
 import re
 
@@ -207,7 +209,7 @@ if __name__ == "__main__":
 
     def printer(config):
         for proc in config.processes.values():
-            print "\t".join([proc.name, str(proc.includeRegex)])
+            print("\t".join([proc.name, str(proc.includeRegex)]))
 
     tester.printDeviceProxy = printer
     tester.showDeviceInfo()

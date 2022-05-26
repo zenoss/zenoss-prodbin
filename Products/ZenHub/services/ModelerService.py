@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function
+
 import time
 import logging
 
@@ -280,15 +282,15 @@ if __name__ == "__main__":
     tester = ServiceTester(ModelerService)
 
     def configprinter(config):
-        print "%s (%s) Plugins" % (config.id, config.manageIp)
-        print sorted(x.pluginName for x in config.plugins)
+        print("%s (%s) Plugins" % (config.id, config.manageIp))
+        print(sorted(x.pluginName for x in config.plugins))
 
     def showDeviceInfo():
         if tester.options.device:
             name = tester.options.device
             config = tester.service.remote_getDeviceConfig([name])
             if config:
-                print "Config for %s =" % name
+                print("Config for %s =" % name)
                 configprinter(config[0])
             else:
                 log.warn("No configs found for %s", name)
@@ -296,6 +298,6 @@ if __name__ == "__main__":
             collector = tester.options.monitor
             devices = tester.service.remote_getDeviceListByMonitor(collector)
             devices = sorted(devices)
-            print "Device list = %s" % devices
+            print("Device list = %s" % devices)
 
     showDeviceInfo()

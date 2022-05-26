@@ -31,7 +31,8 @@ from .utils import getLogger
 log = getLogger("metrics")
 
 _legacy_metric_worklist_total = type(
-    "WorkListTotalNames", (object,),
+    "WorkListTotalNames",
+    (object,),
     {"metric": "zenhub.workList", "name": "total"},
 )()
 
@@ -69,7 +70,8 @@ def register_legacy_worklist_metrics():
     gauge = registry.metrics.get(_legacy_metric_worklist_total.metric)
     if not gauge:
         gauge = WorkListGauge(
-            _legacy_worklist_counters, _legacy_metric_worklist_total.name,
+            _legacy_worklist_counters,
+            _legacy_metric_worklist_total.name,
         )
         Metrology.gauge(_legacy_metric_worklist_total.metric, gauge)
     _legacy_worklist_counters["total"] = 0
@@ -99,7 +101,8 @@ def decrementLegacyMetricCounters(event):
         if _legacy_worklist_counters[key] < 0:
             log.warn(
                 "Counter is negative worklist=%s value=%s",
-                key, _legacy_worklist_counters[key],
+                key,
+                _legacy_worklist_counters[key],
             )
 
 
@@ -178,9 +181,14 @@ class _CountKey(object):
     __slots__ = ("_hash",)
 
     def __init__(self, event):
-        self._hash = hash((
-            event.service, event.method, event.priority, event.queue,
-        ))
+        self._hash = hash(
+            (
+                event.service,
+                event.method,
+                event.priority,
+                event.queue,
+            )
+        )
 
     def __hash__(self):
         return self._hash
@@ -274,8 +282,12 @@ def handleServiceCallCompleted(event):
         log.warn(
             "Invalid value "
             "value=%s metric=%s service=%s method=%s priority=%s queue=%s",
-            _servicecall_wip[key], "zenhub.servicecall.wip",
-            event.service, event.method, event.priority.name, event.queue,
+            _servicecall_wip[key],
+            "zenhub.servicecall.wip",
+            event.service,
+            event.method,
+            event.priority.name,
+            event.queue,
         )
     writer.write_metric(
         "zenhub.servicecall.wip",
@@ -293,8 +305,12 @@ def handleServiceCallCompleted(event):
             log.warn(
                 "Invalid value "
                 "value=%s metric=%s service=%s method=%s priority=%s queue=%s",
-                _servicecall_count[key], "zenhub.servicecall.count",
-                event.service, event.method, event.priority.name, event.queue,
+                _servicecall_count[key],
+                "zenhub.servicecall.count",
+                event.service,
+                event.method,
+                event.priority.name,
+                event.queue,
             )
         writer.write_metric(
             "zenhub.servicecall.count",
@@ -348,30 +364,38 @@ class ZenHubStatusReporter(object):
         lines = ["Worklist Stats:"]
         lines.extend(
             "   {:<22}: {}".format(
-                priority, _legacy_worklist_counters[key],
+                priority,
+                _legacy_worklist_counters[key],
             )
             for priority, key in self.__heading_priority_seq
         )
-        lines.extend([
-            "   {:<22}: {}".format(
-                "Total", _legacy_worklist_counters["total"],
-            ),
-            "",
-            "Service Call Statistics:",
-            "   {:<32} {:>8} {:>12} {} ".format(
-                "method", "count",
-                "running_total", "last_called_time",
-            ),
-        ])
+        lines.extend(
+            [
+                "   {:<22}: {}".format(
+                    "Total",
+                    _legacy_worklist_counters["total"],
+                ),
+                "",
+                "Service Call Statistics:",
+                "   {:<32} {:>8} {:>12} {} ".format(
+                    "method",
+                    "count",
+                    "running_total",
+                    "last_called_time",
+                ),
+            ]
+        )
 
         tasks = self.__stats.tasks
         statline = " - {:<32} {:>8} {:>12}  {:%Y-%m-%d %H:%M:%S}"
         sorted_by_running_total = sorted(
-            tasks.iteritems(), key=lambda e: -(e[1].running_total),
+            tasks.iteritems(),
+            key=lambda e: -(e[1].running_total),
         )
         lines.extend(
             statline.format(
-                method, stats.count,
+                method,
+                stats.count,
                 timedelta(seconds=round(stats.running_total)),
                 datetime.fromtimestamp(stats.last_completed),
             )
@@ -379,10 +403,12 @@ class ZenHubStatusReporter(object):
         )
 
         workers = self.__stats.workers
-        lines.extend([
-            "",
-            "Worker Statistics:",
-        ])
+        lines.extend(
+            [
+                "",
+                "Worker Statistics:",
+            ]
+        )
         nostatsFmt = "    {:>2}:Idle [] No tasks run"
         statsFmt = "    {:>2}:{} [{}  elapsed: {}] idle: {}"
         for workerId, stats in sorted(workers.iteritems()):
@@ -403,10 +429,16 @@ class ZenHubStatusReporter(object):
                 desc = lt.description
                 elapsed = timedelta(seconds=round(lt.completed - lt.started))
                 idle = timedelta(seconds=round(now - lt.completed))
-            lines.append(statsFmt.format(
-                workerId, stats.status, desc, elapsed, idle,
-            ))
-        return '\n'.join(lines)
+            lines.append(
+                statsFmt.format(
+                    workerId,
+                    stats.status,
+                    desc,
+                    elapsed,
+                    idle,
+                )
+            )
+        return "\n".join(lines)
 
 
 class StatsMonitor(object):
@@ -435,16 +467,14 @@ class StatsMonitor(object):
         return self.__task_stats
 
     def update_rrd_stats(self, rrdstats, service_manager):
-        totalTime = sum(
-            s.callTime for s in service_manager.services.values()
-        )
-        rrdstats.gauge('services', len(service_manager.services))
-        rrdstats.counter('totalCallTime', totalTime)
+        totalTime = sum(s.callTime for s in service_manager.services.values())
+        rrdstats.gauge("services", len(service_manager.services))
+        rrdstats.counter("totalCallTime", totalTime)
 
         instruments = dict(registry)
         workListGauge = instruments.get(_legacy_metric_worklist_total.metric)
         if workListGauge is not None:
-            rrdstats.gauge('workListLength', workListGauge.value)
+            rrdstats.gauge("workListLength", workListGauge.value)
 
         for name, value in self.__counters.items():
             rrdstats.counter(name, value)
@@ -464,7 +494,8 @@ class StatsMonitor(object):
             if self.__counters[event.queue] < 0:
                 log.warn(
                     "Worklist counter is negative count=%s worklist=%s",
-                    self.__counters[event.queue], event.queue,
+                    self.__counters[event.queue],
+                    event.queue,
                 )
 
     @adapter(ServiceCallStarted)

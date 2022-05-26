@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function
+
 """ServiceTester
 
 Simple utility class for testing out zenhub services.
@@ -72,7 +74,7 @@ class ServiceTester(ZCmdBase):
             name = self.options.device
             config = self.service.remote_getDeviceConfigs([name])
             if config:
-                print "Config for %s =" % name
+                print("Config for %s =" % name)
                 self.printDeviceProxy(config[0])
             else:
                 log.warn("No configs found for %s", name)
@@ -80,7 +82,7 @@ class ServiceTester(ZCmdBase):
             devices = sorted(
                 x.id for x in self.service.remote_getDeviceConfigs()
             )
-            print "Device list = %s" % devices
+            print("Device list = %s" % devices)
 
     def printDeviceProxy(self, proxy):
         """

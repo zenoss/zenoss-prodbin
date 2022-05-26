@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function
+
 """PingConfig
 
 Provides configuration to zenping per-device based on:
@@ -253,7 +255,7 @@ if __name__ == "__main__":
 
     def printer(config):
         for ip in config.monitoredIps:
-            print "\t", ip, "\t", [x[0] for x in ip.points]
+            print("\t", ip, "\t", [x[0] for x in ip.points])
 
     tester.printDeviceProxy = printer
     tester.showDeviceInfo()
