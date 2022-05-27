@@ -47,7 +47,7 @@ class ServiceCallEvent(object):
         for name in self.__slots__:
             setattr(self, name, kwargs.pop(name, None))
         # no left-over arguments
-        assert len(kwargs) == 0, ("[%r] invalid arguments" % self)
+        assert len(kwargs) == 0, "[%r] invalid arguments" % self
         super(ServiceCallEvent, self).__init__()
 
 
@@ -56,8 +56,15 @@ class ServiceCallReceived(ServiceCallEvent):
     """ZenHub has accepted a request to execute a method on a service."""
 
     __slots__ = (
-        "id", "monitor", "service", "method", "args", "kwargs",
-        "timestamp", "queue", "priority",
+        "id",
+        "monitor",
+        "service",
+        "method",
+        "args",
+        "kwargs",
+        "timestamp",
+        "queue",
+        "priority",
     )
 
 
@@ -85,21 +92,29 @@ class ServiceCallCompleted(ServiceCallEvent):
         error = kwargs.get("error", _UNSPECIFIED)
         retry = kwargs.get("retry", _UNSPECIFIED)
         result = kwargs.get("result", _UNSPECIFIED)
-        assert any((
-            all((
-                (result is not _UNSPECIFIED),
-                (error is _UNSPECIFIED),
-                (retry is _UNSPECIFIED),
-            )),
-            all((
-                (result is _UNSPECIFIED),
-                (error is not _UNSPECIFIED),
-                (retry is _UNSPECIFIED),
-            )),
-            all((
-                (result is _UNSPECIFIED),
-                (error is _UNSPECIFIED),
-                (retry is not _UNSPECIFIED),
-            )),
-        )), "[completed] Fields result, retry, and error all unspecified"
+        assert any(
+            (
+                all(
+                    (
+                        (result is not _UNSPECIFIED),
+                        (error is _UNSPECIFIED),
+                        (retry is _UNSPECIFIED),
+                    )
+                ),
+                all(
+                    (
+                        (result is _UNSPECIFIED),
+                        (error is not _UNSPECIFIED),
+                        (retry is _UNSPECIFIED),
+                    )
+                ),
+                all(
+                    (
+                        (result is _UNSPECIFIED),
+                        (error is _UNSPECIFIED),
+                        (retry is not _UNSPECIFIED),
+                    )
+                ),
+            )
+        ), "[completed] Fields result, retry, and error all unspecified"
         super(ServiceCallCompleted, self).__init__(**kwargs)

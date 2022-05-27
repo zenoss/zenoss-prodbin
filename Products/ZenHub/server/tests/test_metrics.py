@@ -72,7 +72,12 @@ class LegacyMetricsTest(TestCase):
     @patch("{src}._legacy_worklist_counters".format(**PATH), new_callable=dict)
     @patch("{src}.WorkListGauge".format(**PATH))
     def test_metrology_registration(
-        self, _WorkListGauge, _counters, _getUtility, _Metrology, _registry,
+        self,
+        _WorkListGauge,
+        _counters,
+        _getUtility,
+        _Metrology,
+        _registry,
     ):
         config = Mock()
         config.legacy_metric_priority_map = legacy_metric_priority_map
@@ -119,7 +124,8 @@ class LegacyMetricsTest(TestCase):
             _WorkListGauge.call_count,
         )
         _WorkListGauge.assert_has_calls(
-            expected_worklist_gauge_calls, any_order=True,
+            expected_worklist_gauge_calls,
+            any_order=True,
         )
 
         self.assertEqual(
@@ -127,7 +133,8 @@ class LegacyMetricsTest(TestCase):
             _Metrology.gauge.call_count,
         )
         _Metrology.gauge.assert_has_calls(
-            expected_metrology_gauge_calls, any_order=True,
+            expected_metrology_gauge_calls,
+            any_order=True,
         )
 
         self.assertDictEqual(expected_counter_contents, _counters)
@@ -313,53 +320,56 @@ class ServiceCallMetricsTest(TestCase):
         self.assertEqual(1, len(self._servicecall_wip))
         self.assertEqual(0, self._servicecall_count[key])
         self.assertEqual(0, self._servicecall_wip[key])
-        writer.write_metric.assert_has_calls((
-            call(
-                "zenhub.servicecall.wip",
-                0,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                },
+        writer.write_metric.assert_has_calls(
+            (
+                call(
+                    "zenhub.servicecall.wip",
+                    0,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                    },
+                ),
+                call(
+                    "zenhub.servicecall.cycletime",
+                    10000,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                        "status": "success",
+                    },
+                ),
+                call(
+                    "zenhub.servicecall.count",
+                    0,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                    },
+                ),
+                call(
+                    "zenhub.servicecall.leadtime",
+                    60000,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                    },
+                ),
             ),
-            call(
-                "zenhub.servicecall.cycletime",
-                10000,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                    "status": "success",
-                },
-            ),
-            call(
-                "zenhub.servicecall.count",
-                0,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                },
-            ),
-            call(
-                "zenhub.servicecall.leadtime",
-                60000,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                },
-            ),
-        ), any_order=True)
+            any_order=True,
+        )
 
     def test_handleServiceCallCompleted_retry(self):
         writer = self.getUtility.return_value.metric_writer
@@ -381,31 +391,34 @@ class ServiceCallMetricsTest(TestCase):
         self.assertEqual(1, len(self._servicecall_wip))
         self.assertEqual(1, self._servicecall_count[key])
         self.assertEqual(0, self._servicecall_wip[key])
-        writer.write_metric.assert_has_calls((
-            call(
-                "zenhub.servicecall.wip",
-                0,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                },
+        writer.write_metric.assert_has_calls(
+            (
+                call(
+                    "zenhub.servicecall.wip",
+                    0,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                    },
+                ),
+                call(
+                    "zenhub.servicecall.cycletime",
+                    10000,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                        "status": "retry",
+                    },
+                ),
             ),
-            call(
-                "zenhub.servicecall.cycletime",
-                10000,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                    "status": "retry",
-                },
-            ),
-        ), any_order=True)
+            any_order=True,
+        )
 
     def test_handleServiceCallCompleted_failure(self):
         writer = self.getUtility.return_value.metric_writer
@@ -427,53 +440,56 @@ class ServiceCallMetricsTest(TestCase):
         self.assertEqual(1, len(self._servicecall_wip))
         self.assertEqual(0, self._servicecall_count[key])
         self.assertEqual(0, self._servicecall_wip[key])
-        writer.write_metric.assert_has_calls((
-            call(
-                "zenhub.servicecall.wip",
-                0,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                },
+        writer.write_metric.assert_has_calls(
+            (
+                call(
+                    "zenhub.servicecall.wip",
+                    0,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                    },
+                ),
+                call(
+                    "zenhub.servicecall.cycletime",
+                    10000,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                        "status": "failure",
+                    },
+                ),
+                call(
+                    "zenhub.servicecall.count",
+                    0,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                    },
+                ),
+                call(
+                    "zenhub.servicecall.leadtime",
+                    60000,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                    },
+                ),
             ),
-            call(
-                "zenhub.servicecall.cycletime",
-                10000,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                    "status": "failure",
-                },
-            ),
-            call(
-                "zenhub.servicecall.count",
-                0,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                },
-            ),
-            call(
-                "zenhub.servicecall.leadtime",
-                60000,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                },
-            ),
-        ), any_order=True)
+            any_order=True,
+        )
 
     @patch("{src}.log".format(**PATH), autospec=True)
     def test_negative_values(self, _log):
@@ -494,51 +510,54 @@ class ServiceCallMetricsTest(TestCase):
         self.assertEqual(1, len(self._servicecall_wip))
         self.assertEqual(-1, self._servicecall_count[key])
         self.assertEqual(-1, self._servicecall_wip[key])
-        writer.write_metric.assert_has_calls((
-            call(
-                "zenhub.servicecall.wip",
-                -1,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                },
+        writer.write_metric.assert_has_calls(
+            (
+                call(
+                    "zenhub.servicecall.wip",
+                    -1,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                    },
+                ),
+                call(
+                    "zenhub.servicecall.cycletime",
+                    10000,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                        "status": "success",
+                    },
+                ),
+                call(
+                    "zenhub.servicecall.count",
+                    -1,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                    },
+                ),
+                call(
+                    "zenhub.servicecall.leadtime",
+                    60000,
+                    160000,
+                    {
+                        "queue": event.queue,
+                        "priority": event.priority.name,
+                        "service": event.service,
+                        "method": event.method,
+                    },
+                ),
             ),
-            call(
-                "zenhub.servicecall.cycletime",
-                10000,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                    "status": "success",
-                },
-            ),
-            call(
-                "zenhub.servicecall.count",
-                -1,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                },
-            ),
-            call(
-                "zenhub.servicecall.leadtime",
-                60000,
-                160000,
-                {
-                    "queue": event.queue,
-                    "priority": event.priority.name,
-                    "service": event.service,
-                    "method": event.method,
-                },
-            ),
-        ), any_order=True)
+            any_order=True,
+        )
         self.assertEqual(2, _log.warn.call_count)

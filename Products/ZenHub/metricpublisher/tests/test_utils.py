@@ -4,12 +4,12 @@ from unittest import TestCase
 from mock import Mock, create_autospec, patch
 
 from Products.ZenHub.metricpublisher.utils import (
-    sanitized_float,
-    exponential_backoff,
+    base64,
     basic_auth_string,
     basic_auth_string_content,
     DelayedMeter,
-    base64,
+    exponential_backoff,
+    sanitized_float,
 )
 
 
@@ -62,28 +62,28 @@ class UtilsTest(TestCase):
         float_inputs = [
             100,
             "100",
-            u"100",
+            "100",
             -100,
             "-100",
-            u"-100",
+            "-100",
             100.1,
             "100.1",
-            u"100.1",
+            "100.1",
             -100.1,
             "-100.1",
-            u"-100.1",
+            "-100.1",
             1e9,
             "1e9",
-            u"1e9",
+            "1e9",
             -1e9,
             "-1e9",
-            u"-1e9",
+            "-1e9",
             1.1e9,
             "1.1e9",
-            u"1.1e9",
+            "1.1e9",
             -1.1e9,
             "-1.1e9",
-            u"-1.1e9",
+            "-1.1e9",
         ]
 
         for value in float_inputs:

@@ -13,8 +13,12 @@ from unittest import TestCase
 from mock import Mock, patch
 
 from ..priority import (
-    PrioritySelection, ModelingPaused, IntEnumFactory,
-    ServiceCallPriority, ServiceCallPriorityMap, servicecall_priority_map,
+    PrioritySelection,
+    ModelingPaused,
+    IntEnumFactory,
+    ServiceCallPriority,
+    ServiceCallPriorityMap,
+    servicecall_priority_map,
     _build_weighted_list,
 )
 from .. import priority
@@ -33,15 +37,22 @@ class TestPrioritySelection(TestCase):
         self.assertSequenceEqual(self.priorities, selection.priorities)
         self.assertSequenceEqual(self.priorities, selection.available)
         expected = (
-            "a", "a", "b", "a",
-            "a", "b", "c",
-            "a", "a", "b", "a",
+            "a",
+            "a",
+            "b",
+            "a",
+            "a",
+            "b",
+            "c",
+            "a",
+            "a",
+            "b",
+            "a",
         )
         actual = tuple(next(selection) for _ in range(len(expected)))
         self.assertSequenceEqual(expected, actual)
 
     def test_with_excluder(self):
-
         def exclude():
             return ("a",)
 
@@ -50,7 +61,8 @@ class TestPrioritySelection(TestCase):
         self.assertSequenceEqual(("b", "c"), selection.available)
         expected = (
             "b",
-            "b", "c",
+            "b",
+            "c",
             "b",
         )
         actual = tuple(next(selection) for _ in range(len(expected)))
@@ -81,14 +93,16 @@ class ModelingPausedTest(TestCase):
 
     def setUp(self):
         self.getUtility_patcher = patch(
-            "{src}.getUtility".format(**PATH), autospec=True,
+            "{src}.getUtility".format(**PATH),
+            autospec=True,
         )
         self.getUtility = self.getUtility_patcher.start()
         self.addCleanup(self.getUtility_patcher.stop)
 
         self.scp = Mock()
         self.ServiceCallPriority_patcher = patch.object(
-            priority, "ServiceCallPriority",
+            priority,
+            "ServiceCallPriority",
         )
         self.ServiceCallPriority = self.ServiceCallPriority_patcher.start()
         self.addCleanup(self.ServiceCallPriority_patcher.stop)
@@ -167,7 +181,8 @@ class ServiceCallPriorityMapTest(TestCase):
             "*:baz": "TWO",
         }
         self.priority_map = ServiceCallPriorityMap(
-            self.mapping, self.Priority,
+            self.mapping,
+            self.Priority,
         )
 
     def test_missing_default_map(self):
@@ -196,7 +211,8 @@ class ServiceCallPriorityMapTest(TestCase):
         for key, expected in tests:
             result = self.priority_map.get(key)
             self.assertEqual(
-                expected, result,
+                expected,
+                result,
                 "for key {}, {!r} != {!r}".format(key, expected, result),
             )
 
@@ -223,7 +239,8 @@ class ServiceCallPriorityMapTest(TestCase):
         for key, expected in tests:
             result = self.priority_map[key]
             self.assertEqual(
-                expected, result,
+                expected,
+                result,
                 "for key {}, {!r} != {!r}".format(key, expected, result),
             )
 
@@ -251,22 +268,49 @@ class BuildPriorityListTest(TestCase):
 
     def test_three_priorities(self):
         expected = (
-            1, 1, 2, 1,
-            1, 2, 3,
-            1, 1, 2, 1,
+            1,
+            1,
+            2,
+            1,
+            1,
+            2,
+            3,
+            1,
+            1,
+            2,
+            1,
         )
         actual = _build_weighted_list([1, 2, 3])
         self.assertSequenceEqual(expected, actual)
 
     def test_four_priorities(self):
         expected = (
-            1, 1, 2, 1,
-            1, 2, 3,
-            1, 1, 2, 1,
-            1, 2, 3, 4,
-            1, 1, 2, 1,
-            1, 2, 3,
-            1, 1, 2, 1,
+            1,
+            1,
+            2,
+            1,
+            1,
+            2,
+            3,
+            1,
+            1,
+            2,
+            1,
+            1,
+            2,
+            3,
+            4,
+            1,
+            1,
+            2,
+            1,
+            1,
+            2,
+            3,
+            1,
+            1,
+            2,
+            1,
         )
         actual = _build_weighted_list([1, 2, 3, 4])
         self.assertSequenceEqual(expected, actual)
@@ -299,23 +343,35 @@ class ConfiguredServiceCallPriorityMapTest(TestCase):
         expected_mapping = {
             ("EventService", "sendEvent"): ServiceCallPriority.EVENTS,
             ("EventService", "sendEvents"): ServiceCallPriority.EVENTS,
-            ("ZenPacks.zenoss.PythonCollector.PythonConfig", "applyDataMaps"):
-                ServiceCallPriority.MODELING,
-            ("ModelerService", "singleApplyDataMaps"):
-                ServiceCallPriority.SINGLE_MODELING,
+            (
+                "ZenPacks.zenoss.PythonCollector.PythonConfig",
+                "applyDataMaps",
+            ): ServiceCallPriority.MODELING,
+            (
+                "ModelerService",
+                "singleApplyDataMaps",
+            ): ServiceCallPriority.SINGLE_MODELING,
             ("Package.ServiceOne", "doThis"): ServiceCallPriority.OTHER,
             ("Package.ServiceTwo", "doThat"): ServiceCallPriority.OTHER,
-            ("Package.ServiceOne", "getDeviceConfigs"):
-                ServiceCallPriority.CONFIG,
-            ("Package.ServiceOne", "getDeviceConfig"):
-                ServiceCallPriority.CONFIG,
+            (
+                "Package.ServiceOne",
+                "getDeviceConfigs",
+            ): ServiceCallPriority.CONFIG,
+            (
+                "Package.ServiceOne",
+                "getDeviceConfig",
+            ): ServiceCallPriority.CONFIG,
         }
         for mesg, expected in expected_mapping.iteritems():
             actual = servicecall_priority_map.get(mesg)
             self.assertEqual(
-                actual, expected,
-                "Message '%s' should map to %s, not %s" % (
-                    mesg, expected.name, actual.name,
+                actual,
+                expected,
+                "Message '%s' should map to %s, not %s"
+                % (
+                    mesg,
+                    expected.name,
+                    actual.name,
                 ),
             )
         # Catch to ensure this test is updated for new priorities

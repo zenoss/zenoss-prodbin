@@ -243,12 +243,15 @@ def _update_callable_attribute(attr, value):
         except (TypeError, ValueError):
             # This is to handle legacy zenpacks that use the signature
             # pattern:
-            #     def func(*args): (arg1, arg2, ...) = args[0]
+            #     def func(*args):
+            #         (arg1, arg2, ...) = args[0]
             attr(*(value,))
         return True
     except Exception:
+        # We log the traceback because we want incorrectly defined
+        # datamaps to stand out.
         log.exception(
-            "Error in _update_callable_attribute. failed to set %s.%s%s",
+            "Failed to set '%s.%s' to the value '%s'",
             attr.__module__,
             attr.__name__,
             value,
