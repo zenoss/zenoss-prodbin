@@ -23,7 +23,8 @@ from .utils import getLogger
 
 
 class WorkerPool(
-        collections.Container, collections.Iterable, collections.Sized):
+    collections.Container, collections.Iterable, collections.Sized
+):
     """Pool of ZenHubWorker RemoteReference objects."""
 
     def __init__(self, name):
@@ -55,12 +56,13 @@ class WorkerPool(
 
         @param worker {RemoteReference} A reference to the remote worker
         """
-        assert not isinstance(worker, WorkerRef), \
-            "worker may not be a WorkerRef"
+        assert not isinstance(
+            worker, WorkerRef
+        ), "worker may not be a WorkerRef"
         sessionId = worker.sessionId
         if sessionId in self.__workers:
             self.__log.debug(
-                "Worker already registered worker=%s", worker.workerId,
+                "Worker already registered worker=%s", worker.workerId
             )
             return
         self.__workers[sessionId] = worker
@@ -68,7 +70,8 @@ class WorkerPool(
         self.__available.add(sessionId)
         self.__log.debug(
             "Worker registered worker=%s total-workers=%s",
-            worker.workerId, len(self.__workers),
+            worker.workerId,
+            len(self.__workers),
         )
 
     def remove(self, worker):
@@ -79,15 +82,16 @@ class WorkerPool(
 
         @param worker {RemoteReference} A reference to the remote worker
         """
-        assert not isinstance(worker, WorkerRef), \
-            "worker may not be a WorkerRef"
+        assert not isinstance(
+            worker, WorkerRef
+        ), "worker may not be a WorkerRef"
         sessionId = worker.sessionId
         self.__remove(sessionId, worker=worker)
 
     def __remove(self, sessionId, worker=None):
         if sessionId not in self.__workers:
             self.__log.debug(
-                "Worker not registered worker=%s", worker.workerId,
+                "Worker not registered worker=%s", worker.workerId
             )
             return
         if worker is None:
@@ -97,7 +101,8 @@ class WorkerPool(
         self.__available.discard(sessionId)
         self.__log.debug(
             "Worker unregistered worker=%s total-workers=%s",
-            worker.workerId, len(self.__workers),
+            worker.workerId,
+            len(self.__workers),
         )
 
     def __contains__(self, worker):
@@ -131,8 +136,7 @@ class WorkerPool(
             dfr = worker.callRemote("reportStatus")
             dfr.addErrback(
                 lambda ex: self.__log.error(
-                    "Failed to report status (%s): %s",
-                    worker.workerId, ex,
+                    "Failed to report status (%s): %s", worker.workerId, ex
                 ),
             )
             deferreds.append(dfr)
@@ -183,10 +187,10 @@ class WorkerPool(
 
 
 _bad_worker_messages = {
-    pb.PBConnectionLost:
-        "Worker failed ping test worker=%s",
-    pb.DeadReferenceError:
-        "Worker no longer available (dead reference) worker=%s",
+    pb.PBConnectionLost: "Worker failed ping test worker=%s",
+    pb.DeadReferenceError: (
+        "Worker no longer available (dead reference) worker=%s"
+    ),
 }
 
 
@@ -214,7 +218,7 @@ class RemoteServiceRegistry(object):
         remoteRef = self.__services.get((service, monitor))
         if remoteRef is None:
             remoteRef = yield self.__worker.callRemote(
-                "getService", service, monitor,
+                "getService", service, monitor
             )
             self.__services[(service, monitor)] = remoteRef
         defer.returnValue(remoteRef)
@@ -227,8 +231,7 @@ class WorkerRef(object):
     """
 
     def __init__(self, worker, services):
-        """
-        """
+        """ """
         self.__worker = worker
         self.__services = services
         self.__log = getLogger(self)
@@ -258,15 +261,19 @@ class WorkerRef(object):
             service = yield self.__services.lookup(call.service, call.monitor)
             self.__log.debug(
                 "Retrieved remote service service=%s id=%s worker=%s",
-                call.service, call.id, self.__worker.workerId,
+                call.service,
+                call.id,
+                self.__worker.workerId,
             )
         except Exception as ex:
             if self.__log.isEnabledFor(logging.DEBUG):
                 self.__log.error(
                     "Failed to retrieve remote service "
                     "service=%s worker=%s error=(%s) %s",
-                    call.service, self.__worker.workerId,
-                    ex.__class__.__name__, ex,
+                    call.service,
+                    self.__worker.workerId,
+                    ex.__class__.__name__,
+                    ex,
                 )
             raise
 
@@ -276,7 +283,10 @@ class WorkerRef(object):
             )
             self.__log.debug(
                 "Executed remote method service=%s method=%s id=%s worker=%s",
-                call.service, call.method, call.id.hex, self.__worker.workerId,
+                call.service,
+                call.method,
+                call.id.hex,
+                self.__worker.workerId,
             )
             defer.returnValue(result)
         except (RemoteException, pb.RemoteError) as ex:
@@ -284,8 +294,11 @@ class WorkerRef(object):
                 self.__log.error(
                     "Remote method failed "
                     "service=%s method=%s id=%s worker=%s error=%s",
-                    call.service, call.method, call.id.hex,
-                    self.__worker.workerId, ex,
+                    call.service,
+                    call.method,
+                    call.id.hex,
+                    self.__worker.workerId,
+                    ex,
                 )
             raise
         except Exception as ex:
@@ -293,8 +306,12 @@ class WorkerRef(object):
                 self.__log.error(
                     "Failed to execute remote method "
                     "service=%s method=%s id=%s worker=%s error=(%s) %s",
-                    call.service, call.method, call.id.hex,
-                    self.__worker.workerId, ex.__class__.__name__, ex,
+                    call.service,
+                    call.method,
+                    call.id.hex,
+                    self.__worker.workerId,
+                    ex.__class__.__name__,
+                    ex,
                 )
             raise
 

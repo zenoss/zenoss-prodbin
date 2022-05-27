@@ -84,7 +84,7 @@ class ServiceManager(object):
             # Sanity check the names given to us
             if not _monitor_exists(self.__dmd, monitor):
                 raise RemoteBadMonitor(
-                    "Unknown performance monitor: '%s'" % (monitor,), None,
+                    "Unknown performance monitor: '%s'" % (monitor,), None
                 )
             try:
                 svc = self.__load(self.__dmd, monitor, name)
@@ -94,14 +94,14 @@ class ServiceManager(object):
             except Exception:
                 if self.__log.isEnabledFor(logging.DEBUG):
                     self.__log.exception(
-                        "Failed to load service service=%s", name,
+                        "Failed to load service service=%s", name
                     )
                 raise
         return self.__services[monitor, name]
 
+
 def _monitor_exists(dmd, monitor):
-    """Return True if the named monitor exists.  Otherwise return False.
-    """
+    """Return True if the named monitor exists.  Otherwise return False."""
     if dmd.Monitors.Performance._getOb(monitor, False):
         return True
     dmd._p_jar.sync()
@@ -177,17 +177,17 @@ class ServiceCall(object):
         self.kwargs = kw.pop("kwargs")
         # Raise an exception if other arguments are given.
         if kw:
-            raise AttributeError("%s has no attribute%s: %s" % (
-                type(self).__name__,
-                "" if len(kw) == 1 else "s",
-                ", ".join(kw.keys()),
-            ))
+            raise AttributeError(
+                "%s has no attribute%s: %s"
+                % (
+                    type(self).__name__,
+                    "" if len(kw) == 1 else "s",
+                    ", ".join(kw.keys()),
+                )
+            )
 
     def __iter__(self):
-        return (
-            (name, getattr(self, name))
-            for name in ServiceCall.__slots__
-        )
+        return ((name, getattr(self, name)) for name in ServiceCall.__slots__)
 
 
 class ServiceReferenceFactory(object):
@@ -271,7 +271,9 @@ class ServiceReference(pb.Referenceable):
             self.__log.debug(
                 "Begin processing remote message "
                 "message=%s service=%s monitor=%s",
-                message, self.__name, self.__monitor,
+                message,
+                self.__name,
+                self.__monitor,
             )
             state = yield executor.submit(call)
             response = broker.serialize(state, self.perspective)
@@ -283,12 +285,14 @@ class ServiceReference(pb.Referenceable):
             self.__log.exception(
                 "Failed to process remote message "
                 "message=%s service=%s monitor=%s error=(%s) %s",
-                message, self.__name, self.__monitor,
-                ex.__class__.__name__, ex,
+                message,
+                self.__name,
+                self.__monitor,
+                ex.__class__.__name__,
+                ex,
             )
             raise pb.Error(
-                "Internal ZenHub error: (%s) %s"
-                % (ex.__class__.__name__, ex),
+                "Internal ZenHub error: (%s) %s" % (ex.__class__.__name__, ex),
             )
         finally:
             end = time.time()
@@ -297,8 +301,11 @@ class ServiceReference(pb.Referenceable):
             self.__log.debug(
                 "Completed processing remote message "
                 "message=%s service=%s monitor=%s status=%s duration=%0.2f",
-                message, self.__name, self.__monitor,
-                "OK" if success else "ERROR", elapsed,
+                message,
+                self.__name,
+                self.__monitor,
+                "OK" if success else "ERROR",
+                elapsed,
             )
 
     def __get_executor(self, call):
