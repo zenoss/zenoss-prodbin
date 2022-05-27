@@ -551,7 +551,7 @@ class TestUpdateCallableAttribute(BaseTestCase):
         _update_callable_attribute(obj.setAttr, value)
 
         log.exception.assert_called_with(
-            "Error in _update_callable_attribute. failed to set %s.%s%s",
+            "Failed to set '%s.%s' to the value '%s'",
             obj.setAttr.__module__,
             obj.setAttr.__name__,
             value,
