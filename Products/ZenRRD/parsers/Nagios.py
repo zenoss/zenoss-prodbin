@@ -1,12 +1,11 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
 
 """Nagios
 
@@ -17,8 +16,8 @@ http://nagiosplug.sourceforge.net/developer-guidelines.html#PLUGOUTPUT
 
 import re
 
-from Products.ZenUtils.Utils import getExitMessage
 from Products.ZenRRD.CommandParser import CommandParser
+from Products.ZenUtils.Utils import getExitMessage
 
 # Performance datapoints syntax
 # Matches substrings having the form <key>=<value> with optional trailing
@@ -41,7 +40,6 @@ class _BadData(Exception):
 
 
 class Nagios(CommandParser):
-
     @staticmethod
     def splitMultiLine(output):
         """
@@ -64,10 +62,10 @@ class Nagios(CommandParser):
         # lines will have the format of <text>|<perf> across multiple lines.
         lines = output.splitlines()
         firstLine = lines[0].strip()
-        additionalLines = ' '.join(lines[1:])
+        additionalLines = " ".join(lines[1:])
         text, perf = [], []
         # Extract text and data from first line
-        segments = firstLine.split('|')
+        segments = firstLine.split("|")
         # If there are any segments, the first segment is text.
         if segments:
             text.append(segments.pop(0))
@@ -80,7 +78,7 @@ class Nagios(CommandParser):
         # Now extract any additional data that may exist.
         if additionalLines:
             # Split text and perf data apart
-            segments = additionalLines.split('|')
+            segments = additionalLines.split("|")
             # Extract text data (if any)
             if segments:
                 text.extend(segments.pop(0).splitlines())
@@ -99,7 +97,7 @@ class Nagios(CommandParser):
         something up by keeping a shell meta-character.
         """
         perfData = {}
-        all_data = ' '.join(rawPerfData)
+        all_data = " ".join(rawPerfData)
         # Strip out all '' strings
         all_data = all_data.replace("''", "")
 
@@ -109,7 +107,7 @@ class Nagios(CommandParser):
             try:
                 value = float(value.strip())
             except Exception:
-                value = 'U'
+                value = "U"
             perfData[label] = value
 
         return perfData
@@ -124,32 +122,34 @@ class Nagios(CommandParser):
             severity = min(severity + 1, 5)
 
         evt = {
-                "device": cmd.deviceConfig.device,
-                "message": output,
-                "severity": severity,
-                "component": cmd.component,
-                "eventKey": cmd.eventKey,
-                "eventClass": cmd.eventClass,
-            }
+            "device": cmd.deviceConfig.device,
+            "message": output,
+            "severity": severity,
+            "component": cmd.component,
+            "eventKey": cmd.eventKey,
+            "eventClass": cmd.eventClass,
+        }
         try:
             summary, rawPerfData = self.splitMultiLine(output)
         except Exception as ex:
-            evt.update({
-                "error_codes": "Datasource: %s - Code: %s - Msg: %s" % (
-                   cmd.name, exitCode, getExitMessage(exitCode)
-                ),
-                "performanceData": None,
-                "summary": str(ex),
-            })
+            evt.update(
+                {
+                    "error_codes": "Datasource: %s - Code: %s - Msg: %s"
+                    % (cmd.name, exitCode, getExitMessage(exitCode)),
+                    "performanceData": None,
+                    "summary": str(ex),
+                }
+            )
         else:
-            evt.update({
-                "performanceData": rawPerfData,
-                "summary": summary[0],
-                "message": '\n'.join(summary),
-            })
+            evt.update(
+                {
+                    "performanceData": rawPerfData,
+                    "summary": summary[0],
+                    "message": "\n".join(summary),
+                }
+            )
             perfData = self.processPerfData(rawPerfData)
             for dp in cmd.points:
                 if dp.id in perfData:
                     result.values.append((dp, perfData[dp.id]))
         result.events.append(evt)
-

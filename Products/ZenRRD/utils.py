@@ -1,23 +1,26 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
+from __future__ import print_function
 
-__doc__="""utils
+"""utils
 
 RRD utility functions
 """
 
-from Acquisition import aq_chain
-
-from Exceptions import RRDObjectNotFound, TooManyArgs
 import math
 import time
+
+from Acquisition import aq_chain
+
+from .Exceptions import RRDObjectNotFound, TooManyArgs
+
 
 def loadargs(obj, args):
     """
@@ -29,32 +32,35 @@ def loadargs(obj, args):
     @type args: list of strings
     """
     import string
+
     arglen = len(args)
     if arglen > len(obj._properties):
-        raise TooManyArgs( "Too many args" )
+        raise TooManyArgs("Too many args")
     i = 0
     for arg in args:
-        if i > arglen: break
+        if i > arglen:
+            break
         arg = arg.strip()
-        att = obj._properties[i]['id']
+        att = obj._properties[i]["id"]
         try:
-            if arg != '':
-                if obj._properties[i]['type'] == 'lines':
-                    value = map(string.strip, arg.split(','))
-                    att = '_' + att
-                elif obj._properties[i]['type'] == 'int':
+            if arg != "":
+                if obj._properties[i]["type"] == "lines":
+                    value = map(string.strip, arg.split(","))
+                    att = "_" + att
+                elif obj._properties[i]["type"] == "int":
                     value = int(arg)
-                elif obj._properties[i]['type'] == 'long':
+                elif obj._properties[i]["type"] == "long":
                     value = long(arg)
-                elif obj._properties[i]['type'] == 'float':
+                elif obj._properties[i]["type"] == "float":
                     value = float(arg)
-                elif obj._properties[i]['type'] == 'boolean':
+                elif obj._properties[i]["type"] == "boolean":
                     value = eval(arg)
                 else:
                     value = arg
-                if value is not None: setattr(obj,att,value)
+                if value is not None:
+                    setattr(obj, att, value)
         except Exception:
-            print "att = %s value = %s" % (att, arg)
+            print("att = %s value = %s" % (att, arg))
             raise
         i += 1
 
@@ -71,7 +77,7 @@ def prefixid(idprefix, id):
     @rtype: string
     """
     if id.find(idprefix) != 0:
-        id = idprefix + '-' + id    
+        id = idprefix + "-" + id
     return id
 
 
@@ -86,9 +92,10 @@ def rootid(idprefix, id):
     @return: remove the prefix with a '-' in between or return None
     @rtype: string or None
     """
-    if idprefix[-1] != '-': idprefix += '-'
+    if idprefix[-1] != "-":
+        idprefix += "-"
     if id.find(idprefix) == 0:
-        return id[len(idprefix):]
+        return id[len(idprefix) :]
 
 
 def walkupconfig(context, name):
@@ -104,15 +111,18 @@ def walkupconfig(context, name):
     @return: rrdconfig object or None
     @rtype: rrdconfig object
     """
-    if not name: return
+    if not name:
+        return
     while 1:
-        if hasattr(context, 'rrdconfig') and hasattr(context.rrdconfig, name):
+        if hasattr(context, "rrdconfig") and hasattr(context.rrdconfig, name):
             return getattr(context.rrdconfig, name)
         context = context.aq_parent
-        if context.id == 'dmd':
-            raise RRDObjectNotFound( "Object %s not found in context %s" % \
-                                    (name, context.getPrimaryUrlPath()))
-              
+        if context.id == "dmd":
+            raise RRDObjectNotFound(
+                "Object %s not found in context %s"
+                % (name, context.getPrimaryUrlPath())
+            )
+
 
 def templateNames(context):
     """
@@ -125,12 +135,11 @@ def templateNames(context):
     """
     names = set()
     for obj in aq_chain(context):
-        rrdconfig = getattr(obj, 'rrdconfig', None)
+        rrdconfig = getattr(obj, "rrdconfig", None)
         if rrdconfig:
-            names = names.union(rrdconfig.objectIds(spec='RRDTargetType'))
+            names = names.union(rrdconfig.objectIds(spec="RRDTargetType"))
     return names
-             
-        
+
 
 def getRRDView(context, name):
     """
@@ -143,7 +152,7 @@ def getRRDView(context, name):
     @return: rrdconfig object or None
     @rtype: rrdconfig object
     """
-    return walkupconfig(context, 'RRDView-'+name)
+    return walkupconfig(context, "RRDView-" + name)
 
 
 def getRRDTargetType(context, name):
@@ -157,7 +166,7 @@ def getRRDTargetType(context, name):
     @return: rrdconfig object or None
     @rtype: rrdconfig object
     """
-    return walkupconfig(context, 'RRDTargetType-'+name)
+    return walkupconfig(context, "RRDTargetType-" + name)
 
 
 def getRRDDataSource(context, name):
@@ -171,7 +180,7 @@ def getRRDDataSource(context, name):
     @return: rrdconfig object or None
     @rtype: rrdconfig object
     """
-    return walkupconfig(context, 'RRDDataSource-'+name)
+    return walkupconfig(context, "RRDDataSource-" + name)
 
 
 class rpnStack(object):
@@ -216,28 +225,46 @@ class rpnStack(object):
         return math.isinf(x) or x != x
 
     def lt(self):
-        self.polluteProcess(2, self.isSpecial,
-            lambda p, y, x: 1.0 if not(p) and x < y else 0.0)
+        self.polluteProcess(
+            2,
+            self.isSpecial,
+            lambda p, y, x: 1.0 if not (p) and x < y else 0.0,
+        )
 
     def le(self):
-        self.polluteProcess(2, self.isSpecial,
-            lambda p, y, x: 1.0 if not(p) and x <= y else 0.0)
+        self.polluteProcess(
+            2,
+            self.isSpecial,
+            lambda p, y, x: 1.0 if not (p) and x <= y else 0.0,
+        )
 
     def gt(self):
-        self.polluteProcess(2, self.isSpecial,
-            lambda p, y, x: 1.0 if not(p) and x > y else 0.0)
+        self.polluteProcess(
+            2,
+            self.isSpecial,
+            lambda p, y, x: 1.0 if not (p) and x > y else 0.0,
+        )
 
     def ge(self):
-        self.polluteProcess(2, self.isSpecial,
-            lambda p, y, x: 1.0 if not(p) and x >= y else 0.0)
+        self.polluteProcess(
+            2,
+            self.isSpecial,
+            lambda p, y, x: 1.0 if not (p) and x >= y else 0.0,
+        )
 
     def eq(self):
-        self.polluteProcess(2, self.isSpecial,
-            lambda p, y, x: 1.0 if not(p) and x == y else 0.0)
+        self.polluteProcess(
+            2,
+            self.isSpecial,
+            lambda p, y, x: 1.0 if not (p) and x == y else 0.0,
+        )
 
     def ne(self):
-        self.polluteProcess(2, self.isSpecial,
-            lambda p, y, x: 1.0 if not(p) and x != y else 0.0)
+        self.polluteProcess(
+            2,
+            self.isSpecial,
+            lambda p, y, x: 1.0 if not (p) and x != y else 0.0,
+        )
 
     def un(self):
         self.process(1, lambda x: 1.0 if x != x else 0.0)
@@ -249,22 +276,22 @@ class rpnStack(object):
         self.process(3, lambda y, x, c: x if c != 0.0 else y)
 
     def min_(self):
-        self.polluteProcess(2,
-            lambda x: x != x,
-            lambda p, y, x: p if p else min(x, y)
+        self.polluteProcess(
+            2, lambda x: x != x, lambda p, y, x: p if p else min(x, y)
         )
 
     def max_(self):
-        self.polluteProcess(2,
-            lambda x: x != x,
-            lambda p, y, x: p if p else max(x, y)
+        self.polluteProcess(
+            2, lambda x: x != x, lambda p, y, x: p if p else max(x, y)
         )
 
     def limit(self):
-        self.polluteProcess(3,
+        self.polluteProcess(
+            3,
             self.isSpecial,
-            lambda p, y, x, v: v if not(p) and
-                (x <= v and v <= y or x >= v and v >= y) else self.NAN
+            lambda p, y, x, v: v
+            if not (p) and (x <= v and v <= y or x >= v and v >= y)
+            else self.NAN,
         )
 
     def mul(self):
@@ -335,10 +362,11 @@ class rpnStack(object):
         def average(a):
             total = count = 0
             for x in a:
-                if not(math.isnan(x)):
+                if not (math.isnan(x)):
                     count += 1
                     total += x
             return [total / count] if count > 0 else [self.NAN]
+
         self.dynamicProcess(average)
 
     def unkn(self):
@@ -363,47 +391,48 @@ class rpnStack(object):
     def exc(self):
         stack = self.stack
         stack[-1], stack[-2] = stack[-2], stack[-1]
+
     opcodes = {
-        'LT': lt,
-        'LE': le,
-        'GT': gt,
-        'GE': ge,
-        'EQ': eq,
-        'NE': ne,
-        'UN': un,
-        'ISINF': isInf,
-        'IF': if_,
-        'MIN': min_,
-        'MAX': max_,
-        'LIMIT': limit,
-        '+': add,
-        '-': sub,
-        '*': mul,
-        '/': div,
-        '%': mod,
-        'ADDNAN': addNaN,
-        'SIN': sin,
-        'COS': cos,
-        'LOG': log,
-        'EXP': exp,
-        'SQRT': sqrt,
-        'ATAN': atan,
-        'ATAN2': atan2,
-        'FLOOR': floor,
-        'CEIL': ceil,
-        'DEG2RAD': deg2rad,
-        'RAD2DEG': rad2deg,
-        'ABS': abs,
-        'SORT': sort,
-        'REV': rev,
-        'AVG': avg,
-        'UNKN': unkn,
-        'INF': inf,
-        'NEGINF': neginf,
-        'TIME': time_,
-        'DUP': dup,
-        'POP': pop,
-        'EXC': exc,
+        "LT": lt,
+        "LE": le,
+        "GT": gt,
+        "GE": ge,
+        "EQ": eq,
+        "NE": ne,
+        "UN": un,
+        "ISINF": isInf,
+        "IF": if_,
+        "MIN": min_,
+        "MAX": max_,
+        "LIMIT": limit,
+        "+": add,
+        "-": sub,
+        "*": mul,
+        "/": div,
+        "%": mod,
+        "ADDNAN": addNaN,
+        "SIN": sin,
+        "COS": cos,
+        "LOG": log,
+        "EXP": exp,
+        "SQRT": sqrt,
+        "ATAN": atan,
+        "ATAN2": atan2,
+        "FLOOR": floor,
+        "CEIL": ceil,
+        "DEG2RAD": deg2rad,
+        "RAD2DEG": rad2deg,
+        "ABS": abs,
+        "SORT": sort,
+        "REV": rev,
+        "AVG": avg,
+        "UNKN": unkn,
+        "INF": inf,
+        "NEGINF": neginf,
+        "TIME": time_,
+        "DUP": dup,
+        "POP": pop,
+        "EXC": exc,
     }
 
     def step(self, op):
@@ -583,8 +612,9 @@ def rpneval(value, rpn):
     >>> rpneval(None, '2,*')
     None
     """
-    if not all([value, rpn]) : return value
-    rpnOps = [op.strip().upper() for op in rpn.split(',')]
+    if not all([value, rpn]):
+        return value
+    rpnOps = [op.strip().upper() for op in rpn.split(",")]
     stack = rpnStack(value)
     try:
         for op in rpnOps:
