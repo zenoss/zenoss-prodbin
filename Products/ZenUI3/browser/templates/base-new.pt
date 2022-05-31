@@ -36,7 +36,7 @@
 
         <!-- Static javascript -->
         <script src="/++resource++zenui/js/zenoss/theme.js"></script>
-        <script type="text/javascript" src="https://cdn.auth0.com/js/auth0/9.10.0/auth0.min.js"></script>
+        <script type="text/javascript" src="https://cdn.auth0.com/js/auth0/9.13.2/auth0.min.js"></script>
         <script type="text/javascript" src="/zingstatic/ZC_CONFIG.js"></script>
         <script src="/++resource++zenui/js/silent-auth/cookies.js"></script>
         <script src="/++resource++zenui/js/silent-auth/silentAuth.js"></script>

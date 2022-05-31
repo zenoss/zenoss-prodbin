@@ -29,7 +29,7 @@ var silentAuthNS = {
         return false
     },
     authenticateSilently: function () {
-        this.auth0_cz.checkSession({ timeout: 5000 }, (err, result) => {
+        this.auth0_cz.checkSession({}, (err, result) => {
             if (err) {
                 console.log(err);
             } else if (result) {
@@ -93,10 +93,8 @@ var silentAuthNS = {
         })
     },
     silentReauth: function () {
-        if (window.localStorage.getItem("accessToken")) {
-            if (!this.isAuthenticated()) {
-                this.authenticateSilently();
-            }
+        if (!this.isAuthenticated()) {
+            this.authenticateSilently();
         }
     }
 }
