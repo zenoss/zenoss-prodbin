@@ -4,6 +4,7 @@
         <a tal:attributes="href view/url;target view/target;id view/elementid"
            tal:content="view/title"
            i18n:translate="">Menu item</a>
+        <span tal:condition="python: view.title == 'Dashboard'" style="font-size: 8px;color: orange;position: relative;top: -43px;left: 40px;">deprecated</span>
    </div>
 </div>
 </li>
