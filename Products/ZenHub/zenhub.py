@@ -28,19 +28,19 @@ import Products.ZenHub as ZENHUB_MODULE
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
+from Products.ZenUtils.debugtools import ContinuousProfiler
 from Products.ZenUtils.Utils import (
     load_config,
     load_config_override,
     zenPath,
 )
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.debugtools import ContinuousProfiler
 
 from Products.ZenHub.interfaces import (
-    IHubCreatedEvent,
-    IHubWillBeCreatedEvent,
     IHubConfProvider,
+    IHubCreatedEvent,
     IHubHeartBeatCheck,
+    IHubWillBeCreatedEvent,
     IParserReadyForOptionsEvent,
 )
 from Products.ZenHub.invalidationmanager import InvalidationManager
