@@ -78,7 +78,7 @@ class ProcessConfig(CollectorConfigService):
         return include
 
     def _createDeviceProxy(self, device):
-        procs = device.getMonitoredComponents(collector='zenprocess')
+        procs = device.getMonitoredComponents(collector="zenprocess")
         if not procs:
             log.debug(
                 "Device %s has no monitored processes -- ignoring",

@@ -10,34 +10,32 @@
 
 """Server that provides access to the Model and Event databases."""
 
-# std lib
+import logging
 import signal
 import sys
-import logging
+
 from time import time
 
-# 3rd party
 from twisted.internet import reactor, task
 from twisted.internet.defer import inlineCallbacks
-
 from zope.component import getUtility, adapts, provideUtility
 from zope.event import notify
 from zope.interface import implementer
 
+import Products.ZenMessaging.queuemessaging as QUEUEMESSAGING_MODULE
+import Products.ZenHub as ZENHUB_MODULE
+
+from Products.ZenEvents.Event import Event, EventHeartbeat
+from Products.ZenEvents.ZenEventClasses import App_Start
+from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenUtils.Utils import (
-    zenPath,
     load_config,
     load_config_override,
+    zenPath,
 )
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.debugtools import ContinuousProfiler
-from Products.ZenEvents.Event import Event, EventHeartbeat
-from Products.ZenEvents.ZenEventClasses import App_Start
-import Products.ZenMessaging.queuemessaging as QUEUEMESSAGING_MODULE
-from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 
-# local
-import Products.ZenHub as ZENHUB_MODULE
 from Products.ZenHub.interfaces import (
     IHubCreatedEvent,
     IHubWillBeCreatedEvent,
@@ -45,9 +43,8 @@ from Products.ZenHub.interfaces import (
     IHubHeartBeatCheck,
     IParserReadyForOptionsEvent,
 )
-
-from Products.ZenHub.metricmanager import MetricManager, IMetricManager
 from Products.ZenHub.invalidationmanager import InvalidationManager
+from Products.ZenHub.metricmanager import MetricManager, IMetricManager
 from Products.ZenHub.server import (
     config as server_config,
     getCredentialCheckers,
@@ -55,11 +52,11 @@ from Products.ZenHub.server import (
     make_pools,
     make_server_factory,
     make_service_manager,
-    start_server,
-    stop_server,
     register_legacy_worklist_metrics,
     ReportWorkerStatus,
+    start_server,
     StatsMonitor,
+    stop_server,
     XmlRpcManager,
     ZenHubStatusReporter,
 )
@@ -415,21 +412,18 @@ class DefaultHubHeartBeatCheck(object):  # noqa: D101
 
 @implementer(IHubWillBeCreatedEvent)
 class HubWillBeCreatedEvent(object):  # noqa: D101
-
     def __init__(self, hub):
         self.hub = hub
 
 
 @implementer(IHubCreatedEvent)
 class HubCreatedEvent(object):  # noqa: D101
-
     def __init__(self, hub):
         self.hub = hub
 
 
 @implementer(IParserReadyForOptionsEvent)
 class ParserReadyForOptionsEvent(object):  # noqa: D101
-
     def __init__(self, parser):
         self.parser = parser
 

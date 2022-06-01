@@ -17,29 +17,29 @@ from zope.interface.verify import verifyObject
 
 from Products.ZenHub import XML_RPC_PORT, PB_PORT
 from Products.ZenHub.zenhub import (
-    HubWillBeCreatedEvent,
-    IHubWillBeCreatedEvent,
-    HubCreatedEvent,
-    IHubCreatedEvent,
-    ParserReadyForOptionsEvent,
-    IParserReadyForOptionsEvent,
-    ZenHub,
-    ZCmdBase,
-    ZENHUB_MODULE,
-    QUEUEMESSAGING_MODULE,
     DefaultConfProvider,
-    IHubConfProvider,
     DefaultHubHeartBeatCheck,
-    IHubHeartBeatCheck,
+    HubCreatedEvent,
+    HubWillBeCreatedEvent,
     IEventPublisher,
-    stop_server,
-    server_config,
+    IHubConfProvider,
+    IHubCreatedEvent,
+    IHubHeartBeatCheck,
     IHubServerConfig,
-    report_reactor_delayed_calls,
+    IHubWillBeCreatedEvent,
     IMetricManager,
-    reactor,
     initServiceManager,
+    IParserReadyForOptionsEvent,
+    ParserReadyForOptionsEvent,
+    QUEUEMESSAGING_MODULE,
+    reactor,
+    report_reactor_delayed_calls,
+    server_config,
     ServerConfig,
+    stop_server,
+    ZCmdBase,
+    ZenHub,
+    ZENHUB_MODULE,
 )
 
 PATH = {"src": "Products.ZenHub.zenhub"}
@@ -506,8 +506,8 @@ class ZenHubTest(TestCase):
     @patch("{src}.server_config.ModuleObjectConfig".format(**PATH))
     @patch("{src}.provideUtility".format(**PATH))
     def test_initServiceManager(t, provideUtility, ModuleObjectConfig):
-
         initServiceManager(t.zh.options)
+
         t.assertEqual(
             server_config.modeling_pause_timeout,
             int(t.zh.options.modeling_pause_timeout),
@@ -616,9 +616,7 @@ class HubCreatedEventTest(TestCase):
         hub = sentinel.zenhub_instance
         event = HubCreatedEvent(hub)
         # the class Implements the Interface
-        t.assertTrue(
-            IHubCreatedEvent.implementedBy(HubCreatedEvent),
-        )
+        t.assertTrue(IHubCreatedEvent.implementedBy(HubCreatedEvent))
         # the object provides the interface
         t.assertTrue(IHubCreatedEvent.providedBy(event))
         # Verify the object implments the interface properly
