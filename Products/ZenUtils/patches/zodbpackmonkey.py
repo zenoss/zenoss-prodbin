@@ -387,7 +387,7 @@ try:
         try:
             try:
                 self._pre_pack_main(load_connection, store_connection, pack_tid, get_references)
-            except:
+            except Exception:
                 log.exception("pre_pack: failed")
                 store_connection.rollback_quietly()
                 raise
