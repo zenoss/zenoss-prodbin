@@ -10,21 +10,20 @@
 
 """Server that provides access to the Model and Event databases."""
 
-# std lib
+import logging
 import signal
 import sys
-import logging
+
 from time import time
 
-# 3rd party
 from twisted.internet import reactor, task
 from twisted.internet.defer import inlineCallbacks
-
 from zope.component import getUtility, adapts, provideUtility
 from zope.event import notify
 from zope.interface import implementer
 
 import Products.ZenMessaging.queuemessaging as QUEUEMESSAGING_MODULE
+import Products.ZenHub as ZENHUB_MODULE
 
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
@@ -37,17 +36,13 @@ from Products.ZenUtils.Utils import (
 )
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
-# local
-import Products.ZenHub as ZENHUB_MODULE
-
 from Products.ZenHub.interfaces import (
-    IHubCreatedEvent,
-    IHubWillBeCreatedEvent,
     IHubConfProvider,
+    IHubCreatedEvent,
     IHubHeartBeatCheck,
+    IHubWillBeCreatedEvent,
     IParserReadyForOptionsEvent,
 )
-
 from Products.ZenHub.invalidationmanager import InvalidationManager
 from Products.ZenHub.metricmanager import MetricManager, IMetricManager
 from Products.ZenHub.server import (
@@ -57,11 +52,11 @@ from Products.ZenHub.server import (
     make_pools,
     make_server_factory,
     make_service_manager,
-    start_server,
-    stop_server,
     register_legacy_worklist_metrics,
     ReportWorkerStatus,
+    start_server,
     StatsMonitor,
+    stop_server,
     XmlRpcManager,
     ZenHubStatusReporter,
 )

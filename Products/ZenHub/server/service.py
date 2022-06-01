@@ -79,7 +79,6 @@ class ServiceManager(object):
         :type str monitor: Name of a performance monitor
         :rtype: WorkerInterceptor
         """
-        # Sanity check the names given to us
         if (monitor, name) not in self.__services:
             # Sanity check the names given to us
             if not _monitor_exists(self.__dmd, monitor):
