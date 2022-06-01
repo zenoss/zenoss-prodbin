@@ -382,7 +382,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
             try:
                 data = "".join(open(keyPath).readlines()).strip()
                 key = Key.fromString(data, passphrase=self.factory.password)
-            except IOError, ex:
+            except IOError as ex:
                 message = "Unable to read the SSH key file because %s" % ex
                 log.warn(message)
                 device = "localhost"  # Fallback
