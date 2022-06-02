@@ -60,7 +60,6 @@ class ServiceTaskSplitter(SubConfigurationTaskSplitter):
 # ZenCollector framework can configure itself from our preferences.
 @zope.interface.implementer(ICollectorPreferences)
 class ZenStatusPreferences(object):
-
     def __init__(self):
         """
         Construct a new ZenStatusPreferences instance and provide default
@@ -91,7 +90,6 @@ class ZenStatusPreferences(object):
 
 @zope.interface.implementer(IScheduledTask)
 class ZenStatusTask(BaseTask):
-
     def __init__(self, name, configId, scheduleIntervalSeconds, taskConfig):
         """
         Construct a new task for checking the status

@@ -215,8 +215,7 @@ class NmapPingTask(BaseTask):
             minimum = MIN_PING_TIMEOUT + MAX_NMAP_OVERHEAD
             msg = (
                 "ping cycle time (%.1f seconds) is too short "
-                "(keep it under %.1f seconds)"
-                % (cycleInterval, minimum)
+                "(keep it under %.1f seconds)" % (cycleInterval, minimum)
             )
             severity = _CRITICAL
         evt = dict(
