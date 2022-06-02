@@ -662,11 +662,6 @@ class ZenModeler(PBDaemon):
                             datamaps = plugin.process(device, results, self.log)
                         if datamaps:
                             pluginStats.setdefault(plugin.name(), plugin.weight)
-                    except (SystemExit, KeyboardInterrupt) as ex:
-                        self.log.info( "Plugin %s terminated due to external"
-                                      " signal (%s)", plugin.name(), str(ex)
-                                      )
-                        continue
                     except Exception as ex:
                         # NB: don't discard the plugin, as it might be a
                         #     temporary issue
