@@ -653,7 +653,7 @@ class EventsRouter(DirectRouter):
         except (AttributeError, KeyError):
             return False
 
-        manage_events_for = list()
+        manage_events_for = []
         for r in user.getAllAdminRoles():
             if r.role in READ_WRITE_ROLES:
                 role_managed_object = r.managedObject()
