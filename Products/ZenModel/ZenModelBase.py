@@ -33,6 +33,7 @@ from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base, aq_chain
 
 from Products.ZenModel.interfaces import IZenDocProvider
+from Products.ZenRelations.ZenPropertyManager import iscustprop
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin, getDisplayType
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 from Products.ZenUtils.Utils import getObjByPath, unpublished
@@ -47,8 +48,6 @@ from ZenossSecurity import *
 
 _MARKER = object()
 
-# Custom device properties start with c
-iscustprop = re.compile("c[A-Z]").match
 
 class ZenModelBase(object):
     """
