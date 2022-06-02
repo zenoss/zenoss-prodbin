@@ -1019,8 +1019,7 @@ class TrapDaemon(CollectorDaemon):
         CollectorDaemon.runPostConfigTasks(self, result)
         if not isinstance(result, Failure) and self._prefs.task is not None:
             service = self.getRemoteConfigServiceProxy()
-            log.debug('TrapDaemon.runPostConfigTasks '
-                      'callRemote createAllUsers')
+            log.debug('TrapDaemon.runPostConfigTasks callRemote createAllUsers')
             d = service.callRemote("createAllUsers")
             d.addCallback(self._createUsers)
 
