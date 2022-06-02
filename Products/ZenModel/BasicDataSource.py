@@ -131,12 +131,10 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
                 return self.commandTemplate
         return RRDDataSource.RRDDataSource.getDescription(self)
 
-
     def useZenCommand(self):
         if self.sourcetype == 'COMMAND':
             return True
         return False
-
 
     security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None):
@@ -193,7 +191,6 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
     def parsers(self):
         from Products.DataCollector.Plugins import loadParserPlugins
         return sorted(p.modPath for p in loadParserPlugins(self.getDmd()))
-
 
 
 InitializeClass(BasicDataSource)
