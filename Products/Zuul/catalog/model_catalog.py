@@ -348,7 +348,7 @@ class ModelCatalogTransactionState(object):
         self.temp_deleted_uids = self.temp_deleted_uids - indexed_uids
         self.indexed_updates.update(indexed_updates)
         self.pending_updates = {} # clear pending updates
-        #log.info("SEARCH TRIGGERED TEMP INDEXING. {0}".format(traceback.format_stack()))   # @TODO TEMP LOGGING
+        #log.info("SEARCH TRIGGERED TEMP INDEXING. %s", traceback.format_stack())   # @TODO TEMP LOGGING
 
 
 class ModelCatalogDataManager(object):

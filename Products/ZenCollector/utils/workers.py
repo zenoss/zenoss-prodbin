@@ -213,5 +213,5 @@ class ProcessWorkers(object):
             )
         p.daemon = True
         p.start()
-        log.info("Started worker {0}: current pid={0.pid}".format(p))
+        log.info("Started worker %s: current pid=%s", p, p.pid)
         return p
