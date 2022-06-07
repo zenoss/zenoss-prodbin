@@ -17,18 +17,23 @@ specifically documentation on 'conch' (Twisted's SSH protocol support).
 import logging
 import os
 import pprint
-import sys
 import socket
+import sys
 
 from twisted.conch.ssh import (
-    channel, common, connection, transport, userauth,
+    channel,
+    common,
+    connection,
+    transport,
+    userauth,
 )
 from twisted.conch.ssh.keys import Key
 from twisted.internet import defer, reactor
 from zope.component import queryUtility
-from Products.ZenCollector.interfaces import IEventService
+
 from Products.DataCollector import CollectorClient
 from Products.DataCollector.Exceptions import LoginFailed
+from Products.ZenCollector.interfaces import IEventService
 from Products.ZenEvents import Event
 from Products.ZenUtils.IpUtil import getHostByName
 from Products.ZenUtils.Utils import getExitMessage
@@ -137,7 +142,9 @@ class SshClientTransport(transport.SSHClientTransport):
 
         unused(hostKey)
         log.debug(
-            "%s host fingerprint: %s", self.factory.hostname, fingerprint,
+            "%s host fingerprint: %s",
+            self.factory.hostname,
+            fingerprint,
         )
         return defer.succeed(1)
 
@@ -375,7 +382,8 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         keyPath = os.path.expanduser(self.factory.keyPath)
         log.debug(
             "Expanded SSH key path from zKeyPath %s to %s",
-            self.factory.keyPath, keyPath,
+            self.factory.keyPath,
+            keyPath,
         )
         key = None
         if os.path.exists(keyPath):

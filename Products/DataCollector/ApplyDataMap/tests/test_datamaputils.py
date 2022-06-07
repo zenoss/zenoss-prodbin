@@ -8,8 +8,8 @@
 ##############################################################################
 
 from base64 import b64encode
-from unittest import TestCase
 from mock import Mock, sentinel, patch
+from unittest import TestCase
 
 from Products.DataCollector.plugins.DataMaps import ObjectMap
 from Products.ZenModel.Device import Device
@@ -325,7 +325,7 @@ class TestObjectMapToDeviceDiff(TestCase):
                     "b": u"\xff\xfexyzwow".encode("utf-16"),
                     # (water, z, G clef), UTF-16 encoded,
                     # little-endian with BOM
-                    "c": "\xff\xfe\x34\x6c\x7a\x00\x34\xd8\x13\xdd",
+                    "c": r"\xff\xfe\x34\x6c\x7a\x00\x34\xd8\x13\xdd",
                 }
             ),
         }

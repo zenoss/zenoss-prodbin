@@ -7,16 +7,14 @@
 #
 ##############################################################################
 
-from Products.ZenTestCase.BaseTestCase import BaseTestCase
-
 import transaction
 
-from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
+from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 
 class applyDataMapTests(BaseTestCase):
-
     def afterSetUp(self):
         """Preparation invoked before each test is run."""
         super(applyDataMapTests, self).afterSetUp()
@@ -65,13 +63,15 @@ class applyDataMapTests(BaseTestCase):
         self.assertTrue(changed, "update failed")
 
         self.assertEqual(
-            1, self.device.os.interfaces.countObjects(),
-            "wrong number of interfaces created by ObjectMap"
+            1,
+            self.device.os.interfaces.countObjects(),
+            "wrong number of interfaces created by ObjectMap",
         )
 
         self.assertEqual(
-            10e9, self.device.os.interfaces.eth0.speed,
-            "eth0.speed not updated by ObjectMap"
+            10e9,
+            self.device.os.interfaces.eth0.speed,
+            "eth0.speed not updated by ObjectMap",
         )
 
         # Test implicit nochange directive
@@ -93,14 +93,15 @@ class applyDataMapTests(BaseTestCase):
         self.assertFalse(changed, "_add = False resulted in change")
 
         self.assertEqual(
-            0, self.device.os.interfaces.countObjects(),
-            "ObjectMap with _add = False created a component"
+            0,
+            self.device.os.interfaces.countObjects(),
+            "ObjectMap with _add = False created a component",
         )
 
     def test_updatedComponent_removeTrue(self):
         """Test updating a component with _remove or remove set to True."""
 
-        for remove_key in ('_remove', 'remove'):
+        for remove_key in ("_remove", "remove"):
             DATA = {
                 "id": "eth0",
                 "compname": "os",
@@ -109,7 +110,7 @@ class applyDataMapTests(BaseTestCase):
             }
 
             changed = self.service.applyDataMap(self.device, ObjectMap(DATA))
-            self.assertFalse(changed, 'update is not idempotent')
+            self.assertFalse(changed, "update is not idempotent")
 
             self.service.applyDataMap(
                 self.device,
@@ -121,19 +122,21 @@ class applyDataMapTests(BaseTestCase):
                         "modname": "Products.ZenModel.IpInterface",
                         "speed": 10e9,
                     }
-                )
+                ),
             )
             self.assertEqual(
-                1, self.device.os.interfaces.countObjects(),
-                'failed to add object'
+                1,
+                self.device.os.interfaces.countObjects(),
+                "failed to add object",
             )
 
             changed = self.service.applyDataMap(self.device, ObjectMap(DATA))
             self.assertTrue(changed, "remove object failed")
 
             self.assertEqual(
-                0, self.device.os.interfaces.countObjects(),
-                "failed to remove component"
+                0,
+                self.device.os.interfaces.countObjects(),
+                "failed to remove component",
             )
 
     def base_relmap(self):
@@ -142,13 +145,9 @@ class applyDataMapTests(BaseTestCase):
             relname="interfaces",
             modname="Products.ZenModel.IpInterface",
             objmaps=[
-                ObjectMap({
-                    "id": "eth0"
-                }),
-                ObjectMap({
-                    "id": "eth1"
-                }),
-            ]
+                ObjectMap({"id": "eth0"}),
+                ObjectMap({"id": "eth1"}),
+            ],
         )
 
     def test_updateRelationship(self):
@@ -156,8 +155,9 @@ class applyDataMapTests(BaseTestCase):
         changed = self.service.applyDataMap(self.device, self.base_relmap())
         self.assertTrue(changed, "relationship creation failed")
         self.assertEqual(
-            2, self.device.os.interfaces.countObjects(),
-            "wrong number of interfaces created by first RelationshipMap"
+            2,
+            self.device.os.interfaces.countObjects(),
+            "wrong number of interfaces created by first RelationshipMap",
         )
 
     def test_updateRelationship_is_idempotent(self):
@@ -180,8 +180,9 @@ class applyDataMapTests(BaseTestCase):
 
         self.assertTrue(changed, "remove related item failed")
         self.assertEquals(
-            1, self.device.os.interfaces.countObjects(),
-            "wrong number of interfaces after trimmed RelationshipMap"
+            1,
+            self.device.os.interfaces.countObjects(),
+            "wrong number of interfaces after trimmed RelationshipMap",
         )
 
     def test_updateRelationship_remove_all_objects(self):
@@ -195,6 +196,7 @@ class applyDataMapTests(BaseTestCase):
 
         self.assertTrue(changed, "failed to remove related objects")
         self.assertEquals(
-            0, self.device.os.interfaces.countObjects(),
-            "wrong number of interfaces after empty RelationshipMap"
+            0,
+            self.device.os.interfaces.countObjects(),
+            "wrong number of interfaces after empty RelationshipMap",
         )
