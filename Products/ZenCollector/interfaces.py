@@ -1,12 +1,11 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
 
 import zope.interface
 
@@ -16,59 +15,69 @@ from Products.ZenUtils.observable import IObservable
 class ICollectorPreferences(zope.interface.Interface):
     """
     A collector should implement this interface on an object whose primary
-    responsibility will be to store configuration information for the collector.
-    The configuration information from the Performance Collector Configuration
-    will be fetched and stored in this object and then provided to the rest of 
-    the collector framework for monitoring use.
+    responsibility will be to store configuration information for the
+    collector.  The configuration information from the Performance Collector
+    Configuration will be fetched and stored in this object and then provided
+    to the rest of the collector framework for monitoring use.
     """
 
-    collectorName = zope.interface.Attribute("""
+    collectorName = zope.interface.Attribute(
+        """
         The friendly name of the collector.
-        """)
+        """
+    )
 
-    configurationService = zope.interface.Attribute("""
-        The name of the remote ZenHub service that provides configuration for 
+    configurationService = zope.interface.Attribute(
+        """
+        The name of the remote ZenHub service that provides configuration for
         this collector.
-        """)
+        """
+    )
 
-    cycleInterval = zope.interface.Attribute("""
+    cycleInterval = zope.interface.Attribute(
+        """
         The interval, specified in seconds, that the collector daemon will
         update performance statistics for itself, rather than any tasks.
-        """)
+        """
+    )
 
-    configCycleInterval = zope.interface.Attribute("""
-        The interval, specified in minutes, that the collector's configuration 
+    configCycleInterval = zope.interface.Attribute(
+        """
+        The interval, specified in minutes, that the collector's configuration
         will be updated from the ZenHub service.
-        """)
+        """
+    )
 
-    options = zope.interface.Attribute("""
+    options = zope.interface.Attribute(
+        """
         An attribute that will receive all command-line options parsed by the
         framework (incl. standard options and additional options defined by the
         buildOptions method).
-        """)
+        """
+    )
 
-    maxTasks = zope.interface.Attribute("""
+    maxTasks = zope.interface.Attribute(
+        """
         The max number of IScheduledTasks to be run at once
-        """)
+        """
+    )
 
-    def buildOptions(self, parser):
+    def buildOptions(parser):
         """
         Called by the framework during initial startup to allow the collector
-        to define any additional command-line options available to this 
+        to define any additional command-line options available to this
         collector.
         """
-        pass
 
-    def postStartup(self):
+    def postStartup():
         """
         Called by the framework after initial startup has completed but before
         any active processing begins. Allows the configuration to perform any
         additional initialization that may be necessary after the collector has
         started.
         """
-        pass
 
-    #def postStartupTasks(self):
+    def postStartupTasks():
         """
         Called by the framework after the preferences from zenhub have been
         received.  Configuration tasks may be started before these tasks are
@@ -82,21 +91,20 @@ class ICollector(zope.interface.Interface):
     """
     A collector must use or implement a class that provides this interface.
     This object acts as the overall collector controller.
-    
+
     Assumptions on a collector's behavior are:
     1. A collector keeps track of its own performance statistics.
     2. A collector interfaces with the rest of Zenoss using the ZenHub sevice
        and remote service proxies.
     """
 
-    def getRemoteConfigServiceProxy(self):
+    def getRemoteConfigServiceProxy():
         """
-        Retrieve the remote configuration service proxy class. A collector 
+        Retrieve the remote configuration service proxy class. A collector
         should have retrieved the configuration service proxy based upon the
         collector's ICollectorPreferences implementation.
         @return a proxy object for the remote configuration service
         """
-        pass
 
 
 class IConfigurationProxy(zope.interface.Interface):
@@ -105,18 +113,17 @@ class IConfigurationProxy(zope.interface.Interface):
     the configuration for a collector.
     """
 
-    def getPropertyItems(self, prefs):
+    def getPropertyItems(prefs):
         """
         Retrieve the collector's property items.
 
         @param prefs: the collector preferences object
         @type prefs: an object providing ICollectorPreferences
         @return: properties for this collector
-        @rtype: either a dict or a Deferred 
+        @rtype: either a dict or a Deferred
         """
-        pass
 
-    def getThresholdClasses(self, prefs):
+    def getThresholdClasses(prefs):
         """
         Retrieve the collector's required threshold classes.
 
@@ -125,9 +132,8 @@ class IConfigurationProxy(zope.interface.Interface):
         @return: the names of all the collector threshold classes to loaded
         @rtype: an iterable set of strings containing Python class names
         """
-        pass
 
-    def getThresholds(self, prefs):
+    def getThresholds(prefs):
         """
         Retrieve the collector's threshold definitions.
 
@@ -136,13 +142,12 @@ class IConfigurationProxy(zope.interface.Interface):
         @return: the threshold definitions
         @rtype: an iterable set of threshold definitions
         """
-        pass
 
-    def getConfigProxies(self, prefs, ids=[]):
+    def getConfigProxies(prefs, ids=[]):
         """
         Called by the framework whenever the configuration for this collector
         should be retrieved.
-        
+
         @param prefs: the collector preferences object
         @type prefs: an object providing ICollectorPreferences
         @param configIds: specific config Ids to be configured
@@ -151,19 +156,17 @@ class IConfigurationProxy(zope.interface.Interface):
                 takes a considerable amount of time
         @rtype: twisted.internet.defer.Deferred
         """
-        pass
 
-    def deleteConfigProxy(self, prefs, configId):
+    def deleteConfigProxy(prefs, configId):
         """
         Called by the framework whenever a configuration should be removed.
         @param prefs: the collector preferences object
         @type prefs: an object providing ICollectorPreferences
         @param configId: the identifier to remove
-        @type: string 
+        @type: string
         """
-        pass
 
-    def updateConfigProxy(self, prefs, config):
+    def updateConfigProxy(prefs, config):
         """
         Called by the framework whenever the configuration has been updated by
         an external event.
@@ -171,7 +174,6 @@ class IConfigurationProxy(zope.interface.Interface):
         @type prefs: an object providing ICollectorPreferences
         @param config: the updated configuration
         """
-        pass
 
 
 class IScheduler(zope.interface.Interface):
@@ -180,11 +182,13 @@ class IScheduler(zope.interface.Interface):
     IScheduledTask interface.
     """
 
-    maxTasks = zope.interface.Attribute("""
+    maxTasks = zope.interface.Attribute(
+        """
     Max tasks the scheduler should run at once; unlimited if None
-    """)
+    """
+    )
 
-    def addTask(self, newTask, callback=None, now=False):
+    def addTask(newTask, callback=None, now=False):
         """
         Add a new IScheduledTask to the scheduler for execution.
         @param newTask: the new task to schedule
@@ -193,37 +197,33 @@ class IScheduler(zope.interface.Interface):
         @type callback: a Python callable
         @param now: if true schedule the task to run as soon as possible; by
         default the start time of tasks will be staggered
-        @type now: boolean 
+        @type now: boolean
         """
-        pass
 
-    def removeTasks(self, taskNames):
+    def removeTasks(taskNames):
         """
         Remove tasks from scheduler.
         @param taskNames: a list of task names to remove
         @type: taskNames: list(string)
         """
-        pass
 
-    def removeTasksForConfig(self, configId):
+    def removeTasksForConfig(configId):
         """
         Remove all tasks associated with the specified identifier.
         @param configId: the identifier to search for
         @type configId: string
         """
-        pass
 
-    def pauseTasksForConfig(self, configId):
+    def pauseTasksForConfig(configId):
         """
         Pauses, but does not stop, all tasks associated with the provided
         configuration identifier.
-        
+
         @param configId: the identifier to search for
         @type configId: string
         """
-        pass
 
-    def resumeTasksForConfig(self, configId):
+    def resumeTasksForConfig(configId):
         """
         Resumes all paused asks associated with the provided configuration
         identifier.
@@ -231,12 +231,11 @@ class IScheduler(zope.interface.Interface):
         @param configId: the identifier to search for
         @type configId: string
         """
-        pass
 
-    def displayStatistics(self, verbose):
+    def displayStatistics(verbose):
         """
         Displays statistics for the scheduler.
-        
+
         @param verbose: if True, display extremely detailed statistics
         @type verbose: boolean
         """
@@ -247,21 +246,28 @@ class IScheduledTask(IObservable):
     A task that has a periodic interval for scheduling.
     """
 
-    name = zope.interface.Attribute("""
+    name = zope.interface.Attribute(
+        """
         A unique identifier for this task. Often this will simply be a config
         Id, but it may include component name or other identifier. A collector
         should ensure that its tasks are created with unique identifiers.
-        """)
+        """
+    )
 
-    configId = zope.interface.Attribute("""
+    configId = zope.interface.Attribute(
+        """
         The config id associated with this task.
-        """)
+        """
+    )
 
-    interval = zope.interface.Attribute("""
+    interval = zope.interface.Attribute(
+        """
         Execution frequency of this task, in seconds
-        """)
+        """
+    )
 
-    state = zope.interface.Attribute("""
+    state = zope.interface.Attribute(
+        """
         The current state of the task, i.e. IDLE, RUNNING, etc. States can be
         any string value a task requires, with a few limitations required by
         the default scheduler implementation. These limitations are:
@@ -269,27 +275,33 @@ class IScheduledTask(IObservable):
         2) Tasks should not change their own state to any of the states in
            TaskStates on their own -the scheduler changes to these states as
            needed.
-        """)
+        """
+    )
 
-    suppress_late = zope.interface.Attribute("""
-        Some tasks (e.g. config loaders) may not want to be counted as 'late'
-         to avoid muddying the meaning of our 'missedRuns' metrics on daemons.
-        """)
+    suppress_late = zope.interface.Attribute(
+        """
+        Some tasks (e.g. config loaders) may not want to be counted as
+        'late' to avoid muddying the meaning of our 'missedRuns' metrics
+        on daemons.
+        """
+    )
 
-#    childIds = zope.interface.Attribute("""
-#        Optional attribute: List of configIds of tasks that are associated with this task. When a task is
-#        removed any tasks with a configId in childIds will be removed as well.
-#        """)
+    # childIds = zope.interface.Attribute(
+    #     """
+    #     Optional attribute: List of configIds of tasks that are
+    #     associated with this task. When a task is removed any tasks
+    #     with a configId in childIds will be removed as well.
+    #     """
+    # )
 
-    def doTask(self):
+    def doTask():
         """
         Called whenever the task is scheduled to be executed by a scheduler.
         If a Deferred object is returned the task will not be considered
         finished until the deferred has completed and fired all callbacks.
         """
-        pass
 
-    def cleanup(self):
+    def cleanup():
         """
         Called whenever the task is scheduled to be deleted by a scheduler.
         If a Deferred object is returned the task will not be considered
@@ -304,15 +316,13 @@ class IScheduledTask(IObservable):
         this method and not rely upon the __del__ method being called to do
         so.
         """
-        pass
-    
-    def scheduled(self, scheduler):
+
+    def scheduled(scheduler):
         """
-        Called after a task has been scheduled. The scheduler instance is passed
-        so that the scheduled task can manipulate it's (or another
-        task's) schedule.
+        Called after a task has been scheduled.
+        The scheduler instance is passed so that the scheduled task can
+        manipulate it's (or another task's) schedule.
         """
-        pass
 
 
 class IPausingScheduledTask(IScheduledTask):
@@ -320,17 +330,15 @@ class IPausingScheduledTask(IScheduledTask):
     An IScheduledTask that needs to take action to pause and resume
     """
 
-    def pause(self):
+    def pause():
         """
         Called to pause a task.
         """
-        pass
 
-    def resume(self):
+    def resume():
         """
         Called to resume a task.
         """
-        pass
 
 
 class IScheduledTaskFactory(zope.interface.Interface):
@@ -338,7 +346,7 @@ class IScheduledTaskFactory(zope.interface.Interface):
     Collectors can provide their own task factories to build complex task
     objects that implement the IScheduledTask interface. The framework will use
     the task factory in the following way:
-    
+
     factory.reset()
     factory.name = taskName
     factory.configId = taskConfigId
@@ -346,49 +354,54 @@ class IScheduledTaskFactory(zope.interface.Interface):
     newTask = factory.build()
     """
 
-    name = zope.interface.Attribute("""
+    name = zope.interface.Attribute(
+        """
         A unique identifier for the new task.
-        """)
+        """
+    )
 
-    configId = zope.interface.Attribute("""
+    configId = zope.interface.Attribute(
+        """
         The config id for the new task.
-        """)
+        """
+    )
 
-    interval = zope.interface.Attribute("""
+    interval = zope.interface.Attribute(
+        """
         The execution frequency of this new task, in seconds.
-        """)
+        """
+    )
 
-    config = zope.interface.Attribute("""
+    config = zope.interface.Attribute(
+        """
         The detailed configuration that will be provided to the new task.
-        """)
+        """
+    )
 
-    def build(self):
+    def build():
         """
         Constructs a new object providing the IScheduledTask interface using
         the attributes currently set in the factory.
         @return: the new task object
         @rtype: any object providing IScheduledTask
         """
-        pass
 
-    def reset(self):
+    def reset():
         """
         Resets all attributes in the factory to their default values so that
         a new task can be configured and built.
         """
-        pass
 
 
 class ITaskSplitter(zope.interface.Interface):
     """
-    A service that splits up configuration into discrete tasks that can be 
+    A service that splits up configuration into discrete tasks that can be
     scheduled.
     """
 
-    def splitConfiguration(self, configuration):
+    def splitConfiguration(configuration):
         """Called whenever new configuration needs to be split into
-           individually scheduled tasks."""
-        pass
+        individually scheduled tasks."""
 
 
 class ISubTaskSplitter(ITaskSplitter):
@@ -396,11 +409,14 @@ class ISubTaskSplitter(ITaskSplitter):
     An object that accepts a configuration returned from a zenhub service
     and then creates scheduled tasks by device, cycletime and other criteria.
     """
-    subconfigName = zope.interface.Attribute("""
-        Name of the array containing the subconfiguration items.
-        """)
 
-    def makeConfigKey(self, config, subconfig):
+    subconfigName = zope.interface.Attribute(
+        """
+        Name of the array containing the subconfiguration items.
+        """
+    )
+
+    def makeConfigKey(config, subconfig):
         """
         Generate a tuple which determines how a configuration
         should be grouped into tasks.
@@ -417,15 +433,26 @@ class ISubTaskSplitter(ITaskSplitter):
         @return: a tuple that can be used to group datasources
         @rtype: tuple
         """
-        pass
+
 
 class IDataService(zope.interface.Interface):
     """
     A service that provides a mechanism to persist collected data.
     """
 
-    def writeMetric(self, path, metric, value, timestamp, metricType, metricId,
-            min, max, hasThresholds, threshEventData, allowStaleDatapoint):
+    def writeMetric(
+        path,
+        metric,
+        value,
+        timestamp,
+        metricType,
+        metricId,
+        min,
+        max,
+        hasThresholds,
+        threshEventData,
+        allowStaleDatapoint,
+    ):
         """
         Write the value provided for the specified metric to Redis
 
@@ -437,20 +464,33 @@ class IDataService(zope.interface.Interface):
         @param metricId: unique identifier for the metric
         @param min: metric minimum
         @param max: metric maximum
-        @param hasThresholds: boolean indicating presence of thresholds for this metricId
-        @param allowStaleDatapoint: boolean indicating whether stale values are OK
+        @param hasThresholds: boolean indicating presence of thresholds
+            for this metricId.
+        @param allowStaleDatapoint: boolean indicating whether stale
+            values are OK.
         """
-        pass
 
-    def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
-                 min='U', max='U', threshEventData=None, timestamp='N', allowStaleDatapoint=True):
+    def writeRRD(
+        path,
+        value,
+        rrdType,
+        rrdCommand=None,
+        cycleTime=None,
+        min="U",
+        max="U",
+        threshEventData=None,
+        timestamp="N",
+        allowStaleDatapoint=True,
+    ):
         """
-        Save the value provided in the command to the RRD file specified in path.
+        Save the value provided in the command to the RRD file specified
+        in path.
 
         If the RRD file does not exist, use the rrdType, rrdCommand, min and
         max parameters to create the file.
 
-        @param path: name for a datapoint in a path (eg device/component/datasource_datapoint)
+        @param path: name for a datapoint in a path
+            (eg device/component/datasource_datapoint)
         @type path: string
         @param value: value to store into the RRD file
         @type value: number
@@ -464,21 +504,23 @@ class IDataService(zope.interface.Interface):
         @type min: number
         @param max: maximum value acceptable for this metric
         @type max: number
-        @param threshEventData: on threshold violation, update the event with this data
+        @param threshEventData: on threshold violation,
+            update the event with this data.
         @type threshEventData: dictionary
-        @param allowStaleDatapoint: attempt to write datapoint even if a newer datapoint has already been written
+        @param allowStaleDatapoint: attempt to write datapoint even if a
+            newer datapoint has already been written.
         @type allowStaleDatapoint: boolean
         @return: the parameter value converted to a number
         @rtype: number or None
         """
-        pass
 
 
 class IEventService(zope.interface.Interface):
     """
-    A service that allows the sending of an event. 
+    A service that allows the sending of an event.
     """
-    def sendEvent(self, event, **kw):
+
+    def sendEvent(event, **kw):
         pass
 
 
@@ -488,72 +530,72 @@ class IFrameworkFactory(zope.interface.Interface):
     dynamically extended at an interface level.
     """
 
-    def getConfigurationProxy(self):
+    def getConfigurationProxy():
         """
         Retrieve the framework's implementation of the IConfigurationProxy
         interface.
         """
-        pass
 
-    def getScheduler(self):
+    def getScheduler():
         """
         Retrieve the framework's implementation of the IScheduler interface.
         """
-        pass
 
-    def getConfigurationLoaderTask(self):
+    def getConfigurationLoaderTask():
         """
-        Retrieve the class definition used by the framework to load configuration
-        information from zenhub.
+        Retrieve the class definition used by the framework to load
+        configuration information from zenhub.
         """
-        pass
 
-    def getFrameworkBuildOptions(self):
+    def getFrameworkBuildOptions():
         """
         Retrieve the framework's buildOptions method.
         """
-        pass
 
 
 class IConfigurationListener(zope.interface.Interface):
     """
-    Notified of configuration life cycle events 
+    Notified of configuration life cycle events
     """
 
-    def deleted(self, configurationId):
+    def deleted(configurationId):
         """
         Called when a configuration is deleted from the collector
         """
-        pass
 
-    def added(self, configuration):
+    def added(configuration):
         """
         Called when a configuration is added to the collector
         """
-        pass
 
-    def updated(self, newConfiguration):
+    def updated(newConfiguration):
         """
         Called when a configuration is updated in collector
         """
-        pass
 
 
 class IStatistic(zope.interface.Interface):
     """
     A named statistical value.
     """
-    name = zope.interface.Attribute("""
+
+    name = zope.interface.Attribute(
+        """
         Name of statistic.
-        """)
+        """
+    )
 
-    value = zope.interface.Attribute("""
+    value = zope.interface.Attribute(
+        """
         Current value of the statistic.
-        """)
+        """
+    )
 
-    type = zope.interface.Attribute("""
+    type = zope.interface.Attribute(
+        """
         The type of statistic; currently limited to COUNTER, GAUGE.
-        """)
+        """
+    )
 
 
 class IStatisticsService(zope.interface.Interface):
@@ -562,7 +604,7 @@ class IStatisticsService(zope.interface.Interface):
     and posts them periodically to the data service.
     """
 
-    def addStatistic(self, name, type):
+    def addStatistic(name, type):
         """
         Adds a new statistic to the service. Throws an exception if the
         statistic already exists.
@@ -571,9 +613,8 @@ class IStatisticsService(zope.interface.Interface):
         @param type: the type of the counter, limited to COUNTER, GAUGE
         @type type: string
         """
-        pass
 
-    def getStatistic(self, name):
+    def getStatistic(name):
         """
         Retrieves the statistic object for the given name.
         @param name: the unique name of the statistic
@@ -581,75 +622,73 @@ class IStatisticsService(zope.interface.Interface):
         @return: the statistic object for the given name
         @rtype: an object implementing IStatistic
         """
-        pass
+
 
 class IWorkerTaskFactory(IScheduledTaskFactory):
     """
-    An IScheduledTaskFactory that accepts an ICollectorWorker type for delegation
+    An IScheduledTaskFactory that accepts an ICollectorWorker type for
+    delegation.
     """
-    def setWorkerClass(self, iCollectorWorker):
+
+    def setWorkerClass(iCollectorWorker):
         """
         Set up a worker type
         """
-        pass
 
-    def postInitialization(self):
+    def postInitialization():
         """
-        Called after collecter daemon initialization for final taskFactory setup
+        Called after collecter daemon initialization for final taskFactory
+        setup.
         """
-        pass
+
 
 class ICollectorWorker(zope.interface.Interface):
     """
     A worker that has the capability of collecting data.
     """
 
-    def prepareToRun(self):
+    def prepareToRun():
         """
         Pre-run initialization
         """
-        pass
 
-    def collect(self, device, taskConfig, *args):
+    def collect(device, taskConfig, *args):
         """
         Collect data for device
         """
-        pass
 
-    def disconnect(self, device):
+    def disconnect(device):
         """
         Disconnect from target device
         """
-        pass
 
-    def stop(self):
+    def stop():
         """
         Stop running
         """
-        pass
+
 
 class IWorkerExecutor(zope.interface.Interface):
     """
     A service that instantiates and executes a provided ICollectorWorker
     """
 
-    def setWorkerClass(self, workerClass):
+    def setWorkerClass(workerClass):
         """
         Set up a worker
         """
-        pass
 
-    def run(self):
+    def run():
         """
         run the provided worker
         """
-        pass
 
 
 class IConfigurationDispatchingFilter(zope.interface.Interface):
     def getFilter(options):
         """
-        A function to get a filter function to filter the devices for which to generate
-        configs. The returned filter function must be suitable for use with the 'filter'
-        builtin. 'options' is a dictionary of potential control options for the filter.
+        A function to get a filter function to filter the devices for which
+        to generate configs. The returned filter function must be suitable
+        for use with the 'filter' builtin. 'options' is a dictionary of
+        potential control options for the filter.
         """

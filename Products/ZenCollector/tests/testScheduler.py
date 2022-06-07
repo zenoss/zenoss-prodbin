@@ -1,25 +1,22 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
 
 import zope.interface
 
-from twisted.internet import defer, reactor
-
 from Products.ZenCollector.interfaces import IScheduledTask
-from Products.ZenCollector.scheduler import CallableTask, Scheduler, TaskStates
+from Products.ZenCollector.scheduler import Scheduler
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenUtils.observable import ObservableMixin
 
-class BasicTestTask(ObservableMixin):
-    zope.interface.implements(IScheduledTask)
 
+@zope.interface.implementer(IScheduledTask)
+class BasicTestTask(ObservableMixin):
     def __init__(self):
         super(BasicTestTask, self).__init__()
         self.name = "BasicTestTask"
@@ -34,6 +31,7 @@ class BasicTestTask(ObservableMixin):
 
     def cleanup(self):
         self.cleaned = True
+
 
 class TestScheduler(BaseTestCase):
     def testDeleteTasks(self):
@@ -69,10 +67,8 @@ class TestScheduler(BaseTestCase):
         myTask1.name = "myTask1"
         myTask1.configId = "myTask1"
 
-        called = False
         def myCallback(taskName):
             self.assertEquals(taskName, myTask1.name)
-            called = True
 
         scheduler = Scheduler()
         scheduler.addTask(myTask1, myCallback)
@@ -85,7 +81,7 @@ class TestScheduler(BaseTestCase):
         myTask2 = BasicTestTask()
         myTask2.name = "myTask1.2"
         myTask2.configId = "myTask1"
-        myTask2.state = "DOING_SOMETHING" # keep this task from being cleaned
+        myTask2.state = "DOING_SOMETHING"  # keep this task from being cleaned
 
         scheduler = Scheduler()
         scheduler.addTask(myTask1)
@@ -103,8 +99,10 @@ class TestScheduler(BaseTestCase):
         self.assertTrue(myTask1.cleaned)
         self.assertFalse(myTask2.cleaned)
 
+
 def test_suite():
     from unittest import TestSuite, makeSuite
+
     suite = TestSuite()
     suite.addTest(makeSuite(TestScheduler))
     return suite

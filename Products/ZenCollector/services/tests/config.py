@@ -1,23 +1,23 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
+import os
+import sys
 
-import os, sys
-if __name__ == '__main__':
-    execfile(os.path.join(sys.path[0], 'framework.py'))
-
+if __name__ == "__main__":
+    execfile(os.path.join(sys.path[0], "framework.py"))
 
 from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
-class TestCollectorConfig(BaseTestCase):
 
+class TestCollectorConfig(BaseTestCase):
     def afterSetUp(self):
         super(TestCollectorConfig, self).afterSetUp()
 
@@ -37,21 +37,26 @@ class TestCollectorConfig(BaseTestCase):
     def testFilter(self):
         class MyCollectorConfig(CollectorConfigService):
             def __init__(self):
-                attrs = ('zFooBar', 'zWoot')
-                CollectorConfigService.__init__(self, self.dmd, "localhost", attrs)
+                attrs = ("zFooBar", "zWoot")
+                CollectorConfigService.__init__(
+                    self, self.dmd, "localhost", attrs
+                )
 
             def _filterDevice(self, device):
-                return getattr(device, 'zFooBar', False)
+                return getattr(device, "zFooBar", False)
 
-        config = MyCollectorConfig()
-        
+        _ = MyCollectorConfig()
+
         self.assertTrue(False)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
+
     suite = TestSuite()
     suite.addTest(makeSuite(TestCollectorConfig))
     return suite
 
-if __name__=="__main__":
-    framework()
+
+if __name__ == "__main__":
+    framework()  # noqa F821
