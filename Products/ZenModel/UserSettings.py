@@ -1247,15 +1247,15 @@ class UserSettings(ZenModelRM):
     security.declareProtected(ZEN_CHANGE_ADMIN_OBJECTS,
                               'manage_deleteAdministrativeRole')
     @validate_csrf_token
-    def manage_deleteAdministrativeRole(self, ids=(), REQUEST=None):
+    def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
         """Delete admin roles of objects."""
-        if isinstance(ids, basestring):
-            ids = [ids]
+        if isinstance(delids, basestring):
+            delids = [delids]
         else:
-            ids = list(ids)
+            delids = list(delids)
         for admin_role in self.adminRoles():
             managed_object = admin_role.managedObject()
-            if managed_object.getPrimaryDmdId() not in ids:
+            if managed_object.getPrimaryDmdId() not in delids:
                 continue
             managed_object = managed_object.primaryAq()
             managed_object.manage_deleteAdministrativeRole(self.id)
@@ -1266,7 +1266,7 @@ class UserSettings(ZenModelRM):
                               managed_object.getPrimaryId()
                       })
         if REQUEST:
-            if ids:
+            if delids:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Roles Deleted',
                     "Administrative roles were deleted."
