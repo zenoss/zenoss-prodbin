@@ -8,23 +8,26 @@
 ##############################################################################
 
 import transaction
+
 from Products.ZenReports import Utils
+
 
 class swinventory:
     def run(self, dmd, args):
         report = []
         # ZEN-30539
-        if args.get('adapt', ''):
+        if args.get("adapt", ""):
             return report
         recordCount = 0
         for m in dmd.Manufacturers.objectValues():
-            if m.id == 'Unknown' or m.meta_type != 'Manufacturer': continue
+            if m.id == "Unknown" or m.meta_type != "Manufacturer":
+                continue
             for p in m.products.objectValues():
-                if p.meta_type == 'SoftwareClass':
+                if p.meta_type == "SoftwareClass":
                     c = 0
                     for i in p.instances():
                         try:
-                            if dmd.checkRemotePerm('View', i.device()):
+                            if dmd.checkRemotePerm("View", i.device()):
                                 c += 1
                         except Exception:
                             continue
@@ -33,16 +36,16 @@ class swinventory:
                         continue
                     report.append(
                         Utils.Record(
-                            manufLink = m.getIdLink(),
-                            manufId = m.id,
-                            softLink = p.getIdLink(),
-                            softId = p.id,
-                            count = c
+                            manufLink=m.getIdLink(),
+                            manufId=m.id,
+                            softLink=p.getIdLink(),
+                            softId=p.id,
+                            count=c,
                         )
                     )
                 p._p_invalidate()
             m._p_invalidate()
-            recordCount+=1
+            recordCount += 1
             if recordCount % 100 == 0:
                 transaction.abort()
         return report
