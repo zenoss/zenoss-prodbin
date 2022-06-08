@@ -25,7 +25,6 @@ from zope.component import getUtility
 from Products.ZenUtils.Utils import zenPath
 
 from .config import ZenJobs
-from .exceptions import NoSuchJobException
 from .interfaces import IJobStore
 from .utils.algorithms import partition
 from .utils.log import (
@@ -68,8 +67,9 @@ _default_config = {
             "main": {
                 "formatter": "main",
                 "class": "cloghandler.ConcurrentRotatingFileHandler",
-                "filename":
-                    os.path.join(ZenJobs.get("logpath"), "zenjobs.log"),
+                "filename": os.path.join(
+                    ZenJobs.get("logpath"), "zenjobs.log"
+                ),
                 "maxBytes": ZenJobs.get("maxlogsize") * 1024,
                 "backupCount": ZenJobs.get("maxbackuplogs"),
                 "mode": "a",
@@ -117,7 +117,7 @@ _default_config = {
                 "formatter": "beat",
                 "class": "cloghandler.ConcurrentRotatingFileHandler",
                 "filename": os.path.join(
-                    ZenJobs.get("logpath"), "zenjobs-scheduler.log",
+                    ZenJobs.get("logpath"), "zenjobs-scheduler.log"
                 ),
                 "maxBytes": ZenJobs.get("maxlogsize") * 1024,
                 "backupCount": ZenJobs.get("maxbackuplogs"),
@@ -187,6 +187,7 @@ def configure_logging(logfile=None, **kw):
         # we see them.
         from celery import beat
         from logging import getLogger
+
         log = getLogger("celery.beat")
         beat.info = log.info
         beat.debug = log.debug
@@ -204,10 +205,12 @@ def load_log_level_config(configfile):
 
     :rtype: dict
     """
-    with open(configfile, 'r') as fd:
+    with open(configfile, "r") as fd:
         reader = csv.reader(
-            fd, delimiter=' ',
-            quoting=csv.QUOTE_NONE, skipinitialspace=True,
+            fd,
+            delimiter=" ",
+            quoting=csv.QUOTE_NONE,
+            skipinitialspace=True,
         )
         return dict(row[:2] for row in reader)
 
@@ -222,16 +225,16 @@ def apply_levels(loggerlevels):
     # logging.getLogger rather than get_logger.  These special logger names
     # are STDOUT, STDERR, and any log names starting with 'zen' or 'celery'.
     for name, level in loggerlevels.iteritems():
-        if (
-            any(name.startswith(pre) for pre in ("zen", "celery"))
-            or name in ("STDOUT", "STDERR")
+        if any(name.startswith(pre) for pre in ("zen", "celery")) or name in (
+            "STDOUT",
+            "STDERR",
         ):
             logger = logging.getLogger(name)
         else:
             logger = get_logger(name)
         logger.setLevel(level)
     _get_logger().debug(
-        "Updated log level of logger(s) %s", ", ".join(loggerlevels),
+        "Updated log level of logger(s) %s", ", ".join(loggerlevels)
     )
 
     # Set the level of all loggers not given in the loglevel config file
@@ -248,7 +251,7 @@ def apply_levels(loggerlevels):
         logger.setLevel(logging.NOTSET)
     if loggers:
         _get_logger().debug(
-            "Reset log level of loggers %s", ", ".join(loggers),
+            "Reset log level of loggers %s", ", ".join(loggers)
         )
 
 
@@ -308,8 +311,7 @@ def teardown_job_instance_logger(log, task=None, **kwargs):
         for logger in loggers:
             logger.propagate = True
             removedhandlers, handlers = partition(
-                logger.handlers,
-                lambda x: isinstance(x, ForwardingHandler)
+                logger.handlers, lambda x: isinstance(x, ForwardingHandler)
             )
             logger.handlers = handlers
             oldhandlers.update(removedhandlers)
@@ -324,8 +326,7 @@ def teardown_job_instance_logger(log, task=None, **kwargs):
         # Close task logger
         tasklog = get_task_logger()
         taskhandlers, handlers = partition(
-            tasklog.handlers,
-            lambda x: isinstance(x, TaskLogFileHandler)
+            tasklog.handlers, lambda x: isinstance(x, TaskLogFileHandler)
         )
         tasklog.handlers = handlers
         for h in taskhandlers:
@@ -369,7 +370,6 @@ class LogLevelUpdater(object):
 
 
 class _LogLevelUpdaterThread(threading.Thread):
-
     def __init__(self, filepath):
         self.__filepath = filepath
         self.__hashed = _get_hash(load_log_level_config(self.__filepath))
@@ -410,7 +410,7 @@ class _LogLevelUpdaterThread(threading.Thread):
 
 def _get_hash(config):
     return hashlib.md5(
-        ''.join("{0}{1}".format(k, config[k]) for k in sorted(config))
+        "".join("{0}{1}".format(k, config[k]) for k in sorted(config))
     ).hexdigest()
 
 
@@ -429,11 +429,12 @@ class FileChangeWatcher(object):
     def __init__(self, filepath):
         self.__path, self.__name = filepath.rsplit("/", 1)
         self.__inotify = INotify()
-        watch_flags = \
-            Flags.MODIFY \
-            | Flags.CLOSE_WRITE \
-            | Flags.MOVED_TO \
+        watch_flags = (
+            Flags.MODIFY
+            | Flags.CLOSE_WRITE
+            | Flags.MOVED_TO
             | Flags.EXCL_UNLINK
+        )
         self.__wd = self.__inotify.add_watch(self.__path, watch_flags)
 
     def close(self):

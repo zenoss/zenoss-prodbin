@@ -31,10 +31,12 @@ def subTest(**params):
         _, _, fn, _ = traceback.extract_tb(tb, 2)[1]
         print(
             "\n{}\nFAIL: {} ({})\n{}".format(
-                "=" * 80, fn,
+                "=" * 80,
+                fn,
                 ", ".join("{}={}".format(k, v) for k, v in params.items()),
                 "-" * 80,
-            ), end='',
+            ),
+            end="",
         )
         raise
 

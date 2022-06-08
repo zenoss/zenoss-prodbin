@@ -11,12 +11,15 @@ from __future__ import absolute_import
 
 import contextlib
 import logging
+
+from random import SystemRandom
+
 import transaction
 
 from AccessControl.SecurityManagement import (
-    newSecurityManager, noSecurityManager,
+    newSecurityManager,
+    noSecurityManager,
 )
-from random import SystemRandom
 from Products.CMFCore.utils import getToolByName
 from ZODB.POSException import ConflictError, ReadConflictError
 from ZPublisher.HTTPRequest import HTTPRequest
@@ -44,8 +47,7 @@ class DMD(object):
     abstract = True
 
     def __call__(self, *args, **kwargs):
-        """Override to attach a zodb root object to the task.
-        """
+        """Override to attach a zodb root object to the task."""
         # NOTE: work-around for Celery >= 4.0
         # userid = getattr(self.request, "userid", None)
         headers = self.request.headers
@@ -73,7 +75,8 @@ class DMD(object):
             limit = ZenJobs.get("zodb-retry-interval-limit", 30)
             duration = int(SystemRandom().uniform(1, limit))
             self.log.info(
-                "Reschedule task to execute after %s seconds.", duration,
+                "Reschedule task to execute after %s seconds.",
+                duration,
             )
             self.retry(exc=ex, countdown=duration)
         except BaseException:  # catch all exceptions

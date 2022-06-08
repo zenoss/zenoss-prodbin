@@ -11,9 +11,10 @@ from __future__ import absolute_import, print_function
 
 # import ast
 
-from celery.bin.base import Command
 from collections import defaultdict
 from datetime import timedelta
+
+from celery.bin.base import Command
 from zope.component import getUtility
 
 from .interfaces import IJobStore
@@ -47,9 +48,8 @@ class ZenJobsMonitor(Command):
         # kwargs = ast.literal_eval(instance.kwargs)
         name = job.getJobType() if hasattr(job, "getJobType") else job.name
         print(
-            "Job failed  worker=%s jobid=%s name=%s" % (
-                event["hostname"], jobid, name,
-            )
+            "Job failed  worker=%s jobid=%s name=%s"
+            % (event["hostname"], jobid, name)
         )
 
     def run(self, **kw):
@@ -102,20 +102,15 @@ def _getErrorSummary(app, ex):
 
 
 _error_eventkey_map = {
-    "TaskAborted": (
-        "zenjobs-aborted", _getAbortedSummary,
-    ),
-    "SoftTimeLimitExceeded": (
-        "zenjobs-timeout", _getTimeoutSummary,
-    )
+    "TaskAborted": ("zenjobs-aborted", _getAbortedSummary),
+    "SoftTimeLimitExceeded": ("zenjobs-timeout", _getTimeoutSummary),
 }
 
 
 def _getErrorInfo(app, ex):
-    """Returns (eventkey, summary).
-    """
+    """Returns (eventkey, summary)."""
     key, summary_fn = _error_eventkey_map.get(
-        type(ex).__name__, ("zenjobs-failure", _getErrorSummary),
+        type(ex).__name__, ("zenjobs-failure", _getErrorSummary)
     )
     return key, summary_fn(app, ex)
 
@@ -123,7 +118,8 @@ def _getErrorInfo(app, ex):
 def on_node_join(*args, **kw):
     worker = args[0]
     print(
-        "Worker node added to monitor  worker=%s uptime=%s" % (
+        "Worker node added to monitor  worker=%s uptime=%s"
+        % (
             worker.hostname,
             humanize_timedelta(timedelta(seconds=worker.clock)),
         ),
@@ -133,7 +129,8 @@ def on_node_join(*args, **kw):
 def on_node_leave(*args, **kw):
     worker = args[0]
     print(
-        "Worker node left monitor  worker=%s uptime=%s" % (
+        "Worker node left monitor  worker=%s uptime=%s"
+        % (
             worker.hostname,
             humanize_timedelta(timedelta(seconds=worker.clock)),
         ),

@@ -14,7 +14,9 @@ import logging
 from unittest import TestCase
 
 from ..jobs.subprocess import (
-    LogFormatterContext, getLogFormattingContext, null_context,
+    getLogFormattingContext,
+    LogFormatterContext,
+    null_context,
 )
 from ..utils.log import TaskLogFileHandler
 from .utils import LoggingLayer
