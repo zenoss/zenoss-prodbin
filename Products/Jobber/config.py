@@ -11,6 +11,7 @@ import os
 
 from Products.ZenUtils.config import Config, ConfigLoader
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+from Products.ZenUtils.RedisUtils import DEFAULT_REDIS_URL, getRedisUrl
 from Products.ZenUtils.Utils import zenPath
 
 __all__ = ("Celery", "ZenJobs")
@@ -32,6 +33,8 @@ _default_configs = {
     "concurrent-jobs": 1,
     "job-hard-time-limit": 21600,  # 6 hours
     "job-soft-time-limit": 18000,  # 5 hours
+
+    "redis-url": DEFAULT_REDIS_URL,
 }
 
 
@@ -96,7 +99,7 @@ class Celery(object):
     CELERY_IMPORTS = ("Products.Jobber.jobs",)
 
     # Result backend (redis)
-    CELERY_RESULT_BACKEND = "redis://localhost/0"
+    CELERY_RESULT_BACKEND = ZenJobs.get("redis-url")
     CELERY_RESULT_SERIALIZER = "without-unicode"
     CELERY_TASK_RESULT_EXPIRES = ZenJobs.get("zenjobs-job-expires")
 

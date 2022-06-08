@@ -15,9 +15,9 @@ import re
 
 from collections import Container, Iterable, Sized
 
-import redis
-
 from celery import states as celery_states
+
+from Products.ZenUtils.RedisUtils import getRedisClient
 
 from .config import Celery
 
@@ -31,7 +31,7 @@ log = logging.getLogger("zen.zenjobs")
 
 def makeJobStore():
     """Create and return the ZenJobs JobStore client."""
-    client = redis.StrictRedis.from_url(Celery.CELERY_RESULT_BACKEND)
+    client = getRedisClient(url=Celery.CELERY_RESULT_BACKEND)
     return JobStore(client, expires=Celery.CELERY_TASK_RESULT_EXPIRES)
 
 
