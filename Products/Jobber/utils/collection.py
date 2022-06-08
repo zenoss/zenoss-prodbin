@@ -13,7 +13,6 @@ from collections import Mapping
 
 
 class FrozenDictProxy(Mapping):
-
     def __init__(self, source):
         self.__source = source
 

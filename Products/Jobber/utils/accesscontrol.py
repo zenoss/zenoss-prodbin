@@ -27,9 +27,11 @@ class ZClassSecurityInfo(object):
 
     def protected(self, permission):
         """Declare the given function as protected."""
+
         def wrap(f):
             self.__csi.declareProtected(permission, f.func_name)
             return f
+
         return wrap
 
     def __getattr__(self, name):

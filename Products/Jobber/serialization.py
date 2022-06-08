@@ -14,6 +14,7 @@ from json import (
     dumps as json_dumps,
     JSONDecoder,
 )
+
 from kombu.utils.encoding import bytes_t
 
 __all__ = ("without_unicode",)
@@ -45,7 +46,6 @@ def _decode_hook(*args, **kw):
 
 
 class _WithoutUnicode(JSONDecoder):
-
     def __init__(self, *args, **kw):
         super(_WithoutUnicode, self).__init__(
             object_pairs_hook=_decode_hook, *args, **kw

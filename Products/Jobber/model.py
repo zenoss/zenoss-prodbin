@@ -13,9 +13,10 @@ import logging
 import os
 import time
 
+from functools import wraps
+
 from celery import states
 from celery.contrib.abortable import ABORTED
-from functools import wraps
 from zope.component import getUtility
 from zope.interface import implementer
 
@@ -46,7 +47,8 @@ class JobRecord(object):
         if not (data.viewkeys() <= Fields.viewkeys()):
             bad = data.viewkeys() ^ Fields.viewkeys()
             raise AttributeError(
-                "Jobrecord does not have attribute%s %s" % (
+                "Jobrecord does not have attribute%s %s"
+                % (
                     "" if len(bad) == 1 else "s",
                     ", ".join("'%s'" % v for v in bad),
                 ),
@@ -69,10 +71,12 @@ class JobRecord(object):
     def __dir__(self):
         # Add __dir__ function to expose keys of details attribute
         # as attributes of JobRecord.
-        return sorted(set(
-            tuple(dir(JobRecord)) +
-            tuple((getattr(self, "details") or {}).keys())
-        ))
+        return sorted(
+            set(
+                tuple(dir(JobRecord))
+                + tuple((getattr(self, "details") or {}).keys())
+            )
+        )
 
     @property
     def __dict__(self):
@@ -173,7 +177,7 @@ class JobRecord(object):
             " ".join(
                 "{0}={1!r}".format(name, getattr(self, name, None))
                 for name in self.__slots__
-            )
+            ),
         )
 
     def __hash__(self):
@@ -204,8 +208,7 @@ class JobRecordMarshaller(object):
         self.__obj = obj
 
     def marshal(self, keys=None):
-        """Returns a dict containing the JobRecord's data.
-        """
+        """Returns a dict containing the JobRecord's data."""
         fields = self._default_keys if keys is None else keys
         return {name: self._get_value(name) for name in fields}
 
@@ -215,8 +218,7 @@ class JobRecordMarshaller(object):
 
 
 class LegacySupport(object):
-    """A namespace class for functions to aid in supporting legacy APIs.
-    """
+    """A namespace class for functions to aid in supporting legacy APIs."""
 
     # Maps legacy job record field names to their new field names.
     keys = {
@@ -232,8 +234,7 @@ class LegacySupport(object):
 
 
 class RedisRecord(dict):
-    """A convenient mapping object for records stored in Redis.
-    """
+    """A convenient mapping object for records stored in Redis."""
 
     @classmethod
     def from_task(cls, task, jobid, args, kwargs, **fields):
@@ -248,7 +249,7 @@ class RedisRecord(dict):
             summary=task.summary,
             description=description,
             logfile=os.path.join(
-                ZenJobs.get("job-log-path"), "%s.log" % jobid,
+                ZenJobs.get("job-log-path"), "%s.log" % jobid
             ),
         )
         if "status" in fields:
@@ -263,8 +264,7 @@ class RedisRecord(dict):
 
     @classmethod
     def from_signature(cls, sig):
-        """Return a RedisRecord object built from a Signature object.
-        """
+        """Return a RedisRecord object built from a Signature object."""
         taskname = sig.get("task")
         args = sig.get("args")
         kwargs = sig.get("kwargs")
@@ -339,10 +339,12 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
 
     # Save first (and possibly only) job
     record = RedisRecord.from_signal(body, headers, properties)
-    record.update({
-        "status": states.PENDING,
-        "created": time.time(),
-    })
+    record.update(
+        {
+            "status": states.PENDING,
+            "created": time.time(),
+        }
+    )
     saved = _save_record(log, storage, record)
 
     if not saved:
@@ -355,10 +357,12 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
         links.extend(cb.flatten_links())
     for link in links:
         record = RedisRecord.from_signature(link)
-        record.update({
-            "status": states.PENDING,
-            "created": time.time(),
-        })
+        record.update(
+            {
+                "status": states.PENDING,
+                "created": time.time(),
+            }
+        )
         _save_record(log, storage, record)
 
 
@@ -392,10 +396,12 @@ def stage_jobrecord(log, storage, sig):
         return
 
     record = RedisRecord.from_signature(sig)
-    record.update({
-        "status": STAGED,
-        "created": time.time(),
-    })
+    record.update(
+        {
+            "status": STAGED,
+            "created": time.time(),
+        }
+    )
     _save_record(log, storage, record)
 
 
@@ -425,7 +431,6 @@ def commit_jobrecord(log, storage, sig):
 
 
 def _catch_exception(f):
-
     @wraps(f)
     def wrapper(log, *args, **kw):
         try:

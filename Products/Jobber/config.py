@@ -23,14 +23,11 @@ _default_configs = {
     "maxbackuplogs": 3,
     "job-log-path": "/opt/zenoss/log/jobs",
     "zenjobs-job-expires": 604800,  # 7 days
-
     "scheduler-config-file": "/opt/zenoss/etc/zenjobs_schedules.yaml",
     "scheduler-max-loop-interval": 180,  # 3 minutes
-
     "zodb-config-file": "/opt/zenoss/etc/zodb.conf",
     "zodb-max-retries": 5,
     "zodb-retry-interval-limit": 30,  # 30 seconds
-
     "max-jobs-per-worker": 100,
     "concurrent-jobs": 1,
     "job-hard-time-limit": 21600,  # 6 hours
@@ -96,9 +93,7 @@ class Celery(object):
     CELERY_ACCEPT_CONTENT = ["without-unicode"]
 
     # List of modules to import when the Celery worker starts
-    CELERY_IMPORTS = (
-        "Products.Jobber.jobs",
-    )
+    CELERY_IMPORTS = ("Products.Jobber.jobs",)
 
     # Result backend (redis)
     CELERY_RESULT_BACKEND = "redis://localhost/0"
@@ -122,7 +117,7 @@ class Celery(object):
     # Beat (scheduler) configuration
     CELERYBEAT_MAX_LOOP_INTERVAL = ZenJobs.get("scheduler-max-loop-interval")
     CELERYBEAT_LOG_FILE = os.path.join(
-        ZenJobs.get("logpath"), "zenjobs-scheduler.log",
+        ZenJobs.get("logpath"), "zenjobs-scheduler.log"
     )
     CELERYBEAT_REDIRECT_STDOUTS = True
     CELERYBEAT_REDIRECT_STDOUTS_LEVEL = "INFO"

@@ -23,10 +23,21 @@ class FieldsTest(TestCase):
     """Test the Fields class."""
 
     def test_names(t):
-        expected = sorted((
-            "jobid", "name", "summary", "description", "userid", "logfile",
-            "created", "started", "finished", "status", "details",
-        ))
+        expected = sorted(
+            (
+                "jobid",
+                "name",
+                "summary",
+                "description",
+                "userid",
+                "logfile",
+                "created",
+                "started",
+                "finished",
+                "status",
+                "details",
+            )
+        )
         actual = sorted(Fields.keys())
         t.assertListEqual(expected, actual)
 
@@ -49,9 +60,7 @@ class FieldsTest(TestCase):
         expected["started"] = 23434.344
         expected["finished"] = 23596.234
         expected["details"] = {"foo": "bar", "baz": 7}
-        actual = {
-            k: Fields[k].loads(v) for k, v in data.items()
-        }
+        actual = {k: Fields[k].loads(v) for k, v in data.items()}
         t.assertDictEqual(expected, actual)
 
     def test_dumps(t):
@@ -73,9 +82,7 @@ class FieldsTest(TestCase):
         expected["started"] = "23434.344"
         expected["finished"] = "23596.234"
         expected["details"] = """{"foo": "bar", "baz": 7}"""
-        actual = {
-            k: Fields[k].dumps(v) for k, v in data.items()
-        }
+        actual = {k: Fields[k].dumps(v) for k, v in data.items()}
         t.assertDictEqual(expected, actual)
 
 
@@ -252,7 +259,10 @@ class ModifyJobStoreTest(TestCase):
         jobid = "345"
         original = {"jobid": jobid, "name": "Test", "userid": "zenoss"}
         replacement = {
-            "jobid": jobid, "name": None, "logfile": None, "userid": "zenoss",
+            "jobid": jobid,
+            "name": None,
+            "logfile": None,
+            "userid": "zenoss",
         }
         expected = {"jobid": jobid, "userid": "zenoss"}
 
@@ -392,15 +402,17 @@ def _buildData(jobnames, userids, base):
         jobid = str(baseid + n)
         jobids.append(jobid)
         data = dict(base)
-        data.update({
-            "jobid": jobid,
-            "name": jobname,
-            "userid": user,
-            "created": basetm + n,
-            "summary": data["summary"] % jobid,
-            "description": data["description"] % user,
-            "logfile": data["logfile"] % jobid,
-        })
+        data.update(
+            {
+                "jobid": jobid,
+                "name": jobname,
+                "userid": user,
+                "created": basetm + n,
+                "summary": data["summary"] % jobid,
+                "description": data["description"] % user,
+                "logfile": data["logfile"] % jobid,
+            }
+        )
         records[jobid] = data
     return jobids, records
 
@@ -521,22 +533,28 @@ class PopulatedJobStoreTest(TestCase):
         t.assertDictEqual(expected_record, actual_record)
 
     def test_mget_many(t):
-        parameters = ((
-            ("105", "112"),
-            sorted((t.records["105"], t.records["112"])),
-        ), (
-            ("1005", "112"),
-            [t.records["112"]],
-        ), (
-            ("102", "210"),
-            [t.records["102"]],
-        ), (
-            ("180",),
-            [],
-        ), (
-            ("1005", "1240"),
-            [],
-        ))
+        parameters = (
+            (
+                ("105", "112"),
+                sorted((t.records["105"], t.records["112"])),
+            ),
+            (
+                ("1005", "112"),
+                [t.records["112"]],
+            ),
+            (
+                ("102", "210"),
+                [t.records["102"]],
+            ),
+            (
+                ("180",),
+                [],
+            ),
+            (
+                ("1005", "1240"),
+                [],
+            ),
+        )
         for jobids, expected in parameters:
             with subTest(jobids=jobids):
                 result = t.store.mget(*jobids)
@@ -620,22 +638,28 @@ class PopulatedJobStoreTest(TestCase):
             t.store["123"] = {"jobid": "123", "foo": 10}
 
     def test_searches(t):
-        parameters = ((
-            {"status": "PENDING"},
-            sorted(t.jobids),
-        ), (
-            {"status": "PENDING", "userid": "jill"},
-            ["100", "104", "108", "112", "116", "120"],
-        ), (
-            {"name": "FooJob", "created": 1551804881.024517},
-            ["100"],
-        ), (
-            {"name": "BarJob", "userid": ("ed", "cal")},
-            ["105", "107", "117", "119"],
-        ), (
-            {"description": re.compile("mary")},
-            sorted(["114", "110", "118", "102", "106", "122"]),
-        ))
+        parameters = (
+            (
+                {"status": "PENDING"},
+                sorted(t.jobids),
+            ),
+            (
+                {"status": "PENDING", "userid": "jill"},
+                ["100", "104", "108", "112", "116", "120"],
+            ),
+            (
+                {"name": "FooJob", "created": 1551804881.024517},
+                ["100"],
+            ),
+            (
+                {"name": "BarJob", "userid": ("ed", "cal")},
+                ["105", "107", "117", "119"],
+            ),
+            (
+                {"description": re.compile("mary")},
+                sorted(["114", "110", "118", "102", "106", "122"]),
+            ),
+        )
         for query, expected in parameters:
             with subTest(query=query):
                 result = t.store.search(**query)

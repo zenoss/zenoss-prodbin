@@ -9,10 +9,11 @@
 
 from __future__ import absolute_import, print_function
 
+from unittest import TestCase
+
 from celery.canvas import Signature, chain
 from mock import call, Mock, patch
 from transaction.interfaces import IDataManager
-from unittest import TestCase
 from zope.interface.verify import verifyClass, verifyObject
 
 from ..manager import JobDispatcher
@@ -20,8 +21,7 @@ from ..storage import JobStore
 
 
 class JobDispatcherTest(TestCase):
-    """Test the JobDispatcher class.
-    """
+    """Test the JobDispatcher class."""
 
     def setUp(t):
         t.storage = Mock(spec=JobStore)

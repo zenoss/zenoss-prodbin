@@ -12,10 +12,12 @@ from __future__ import absolute_import
 import json
 import logging
 import re
+
+from collections import Container, Iterable, Sized
+
 import redis
 
 from celery import states as celery_states
-from collections import Container, Iterable, Sized
 
 from .config import Celery
 
@@ -60,19 +62,21 @@ class _Fields(dict):
     """
 
     def __init__(self):
-        super(_Fields, self).__init__((
-            ("jobid", _Converter(str, str)),
-            ("name", _Converter(str, str)),
-            ("summary", _Converter(str, str)),
-            ("description", _Converter(str, str)),
-            ("userid", _Converter(str, str)),
-            ("logfile", _Converter(str, str)),
-            ("created", _Converter(_float_str, float)),
-            ("started", _Converter(_float_str, float)),
-            ("finished", _Converter(_float_str, float)),
-            ("status", _Converter(str, str)),
-            ("details", _Converter(json.dumps, json.loads)),
-        ))
+        super(_Fields, self).__init__(
+            (
+                ("jobid", _Converter(str, str)),
+                ("name", _Converter(str, str)),
+                ("summary", _Converter(str, str)),
+                ("description", _Converter(str, str)),
+                ("userid", _Converter(str, str)),
+                ("logfile", _Converter(str, str)),
+                ("created", _Converter(_float_str, float)),
+                ("started", _Converter(_float_str, float)),
+                ("finished", _Converter(_float_str, float)),
+                ("status", _Converter(str, str)),
+                ("details", _Converter(json.dumps, json.loads)),
+            )
+        )
 
     __setitem__ = _immutable
     __delitem__ = _immutable
@@ -182,12 +186,14 @@ class JobStore(Container, Iterable, Sized):
                     "Type '%s' not supported for field '%s'"
                     % (type(match), name),
                 )
+
+        def get_fields(key):
+            return self.__client.hmget(key, *field_names)
+
         return (
             self.__client.hget(key, "jobid")
             for key in _iterkeys(self.__client)
-            if matchers == dict(zip(
-                field_names, self.__client.hmget(key, *field_names),
-            ))
+            if matchers == dict(zip(field_names, get_fields(key)))
         )
 
     def getfield(self, jobid, name, default=None):
@@ -229,7 +235,8 @@ class JobStore(Container, Iterable, Sized):
         badfields = fields.viewkeys() - Fields.viewkeys()
         if badfields:
             raise AttributeError(
-                "Job record has no attribute%s %s" % (
+                "Job record has no attribute%s %s"
+                % (
                     "" if len(badfields) == 1 else "s",
                     ", ".join("'%s'" % name for name in badfields),
                 ),
@@ -241,8 +248,7 @@ class JobStore(Container, Iterable, Sized):
         if deleted_fields:
             self.__client.hdel(key, *deleted_fields)
         fields = {
-            k: Fields[k].dumps(v)
-            for k, v in fields.items() if v is not None
+            k: Fields[k].dumps(v) for k, v in fields.items() if v is not None
         }
         if fields:
             self.__client.hmset(key, fields)
@@ -344,8 +350,7 @@ class JobStore(Container, Iterable, Sized):
         """
         _verifyfields(data.keys())
         data = {
-            k: Fields[k].dumps(v)
-            for k, v in data.items() if v is not None
+            k: Fields[k].dumps(v) for k, v in data.items() if v is not None
         }
         key = _key(jobid)
         olddata = self.__client.hgetall(key)
@@ -443,7 +448,10 @@ def _iteritems(client):
 def _verifyfields(fields):
     bad_fields = set(fields) - set(Fields)
     if len(bad_fields):
-        raise AttributeError("Invalid field%s %s" % (
-            "" if len(bad_fields) == 1 else "s",
-            ", ".join("'%s'" % n for n in bad_fields),
-        ))
+        raise AttributeError(
+            "Invalid field%s %s"
+            % (
+                "" if len(bad_fields) == 1 else "s",
+                ", ".join("'%s'" % n for n in bad_fields),
+            )
+        )

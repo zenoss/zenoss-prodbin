@@ -20,7 +20,9 @@ from celery import states
 from celery.app import push_current_task, pop_current_task
 from celery.exceptions import Ignore
 from celery.contrib.abortable import (
-    AbortableTask, AbortableAsyncResult, ABORTED,
+    AbortableAsyncResult,
+    AbortableTask,
+    ABORTED,
 )
 from zope.component import getUtility
 
@@ -55,14 +57,14 @@ class Abortable(AbortableTask):
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         result = super(Abortable, self).on_failure(
-            exc, task_id, args, kwargs, einfo,
+            exc, task_id, args, kwargs, einfo
         )
         # If the exception is TaskAborted, change the status to ABORTED
         # because Celery always marks jobs that raise an exception as FAILURE.
         if isinstance(exc, TaskAborted):
             result = self.AsyncResult(task_id)
             result.backend.store_result(
-                task_id, result=exc, status=states.ABORTED, traceback=None,
+                task_id, result=exc, status=states.ABORTED, traceback=None
             )
             mlog.debug(
                 "On TaskAborted exception, reset the task status to ABORTED",
@@ -121,8 +123,7 @@ class Abortable(AbortableTask):
 
 
 class _TaskAborter(threading.Thread):
-    """Stops a task if its status is set to ABORTED.
-    """
+    """Stops a task if its status is set to ABORTED."""
 
     def __init__(self, task, tid):
         """Initialize a _TaskAborter instance.
