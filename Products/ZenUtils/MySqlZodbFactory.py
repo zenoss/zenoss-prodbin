@@ -47,6 +47,7 @@ def _make_exceptions_module():
     import MySQLdb
     exceptions = types.ModuleType("_mysql_exceptions")
     for ex in (
+        MySQLdb.Error,
         MySQLdb.DatabaseError,
         MySQLdb.DataError,
         MySQLdb.IntegrityError,
