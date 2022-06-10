@@ -14,6 +14,8 @@ import logging
 from ConfigParser import ConfigParser
 from cStringIO import StringIO
 
+import pkg_resources
+
 from zenoss.protocols.amqp import Publisher as BlockingPublisher
 from zenoss.protocols.data.queueschema import SCHEMA
 from zenoss.protocols.interfaces import IQueueSchema, IAMQPConnectionInfo
@@ -24,7 +26,6 @@ from zenoss.protocols.queueschema import (
 from zenoss.protocols.queueschema import Schema
 from zope.component import getUtility
 
-from Products.ZenUtils.PkgResources import pkg_resources
 from Products.ZenUtils.Utils import zenPath
 
 

@@ -45,7 +45,6 @@ from .GlobalConfig import (
     applyGlobalConfToParser,
 )
 
-
 # List of options to not include when generating a config file.
 _OPTIONS_TO_IGNORE = (
     "",
