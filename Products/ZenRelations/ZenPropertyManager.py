@@ -10,6 +10,8 @@
 import logging
 import re
 
+import pkg_resources
+
 from AccessControl import ClassSecurityInfo
 from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base, aq_chain
@@ -755,7 +757,6 @@ def setDescriptors(dmd):
             Z_PROPERTY_META_DATA[id]['description'] = item[4]
 
     # add zProps from zenpacks
-    from Products.ZenUtils.PkgResources import pkg_resources
     for zpkg in pkg_resources.iter_entry_points('zenoss.zenpacks'):
         # fromlist is typically ZenPacks.zenoss
         fromlist = zpkg.module_name.split('.')[:-1]
