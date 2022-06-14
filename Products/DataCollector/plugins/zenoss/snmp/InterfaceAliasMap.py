@@ -8,8 +8,9 @@
 ##############################################################################
 
 from Products.DataCollector.plugins.CollectorPlugin import GetTableMap
-
-from .InterfaceMap import InterfaceMap
+from Products.DataCollector.plugins.zenoss.snmp.InterfaceMap import (
+    InterfaceMap,
+)
 
 
 class InterfaceAliasMap(InterfaceMap):

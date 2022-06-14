@@ -8,8 +8,7 @@
 ##############################################################################
 
 from Products.DataCollector.plugins.CollectorPlugin import GetTableMap
-
-from .RouteMap import RouteMap
+from Products.DataCollector.plugins.zenoss.snmp.RouteMap import RouteMap
 
 
 class NewRouteMap(RouteMap):
