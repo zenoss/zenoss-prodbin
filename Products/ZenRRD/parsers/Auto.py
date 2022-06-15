@@ -9,8 +9,8 @@
 
 from Products.ZenRRD.CommandParser import CommandParser, ParsedResults
 
-from .Cacti import Cacti
-from .Nagios import Nagios
+from Products.ZenRRD.parsers.Cacti import Cacti
+from Products.ZenRRD.parsers.Nagios import Nagios
 
 
 class Auto(CommandParser):
