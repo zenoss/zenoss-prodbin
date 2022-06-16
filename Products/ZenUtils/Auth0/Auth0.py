@@ -343,7 +343,7 @@ class Auth0(BasePlugin):
             ipaddress = get_ip(request)
             audit(
                 "UI.Authentication.Valid",
-                username_=sessionInfo.userid,
+                username_=sessionInfo.userid if sessionInfo else None,
                 ipaddress=ipaddress,
             )
 
