@@ -235,11 +235,10 @@ class SoftwareCommandPlugin(CommandPlugin):
         """
         Return a ReltionshipMap with the installed software.
         """
-        log.info("Collecting installed software for host %s." % device.id)
+        log.info("Collecting installed software for host %s.", device.id)
         softwareDicts = self.parseResultsFunc(results)
         
-        log.debug("First three software dictionaries:\n%s" % (
-                pformat(softwareDicts[:3])),)
+        log.debug("First three software dictionaries:\n%s", pformat(softwareDicts[:3]))
                 
         return utils.createSoftwareRelationshipMap(softwareDicts)
     

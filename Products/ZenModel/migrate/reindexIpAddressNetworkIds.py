@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 import Migrate
 
 class ReindexIpAddressNetworkIds(Migrate.Step):

@@ -10,7 +10,6 @@
 
 __doc__='Base Classes for loading gunk in a ZenPack'
 
-import Globals
 from Products.ZenReports.ReportLoader import ReportLoader
 from Products.ZenUtils.events import pausedAndOptimizedIndexing
 from Products.ZenUtils.Utils import zenPath, binPath
@@ -449,7 +448,7 @@ class ZPTriggerAction(ZenPackLoader):
         for conf in findFiles(pack, 'zep',lambda f: f == 'actions.json'):
 
             data = json.load(open(conf, "r"))
-            log.debug("DATA IS: %s" % data)
+            log.debug("DATA IS: %s", data)
 
             triggers = data.get('triggers', [])
             notifications = data.get('notifications', [])
@@ -466,7 +465,7 @@ class ZPTriggerAction(ZenPackLoader):
                     trigger_data = tf.getTrigger(trigger_conf['uuid'])
                     trigger_conf['name'] = trigger_data['name']
 
-                    log.info('Existing trigger found, updating: %s' % trigger_conf['name'])
+                    log.info('Existing trigger found, updating: %s', trigger_conf['name'])
                     tf.updateTrigger(**trigger_conf)
 
                 else:
@@ -476,18 +475,18 @@ class ZPTriggerAction(ZenPackLoader):
                         if test_name in all_names:
                             test_name = '%s_%d' % (trigger_conf['name'], x)
                         else:
-                            log.debug('Found unused trigger name: %s' % test_name)
+                            log.debug('Found unused trigger name: %s', test_name)
                             break
                     else:
                         # if we didn't find a unique name
                         raise Exception('Could not find unique name for trigger: "%s".' % trigger_conf['name'])
 
-                    log.info('Creating trigger: %s' % test_name)
+                    log.info('Creating trigger: %s', test_name)
 
                     try:
                         tf.createTrigger(test_name, uuid=trigger_conf['uuid'].lower(), rule=trigger_conf['rule'])
                     except Exception as e:
-                        log.warning("Failed creating trigger '%s': %s" % (test_name, e))
+                        log.warning("Failed creating trigger '%s': %s", test_name, e)
                         raise
 
             for notification_conf in notifications:
@@ -495,7 +494,7 @@ class ZPTriggerAction(ZenPackLoader):
                 existing_notification = guidManager.getObject(str(notification_conf['guid']))
 
                 if existing_notification:
-                    log.info("Existing notification found, updating: %s" % existing_notification.id)
+                    log.info("Existing notification found, updating: %s", existing_notification.id)
 
                     subscriptions = set(existing_notification.subscriptions + notification_conf['subscriptions'])
                     notification_conf['uid'] = '/zport/dmd/NotificationSubscriptions/%s' % existing_notification.id
@@ -505,7 +504,7 @@ class ZPTriggerAction(ZenPackLoader):
                     try:
                         tf.updateNotification(**notification_conf)
                     except Exception as e:
-                        log.warning("Failed updating notification '%s': %s" % (existing_notification.id, e))
+                        log.warning("Failed updating notification '%s': %s", existing_notification.id, e)
                         raise
                 else:
                     test_id = notification_conf['id']
@@ -522,7 +521,7 @@ class ZPTriggerAction(ZenPackLoader):
                         # if we didn't find a unique name
                         raise Exception('Could not find unique name for notification: "%s".' % notification_conf['id'])
 
-                    log.info('Creating notification: %s' % test_id)
+                    log.info('Creating notification: %s', test_id)
                     tf.createNotification(str(test_id), notification_conf['action'], notification_conf['guid'])
 
                     notification_conf['uid'] = '/zport/dmd/NotificationSubscriptions/%s' % test_id
@@ -532,7 +531,7 @@ class ZPTriggerAction(ZenPackLoader):
                         tf.updateNotification(**notification_conf)
                     except Exception as e:
                         # couldnt create notification in zep
-                        log.warning("Failed creating notification '%s': %s" % (str(test_id), e))
+                        log.warning("Failed creating notification '%s': %s", test_id, e)
                         # remove notification from the zope side
                         tf.removeNotification(notification_conf['uid'])
                         raise
@@ -664,7 +663,7 @@ class EventDetailItemHandler(object):
             self.zep = getFacade('zep')
             items = configData.get(EventDetailItemHandler.key, [])
             for item in items:
-                log.info("Removing the following currently indexed detail by ZEP: %s" % item['key'])
+                log.info("Removing the following currently indexed detail by ZEP: %s", item['key'])
                 try:
                     self.zep.removeIndexedDetail(item['key'])
                 except ServiceResponseError as e:
@@ -678,7 +677,7 @@ class EventDetailItemHandler(object):
             self.zep = getFacade('zep')
             items = configData.get(EventDetailItemHandler.key, [])
             for item in items:
-                log.info("Upgrading the following to be indexed by ZEP: %s" % item)
+                log.info("Upgrading the following to be indexed by ZEP: %s", item)
                 detailItem = from_dict(EventDetailItem, item)
                 self.zep.updateIndexedDetailItem(detailItem)
 

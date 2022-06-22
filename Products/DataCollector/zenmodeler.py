@@ -13,7 +13,6 @@ For instance, find out what Ethernet interfaces and hard disks a server
 has available.
 This information should change much less frequently than performance metrics.
 """
-import Globals
 
 # IMPORTANT! The import of the pysamba.twisted.reactor module should come before
 # any other libraries that might possibly use twisted. This will ensure that
@@ -38,6 +37,7 @@ from Products.Zuul.utils import safe_hasattr as hasattr
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.DataCollector import Classifier
 from Products.DataCollector.plugins.DataMaps import PLUGIN_NAME_ATTR
+from Products.ZenCollector.cyberark import get_cyberark
 from Products.ZenCollector.interfaces import IEventService
 from Products.ZenCollector.daemon import parseWorkerOptions, addWorkerOptions
 
@@ -133,7 +133,7 @@ class ZenModeler(PBDaemon):
                 # self.startDelay = randint(10, 60) * 60
                 self.startDelay = randint(10, 60) * 1
                 self.immediate = 0
-                self.log.info('option "now" not specified, waiting %s seconds to start.' %
+                self.log.info('option "now" not specified, waiting %s seconds to start.',
                               self.startDelay)
         else:
             self.log.debug("Run in foreground, starting immediately.")
@@ -147,6 +147,7 @@ class ZenModeler(PBDaemon):
 
         self._modeledDevicesMetric = Metrology.meter("zenmodeler.modeledDevices")
         self._failuresMetric = Metrology.counter("zenmodeler.failures")
+        self.cyberark = get_cyberark()
 
     def reportError(self, error):
         """
@@ -255,7 +256,7 @@ class ZenModeler(PBDaemon):
         for loader in device.plugins:
             try:
                 plugin= loader.create()
-                self.log.debug( "Loaded plugin %s" % plugin.name() )
+                self.log.debug( "Loaded plugin %s", plugin.name() )
                 plugins.append( plugin )
                 valid_loaders.append( loader )
             except Plugins.PluginImportError as import_error:
@@ -328,7 +329,7 @@ class ZenModeler(PBDaemon):
             self.wmiCollect(device, ip, timeout)
         else:
             self.log.info("skipping WMI-based collection, PySamba zenpack not installed")
-        self.log.info("Collect on device {} for collector loop #{:03d}".format(device.id, self.collectorLoopIteration))
+        self.log.info("Collect on device %s for collector loop #%03d", device.id, self.collectorLoopIteration)
         self.pythonCollect(device, ip, timeout)
         self.cmdCollect(device, ip, timeout)
         self.snmpCollect(device, ip, timeout)
@@ -352,10 +353,10 @@ class ZenModeler(PBDaemon):
         try:
             plugins = self.selectPlugins(device, 'wmi')
             if not plugins:
-                self.log.info("No WMI plugins found for %s" % device.id)
+                self.log.info("No WMI plugins found for %s", device.id)
                 return
             if self.checkCollection(device):
-                self.log.info('WMI collector method for device %s' % device.id)
+                self.log.info('WMI collector method for device %s', device.id)
                 self.log.info("plugins: %s",
                         ", ".join(map(lambda p: p.name(), plugins)))
                 client = WMIClient(device, self, plugins)
@@ -381,10 +382,10 @@ class ZenModeler(PBDaemon):
         try:
             plugins = self.selectPlugins(device, "python")
             if not plugins:
-                self.log.info("No Python plugins found for %s" % device.id)
+                self.log.info("No Python plugins found for %s", device.id)
                 return
             if self.checkCollection(device):
-                self.log.info('Python collection device %s' % device.id)
+                self.log.info('Python collection device %s', device.id)
                 self.log.info("plugins: %s",
                         ", ".join(map(lambda p: p.name(), plugins)))
                 client = PythonClient(device, self, plugins)
@@ -413,7 +414,7 @@ class ZenModeler(PBDaemon):
         try:
             plugins = self.selectPlugins(device,"command")
             if not plugins:
-                self.log.info("No command plugins found for %s" % hostname)
+                self.log.info("No command plugins found for %s", hostname)
                 return
 
             protocol = getattr(device, 'zCommandProtocol', defaultProtocol)
@@ -429,8 +430,8 @@ class ZenModeler(PBDaemon):
                                    plugins=plugins, device=device,
                                    datacollector=self, isLoseConnection=True)
                 clientType = 'ssh'
-                self.log.info('Using SSH collection method for device %s'
-                              % hostname)
+                self.log.info('Using SSH collection method for device %s',
+                              hostname)
 
             elif protocol == 'telnet':
                 if commandPort == 22: commandPort = 23 #set default telnet
@@ -439,8 +440,8 @@ class ZenModeler(PBDaemon):
                                       plugins=plugins, device=device,
                                       datacollector=self)
                 clientType = 'telnet'
-                self.log.info('Using telnet collection method for device %s'
-                              % hostname)
+                self.log.info('Using telnet collection method for device %s',
+                              hostname)
 
             else:
                 info = ("Unknown protocol %s for device %s -- "
@@ -480,21 +481,21 @@ class ZenModeler(PBDaemon):
         try:
             hostname = device.id
             if getattr( device, "zSnmpMonitorIgnore", True ):
-                self.log.info("SNMP monitoring off for %s" % hostname)
+                self.log.info("SNMP monitoring off for %s", hostname)
                 return
 
             if not ip:
-                self.log.info("No manage IP for %s" % hostname)
+                self.log.info("No manage IP for %s", hostname)
                 return
 
             plugins = []
             plugins = self.selectPlugins(device,"snmp")
             if not plugins:
-                self.log.info("No SNMP plugins found for %s" % hostname)
+                self.log.info("No SNMP plugins found for %s", hostname)
                 return
 
             if self.checkCollection(device):
-                self.log.info('SNMP collection device %s' % hostname)
+                self.log.info('SNMP collection device %s', hostname)
                 self.log.info("plugins: %s",
                               ", ".join(map(lambda p: p.name(), plugins)))
                 client = SnmpClient(device.id, ip, self.options,
@@ -579,11 +580,11 @@ class ZenModeler(PBDaemon):
             hostname = device.id
             plugins = self.selectPlugins(device, "portscan")
             if not plugins:
-                self.log.info("No portscan plugins found for %s" % hostname)
+                self.log.info("No portscan plugins found for %s", hostname)
                 return
             if self.checkCollection(device):
-                self.log.info('Portscan collector method for device %s'
-                              % hostname)
+                self.log.info('Portscan collector method for device %s',
+                              hostname)
                 self.log.info("plugins: %s",
                     ", ".join(map(lambda p: p.name(), plugins)))
                 client = PortscanClient(device.id, ip, self.options,
@@ -606,7 +607,7 @@ class ZenModeler(PBDaemon):
         """
         delay = device.getSnmpLastCollection() + self.collage
         if delay >= float(DateTime.DateTime()) and device.getSnmpStatusNumber() == 0:
-            self.log.info("Skipped collection of %s" % device.id)
+            self.log.info("Skipped collection of %s", device.id)
             return False
         return True
 
@@ -661,11 +662,6 @@ class ZenModeler(PBDaemon):
                             datamaps = plugin.process(device, results, self.log)
                         if datamaps:
                             pluginStats.setdefault(plugin.name(), plugin.weight)
-                    except (SystemExit, KeyboardInterrupt) as ex:
-                        self.log.info( "Plugin %s terminated due to external"
-                                      " signal (%s)" % (plugin.name(), str(ex) )
-                                      )
-                        continue
                     except Exception as ex:
                         # NB: don't discard the plugin, as it might be a
                         #     temporary issue
@@ -733,11 +729,11 @@ class ZenModeler(PBDaemon):
             self._modeledDevicesMetric.mark()
             # result is now the result of remote_applyDataMaps (from processClient)
             if result and isinstance(result, (basestring, Failure)):
-                self.log.error("Client %s finished with message: %s" %
-                               (device.id, result))
+                self.log.error("Client %s finished with message: %s",
+                               device.id, result)
                 self._failuresMetric.increment()
             else:
-                self.log.debug("Client %s finished" % device.id)
+                self.log.debug("Client %s finished", device.id)
 
             try:
                 self.clients.remove(collectorClient)
@@ -746,7 +742,7 @@ class ZenModeler(PBDaemon):
                 self.log.debug("Client %s not found in in the list"
                               " of active clients",
                               device.id)
-            self.log.info("Finished processing client within collector loop #{0:03d}".format(self.collectorLoopIteration))
+            self.log.info("Finished processing client within collector loop #%03d", self.collectorLoopIteration)
             d = drive(self.fillCollectionSlots)
             d.addErrback(self.fillError)
 
@@ -770,7 +766,7 @@ class ZenModeler(PBDaemon):
         @param reason: error message
         @type reason: string
         """
-        self.log.error("Unable to fill collection slots: %s" % reason)
+        self.log.error("Unable to fill collection slots: %s", reason)
 
     def cycleTime(self):
         """
@@ -895,6 +891,10 @@ class ZenModeler(PBDaemon):
                     if d.skipModelMsg:
                         self.log.info(d.skipModelMsg)
                     else:
+                        if self.cyberark:
+                            yield self.cyberark.update_config(d.id, d)
+                            driver.next()
+                            self.log.info('config updated')
                         self.collectDevice(d)
                 else:
                     self.log.info("Device %s not returned is it down?", device)
@@ -1148,7 +1148,7 @@ class ZenModeler(PBDaemon):
         self.start = time.time()
         self.collectorLoopIteration = self.collectorLoopIteration + 1
 
-        self.log.info("Starting collector loop #{:03d}...".format(self.collectorLoopIteration))
+        self.log.info("Starting collector loop #%03d...", self.collectorLoopIteration)
         yield self.getDeviceList()
         deviceList = driver.next()
         self.log.debug("getDeviceList returned %s devices", len(deviceList))
@@ -1187,7 +1187,7 @@ class ZenModeler(PBDaemon):
         @todo: implement
         """
         # we fetch the device list before every scan
-        self.log.debug("Asynch deleteDevice %s" % device)
+        self.log.debug("Asynch deleteDevice %s", device)
 
     def remote_deleteDevices(self, devices):
         """
@@ -1198,7 +1198,7 @@ class ZenModeler(PBDaemon):
         @todo: implement
         """
         # we fetch the device list before every scan
-        self.log.debug("Asynch deleteDevices {0}".format(len(devices)))
+        self.log.debug("Asynch deleteDevices %s", len(devices))
 
 
 if __name__ == '__main__':

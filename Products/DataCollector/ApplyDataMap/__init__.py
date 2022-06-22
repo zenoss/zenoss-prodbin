@@ -7,11 +7,11 @@
 #
 ##############################################################################
 
-import Globals
-
-from .applydatamap import (
-    ApplyDataMap, notify, isSameData, IncrementalDataMap,
-)
-from .events import (
-    IDatamapUpdateEvent, IDatamapAddEvent, IDatamapProcessedEvent, IDatamapAppliedEvent
+from .applydatamap import ApplyDataMap, notify, IncrementalDataMap  # noqa F401
+from .datamaputils import isSameData  # noqa F401
+from .events import (  # noqa F401
+    IDatamapAddEvent,
+    IDatamapAppliedEvent,
+    IDatamapProcessedEvent,
+    IDatamapUpdateEvent,
 )

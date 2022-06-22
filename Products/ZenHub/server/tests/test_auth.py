@@ -15,7 +15,7 @@ from mock import Mock, patch
 from ..auth import HubRealm, getCredentialCheckers, pb
 from ..avatar import HubAvatar
 
-PATH = {'src': 'Products.ZenHub.server.auth'}
+PATH = {"src": "Products.ZenHub.server.auth"}
 
 
 class HubRealmTest(TestCase):
@@ -42,7 +42,7 @@ class HubRealmTest(TestCase):
 class LoadCheckersTest(TestCase):
     """Test the LoadCheckers class."""
 
-    @patch('{src}.checkers'.format(**PATH), spec=True)
+    @patch("{src}.checkers".format(**PATH), spec=True)
     def test_getCredentialCheckers(self, checkers):
         pwdfile = "passwordfile"
         checker = checkers.FilePasswordDB.return_value

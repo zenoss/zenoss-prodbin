@@ -56,7 +56,7 @@ class ifconfig(CommandPlugin):
 
 
     def process(self, device, results, log):
-        log.info('Collecting interfaces for device %s' % device.id)
+        log.info('Collecting interfaces for device %s', device.id)
         rm = self.relMap()
 
         for chunk in self.chunk(results):

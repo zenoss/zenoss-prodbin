@@ -23,8 +23,8 @@ class uname(CommandPlugin):
 
     def process(self, device, results, log):
         """Collect command-line information from this device"""
-        log.info("Processing the OS uname info for device %s" % device.id)
+        log.info("Processing the OS uname info for device %s", device.id)
         om = self.objectMap()
         om.uname = results.strip()
-        log.debug("uname = %s" % om.uname )
+        log.debug("uname = %s", om.uname )
         return om

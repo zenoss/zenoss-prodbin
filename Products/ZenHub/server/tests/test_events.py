@@ -12,7 +12,9 @@ from __future__ import absolute_import
 from unittest import TestCase
 
 from ..events import (
-    ServiceCallEvent, ServiceCallReceived, ServiceCallStarted,
+    ServiceCallEvent,
+    ServiceCallReceived,
+    ServiceCallStarted,
     ServiceCallCompleted,
 )
 from ..utils import subTest
@@ -39,15 +41,24 @@ class ServiceCallReceivedTest(TestCase):
 
     def test_default_values(self):
         event = ServiceCallReceived()
-        self.assertTrue(all(
-            getattr(event, name) is None
-            for name in ServiceCallReceived.__slots__
-        ))
+        self.assertTrue(
+            all(
+                getattr(event, name) is None
+                for name in ServiceCallReceived.__slots__
+            )
+        )
 
     def test_expected_init_args(self):
         names = (
-            "id", "monitor", "service", "method", "args", "kwargs",
-            "timestamp", "queue", "priority",
+            "id",
+            "monitor",
+            "service",
+            "method",
+            "args",
+            "kwargs",
+            "timestamp",
+            "queue",
+            "priority",
         )
         args = {k: None for k in names}
         ServiceCallReceived(**args)
@@ -68,17 +79,27 @@ class ServiceCallStartedTest(TestCase):
 
     def test_default_values(self):
         event = ServiceCallStarted(attempts=1)
-        self.assertTrue(all(
-            getattr(event, name) is None
-            for name in ServiceCallEvent.__slots__
-            if name != "attempts"
-        ))
+        self.assertTrue(
+            all(
+                getattr(event, name) is None
+                for name in ServiceCallEvent.__slots__
+                if name != "attempts"
+            )
+        )
         self.assertEqual(1, event.attempts)
 
     def test_expected_init_args(self):
         names = (
-            "id", "monitor", "service", "method", "args", "kwargs",
-            "timestamp", "queue", "priority", "worker",
+            "id",
+            "monitor",
+            "service",
+            "method",
+            "args",
+            "kwargs",
+            "timestamp",
+            "queue",
+            "priority",
+            "worker",
         )
         args = {k: None for k in names}
         args["attempts"] = 1
@@ -120,33 +141,39 @@ class ServiceCallCompletedTest(TestCase):
     def test_nominal_init_failure(self):
         exc = RuntimeError()
         event = ServiceCallCompleted(attempts=1, error=exc)
-        self.assertTrue(all(
-            getattr(event, name) is None
-            for name in ServiceCallEvent.__slots__
-            if name not in ("attempts", "error")
-        ))
+        self.assertTrue(
+            all(
+                getattr(event, name) is None
+                for name in ServiceCallEvent.__slots__
+                if name not in ("attempts", "error")
+            )
+        )
         self.assertEqual(1, event.attempts)
         self.assertIs(exc, event.error)
 
     def test_nominal_init_retry(self):
         exc = RuntimeError()
         event = ServiceCallCompleted(attempts=1, retry=exc)
-        self.assertTrue(all(
-            getattr(event, name) is None
-            for name in ServiceCallEvent.__slots__
-            if name not in ("attempts", "retry")
-        ))
+        self.assertTrue(
+            all(
+                getattr(event, name) is None
+                for name in ServiceCallEvent.__slots__
+                if name not in ("attempts", "retry")
+            )
+        )
         self.assertEqual(1, event.attempts)
         self.assertIs(exc, event.retry)
 
     def test_nominal_init_success(self):
         result = 10
         event = ServiceCallCompleted(attempts=1, result=result)
-        self.assertTrue(all(
-            getattr(event, name) is None
-            for name in ServiceCallEvent.__slots__
-            if name not in ("attempts", "result")
-        ))
+        self.assertTrue(
+            all(
+                getattr(event, name) is None
+                for name in ServiceCallEvent.__slots__
+                if name not in ("attempts", "result")
+            )
+        )
         self.assertEqual(1, event.attempts)
         self.assertIs(result, event.result)
 

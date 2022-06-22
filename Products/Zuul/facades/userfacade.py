@@ -28,11 +28,11 @@ class UserFacade(ZuulFacade):
         userManager = self._dmd.getPhysicalRoot().acl_users.userManager
         userManager.updateUserPassword('admin', newPassword)
 
-    def removeUsers(self, userIds):
-        ids = userIds
+    def removeUsers(self, users):
+        ids = users
         if isinstance(ids, basestring):
-            userIds = [ids]
-        return self._root.manage_deleteUsers(userIds)
+            users = [ids]
+        return self._root.manage_deleteUsers(users)
 
     def getUsers(self, start=0, limit=50, sort='name', dir='ASC', name=None):
         users = map(IInfo, self._dmd.ZenUsers.getAllUserSettings())
@@ -42,10 +42,14 @@ class UserFacade(ZuulFacade):
         total = len(sortedUsers)
         return SearchResults(iter(sortedUsers[start:limit]), total, total, areBrains=False)
 
-    def addUser(self, id, password, email, roles):
-        propertiedUser = self._root.manage_addUser(id, password, roles)
+    def addUser(self, name, password, email, groups, roles):
+        propertiedUser = self._root.manage_addUser(name, password, roles)
         user = self._root.getUserSettings(propertiedUser.getId())
         user.email = email
+
+        # Create any new groups and add the user to the listed groups
+        self.addUsersToGroups([name], groups)
+
         return IInfo(user)
 
     def getGroups(self, start=0, limit=50, sort='id', dir='ASC', name=None):

@@ -16,40 +16,6 @@
 # 
 ##############################################################################
 
-
-# Defaults
-
-default_zendshome=/opt/zends
-default_zendsport=13306
-
-# environment variables
-# when we are upgrading and have zends installed
-# update our global conf to use those ports
-if [ -f /etc/profile.d/zends_env.sh ]; then
-    source /etc/profile.d/zends_env.sh
-    if [ "${USE_ZENDS}" = "1" ] ; then
-        # Only make changes to Zenoss global.conf if ZenDS is installed
-        # locally (assuming that $ZENDS/etc/zends.cnf implies a locally
-        # installed ZenDS).
-        if [ -z "$ZENDSHOME" ] ; then
-            if [ -d "${default_zendshome}" ] ; then
-                ZENDSHOME=${default_zendshome}
-            fi
-        fi
-        if [ -f "$ZENDSHOME/etc/zends.cnf" ] ; then
-            socket=`$ZENDSHOME/bin/my_print_defaults --defaults-file=$ZENDSHOME/etc/zends.cnf mysql client | grep "\-\-socket=" | head -1 | cut -f2 -d'='`
-            if [ ! -z "${socket}" ] ; then
-                $ZENHOME/bin/python $ZENHOME/bin/zenglobalconf -u zodb-socket=${socket}
-            fi
-            port=`$ZENDSHOME/bin/my_print_defaults --defaults-file=$ZENDSHOME/etc/zends.cnf mysql client | grep "\-\-port=" | cut -f2 -d'='`
-            if [ -z "${port}" ] ; then
-                port=${default_zendsport}
-            fi
-            $ZENHOME/bin/python $ZENHOME/bin/zenglobalconf -u zep-port=${port} zodb-port=${port}
-        fi
-    fi
-fi
-
 # load startup parameters
 . ${ZENHOME}/bin/zenoss_startup_config
 

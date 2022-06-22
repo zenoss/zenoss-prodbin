@@ -36,7 +36,6 @@ import cPickle
 from exceptions import EOFError, IOError
 import glob
 
-import Globals
 from twisted.internet import defer, reactor
 from Products.ZenUtils.Timeout import timeout
 from Products.ZenEvents.ZenEventClasses import Error, Warning, Info, \
@@ -67,13 +66,13 @@ class CaptureReplay(object):
         Inside of the initializing class, call these functions first.
         """
         if self.options.captureFilePrefix and len(self.options.replayFilePrefix) > 0:
-            self.log.error( "Can't specify both --captureFilePrefix and -replayFilePrefix" \
+            self.log.error( "Can't specify both --captureFilePrefix and -replayFilePrefix"
                  " at the same time.  Exiting" )
             sys.exit(1)
 
         if self.options.captureFilePrefix and not self.options.captureAll and \
             self.options.captureIps == '':
-            self.log.warn( "Must specify either --captureIps or --captureAll for" + \
+            self.log.warn( "Must specify either --captureIps or --captureAll for"
                  " --capturePrefix to take effect.  Ignoring option --capturePrefix" )
 
         if len(self.options.replayFilePrefix) > 0:
@@ -103,11 +102,11 @@ class CaptureReplay(object):
         if not self.options.captureFilePrefix:
             return
         if not self.options.captureAll and hostname not in self.captureIps:
-            self.log.debug( "Received packet from %s, but not in %s" % (hostname,
-                            self.captureIps))
+            self.log.debug( "Received packet from %s, but not in %s", hostname,
+                            self.captureIps)
             return
 
-        self.log.debug( "Capturing packet from %s" % hostname )
+        self.log.debug( "Capturing packet from %s", hostname )
         name = "%s-%s-%d" % (self.options.captureFilePrefix, hostname, self.captureSerialNum)
         try:
             packet = self.convertPacketToPython(*packetInfo)
@@ -117,7 +116,7 @@ class CaptureReplay(object):
             capFile.close()
             self.captureSerialNum += 1
         except Exception:
-            self.log.exception("Couldn't write capture data to '%s'" % name )
+            self.log.exception("Couldn't write capture data to '%s'", name )
 
     def replayAll(self):
         """
@@ -142,7 +141,7 @@ class CaptureReplay(object):
         self.loaded = 0
         self.replayed = 0
         for file in set(files):
-            self.log.debug( "Attempting to read packet data from '%s'" % file )
+            self.log.debug( "Attempting to read packet data from '%s'", file )
             try:
                 fp = open( file, "rb" )
                 packet= cPickle.load(fp)
@@ -151,7 +150,7 @@ class CaptureReplay(object):
 
             except (IOError, EOFError):
                 fp.close()
-                self.log.exception( "Unable to load packet data from %s" % file )
+                self.log.exception( "Unable to load packet data from %s", file )
                 continue
 
             self.log.debug("Calling application-specific replay() method")
@@ -175,7 +174,7 @@ class CaptureReplay(object):
         sure that all of our deferreds have exited before pulling the plug.
         """
         if self.replayed == self.loaded:
-            self.log.info("Loaded and replayed %d packets" % self.replayed)
+            self.log.info("Loaded and replayed %d packets", self.replayed)
             reactor.stop()
         else:
             reactor.callLater(1, self.replayStop)

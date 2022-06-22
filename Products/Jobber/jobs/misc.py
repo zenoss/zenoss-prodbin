@@ -121,6 +121,7 @@ def pause(self, seconds):
 )
 def rolesgroups(self):
     from Products.Zuul.utils import allowedRolesAndGroups
+
     self.log.info(allowedRolesAndGroups(self.dmd))
 
 
@@ -128,7 +129,7 @@ def rolesgroups(self):
     bind=True,
     name="zen.zenjobs.test.loggertest",
     summary="Test different loggers",
-    description_template="Test the task logger, zen logger, etc."
+    description_template="Test the task logger, zen logger, etc.",
 )
 def loggertest(self):
     self.log.info("This is a test")
@@ -156,7 +157,7 @@ def loggertest(self):
         logging.getLevelName(stderr.getEffectiveLevel()),
     )
     self.log.info(
-        "stderr's log level is %s", logging.getLevelName(stderr.level),
+        "stderr's log level is %s", logging.getLevelName(stderr.level)
     )
     self.log.info("stderr.propagate -> %s", stderr.propagate)
     self.log.info(
@@ -164,7 +165,7 @@ def loggertest(self):
         logging.getLevelName(stdout.getEffectiveLevel()),
     )
     self.log.info(
-        "stdout's log level is %s", logging.getLevelName(stdout.level),
+        "stdout's log level is %s", logging.getLevelName(stdout.level)
     )
     self.log.info("stdout.propagate -> %s", stdout.propagate)
     rootlog = logging.getLogger()
@@ -173,5 +174,5 @@ def loggertest(self):
         logging.getLevelName(rootlog.getEffectiveLevel()),
     )
     self.log.info(
-        "rootlog's log level is %s", logging.getLevelName(rootlog.level),
+        "rootlog's log level is %s", logging.getLevelName(rootlog.level)
     )

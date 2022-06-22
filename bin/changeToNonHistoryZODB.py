@@ -18,7 +18,6 @@ if os.environ.get('ZENHOME', None) is None:
     print "e.g.,  su - zenoss\n"
     sys.exit(2)
 
-import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from ZODB.POSException import StorageError
 import os.path

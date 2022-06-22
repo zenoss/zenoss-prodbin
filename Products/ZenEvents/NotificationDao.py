@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.guid.guid import GUIDManager
@@ -44,11 +43,11 @@ class NotificationDao(object):
             if notification.isActive():
                 if self.notificationSubscribesToSignal(notification, signal):
                     active_matching_notifications.append(notification)
-                    log.debug('Found matching notification: %s' % notification)
+                    log.debug('Found matching notification: %s', notification)
                 else:
-                    log.debug('Notification "%s" does not subscribe to this signal.' % notification)
+                    log.debug('Notification "%s" does not subscribe to this signal.', notification)
             else:
-                log.debug('Notification "%s" is not active.' % notification)
+                log.debug('Notification "%s" is not active.', notification)
 
         return active_matching_notifications
 

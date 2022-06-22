@@ -16,8 +16,7 @@ from zope.schema.vocabulary import SimpleVocabulary
 
 
 class IJobRecord(Interface):
-    """
-    """
+    """ """
 
     jobid = TextLine(
         title=u"Job ID",
@@ -56,23 +55,19 @@ class IJobRecord(Interface):
     )
 
     created = Datetime(
-        title=u"Created",
-        description=u"When the job was created"
+        title=u"Created", description=u"When the job was created"
     )
 
     started = Datetime(
-        title=u"Started",
-        description=u"When the job began executing"
+        title=u"Started", description=u"When the job began executing"
     )
 
     finished = Datetime(
-        title=u"Finished",
-        description=u"When the job finished executing"
+        title=u"Finished", description=u"When the job finished executing"
     )
 
     duration = Timedelta(
-        title=u"Duration",
-        description=u"How long the job has run"
+        title=u"Duration", description=u"How long the job has run"
     )
 
     complete = Bool(
@@ -81,8 +76,7 @@ class IJobRecord(Interface):
     )
 
     def abort():
-        """Abort the job.
-        """
+        """Abort the job."""
 
     def wait(timeout=10.0):
         """Wait until the job has completed or the timeout duration has
@@ -91,5 +85,4 @@ class IJobRecord(Interface):
 
 
 class IJobStore(Interface):
-    """Interface tag for JobStore.
-    """
+    """Interface tag for JobStore."""

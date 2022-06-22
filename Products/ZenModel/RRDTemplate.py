@@ -9,7 +9,7 @@
 
 
 import sys
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenossSecurity import *
@@ -403,7 +403,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         return newGraphPoints
 
 
-    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addDataSourcesToGraphs')
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addThresholdsToGraphs')
     def manage_addThresholdsToGraphs(self, ids=(), graphIds=(), REQUEST=None):
         """
         Create GraphPoints for all given thresholds that are not already

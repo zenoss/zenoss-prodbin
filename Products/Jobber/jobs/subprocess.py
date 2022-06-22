@@ -59,7 +59,7 @@ class SubprocessJob(Job):
         try:
             try:
                 self.log.info(
-                    "Spawning subprocess: %s", self.getJobDescription(cmd),
+                    "Spawning subprocess: %s", self.getJobDescription(cmd)
                 )
                 start = time.time()
                 process = subprocess.Popen(
@@ -73,7 +73,8 @@ class SubprocessJob(Job):
             except Exception as ex:
                 summary = str(ex)
                 message = "Error executing command %s: %s" % (
-                    self.getJobDescription(cmd), ex,
+                    self.getJobDescription(cmd),
+                    ex,
                 )
             else:
                 exitcode, output = self._handle_process(process)
@@ -83,7 +84,9 @@ class SubprocessJob(Job):
                     return exitcode
                 summary = "Command failed with exit code %s" % exitcode
                 message = "Exit code %s for command %s; %s" % (
-                    exitcode, self.getJobDescription(cmd), output,
+                    exitcode,
+                    self.getJobDescription(cmd),
+                    output,
                 )
             self.log.error(message)
             raise SubprocessJobFailed(summary)
@@ -154,9 +157,9 @@ class LogFormatterContext(object):
 def getLogFormattingContext():
     """Returns a context manager."""
     zenlog = logging.getLogger("zen")
-    handler = next((
-        h for h in zenlog.handlers if isinstance(h, TaskLogFileHandler)
-    ), None)
+    handler = next(
+        (h for h in zenlog.handlers if isinstance(h, TaskLogFileHandler)), None
+    )
     if handler:
         return LogFormatterContext(handler, logging.Formatter("%(message)s"))
     return null_context

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-import Globals
 import servicemigration as sm
 sm.require("1.0.0")
 

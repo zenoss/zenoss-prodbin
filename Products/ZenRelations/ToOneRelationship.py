@@ -23,7 +23,7 @@ log = logging.getLogger("zen.Relations")
 from RelationshipBase import RelationshipBase
 
 from AccessControl.class_init import InitializeClass
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl import ClassSecurityInfo
 from App.Dialogs import MessageDialog
 from Acquisition import aq_base
@@ -123,7 +123,7 @@ class ToOneRelationship(RelationshipBase):
                 remoteRel._remove(self.__primary_parent__)
             except ObjectNotFound:
                 message = log_tb(sys.exc_info())
-                log.error('Remote remove failed. Run "zenchkrels -r -x1". ' + message)
+                log.error('Remote remove failed. Run "zenchkrels -r -x1". %s', message)
 
 
     security.declareProtected('View', 'getRelatedId')
@@ -209,9 +209,9 @@ class ToOneRelationship(RelationshipBase):
             ppath = self.obj.getPrimaryPath()
             getObjByPath(self, ppath)
         except (KeyError, NotFound):
-            log.error("object %s in relation %s has been deleted " \
-                         "from its primary path",
-                         self.obj.getPrimaryId(), self.getPrimaryId())
+            log.error("object %s in relation %s has been deleted "
+                      "from its primary path",
+                      self.obj.getPrimaryId(), self.getPrimaryId())
             if repair:
                 log.warn("removing object %s from relation %s",
                          self.obj.getPrimaryId(), self.getPrimaryId())
@@ -224,7 +224,7 @@ class ToOneRelationship(RelationshipBase):
             rname = self.remoteName()
         except ZenSchemaError:
             path = parobj.getPrimaryUrlPath()
-            log.exception("Object %s (parent %s) has a bad schema" % (self.obj, path))
+            log.exception("Object %s (parent %s) has a bad schema", self.obj, path)
             log.warn("Might be able to fix by re-installing ZenPack")
             return
 

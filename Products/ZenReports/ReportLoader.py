@@ -17,7 +17,6 @@ import sys
 import re
 import transaction
 import logging
-import Globals
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath

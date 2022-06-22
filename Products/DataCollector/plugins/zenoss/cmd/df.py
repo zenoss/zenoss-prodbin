@@ -35,7 +35,7 @@ class df(CommandPlugin):
 
 
     def process(self, device, results, log):
-        log.info('Collecting filesystems for device %s' % device.id)
+        log.info('Collecting filesystems for device %s', device.id)
         skipfsnames = getattr(device, 'zFileSystemMapIgnoreNames', None)
         rm = self.relMap()
         rlines = results.split("\n")

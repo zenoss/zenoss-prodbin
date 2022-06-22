@@ -24,7 +24,9 @@ import calendar
 import logging
 log = logging.getLogger("zen.MaintenanceWindows")
 
-import Globals
+
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -284,7 +286,7 @@ class MaintenanceWindow(ZenModelRM):
             timezone = time.strftime('%Z')
         try:
             tzInstance = tz.gettz(timezone)
-        except:
+        except Exception:
             msgs.append("'timezone' has wrong value")
     
         if startDateTime:
@@ -737,7 +739,7 @@ class MaintenanceWindow(ZenModelRM):
         """
         Hook for entering the Maintenance Window: call if you override
         """
-        log.info("Maintenance window %s starting" % self.displayName())
+        log.info("Maintenance window %s starting", self.displayName())
         if not now:
             now = time.time()
 
@@ -746,20 +748,20 @@ class MaintenanceWindow(ZenModelRM):
         self.started = now
         self.setProdState(self.startProductionState, batchSize=batchSize,
                           inTransaction=inTransaction)
-        log.info("Finished start of maintenance window %s" % self.displayName())
+        log.info("Finished start of maintenance window %s", self.displayName())
 
 
     def end(self, batchSize=None, inTransaction=False):
         """
         Hook for leaving the Maintenance Window: call if you override
         """
-        log.info("Maintenance window %s ending" % self.displayName())
+        log.info("Maintenance window %s ending", self.displayName())
         # Make sure that the window has ended before the calculation of
         # the production state occurs.
         self.started = None
         self.setProdState(self.stopProductionState, ending=True,
                           batchSize=batchSize, inTransaction=inTransaction)
-        log.info("Finished end of maintenance window %s" % self.displayName())
+        log.info("Finished end of maintenance window %s", self.displayName())
 
 
     def execute(self, now=None, batchSize=None, inTransaction=False):

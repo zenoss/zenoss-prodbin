@@ -195,14 +195,14 @@ class AsyncExecutor(object):
             self._log.debug("Executor has stopped  executor=%s", self._id)
         except (error.TimeoutError, defer.TimeoutError) as ex:
             self._log.error(
-                "Task timed out  executor={} task-id={} label={}",
+                "Task timed out  executor=%s task-id=%s label=%s",
                 self._id, task.id, task.label,
             )
             task.error(ex)
         except defer.CancelledError as ex:
             self._log.debug(
                 "Task cancelled (probably due to a connection timeout)  "
-                "executor={} task-id={} label={}",
+                "executor=%s task-id=%s label=%s",
                 self._id, task.id, task.label,
             )
             task.error(ex)

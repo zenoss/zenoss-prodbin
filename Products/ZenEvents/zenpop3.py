@@ -21,7 +21,6 @@ Turn email messages obtained from POP3 accounts into events.
 import logging
 import socket
 
-import Globals
 import zope.interface
 
 from twisted.mail.pop3client import POP3Client
@@ -153,7 +152,7 @@ class POPProtocol(POP3Client):
 
         retreivers = []
         for i in range(len(sizes)):
-            log.debug('Retrieving message #%d...' % i)
+            log.debug('Retrieving message #%d...', i)
             d = self.retrieve(i)
             d.addCallback(self._gotMessageLines)
             retreivers.append(d)
@@ -170,7 +169,7 @@ class POPProtocol(POP3Client):
         deleters = []
         if not self.factory.nodelete:
             for index in range(len(self.sizes)):
-                log.info('Deleting message  #%d...' % index)
+                log.info('Deleting message  #%d...', index)
                 d = self.delete(index)
                 deleters.append(d)
 

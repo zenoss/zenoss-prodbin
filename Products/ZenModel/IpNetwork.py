@@ -25,7 +25,7 @@ from ipaddr import IPAddress, IPNetwork
 from BTrees.OOBTree import OOBTree
 from OFS.SimpleItem import SimpleItem
 
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
@@ -831,7 +831,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             if organizer is None:
                 if xmlrpc: return 1 # XML-RPC error
                 log.error("Couldn't obtain a network entry for '%s' "
-                            "-- does it exist?" % organizerName)
+                            "-- does it exist?", organizerName)
                 continue
 
             zDiscCommand = getattr(organizer, "zZenDiscCommand", None)

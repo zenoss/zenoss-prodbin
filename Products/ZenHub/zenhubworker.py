@@ -27,15 +27,17 @@ from twisted.internet import defer, reactor, error, task
 from twisted.spread import pb
 from zope.component import getGlobalSiteManager
 
-import Globals  # noqa: F401
 import Products.ZenHub as ZENHUB_MODULE
 
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT
 from Products.ZenHub.metricmanager import MetricManager, IMetricManager
 from Products.ZenHub.server import (
-    ServiceLoader, ServiceManager, ServiceRegistry,
-    UnknownServiceError, ZenPBClientFactory,
+    ServiceLoader,
+    ServiceManager,
+    ServiceRegistry,
+    UnknownServiceError,
+    ZenPBClientFactory,
 )
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 from Products.ZenUtils.debugtools import ContinuousProfiler
@@ -66,10 +68,12 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         self.__reactor = reactor
 
         if self.options.profiling:
-            self.profiler = ContinuousProfiler('ZenHubWorker', log=self.log)
+            self.profiler = ContinuousProfiler("ZenHubWorker", log=self.log)
             self.profiler.start()
             reactor.addSystemEventTrigger(
-                'before', 'shutdown', self.profiler.stop,
+                "before",
+                "shutdown",
+                self.profiler.stop,
             )
 
         self.current = IDLE
@@ -86,31 +90,35 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
 
         # Configure/initialize the ZenHub client
         creds = UsernamePassword(
-            self.options.hubusername, self.options.hubpassword,
+            self.options.hubusername, self.options.hubpassword
         )
         endpointDescriptor = "tcp:{host}:{port}".format(
-            host=self.options.hubhost, port=self.options.hubport,
+            host=self.options.hubhost, port=self.options.hubport
         )
         endpoint = clientFromString(reactor, endpointDescriptor)
         self.__client = ZenHubClient(
-            reactor, endpoint, creds, self,
-            self.options.hub_response_timeout, self.worklistId,
+            reactor,
+            endpoint,
+            creds,
+            self,
+            self.options.hub_response_timeout,
+            self.worklistId,
         )
 
         # Setup Metric Reporting
         self.log.debug("Creating async MetricReporter")
         self._metric_manager = MetricManager(
             daemon_tags={
-                'zenoss_daemon': 'zenhub_worker_%s' % self.instanceId,
-                'zenoss_monitor': self.options.monitor,
-                'internal': True,
+                "zenoss_daemon": "zenhub_worker_%s" % self.instanceId,
+                "zenoss_monitor": self.options.monitor,
+                "internal": True,
             },
         )
         # Make the metric manager available via zope.component.getUtility
         getGlobalSiteManager().registerUtility(
             self._metric_manager,
             IMetricManager,
-            name='zenhub_worker_metricmanager',
+            name="zenhub_worker_metricmanager",
         )
 
     def start(self):
@@ -122,16 +130,16 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
 
         self.__client.start()
         self.__reactor.addSystemEventTrigger(
-            'before', 'shutdown', self.__client.stop,
+            "before", "shutdown", self.__client.stop
         )
 
         self._metric_manager.start()
         self.__reactor.addSystemEventTrigger(
-            'before', 'shutdown', self._metric_manager.stop,
+            "before", "shutdown", self._metric_manager.stop
         )
 
         self.__reactor.addSystemEventTrigger(
-            "after", "shutdown", self.reportStats,
+            "after", "shutdown", self.reportStats
         )
 
     def audit(self, action):
@@ -210,7 +218,8 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         if self.current != IDLE:
             self.log.info(
                 "Currently performing %s, elapsed %.2f s",
-                self.current, now - self.currentStart,
+                self.current,
+                now - self.currentStart,
             )
         else:
             self.log.info("Currently IDLE")
@@ -218,25 +227,36 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
             loglines = ["Running statistics:"]
             sorted_data = sorted(
                 self.__registry.iteritems(),
-                key=lambda kv: kv[0][1].rpartition('.')[-1],
+                key=lambda kv: kv[0][1].rpartition(".")[-1],
             )
-            loglines.append(" %-50s %-32s %8s %12s %8s %s" % (
-                "Service", "Method", "Count", "Total", "Average", "Last Run",
-            ))
+            loglines.append(
+                " %-50s %-32s %8s %12s %8s %s"
+                % (
+                    "Service",
+                    "Method",
+                    "Count",
+                    "Total",
+                    "Average",
+                    "Last Run",
+                )
+            )
             for (_, svc), svcob in sorted_data:
-                svc = "%s" % svc.rpartition('.')[-1]
+                svc = "%s" % svc.rpartition(".")[-1]
                 for method, stats in sorted(svcob.callStats.items()):
                     loglines.append(
-                        " - %-48s %-32s %8d %12.2f %8.2f %s" % (
-                            svc, method,
+                        " - %-48s %-32s %8d %12.2f %8.2f %s"
+                        % (
+                            svc,
+                            method,
                             stats.numoccurrences,
                             stats.totaltime,
                             stats.totaltime / stats.numoccurrences
-                            if stats.numoccurrences else 0.0,
+                            if stats.numoccurrences
+                            else 0.0,
                             isoDateTime(stats.lasttime),
                         ),
                     )
-            self.log.info('\n'.join(loglines))
+            self.log.info("\n".join(loglines))
         else:
             self.log.info("no service activity statistics")
 
@@ -287,41 +307,63 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         """Add optparse options to the options parser."""
         ZCmdBase.buildOptions(self)
         self.parser.add_option(
-            '--hubhost', dest='hubhost', default='localhost',
+            "--hubhost",
+            dest="hubhost",
+            default="localhost",
             help="Host to use for connecting to ZenHub",
         )
         self.parser.add_option(
-            '--hubport', dest='hubport', type='int', default=PB_PORT,
+            "--hubport",
+            dest="hubport",
+            type="int",
+            default=PB_PORT,
             help="Port to use for connecting to ZenHub",
         )
         self.parser.add_option(
-            '--hubusername', dest='hubusername', default='admin',
+            "--hubusername",
+            dest="hubusername",
+            default="admin",
             help="Login name to use when connecting to ZenHub",
         )
         self.parser.add_option(
-            '--hubpassword', dest='hubpassword', default='zenoss',
+            "--hubpassword",
+            dest="hubpassword",
+            default="zenoss",
             help="password to use when connecting to ZenHub",
         )
         self.parser.add_option(
-            '--hub-response-timeout', dest='hub_response_timeout',
-            default=30, type='int',
+            "--hub-response-timeout",
+            dest="hub_response_timeout",
+            default=30,
+            type="int",
             help="ZenHub response timeout interval (in seconds) "
             "default: %default",
         )
         self.parser.add_option(
-            '--call-limit', dest='call_limit', type='int', default=200,
+            "--call-limit",
+            dest="call_limit",
+            type="int",
+            default=200,
             help="Maximum number of remote calls before restarting worker",
         )
         self.parser.add_option(
-            '--profiling', dest='profiling',
-            action='store_true', default=False, help="Run with profiling on",
+            "--profiling",
+            dest="profiling",
+            action="store_true",
+            default=False,
+            help="Run with profiling on",
         )
         self.parser.add_option(
-            '--monitor', dest='monitor', default='localhost',
-            help='Name of the performance monitor this hub runs on',
+            "--monitor",
+            dest="monitor",
+            default="localhost",
+            help="Name of the performance monitor this hub runs on",
         )
         self.parser.add_option(
-            '--workerid', dest='workerid', type='int', default=0,
+            "--workerid",
+            dest="workerid",
+            type="int",
+            default=0,
             help=SUPPRESS_HELP,
         )
 
@@ -336,7 +378,13 @@ class ZenHubClient(object):
     """
 
     def __init__(
-        self, reactor, endpoint, credentials, worker, timeout, worklistId,
+        self,
+        reactor,
+        endpoint,
+        credentials,
+        worker,
+        timeout,
+        worklistId,
     ):
         """Initialize a ZenHubClient instance.
 
@@ -370,7 +418,8 @@ class ZenHubClient(object):
         self.__stopping = False
         factory = ZenPBClientFactory()
         self.__service = ClientService(
-            self.__endpoint, factory,
+            self.__endpoint,
+            factory,
             retryPolicy=backoffPolicy(initialDelay=0.5, factor=3.0),
         )
         self.__service.startService()
@@ -399,7 +448,7 @@ class ZenHubClient(object):
         if not self.__stopping:
             self.__log.info("Prepping for connection")
             self.__service.whenConnected().addCallbacks(
-                self.__connected, self.__notConnected,
+                self.__connected, self.__notConnected
             )
 
     def __disconnected(self, *args):
@@ -452,7 +501,7 @@ class ZenHubClient(object):
             defer.returnValue(None)
         except Exception as ex:
             self.__log.error(
-                "Unable to report for work: (%s) %s", type(ex).__name__, ex,
+                "Unable to report for work: (%s) %s", type(ex).__name__, ex
             )
             self.__signalFile.remove()
             self.__reactor.stop()
@@ -514,12 +563,12 @@ class ConnectedToZenHubSignalFile(object):
     def __init__(self):
         """Initialize a ConnectedToZenHubSignalFile instance."""
         filename = "zenhub_connected"
-        self.__signalFilePath = zenPath('var', filename)
+        self.__signalFilePath = zenPath("var", filename)
         self.__log = getLogger(self)
 
     def touch(self):
         """Create the file."""
-        atomicWrite(self.__signalFilePath, '')
+        atomicWrite(self.__signalFilePath, "")
         self.__log.debug("Created file '%s'", self.__signalFilePath)
 
     def remove(self):
@@ -588,7 +637,7 @@ class ServiceReference(pb.Referenceable):
 
             # Execute the request
             result = yield self.__service.remoteMessageReceived(
-                broker, message, args, kw,
+                broker, message, args, kw
             )
 
             # Return the result
@@ -597,7 +646,7 @@ class ServiceReference(pb.Referenceable):
     @contextmanager
     def __update_stats(self, method):
         try:
-            name = self.__name.rpartition('.')[-1]
+            name = self.__name.rpartition(".")[-1]
             self.__worker.current = "%s/%s" % (name, method)
             start = time.time()
             self.__worker._work_started(start)
@@ -630,7 +679,7 @@ class _CumulativeWorkerStats(object):
         self.lasttime = now
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     zhw = ZenHubWorker(reactor)
     zhw.start()
     reactor.run()

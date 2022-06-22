@@ -17,7 +17,6 @@ parse and construct an XML document.
 Descriptions of the XML document format can be found in the
 Developers Guide.
 """
-import Globals
 import sys
 import os
 import transaction
@@ -132,8 +131,8 @@ for a ZenPack.
             self.skipobj += 1
             return
 
-        self.log.debug('tag %s, context %s, line %s'  % (
-             name, self.context().id, self._locator.getLineNumber() ))
+        self.log.debug('tag %s, context %s, line %s',
+             name, self.context().id, self._locator.getLineNumber() )
 
         if name == 'object':
             if attrs.get('class') == 'Device' and not attrs.get('move', False):
@@ -189,7 +188,7 @@ for a ZenPack.
         elif name in ignoredElements:
             pass
         else:
-            self.log.warning( "Ignoring an unknown XML element type: %s" % name )
+            self.log.warning( "Ignoring an unknown XML element type: %s", name )
 
     def _ensureUniqueOID(self, node):
         # Removes MibNode/MibNotification objects that have the same 'oid'
@@ -248,7 +247,7 @@ for a ZenPack.
 
             # Commit only after "chunk_size" objects need committed.
             if self.uncommittedObjects >= self.options.chunk_size:
-                self.log.debug("Committing a batch of %s objects" %
+                self.log.debug("Committing a batch of %s objects",
                                self.options.chunk_size)
                 self.commit()
 
@@ -258,11 +257,11 @@ for a ZenPack.
             self.processLinks()
             if not self.options.noCommit:
                 self.commit()
-                self.log.info('Loaded %d objects into the ZODB database'
-                           % self.objectnumber)
+                self.log.info('Loaded %d objects into the ZODB database',
+                              self.objectnumber)
             else:
-                self.log.info('Would have created %d objects in the ZODB database'
-                           % self.objectnumber)
+                self.log.info('Would have created %d objects in the ZODB database',
+                              self.objectnumber)
 
         elif name == 'property':
             if self.curattrs['id'] == 'prodstate':
@@ -280,7 +279,7 @@ for a ZenPack.
         elif name in ignoredElements:
             pass
         else:
-            self.log.warning( "Ignoring an unknown XML element type: %s" % name )
+            self.log.warning( "Ignoring an unknown XML element type: %s", name )
 
     def characters(self, chars):
         """
@@ -321,14 +320,14 @@ for a ZenPack.
                 try:
                     pathobj = getObjByPath(self.context(), contextpath)
                 except (KeyError, AttributeError, NotFound):
-                    self.log.warn( "Unable to find context path %s (line %s ?) for %s" % (
-                        contextpath, self._locator.getLineNumber(), id ))
+                    self.log.warn( "Unable to find context path %s (line %s ?) for %s",
+                        contextpath, self._locator.getLineNumber(), id )
                     if not self.options.noCommit:
                         self.log.warn( "Not committing any changes" )
                         self.options.noCommit = True
                     return None
                 self.objstack.append(pathobj)
-            self.log.debug('Building instance %s of class %s',id,klass.__name__)
+            self.log.debug('Building instance %s of class %s', id, klass.__name__)
             try:
                 if klass.__name__ == 'AdministrativeRole':
                     user = [x for x in self.dmd.ZenUsers.objectValues() if x.id == id]
@@ -350,10 +349,9 @@ for a ZenPack.
             obj = self.context()._getOb(obj.id)
             self.objectnumber += 1
             self.uncommittedObjects += 1
-            self.log.debug('Added object %s to database'
-                            % obj.getPrimaryId())
+            self.log.debug('Added object %s to database', obj.getPrimaryId())
         else:
-            self.log.debug('Object %s already exists -- skipping' % id)
+            self.log.debug('Object %s already exists -- skipping', id)
         return obj
 
     def setZendoc(self, obj, value):
@@ -361,8 +359,8 @@ for a ZenPack.
         if zendocObj is not None:
             zendocObj.setZendoc( value )
         elif value:
-            self.log.warn('zendoc property could not be set to' +
-                          ' %s on object %s' % ( value, obj.id ) )
+            self.log.warn('zendoc property could not be set to'
+                          ' %s on object %s', value, obj.id )
 
     def setProperty(self, obj, attrs, value):
         """
@@ -380,18 +378,20 @@ for a ZenPack.
         name = attrs.get('id')
         proptype = attrs.get('type')
         setter = attrs.get('setter', None)
-        self.log.debug('Setting object %s attr %s type %s value %s'
-                        % (obj.id, name, proptype, value))
+        self.log.debug('Setting object %s attr %s type %s value %s',
+                       obj.id, name, proptype, value)
         linenum = self._locator.getLineNumber()
 
         # Sanity check the value
         value = value.strip()
         try:
             value = str(value)
-        except UnicodeEncodeError:
-            self.log.warn('UnicodeEncodeError at line %s while attempting' % linenum + \
-             ' str(%s) for object %s attribute %s -- ignoring' % (
-                           obj.id, name, proptype, value))
+        except UnicodeEncodeError as ex:
+            self.log.warn(
+                "UnicodeEncodeError at line %s  "
+                "object-id=%s attribute=%s property-type=%s error=%s",
+                linenum, obj.id, name, proptype, ex,
+            )
 
         if name == 'zendoc':
             return self.setZendoc( obj, value )
@@ -402,10 +402,12 @@ for a ZenPack.
                 firstElement = getattr(obj, name)[0]
                 if isinstance(firstElement, basestring):
                     proptype = 'string'
-            except (TypeError, IndexError):
-                self.log.warn("Error at line %s when trying to " % linenum + \
-                    " use (%s) as the value for object %s attribute %s -- assuming a string"
-                               % (obj.id, name, proptype, value))
+            except (TypeError, IndexError) as ex:
+                self.log.warn(
+                    "Error at line %s  "
+                    "object-id=%s attribute=%s property-type=%s error=%s",
+                    linenum, obj.id, name, proptype, ex,
+                )
                 proptype = 'string'
 
         if proptype == 'date':
@@ -422,8 +424,8 @@ for a ZenPack.
                 self.log.warn('Error trying to evaluate %s at line %s',
                                   value, linenum)
             except SyntaxError:
-                self.log.debug("Non-fatal SyntaxError at line %s while eval'ing '%s'" % (
-                     linenum, value) )
+                self.log.debug("Non-fatal SyntaxError at line %s while eval'ing '%s'",
+                     linenum, value)
 
         # Actually use the value
         if not obj.hasProperty(name):
@@ -456,8 +458,8 @@ for a ZenPack.
                 if not rel.hasobject(obj):
                     rel.addRelation(obj)
             except Exception:
-                self.log.critical('Failed linking relation %s to object %s' % (
-                                  relid, objid))
+                self.log.critical('Failed linking relation %s to object %s',
+                                  relid, objid)
 
     def buildOptions(self):
         """

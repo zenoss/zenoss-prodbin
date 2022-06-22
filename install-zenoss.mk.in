@@ -1,0 +1,29 @@
+TARGET = /mnt
+ZENHOME = /opt/zenoss
+
+SITE_PACKAGES = lib/python2.7/site-packages
+PTH_FILE = $(SITE_PACKAGES)/Zenoss-nspkg.pth
+EGG_LINK = $(SITE_PACKAGES)/Zenoss.egg-link
+
+.PHONY: install configure-user
+
+install: $(TARGET)/$(PTH_FILE) $(TARGET)/$(EGG_LINK) $(TARGET)/Zenoss.egg-info
+
+configure-user:
+	groupmod -g %GID% zenoss
+	usermod -u %UID% zenoss
+	chown -R zenoss:zenoss $(ZENHOME)
+
+$(TARGET)/Zenoss.egg-info: $(ZENHOME)/$(PTH_FILE)
+
+$(ZENHOME)/$(PTH_FILE): | configure-user
+	su - zenoss -c "cd $(TARGET); python setup.py develop"
+
+$(TARGET)/$(SITE_PACKAGES):
+	su - zenoss -c "mkdir -p $@"
+
+$(TARGET)/$(PTH_FILE): $(ZENHOME)/$(PTH_FILE) | $(TARGET)/$(SITE_PACKAGES)
+	su - zenoss -c "cp $< $@"
+
+$(TARGET)/$(EGG_LINK): | $(TARGET)/$(SITE_PACKAGES)
+	su - zenoss -c "printf \"/opt/zenoss\n.\n\" > $@"

@@ -17,7 +17,6 @@ Migration for ActionRule Schedule Objects
 __version__ = "$Revision$"[11:-2]
 
 import Migrate
-import Globals
 
 class ARSchedule(Migrate.Step):
     "Convert a data source into a data source with a data point"

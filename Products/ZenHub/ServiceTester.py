@@ -7,8 +7,9 @@
 #
 ##############################################################################
 
+from __future__ import print_function
 
-__doc__ = """ServiceTester
+"""ServiceTester
 
 Simple utility class for testing out zenhub services.
 Sample usage (at the bottom of a service):
@@ -28,14 +29,14 @@ on the tester object.
 ie tester.service == PingPerformanceConfig(dmd, 'localhost')
 """
 
-from pprint import pprint
 import logging
-log = logging.getLogger('zen.ServiceTester')
 
-import Globals
+from pprint import pprint
 
 from Products.ZenUtils.Utils import setLogLevel
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+
+log = logging.getLogger("zen.ServiceTester")
 
 
 class ServiceTester(ZCmdBase):
@@ -51,10 +52,19 @@ class ServiceTester(ZCmdBase):
 
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
-        self.parser.add_option('--monitor', '--collector', dest='monitor', default='localhost',
-                               help="Specify the collector to collect against.")
-        self.parser.add_option('-d', '--device', dest='device',
-                               help="Show the configs for a single device")
+        self.parser.add_option(
+            "--monitor",
+            "--collector",
+            dest="monitor",
+            default="localhost",
+            help="Specify the collector to collect against.",
+        )
+        self.parser.add_option(
+            "-d",
+            "--device",
+            dest="device",
+            help="Show the configs for a single device",
+        )
 
     def pprint(self, arg):
         pprint(arg)
@@ -64,13 +74,15 @@ class ServiceTester(ZCmdBase):
             name = self.options.device
             config = self.service.remote_getDeviceConfigs([name])
             if config:
-                print "Config for %s =" % name
+                print("Config for %s =" % name)
                 self.printDeviceProxy(config[0])
             else:
                 log.warn("No configs found for %s", name)
         else:
-            devices = sorted(x.id for x in self.service.remote_getDeviceConfigs())
-            print "Device list = %s" % devices
+            devices = sorted(
+                x.id for x in self.service.remote_getDeviceConfigs()
+            )
+            print("Device list = %s" % devices)
 
     def printDeviceProxy(self, proxy):
         """

@@ -20,7 +20,7 @@ import logging
 from itertools import chain
 log = logging.getLogger("zen.IpInterface")
 
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from App.Dialogs import MessageDialog
@@ -371,7 +371,7 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
                     try:
                         self.addIpAddress(ip)
                     except IpAddressError:
-                        log.info("Ignoring invalid IP address {rawip}".format(rawip=rawip))
+                        log.info("Ignoring invalid IP address %s", rawip)
                 elif len(ipmatch) == 1:
                     ipids.remove(ipmatch[0])
 

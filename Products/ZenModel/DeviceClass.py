@@ -18,7 +18,7 @@ log = logging.getLogger('zen.DeviceClass')
 
 import DateTime
 from zope.event import notify
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base, aq_chain
 from AccessControl import ClassSecurityInfo
@@ -481,7 +481,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 devobj = self.getObjByPath(brain.getPrimaryId)
                 devices.append(devobj)
             except KeyError:
-                log.warn("bad path '%s' in index" % brain.getPrimaryId)
+                log.warn("bad path '%s' in index", brain.getPrimaryId)
 
         return devices
 

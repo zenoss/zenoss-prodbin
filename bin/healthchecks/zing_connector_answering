@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# NB: this script is duplicated in the product-assembly repo. If you change it here you should change it there too.
+
+if [ $# == 0 ] ; then
+  echo "Please provide a port number argument."
+  exit 1
+fi
+
+# the pattern Not.Implemented is in the response of the newer GRPC based zing-connector
+# the pattern method_not_allowed is in the response on the older zing-connector based on goa
+curl --silent localhost:$1/api/metrics/ingest | grep --silent -e method_not_allowed -e Not.Implemented && echo -n PONG

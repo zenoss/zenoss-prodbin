@@ -1,6 +1,5 @@
 import unittest
 
-import Globals
 import common
 
 class Test_UpdateRateOptionsForSvcdefs(unittest.TestCase, common.ServiceMigrationTestCase):

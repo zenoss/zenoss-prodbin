@@ -8,59 +8,61 @@
 ##############################################################################
 
 import logging
+
 from time import time
 from itertools import chain
 from functools import wraps
 
 from twisted.internet.defer import inlineCallbacks
-from zope.component import getUtility, getUtilitiesFor, subscribers
 from ZODB.POSException import POSKeyError
+from zope.component import getUtility, getUtilitiesFor, subscribers
 
 from zenoss.protocols.protobufs.zep_pb2 import (
-    SEVERITY_CRITICAL, SEVERITY_CLEAR
+    SEVERITY_CLEAR,
+    SEVERITY_CRITICAL,
 )
 
-import Globals  # required to import zenoss Products
-from Products.ZenUtils.Utils import unused
-
-from Products.ZenRelations.PrimaryPathObjectManager import (
-    PrimaryPathObjectManager
-)
 from Products.ZenModel.DeviceComponent import DeviceComponent
-from Products.ZenHub.invalidations import INVALIDATIONS_PAUSED
-from Products.ZenHub.interfaces import (
-    IInvalidationProcessor,
-    IInvalidationFilter,
-    FILTER_INCLUDE,
-    FILTER_EXCLUDE,
-    IInvalidationOid,
+from Products.ZenRelations.PrimaryPathObjectManager import (
+    PrimaryPathObjectManager,
 )
 
-unused(Globals)
+from .interfaces import (
+    FILTER_EXCLUDE,
+    FILTER_INCLUDE,
+    IInvalidationFilter,
+    IInvalidationOid,
+    IInvalidationProcessor,
+)
+from .invalidations import INVALIDATIONS_PAUSED
 
-log = logging.getLogger('zen.ZenHub.invalidationmanager')
+log = logging.getLogger("zen.ZenHub.invalidationmanager")
 
 
 class InvalidationManager(object):
 
     _invalidation_paused_event = {
-        'summary': "Invalidation processing is "
-                   "currently paused. To resume, set "
-                   "'dmd.pauseHubNotifications = False'",
-        'severity': SEVERITY_CRITICAL,
-        'eventkey': INVALIDATIONS_PAUSED
+        "summary": "Invalidation processing is "
+        "currently paused. To resume, set "
+        "'dmd.pauseHubNotifications = False'",
+        "severity": SEVERITY_CRITICAL,
+        "eventkey": INVALIDATIONS_PAUSED,
     }
 
     _invalidation_unpaused_event = {
-        'summary': 'Invalidation processing unpaused',
-        'severity': SEVERITY_CLEAR,
-        'eventkey': INVALIDATIONS_PAUSED
+        "summary": "Invalidation processing unpaused",
+        "severity": SEVERITY_CLEAR,
+        "eventkey": INVALIDATIONS_PAUSED,
     }
 
     def __init__(
-        self, dmd, log,
-        syncdb, poll_invalidations, send_event,
-        poll_interval=30
+        self,
+        dmd,
+        log,
+        syncdb,
+        poll_invalidations,
+        send_event,
+        poll_interval=30,
     ):
         self.__dmd = dmd
         self.__syncdb = syncdb
@@ -76,41 +78,43 @@ class InvalidationManager(object):
 
         self.initialize_invalidation_filters()
         self.processor = getUtility(IInvalidationProcessor)
-        log.debug('got InvalidationProcessor %s' % self.processor)
+        log.debug("got InvalidationProcessor %s", self.processor)
         app = self.__dmd.getPhysicalRoot()
         self.invalidation_pipeline = InvalidationPipeline(
             app, self._invalidation_filters, self._queue
         )
 
     def initialize_invalidation_filters(self):
-        '''Get Invalidation Filters, initialize them,
+        """Get Invalidation Filters, initialize them,
         store them in the _invalidation_filters list, and return the list
-        '''
+        """
         try:
             filters = (f for n, f in getUtilitiesFor(IInvalidationFilter))
             self._invalidation_filters = []
             for fltr in sorted(
-                filters, key=lambda f: getattr(f, 'weight', 100)
+                filters, key=lambda f: getattr(f, "weight", 100)
             ):
                 fltr.initialize(self.__dmd)
                 self._invalidation_filters.append(fltr)
-            self.log.info('Registered %s invalidation filters.',
-                          len(self._invalidation_filters))
             self.log.info(
-                'invalidation filters: %s', self._invalidation_filters
+                "Registered %s invalidation filters.",
+                len(self._invalidation_filters),
+            )
+            self.log.info(
+                "invalidation filters: %s", self._invalidation_filters
             )
             return self._invalidation_filters
         except Exception:
-            log.exception('error in initialize_invalidation_filters')
+            log.exception("error in initialize_invalidation_filters")
 
     @inlineCallbacks
     def process_invalidations(self):
-        '''Periodically process database changes.
+        """Periodically process database changes.
         synchronize with the database, and poll invalidated oids from it,
         filter the oids,  send them to the invalidation_processor
 
         @return: None
-        '''
+        """
         try:
             now = time()
             yield self._syncdb()
@@ -119,22 +123,22 @@ class InvalidationManager(object):
 
             oids = self._poll_invalidations()
             if not oids:
-                log.debug('no invalidations found: oids=%s' % oids)
+                log.debug("no invalidations found: oids=%s", oids)
                 return
 
             for oid in oids:
                 yield self.invalidation_pipeline.run(oid)
 
-            self.log.debug('Processed %s raw invalidations', len(oids))
+            self.log.debug("Processed %s raw invalidations", len(oids))
             yield self.processor.processQueue(self._queue)
             self._queue.clear()
 
         except Exception:
-            log.exception('error in process_invalidations')
+            log.exception("error in process_invalidations")
         finally:
             self.totalEvents += 1
             self.totalTime += time() - now
-            log.debug('end process_invalidations')
+            log.debug("end process_invalidations")
 
     @inlineCallbacks
     def _syncdb(self):
@@ -142,14 +146,14 @@ class InvalidationManager(object):
             self.log.debug("[processQueue] syncing....")
             yield self.__syncdb()
             self.log.debug("[processQueue] synced")
-        except Exception as err:
+        except Exception:
             self.log.warn("Unable to poll invalidations, will try again.")
 
     def _paused(self):
         if not self._currently_paused:
             if self.__dmd.pauseHubNotifications:
                 self._currently_paused = True
-                log.info('invalidation processing has been paused')
+                log.info("invalidation processing has been paused")
                 self._send_event(self._invalidation_paused_event)
                 return True
             else:
@@ -157,22 +161,21 @@ class InvalidationManager(object):
 
         else:
             if self.__dmd.pauseHubNotifications:
-                log.debug('invalidation processing is paused')
+                log.debug("invalidation processing is paused")
                 return True
             else:
                 self._currently_paused = False
-                log.info('invalidation processing has been unpaused')
+                log.info("invalidation processing has been unpaused")
                 self._send_event(self._invalidation_unpaused_event)
                 return False
 
     def _poll_invalidations(self):
-        '''pull a list of invalidated object oids from the database
-        '''
+        """pull a list of invalidated object oids from the database"""
         try:
-            log.debug('poll invalidations from dmd.storage')
+            log.debug("poll invalidations from dmd.storage")
             return self.__poll_invalidations()
         except Exception:
-            log.exception('error in _poll_invalidations')
+            log.exception("error in _poll_invalidations")
 
     @inlineCallbacks
     def _send_event(self, event):
@@ -180,10 +183,10 @@ class InvalidationManager(object):
 
 
 class InvalidationPipeline(object):
-    '''A Pipeline that applies filters and transforms to an oid
+    """A Pipeline that applies filters and transforms to an oid
     Then passes the transformed/expanded list of oids
     to the InvalidationProcessor processQueue
-    '''
+    """
 
     def __init__(self, app, filters, sink):
         self.__app = app
@@ -194,11 +197,7 @@ class InvalidationPipeline(object):
     def _build_pipeline(self):
         sink = set_sink(self.__sink)
         pipeline = oid_to_obj(
-            self.__app, sink,
-            filter_obj(
-                self.__filters,
-                transform_obj(sink)
-            )
+            self.__app, sink, filter_obj(self.__filters, transform_obj(sink))
         )
         return pipeline
 
@@ -206,25 +205,26 @@ class InvalidationPipeline(object):
         try:
             self.__pipeline.send(invalidation)
         except Exception:
-            log.exception('error in run')
+            log.exception("error in run")
             self.__pipeline = self._build_pipeline()
 
 
 def coroutine(func):
-    """Decorator for initializing a generator as a coroutine.
-    """
+    """Decorator for initializing a generator as a coroutine."""
+
     @wraps(func)
     def start(*args, **kw):
         coro = func(*args, **kw)
         coro.next()
         return coro
+
     return start
 
 
 @coroutine
 def oid_to_obj(app, sink, target):
     while True:
-        oid = (yield)
+        oid = yield
         # Include oids that are missing from the database
         try:
             obj = app._p_jar[oid]
@@ -247,26 +247,26 @@ def oid_to_obj(app, sink, target):
 @coroutine
 def filter_obj(filters, target):
     while True:
-        oid, obj = (yield)
+        oid, obj = yield
         included = True
         for fltr in filters:
             result = fltr.include(obj)
             if result is FILTER_INCLUDE:
-                log.debug('filter %s INCLUDE %s:%s', fltr, str(oid), obj)
+                log.debug("filter %s INCLUDE %s:%s", fltr, str(oid), obj)
                 break
             if result is FILTER_EXCLUDE:
-                log.debug('filter %s EXCLUDE %s:%s', fltr, str(oid), obj)
+                log.debug("filter %s EXCLUDE %s:%s", fltr, str(oid), obj)
                 included = False
                 break
         if included:
-            log.debug('filters FALLTHROUGH: %s', obj)
+            log.debug("filters FALLTHROUGH: %s", obj)
             target.send((oid, obj))
 
 
 @coroutine
 def transform_obj(target):
     while True:
-        oid, obj = (yield)
+        oid, obj = yield
 
         # First, get any subscription adapters registered as transforms
         adapters = subscribers((obj,), IInvalidationOid)
@@ -281,7 +281,7 @@ def transform_obj(target):
             o = adapter.transformOid(oid)
             if isinstance(o, str):
                 transformed.add(o)
-            elif hasattr(o, '__iter__'):
+            elif hasattr(o, "__iter__"):
                 # If the transform didn't give back a string, it should have
                 # given back an iterable
                 transformed.update(o)
@@ -296,5 +296,5 @@ def transform_obj(target):
 @coroutine
 def set_sink(output_set):
     while True:
-        input = (yield)
+        input = yield
         output_set.update(input)

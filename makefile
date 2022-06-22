@@ -1,42 +1,57 @@
-VERSION = $(shell cat VERSION)
-
-BUILD_NUMBER ?= DEV
-BRANCH       ?= develop
+VERSION       = $(shell cat VERSION)
+BRANCH       ?= $(shell git rev-parse --abbrev-ref HEAD)
 ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
-ARTIFACT     := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
+ARTIFACT      = prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 
-IMAGE = zenoss/zenoss-centos-base:1.3.4.devtools
+IMAGE = zenoss/zenoss-centos-base:1.4.1.devtools
 
 USER_ID := $(shell id -u)
 GROUP_ID := $(shell id -g)
 
-DOCKER = $(shell which docker)
+DOCKER = $(shell which docker 2>/dev/null)
+ifneq ($(DOCKER),)
+_common_cmd = $(DOCKER) run --rm -v $(PWD):/mnt -w /mnt
+DOCKER_USER = $(_common_cmd) --user $(USER_ID):$(GROUP_ID) $(IMAGE)
+DOCKER_ROOT = $(_common_cmd) $(IMAGE)
+endif
 
-DOCKER_RUN = $(DOCKER) run --rm -v $(PWD):/mnt -w /mnt --user $(USER_ID):$(GROUP_ID) $(IMAGE) /bin/bash -c
+ZENHOME = $(shell echo $$ZENHOME)
 
-.PHONY: all clean build
+.PHONY: default build test clean build install
 
-all: build
+default: $(ARTIFACT)
 
 include javascript.mk
 include migration.mk
-include zenoss-version.mk
-
-#
-# To build the tar,
-#     - create the 'dist' subdirectory
-#     - compile & minify the javascript, which is saved in the Products directory tree
-#     - build the zenoss-version wheel, which is copied into dist
 
 EXCLUSIONS = *.pyc $(MIGRATE_VERSION).in Products/ZenModel/migrate/tests Products/ZenUITests
 
 ARCHIVE_EXCLUSIONS = $(foreach item,$(EXCLUSIONS),--exclude=$(item))
-ARCHIVE_INCLUSIONS = Products bin dist etc share
+ARCHIVE_INCLUSIONS = Products bin lib etc share Zenoss.egg-info
 
 build: $(ARTIFACT)
 
-clean: clean-javascript clean-migration clean-zenoss-version
-	rm -f $(ARTIFACT)
+# equivalent to python setup.py develop
+install: setup.py $(JSB_TARGETS) $(MIGRATE_VERSION)
+ifeq ($(ZENHOME),/opt/zenoss)
+	@python setup.py develop
+else
+	@echo "Please execute this target in a devshell container (where ZENHOME=/opt/zenoss)."
+endif
 
-$(ARTIFACT): $(JSB_TARGETS) $(MIGRATE_VERSION) dist/$(ZENOSS_VERSION_WHEEL)
+clean: clean-javascript clean-migration
+	rm -f $(ARTIFACT) install-zenoss.mk
+	rm -rf Zenoss.egg-info lib
+
+$(ARTIFACT): $(JSB_TARGETS) $(MIGRATE_VERSION) Zenoss.egg-info
 	tar cvfz $@ $(ARCHIVE_EXCLUSIONS) $(ARCHIVE_INCLUSIONS)
+
+Zenoss.egg-info: install-zenoss.mk setup.py
+ifneq ($(DOCKER),)
+	$(DOCKER_ROOT) make -f install-zenoss.mk install
+else
+	$(error The $@ target requires Docker)
+endif
+
+install-zenoss.mk: install-zenoss.mk.in
+	sed -e "s/%GID%/$(GROUP_ID)/" -e "s/%UID%/$(USER_ID)/" $< > $@

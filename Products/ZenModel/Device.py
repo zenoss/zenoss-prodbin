@@ -23,7 +23,7 @@ from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
 from BTrees.OOBTree import OOSet
 from DateTime import DateTime
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from ipaddr import IPAddress
 from OFS.CopySupport import CopyError
 from urllib import quote as urlquote
@@ -481,16 +481,24 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         else:
             ManagedEntity._setPropValue(self, id, value)
 
-
     security.declareProtected(ZEN_MANAGE_DEVICE, 'applyDataMap')
-    def applyDataMap(self, datamap, relname="", compname="", modname="", parentId=""):
+    def applyDataMap(
+        self, datamap, relname="", compname="", modname="", parentId=""
+    ):
         """
         Apply a datamap passed as a list of dicts through XML-RPC.
         """
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
+
         adm = ApplyDataMap()
-        adm.applyDataMap(self, datamap, relname=relname,
-                         compname=compname, modname=modname, parentId="")
+        return adm.applyDataMap(
+            self,
+            datamap,
+            relname=relname,
+            compname=compname,
+            modname=modname,
+            parentId="",
+        )
 
     def path(self):
         """
@@ -1092,8 +1100,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             # updateDevice uses the sentinel value "_no_change" to indicate
             # that we really don't want change this value
             if hwManufacturer != "_no_change" and hwProductName != "_no_change":
-                log.info("setting hardware manufacturer to %r productName to %r"
-                                % (hwManufacturer, hwProductName))
+                log.info("setting hardware manufacturer to %r productName to %r", hwManufacturer, hwProductName)
                 self.hw.setProduct(hwProductName, hwManufacturer)
         else:
             self.hw.removeProductClass()
@@ -1102,8 +1109,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             # updateDevice uses the sentinel value "_no_change" to indicate
             # that we really don't want change this value
             if osManufacturer != "_no_change" and osProductName != "_no_change":
-                log.info("setting os manufacturer to %r productName to %r"
-                                % (osManufacturer, osProductName))
+                log.info("setting os manufacturer to %r productName to %r", osManufacturer, osProductName)
                 self.os.setProduct(osProductName, osManufacturer, isOS=True)
         else:
             self.os.removeProductClass()
@@ -1141,14 +1147,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if 'title' in kwargs and kwargs['title'] is not None:
             newTitle = str(kwargs['title']).strip()
             if newTitle and newTitle != self.title:
-                log.info("setting title to %r" % newTitle)
+                log.info("setting title to %r", newTitle)
                 self.title = newTitle
         if 'tag' in kwargs and kwargs['tag'] is not None and kwargs['tag'] != self.hw.tag:
-            log.info("setting tag to %r" % kwargs['tag'])
+            log.info("setting tag to %r", kwargs['tag'])
             self.hw.tag = kwargs['tag']
         if 'serialNumber' in kwargs and kwargs['serialNumber'] is not None and \
                 kwargs['serialNumber'] != self.hw.serialNumber:
-            log.info("setting serialNumber to %r" % kwargs['serialNumber'])
+            log.info("setting serialNumber to %r", kwargs['serialNumber'])
             self.hw.serialNumber = kwargs['serialNumber']
 
         # Set zProperties passed in intelligently
@@ -1171,23 +1177,23 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         if 'rackSlot' in kwargs and kwargs['rackSlot'] != self.rackSlot:
             # rackSlot may be a string or integer
-            log.info("setting rackSlot to %r" % kwargs["rackSlot"])
+            log.info("setting rackSlot to %r", kwargs["rackSlot"])
             self.rackSlot = kwargs["rackSlot"]
 
         if 'productionState' in kwargs:
             # Always set production state, but don't log it if it didn't change.
             if kwargs['productionState'] != self.getProductionState():
                 prodStateName = self.dmd.convertProdState(int(kwargs['productionState']))
-                log.info("setting productionState to %s" % prodStateName)
+                log.info("setting productionState to %s", prodStateName)
             self.setProdState(kwargs["productionState"])
 
         if 'priority' in kwargs and int(kwargs['priority']) != self.priority:
             priorityName = self.dmd.convertPriority(kwargs['priority'])
-            log.info("setting priority to %s" % priorityName)
+            log.info("setting priority to %s", priorityName)
             self.setPriority(kwargs["priority"])
 
         if 'comments' in kwargs and kwargs['comments'] != self.comments:
-            log.info("setting comments to %r" % kwargs["comments"])
+            log.info("setting comments to %r", kwargs["comments"])
             self.comments = kwargs["comments"]
 
         self.setProductInfo(hwManufacturer=kwargs.get("hwManufacturer","_no_change"),
@@ -1196,21 +1202,20 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                             osProductName=kwargs.get("osProductName","_no_change"))
 
         if kwargs.get("locationPath", False):
-            log.info("setting location to %r" % kwargs["locationPath"])
+            log.info("setting location to %r", kwargs["locationPath"])
             self.setLocation(kwargs["locationPath"])
 
         if kwargs.get("groupPaths",False):
-            log.info("setting group %r" % kwargs["groupPaths"])
+            log.info("setting group %r", kwargs["groupPaths"])
             self.setGroups(kwargs["groupPaths"])
 
         if kwargs.get("systemPaths",False):
-            log.info("setting system %r" % kwargs["systemPaths"])
+            log.info("setting system %r", kwargs["systemPaths"])
             self.setSystems(kwargs["systemPaths"])
 
         if 'performanceMonitor' in kwargs and \
             kwargs["performanceMonitor"] != self.getPerformanceServerName():
-            log.info("setting performance monitor to %r" \
-                     % kwargs["performanceMonitor"])
+            log.info("setting performance monitor to %r", kwargs["performanceMonitor"])
             self.setPerformanceMonitor(kwargs["performanceMonitor"])
 
         self.setLastChange()
@@ -1802,7 +1807,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             audit('UI.Device.Remodel', self)
         if xmlrpc: return 0
 
-    security.declareProtected(ZEN_MANAGE_DEVICE, 'collectDevice')
+    security.declareProtected(ZEN_MANAGE_DEVICE, 'runDeviceMonitor')
     def runDeviceMonitor(self, REQUEST=None, write=None, debug=False):
         """
         Run monitoring daemon agains the device ones
@@ -1856,13 +1861,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             audit('UI.Device.Remodel', self)
         if xmlrpc: return 0
 
-    security.declareProtected(ZEN_MANAGE_DEVICE, 'collectDevice')
+    security.declareProtected(ZEN_MANAGE_DEVICE, 'monitorPerDatasource')
     def monitorPerDatasource(self, dsObj, REQUEST=None, write=None):
         """
         Run monitoring daemon against one device and one datasource ones
         """
         parameter = '--datasource'
         value = '%s/%s' % (dsObj.rrdTemplate.obj.id, dsObj.id)
+        collection_daemon = ''
         if dsObj.sourcetype == 'COMMAND':
             collection_daemon = 'zencommand'
         elif dsObj.__class__.__base__.sourcetype == 'Python':

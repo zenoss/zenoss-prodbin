@@ -7,23 +7,18 @@
 #
 ##############################################################################
 
+import logging
+import socket
+import time
+
 from twisted.spread import pb
 
-import logging
-import time
-import socket
-
-import Globals   # required to import zenoss Products
-from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.deprecated import deprecated
-
-unused(Globals)
 
 
 class HubService(pb.Referenceable):
-
     def __init__(self, dmd, instance):
-        self.log = logging.getLogger('zen.hub')
+        self.log = logging.getLogger("zen.hub")
         self.fqdn = socket.getfqdn()
         self.dmd = dmd
         self.zem = dmd.ZenEventManager
@@ -62,9 +57,7 @@ class HubService(pb.Referenceable):
 
     def addListener(self, remote, options=None):
         remote.notifyOnDisconnect(self.removeListener)
-        self.log.debug(
-            "adding listener for %s:%s", self.instance, self.name()
-        )
+        self.log.debug("adding listener for %s:%s", self.instance, self.name())
         self.listeners.append(remote)
         if options:
             self.listenerOptions[remote] = options
@@ -85,8 +78,8 @@ class HubService(pb.Referenceable):
 
     def sendEvent(self, event, **kw):
         event = event.copy()
-        event['agent'] = 'zenhub'
-        event['monitor'] = self.instance
-        event['manager'] = self.fqdn
+        event["agent"] = "zenhub"
+        event["monitor"] = self.instance
+        event["manager"] = self.fqdn
         event.update(kw)
         self.zem.sendEvent(event)

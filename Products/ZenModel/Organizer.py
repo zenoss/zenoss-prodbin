@@ -458,7 +458,7 @@ class Organizer(ZenModelRM, EventView):
             orgs.extend(child.getSubOrganizers())
         return orgs
 
-    security.declareProtected(ZEN_COMMON, "getSubInstances")
+    security.declareProtected(ZEN_COMMON, "getSubInstanceIds")
     def getSubInstanceIds(self, rel):
         """
         Returns the object ids of all the instances of a specific relation

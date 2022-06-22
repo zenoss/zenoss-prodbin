@@ -10,23 +10,20 @@
 
 """Server that provides access to the Model and Event databases."""
 
-# std lib
+import logging
 import signal
 import sys
-import logging
+
 from time import time
 
-# 3rd party
 from twisted.internet import reactor, task
 from twisted.internet.defer import inlineCallbacks
-
 from zope.component import getUtility, adapts, provideUtility
 from zope.event import notify
 from zope.interface import implementer
 
-# Import Globals before any Zenoss Products
-import Globals  # noqa: F401
 import Products.ZenMessaging.queuemessaging as QUEUEMESSAGING_MODULE
+import Products.ZenHub as ZENHUB_MODULE
 
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
@@ -39,17 +36,13 @@ from Products.ZenUtils.Utils import (
 )
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
-# local
-import Products.ZenHub as ZENHUB_MODULE
-
 from Products.ZenHub.interfaces import (
-    IHubCreatedEvent,
-    IHubWillBeCreatedEvent,
     IHubConfProvider,
+    IHubCreatedEvent,
     IHubHeartBeatCheck,
+    IHubWillBeCreatedEvent,
     IParserReadyForOptionsEvent,
 )
-
 from Products.ZenHub.invalidationmanager import InvalidationManager
 from Products.ZenHub.metricmanager import MetricManager, IMetricManager
 from Products.ZenHub.server import (
@@ -59,11 +52,11 @@ from Products.ZenHub.server import (
     make_pools,
     make_server_factory,
     make_service_manager,
-    start_server,
-    stop_server,
     register_legacy_worklist_metrics,
     ReportWorkerStatus,
+    start_server,
     StatsMonitor,
+    stop_server,
     XmlRpcManager,
     ZenHubStatusReporter,
 )
@@ -154,7 +147,7 @@ class ZenHub(ZCmdBase):
         self._service_manager = make_service_manager(self._pools)
         authenticators = getCredentialCheckers(self.options.passwordfile)
         self._server_factory = make_server_factory(
-            self._pools, self._service_manager, authenticators,
+            self._pools, self._service_manager, authenticators
         )
         self._xmlrpc_manager = XmlRpcManager(self.dmd, authenticators[0])
         register_legacy_worklist_metrics()
@@ -180,7 +173,7 @@ class ZenHub(ZCmdBase):
         provideUtility(self._metric_manager)
         self._metric_writer = self._metric_manager.metric_writer
         self.rrdStats = self._metric_manager.get_rrd_stats(
-            self._getConf(), self.zem.sendEvent,
+            self._getConf(), self.zem.sendEvent
         )
 
         # set up SIGUSR2 handling
@@ -203,16 +196,14 @@ class ZenHub(ZCmdBase):
             self.log.debug("Creating async MetricReporter")
             self._metric_manager.start()
             reactor.addSystemEventTrigger(
-                "before", "shutdown", self._metric_manager.stop,
+                "before", "shutdown", self._metric_manager.stop
             )
             # preserve legacy API
             self.metricreporter = self._metric_manager.metricreporter
 
         # Start ZenHub services server
         start_server(reactor, self._server_factory)
-        reactor.addSystemEventTrigger(
-            "before", "shutdown", stop_server,
-        )
+        reactor.addSystemEventTrigger("before", "shutdown", stop_server)
 
         # Start XMLRPC server
         self._xmlrpc_manager.start(reactor)
@@ -267,7 +258,7 @@ class ZenHub(ZCmdBase):
     # Legacy API
     def getRRDStats(self):
         return self._metric_manager.get_rrd_stats(
-            self._getConf(), self.zem.sendEvent,
+            self._getConf(), self.zem.sendEvent
         )
 
     # Legacy API
@@ -315,7 +306,7 @@ class ZenHub(ZCmdBase):
 
         r = self.rrdStats
         r.counter(
-            "totalTime", int(self._invalidation_manager.totalTime * 1000),
+            "totalTime", int(self._invalidation_manager.totalTime * 1000)
         )
         r.counter("totalEvents", self._invalidation_manager.totalEvents)
         self._monitor.update_rrd_stats(r, self._service_manager)
@@ -404,7 +395,7 @@ class DefaultConfProvider(object):  # noqa: D101
     def getHubConf(self):
         zenhub = self._zenhub
         return zenhub.dmd.Monitors.Performance._getOb(
-            zenhub.options.monitor, None,
+            zenhub.options.monitor, None
         )
 
 
@@ -421,21 +412,18 @@ class DefaultHubHeartBeatCheck(object):  # noqa: D101
 
 @implementer(IHubWillBeCreatedEvent)
 class HubWillBeCreatedEvent(object):  # noqa: D101
-
     def __init__(self, hub):
         self.hub = hub
 
 
 @implementer(IHubCreatedEvent)
 class HubCreatedEvent(object):  # noqa: D101
-
     def __init__(self, hub):
         self.hub = hub
 
 
 @implementer(IParserReadyForOptionsEvent)
 class ParserReadyForOptionsEvent(object):  # noqa: D101
-
     def __init__(self, parser):
         self.parser = parser
 

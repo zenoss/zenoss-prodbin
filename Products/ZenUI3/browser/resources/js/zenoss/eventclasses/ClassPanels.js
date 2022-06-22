@@ -276,8 +276,8 @@ Ext.onReady(function(){
                                             fieldLabel: _t('Instance Name'),
                                             margin: '0 10px 0 0',
                                             width:320,
-                                            regex: Zenoss.env.textMasks.allowedNameTextDash,
-                                            regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDash,
+                                            regex: Zenoss.env.textMasks.allowedNameTextDashDot,
+                                            regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDashDot,
                                             allowBlank: false
                                         },{
                                             xtype: 'hidden',
@@ -403,7 +403,7 @@ Ext.onReady(function(){
                                         autoScroll: false,
                                         listeners: {
                                             beforerender: function(g){
-                                                g.setContext(data.uid);
+                                                g.setContext(data.uid || 'zport/dmd/Events');
                                             }
                                         }
                                     }
@@ -781,8 +781,7 @@ Ext.onReady(function(){
         },
         setContext: function(uid){
             var me = this;
-
-            Zenoss.remote.EventClassesRouter.getTransformTree({'uid':uid}, function(response){
+            Zenoss.remote.EventClassesRouter.getTransformTree({'uid':uid || 'zport/dmd/Events'}, function(response){
                 if(response.success){
                     var data = response.data;
                     me.removeAll(true);
@@ -826,7 +825,7 @@ Ext.onReady(function(){
                         listeners : {
                             beforerender: function(el) {
                                 if(Zenoss.Security.doesNotHavePermission('Manage DMD') === false) {
-                                    Zenoss.remote.EventClassesRouter.isTransformEnabled({'uid':uid}, function(response){
+                                    Zenoss.remote.EventClassesRouter.isTransformEnabled({'uid':uid || 'zport/dmd/Events'}, function(response){
                                         if(response.success){
                                             if(response.data === false){
                                                 el.setVisible(true);

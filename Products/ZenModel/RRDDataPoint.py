@@ -8,20 +8,17 @@
 ##############################################################################
 
 
-__doc__="""RRDDataPoint
+"""RRDDataPoint
 
 Defines attributes for how a datasource will be graphed
 and builds the nessesary DEF and CDEF statements for it.
 
 """
 
-import logging
-log = logging.getLogger('zen.RRDDatapoint')
-
 import itertools
+import logging
 import types
 
-import Globals
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenossSecurity import ZEN_VIEW, ZEN_MANAGE_DMD
 from Products.ZenRelations.RelSchema import *
@@ -35,11 +32,12 @@ from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.ZenTales import talesEvalStr
 from Products.ZenModel.RRDDataPointAlias import manage_addDataPointAlias
 
-
 # Constants for metric tagging.
 NO_FORWARD_KEY = "no-forward"
 NO_STORE_KEY = "no-store"
 TRUTH_STRING = "true"
+
+log = logging.getLogger('zen.RRDDatapoint')
 
 
 @deprecated

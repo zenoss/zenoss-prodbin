@@ -56,7 +56,7 @@ class StreamingView(BrowserView):
 
     def write(self, data=''):
         data = cgi.escape(data)
-        log.info("streaming data " + data)
+        log.info("streaming data %s", data)
         if not is_browser_connection_open(self.request):
             raise StreamClosed('The browser has closed the connection.')
         html = LINE % {

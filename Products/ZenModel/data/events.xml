@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2021-01-22 20:20:53.357064
+    Zenoss RelationshipManager export completed on 2022-06-21 14:53:56.611299
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 7.0.17]" export_date="2021-01-22 20:20:53.357064" zenoss_server="d03eea5840e2" >
+<objects version="[Zenoss, version 7.1.0]" export_date="2022-06-21 14:53:56.611299" zenoss_server="3f78d37a1f7f" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass' move='False'>
 <property type="bool" id="transformEnabled" mode="w" >
 True
@@ -6629,7 +6629,7 @@ if device and evt.eventKey:
             # Make a nicer summary
             evt.summary = "disk space threshold: %3.1f%% used (%s free)" % (p, free)
             evt.message = evt.summary
-        except ZeroDivisionError, e:
+        except ZeroDivisionError as e:
             # Total size hasn't been calculated
             pass
 

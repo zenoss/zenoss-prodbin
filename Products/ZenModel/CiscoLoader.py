@@ -19,7 +19,6 @@ __version__ = "$Revision: 1.2 $"[11:-2]
 
 import re
 
-import Globals
 
 from Products.ZenUtils.BasicLoader import BasicLoader
 from Products.ZenModel.Manufacturer import manage_addManufacturer
@@ -56,8 +55,7 @@ class CiscoLoader(BasicLoader):
         try:
             description = m.group('descr')
         except Exception:pass
-        self.log.debug("Loading fullid=%s,prodpath=%s,descr=%s" 
-                          % (fullid, model, description))
+        self.log.debug("Loading fullid=%s,prodpath=%s,descr=%s", fullid, model, description)
         prod = HardwareClass(model,productKey=fullid,description=description)
         self.cisco.products._setObject(model, prod)
 

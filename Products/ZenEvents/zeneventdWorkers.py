@@ -64,7 +64,7 @@ class EventDEventletWorker(ZCmdBase):
         self._shutdown = False
         signal.signal(signal.SIGTERM, self._sigterm)
         mypid = str(os.getpid())
-        log.info("in worker, current pid: %s" % mypid)
+        log.info("in worker, current pid: %s", mypid)
         task = EventletQueueConsumerTask(EventPipelineProcessor(self.dmd))
         self._listen(task)
 
@@ -99,7 +99,7 @@ class EventDEventletWorker(ZCmdBase):
         while keepTrying and not self._shutdown:
             try:
                 if sleep:
-                    log.info("Waiting %s seconds to reconnect..." % sleep)
+                    log.info("Waiting %s seconds to reconnect...", sleep)
                     time.sleep(sleep)
                     sleep = min(retry_wait, sleep * 2)
                 else:
@@ -113,7 +113,7 @@ class EventDEventletWorker(ZCmdBase):
                 sleep=0
                 self._pubsub.run()
             except (socket.error, AMQPConnectionException) as e:
-                log.warn("RabbitMQ Connection error %s" % e)
+                log.warn("RabbitMQ Connection error %s", e)
             except KeyboardInterrupt:
                 keepTrying = False
             finally:

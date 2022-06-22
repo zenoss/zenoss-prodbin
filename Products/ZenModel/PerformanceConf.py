@@ -27,7 +27,7 @@ from Products.ZenUtils.IpUtil import ipwrap
 
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 from Monitor import Monitor
 from Products.Jobber.jobs import SubprocessJob
@@ -486,7 +486,7 @@ class PerformanceConf(Monitor, StatusColor):
         if REQUEST:
             zendiscOptions.append("--weblog")
         zendiscCmd.extend(zendiscOptions)
-        log.info('local zendiscCmd is "%s"' % ' '.join(zendiscCmd))
+        log.info('local zendiscCmd is "%s"', ' '.join(zendiscCmd))
         return zendiscCmd
 
     def getCollectorCommand(self, command):
@@ -586,7 +586,7 @@ class PerformanceConf(Monitor, StatusColor):
             '--collect={}'.format(collectPlugins)
         ]
         cmd.extend(options)
-        log.info('local zenmodelerCmd is "%s"' % ' '.join(cmd))
+        log.info('local zenmodelerCmd is "%s"', ' '.join(cmd))
         return cmd
 
     def _executeCommand(self, remoteCommand, REQUEST=None, write=None):

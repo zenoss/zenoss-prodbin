@@ -7,7 +7,6 @@
 #
 ##############################################################################
 
-import Globals
 import Queue
 import multiprocessing
 import sys
@@ -48,7 +47,7 @@ def worker_context(worker):
     yield
     # notify parent one last time before exiting
     worker.notify_parent()
-    log.info("Worker {} exiting".format(worker.idx))
+    log.info("Worker %s exiting", worker.idx)
 
 
 def checkLogging(evt):
@@ -176,7 +175,7 @@ class ReindexProcess(multiprocessing.Process):
                         checkLogging(self.logtoggle)
 
                         if uid == TERMINATE_SENTINEL:
-                            log.debug('Worker {0} found sentinel'.format(self.idx))
+                            log.debug('Worker %s found sentinel', self.idx)
                             self.cancel.set()
                             self.notify_parent(True)
                             break
@@ -191,7 +190,7 @@ class ReindexProcess(multiprocessing.Process):
                             with self.counter.get_lock():
                                 self.counter.value += count
                             count = 0
-                            log.debug('Worker {0} notifying parent of count update'.format(self.idx))
+                            log.debug('Worker %s notifying parent of count update', self.idx)
                             self.notify_parent()
                     # Flush the index batch dregs
                     self.index(True)
@@ -202,7 +201,7 @@ class ReindexProcess(multiprocessing.Process):
                     # Should we die? Or wait for more work from the parent?
                     if self.cancel.is_set() or self.terminator.is_set():
                         return
-                    log.debug('Worker {0} notifying parent it is out of work'.format(self.idx))
+                    log.debug('Worker %s notifying parent it is out of work', self.idx)
                     self.notify_parent(True)
 
 
@@ -238,7 +237,7 @@ class HardReindex(ReindexProcess):
 
             # If we've gotten here and the deque is empty, we have nothing to do
             if not self.deque:
-                log.debug("Worker {0} is effectively idle".format(self.idx))
+                log.debug("Worker %s is effectively idle", self.idx)
                 return
 
     def process(self, uid):
@@ -271,7 +270,8 @@ class HardReindex(ReindexProcess):
             if self.parent_queue.empty():
                 idle = self.worker_count - self.semaphore.get_value()
                 log.debug(
-                    "Worker {0} putting {1} into parent queue. Remaining: {2}".format(self.idx, idle, len(self.deque)))
+                    "Worker %s putting %s into parent queue. Remaining: %s",
+                    self.idx, idle, len(self.deque))
                 for _ in xrange(idle):
                     self.parent_queue.put(self.deque.popleft())
         except IndexError:
@@ -351,8 +351,8 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminat
     if hard and (root or indexes or types):
         raise Exception("Root node, indexes, and types can only be specified during soft re-index")
 
-    log.info("Beginning {0} redindexing with {1} child processes.".format(
-        "hard" if hard else "soft", processor_count))
+    log.info("Beginning %s redindexing with %s child processes.",
+             "hard" if hard else "soft", processor_count)
 
     start = time.time()
 
@@ -442,7 +442,7 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminat
                     except Queue.Empty:
                         pass  # This shouldn't happen, but just in case there's a race somehow
                     else:
-                        log.error("Indexing process {0} encountered an exception: {1}".format(idx, exc))
+                        log.error("Indexing process %s encountered an exception: %s", idx, exc)
                 # Print status
                 with counter.get_lock():
                     delta = counter.value - lastcount
@@ -450,10 +450,10 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminat
                         now = time.time()
                         persec = delta / (now - last)
                         last, lastcount = now, counter.value
-                        log.info("Indexed {0} objects ({1}/sec)".format(lastcount, persec))
+                        log.info("Indexed %s objects (%s/sec)", lastcount, persec)
                 # Check to see if we're done
-                log.debug("{0} workers still busy".format(semaphore.get_value()))
-                log.debug("parent queue is {0}empty".format("" if parent_queue.empty() else "not "))
+                log.debug("%s workers still busy", semaphore.get_value())
+                log.debug("parent queue is %sempty", "" if parent_queue.empty() else "not ")
                 if is_done():
                     # All workers are idle and there's no more work to do, so the end
                     log.info("Terminating condition met. Done!")
@@ -464,16 +464,16 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminat
                 cond.notify_all()
     log.info("Indexing complete, waiting for workers to clean up")
     for proc in processes:
-        log.debug("Joining proc {0}".format(proc.idx))
+        log.debug("Joining proc %s", proc.idx)
         proc.join(get_timeout())
         if proc.is_alive():
-            log.warn("Worker {} did not exit within timeout, terminating...".format(proc.idx))
+            log.warn("Worker %s did not exit within timeout, terminating...", proc.idx)
             proc.terminate()
     end = time.time()
-    log.info("Total time: {0}".format(end - start))
-    log.info("Time to initialize: {0}".format(proc_start - start))
-    log.info("Time to process and reindex: {0}".format(end - proc_start))
-    log.info("Number of objects indexed: {0}".format(counter.value))
+    log.info("Total time: %s", end - start)
+    log.info("Time to initialize: %s", proc_start - start)
+    log.info("Time to process and reindex: %s", end - proc_start)
+    log.info("Number of objects indexed: %s", counter.value)
 
 
 def reindex_model_catalog(dmd, root="/zport", idxs=None, types=()):
@@ -481,8 +481,7 @@ def reindex_model_catalog(dmd, root="/zport", idxs=None, types=()):
     Performs a single threaded soft reindex
     """
     start = time.time()
-    log.info("Performing soft reindex on model_catalog. Params = root:'{}' / idxs:'{}' / types:'{}'".format(root, idxs,
-                                                                                                            types))
+    log.info("Performing soft reindex on model_catalog. Params = root:'%s' / idxs:'%s' / types:'%s'", root, idxs, types)
     modelindex = init_model_catalog()
     uids = get_uids(modelindex, root=root, types=types)
     if uids:
@@ -491,7 +490,7 @@ def reindex_model_catalog(dmd, root="/zport", idxs=None, types=()):
             try:
                 obj = dmd.unrestrictedTraverse(uid)
             except (KeyError, NotFound):
-                log.warn("Stale object found in Solr: {}".format(uid))
+                log.warn("Stale object found in Solr: %s", uid)
                 index_updates.append(IndexUpdate(None, op=UNINDEX, uid=uid))
             else:
                 index_updates.append(IndexUpdate(obj, op=INDEX, idxs=idxs))
@@ -502,7 +501,7 @@ def reindex_model_catalog(dmd, root="/zport", idxs=None, types=()):
             modelindex.process_batched_updates(index_updates, commit=True)
         else:
             modelindex.commit()
-    log.info("Reindexing took {} seconds.".format(time.time() - start))
+    log.info("Reindexing took %s seconds.", time.time() - start)
 
 
 if __name__ == "__main__":

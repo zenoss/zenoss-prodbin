@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 import zope.interface
 
 from Products.ZenCollector.interfaces import ICollector, IScheduledTask

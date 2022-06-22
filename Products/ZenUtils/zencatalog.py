@@ -11,8 +11,6 @@ import logging
 import signal
 import sys
 
-from Globals import *
-
 from multiprocessing import Process, Event
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.Zuul.catalog.model_catalog_init import run as run_model_catalog_init
@@ -164,7 +162,7 @@ class ZenCatalogBase(ZenDaemon):
             return False
         if not force:
             if self._check_for_global_catalog():
-                log.info("Global catalog already exists. " \
+                log.info("Global catalog already exists. "
                          "Run with --forceindex to drop and recreate catalog.")
                 return False
 
@@ -175,19 +173,19 @@ class ZenCatalogBase(ZenDaemon):
         if clearmemcached:
             if not self.options.zodb_cacheservers:
                 log.error("Unable to clear memcached:  No cache_servers set, please specify with --zodb-cacheservers, "
-                          "or add to {}".format(self.options.configfile))
+                          "or add to %s", self.options.configfile)
                 return False
 
             import memcache
 
             servers = self.options.zodb_cacheservers.split()
             try:
-                log.info("Flushing memcache servers: %r" % servers)
+                log.info("Flushing memcache servers: %r", servers)
                 mc = memcache.Client(servers)
                 mc.flush_all()
                 mc.disconnect_all()
             except Exception as ex:
-                log.error("problem flushing cache server %r: %r" % (servers, ex))
+                log.error("problem flushing cache server %r: %r", servers, ex)
         return True
 
     def _reindex(self, worker_count, buffer_size, input_queue_size, processed_queue_size, permissions_only=False,

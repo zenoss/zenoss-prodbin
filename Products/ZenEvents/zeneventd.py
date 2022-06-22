@@ -17,7 +17,6 @@ from zope.component.event import objectEventNotify
 from zope.interface import implementer, implements
 from metrology import Metrology
 
-import Globals
 from zenoss.protocols import hydrateQueueMessage
 from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
 from zenoss.protocols.jsonformat import from_dict, to_dict
@@ -128,7 +127,9 @@ class EventPipelineProcessor(object):
             # extract event from message body
             zepevent = ZepRawEvent()
             zepevent.event.CopyFrom(message)
-            log.debug("Received event: %s", to_dict(zepevent.event))
+            if log.isEnabledFor(logging.DEBUG):
+                # assume to_dict() is expensive.
+                log.debug("Received event: %s", to_dict(zepevent.event))
             eventContext = EventContext(log, zepevent)
 
             with Timeout(
@@ -138,10 +139,12 @@ class EventPipelineProcessor(object):
                 for pipe in self._pipes:
                     with self._pipe_timers[pipe.name]:
                         eventContext = pipe(eventContext)
-                    log.debug(
-                        'After pipe %s, event context is %s',
-                        pipe.name, to_dict(eventContext.zepRawEvent)
-                    )
+                    if log.isEnabledFor(logging.DEBUG):
+                        # assume to_dict() is expensive.
+                        log.debug(
+                            'After pipe %s, event context is %s',
+                            pipe.name, to_dict(eventContext.zepRawEvent)
+                        )
                     if eventContext.event.status == STATUS_DROPPED:
                         raise DropEvent(
                             'Dropped by %s' % pipe, eventContext.event
@@ -174,7 +177,9 @@ class EventPipelineProcessor(object):
 
             eventContext = self.create_exception_event(message, error)
 
-        log.debug("Publishing event: %s", to_dict(eventContext.zepRawEvent))
+        if log.isEnabledFor(logging.DEBUG):
+            # assume to_dict() is expensive.
+            log.debug("Publishing event: %s", to_dict(eventContext.zepRawEvent))
         return eventContext.zepRawEvent
 
     def _synchronize_with_database(self):
@@ -252,7 +257,9 @@ class TwistedQueueConsumerTask(BaseQueueConsumerTask):
         else:
             try:
                 zepRawEvent = self.processor.processMessage(hydrated)
-                log.debug("Publishing event: %s", to_dict(zepRawEvent))
+                if log.isEnabledFor(logging.DEBUG):
+                    # assume to_dict() is expensive.
+                    log.debug("Publishing event: %s", to_dict(zepRawEvent))
                 yield self.queueConsumer.publishMessage(
                     EXCHANGE_ZEP_ZEN_EVENTS,
                     self._routing_key(zepRawEvent),
@@ -261,10 +268,12 @@ class TwistedQueueConsumerTask(BaseQueueConsumerTask):
                 )
                 yield self.queueConsumer.acknowledge(message)
             except DropEvent as e:
-                log.debug('%s - %s' % (e.message, to_dict(e.event)))
+                if log.isEnabledFor(logging.DEBUG):
+                    # assume to_dict() is expensive.
+                    log.debug('%s - %s', e.message, to_dict(e.event))
                 yield self.queueConsumer.acknowledge(message)
             except ProcessingException as e:
-                log.error('%s - %s' % (e.message, to_dict(e.event)))
+                log.error('%s - %s', e.message, to_dict(e.event))
                 log.exception(e)
                 yield self.queueConsumer.reject(message)
             except Exception as e:
@@ -334,7 +343,7 @@ class ZenEventD(ZCmdBase):
 
     def sighandler_USR1(self, signum, frame):
         super(ZenEventD, self).sighandler_USR1(signum, frame)
-        log.debug('sighandler_USR1 called %s' % signum)
+        log.debug('sighandler_USR1 called %s', signum)
         objectEventNotify(SigUsr1Event(self, signum))
 
     def buildOptions(self):

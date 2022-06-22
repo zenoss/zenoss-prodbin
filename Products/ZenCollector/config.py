@@ -138,7 +138,7 @@ class ConfigurationProxy(object):
                 key = yield proxy.callRemote("getEncryptionKey")
                 self._cipher_suite = Fernet(key)
             except Exception as e:
-                log.warn("Remote exception: {}".format(e))
+                log.warn("Remote exception: %s", e)
                 self._cipher_suite = None
         defer.returnValue(self._cipher_suite)
 
@@ -153,7 +153,7 @@ class ConfigurationProxy(object):
             try:
                 encrypted_data  = yield cipher_suite.encrypt(data)
             except Exception as e:
-                log.warn("Exception encrypting data {}".format(e))
+                log.warn("Exception encrypting data %s", e)
         defer.returnValue(encrypted_data)
 
     @defer.inlineCallbacks
@@ -167,7 +167,7 @@ class ConfigurationProxy(object):
             try:
                 decrypted_data = yield cipher_suite.decrypt(data)
             except Exception as e:
-                log.warn("Exception decrypting data {}".format(e))
+                log.warn("Exception decrypting data %s", e)
         defer.returnValue(decrypted_data)
 
 
@@ -320,14 +320,14 @@ class ConfigurationLoaderTask(ObservableMixin):
 
     @defer.inlineCallbacks
     def _processConfig(self, configs, purgeOmitted=True):
-        log.debug("Processing {0} received device configs".format(len(configs)))
+        log.debug("Processing %s received device configs", len(configs))
         if self.options.device:
             configs = [cfg for cfg in configs \
                             if self.options.device in (cfg.id, cfg.configId)]
             if not configs:
-                log.error("Configuration for %s unavailable -- " \
-                               "is that the correct name?",
-                               self.options.device)
+                log.error("Configuration for %s unavailable -- "
+                          "is that the correct name?",
+                          self.options.device)
 
         if not configs:
             # No devices (eg new install), -d name doesn't exist or

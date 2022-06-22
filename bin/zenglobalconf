@@ -143,7 +143,6 @@ def main():
             print "--sync-zope-conf only valid with global.conf"
             sys.exit(1)
         # load zcml for the product
-        import Globals
         import Products.ZenossStartup
         from Products.Five import zcml
         zcml.load_site()

@@ -34,6 +34,6 @@ class DeviceSetLocalRolesJob(Job):
     def _run(self, organizerUid, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
-        self.log.info("About to set local roles for uid: %s " % organizerUid)
+        self.log.info("About to set local roles for uid: %s ", organizerUid)
         organizer = self.dmd.unrestrictedTraverse(organizerUid)
         organizer._setDeviceLocalRoles()

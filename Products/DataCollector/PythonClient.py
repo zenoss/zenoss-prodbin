@@ -15,7 +15,6 @@ Python performance data collector client
 import logging
 log = logging.getLogger("zen.PythonClient")
 
-import Globals
 
 from BaseClient import BaseClient
 from twisted.internet.defer import Deferred, DeferredList
@@ -88,7 +87,7 @@ class PythonClient(BaseClient):
         """
         Stop the collection of performance data
         """
-        log.info("Python client finished collection for %s" % self.device.id)
+        log.info("Python client finished collection for %s", self.device.id)
         if self.datacollector:
             self.datacollector.clientFinished(self)
 

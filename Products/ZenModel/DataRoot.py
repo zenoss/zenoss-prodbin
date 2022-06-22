@@ -23,7 +23,7 @@ from zope.interface import implements
 from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
 from OFS.OrderedFolder import OrderedFolder
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 from Globals import DevelopmentMode
 from Products.ZenModel.SiteError import SiteError
@@ -785,7 +785,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         Return a URL to docs for the Zenoss product that is installed.
         """
-        return "https://help.zenoss.com/docs/collection-zone"
+        return "https://docs.zenoss.io/"
 
     def getDocFilesInfo(self):
         docDir = os.path.join(zenPath("Products"), 'ZenUI3', 'docs')

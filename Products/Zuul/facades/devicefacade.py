@@ -244,10 +244,8 @@ class DeviceFacade(TreeFacade):
             try:
                 comps.append(IInfo(unbrain(brain)))
             except Exception:
-                log.warn('There is broken component "{}" in componentSearch catalog on {} device.'.format(
-                     brain.id, obj.device().id
-                     )
-                )
+                log.warn('There is broken component "%s" in componentSearch catalog on %s device.',
+                         brain.id, obj.device().id)
 
         # filter the components
         if name is not None:
@@ -1001,7 +999,7 @@ class DeviceFacade(TreeFacade):
             try:
                 brain.getObject().latlong = None
             except Exception:
-                log.warn("Unable to clear the geocodecache from %s " % brain.getPath())
+                log.warn("Unable to clear the geocodecache from %s", brain.getPath())
 
     @info
     def getGraphDefinitionsForComponent(self, uid):

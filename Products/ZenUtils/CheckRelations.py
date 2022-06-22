@@ -19,7 +19,6 @@ __version__ = "$Revision: 1.2 $"[11:-2]
 
 import transaction
 
-import Globals
 
 from Products.ZenUtils.Utils import getAllConfmonObjects
 
@@ -33,8 +32,7 @@ class CheckRelations(ZenScriptBase):
         self.log.info("Checking relations...")
         for object in getAllConfmonObjects(self.dmd):
             ccount += 1
-            self.log.debug("checking relations on object %s" 
-                                % object.getPrimaryDmdId())
+            self.log.debug("checking relations on object %s", object.getPrimaryDmdId())
             object.checkRelations(repair=repair)
             ch = object._p_changed
             if not ch: object._p_deactivate()

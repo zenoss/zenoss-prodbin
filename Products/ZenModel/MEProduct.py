@@ -109,7 +109,7 @@ class MEProduct(ManagedEntity, ProductIndexable):
         return ""
 
 
-    security.declareProtected('View', 'getManufacturerLink')
+    security.declareProtected('View', 'getManufacturerHref')
     def getManufacturerHref(self):
         """
         Gets the Manufacturer's PrimaryHref

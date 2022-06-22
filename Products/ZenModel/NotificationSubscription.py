@@ -14,7 +14,7 @@ log = logging.getLogger("zen.notifications")
 
 from zope.interface import implements
 from AccessControl.class_init import InitializeClass
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl import ClassSecurityInfo
 from AdministrativeRoleable import AdministrativeRoleable
 from Products.ZenRelations.RelSchema import *
@@ -211,21 +211,21 @@ class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
         is active for right now.
         """
         if self.enabled:
-            log.debug('Notification is enabled: %s' %  self.id)
+            log.debug('Notification is enabled: %s', self.id)
             windows = self.windows()
             if windows:
-                log.debug('Notification has (%s) windows.' % len(windows))
+                log.debug('Notification has (%s) windows.', len(windows))
 
                 enabled_windows = []
                 for window in windows:
                     if window.enabled:
-                        log.debug('Notification has enabled window: %s' % window.id)
+                        log.debug('Notification has enabled window: %s', window.id)
                         enabled_windows.append(window)
 
                 if enabled_windows:
                     for window in enabled_windows:
                         if window.isActive():
-                            log.debug('Window is active: %s' % window.id)
+                            log.debug('Window is active: %s', window.id)
                             return True
 
                     # there are windows that are enabled, but none of them are
@@ -239,7 +239,7 @@ class NotificationSubscription(ZenModelRM, AdministrativeRoleable):
                 log.debug('Notification is enabled, but has no windows, it is active.')
                 return True
         else:
-            log.debug('Notification NOT enabled: %s' %  self.id)
+            log.debug('Notification NOT enabled: %s', self.id)
             return False
 
 InitializeClass(NotificationSubscriptionManager)

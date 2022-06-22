@@ -1,18 +1,19 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
 import logging
-log = logging.getLogger('zen.thresholds')
 
-class Thresholds:
-    "Class for holding multiple Thresholds, used in most collectors"
+log = logging.getLogger("zen.thresholds")
+
+
+class Thresholds(object):
+    """Class for holding multiple Thresholds, used in most collectors."""
 
     def __init__(self):
         self.byKey = {}
@@ -20,8 +21,7 @@ class Thresholds:
         self.byDevice = {}
 
     def _contextKey(self, contextKey, dp):
-        return '%s/%s' % (contextKey, dp.rsplit("/", 1)[-1])
-
+        return "%s/%s" % (contextKey, dp.rsplit("/", 1)[-1])
 
     def remove(self, threshold):
         d = self.byDevice.get(threshold.context().deviceName, None)
@@ -35,7 +35,7 @@ class Thresholds:
                 contextKey = self._contextKey(ctx.contextKey, dp)
                 lst = self.byContextKey[contextKey]
                 if (doomed, dp) in lst:
-                    lst.remove( (doomed, dp) )
+                    lst.remove((doomed, dp))
                 if not lst:
                     del self.byContextKey[contextKey]
         return doomed
@@ -46,8 +46,10 @@ class Thresholds:
         d[threshold.key()] = threshold
         ctx = threshold.context()
         for dp in threshold.dataPoints():
-            self.byContextKey.setdefault(self._contextKey(ctx.contextKey, dp), []).append((threshold, dp))
-        
+            self.byContextKey.setdefault(
+                self._contextKey(ctx.contextKey, dp), []
+            ).append((threshold, dp))
+
     def update(self, threshold):
         "Store a threshold instance for future computation"
         log.debug("Updating threshold %r", threshold.key())
@@ -85,9 +87,3 @@ class Thresholds:
                 if events:
                     result.extend(events)
         return result
-
-def test():
-    pass
-
-if __name__ == '__main__':
-    test()

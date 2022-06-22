@@ -11,7 +11,6 @@ import datetime
 import zope.component
 from optparse import OptionParser
 
-import Globals
 from Products.ZCatalog.ZCatalog import ZCatalog
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import importClass, zenPath

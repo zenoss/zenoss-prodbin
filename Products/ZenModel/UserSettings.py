@@ -16,7 +16,7 @@ import logging
 import re
 log = logging.getLogger("zen.UserSettings")
 
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
@@ -25,7 +25,6 @@ from Products.PluggableAuthService import interfaces
 from Products.PluggableAuthService.PluggableAuthService \
     import _SWALLOWABLE_PLUGIN_EXCEPTIONS
 from zExceptions import Unauthorized
-
 from Products.ZenEvents.ActionRule import ActionRule
 from Products.ZenEvents.CustomEventView import CustomEventView
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne, ToMany
@@ -579,6 +578,74 @@ class UserSettingsManager(ZenModelRM):
                     audit('UI.User.AddToGroup', username=userid, group=groupid)
             return self.callZenScreen(REQUEST)
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_removeUsersFromGroups')
+    @validate_csrf_token
+    def manage_removeUsersFromGroups(self, userids=(), groupids=(), REQUEST=None):
+        """ Remove users from a group
+        """
+        if isinstance(userids, basestring):
+            userids = [userids]
+        if isinstance(groupids, basestring):
+            groupids = [groupids]
+
+        for groupid in groupids:
+            self._getOb(groupid).manage_deleteUsersFromGroup(userids)
+
+        if REQUEST:
+            if not groupids:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No groups were selected.',
+                    priority=messaging.WARNING
+                )
+            else:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Groups Modified',
+                    'Users %s were removed from groups %s.' % (
+                        ', '.join(userids), ', '.join(groupids))
+                )
+            for userid in userids:
+                for groupid in groupids:
+                    audit('UI.User.RemoveFromGroup', username=userid, group=groupid)
+            return self.callZenScreen(REQUEST)
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_assignAdminRolesToUsers')
+    @validate_csrf_token
+    def manage_assignAdminRolesToUsers(self, userids=(), REQUEST=None):
+        """ Assign admin roles to users
+        """
+        if isinstance(userids, basestring):
+            userids = [userids]
+        for user in userids:
+            try:
+                userObj = self._getOb(user)
+                roleManager = userObj.acl_users.roleManager
+                roleManager.assignRoleToPrincipal("Manager", userObj.id)
+                roleManager.assignRoleToPrincipal("ZenManager", userObj.id)
+                audit('UI.User.AssignAdminRolesToUsers', user=user)
+            except Exception as ex:
+                log.error("Could not assign 'Manager' roles to user %s; %s", user, ex)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_removeAdminRolesFromUsers')
+    @validate_csrf_token
+    def manage_removeAdminRolesFromUsers(self, userids=(), REQUEST=None):
+        """ Remove admin roles from users
+        """
+        if isinstance(userids, basestring):
+            userids = [userids]
+        for user in userids:
+            try:
+                userObj = self._getOb(user)
+                roleManager = userObj.acl_users.roleManager
+                roleManager.removeRoleFromPrincipal("Manager", userObj.id)
+                roleManager.removeRoleFromPrincipal("ZenManager", userObj.id)
+                audit('UI.User.RemoveAdminRolesFromUsers', user=user)
+            except Exception as ex:
+                log.error("Could not remove 'Manager' roles from user %s; %s", user, ex)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_emailTestAdmin')
     def manage_emailTestAdmin(self, userid, REQUEST=None):
@@ -1144,27 +1211,30 @@ class UserSettings(ZenModelRM):
                   data_={mobj.meta_type:mobj.getPrimaryId()})
             return self.callZenScreen(REQUEST)
 
-
     security.declareProtected(ZEN_CHANGE_ADMIN_OBJECTS,
-        'manage_editAdministrativeRoles')
+                              'manage_editAdministrativeRoles')
     @validate_csrf_token
     def manage_editAdministrativeRoles(self, ids=(), role=(), REQUEST=None):
-        """Edit list of admin roles.
-        """
+        """Edit list of admin roles."""
         if isinstance(ids, basestring):
             ids = [ids]
             role = [role]
         else:
             ids = list(ids)
-        for ar in self.adminRoles():
-            mobj = ar.managedObject()
-            try: i = ids.index(mobj.managedObjectName())
-            except ValueError: continue
-            mobj = mobj.primaryAq()
-            mobj.manage_editAdministrativeRoles(self.id, role[i])
+        for admin_role in self.adminRoles():
+            managed_object = admin_role.managedObject()
+            try:
+                i = ids.index(managed_object.getPrimaryDmdId())
+            except ValueError:
+                continue
+            managed_object = managed_object.primaryAq()
+            managed_object.manage_editAdministrativeRoles(self.id, role[i])
             if REQUEST:
                 audit('UI.User.EditAdministrativeRole', username=self.id,
-                      data_={mobj.meta_type:mobj.getPrimaryId()},
+                      data_={
+                          managed_object.meta_type:
+                              managed_object.getPrimaryId()
+                      },
                       role=role[i])
         if REQUEST:
             if ids:
@@ -1174,22 +1244,27 @@ class UserSettings(ZenModelRM):
                 )
             return self.callZenScreen(REQUEST)
 
-
     security.declareProtected(ZEN_CHANGE_ADMIN_OBJECTS,
-        'manage_deleteAdministrativeRole')
+                              'manage_deleteAdministrativeRole')
     @validate_csrf_token
     def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
-        "Delete admin roles of objects."
+        """Delete admin roles of objects."""
         if isinstance(delids, basestring):
             delids = [delids]
-        for ar in self.adminRoles():
-            mobj = ar.managedObject()
-            if mobj.managedObjectName() not in delids: continue
-            mobj = mobj.primaryAq()
-            mobj.manage_deleteAdministrativeRole(self.id)
+        else:
+            delids = list(delids)
+        for admin_role in self.adminRoles():
+            managed_object = admin_role.managedObject()
+            if managed_object.getPrimaryDmdId() not in delids:
+                continue
+            managed_object = managed_object.primaryAq()
+            managed_object.manage_deleteAdministrativeRole(self.id)
             if REQUEST:
                 audit('UI.User.DeleteAdministrativeRole', username=self.id,
-                      data_={mobj.meta_type:mobj.getPrimaryId()})
+                      data_={
+                          managed_object.meta_type:
+                              managed_object.getPrimaryId()
+                      })
         if REQUEST:
             if delids:
                 messaging.IMessageSender(self).sendToBrowser(
@@ -1197,7 +1272,6 @@ class UserSettings(ZenModelRM):
                     "Administrative roles were deleted."
                 )
             return self.callZenScreen(REQUEST)
-
 
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'getAllAdminGuids')
     def getAllAdminGuids(self, returnChildrenForRootObj=False):

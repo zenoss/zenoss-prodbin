@@ -37,14 +37,15 @@ class HubAvatar(pb.Avatar):
 
     def perspective_ping(self):
         """Return 'pong'."""
-        return 'pong'
+        return "pong"
 
     def perspective_getHubInstanceId(self):
         """Return the Control Center instance ID the running service."""
-        return os.environ.get('CONTROLPLANE_INSTANCE_ID', 'Unknown')
+        return os.environ.get("CONTROLPLANE_INSTANCE_ID", "Unknown")
 
     def perspective_getService(
-            self, name, monitor=None, listener=None, options=None):
+        self, name, monitor=None, listener=None, options=None
+    ):
         """Return a reference to a ZenHub service.
 
         It also associates the service with a collector so that changes can be
@@ -91,7 +92,9 @@ class HubAvatar(pb.Avatar):
         if pool is None:
             self.__log.error(
                 "Worker asked to work unknown worklist "
-                "worker=%s worklist=%s", workerId, worklistId,
+                "worker=%s worklist=%s",
+                workerId,
+                worklistId,
             )
             raise pb.Error("No such worklist: %s" % worklistId)
         worker.queue_name = worklistId
@@ -104,7 +107,9 @@ class HubAvatar(pb.Avatar):
             )
         self.__log.info(
             "Worker ready to work worker=%s session=%s worklist=%s",
-            workerId, worker.sessionId.hex, worklistId,
+            workerId,
+            worker.sessionId.hex,
+            worklistId,
         )
 
         def removeWorker(worker):
@@ -112,7 +117,8 @@ class HubAvatar(pb.Avatar):
             pool.remove(worker)
             self.__log.info(
                 "Worker disconnected worker=%s session=%s",
-                worker.workerId, worker.sessionId.hex,
+                worker.workerId,
+                worker.sessionId.hex,
             )
 
         worker.notifyOnDisconnect(removeWorker)

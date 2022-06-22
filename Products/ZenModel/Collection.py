@@ -13,7 +13,7 @@ Holds an assortment of devices and/or components on a multi-style report.
 """
 import sys
 
-from Globals import DTMLFile
+from App.special_dtml import DTMLFile
 from AccessControl import ClassSecurityInfo, Permissions
 from AccessControl.class_init import InitializeClass
 from zope.component import getUtility

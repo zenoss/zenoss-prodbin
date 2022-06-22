@@ -20,7 +20,6 @@ from zenoss.protocols.queueschema import Schema
 from zenoss.protocols.data.queueschema import SCHEMA
 from zenoss.protocols.interfaces import IQueueSchema, IAMQPConnectionInfo
 
-import Globals
 from Products.ZenUtils.PkgResources import pkg_resources
 from Products.ZenUtils.Utils import zenPath
 
@@ -80,7 +79,7 @@ def _parseMessagingConf(path=zenPath("etc", "messaging.conf")):
             s.seek(0)
     except IOError:
         log = logging.getLogger('zen.ZenMessaging')
-        log.debug("No user configuration of queues at {path}".format(path=path))
+        log.debug("No user configuration of queues at %s", path)
         return {}
     parser = ConfigParser()
     # Prevent lowercasing of option names

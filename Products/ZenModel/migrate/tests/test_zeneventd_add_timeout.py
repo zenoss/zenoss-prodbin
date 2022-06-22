@@ -1,6 +1,5 @@
 import unittest
 
-import Globals
 import common
 
 class Test_DeleteRateOptionsForServices(unittest.TestCase, common.ServiceMigrationTestCase):

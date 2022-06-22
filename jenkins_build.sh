@@ -37,7 +37,7 @@ REPO_NAME=zenoss-prodbin
 ZENDEV_REPO=git@github.com:zenoss/zendev.git
 # The zendev branch this job will use
 if [ -z "${ZENDEV_BRANCH}" ]; then ZENDEV_BRANCH=zendev2; fi
-if [ -z "${ZENDEV_VER}" ]; then ZENDEV_VER=0.2.0; fi
+if [ -z "${ZENDEV_VER}" ]; then ZENDEV_VER=0.3.0; fi
 if [ -z "${GO_VER}" ]; then GO_VER=1.7.4; fi
 # The name of the zendev environment that will be created.
 # This name will be used as the devimg tag as well.
@@ -119,6 +119,8 @@ if [ "$1" != "--no-tests" ]; then
     pushd ${ZENDEV_ROOT}/src/github.com/zenoss/product-assembly
     export PRODUCT_IMAGE_ID=zendev/devimg:${ZENDEV_ENV}
     export MARIADB_IMAGE_ID=zendev/mariadb:${ZENDEV_ENV}
+    export REDIS_IMAGE_ID=zenoss/redis:latest
+    export RABBITMQ_IMAGE_ID=zenoss/rabbitmq:latest
     ./test_image.sh \
     	--no-zenpacks \
     	--mount ${HOME}/.m2:/home/zenoss/.m2 \

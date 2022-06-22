@@ -18,6 +18,9 @@ from zope.component.interfaces import ComponentLookupError
 
 from Products.ZenModel.ComponentGroup import ComponentGroup
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.DeviceGroup import DeviceGroup
+from Products.ZenModel.System import System
 from Products.ZenModel.Location import Location
 from Products.ZenRelations.ZenPropertyManager import iszprop, iscustprop
 
@@ -133,7 +136,14 @@ def device_organizer_info_fact(device_organizer):
     if device_organizer.aqBaseHasAttr("description"):
         f.data["description"] = device_organizer.description
 
-    if isinstance(device_organizer, Location):
+    if isinstance(device_organizer, DeviceClass):
+        f.data[MetadataKeys.DEVICE_CLASS_KEY] = device_organizer.getOrganizerName()
+    elif isinstance(device_organizer, DeviceGroup):
+        f.data[MetadataKeys.GROUPS_KEY] = [device_organizer.getOrganizerName()]
+    elif isinstance(device_organizer, System):
+        f.data[MetadataKeys.SYSTEMS_KEY] = [device_organizer.getOrganizerName()]
+    elif isinstance(device_organizer, Location):
+        f.data[MetadataKeys.LOCATION_KEY] = device_organizer.getOrganizerName()
         if device_organizer.address:
             f.data["z.map.address"] = device_organizer.address
 
@@ -159,6 +169,8 @@ def component_group_info_fact(component_group):
 
     if component_group.aqBaseHasAttr("description"):
         f.data["description"] = component_group.description
+
+    f.data[MetadataKeys.COMPONENT_GROUPS_KEY] = [component_group.getOrganizerName()]
 
     return f
 

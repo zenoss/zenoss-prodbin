@@ -32,7 +32,6 @@ zCommandExistanceCheck - shell command issued to look for executible
 
 """
 
-import Globals
 
 from twisted.conch import telnet
 from twisted.internet import reactor
@@ -105,7 +104,7 @@ class TelnetClientProtocol(telnet.Telnet):
         """
         self.factory.myprotocol = self #bogus hack
         self.hostname = self.factory.hostname
-        log.info("connected to device %s" % self.hostname)
+        log.info("connected to device %s", self.hostname)
         self.startTimeout(self.factory.loginTimeout, self.loginTimeout)
         self.protocol = telnet.TelnetProtocol()
 
@@ -122,7 +121,7 @@ class TelnetClientProtocol(telnet.Telnet):
         @param feature: IAC feature request
         @type feature: string
         """
-        log.debug("Received telnet DO feature %s" % ord(feature))
+        log.debug("Received telnet DO feature %s", ord(feature))
         if ord(feature) == 1: 
             self._iac_response(telnet.WILL, feature)
         else:
@@ -137,7 +136,7 @@ class TelnetClientProtocol(telnet.Telnet):
         @type feature: string
         """
         # turn off telnet options
-        log.debug("Received telnet DONT feature %s" % ord(feature))
+        log.debug("Received telnet DONT feature %s", ord(feature))
         self._iac_response(telnet.WONT, feature)
 
 
@@ -149,7 +148,7 @@ class TelnetClientProtocol(telnet.Telnet):
         @param feature: IAC feature request
         @type feature: string
         """
-        log.debug("Received telnet WILL feature %s" % ord(feature))
+        log.debug("Received telnet WILL feature %s", ord(feature))
         # turn off telnet options
         self._iac_response(telnet.DONT, feature)
 
@@ -162,7 +161,7 @@ class TelnetClientProtocol(telnet.Telnet):
         @param feature: IAC feature request
         @type feature: string
         """
-        log.debug("Received telnet WONT feature %s" % ord(feature))
+        log.debug("Received telnet WONT feature %s", ord(feature))
         # turn off telnet options
         self._iac_response(telnet.DONT, feature)
 
@@ -176,8 +175,7 @@ class TelnetClientProtocol(telnet.Telnet):
         @param feature: IAC feature request
         @type feature: string
         """
-        log.debug("Sending telnet action %s feature %s" % 
-                            (responseMap[ord(action)-251], ord(feature)))
+        log.debug("Sending telnet action %s feature %s", responseMap[ord(action)-251], ord(feature))
         self.write(telnet.IAC+action+feature)
 
 
@@ -209,8 +207,8 @@ class TelnetClientProtocol(telnet.Telnet):
         regex = None
         if self.mode in self.factory.modeRegex:
             regex = self.factory.modeRegex[self.mode] 
-        log.debug("Mode '%s' regex = %s" % (self.mode, regex))
-        log.debug("Chunk received = '%s'" % chunk)
+        log.debug("Mode '%s' regex = %s", self.mode, regex)
+        log.debug("Chunk received = '%s'", chunk)
         if regex and re.search(regex, chunk):
             self.processLine(self.buffer)
             self.buffer = ""
@@ -311,7 +309,7 @@ class TelnetClientProtocol(telnet.Telnet):
         elif loginTries == 1:
             self.transport.loseConnection()
             self.factory.clientFinished()
-            log.warn("Login to device %s failed" % self.hostname)
+            log.warn("Login to device %s failed", self.hostname)
             return "Done"
 
         else:
@@ -328,19 +326,19 @@ class TelnetClientProtocol(telnet.Telnet):
         @return: next state (Login, Password)
         @rtype: string
         """
-        log.debug('Search for login regex (%s) in (%s) finds: %r' % \
-                  (self.factory.loginRegex, data, \
-                   re.search(self.factory.loginRegex, data)))
+        log.debug('Search for login regex (%s) in (%s) finds: %r',
+                self.factory.loginRegex, data,
+                re.search(self.factory.loginRegex, data))
         if not re.search(self.factory.loginRegex, data): # login failed
             return 'Login'
-        log.debug("Login tries=%s" % self.factory.loginTries)
+        log.debug("Login tries=%s", self.factory.loginTries)
         if not self.factory.loginTries:
             self.transport.loseConnection()
-            log.warn("Login to %s with username %s failed" % (
-                                self.factory.hostname, self.factory.username))
+            log.warn("Login to %s with username %s failed",
+                    self.factory.hostname, self.factory.username)
         else:
             self.factory.loginTries -= 1
-        log.debug("Sending username %s" % self.factory.username)
+        log.debug("Sending username %s", self.factory.username)
         self.write(self.factory.username + '\n')
         return 'Password'
 
@@ -354,9 +352,9 @@ class TelnetClientProtocol(telnet.Telnet):
         @return: next state (Password, FindPrompt)
         @rtype: string
         """
-        log.debug('Search for password regex (%s) in (%s) finds: %r' % \
-                  (self.factory.passwordRegex, data, \
-                   re.search(self.factory.passwordRegex, data)))
+        log.debug('Search for password regex (%s) in (%s) finds: %r',
+                self.factory.passwordRegex, data,
+                re.search(self.factory.passwordRegex, data))
         if not re.search(self.factory.passwordRegex, data): # look for pw prompt
             return 'Password'
         log.debug("Sending password")
@@ -388,9 +386,9 @@ class TelnetClientProtocol(telnet.Telnet):
         @return: next state (EnablePassword, FindPrompt)
         @rtype: string
         """
-        log.debug('Search for enable password regex (%s) in (%s) finds: %r' % \
-                  (self.factory.enableRegex, data, \
-                   re.search(self.factory.enableRegex, data)))
+        log.debug('Search for enable password regex (%s) in (%s) finds: %r',
+                self.factory.enableRegex, data,
+                re.search(self.factory.enableRegex, data))
         if not re.search(self.factory.enableRegex, data):
             return 'EnablePassword'
 
@@ -419,7 +417,7 @@ class TelnetClientProtocol(telnet.Telnet):
         if self.p1 == self.p2:
             self.cancelTimeout() # promptTimeout
             self.commandPrompt = self.p1
-            log.debug("found command prompt '%s'" % self.p1)
+            log.debug("found command prompt '%s'", self.p1)
             self.factory.modeRegex['Command'] = re.escape(self.p1) + "$"
             self.factory.modeRegex['SendCommand'] = re.escape(self.p1) + "$"
             if self.factory.enable:
@@ -463,7 +461,7 @@ class TelnetClientProtocol(telnet.Telnet):
         """
         if self.scCallLater and self.scCallLater.active(): 
             self.scCallLater.cancel()
-        log.debug("sending command '%s'" % self.curCommand())
+        log.debug("sending command '%s'", self.curCommand())
         self.write(self.curCommand() + '\n')
         self.startTimeout(self.factory.commandTimeout)
         self.mode = 'Command'
@@ -487,8 +485,8 @@ class TelnetClientProtocol(telnet.Telnet):
             return 'Command'
         self.cancelTimeout()
         data, self.result = self.result, ''
-        log.debug("command = %s" % self.curCommand())
-        log.debug("data=%s" % data)
+        log.debug("command = %s", self.curCommand())
+        log.debug("data=%s", data)
         self.factory.addResult(self.curCommand(), data[0:-len(self.p1)], None)
         self.factory.cmdindex += 1
         if self.factory.commandsFinished():

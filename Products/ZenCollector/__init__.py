@@ -72,7 +72,6 @@ steps:
         daemon.run()
 """
 
-import Globals
 import zope.component
 import zope.interface
 
@@ -81,7 +80,6 @@ from Products.ZenCollector.config import ConfigurationProxy, \
                     ConfigurationLoaderTask
 from Products.ZenCollector.scheduler import Scheduler
 from Products.ZenUtils.Utils import unused
-unused(Globals)
 
 
 class CoreCollectorFrameworkFactory(object):
@@ -89,13 +87,15 @@ class CoreCollectorFrameworkFactory(object):
 
     def __init__(self):
         self._configProxy = ConfigurationProxy()
-        self._scheduler = Scheduler()
+        self._scheduler = None
         self._configurationLoader = ConfigurationLoaderTask
 
     def getConfigurationProxy(self):
         return self._configProxy
 
     def getScheduler(self):
+        if self._scheduler is None:
+            self._scheduler = Scheduler()
         return self._scheduler
 
     def getConfigurationLoaderTask(self):

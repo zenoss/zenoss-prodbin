@@ -1,16 +1,9 @@
-var ZC_CONFIG = {
-    dev: true,
-    AUTH0_CLIENT_ID: "DEpUm5pU4B5mOXmVtC9CHBmAXImveJlQ",
-    AUTH0_DOMAIN: "zenoss-dev.auth0.com",
-    AUTH0_AUDIENCE: "https://dev.zing.ninja"
-}
-
 var silentAuthNS = {
     auth0_cz: new auth0.WebAuth({
-        domain: ZC_CONFIG.AUTH0_DOMAIN,
-        clientID: ZC_CONFIG.AUTH0_CLIENT_ID,
+        domain: window.ZC_CONFIG.AUTH0_DOMAIN,
+        clientID: window.ZC_CONFIG.AUTH0_CLIENT_ID,
         redirectUri: window.location.origin + "/auth.html",
-        audience: ZC_CONFIG.AUTH0_AUDIENCE,
+        audience: window.ZC_CONFIG.AUTH0_AUDIENCE,
         responseType: "token id_token",
         scope: "openid profile"
     }),
@@ -36,7 +29,7 @@ var silentAuthNS = {
         return false
     },
     authenticateSilently: function () {
-        this.auth0_cz.checkSession({ timeout: 5000 }, (err, result) => {
+        this.auth0_cz.checkSession({}, (err, result) => {
             if (err) {
                 console.log(err);
             } else if (result) {
@@ -100,10 +93,8 @@ var silentAuthNS = {
         })
     },
     silentReauth: function () {
-        if (window.localStorage.getItem("accessToken")) {
-            if (!this.isAuthenticated()) {
-                this.authenticateSilently();
-            }
+        if (!this.isAuthenticated()) {
+            this.authenticateSilently();
         }
     }
 }

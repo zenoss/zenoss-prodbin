@@ -25,9 +25,8 @@ from twisted.conch.ssh import (
 )
 from twisted.conch.ssh.keys import Key
 from twisted.internet import defer, reactor
-
-import Globals  # noqa F401
-
+from zope.component import queryUtility
+from Products.ZenCollector.interfaces import IEventService
 from Products.DataCollector import CollectorClient
 from Products.DataCollector.Exceptions import LoginFailed
 from Products.ZenEvents import Event
@@ -71,6 +70,7 @@ def sendEvent(
         @return: is object_root.path sane?
         @rtype: boolean
         """
+
         obj = object_root
         for chunk in path.split("."):
             obj = getattr(obj, chunk, None)
@@ -100,20 +100,8 @@ def sendEvent(
     if event_key:
         error_event["eventKey"] = event_key
 
-    # At this point, we don't know what we have
-    try:
-        if hasattr_path(self, "factory.datacollector.sendEvent"):
-            self.factory.datacollector.sendEvent(error_event)
-        elif hasattr_path(self, "factory.sendEvent"):
-            self.factory.sendEvent(error_event)
-        elif hasattr_path(self, "datacollector.sendEvent"):
-            self.datacollector.sendEvent(error_event)
-        elif hasattr_path(self, "conn.factory.datacollector.sendEvent"):
-            self.conn.factory.datacollector.sendEvent(error_event)
-        else:
-            log.debug("Unable to send event for %s", error_event)
-    except Exception:
-        pass  # Don't cause other issues
+    event_service = queryUtility(IEventService)
+    event_service.sendEvent(error_event)
 
 
 class SshClientError(Exception):
@@ -394,7 +382,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
             try:
                 data = "".join(open(keyPath).readlines()).strip()
                 key = Key.fromString(data, passphrase=self.factory.password)
-            except IOError, ex:
+            except IOError as ex:
                 message = "Unable to read the SSH key file because %s" % ex
                 log.warn(message)
                 device = "localhost"  # Fallback

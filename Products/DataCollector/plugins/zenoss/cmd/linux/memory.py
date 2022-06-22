@@ -31,7 +31,7 @@ class memory(LinuxCommandPlugin):
 
 
     def process(self, device, results, log):
-        log.info('Collecting memory and swap for device %s' % device.id)
+        log.info('Collecting memory and swap for device %s', device.id)
 
         rm = self.relMap()
         maps = []

@@ -29,7 +29,7 @@ class netstat_an(CommandPlugin):
 
 
     def process(self, device, results, log):
-        log.info('Collecting Ip Services for device %s' % device.id)
+        log.info('Collecting Ip Services for device %s', device.id)
         rm = self.relMap()
         rlines = results.split("\n")
         services = {}

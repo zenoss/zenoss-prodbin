@@ -30,6 +30,7 @@ import zope.interface
 from twisted.internet import defer, reactor, task
 from twisted.python.failure import Failure
 
+from Products.ZenCollector.cyberark import get_cyberark
 from Products.ZenCollector.interfaces import IScheduler, IScheduledTask, IPausingScheduledTask
 from Products.ZenCollector.tasks import TaskStates
 from Products.ZenEvents import Event
@@ -125,6 +126,7 @@ class CallableTask(object):
         else:
             self.task = task
 
+        self.task._scheduler = scheduler
         self._scheduler = scheduler
         self._executor = executor
         self.paused = False
@@ -308,6 +310,7 @@ class Scheduler(object):
         self._cleanupTask.start(Scheduler.CLEANUP_TASKS_INTERVAL)
 
         self._executor = TwistedExecutor(1)
+        self.cyberark = get_cyberark()
 
         # Ensure that we can cleanly shutdown all of our tasks
         reactor.addSystemEventTrigger('before', 'shutdown', self.shutdown, 'before')
@@ -393,10 +396,10 @@ class Scheduler(object):
         doesn't return a deferred, here for sanity and debug"""
         if task_name in self._loopingCalls:
             loopingCall = self._loopingCalls[task_name]
-            log.debug("call finished %s : %s" % (loopingCall, result))
+            log.debug("call finished %s : %s", loopingCall, result)
         if isinstance(result, Failure):
-            log.warn("Failure in looping call, will not reschedule %s" % task_name)
-            log.error("%s" % result)
+            log.warn("Failure in looping call, will not reschedule %s", task_name)
+            log.error("%s", result)
 
     def _startTask(self, result, task_name, interval, configId, delayed, attempts=0):
         """start the task using a callback so that its put at the bottom of
@@ -774,7 +777,7 @@ class Scheduler(object):
         Twisted callback to remove a task from the cleanup queue once it has
         completed its cleanup work.
         """
-        log.debug("Scheduler._cleanupTaskComplete: result=%s task.name=%s" % (result, task.name))
+        log.debug("Scheduler._cleanupTaskComplete: result=%s task.name=%s", result, task.name)
         self._tasksToCleanup.discard(task)
         return result
 

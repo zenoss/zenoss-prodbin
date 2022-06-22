@@ -68,16 +68,16 @@ class AuthXmlRpcService(XmlRpcService):
         @param request: the request for this xmlrpc call.
         @return: NOT_DONE_YET
         """
-        auth = request.getHeader('authorization')
+        auth = request.getHeader("authorization")
         if not auth:
             self.unauthorized(request)
         else:
             try:
                 authtype, encoded = auth.split()
-                if authtype not in ('Basic',):
+                if authtype not in ("Basic",):
                     self.unauthorized(request)
                 else:
-                    user, passwd = encoded.decode('base64').split(':')
+                    user, passwd = encoded.decode("base64").split(":")
                     c = credentials.UsernamePassword(user, passwd)
                     d = self.checker.requestAvatarId(c)
                     d.addCallback(self.doRender, request)

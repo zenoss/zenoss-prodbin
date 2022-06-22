@@ -18,7 +18,6 @@ import re
 from traceback import format_exc
 import socket
 
-import Globals
 from ZODB.POSException import ConflictError
 from ZODB.transact import transact
 from zope.component import getUtility
@@ -659,7 +658,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         name = device_specs['deviceName']
         devobj = self.dmd.Devices.findDevice(name)
         if devobj is not None:
-            self.log.info("Found existing device %s" % name)
+            self.log.info("Found existing device %s", name)
             return devobj
 
         specs = {}

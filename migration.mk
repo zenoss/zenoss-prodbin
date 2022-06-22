@@ -11,7 +11,7 @@ SCHEMA_MAJOR    = $(call pick_version_part,1,$(SCHEMA_VERSION))
 SCHEMA_MINOR    = $(call pick_version_part,2,$(SCHEMA_VERSION))
 SCHEMA_REVISION = $(call pick_version_part,3,$(SCHEMA_VERSION))
 
-.PHONY: clean-migration generate-zversion generate-zmigrateversion
+.PHONY: clean-migration generate-zversion generate-zmigrateversion replace-zmigrateversion verify-explicit-zmigrateversion
 
 clean-migration:
 	rm -f $(MIGRATE_VERSION)
@@ -26,7 +26,9 @@ generate-zmigrateversion: $(MIGRATE_VERSION)
 $(MIGRATE_VERSION): $(MIGRATE_VERSION).in SCHEMA_VERSION
 	@echo "Generating ZMigrateVersion.py"
 	@sed \
-	    -e "s/%SCHEMA_MAJOR%/$(SCHEMA_MAJOR)/g;s/%SCHEMA_MINOR%/$(SCHEMA_MINOR)/g;s/%SCHEMA_REVISION%/$(SCHEMA_REVISION)/g" \
+	    -e "s/%SCHEMA_MAJOR%/$(SCHEMA_MAJOR)/g" \
+	    -e "s/%SCHEMA_MINOR%/$(SCHEMA_MINOR)/g" \
+	    -e "s/%SCHEMA_REVISION%/$(SCHEMA_REVISION)/g" \
 	    $< > $@
 
 # The target replace-zmigrationversion should be used just prior to release to lock
@@ -40,7 +42,9 @@ replace-zmigrateversion:
 	        sed \
 	            -i \
 	            -e "/ZMigrateVersion/d" \
-	            -e "s/SCHEMA_MAJOR/$(SCHEMA_MAJOR)/g;s/SCHEMA_MINOR/$(SCHEMA_MINOR)/g;s/SCHEMA_REVISION/$(SCHEMA_REVISION)/g" \
+				-e "s/%SCHEMA_MAJOR%/$(SCHEMA_MAJOR)/g" \
+				-e "s/%SCHEMA_MINOR%/$(SCHEMA_MINOR)/g" \
+				-e "s/%SCHEMA_REVISION%/$(SCHEMA_REVISION)/g" \
 	            $$file; \
 	    done
 

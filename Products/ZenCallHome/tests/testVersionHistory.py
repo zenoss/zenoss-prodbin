@@ -10,7 +10,6 @@
 
 from datetime import datetime, timedelta
 
-import Globals # noqa F401
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenCallHome.callhome import REPORT_DATE_KEY

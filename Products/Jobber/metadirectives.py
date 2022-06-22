@@ -9,8 +9,8 @@
 
 from __future__ import absolute_import, unicode_literals
 
-from zope.interface import Interface
 from zope.configuration.fields import GlobalObject
+from zope.interface import Interface
 from zope.schema import TextLine
 
 

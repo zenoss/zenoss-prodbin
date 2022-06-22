@@ -16,7 +16,6 @@ restart it.
 
 '''
 
-import Globals
 from Products.ZenUtils.Utils import zenPath
 import logging
 
@@ -118,7 +117,7 @@ class Watcher:
         while not self.stop and time.time() < endTime:
             diff = endTime - time.time()
             try:
-                log.debug("waiting %f seconds" % diff)
+                log.debug("waiting %f seconds", diff)
                 rd, wr, ex = select.select([sock], [], [], diff)
             except Exception:
                 continue
@@ -131,7 +130,7 @@ class Watcher:
             if os.path.exists(self.socketPath):
                 os.unlink(self.socketPath)
         except OSError:
-            log.exception("Problem removing old socket %s" % self.socketPath)
+            log.exception("Problem removing old socket %s", self.socketPath)
         cmd = self.cmd + ['--watchdogPath', self.socketPath]
         cmd.insert(0, sys.executable)
         sock = s.socket(s.AF_UNIX, s.SOCK_STREAM)
@@ -143,7 +142,7 @@ class Watcher:
         if self.childPid == 0:
             # child
             try:
-                log.debug('Running %r' % (cmd,))
+                log.debug('Running %r', cmd)
                 os.execlp(cmd[0], *cmd)
             except Exception:
                 log.exception("Exec failed!")
@@ -154,7 +153,7 @@ class Watcher:
             if not self._readWait(sock, self.startTimeout):
                 if not self.stop:
                     raise TimeoutError("getting initial connection from process")
-            log.debug('Waiting for command to connect %r' % (cmd,))
+            log.debug('Waiting for command to connect %r', cmd)
             conn, addr = sock.accept()
             conn.setblocking(False)
             try:
@@ -176,8 +175,7 @@ class Watcher:
                             if status.signaled():
                                 raise UnexpectedFailure(status)
                             if status.exitCode() != 0:
-                                log.error("Child exited with status %d" %
-                                          status.exitCode())
+                                log.error("Child exited with status %d", status.exitCode())
                                 raise UnexpectedFailure(status)
                             return
                         else:
@@ -190,7 +188,7 @@ class Watcher:
                         buf = lines[-1]
                         line = lines[0]
                         if line:
-                            log.debug("Child sent %s" % line)
+                            log.debug("Child sent %s", line)
                             try:
                                 self.cycleTimeout = max(int(line), 1)
                                 log.debug("Watchdog cycleTimeout is %d",
@@ -214,17 +212,17 @@ class Watcher:
                 self._runOnce()
                 return
             except TimeoutError as ex:
-                log.error("Timeout: %s" % ex.args)
+                log.error("Timeout: %s", ex.args)
             except UnexpectedFailure as ex:
                 status = ex.args[0]
-                log.error("Child died: %s" % status)
+                log.error("Child died: %s", status)
             except Exception as ex:
                 log.exception(ex)
             if not self.stop:
                 log.debug("Waiting %.2f seconds before restarting", sleepTime)
                 _sleep(sleepTime)
                 prog = self.cmd[0].split('/')[-1].split('.')[0]
-                log.error("Restarting %s" % prog)
+                log.error("Restarting %s", prog)
             sleepTime = min(1.5 * sleepTime, self.maxTime)
 
 class Reporter:

@@ -8,7 +8,6 @@
 ##############################################################################
 
 
-import Globals
 import sys
 import Migrate
 import zExceptions

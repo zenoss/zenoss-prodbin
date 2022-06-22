@@ -17,7 +17,6 @@ import logging
 slog = logging.getLogger("zen.Syslog")
 import socket
 
-import Globals
 from Products.ZenEvents.syslog_h import *
 from Products.ZenUtils.IpUtil import isip
 
@@ -155,7 +154,7 @@ class SyslogProcessor(object):
                 old_severity = evt['severity']
                 new_severity = self.defaultSeverityMap(int(evt['overwriteSeverity']))
                 evt['severity'] = new_severity
-                slog.debug('Severity overwritten in message tag. Previous:{0} Current:{1}'.format(old_severity, new_severity))
+                slog.debug('Severity overwritten in message tag. Previous:%s Current:%s', old_severity, new_severity)
             #rest of msg now in summary of event
             evt = self.buildEventClassKey(evt)
             evt['monitor'] = self.monitor

@@ -33,7 +33,6 @@ from zope.interface import implementer
 
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_WARNING
 
-import Globals
 
 from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import (
@@ -53,7 +52,7 @@ from Products.ZenUtils.captureReplay import CaptureReplay
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenUtils.Utils import unused
 
-unused(Globals, DeviceProxy, User)
+unused(DeviceProxy, User)
 
 log = logging.getLogger("zen.zentrap")
 
@@ -1020,8 +1019,7 @@ class TrapDaemon(CollectorDaemon):
         CollectorDaemon.runPostConfigTasks(self, result)
         if not isinstance(result, Failure) and self._prefs.task is not None:
             service = self.getRemoteConfigServiceProxy()
-            log.debug('TrapDaemon.runPostConfigTasks '
-                      'callRemote createAllUsers')
+            log.debug('TrapDaemon.runPostConfigTasks callRemote createAllUsers')
             d = service.callRemote("createAllUsers")
             d.addCallback(self._createUsers)
 
@@ -1029,9 +1027,7 @@ class TrapDaemon(CollectorDaemon):
         reactor.callInThread(self._createUsers, [user])
 
     def _createUsers(self, users):
-        fmt = 'TrapDaemon._createUsers {0} users'
-        count = len(users)
-        log.debug(fmt.format(count))
+        log.debug('TrapDaemon._createUsers %s users', len(users))
         if self._prefs.task.session is None:
             log.debug("No session created, so unable to create users")
         else:

@@ -24,7 +24,7 @@ $Id: ZenStatus.py,v 1.28 2004/05/11 22:59:23 edahl Exp $"""
 
 import calendar
 
-from Globals import Persistent
+from Persistence import Persistent
 from DateTime import DateTime
 
 defaultColor = "#d02090"

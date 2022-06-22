@@ -77,7 +77,7 @@ class MySqlSendEventMixin:
         if publisher is None:
             publisher = getUtility(IEventPublisher)
         if log.isEnabledFor(logging.DEBUG):
-            log.debug('%s%s%s' % ('=' * 15, '  incoming event  ', '=' * 15))
+            log.debug('%s%s%s', '=' * 15, '  incoming event  ', '=' * 15)
         if isinstance(event, dict):
             event = buildEventFromDict(event)
 

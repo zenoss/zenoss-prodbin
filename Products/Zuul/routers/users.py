@@ -46,12 +46,12 @@ class UsersRouter(DirectRouter):
         """
         Removes all the users with the given user ids. Will continue
         upon removing users if an invalid id is specified.
-        @type  userIds: List of Strings
-        @param userIds: (optional) list of ids to remove.
+        @type  users: List of Strings
+        @param users: (optional) list of user ids to remove.
         """
         facade = self._getFacade()
-        facade.removeUsers(userIds)
-        audit('UI.Users.RemoveUsers', userIds=userIds)
+        facade.removeUsers(users)
+        audit('UI.Users.RemoveUsers', userIds=users)
         return DirectResponse.succeed()
 
     def getUsers(self, keys=None, start=0, limit=50, page=0,
@@ -88,10 +88,12 @@ class UsersRouter(DirectRouter):
     def addUser(self, name, password, email, groups=(), roles=()):
         """
         Adds a new user to the system.
-        @type  id: string
-        @param id: The unique identifier of the user, same as their login
+        @type  name: string
+        @param name: The unique identifier of the user, same as their login
         @type  password: string
         @param password: the password of the new user
+        @type  groups: list of strings
+        @param groups: (optional) groups to be applied to the new user
         @type  roles: list of strings
         @param roles: (optional) roles to be applied to the new user
         @rtype:   DirectResponse
@@ -99,8 +101,8 @@ class UsersRouter(DirectRouter):
              - data: properties of the new users
         """
         facade = self._getFacade()
-        newUser = facade.addUser(id, password, email, roles)
-        audit('UI.Users.Add', id, email=email, roles=roles)
+        newUser = facade.addUser(name, password, email, groups, roles)
+        audit('UI.Users.Add', name, email=email, roles=roles)
         return DirectResponse.succeed(data=Zuul.marshal(newUser))
 
     @require('Manage DMD')
