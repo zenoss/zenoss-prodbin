@@ -7,24 +7,13 @@
 #
 ##############################################################################
 
-"""CollectorClient
-
-Base class for client collectors
-
-zCommandLoginTries - number of times to attempt to login
-zCommandPathList - list of paths to check for a command
-zCommandExistanceCheck - shell command issued to look for an executable
-                        must echo succ if the executable is found
-                        default: test -f executable
-"""
-
 import logging
 import os
 import sys
 
 from twisted.internet import protocol
 
-from BaseClient import BaseClient
+from .BaseClient import BaseClient
 
 log = logging.getLogger("zen.CmdClient")
 
@@ -32,7 +21,15 @@ log = logging.getLogger("zen.CmdClient")
 class CollectorClient(BaseClient, protocol.ClientFactory):
     """
     Data collector client class to be subclassed by different types
-    collector protocols
+    collector protocols.
+
+    Some z-properties to regulate a CollectorClient's behavior:
+
+        zCommandLoginTries - number of times to attempt to login
+        zCommandPathList - list of paths to check for a command
+        zCommandExistanceCheck - shell command issued to look for an
+            executable must echo succ if the executable is found.
+            default: test -f executable
     """
 
     maintainConnection = False
@@ -230,7 +227,9 @@ def buildOptions(parser=None, usage=None):
     if not parser:
         from optparse import OptionParser
 
-        parser = OptionParser(usage=usage,)
+        parser = OptionParser(
+            usage=usage,
+        )
 
     parser.add_option(
         "-u",

@@ -32,6 +32,8 @@ from Products.ZenWidgets.interfaces import IMessageSender
 from .Exceptions import zenmarker
 
 iszprop = re.compile("z[A-Z]").match
+iscustprop = re.compile("c[A-Z]").match
+
 log = logging.getLogger('zen.PropertyManager')
 
 Z_PROPERTY_META_DATA = {}

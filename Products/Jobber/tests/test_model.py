@@ -12,8 +12,9 @@ from __future__ import absolute_import, print_function
 import itertools
 import types
 
-from mock import patch
 from unittest import TestCase
+
+from mock import patch
 
 from Products.Zuul import marshal
 from Products.Zuul.interfaces import IMarshallable, IInfo
@@ -79,11 +80,23 @@ class JobRecordTest(TestCase):
         expected = t.data.keys()
         expected.remove("details")
         expected.extend(t.data["details"].keys())
-        expected.extend((
-            "details", "id", "make", "uid",
-            "uuid", "duration", "complete", "abort", "wait", "result",
-            "job_description", "job_name", "job_type",
-        ))
+        expected.extend(
+            (
+                "details",
+                "id",
+                "make",
+                "uid",
+                "uuid",
+                "duration",
+                "complete",
+                "abort",
+                "wait",
+                "result",
+                "job_description",
+                "job_name",
+                "job_type",
+            )
+        )
         expected = sorted(expected)
         actual = [a for a in dir(j) if not a.startswith("__")]
         t.assertListEqual(expected, actual)
@@ -98,6 +111,7 @@ class JobRecordTest(TestCase):
 
     def test_job_type(t):
         from Products.Jobber.jobs import FacadeMethodJob
+
         data = dict(t.data)
         data["name"] = FacadeMethodJob.name
         j = JobRecord.make(data)
@@ -155,7 +169,7 @@ class JobRecordTest(TestCase):
             with subTest(status=status):
                 record.status = status
                 t.assertEqual(
-                    expected, record.complete, msg="status=%s" % status,
+                    expected, record.complete, msg="status=%s" % status
                 )
 
     @patch("{src}.time".format(**PATH), autospec=True)
@@ -208,6 +222,7 @@ class ComponentsLoadedLayer(object):
     @classmethod
     def tearDown(cls):
         from zope.testing import cleanup
+
         cleanup.cleanUp()
         del cls._ctx
 
@@ -225,14 +240,17 @@ class JobRecordMarshallerTest(TestCase):
             "name": "test",
             "jobid": t.jobid,
         }
-        t.allfields = dict(t.fields, **{
-            "status": None,
-            "created": None,
-            "finished": None,
-            "started": None,
-            "userid": None,
-            "uuid": t.jobid,
-        })
+        t.allfields = dict(
+            t.fields,
+            **{
+                "status": None,
+                "created": None,
+                "finished": None,
+                "started": None,
+                "userid": None,
+                "uuid": t.jobid,
+            }
+        )
         t.record = JobRecord.make(t.fields)
 
     def test_default_marshal(t):

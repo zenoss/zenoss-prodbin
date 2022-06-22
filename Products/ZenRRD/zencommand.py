@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 ##############################################################################
 #
 # Copyright (C) Zenoss, Inc. 2007, 2009, 2010, 2012,  all rights reserved.
@@ -69,10 +70,8 @@ log = logging.getLogger("zen.zencommand")
 
 @implementer(ICollectorPreferences)
 class SshPerformanceCollectionPreferences(object):
-
     def __init__(self):
-        """Initialize a SshPerformanceCollectionPreferences instance.
-        """
+        """Initialize a SshPerformanceCollectionPreferences instance."""
         self.collectorName = COLLECTOR_NAME
         self.configCycleInterval = 20  # minutes
         self.cycleInterval = 5 * 60  # seconds
@@ -412,9 +411,7 @@ class SshPerformanceCollectionTask(BaseTask):
 
         # Associate commands to datasources.
         # Set _commandMap *after* _chosenDatasource has been set.
-        self._commandMap = _groupCommands(
-            self.getDatasources(), self._device,
-        )
+        self._commandMap = _groupCommands(self.getDatasources(), self._device)
 
         self._executor = makeExecutor(limit=taskConfig.zSshConcurrentSessions)
 
@@ -424,9 +421,10 @@ class SshPerformanceCollectionTask(BaseTask):
         self.manage_ip_event = {
             "eventClass": Cmd_Fail,
             "device": self._devId,
-            "summary":
+            "summary": (
                 "IP address not set, collection will be attempted "
-                "with host name",
+                "with host name"
+            ),
             "component": COLLECTOR_NAME,
             "eventKey": "Empty_IP_address",
         }
@@ -454,6 +452,7 @@ class SshPerformanceCollectionTask(BaseTask):
         log.debug("Starting collection task  device=%s", self._devId)
         self._doTask_start = datetime.now()
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
+
         try:
             if not self._manageIp and self._useSsh:
                 self._eventService.sendEvent(
@@ -486,7 +485,8 @@ class SshPerformanceCollectionTask(BaseTask):
                     self._connector.close()
                     log.info(
                         "Connection closed  device=%s reason=%s",
-                        self._devId, "timeout",
+                        self._devId,
+                        "timeout",
                     )
 
         except Exception as e:
@@ -495,7 +495,8 @@ class SshPerformanceCollectionTask(BaseTask):
                 self.name,
                 self._devId,
                 self._manageIp,
-                e.message)
+                e.message,
+            )
             if log.isEnabledFor(logging.DEBUG):
                 log.exception(err_msg)
             else:
@@ -534,7 +535,8 @@ class SshPerformanceCollectionTask(BaseTask):
         if self._showfullcommand:
             log.info(
                 "Datasource added  name=%s command=%r",
-                datasource.name, datasource.command,
+                datasource.name,
+                datasource.command,
             )
         datasource.lastStart = time.time()
         d.addBoth(datasource.processCompleted)
@@ -561,7 +563,8 @@ class SshPerformanceCollectionTask(BaseTask):
                 # Note: 'd' is not the same deferred object returned from
                 # the _fetchFromDatasource method.
                 d = self._executor.submit(
-                    call, timeout=self._device.zCommandCommandTimeout,
+                    call,
+                    timeout=self._device.zCommandCommandTimeout,
                 )
                 d.addCallback(self._handle_completion, command)
                 d.addErrback(self._handle_error, command)
@@ -669,13 +672,16 @@ class SshPerformanceCollectionTask(BaseTask):
     def _handle_failure_error(self, datasources, failure):
         log.error(
             "Command failed  device=%s datasource=%s error=%s reason=%s",
-            self._devId, datasources[0].name, failure.type, failure.value,
+            self._devId,
+            datasources[0].name,
+            failure.type,
+            failure.value,
         )
         return partial(self._failure_error_result, failure)
 
     def _unexpected_error_result(self, response, datasource):
         event = makeCmdEvent(
-            self._devId, datasource, "Unexpected result from command",
+            self._devId, datasource, "Unexpected result from command"
         )
         event["result"] = str(response)
         if self._showfullcommand:
@@ -722,7 +728,8 @@ class SshPerformanceCollectionTask(BaseTask):
         # OSProcess matching the same process
         if ds.name == "OSProcess/ps":
             return self._process_os_processes_results_in_sequence(
-                datasources, response,
+                datasources,
+                response,
             )
 
         results = []
@@ -771,20 +778,22 @@ class SshPerformanceCollectionTask(BaseTask):
             parser.preprocessResults(datasource, log)
             parser.processResults(datasource, parsed)
 
-            if (
-                not parsed.events
-                and parser.createDefaultEventUsingExitCode
-            ):
+            if not parsed.events and parser.createDefaultEventUsingExitCode:
                 if exitCode == 0:
                     msg = ""
                     severity = Clear
                 else:
                     msg = "Datasource: %s - Code: %s - Msg: %s" % (
-                        datasource.name, exitCode, getExitMessage(exitCode),
+                        datasource.name,
+                        exitCode,
+                        getExitMessage(exitCode),
                     )
                     severity = datasource.severity
                 event = makeCmdEvent(
-                    self._devId, datasource, msg, severity=severity,
+                    self._devId,
+                    datasource,
+                    msg,
+                    severity=severity,
                 )
                 parsed.events.append(event)
 
@@ -811,10 +820,12 @@ class SshPerformanceCollectionTask(BaseTask):
             parsed.events.append(event)
         else:
             # Determine whether a non-timeout related event exists.
-            hasNonTimeoutEvent = any((
-                event.get("eventKey") == datasource.eventKey
-                for event in parsed.events
-            ))
+            hasNonTimeoutEvent = any(
+                (
+                    event.get("eventKey") == datasource.eventKey
+                    for event in parsed.events
+                )
+            )
             if not hasNonTimeoutEvent:
                 # No existing non-timeout event, so add a Clear event to
                 # clear any prior events on this datasource.
@@ -873,7 +884,9 @@ class SshPerformanceCollectionTask(BaseTask):
                         log.exception(
                             "Failed to write to metric service  "
                             "metadata=%s type=%s message=%s",
-                            dp.metadata, e.__class__.__name__, e,
+                            dp.metadata,
+                            e.__class__.__name__,
+                            e,
                         )
 
                 # Send accumulated events

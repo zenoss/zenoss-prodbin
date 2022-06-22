@@ -64,21 +64,13 @@ class IPingResult(interface.Interface):
         """Timestamp of when ping was returned (seconds since epoch)."""
     )
 
-    address = interface.Attribute(
-        """Address of the host"""
-    )
+    address = interface.Attribute("""Address of the host""")
 
-    trace = interface.Attribute(
-        """traceroute of the host"""
-    )
+    trace = interface.Attribute("""traceroute of the host""")
 
-    getStatusString = interface.Attribute(
-        """status string: up or down"""
-    )
+    getStatusString = interface.Attribute("""status string: up or down""")
 
-    isUp = interface.Attribute(
-        """true if host is up, false if host is down"""
-    )
+    isUp = interface.Attribute("""true if host is up, false if host is down""")
 
     rtt = interface.Attribute(
         """round trip time aka ping time aka rtt; nan if host was down"""

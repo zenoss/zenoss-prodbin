@@ -11,21 +11,22 @@
 """
 Zenoss JSON API
 """
+import base64
+import hashlib
+import logging
+import zlib
 
+from Products.ZenMessaging.audit import audit
+from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.System import System
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
+from Products.ZenUtils.Utils import getDisplayType
+from Products import Zuul
 from Products.Zuul.decorators import contextRequire
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.marshalling import Marshaller
-from Products.ZenModel.DeviceClass import DeviceClass
-from Products.ZenModel.System import System
-from Products.ZenMessaging.audit import audit
-from Products.ZenUtils.Utils import getDisplayType
-from Products import Zuul
 from Products.Zuul.utils import RedisGraphLinksTool
-import logging
-import zlib
-import base64
-import hashlib
+
 log = logging.getLogger(__name__)
 
 

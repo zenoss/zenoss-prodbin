@@ -42,6 +42,7 @@ class ZenTask(SendZenossEventMixin, Task):
         setattr(cls, "summary", summary)
 
         from Products.Jobber.config import ZenJobs
+
         task.max_retries = ZenJobs.get("zodb-max-retries", 5)
 
         return task
@@ -91,12 +92,11 @@ class ZenTask(SendZenossEventMixin, Task):
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         result = super(ZenTask, self).on_failure(
-            exc, task_id, args, kwargs, einfo,
+            exc, task_id, args, kwargs, einfo
         )
-        if (
-            einfo.type in getattr(self, "throws", ())
-            and not self.log.isEnabledFor(logging.DEBUG)
-        ):
+        if einfo.type in getattr(
+            self, "throws", ()
+        ) and not self.log.isEnabledFor(logging.DEBUG):
             # Log a simple message for known exceptions when not DEBUG.
             self.log.error("Job failed: %r", exc)
         else:

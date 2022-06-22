@@ -57,7 +57,6 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL,
 )
 
-
 log = logging.getLogger("zen.actions")
 
 

@@ -31,9 +31,7 @@ from .datamaputils import (
 )
 from .events import DatamapUpdateEvent, DatamapAppliedEvent
 
-log = logging.getLogger(
-    "zen.IncrementalDataMap"  # pragma: no mutate
-)
+log = logging.getLogger("zen.IncrementalDataMap")  # pragma: no mutate
 
 _NOTSET = type("NotSet", (object,), {})()
 

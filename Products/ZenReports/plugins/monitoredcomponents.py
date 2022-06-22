@@ -17,15 +17,15 @@ from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
 class monitoredcomponents(AliasPlugin):
     """
     Fetches every component in the system. Returns a generator of
-    dictionaries with metadata about each component so we can quickly invalidate
-    the component.
+    dictionaries with metadata about each component so we can quickly
+    invalidate the component.
     This keeps the memory usage in check.
     """
 
     def getSubComponents(self, dmd):
         catalog = IModelCatalogTool(dmd.Devices)
-        COMPONENT = 'Products.ZenModel.DeviceComponent.DeviceComponent'
-        query = Eq('monitored', '1')
+        COMPONENT = "Products.ZenModel.DeviceComponent.DeviceComponent"
+        query = Eq("monitored", "1")
         with gc_cache_every(100, db=dmd._p_jar._db):
             for brain in catalog.search(COMPONENT, query=query):
                 try:
@@ -33,7 +33,7 @@ class monitoredcomponents(AliasPlugin):
                 except KeyError:
                     continue
                 status = obj.getStatus()
-                row = (dict(
+                row = dict(
                     getParentDeviceTitle=obj.getParentDeviceTitle(),
                     hostname=obj.getParentDeviceTitle(),
                     name=obj.name(),
@@ -43,12 +43,12 @@ class monitoredcomponents(AliasPlugin):
                     getDeviceLink=obj.getDeviceLink(),
                     getPrimaryUrlPath=obj.getPrimaryUrlPath(),
                     cssclass=obj.getStatusCssClass(status),
-                    status=status
-                ))
+                    status=status,
+                )
                 yield Utils.Record(**row)
 
     def run(self, dmd, args):
         # ZEN-30539
-        if args.get('adapt', ''):
+        if args.get("adapt", ""):
             return []
         return self.getSubComponents(dmd)

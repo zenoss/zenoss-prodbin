@@ -9,8 +9,9 @@
 
 from __future__ import absolute_import, print_function
 
-from mock import MagicMock, mock_open, patch
 from unittest import TestCase
+
+from mock import MagicMock, mock_open, patch
 from zope.component import getGlobalSiteManager, ComponentLookupError
 
 from Products.Jobber.task.utils import job_log_has_errors
@@ -23,8 +24,7 @@ PATH = {"src": "Products.Jobber.task.utils"}
 
 
 class JobLogHasErrorsTest(TestCase):
-    """Test the task.utils.job_log_has_errors function.
-    """
+    """Test the task.utils.job_log_has_errors function."""
 
     layer = RedisLayer
 
@@ -43,19 +43,19 @@ class JobLogHasErrorsTest(TestCase):
         t.store = JobStore(t.layer.redis)
         t.store[t.record["jobid"]] = t.record
         getGlobalSiteManager().registerUtility(
-            t.store, IJobStore, name="redis",
+            t.store, IJobStore, name="redis"
         )
 
     def tearDown(t):
         t.layer.redis.flushall()
         getGlobalSiteManager().unregisterUtility(
-            t.store, IJobStore, name="redis",
+            t.store, IJobStore, name="redis"
         )
         del t.store
 
     def test_missing_jobstore(t):
         getGlobalSiteManager().unregisterUtility(
-            t.store, IJobStore, name="redis",
+            t.store, IJobStore, name="redis"
         )
         with t.assertRaises(ComponentLookupError):
             job_log_has_errors("123")
@@ -75,19 +75,23 @@ class JobLogHasErrorsTest(TestCase):
             t.assertFalse(job_log_has_errors("123"))
 
     def test_no_errors(t):
-        _open = mock_open(read_data=(
-            "INFO zen.zenjobs good things\n"
-            "WARNING zen.zenjobs be alert\n"
-            "DEBUG zen.zenjobs noisy things\n"
-        ))
+        _open = mock_open(
+            read_data=(
+                "INFO zen.zenjobs good things\n"
+                "WARNING zen.zenjobs be alert\n"
+                "DEBUG zen.zenjobs noisy things\n"
+            )
+        )
         with patch("__builtin__.open", _open):
             t.assertFalse(job_log_has_errors("123"))
 
     def test_has_errors(t):
-        _open = mock_open(read_data=(
-            "INFO zen.zenjobs good things\n"
-            "ERROR zen.zenjobs bad things\n"
-            "DEBUG zen.zenjobs noisy things\n"
-        ))
+        _open = mock_open(
+            read_data=(
+                "INFO zen.zenjobs good things\n"
+                "ERROR zen.zenjobs bad things\n"
+                "DEBUG zen.zenjobs noisy things\n"
+            )
+        )
         with patch("__builtin__.open", _open):
             t.assertTrue(job_log_has_errors("123"))

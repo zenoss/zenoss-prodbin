@@ -215,8 +215,7 @@ class NmapPingTask(BaseTask):
             minimum = MIN_PING_TIMEOUT + MAX_NMAP_OVERHEAD
             msg = (
                 "ping cycle time (%.1f seconds) is too short "
-                "(keep it under %.1f seconds)"
-                % (cycleInterval, minimum)
+                "(keep it under %.1f seconds)" % (cycleInterval, minimum)
             )
             severity = _CRITICAL
         evt = dict(
@@ -403,10 +402,12 @@ class NmapPingTask(BaseTask):
                         ipTask.delayedIsUp = False
                     else:
                         log.debug(
-                            '%s is down. %s ping downs received. '
-                            'Delaying events until more than %s ping '
-                            'downs are received.',
-                            ipTask.config.ip, dcs[taskName][0], delayCount
+                            "%s is down. %s ping downs received. "
+                            "Delaying events until more than %s ping "
+                            "downs are received.",
+                            ipTask.config.ip,
+                            dcs[taskName][0],
+                            delayCount,
                         )
 
                 ipTask.storeResults()

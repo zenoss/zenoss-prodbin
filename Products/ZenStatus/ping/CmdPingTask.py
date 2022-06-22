@@ -118,7 +118,6 @@ class CmdPingTaskFactory(object):
 
 @interface.implementer(ZenStatus.interfaces.IPingTask)
 class CmdPingTask(ZenStatus.PingTask):
-
     def doTask(self):
         """
         Contact to one device and return a deferred which gathers data from

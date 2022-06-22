@@ -11,7 +11,10 @@ from __future__ import absolute_import
 
 from unittest import TestCase
 from mock import (
-    NonCallableMagicMock, MagicMock, Mock, patch,
+    MagicMock,
+    Mock,
+    NonCallableMagicMock,
+    patch,
 )
 from twisted.internet import defer, reactor
 from twisted.python.failure import Failure
@@ -24,27 +27,30 @@ from Products.ZenHub.server.workerpool import WorkerPool
 from Products.ZenHub.server.utils import subTest
 
 from ..workers import (
-    RemoteException, banana, jelly,
+    banana,
+    jelly,
+    RemoteException,
+    _Running,
     ServiceCallPriority,
     ServiceCallTask,
     WorkerPoolExecutor,
-    _Running,
 )
 
-PATH = {'src': 'Products.ZenHub.server.executors.workers'}
+PATH = {"src": "Products.ZenHub.server.executors.workers"}
 
 
 class WorkerPoolExecutorTest(TestCase):  # noqa: D101
-
     def setUp(t):
         t.getLogger_patcher = patch(
-            "{src}.getLogger".format(**PATH), autospec=True,
+            "{src}.getLogger".format(**PATH),
+            autospec=True,
         )
         t.getLogger = t.getLogger_patcher.start()
         t.addCleanup(t.getLogger_patcher.stop)
 
         t._Running_patcher = patch(
-            "{src}._Running".format(**PATH), autospec=True,
+            "{src}._Running".format(**PATH),
+            autospec=True,
         )
         t._Running = t._Running_patcher.start()
         t.addCleanup(t._Running_patcher.stop)
@@ -55,7 +61,9 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
 
         t.name = "default"
         t.executor = WorkerPoolExecutor(
-            t.name, t.worklist, t.workers,
+            t.name,
+            t.worklist,
+            t.workers,
         )
         t.logger = t.getLogger(t.executor)
 
@@ -68,10 +76,12 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
         result = WorkerPoolExecutor.create(t.name, config, pool)
 
         _mp.assert_called_once_with(
-            config.priorities["modeling"], config.modeling_pause_timeout,
+            config.priorities["modeling"],
+            config.modeling_pause_timeout,
         )
         _ps.assert_called_once_with(
-            ServiceCallPriority, exclude=_mp.return_value,
+            ServiceCallPriority,
+            exclude=_mp.return_value,
         )
         _zhwlist.assert_called_once_with(_ps.return_value)
         t.assertIsInstance(result, WorkerPoolExecutor)
@@ -94,7 +104,10 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
         self.assertIsInstance(f.value, pb.Error)
         self.assertEqual("ZenHub not ready.", str(f.value))
         self._Running.assert_called_once_with(
-            self.name, self.worklist, self.workers, self.logger,
+            self.name,
+            self.worklist,
+            self.workers,
+            self.logger,
         )
 
     def test_create_requires_pool_and_config_args(t):
@@ -118,13 +131,14 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
         self.assertEqual(dfr, running_state.submit.return_value)
 
     def test_stop(t):
-        '''submit returns a deferred.failure object if the executor is stopped
-        '''
+        """
+        Submit returns a deferred.failure object if the executor is stopped.
+        """
         call = Mock(spec=ServiceCall)
 
         t.executor.stop()
         dfr = t.executor.submit(call)
-        handler = Mock(name='errback handler')
+        handler = Mock(name="errback handler")
         dfr.addErrback(handler)  # silence 'unhandled error in deffered'
 
         f = handler.call_args[0][0]
@@ -142,19 +156,22 @@ class BaseRunning(object):
     def setUp(self):
         super(BaseRunning, self).setUp()
         self.getLogger_patcher = patch(
-            "{src}.getLogger".format(**PATH), autospec=True,
+            "{src}.getLogger".format(**PATH),
+            autospec=True,
         )
         self.getLogger = self.getLogger_patcher.start()
         self.addCleanup(self.getLogger_patcher.stop)
 
         self.getUtility_patcher = patch(
-            "{src}.getUtility".format(**PATH), autospec=True,
+            "{src}.getUtility".format(**PATH),
+            autospec=True,
         )
         self.getUtility = self.getUtility_patcher.start()
         self.addCleanup(self.getUtility_patcher.stop)
 
         self.LoopingCall_patcher = patch(
-            "{src}.LoopingCall".format(**PATH), autospec=True,
+            "{src}.LoopingCall".format(**PATH),
+            autospec=True,
         )
         self.LoopingCall = self.LoopingCall_patcher.start()
         self.addCleanup(self.LoopingCall_patcher.stop)
@@ -166,7 +183,10 @@ class BaseRunning(object):
         self.worklist = NonCallableMagicMock(spec=ZenHubWorklist)
         self.name = "default"
         self.running = _Running(
-            self.name, self.worklist, self.workers, self.logger,
+            self.name,
+            self.worklist,
+            self.workers,
+            self.logger,
         )
         self.reactor = Mock(spec=reactor)
 
@@ -258,7 +278,8 @@ class RunningTest(BaseRunning, TestCase):
         self.worklist.pop.assert_called_once_with()
         self.workers.hire.assert_called_once_with()
         self.logger.exception.assert_called_once_with(
-            "Unexpected failure worklist=%s", self.name,
+            "Unexpected failure worklist=%s",
+            self.name,
         )
 
         handler.assert_not_called()
@@ -285,7 +306,8 @@ class RunningTest(BaseRunning, TestCase):
         self.assertIsInstance(dfr, defer.Deferred)
         self.worklist.pop.assert_called_once_with()
         self.logger.exception.assert_called_once_with(
-            "Unexpected failure worklist=%s", self.name,
+            "Unexpected failure worklist=%s",
+            self.name,
         )
         self.workers.hire.assert_not_called()
         self.workers.layoff.assert_not_called()
@@ -309,7 +331,11 @@ class RunningTest(BaseRunning, TestCase):
 
         self.logger.info.assert_called_once_with(
             "Begin task service=%s method=%s id=%s worker=%s waited=%0.2f",
-            call.service, call.method, call.id.hex, "default_0", 10,
+            call.service,
+            call.method,
+            call.id.hex,
+            "default_0",
+            10,
         )
 
     def test__log_subsequent_starts(self):
@@ -326,8 +352,12 @@ class RunningTest(BaseRunning, TestCase):
         self.logger.info.assert_called_once_with(
             "Retry task service=%s method=%s id=%s "
             "worker=%s attempt=%s waited=%0.2f",
-            call.service, call.method, call.id.hex,
-            "default_0", task.attempt, 20,
+            call.service,
+            call.method,
+            call.id.hex,
+            "default_0",
+            task.attempt,
+            20,
         )
 
     def test__log_complete(self):
@@ -345,8 +375,13 @@ class RunningTest(BaseRunning, TestCase):
         self.logger.info.assert_called_once_with(
             "Completed task service=%s method=%s id=%s "
             "worker=%s status=%s duration=%0.2f lifetime=%0.2f",
-            call.service, call.method, call.id.hex,
-            task.workerId, "success", 10, 20,
+            call.service,
+            call.method,
+            call.id.hex,
+            task.workerId,
+            "success",
+            10,
+            20,
         )
 
 
@@ -356,8 +391,10 @@ class RunningHandleMethodsTest(BaseRunning, TestCase):
     def setUp(self):
         super(RunningHandleMethodsTest, self).setUp()
         methods_to_patch = (
-            "_log_initial_start", "_log_subsequent_starts",
-            "_log_incomplete", "_log_completed",
+            "_log_initial_start",
+            "_log_subsequent_starts",
+            "_log_incomplete",
+            "_log_completed",
         )
         self.patchers = []
         self.patches = {}
@@ -499,8 +536,11 @@ class RunningExecuteTest(BaseRunning, TestCase):
     def setUp(self):
         super(RunningExecuteTest, self).setUp()
         methods_to_patch = (
-            "_handle_start", "_handle_retry", "_handle_error",
-            "_handle_success", "_handle_failure",
+            "_handle_start",
+            "_handle_retry",
+            "_handle_error",
+            "_handle_success",
+            "_handle_failure",
         )
         self.patchers = []
         self.patches = {}
@@ -528,10 +568,12 @@ class RunningExecuteTest(BaseRunning, TestCase):
         self.reactor.callLater.assert_not_called()
 
         self.patches["_handle_start"].assert_called_once_with(
-            task, worker.workerId,
+            task,
+            worker.workerId,
         )
         self.patches["_handle_success"].assert_called_once_with(
-            task, expected_result,
+            task,
+            expected_result,
         )
 
         self.logger.exception.assert_not_called()
@@ -566,10 +608,12 @@ class RunningExecuteTest(BaseRunning, TestCase):
                 self.assertIsInstance(dfr, defer.Deferred)
                 worker.run.assert_called_once_with(task.call)
                 self.patches["_handle_start"].assert_called_once_with(
-                    task, worker.workerId,
+                    task,
+                    worker.workerId,
                 )
                 self.patches["_handle_failure"].assert_called_once_with(
-                    task, error,
+                    task,
+                    error,
                 )
                 self.workers.layoff.assert_called_once_with(worker)
 
@@ -594,7 +638,9 @@ class RunningExecuteTest(BaseRunning, TestCase):
     def test_internal_errors(self, _Error):
         worker = Mock(spec=["workerId", "run"])
         errors = (
-            pb.ProtocolError(), banana.BananaError(), jelly.InsecureJelly(),
+            pb.ProtocolError(),
+            banana.BananaError(),
+            jelly.InsecureJelly(),
         )
 
         for error in errors:
@@ -612,16 +658,21 @@ class RunningExecuteTest(BaseRunning, TestCase):
                 self.assertIsInstance(dfr, defer.Deferred)
                 worker.run.assert_called_once_with(task.call)
                 self.patches["_handle_start"].assert_called_once_with(
-                    task, worker.workerId,
+                    task,
+                    worker.workerId,
                 )
                 self.logger.error.assert_called_once_with(
                     "(%s) %s service=%s method=%s id=%s worker=%s",
-                    type(error), error,
-                    task.call.service, task.call.method,
-                    task.call.id, worker.workerId,
+                    type(error),
+                    error,
+                    task.call.service,
+                    task.call.method,
+                    task.call.id,
+                    worker.workerId,
                 )
                 self.patches["_handle_failure"].assert_called_once_with(
-                    task, _Error.return_value,
+                    task,
+                    _Error.return_value,
                 )
                 self.workers.layoff.assert_called_once_with(worker)
 
@@ -657,11 +708,13 @@ class RunningExecuteTest(BaseRunning, TestCase):
         self.assertIsInstance(dfr, defer.Deferred)
         worker.run.assert_called_once_with(task.call)
         self.patches["_handle_start"].assert_called_once_with(
-            task, worker.workerId,
+            task,
+            worker.workerId,
         )
         self.patches["_handle_retry"].assert_called_once_with(task, error)
         self.worklist.pushfront.assert_called_once_with(
-            task.priority, task,
+            task.priority,
+            task,
         )
         self.workers.layoff.assert_called_once_with(worker)
 
@@ -687,13 +740,16 @@ class RunningExecuteTest(BaseRunning, TestCase):
         self.assertIsInstance(dfr, defer.Deferred)
         worker.run.assert_called_once_with(task.call)
         self.patches["_handle_start"].assert_called_once_with(
-            task, worker.workerId,
+            task,
+            worker.workerId,
         )
         self.patches["_handle_error"].assert_called_once_with(
-            task, error,
+            task,
+            error,
         )
         self.worklist.pushfront.assert_called_once_with(
-            task.priority, task,
+            task.priority,
+            task,
         )
         self.workers.layoff.assert_called_once_with(worker)
         self.logger.exception.assert_called_once_with(
@@ -727,16 +783,32 @@ class ServiceCallTaskTest(TestCase):
         self.task = ServiceCallTask(self.queue, self.call)
 
     def test_expected_attributes(self):
-        expected_attrs = tuple(sorted((
-            "call", "deferred", "desc", "attempt", "priority",
-            "received_tm", "started_tm", "completed_tm",
-            "error", "retryable", "workerId", "event_data",
-            "received", "started", "completed",
-            "failure", "success",
-        )))
-        actual_attrs = tuple(sorted(
-            n for n in dir(self.task) if not n.startswith("_")
-        ))
+        expected_attrs = tuple(
+            sorted(
+                (
+                    "call",
+                    "deferred",
+                    "desc",
+                    "attempt",
+                    "priority",
+                    "received_tm",
+                    "started_tm",
+                    "completed_tm",
+                    "error",
+                    "retryable",
+                    "workerId",
+                    "event_data",
+                    "received",
+                    "started",
+                    "completed",
+                    "failure",
+                    "success",
+                )
+            )
+        )
+        actual_attrs = tuple(
+            sorted(n for n in dir(self.task) if not n.startswith("_"))
+        )
         self.assertTupleEqual(expected_attrs, actual_attrs)
 
     def test_failure_attribute(self):

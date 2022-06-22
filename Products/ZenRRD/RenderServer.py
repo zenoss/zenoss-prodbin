@@ -7,17 +7,19 @@
 #
 ##############################################################################
 
+"""RenderServer
 
-__doc__="""RenderServer
 This class is deprecated.
 Frontend that passes RRD graph options to rrdtool to render,
 and then returns an URL to access the rendered graphic file.
 """
 
-from RRDToolItem import RRDToolItem
+from .RRDToolItem import RRDToolItem
+
 
 class RenderServer(RRDToolItem):
     """
     Not used any more since version 5.0.
     """
+
     meta_type = "RenderServer"
