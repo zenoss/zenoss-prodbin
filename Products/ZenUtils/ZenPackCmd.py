@@ -10,6 +10,8 @@
 
 __doc__ = "Manage ZenPacks"
 
+import pkg_resources
+
 from ZODB.transact import transact
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, getObjByPath,atomicWrite, varPath
@@ -20,7 +22,6 @@ from Products.ZenModel.ZenPack import ZenPackException, \
                                         ZenPackNeedMigrateException
 from Products.ZenModel.ZenPack import ZenPackDependentsException
 from Products.ZenModel.ZenPack import ZenPack
-from Products.ZenUtils.PkgResources import pkg_resources
 from Products.ZenUtils.events import paused
 from Products.Zuul.utils import CatalogLoggingFilter
 from Products.Zuul.catalog.events import onIndexingEvent
@@ -38,7 +39,6 @@ import socket
 import logging
 import zExceptions
 import json
-import pkg_resources
 
 from urlparse import urlparse
 from Products.ZenMessaging.audit import audit

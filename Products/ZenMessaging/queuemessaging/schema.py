@@ -14,6 +14,9 @@ import logging
 from cStringIO import StringIO
 from ConfigParser import ConfigParser
 
+import pkg_resources
+
+from zope.component import getUtility
 from zenoss.protocols.amqp import Publisher as BlockingPublisher
 from zenoss.protocols.queueschema import (
     MissingReplacementException,
@@ -22,9 +25,7 @@ from zenoss.protocols.queueschema import (
 from zenoss.protocols.queueschema import Schema
 from zenoss.protocols.data.queueschema import SCHEMA
 from zenoss.protocols.interfaces import IQueueSchema, IAMQPConnectionInfo
-from zope.component import getUtility
 
-from Products.ZenUtils.PkgResources import pkg_resources
 from Products.ZenUtils.Utils import zenPath
 
 
