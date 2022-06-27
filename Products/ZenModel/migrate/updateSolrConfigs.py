@@ -15,7 +15,6 @@ import logging
 import Migrate
 import servicemigration as sm
 from Products.ZenUtils.Utils import zenPath
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 
@@ -26,7 +25,7 @@ SOLR_OPTS="-Dsolr.http1=true"
 
 
 class UpdateSolrConfigs(Migrate.Step):
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 1, 0)
 
     def __read_file_content(self, name):
         with open(zenPath("Products/ZenModel/migrate/data/%s" % name)) as f:
