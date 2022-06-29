@@ -15,6 +15,7 @@ from Products import Zuul
 from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils import Time
+from Products.ZenMessaging.audit import audit
 
 class DeviceManagementRouter(DirectRouter): 
     """
@@ -33,7 +34,8 @@ class DeviceManagementRouter(DirectRouter):
         """    
         facade = self._getFacade()
         facade.addMaintWindow(params)
-        return DirectResponse.succeed(msg="Maintenance Window %s added successfully." % (params['name']))    
+        audit('UI.MaintenanceWindow.Add', params['uid'] + '/' + params['name'], data_=params)
+        return DirectResponse.succeed(msg="Maintenance Window %s added successfully." % (params['name']))
             
     def deleteMaintWindow(self, uid, id):
         """
@@ -41,7 +43,8 @@ class DeviceManagementRouter(DirectRouter):
         """
         facade = self._getFacade()
         data = facade.deleteMaintWindow(uid, id)
-        return DirectResponse.succeed(data=Zuul.marshal(data))           
+        audit('UI.MaintenanceWindow.Delete', uid + '/' + id)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
 
     def getTimeZone(self):
         """
@@ -98,6 +101,7 @@ class DeviceManagementRouter(DirectRouter):
         facade = self._getFacade()
         facade.addUserCommand(params)
         #work in password and not just succeed()
+        audit('UI.UserCommand.Add', params['name'], data_=params)
         return DirectResponse.succeed()
         
     @require('Define Commands Edit')
@@ -107,7 +111,8 @@ class DeviceManagementRouter(DirectRouter):
         """
         facade = self._getFacade()
         data = facade.deleteUserCommand(uid, id)
-        return DirectResponse.succeed(data=Zuul.marshal(data))         
+        audit('UI.UserCommand.Delete', uid + '/' + id)
+        return DirectResponse.succeed(data=Zuul.marshal(data))
 
     @require('Define Commands Edit')
     def updateUserCommand(self, params):
@@ -116,7 +121,8 @@ class DeviceManagementRouter(DirectRouter):
         """
         facade = self._getFacade()
         facade.updateUserCommand(params)
-        #work in password and not just succeed()        
+        #work in password and not just succeed()
+        audit('UI.UserCommand.Edit', params['uid'] + '/' + params['id'])
         return DirectResponse.succeed()
         
 # ---------------------------------------------------- Admin Roles:    
@@ -163,6 +169,7 @@ class DeviceManagementRouter(DirectRouter):
         """
         facade = self._getFacade()
         facade.addAdminRole(params)
+        audit('UI.AdminRole.Add', params['uid'] + '/' + params['name'])
         return DirectResponse.succeed(msg="New Administrator added successfully.")
         
     def updateAdminRole(self, params):
@@ -171,7 +178,8 @@ class DeviceManagementRouter(DirectRouter):
         """
         facade = self._getFacade()
         facade.updateAdminRole(params)
-        return DirectResponse.succeed()   
+        audit('UI.AdminRole.Update', params['uid'] + '/' + params['name'])
+        return DirectResponse.succeed()
         
     def removeAdmin(self, uid, id):
         """
@@ -179,9 +187,5 @@ class DeviceManagementRouter(DirectRouter):
         """
         facade = self._getFacade()
         facade.removeAdmin(uid, id)
-        return DirectResponse.succeed()         
-        
-   
-
-
-       
+        audit('UI.AdminRole.Delete', uid + '/' + id)
+        return DirectResponse.succeed()
