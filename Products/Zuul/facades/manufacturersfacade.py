@@ -255,6 +255,21 @@ class ManufacturersFacade(TreeFacade):
         manufacturer = self._getObject(
                 "/zport/dmd/Manufacturers/" +
                 params.get('oldname', params['name']))
+
+        # Create the pair of products and these products instances which
+        # should be updated.
+        product_instance_pairs = []
+        products = manufacturer.products()
+        for product in products:
+            result = product._find_instances_in_catalog()
+            instances_uids = [i.uid for i in result.results]
+
+            product_instances = [
+                (self._dmd.Devices.getObjByPath(uid), product)
+                for uid in instances_uids
+            ]
+            product_instance_pairs.extend(product_instances)
+
         manufacturer.url = params['URL']
         manufacturer.supportNumber = params['phone']
         manufacturer.address1 = params['address1']
@@ -264,8 +279,12 @@ class ManufacturersFacade(TreeFacade):
         manufacturer.zip = params['zip']
         manufacturer.country = params['country']
         manufacturer.regexes = params['regexes']
-        if (manufacturer.id != params['name']):
+        if manufacturer.id != params['name']:
             manufacturer.rename(params['name'])
+
+        # Set updated instances to the product
+        for obj, prod in product_instance_pairs:
+            obj.setProductClass(prod)
 
     def _moveProduct(self, moveFrom, moveTarget, ids):
         target = self._getObject(moveTarget)
