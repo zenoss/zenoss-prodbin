@@ -197,6 +197,37 @@ class MaintenanceWindow(ZenModelRM):
             return self.occurrence + ' ' + self.days + ' of the month'
         return self.repeat
 
+    @staticmethod
+    def durationStringParser(duration_string):
+        parsed_duration = {}
+        if 'days' not in duration_string:
+            hours_minutes_seconds = duration_string.split(':')
+            if len(hours_minutes_seconds) == 3:
+                parsed_duration.update({
+                    'hours': str(hours_minutes_seconds[0]),
+                    'minutes': str(hours_minutes_seconds[1]),
+                    'seconds': str(hours_minutes_seconds[2])
+                })
+            elif len(hours_minutes_seconds) == 2:
+                parsed_duration.update({
+                    'minutes': str(hours_minutes_seconds[0]),
+                    'seconds': str(hours_minutes_seconds[1])
+                })
+            elif len(hours_minutes_seconds) == 1:
+                parsed_duration.update({
+                    'seconds': str(hours_minutes_seconds[0])
+                })
+        else:
+            days_hours_minutes = duration_string.split(' days ')
+            hours_minutes_seconds = days_hours_minutes[1].split(':')
+            parsed_duration.update({
+                'days': str(days_hours_minutes[0]),
+                'hours': str(hours_minutes_seconds[0]),
+                'minutes': str(hours_minutes_seconds[1]),
+                'seconds': str(hours_minutes_seconds[2])
+            })
+        return parsed_duration
+
     security.declareProtected(ZEN_MAINTENANCE_WINDOW_EDIT,
                               'manage_editMaintenanceWindow')
     def manage_editMaintenanceWindow(self,
