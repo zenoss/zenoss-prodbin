@@ -267,6 +267,8 @@ class PluginManager(object):
         packs - list of installed zenpacks (ZenPack instances)
         modPath - the module path of the plugin
         """
+        if not modPath:
+            return None
         if modPath not in self.pluginLoaders:
             self.getPluginLoaders(packs)
         if modPath in self.pluginLoaders:
@@ -281,10 +283,11 @@ class PluginManager(object):
         """
         try:
             for pack in packs:
-                if pack.moduleName() not in self.loadedZenpacks:
-                    self.loadedZenpacks.append(pack.moduleName())
+                modname = pack.moduleName()
+                if modname not in self.loadedZenpacks:
+                    self.loadedZenpacks.append(modname)
                     modPathPrefix = ".".join(
-                        (pack.moduleName(),)
+                        (modname,)
                         + self.packPath
                         + (self.lastModName,)
                     )
