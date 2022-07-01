@@ -9,7 +9,10 @@
 
 import transaction
 
-from Products.DataCollector.ApplyDataMap import ApplyDataMap
+from Products.DataCollector.ApplyDataMap import (
+    ApplyDataMap,
+    IncrementalDataMap,
+)
 from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
@@ -89,7 +92,10 @@ class applyDataMapTests(BaseTestCase):
             "_add": False,
         }
 
-        changed = self.service.applyDataMap(self.device, ObjectMap(DATA))
+        idm = IncrementalDataMap(self.device, ObjectMap(DATA))
+        idm._target = self.device  # absolutely incorrect but sufficient here
+
+        changed = self.service.applyDataMap(self.device, idm)
         self.assertFalse(changed, "_add = False resulted in change")
 
         self.assertEqual(
@@ -109,7 +115,17 @@ class applyDataMapTests(BaseTestCase):
                 remove_key: True,
             }
 
-            changed = self.service.applyDataMap(self.device, ObjectMap(DATA))
+            class Parent(object):
+                def removeRelation(self, relname, target):
+                    raise AttributeError("the interface does not exist")
+
+            idm = IncrementalDataMap(self.device, ObjectMap(DATA))
+            idm._target = (
+                self.device
+            )  # absolutely incorrect but sufficient here
+            idm._parent = Parent()
+
+            changed = self.service.applyDataMap(self.device, idm)
             self.assertFalse(changed, "update is not idempotent")
 
             self.service.applyDataMap(
