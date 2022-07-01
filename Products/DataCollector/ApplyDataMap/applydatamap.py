@@ -102,9 +102,9 @@ class ApplyDataMap(object):
 
         # apply the changes
         if commit:
-            result = transact(adm_method)(datamap, device)
+            transact(adm_method)(datamap, device)
         else:
-            result = adm_method(datamap, device)
+            adm_method(datamap, device)
 
         # report the changes made
         result = self._report_changes(datamap, device)

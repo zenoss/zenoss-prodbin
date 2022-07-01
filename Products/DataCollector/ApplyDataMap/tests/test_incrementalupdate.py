@@ -22,15 +22,12 @@ from ..incrementalupdate import (
     ObjectMap,
     _class_changed,
 )
+from .utils import BaseTestCase
 
-"""
-Given a parent device, path to a sub-device or component
-and optional relationship on the sub-device or component
-Apply the given ObjectMap to the target device
-where the target is parent/path/relationship/id
-"""
-
-log.setLevel("DEBUG")
+# Given a parent device, path to a sub-device or component
+# and optional relationship on the sub-device or component
+# Apply the given ObjectMap to the target device
+# where the target is parent/path/relationship/id
 
 PATH = {"src": "Products.DataCollector.ApplyDataMap.incrementalupdate"}
 
@@ -62,7 +59,9 @@ def setup_mock_environment(t):
     # get the target from the relationship
     t.relationship = Mock(
         name="relationship",
-        spec_set=[t.target.id, "_getOb", "hasobject", "_setObject"],
+        spec_set=[
+            t.target.id, "_getOb", "hasobject", "_setObject", "objectItemsAll"
+        ],
     )
     setattr(t.relationship, t.target.id, t.target)
     t.relationship._getOb.return_value = t.target
@@ -89,8 +88,9 @@ def setup_mock_environment(t):
     t.idm = IncrementalDataMap(t.base, t.object_map)
 
 
-class TestIncrementalDataMapAPI(TestCase):
+class TestIncrementalDataMapAPI(BaseTestCase):
     def setUp(t):
+        super(TestIncrementalDataMapAPI, t).setUp()
         setup_mock_environment(t)
 
         patches = [
@@ -193,8 +193,9 @@ class TestIncrementalDataMapAPI(TestCase):
         t.assertEqual(base.a1, "attribute_1_updated")
 
 
-class TestIncrementalDataMapImpl(TestCase):
+class TestIncrementalDataMapImpl(BaseTestCase):
     def setUp(t):
+        super(TestIncrementalDataMapImpl, t).setUp()
         setup_mock_environment(t)
 
     def test___repr__(t):
@@ -553,15 +554,18 @@ class TestIncrementalDataMapImpl(TestCase):
         t.idm._nochange.assert_called_with()
 
     def test__add(t):
-        """creates, updates, and adds the new object to the relationship
-        Requires modname
+        """creates, updates, and adds the new object to the relationship.
+        Requires modname.
         """
         t.idm._create_target = create_autospec(t.idm._create_target)
+        t.idm._create_target.return_value = t.target
         t.relationship.hasobject.return_value = False
+        t.relationship.objectItemsAll.return_value = ()
         t.idm.modname = "module.name"
 
         t.idm._add()
 
+        t.assertTrue(t.idm.changed)
         t.idm._create_target.assert_called_with()
         t.idm.relationship._setObject.assert_called_with(
             t.idm.target.id, t.idm.target
@@ -570,21 +574,20 @@ class TestIncrementalDataMapImpl(TestCase):
 
     def test__add_target_to_relationship(t):
         t.relationship.hasobject.return_value = False
-        ret = t.idm._add_target_to_relationship()
+        t.idm._add_target_to_relationship()
         t.relationship._setObject.assert_called_with(t.target.id, t.target)
-        t.assertIs(True, ret)
 
     def test__add_target_to_relationship_is_idempotent(t):
         t.relationship.hasobject.return_value = True
-        ret = t.idm._add_target_to_relationship()
+        t.idm._add_target_to_relationship()
         t.relationship._setObject.assert_not_called()
-        t.assertIs(True, ret)
 
     @patch("{src}.DatamapUpdateEvent".format(**PATH), autospec=True)
     @patch("{src}.notify".format(**PATH), autospec=True)
     @patch("{src}._update_object".format(**PATH), autospec=True)
     def test__update(t, _update_object, notify, DatamapUpdateEvent):
         """Update the target object"""
+        _update_object.return_value = True
         t.idm._update()
 
         _update_object.assert_called_with(t.idm.target, t.idm._diff)
@@ -638,7 +641,7 @@ class TestIncrementalDataMapImpl(TestCase):
 
         import_module.assert_called_with(t.idm.modname)
         module.ConstructorName.assert_called_with(t.idm._target_id)
-        t.assertEqual(t.idm.target, module.ConstructorName.return_value)
+        t.assertEqual(t.idm._target, module.ConstructorName.return_value)
 
     def test__rebuild(t):
         t.idm._remove = create_autospec(t.idm._remove)

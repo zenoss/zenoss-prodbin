@@ -483,16 +483,24 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         else:
             ManagedEntity._setPropValue(self, id, value)
 
-
     security.declareProtected(ZEN_MANAGE_DEVICE, 'applyDataMap')
-    def applyDataMap(self, datamap, relname="", compname="", modname="", parentId=""):
+    def applyDataMap(
+        self, datamap, relname="", compname="", modname="", parentId=""
+    ):
         """
         Apply a datamap passed as a list of dicts through XML-RPC.
         """
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
+
         adm = ApplyDataMap()
-        adm.applyDataMap(self, datamap, relname=relname,
-                         compname=compname, modname=modname, parentId="")
+        return adm.applyDataMap(
+            self,
+            datamap,
+            relname=relname,
+            compname=compname,
+            modname=modname,
+            parentId="",
+        )
 
     def path(self):
         """

@@ -78,12 +78,26 @@ def _locked_from_deletion(obj):
 def _evaluate_legacy_directive(datamap):
     """Translate legacy directives"""
     for attr, directive in directive_map.items():
-        if hasattr(datamap, attr):
-            if getattr(datamap, attr):
-                datamap._directive = directive
-            else:
-                datamap._directive = "nochange"
-            delattr(datamap, attr)
+        flag = getattr(datamap, attr, None)
+        if flag is None:
+            continue
+
+        # .-----------------------------------------------.
+        # |  _add  | Device Exists | Device Doesn't Exist |
+        # |--------+---------------+----------------------|
+        # | True   | Update device | Add device           |
+        # | False  | Update device | Ignore datamap       |
+        # `-----------------------------------------------'
+        # Note: if there are no differences between the device
+        # and the datamap, then applyDataMap should return False
+        # to indicate no changes.
+
+        if directive == "add" and flag is False:
+            datamap._directive = "update"
+        else:
+            datamap._directive = directive if flag else "nochange"
+
+        delattr(datamap, attr)
 
     return datamap
 
@@ -203,25 +217,23 @@ def _update_object(obj, diff):
     """
     log.debug("_update_object: obj=%s, diff=%s", obj, diff)
 
+    if not diff:
+        return False
+
+    changed = False
+
     for attrname, value in diff.items():
         attr = getattr(obj, attrname, MISSINGNO)
         if attr is MISSINGNO:
             continue
         elif callable(attr):
-            _update_callable_attribute(attr, value)
+            changed = _update_callable_attribute(attr, value)
         else:
-            setattr(obj, attrname, value)
+            if attr != value:
+                setattr(obj, attrname, value)
+                changed = True
 
-    try:
-        obj.index_object()
-    except AttributeError:
-        pass
-
-    notify(IndexingEvent(obj))
-
-    obj.setLastChange()
-
-    return True
+    return changed
 
 
 def _update_callable_attribute(attr, value):
@@ -229,11 +241,12 @@ def _update_callable_attribute(attr, value):
         try:
             attr(*value) if isinstance(value, tuple) else attr(value)
         except (TypeError, ValueError):
-            # This is to handle legacy zenpacks that use the
-            # signature pattern
+            # This is to handle legacy zenpacks that use the signature
+            # pattern:
             #     def func(*args):
             #         (arg1, arg2, ...) = args[0]
             attr(*(value,))
+        return True
     except Exception:
         # We log the traceback because we want incorrectly defined
         # datamaps to stand out.
@@ -243,3 +256,15 @@ def _update_callable_attribute(attr, value):
             attr.__name__,
             value,
         )
+        return False
+
+
+def _object_changed(obj):
+    try:
+        obj.index_object()
+    except AttributeError:
+        pass
+
+    notify(IndexingEvent(obj))
+
+    obj.setLastChange()

@@ -16,6 +16,14 @@ from Products.DataCollector.plugins.zenoss.snmp.HRSWRunMap import HRSWRunMap
 log = logging.getLogger("zen.testcases")
 
 
+class BaseTestCase(TestCase):
+    def setUp(t):
+        logging.disable(logging.CRITICAL)
+
+    def tearDown(t):
+        logging.disable(logging.NOTSET)
+
+
 class FakeObjectMap(object):
 
     _procName = "procName"
@@ -43,7 +51,7 @@ def createHRSWRunMap():
     return sw_run_map
 
 
-class TestHRSWRunMap(TestCase):
+class TestHRSWRunMap(BaseTestCase):
     def test_process(self):
         sw_run_map = createHRSWRunMap()
         device = FakeDevice()
