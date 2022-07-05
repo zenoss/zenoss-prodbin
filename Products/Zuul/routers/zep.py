@@ -601,27 +601,17 @@ class EventsRouter(DirectRouter):
             raise Exception('Could not find event %s' % evid)
 
     def _hasPermissionsForAllEvents(self, permission, evids):
-        log.info('HP permission: %s, evids: %s', permission, evids)
         try:
             dmd = get_dmd()
-            log.info('HP dmd: %s', dmd)
             target_permission = permission.lower()
-            log.info('HP target_permission: %s', target_permission)
             events_filter = self._buildFilter(uids=None, params={}, specificEventUuids=evids)
-            log.info('HP events_filter: %s', events_filter)
             event_summaries = self.zep.getEventSummaries(0, filter=events_filter, use_permissions=True)
-            log.info('HP event_summaries: %s', event_summaries)
             devices = set()
             for summary in event_summaries['events']:
                 d = EventCompatInfo(self.context.dmd, summary)
-                log.info('HP d: %s', d)
                 dev_obj = dmd.getObjByPath(d.device['uid'])
-                log.info('HP dev_obj: %s', dev_obj)
                 devices.add(dev_obj)
-                log.info('HP devices: %s', devices)
             for device in devices:
-                log.info('HP permissionsForContext: %s',
-                         permissionsForContext(device)[target_permission])
                 if not permissionsForContext(device)[target_permission]:
                     return False
             return True
@@ -859,8 +849,6 @@ class EventsRouter(DirectRouter):
         @return:  Success message
         """
         log.debug('Issuing an acknowledge request.')
-
-        log.info('ACK uis: %s, params: %s, evids: %s', uid, params, evids)
 
         includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
 
