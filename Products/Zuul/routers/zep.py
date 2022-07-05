@@ -619,7 +619,8 @@ class EventsRouter(DirectRouter):
             log.debug(e)
             return False
 
-    def manage_events(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
+    def manage_events(self, evids=None, excludeIds=None, params=None,
+                      uid=None, asof=None, limit=None, timeout=None):
         user = self.context.dmd.ZenUsers.getUserSettings()
         if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
             return True
@@ -628,13 +629,26 @@ class EventsRouter(DirectRouter):
                 return Zuul.checkPermission('ZenCommon', self.context)
         try:
             if uid is not None:
-                organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
+                organizer = self.context.dmd.Devices.getOrganizer(uid)
             else:
-                return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS, evids)
+                return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS,
+                                                        evids)
         except (AttributeError, KeyError):
             return False
-        manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
-        return organizer_name in manage_events_for
+
+        manage_events_for = []
+        for r in user.getAllAdminRoles():
+            if r.role in READ_WRITE_ROLES:
+                role_managed_object = r.managedObject()
+                for sub_org in role_managed_object.getSubOrganizers():
+                    manage_events_for.append(
+                        role_managed_object.getBreadCrumbUrlPath()
+                    )
+                    manage_events_for.append(
+                        sub_org.getBreadCrumbUrlPath()
+                    )
+
+        return organizer.getBreadCrumbUrlPath() in manage_events_for
     
     def can_add_events(self, summary, device, component, severity, evclasskey,
                   evclass=None, monitor=None, **kwargs):
