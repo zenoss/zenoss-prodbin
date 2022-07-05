@@ -601,17 +601,27 @@ class EventsRouter(DirectRouter):
             raise Exception('Could not find event %s' % evid)
 
     def _hasPermissionsForAllEvents(self, permission, evids):
+        log.info('HP permission: %s, evids: %s', permission, evids)
         try:
             dmd = get_dmd()
+            log.info('HP dmd: %s', dmd)
             target_permission = permission.lower()
+            log.info('HP target_permission: %s', target_permission)
             events_filter = self._buildFilter(uids=None, params={}, specificEventUuids=evids)
+            log.info('HP events_filter: %s', events_filter)
             event_summaries = self.zep.getEventSummaries(0, filter=events_filter, use_permissions=True)
+            log.info('HP event_summaries: %s', event_summaries)
             devices = set()
             for summary in event_summaries['events']:
                 d = EventCompatInfo(self.context.dmd, summary)
+                log.info('HP d: %s', d)
                 dev_obj = dmd.getObjByPath(d.device['uid'])
+                log.info('HP dev_obj: %s', dev_obj)
                 devices.add(dev_obj)
+                log.info('HP devices: %s', devices)
             for device in devices:
+                log.info('HP permissionsForContext: %s',
+                         permissionsForContext(device)[target_permission])
                 if not permissionsForContext(device)[target_permission]:
                     return False
             return True
@@ -619,7 +629,8 @@ class EventsRouter(DirectRouter):
             log.debug(e)
             return False
 
-    def manage_events(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
+    def manage_events(self, evids=None, excludeIds=None, params=None,
+                      uid=None, asof=None, limit=None, timeout=None):
         user = self.context.dmd.ZenUsers.getUserSettings()
         if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
             return True
@@ -628,13 +639,26 @@ class EventsRouter(DirectRouter):
                 return Zuul.checkPermission('ZenCommon', self.context)
         try:
             if uid is not None:
-                organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
+                organizer = self.context.dmd.Devices.getOrganizer(uid)
             else:
-                return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS, evids)
+                return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS,
+                                                        evids)
         except (AttributeError, KeyError):
             return False
-        manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
-        return organizer_name in manage_events_for
+
+        manage_events_for = []
+        for r in user.getAllAdminRoles():
+            if r.role in READ_WRITE_ROLES:
+                role_managed_object = r.managedObject()
+                for sub_org in role_managed_object.getSubOrganizers():
+                    manage_events_for.append(
+                        role_managed_object.getBreadCrumbUrlPath()
+                    )
+                    manage_events_for.append(
+                        sub_org.getBreadCrumbUrlPath()
+                    )
+
+        return organizer.getBreadCrumbUrlPath() in manage_events_for
     
     def can_add_events(self, summary, device, component, severity, evclasskey,
                   evclass=None, monitor=None, **kwargs):
@@ -835,6 +859,8 @@ class EventsRouter(DirectRouter):
         @return:  Success message
         """
         log.debug('Issuing an acknowledge request.')
+
+        log.info('ACK uis: %s, params: %s, evids: %s', uid, params, evids)
 
         includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
 
