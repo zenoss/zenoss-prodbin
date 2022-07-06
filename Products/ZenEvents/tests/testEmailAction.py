@@ -37,7 +37,7 @@ class TestEmailAction(BaseTestCase):
                 "useTls", "email_from"]
         notification, signal, targets = (Mock(content=dict.fromkeys(keys)), Mock(), set())
         email_action.executeBatch(notification, signal, targets)
-        self.assertEqual(mockedLog.info.call_count, 2)
+        self.assertEqual(mockedLog.info.call_count, 3)
         self.assertIn("try again", str(mockedLog.info.mock_calls[0]))
 
 
