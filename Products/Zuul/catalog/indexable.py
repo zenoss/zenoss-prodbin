@@ -18,7 +18,7 @@ from Products.ZenUtils.IpUtil import ipunwrap, isip
 from zenoss.modelindex import indexed, index
 from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD
 from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType, UntokenizedStringFieldType, ListOfUntokenizedStringsFieldType, ListOfPathStringsFieldType
-from zenoss.modelindex.field_types import DictAsBase64StringsFieldType, LongFieldType, NotIndexedFieldType, BooleanFieldType
+from zenoss.modelindex.field_types import DictAsBase64StringsFieldType, LongFieldType, NotIndexedFieldType, BooleanFieldType, DoubleFieldType
 from zenoss.modelindex.field_types import IPAddressFieldType
 from zenoss.modelindex.constants import NOINDEX_TYPE
 
@@ -77,6 +77,7 @@ OBJECT_UID_FIELD = "uid"                    # this will transalate to "uid" in s
             |  idx_hwModel               |  hwModel                |              |     Y   |    Y    |   str     |     N     |
             |  idx_hwManufacturer        |  hwManufacturer         |              |     Y   |    Y    |   str     |     N     |
             |  idx_serialNumber          |  serialNumber           |              |     Y   |    Y    |   str     |     N     |
+            |  idx_snmpLastCollection    |  snmpLastCollection     |              |     Y   |    Y    |   double  |     N     |
             -------------------------------------------------------------------------------------------------------------------
 
 
@@ -374,6 +375,10 @@ class DeviceIndexable(object):   # Device inherits from this class
     @indexed(StringFieldType(indexed=True, stored=True), attr_query_name="serialNumber")
     def idx_serialNumber(self):
         return self.hw.serialNumber
+
+    @indexed(DoubleFieldType(indexed=True, stored=True), attr_query_name="snmpLastCollection")
+    def idx_snmpLastCollection(self):
+        return self.snmpLastCollection
 
 
 class ComponentIndexable(object):     # DeviceComponent inherits from this class
