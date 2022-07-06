@@ -1583,12 +1583,16 @@ def is_browser_connection_open(request):
     preclude the thread from being destroyed even though the connection has
     been closed.
     """
-    creation_time = request.environ['channel.creation_time']
-    for cnxn in asyncore.socket_map.values():
-        if (isinstance(cnxn, zhttp_channel) and
-            cnxn.creation_time==creation_time):
-            return True
-    return False
+    missing = object()
+    env = getattr(request, "environ", {})
+    creation_time = env.get("channel.creation_time", missing)
+    if creation_time is missing:
+        return False
+    return any(
+        getattr(cnxn, "creation_time", missing) == creation_time
+        for cnxn in asyncore.socket_map.values()
+        if isinstance(cnxn, zhttp_channel)
+    )
 
 
 EXIT_CODE_MAPPING = {
