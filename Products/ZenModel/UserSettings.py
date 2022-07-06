@@ -1102,22 +1102,27 @@ class UserSettings(ZenModelRM):
         'manage_editAdministrativeRoles')
     @validate_csrf_token
     def manage_editAdministrativeRoles(self, ids=(), role=(), REQUEST=None):
-        """Edit list of admin roles.
-        """
+        """Edit list of admin roles."""
         if isinstance(ids, basestring):
             ids = [ids]
             role = [role]
         else:
             ids = list(ids)
-        for ar in self.adminRoles():
-            mobj = ar.managedObject()
-            try: i = ids.index(mobj.managedObjectName())
-            except ValueError: continue
-            mobj = mobj.primaryAq()
-            mobj.manage_editAdministrativeRoles(self.id, role[i])
+        for admin_role in self.adminRoles():
+            managed_object = admin_role.managedObject()
+            try:
+                i = ids.index(managed_object.getPrimaryDmdId())
+            except ValueError:
+                continue
+            managed_object = managed_object.primaryAq()
+            managed_object.manage_editAdministrativeRoles(self.id, role[i])
+
             if REQUEST:
                 audit('UI.User.EditAdministrativeRole', username=self.id,
-                      data_={mobj.meta_type:mobj.getPrimaryId()},
+                      data_={
+                          managed_object.meta_type:
+                              managed_object.getPrimaryId()
+                      },
                       role=role[i])
         if REQUEST:
             if ids:
@@ -1132,17 +1137,23 @@ class UserSettings(ZenModelRM):
         'manage_deleteAdministrativeRole')
     @validate_csrf_token
     def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
-        "Delete admin roles of objects."
+        """Delete admin roles of objects."""
         if isinstance(delids, basestring):
             delids = [delids]
-        for ar in self.adminRoles():
-            mobj = ar.managedObject()
-            if mobj.managedObjectName() not in delids: continue
-            mobj = mobj.primaryAq()
-            mobj.manage_deleteAdministrativeRole(self.id)
+        else:
+            delids = list(delids)
+        for admin_role in self.adminRoles():
+            managed_object = admin_role.managedObject()
+            if managed_object.getPrimaryDmdId() not in delids:
+                continue
+            managed_object = managed_object.primaryAq()
+            managed_object.manage_deleteAdministrativeRole(self.id)
             if REQUEST:
                 audit('UI.User.DeleteAdministrativeRole', username=self.id,
-                      data_={mobj.meta_type:mobj.getPrimaryId()})
+                      data_={
+                          managed_object.meta_type:
+                              managed_object.getPrimaryId()
+                      })
         if REQUEST:
             if delids:
                 messaging.IMessageSender(self).sendToBrowser(
