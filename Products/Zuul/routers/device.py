@@ -326,8 +326,12 @@ class DeviceRouter(TreeRouter):
         if not (
             Zuul.checkPermission(ZEN_MANAGE_DEVICE, self.context)
             or (
-                Zuul.checkPermission(ZEN_CHANGE_DEVICE_PRODSTATE, self.context)
+                Zuul.checkPermission(ZEN_CHANGE_DEVICE_PRODSTATE,
+                                     self.context)
                 and sorted(data.keys()) == ['productionState', 'uid']
+            )
+            or Zuul.checkAdministeredObjectPermission(
+                data.get('uid'), ZEN_MANAGE_DMD, self.context
             )
         ):
             raise Exception('You do not have permission to save changes.')
