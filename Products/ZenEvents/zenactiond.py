@@ -92,7 +92,7 @@ class ProcessSignalTask(object):
                 self.processSignal(signal)
             log.debug('Done processing signal.')
         except SchemaException:
-            log.error("Unable to hydrate protobuf %s. " % message.content.body)
+            log.error("Unable to hydrate protobuf %s. ", message.content.body)
             self.queueConsumer.acknowledge(message)
         except Exception as e:
             log.exception(e)
@@ -100,12 +100,12 @@ class ProcessSignalTask(object):
             log.error('Acknowledging broken message.')
             self.queueConsumer.acknowledge(message)
         else:
-            log.debug('Acknowledging message. (%s)' % signal.message)
+            log.debug('Acknowledging message. (%s)', signal.message)
             self.queueConsumer.acknowledge(message)
 
     def processSignal(self, signal):
         matches = self.notificationDao.getSignalNotifications(signal)
-        log.debug('Found these matching notifications: %s' % matches)
+        log.debug('Found these matching notifications: %s', matches)
 
         trigger = self.notificationDao.guidManager.getObject(signal.trigger_uuid)
         audit_event_trigger_info = "Event:'%s' Trigger:%s" % (
@@ -113,7 +113,7 @@ class ProcessSignalTask(object):
                                         trigger.id)
         for notification in matches:
             if signal.clear and not notification.send_clear:
-                log.debug('Ignoring clearing signal since send_clear is set to False on this subscription %s' % notification.id)
+                log.debug('Ignoring clearing signal since send_clear is set to False on this subscription %s', notification.id)
                 continue
 
             if self.shouldSuppress(notification, signal, trigger.id):
@@ -129,14 +129,14 @@ class ProcessSignalTask(object):
                 with self.notification_timer:
                     action.execute(notification, signal)
             except ActionMissingException as e:
-                log.error('Error finding action: {action}'.format(action = notification.action))
+                log.error('Error finding action: %s', notification.action)
                 audit_msg =  "%s Action:%s Status:%s Target:%s Info:%s" % (
                                     audit_event_trigger_info, notification.action, "FAIL", target, "<action not found>")
             except ActionExecutionException as aee:
-                log.error('Error executing action: {action} on notification {notification}'.format(
-                    action = notification.action,
-                    notification = notification.id,
-                ))
+                log.error('Error executing action: %s on notification %s',
+                    notification.action,
+                    notification.id,
+                )
                 audit_msg =  "%s Action:%s Status:%s Target:%s Info:%s" % (
                                     audit_event_trigger_info, notification.action, "FAIL", target, aee)
             except Exception as e:
@@ -161,7 +161,7 @@ class ProcessSignalTask(object):
                 self.recordNotification(notification, signal, trigger.id)
 
             log.info(audit_msg)
-        log.debug('Done processing signal. (%s)' % signal.message)
+        log.debug('Done processing signal. (%s)', signal.message)
 
     def shouldSuppress(self, notification, signal, triggerId):
         return False

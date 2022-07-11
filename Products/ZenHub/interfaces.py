@@ -7,10 +7,8 @@
 #
 ##############################################################################
 
-
 from zope.component.interfaces import Interface, IObjectEvent
 from zope.interface import Attribute
-
 
 # "Enum" for return values for IInvalidationFilters.
 FILTER_EXCLUDE = 0
@@ -22,6 +20,7 @@ class IInvalidationEvent(IObjectEvent):
     """
     ZenHub has noticed an invalidation.
     """
+
     oid = Attribute("OID of the changed object")
 
 
@@ -54,11 +53,13 @@ class IInvalidationProcessor(Interface):
     """
     Accepts an invalidation queue.
     """
+
     def processQueue(queue):
         """
         Read invalidations off a queue and deal with them. Return a Deferred
         that fires when all invalidations are done processing.
         """
+
     def setHub(hub):
         """
         Set the instance of ZenHub that this processor will deal with.
@@ -69,6 +70,7 @@ class IServiceAddedEvent(Interface):
     """
     ZenHub has created a service.
     """
+
     name = Attribute("Dotted class name of the service")
     instance = Attribute("Collector name")
 
@@ -77,6 +79,7 @@ class IHubWillBeCreatedEvent(Interface):
     """
     A hub has been instantiated.
     """
+
     hub = Attribute("The hub")
 
 
@@ -84,6 +87,7 @@ class IHubCreatedEvent(Interface):
     """
     A hub has been instantiated.
     """
+
     hub = Attribute("The hub")
 
 
@@ -91,6 +95,7 @@ class IParserReadyForOptionsEvent(Interface):
     """
     A parser is ready for extra options to be added.
     """
+
     parser = Attribute("The option parser")
 
 
@@ -98,6 +103,7 @@ class IInvalidationFilter(Interface):
     """
     Filters invalidations before they're pushed to workers.
     """
+
     weight = Attribute(
         "Where this filter should be in the process. Lower is earlier.",
     )
@@ -106,6 +112,7 @@ class IInvalidationFilter(Interface):
         """
         Initialize any state necessary for this filter to function.
         """
+
     def include(obj):
         """
         Return whether to exclude this device, include it absolutely, or move
@@ -118,6 +125,7 @@ class IInvalidationOid(Interface):
     """
     Allows an invalidation OID to be changed to a different OID or dropped
     """
+
     def transformOid(oid):
         """
         Given an OID, return the same oid, a different one,
@@ -126,21 +134,17 @@ class IInvalidationOid(Interface):
 
 
 class IHubConfProvider(Interface):
-    """
-    """
+    """"""
 
     def getHubConf():
-        """
-        """
+        """"""
 
 
 class IHubHeartBeatCheck(Interface):
-    """
-    """
+    """"""
 
     def check():
-        """
-        """
+        """"""
 
 
 class ICollectorEventFingerprintGenerator(Interface):

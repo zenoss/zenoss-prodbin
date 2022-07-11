@@ -7,29 +7,26 @@
 #
 ##############################################################################
 
+import json as _stdlib_json
 import logging
-import sys
 import os
+import sys
 
-log = logging.getLogger("zen.publisher")
-
-from .utils import basic_auth_string_content, sanitized_float
-from cookielib import CookieJar
 from collections import deque
+from cookielib import CookieJar
+from httplib import UNAUTHORIZED
+
 from twisted.internet import defer, protocol, reactor
 from twisted.web.client import Agent, CookieAgent
-from twisted.web.iweb import IBodyProducer
 from twisted.web.http_headers import Headers
-from httplib import UNAUTHORIZED
-from zope.interface import implements
+from twisted.web.iweb import IBodyProducer
 from txredis import RedisClientFactory
+from zope.interface import implements
 
 from Products.ZenUtils.MetricServiceRequest import getPool
-from Products.ZenUtils.Utils import unused
 
-import json as _stdlib_json
 from .compat import json
-
+from .utils import basic_auth_string_content, sanitized_float
 
 defaultMetricsChannel = "metrics"
 defaultMetricBufferSize = 65536
@@ -41,13 +38,15 @@ bufferHighWater = 4096
 HTTP_BATCH = 100
 INITIAL_REDIS_BATCH = 2
 
+log = logging.getLogger("zen.publisher")
+
 
 class BasePublisher(object):
     """
     Publish metrics to redis
     """
 
-    def __init__(self, buflen, pubfreq, tagsToFilter=('internal',)):
+    def __init__(self, buflen, pubfreq, tagsToFilter=("internal",)):
         self._buflen = buflen
         self._pubfreq = pubfreq
         self._pubtask = None
@@ -61,10 +60,12 @@ class BasePublisher(object):
         for key in self._tagsToFilter:
             if key in _tags:
                 del _tags[key]
-        return {"metric": metric,
-                "value": _value,
-                "timestamp": timestamp,
-                "tags": _tags}
+        return {
+            "metric": metric,
+            "value": _value,
+            "timestamp": timestamp,
+            "tags": _tags,
+        }
 
     def _publish_failed(self, reason, metrics):
         """
@@ -76,7 +77,10 @@ class BasePublisher(object):
         @return: the number of metrics still in the queue. Note, this
         will stop the errback chain
         """
-        log.info('publishing failed: %s', getattr(reason, 'getErrorMessage', reason.__str__)())
+        log.info(
+            "publishing failed: %s",
+            getattr(reason, "getErrorMessage", reason.__str__)(),
+        )
 
         open_slots = self._mq.maxlen - len(self._mq)
         self._mq.extendleft(reversed(metrics[-open_slots:]))
@@ -114,7 +118,9 @@ class BasePublisher(object):
         in the buffer when fired
         """
         if not self._pubtask:
-            self._pubtask = reactor.callLater(self._pubfreq, self._putLater, True)
+            self._pubtask = reactor.callLater(
+                self._pubfreq, self._putLater, True
+            )
 
         mv = self.build_metric(metric, value, timestamp, tags)
         log.debug("writing: %s", mv)
@@ -129,6 +135,7 @@ class BasePublisher(object):
     def _putLater(self, scheduled):
         def handleError(val):
             log.debug("Error sending metric: %s", val)
+
         d = self._put(scheduled=scheduled)
         d.addErrback(handleError)
 
@@ -138,13 +145,15 @@ class RedisListPublisher(BasePublisher):
     Publish metrics to redis
     """
 
-    def __init__(self,
-                 host='localhost',
-                 port=defaultRedisPort,
-                 buflen=defaultMetricBufferSize,
-                 pubfreq=defaultPublishFrequency,
-                 channel=defaultMetricsChannel,
-                 maxOutstandingMetrics=defaultMaxOutstandingMetrics):
+    def __init__(
+        self,
+        host="localhost",
+        port=defaultRedisPort,
+        buflen=defaultMetricBufferSize,
+        pubfreq=defaultPublishFrequency,
+        channel=defaultMetricsChannel,
+        maxOutstandingMetrics=defaultMaxOutstandingMetrics,
+    ):
         super(RedisListPublisher, self).__init__(buflen, pubfreq)
         self._batch_size = INITIAL_REDIS_BATCH
         self._host = host
@@ -153,10 +162,10 @@ class RedisListPublisher(BasePublisher):
         self._maxOutstandingMetrics = maxOutstandingMetrics
         self._redis = RedisClientFactory()
         self._flushing = False
-        self._connection = reactor.connectTCP(self._host,
-                                              self._port,
-                                              self._redis)
-        reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
+        self._connection = reactor.connectTCP(
+            self._host, self._port, self._redis
+        )
+        reactor.addSystemEventTrigger("before", "shutdown", self._shutdown)
 
     def build_metric(self, metric, value, timestamp, tags):
         """
@@ -179,12 +188,14 @@ class RedisListPublisher(BasePublisher):
         @param llen: number of metrics in Redis after publishing
         @return: the number of metrics still in the queue
         """
-        log.debug('published %d metrics to redis', metricCount)
+        log.debug("published %d metrics to redis", metricCount)
         if metricCount >= self._batch_size:
-            # Batch size starts at 2, and doubles on every success, up to 2**16.
-            # On failure, it drops to 2 again to allow redis to recover.
-            self._batch_size = min(2 * self._batch_size,
-                                   defaultMetricBufferSize)
+            # Batch size starts at 2, and doubles on every success,
+            # up to 2**16. On failure, it drops to 2 again to allow redis
+            # to recover.
+            self._batch_size = min(
+                2 * self._batch_size, defaultMetricBufferSize
+            )
 
         if remaining:
             reactor.callLater(0, self._putLater, False)
@@ -209,12 +220,12 @@ class RedisListPublisher(BasePublisher):
             return defer.succeed(0)
 
         if self._flushing:
-            #still flushing keep queuing up metrics
+            # still flushing keep queuing up metrics
             log.debug("metric flush to redis in progress, skipping _put")
             return defer.succeed(len(self._mq))
 
-        if self._connection.state == 'connected':
-            log.debug('trying to publish %d metrics', len(self._mq))
+        if self._connection.state == "connected":
+            log.debug("trying to publish %d metrics", len(self._mq))
 
             metrics = []
             for x in xrange(self._get_batch_size()):
@@ -227,24 +238,33 @@ class RedisListPublisher(BasePublisher):
             @defer.inlineCallbacks
             def _flush(metrics):
                 if self._flushing:
-                    #this should never really happen, but here as a safety
+                    # this should never really happen, but here as a safety
                     log.debug("rescheduling _flush")
                     num = yield reactor.deferLater(0.25, _flush, metrics)
                     defer.returnValue(num)
-                log.debug("flushing %s metrics, current batch size %s", len(metrics), self._batch_size)
+                log.debug(
+                    "flushing %s metrics, current batch size %s",
+                    len(metrics),
+                    self._batch_size,
+                )
                 client = self._redis.client
                 try:
                     self._flushing = True
                     yield client.multi()
                     yield client.lpush(self._channel, *metrics)
-                    yield client.ltrim(self._channel, 0, self._maxOutstandingMetrics - 1)
+                    yield client.ltrim(
+                        self._channel, 0, self._maxOutstandingMetrics - 1
+                    )
                     result, _ = yield client.execute()
                     yield self._metrics_published(
-                        result, metricCount=len(metrics),
-                        remaining=len(self._mq))
+                        result,
+                        metricCount=len(metrics),
+                        remaining=len(self._mq),
+                    )
                     defer.returnValue(len(self._mq))
                 except Exception as e:
-                    # since we may be in a mutli redis command state, attempt to discard it
+                    # since we may be in a mutli redis command state,
+                    # attempt to discard it
                     try:
                         yield client.discard()
                     except Exception:
@@ -260,10 +280,10 @@ class RedisListPublisher(BasePublisher):
 
     def _shutdown(self):
         def disconnect():
-            log.debug('redislistpublisher shutting down [disconnecting]')
-            if self._connection.state == 'connected':
+            log.debug("redislistpublisher shutting down [disconnecting]")
+            if self._connection.state == "connected":
                 self._connection.disconnect()
-            log.debug('redislistpublisher shutting down [disconnected]')
+            log.debug("redislistpublisher shutting down [disconnected]")
 
         def drainQueue(unused):
             if self._mq:
@@ -274,16 +294,24 @@ class RedisListPublisher(BasePublisher):
             else:
                 disconnect()
 
-        log.debug('redislistpublisher shutting down')
-        if self._connection.state != 'connected':
-            log.debug('redislistpublisher shutting down [not connected: %s]',
-                      self._connection.state)
+        log.debug("redislistpublisher shutting down")
+        if self._connection.state != "connected":
+            log.debug(
+                "redislistpublisher shutting down [not connected: %s]",
+                self._connection.state,
+            )
         elif len(self._mq):
-            log.debug('redislistpublisher shutting down [publishing  metrics %s]', len(self._mq))
+            log.debug(
+                "redislistpublisher shutting down [publishing  metrics %s]",
+                len(self._mq),
+            )
             try:
                 return drainQueue(None)
             except Exception as x:
-                log.exception('redislistpublisher shutting down [publishing failed: %s]', x)
+                log.exception(
+                    "redislistpublisher shutting down [publishing failed: %s]",
+                    x,
+                )
         else:
             disconnect()
 
@@ -293,12 +321,14 @@ class HttpPostPublisher(BasePublisher):
     Publish metrics via HTTP POST
     """
 
-    def __init__(self,
-                 username,
-                 password,
-                 url='https://localhost:8443/api/metrics/store',
-                 buflen=defaultMetricBufferSize,
-                 pubfreq=defaultPublishFrequency):
+    def __init__(
+        self,
+        username,
+        password,
+        url="https://localhost:8443/api/metrics/store",
+        buflen=defaultMetricBufferSize,
+        pubfreq=defaultPublishFrequency,
+    ):
         super(HttpPostPublisher, self).__init__(buflen, pubfreq)
         self._username = username
         self._password = password
@@ -307,22 +337,34 @@ class HttpPostPublisher(BasePublisher):
         if self._username:
             self._needsAuth = True
         self._cookieJar = CookieJar()
-        self._agent = CookieAgent(Agent(reactor, pool=getPool()), self._cookieJar)
+        self._agent = CookieAgent(
+            Agent(reactor, pool=getPool()), self._cookieJar
+        )
         self._url = url
-        self._agent_suffix = os.path.basename(sys.argv[0].rstrip(".py")) if sys.argv[0] else "python"
-        reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
+        self._agent_suffix = (
+            os.path.basename(sys.argv[0].rstrip(".py"))
+            if sys.argv[0]
+            else "python"
+        )
+        reactor.addSystemEventTrigger("before", "shutdown", self._shutdown)
 
     def _metrics_published(self, response, llen, remaining=0):
         if response.code != 200:
             if response.code == UNAUTHORIZED:
                 self._authenticated = False
                 self._cookieJar.clear()
-            raise IOError("Expected HTTP 200, but received %d from %s" % (response.code, self._url))
+            raise IOError(
+                "Expected HTTP 200, but received %d from %s"
+                % (response.code, self._url)
+            )
 
         if self._needsAuth:
             self._authenticated = True
-        log.debug("published %d metrics and received response: %s",
-                  llen, response.code)
+        log.debug(
+            "published %d metrics and received response: %s",
+            llen,
+            response.code,
+        )
         finished = defer.Deferred()
         response.deliverBody(ResponseReceiver(finished))
         if remaining:
@@ -341,7 +383,7 @@ class HttpPostPublisher(BasePublisher):
             log.warn("Unexpected result: %s", result)
 
     def _shutdown(self):
-        log.debug('shutting down http [publishing %s metrics]' % len(self._mq))
+        log.debug("shutting down http [publishing %s metrics]", len(self._mq))
         if len(self._mq):
             return self._make_request()
 
@@ -357,27 +399,38 @@ class HttpPostPublisher(BasePublisher):
         serialized_metrics = json.dumps({"metrics": metrics})
         body_writer = StringProducer(serialized_metrics)
 
-        headers = Headers({
-            'User-Agent': ['Zenoss Metric Publisher: %s' % self._agent_suffix],
-            'Content-Type': ['application/json']})
+        headers = Headers(
+            {
+                "User-Agent": [
+                    "Zenoss Metric Publisher: %s" % self._agent_suffix
+                ],
+                "Content-Type": ["application/json"],
+            }
+        )
 
         if self._needsAuth and not self._authenticated:
             log.info("Adding auth for metric http post %s", self._url)
-            headers.addRawHeader('Authorization',
-                                 basic_auth_string_content(self._username, self._password))
+            headers.addRawHeader(
+                "Authorization",
+                basic_auth_string_content(self._username, self._password),
+            )
 
-        log.debug("Posting %s metrics" % len(metrics))
-        d = self._agent.request(
-            'POST', self._url, headers,
-            body_writer)
+        log.debug("Posting %s metrics", len(metrics))
+        d = self._agent.request("POST", self._url, headers, body_writer)
 
-        d.addCallbacks(self._metrics_published, errback=self._publish_failed,
-        callbackArgs = [len(metrics), len(self._mq)], errbackArgs = [metrics])
-        d.addCallbacks(self._response_finished, errback=self._publish_failed,
-                       errbackArgs = [metrics])
+        d.addCallbacks(
+            self._metrics_published,
+            errback=self._publish_failed,
+            callbackArgs=[len(metrics), len(self._mq)],
+            errbackArgs=[metrics],
+        )
+        d.addCallbacks(
+            self._response_finished,
+            errback=self._publish_failed,
+            errbackArgs=[metrics],
+        )
 
         return d
-
 
     def _put(self, scheduled):
         """
@@ -390,7 +443,7 @@ class HttpPostPublisher(BasePublisher):
         if len(self._mq) == 0:
             return defer.succeed(0)
 
-        log.debug('trying to publish %d metrics', len(self._mq))
+        log.debug("trying to publish %d metrics", len(self._mq))
         return self._make_request()
 
 
@@ -424,7 +477,7 @@ class ResponseReceiver(protocol.Protocol):
     """
 
     def __init__(self, deferred):
-        self._buffer = ''
+        self._buffer = ""
         self._deferred = deferred
 
     def dataReceived(self, data):

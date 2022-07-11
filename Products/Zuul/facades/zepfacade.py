@@ -286,7 +286,7 @@ class ZepFacade(ZuulFacade):
                 'value': val,
             })
 
-        log.debug('Final detail filter: %r' % detailFilterItems)
+        log.debug('Final detail filter: %r', detailFilterItems)
         return detailFilterItems
 
     def _timeRange(self, timeRange):
@@ -599,7 +599,7 @@ class ZepFacade(ZuulFacade):
             number_of_batches = number_of_batches + 1
 
         if number_of_batches > 1:
-            log.info("Retrieving severities for {0} uuids.".format(number_of_uuids))
+            log.info("Retrieving severities for %s uuids.", number_of_uuids)
 
         for batch in range(0, number_of_batches):
             start = batch*batch_size

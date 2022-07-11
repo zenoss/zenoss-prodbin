@@ -29,6 +29,8 @@ import zipfile
 from collections import defaultdict
 from StringIO import StringIO
 
+import pkg_resources
+
 from Acquisition import aq_base
 from AccessControl.class_init import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
@@ -36,7 +38,6 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import importClass, zenPath, varPath
 from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenUtils.Version import Version as VersionBase
-from Products.ZenUtils.PkgResources import pkg_resources
 from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree, ControlCenterError
 from Products.ZenUtils.controlplane.application import getConnectionSettings
 from Products.ZenModel import ExampleLicenses

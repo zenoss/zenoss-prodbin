@@ -1,49 +1,55 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-import sys
 import logging
-log = logging.getLogger("zen.SnmpClient")
+import sys
+
+import zope.component
 
 from twisted.internet import reactor, error, defer
 from twisted.python import failure
 from twisted.internet.error import TimeoutError
-
-from Products.ZenUtils.snmp import SnmpV1Config, SnmpV2cConfig
-from Products.ZenUtils.snmp import SnmpAgentDiscoverer
-
 from pynetsnmp.twistedsnmp import snmpprotocol, Snmpv3Error
-
-from Products.ZenUtils.Driver import drive
-
-import zope.component
 
 from Products.ZenCollector.interfaces import IEventService
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
+from Products.ZenUtils.Driver import drive
+from Products.ZenUtils.snmp import (
+    SnmpAgentDiscoverer,
+    SnmpV1Config,
+    SnmpV2cConfig,
+)
 
-global defaultTries, defaultTimeout
+from .BaseClient import BaseClient
+
 defaultTries = 2
 defaultTimeout = 1
-defaultSnmpCommunity = 'public'
+defaultSnmpCommunity = "public"
 
 DEFAULT_MAX_OIDS_BACK = 40
 
-STATUS_EVENT = {'eventClass' : Status_Snmp, 'eventGroup' : 'SnmpTest'}
+STATUS_EVENT = {"eventClass": Status_Snmp, "eventGroup": "SnmpTest"}
 
-from BaseClient import BaseClient
+log = logging.getLogger("zen.SnmpClient")
+
 
 class SnmpClient(BaseClient):
-
-    def __init__(self, hostname, ipaddr, options=None, device=None,
-                 datacollector=None, plugins=[]):
+    def __init__(
+        self,
+        hostname,
+        ipaddr,
+        options=None,
+        device=None,
+        datacollector=None,
+        plugins=[],
+    ):
         BaseClient.__init__(self, device, datacollector)
         global defaultTries, defaultTimeout
         self.hostname = hostname
@@ -56,30 +62,29 @@ class SnmpClient(BaseClient):
         self._tabledata = {}
 
         from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
+
         self.connInfo = SnmpConnInfo(device)
         self.proxy = None
         self._eventService = zope.component.queryUtility(IEventService)
 
     def initSnmpProxy(self):
-        if self.proxy is not None: self.proxy.close()
+        if self.proxy is not None:
+            self.proxy.close()
         srcport = snmpprotocol.port()
         self.proxy = self.connInfo.createSession(srcport.protocol)
         self.proxy.open()
 
     def run(self):
-        """Start snmp collection.
-        """
+        """Start snmp collection."""
         log.debug("Starting %s", self.connInfo.summary())
         self.initSnmpProxy()
         drive(self.doRun).addBoth(self.clientFinished)
 
-
     # FIXME: cleanup --force option #2660
     def checkCiscoChange(self, driver):
-        """Check to see if a cisco box has changed.
-        """
+        """Check to see if a cisco box has changed."""
         device = self.device
-        yield self.proxy.get(['.1.3.6.1.4.1.9.9.43.1.1.1.0'])
+        yield self.proxy.get([".1.3.6.1.4.1.9.9.43.1.1.1.0"])
         lastpolluptime = device.getLastPollSnmpUpTime()
         log.debug("lastpolluptime = %s", lastpolluptime)
         result = True
@@ -87,8 +92,9 @@ class SnmpClient(BaseClient):
             lastchange = driver.next().values()[0]
             log.debug("lastchange = %s", lastchange)
             if lastchange <= lastpolluptime:
-                log.info("skipping cisco device %s no change detected",
-                         device.id)
+                log.info(
+                    "skipping cisco device %s no change detected", device.id
+                )
                 result = False
             else:
                 device.setLastPollSnmpUpTime(lastchange)
@@ -96,22 +102,22 @@ class SnmpClient(BaseClient):
             pass
         yield defer.succeed(result)
 
-
     def doRun(self, driver):
         # test snmp connectivity
         log.debug("Testing SNMP configuration")
-        yield self.proxy.walk('.1.3')
+        yield self.proxy.walk(".1.3")
         try:
             driver.next()
         except TimeoutError:
-            log.info("Device timed out: " + self.connInfo.summary())
+            log.info("Device timed out: %s", self.connInfo.summary())
             if self.options.discoverCommunity:
                 yield self.findSnmpCommunity()
                 snmp_config = driver.next()
                 if not snmp_config:
                     log.error(
-                        'Failed to rediscover the SNMP connection info for %s',
-                        self.device.manageIp)
+                        "Failed to rediscover the SNMP connection info for %s",
+                        self.device.manageIp,
+                    )
                     raise
                 if snmp_config.version:
                     self.connInfo.zSnmpVer = snmp_config.version
@@ -124,15 +130,19 @@ class SnmpClient(BaseClient):
             else:
                 raise
         except Snmpv3Error:
-            log.error("Cannot connect to SNMP agent: {0}".format(self.connInfo.summary()))
+            log.error(
+                "Cannot connect to SNMP agent: %s", self.connInfo.summary()
+            )
             raise
         except Exception:
-            log.exception("Unable to talk: " + self.connInfo.summary())
+            log.exception("Unable to talk: %s", self.connInfo.summary())
             raise
 
         changed = True
         # FIXME: cleanup --force option #2660
-        if not self.options.force and self.device.snmpOid.startswith(".1.3.6.1.4.1.9"):
+        if not self.options.force and self.device.snmpOid.startswith(
+            ".1.3.6.1.4.1.9"
+        ):
             yield drive(self.checkCiscoChange)
             changed = driver.next()
         if changed:
@@ -148,8 +158,9 @@ class SnmpClient(BaseClient):
             @return: successful result is a list of IPs that were added
             @rtype: Twisted deferred
             """
-            log.info("Rediscovering SNMP connection info for %s",
-                        self.device.id)
+            log.info(
+                "Rediscovering SNMP connection info for %s", self.device.id
+            )
 
             communities = list(self.device.zSnmpCommunities)
             communities.reverse()
@@ -161,31 +172,42 @@ class SnmpClient(BaseClient):
             weight = 0
             for community in communities:
                 for port in ports:
-                    weight+=1
+                    weight += 1
                     port = int(port)
-                    configs.append(SnmpV1Config(
-                        self.device.manageIp, weight=weight,
-                        port=port,
-                        timeout=self.connInfo.zSnmpTimeout,
-                        retries=self.connInfo.zSnmpTries,
-                        community=community))
-                    configs.append(SnmpV2cConfig(
-                        self.device.manageIp, weight=weight+1000, port=port,
-                        timeout=self.connInfo.zSnmpTimeout,
-                        retries=self.connInfo.zSnmpTries,
-                        community=community))
+                    configs.append(
+                        SnmpV1Config(
+                            self.device.manageIp,
+                            weight=weight,
+                            port=port,
+                            timeout=self.connInfo.zSnmpTimeout,
+                            retries=self.connInfo.zSnmpTries,
+                            community=community,
+                        )
+                    )
+                    configs.append(
+                        SnmpV2cConfig(
+                            self.device.manageIp,
+                            weight=weight + 1000,
+                            port=port,
+                            timeout=self.connInfo.zSnmpTimeout,
+                            retries=self.connInfo.zSnmpTries,
+                            community=community,
+                        )
+                    )
 
             yield SnmpAgentDiscoverer().findBestConfig(configs)
             driver.next()
+
         return drive(inner)
 
-
     def collect(self, driver):
-        maxOidsPerRequest = getattr(self.device, 'zMaxOIDPerRequest', DEFAULT_MAX_OIDS_BACK)
+        maxOidsPerRequest = getattr(
+            self.device, "zMaxOIDPerRequest", DEFAULT_MAX_OIDS_BACK
+        )
         log.debug("Using a max of %s OIDs per request", maxOidsPerRequest)
         for plugin in self.plugins:
             try:
-                log.debug('running %s', plugin)
+                log.debug("running %s", plugin)
                 pname = plugin.name()
                 self._tabledata[pname] = {}
                 log.debug("sending queries for plugin %s", pname)
@@ -198,16 +220,20 @@ class SnmpClient(BaseClient):
                 for tmap in plugin.snmpGetTableMaps:
                     rowSize = len(tmap.getoids())
                     maxRepetitions = max(maxOidsPerRequest / rowSize, 1)
-                    yield self.proxy.getTable(tmap.getoids(),
-                                              maxRepetitions=maxRepetitions,
-                                              limit=sys.maxint)
+                    yield self.proxy.getTable(
+                        tmap.getoids(),
+                        maxRepetitions=maxRepetitions,
+                        limit=sys.maxint,
+                    )
                     self._tabledata[pname][tmap] = driver.next()
             except error.TimeoutError:
                 log.error("%s %s SNMP timeout", self.device.id, pname)
             except Exception:
-                log.exception("device %s plugin %s unexpected error",
-                              self.hostname, pname)
-
+                log.exception(
+                    "device %s plugin %s unexpected error",
+                    self.hostname,
+                    pname,
+                )
 
     def getResults(self):
         """Return data for this client in the form
@@ -218,34 +244,50 @@ class SnmpClient(BaseClient):
         data = []
         for plugin in self.plugins:
             pname = plugin.name()
-            getdata = self._getdata.get(pname,{})
-            tabledata = self._tabledata.get(pname,{})
+            getdata = self._getdata.get(pname, {})
+            tabledata = self._tabledata.get(pname, {})
             if getdata or tabledata:
                 data.append((plugin, (getdata, tabledata)))
         return data
 
     def _sendStatusEvent(self, summary, eventKey=None, severity=Event.Error):
-        self._eventService.sendEvent(STATUS_EVENT.copy(), severity=severity, device=self.device.id,
-                                     eventKey=eventKey, summary=summary)
+        self._eventService.sendEvent(
+            STATUS_EVENT.copy(),
+            severity=severity,
+            device=self.device.id,
+            eventKey=eventKey,
+            summary=summary,
+        )
 
     def clientFinished(self, result):
-        log.info("snmp client finished collection for %s" % self.hostname)
+        log.info("snmp client finished collection for %s", self.hostname)
         if isinstance(result, failure.Failure):
             from twisted.internet import error
+
             if isinstance(result.value, error.TimeoutError):
-                log.error("Device %s timed out: are "
-                            "your SNMP settings correct?", self.hostname)
+                log.error(
+                    "Device %s timed out: are " "your SNMP settings correct?",
+                    self.hostname,
+                )
                 summary = "SNMP agent down - no response received"
                 log.info("Sending event: %s", summary)
             elif isinstance(result.value, Snmpv3Error):
-                log.error("Connection to device {0.hostname} failed: {1.value.message}".format(self, result))
+                log.error(
+                    "Connection to device %s failed: %s",
+                    self.hostname,
+                    result.value.message,
+                )
                 summary = "SNMP v3 specific error during SNMP collection"
             else:
-                log.exception("Device %s had an error: %s",self.hostname,result)
+                log.exception(
+                    "Device %s had an error: %s", self.hostname, result
+                )
                 summary = "Exception during SNMP collection"
-            self._sendStatusEvent(summary, eventKey='agent_down')
+            self._sendStatusEvent(summary, eventKey="agent_down")
         else:
-            self._sendStatusEvent('SNMP agent up', eventKey='agent_down', severity=Event.Clear)
+            self._sendStatusEvent(
+                "SNMP agent up", eventKey="agent_down", severity=Event.Clear
+            )
         try:
             self.proxy.close()
         except AttributeError:

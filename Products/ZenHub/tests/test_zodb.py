@@ -1,21 +1,23 @@
-from unittest import TestCase
 from mock import sentinel, patch
+from unittest import TestCase
 
 from zope.interface.verify import verifyObject
 
 from Products.ZenHub.zodb import (
-    InvalidationEvent, ObjectEvent,
-    UpdateEvent, IUpdateEvent,
-    DeletionEvent, IDeletionEvent,
-    onUpdate,
+    DeletionEvent,
+    IDeletionEvent,
+    InvalidationEvent,
+    IUpdateEvent,
+    ObjectEvent,
     onDelete,
+    onUpdate,
+    UpdateEvent,
 )
 
-PATH = {'src': 'Products.ZenHub.zodb'}
+PATH = {"src": "Products.ZenHub.zodb"}
 
 
 class InvalidationEventTest(TestCase):
-
     def test___init__(t):
         obj = sentinel.object
         oid = sentinel.oid
@@ -27,7 +29,6 @@ class InvalidationEventTest(TestCase):
 
 
 class UpdateEventTest(TestCase):
-
     def test_implements_IUpdateEvent(t):
         # the class Implements the Interface
         t.assertTrue(IUpdateEvent.implementedBy(UpdateEvent))
@@ -45,7 +46,6 @@ class UpdateEventTest(TestCase):
 
 
 class DeletionEventTest(TestCase):
-
     def test_implements_IDeletionEvent(t):
         # the class Implements the Interface
         t.assertTrue(IDeletionEvent.implementedBy(DeletionEvent))
@@ -64,17 +64,17 @@ class DeletionEventTest(TestCase):
 
 class _listener_decorator_factoryTest(TestCase):
 
-    '''Used to create decorators
+    """Used to create decorators
     that register class methods as event handlers
-    '''
+    """
 
-    @patch('{src}.provideHandler'.format(**PATH), autospec=True)
+    @patch("{src}.provideHandler".format(**PATH), autospec=True)
     def test_onUpdate_decorator(t, provideHandler):
-        '''Decorator for a class method
+        """Decorator for a class method
         causes the decorated method to run when an update event
         of the specified type (onUpdate arg) fires
         event type examples: PerformanceConf, ZenPack, Device
-        '''
+        """
         eventtype = sentinel.eventtype  # EX: PerformanceConf
 
         class MyClass(object):
@@ -88,12 +88,12 @@ class _listener_decorator_factoryTest(TestCase):
             mc.eventtype_update_handler, (eventtype, IUpdateEvent)
         )
 
-    @patch('{src}.provideHandler'.format(**PATH), autospec=True)
+    @patch("{src}.provideHandler".format(**PATH), autospec=True)
     def test_onDeleted_decorator(t, provideHandler):
-        '''Decorator for a class method
+        """Decorator for a class method
         causes the decorated method to run when a deleted event
         of the specified type (onUpdate arg) fires
-        '''
+        """
         eventtype = sentinel.eventtype
 
         class MyClass(object):

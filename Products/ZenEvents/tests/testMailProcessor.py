@@ -117,7 +117,8 @@ mail_data = {
    "simple": {
        'msg': """Return-Path: example_account@example.com
 Date: Thu, 11 Dec 2008 17:18:26 -0500 (EST)
-From: Test Account <example_account@example.com>
+From: Test Account
+    <example_account@example.com>
 To: Test Account <example_account@example.com>
 Message-ID: <375303282.37931229033906513.JavaMail.root@zimbra1>
 Subject: Test event message subject

@@ -92,7 +92,7 @@ def addLogsFromConfigFile(fname, configDefaults=None):
     still wipe out their settings and replace root, undoing Zope's log config.
     """
     if not os.path.exists(fname):
-        log.debug('Log configuration file not found: %s' % fname)
+        log.debug('Log configuration file not found: %s', fname)
         return False
 
     import ConfigParser

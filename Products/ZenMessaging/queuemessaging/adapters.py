@@ -1,26 +1,33 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-from zope.interface import implements
-from interfaces import IProtobufSerializer
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, \
-    IGloballyIdentifiable
 from zenoss.protocols.protobufs import zep_pb2 as eventConstants
 from zenoss.protocols.protobufs import model_pb2 as modelConstants
-from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer
-from Products.ZenEvents.events2.proxy import EventProxy 
+from zope.interface import implements
+
+from Products.ZenEvents.events2.proxy import EventProxy
+from Products.ZenMessaging.queuemessaging.interfaces import (
+    IModelProtobufSerializer,
+)
+from Products.ZenUtils.guid.interfaces import (
+    IGlobalIdentifier,
+    IGloballyIdentifiable,
+)
+
+from .interfaces import IProtobufSerializer
+
 
 class ObjectProtobuf(object):
     """
     Base class for common methods on the protobuf populators
     """
+
     def __init__(self, obj):
         self.obj = obj
 
@@ -85,14 +92,16 @@ class OrganizerProtobuf(ObjectProtobuf):
     def fill(self, proto):
         self.autoMapFields(proto)
         proto.title = _safestr(self.obj.titleOrId())
-        #get path minus first 3 '', 'zport', 'dmd'
-        proto.path = '/'.join(self.obj.getPrimaryPath()[3:])
+        # get path minus first 3 '', 'zport', 'dmd'
+        proto.path = "/".join(self.obj.getPrimaryPath()[3:])
         return proto
+
 
 class DeviceComponentProtobuf(ObjectProtobuf):
     """
     Fills up the properties of a Device Component
     """
+
     implements(IModelProtobufSerializer)
 
     @property
@@ -109,6 +118,7 @@ class DeviceComponentProtobuf(ObjectProtobuf):
             populator.fill(proto.device)
         return proto
 
+
 def _safestr(s):
     """
     Defensive catchall to be sure that any string going into a protobuf can be
@@ -117,23 +127,27 @@ def _safestr(s):
     """
     if isinstance(s, str):
         try:
-            s = unicode(s, 'utf_8')
+            s = unicode(s, "utf_8")
         except UnicodeDecodeError:
-            # Could not force string to unicode so trying best effort to treat as ascii
-            s = str(s.decode('ascii','replace'))
+            # Could not force string to unicode so trying best effort
+            # to treat as ASCII.
+            s = str(s.decode("ascii", "replace"))
     elif not isinstance(s, basestring):
         s = str(s)
     return s
+
 
 class EventProtobufMapper(object):
     """
     Base class for mapping a Event value (old-style) to a protobuf Event.
     """
+
     def mapEvent(self, proto, value):
         """
         Maps the event value to the protobuf.
         """
         pass
+
 
 class EventProtobufStringMapper(EventProtobufMapper):
     """
@@ -147,6 +161,7 @@ class EventProtobufStringMapper(EventProtobufMapper):
     def mapEvent(self, proto, value):
         setattr(proto, self._fieldName, _safestr(value))
 
+
 class EventProtobufDeviceMapper(EventProtobufMapper):
     """
     Maps a 'device' to the corresponding location in the Event.EventActor.
@@ -155,6 +170,7 @@ class EventProtobufDeviceMapper(EventProtobufMapper):
     def mapEvent(self, proto, value):
         proto.actor.element_type_id = modelConstants.DEVICE
         proto.actor.element_identifier = _safestr(value)
+
 
 class EventProtobufDeviceGuidMapper(EventProtobufMapper):
     """
@@ -165,6 +181,7 @@ class EventProtobufDeviceGuidMapper(EventProtobufMapper):
         proto.actor.element_type_id = modelConstants.DEVICE
         proto.actor.element_uuid = _safestr(value)
 
+
 class EventProtobufComponentGuidMapper(EventProtobufMapper):
     """
     Maps a 'component' to the corresponding location in the Event.EventActor.
@@ -173,6 +190,7 @@ class EventProtobufComponentGuidMapper(EventProtobufMapper):
     def mapEvent(self, proto, value):
         proto.actor.element_sub_type_id = modelConstants.COMPONENT
         proto.actor.element_sub_uuid = _safestr(value)
+
 
 class EventProtobufComponentMapper(EventProtobufMapper):
     """
@@ -184,31 +202,34 @@ class EventProtobufComponentMapper(EventProtobufMapper):
             proto.actor.element_sub_type_id = modelConstants.COMPONENT
             proto.actor.element_sub_identifier = _safestr(value)
 
+
 class EventProtobufSeverityMapper(EventProtobufMapper):
     """
     Maps an event severity to the EventSeverity enum value.
     """
 
     SEVERITIES = {
-        '': eventConstants.SEVERITY_CLEAR,
-        '0': eventConstants.SEVERITY_CLEAR,
-        '1': eventConstants.SEVERITY_DEBUG,
-        '2': eventConstants.SEVERITY_INFO,
-        '3': eventConstants.SEVERITY_WARNING,
-        '4': eventConstants.SEVERITY_ERROR,
-        '5': eventConstants.SEVERITY_CRITICAL,
-        'CLEAR': eventConstants.SEVERITY_CLEAR,
-        'DEBUG': eventConstants.SEVERITY_DEBUG,
-        'INFO': eventConstants.SEVERITY_INFO,
-        'WARNING': eventConstants.SEVERITY_WARNING,
-        'ERROR': eventConstants.SEVERITY_ERROR,
-        'CRITICAL': eventConstants.SEVERITY_CRITICAL,
+        "": eventConstants.SEVERITY_CLEAR,
+        "0": eventConstants.SEVERITY_CLEAR,
+        "1": eventConstants.SEVERITY_DEBUG,
+        "2": eventConstants.SEVERITY_INFO,
+        "3": eventConstants.SEVERITY_WARNING,
+        "4": eventConstants.SEVERITY_ERROR,
+        "5": eventConstants.SEVERITY_CRITICAL,
+        "CLEAR": eventConstants.SEVERITY_CLEAR,
+        "DEBUG": eventConstants.SEVERITY_DEBUG,
+        "INFO": eventConstants.SEVERITY_INFO,
+        "WARNING": eventConstants.SEVERITY_WARNING,
+        "ERROR": eventConstants.SEVERITY_ERROR,
+        "CRITICAL": eventConstants.SEVERITY_CRITICAL,
     }
 
     def mapEvent(self, proto, value):
         severity = str(value).upper()
-        proto.severity = self.SEVERITIES.get(severity, 
-             eventConstants.SEVERITY_INFO)
+        proto.severity = self.SEVERITIES.get(
+            severity, eventConstants.SEVERITY_INFO
+        )
+
 
 class EventProtobufIntMapper(EventProtobufMapper):
     """
@@ -224,6 +245,7 @@ class EventProtobufIntMapper(EventProtobufMapper):
         except ValueError:
             pass
 
+
 class EventProtobufBoolMapper(EventProtobufMapper):
     """
     Maps an event to an integer value in the protobuf.
@@ -237,6 +259,7 @@ class EventProtobufBoolMapper(EventProtobufMapper):
             setattr(proto, self._fieldName, bool(value))
         except ValueError:
             pass
+
 
 class EventProtobufSyslogPriorityMapper(EventProtobufMapper):
     """
@@ -260,6 +283,7 @@ class EventProtobufSyslogPriorityMapper(EventProtobufMapper):
         except (KeyError, ValueError):
             pass
 
+
 class EventProtobufDateMapper(EventProtobufMapper):
     """
     Maps a time.time() floating point value to the time in
@@ -272,6 +296,7 @@ class EventProtobufDateMapper(EventProtobufMapper):
     def mapEvent(self, proto, value):
         setattr(proto, self._fieldName, int(value * 1000))
 
+
 class EventProtobufDetailMapper(EventProtobufMapper):
     """
     Map's an event property to a new name in details.
@@ -283,6 +308,7 @@ class EventProtobufDetailMapper(EventProtobufMapper):
     def mapEvent(self, proto, value):
         proto.details.add(name=self._detailName, value=[value])
 
+
 class EventProtobuf(ObjectProtobuf):
     """
     Fills up the properties of an event
@@ -292,63 +318,74 @@ class EventProtobuf(ObjectProtobuf):
 
     # event property, protobuf property
     _FIELD_MAPPERS = {
-        'dedupid': EventProtobufStringMapper('fingerprint'),
-        'evid' : EventProtobufStringMapper('uuid'),
-        'device': EventProtobufDeviceMapper(),
-        'device_guid': EventProtobufDeviceGuidMapper(),
-        'component_guid': EventProtobufComponentGuidMapper(),
-        'component': EventProtobufComponentMapper(),
-        'eventClass': EventProtobufStringMapper('event_class'),
-        'eventKey': EventProtobufStringMapper('event_key'),
-        'summary': EventProtobufStringMapper('summary'),
-        'message': EventProtobufStringMapper('message'),
-        'severity': EventProtobufSeverityMapper(),
-        'eventState': EventProtobufIntMapper('status'),
-        'eventClassKey': EventProtobufStringMapper('event_class_key'),
-        'eventGroup': EventProtobufStringMapper('event_group'),
+        "dedupid": EventProtobufStringMapper("fingerprint"),
+        "evid": EventProtobufStringMapper("uuid"),
+        "device": EventProtobufDeviceMapper(),
+        "device_guid": EventProtobufDeviceGuidMapper(),
+        "component_guid": EventProtobufComponentGuidMapper(),
+        "component": EventProtobufComponentMapper(),
+        "eventClass": EventProtobufStringMapper("event_class"),
+        "eventKey": EventProtobufStringMapper("event_key"),
+        "summary": EventProtobufStringMapper("summary"),
+        "message": EventProtobufStringMapper("message"),
+        "severity": EventProtobufSeverityMapper(),
+        "eventState": EventProtobufIntMapper("status"),
+        "eventClassKey": EventProtobufStringMapper("event_class_key"),
+        "eventGroup": EventProtobufStringMapper("event_group"),
         # stateChange -> Managed by ZEP
-        'firstTime': EventProtobufDateMapper('first_seen_time'),
-        'lastTime': EventProtobufDateMapper('created_time'),
-        'count': EventProtobufIntMapper('count'),
+        "firstTime": EventProtobufDateMapper("first_seen_time"),
+        "lastTime": EventProtobufDateMapper("created_time"),
+        "count": EventProtobufIntMapper("count"),
         # prodState -> Added by zeneventd
         # suppid -> Added as a detail (deprecated)
         # manager -> Added as a detail (deprecated)
-        'agent': EventProtobufStringMapper('agent'),
+        "agent": EventProtobufStringMapper("agent"),
         # DeviceClass -> Added by zeneventd
         # Location -> Added by zeneventd
         # Systems -> Added by zeneventd
         # DeviceGroups -> Added by zeneventd
-        'ipAddress': EventProtobufDetailMapper(EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY),
-        'facility': EventProtobufIntMapper('syslog_facility'),
-        'priority': EventProtobufSyslogPriorityMapper(),
-        'ntevid': EventProtobufIntMapper('nt_event_code'),
+        "ipAddress": EventProtobufDetailMapper(
+            EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY
+        ),
+        "facility": EventProtobufIntMapper("syslog_facility"),
+        "priority": EventProtobufSyslogPriorityMapper(),
+        "ntevid": EventProtobufIntMapper("nt_event_code"),
         # ownerid -> Managed by ZEP
         # clearid -> Managed by ZEP
         # DevicePriority -> Added by zeneventd
         # eventClassMapping -> Added by zeneventd
-        'monitor': EventProtobufStringMapper('monitor'),
-        'applyTransforms': EventProtobufBoolMapper('apply_transforms'),
+        "monitor": EventProtobufStringMapper("monitor"),
+        "applyTransforms": EventProtobufBoolMapper("apply_transforms"),
     }
 
-    # If these attributes are found on the Event they are not mapped and are not
-    # placed into event details.
+    # If these attributes are found on the Event they are not mapped and
+    # are not placed into event details.
     _IGNORED_ATTRS = {
-        '_action', '_clearClasses', '_fields', 'stateChange', 'prodState',
-        'DeviceClass', 'Location', 'Systems', 'DeviceGroups', 'ownerid',
-        'clearid', 'DevicePriority', 'eventClassMapping'
+        "_action",
+        "_clearClasses",
+        "_fields",
+        "stateChange",
+        "prodState",
+        "DeviceClass",
+        "Location",
+        "Systems",
+        "DeviceGroups",
+        "ownerid",
+        "clearid",
+        "DevicePriority",
+        "eventClassMapping",
     }
 
     def __init__(self, obj):
         ObjectProtobuf.__init__(self, obj)
 
     def addDetail(self, proto, name, value):
-        isIterable = lambda x : hasattr(x, '__iter__')
         detail = proto.details.add()
         detail.name = name
-        if isIterable(value):
+        try:
             for v in value:
                 detail.value.append(_safestr(v))
-        else:
+        except TypeError:  # 'value' is not iterable
             detail.value.append(_safestr(value))
 
     def fill(self, proto):

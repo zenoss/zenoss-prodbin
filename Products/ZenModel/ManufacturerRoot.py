@@ -114,7 +114,7 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
         """
         from Products.ZenModel.Manufacturer import manage_addManufacturer
         if manufacturerName and not self.has_key(manufacturerName):
-            logging.info("Creating Manufacturer %s" % manufacturerName)
+            logging.info("Creating Manufacturer %s", manufacturerName)
             manage_addManufacturer(self, manufacturerName)
         if manufacturerName:
             return self._getOb(manufacturerName)

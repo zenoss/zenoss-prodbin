@@ -12,20 +12,13 @@
     Ext.ns('Zenoss.Action');
 
     Ext.define('Zenoss.PermissionableAction', {
-        externallyDisabled: false,
         permitted: false,
         filtered: false,
         updateDisabled: function() {
             this.setDisabled(this.checkDisabled());
         },
         checkDisabled: function() {
-            if (this.externallyDisabled) {
-                return true;
-            }
-            if (this.permitted || this.filtered) {
-                return false;
-            }
-            return true;
+            return !(this.permitted || this.filtered);
         },
         checkPermitted: function() {
             if (this.permission) {
@@ -66,7 +59,6 @@
     });
 
     function setDisabled(disable) {
-        this.externallyDisabled = disable;
         this.callParent([this.checkDisabled()]);
     }
 

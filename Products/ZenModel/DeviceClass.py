@@ -481,7 +481,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 devobj = self.getObjByPath(brain.getPrimaryId)
                 devices.append(devobj)
             except KeyError:
-                log.warn("bad path '%s' in index" % brain.getPrimaryId)
+                log.warn("bad path '%s' in index", brain.getPrimaryId)
 
         return devices
 

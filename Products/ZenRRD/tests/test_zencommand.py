@@ -1,38 +1,40 @@
 ##############################################################################
 #
 # Copyright (C) Zenoss, Inc. 2021, all rights reserved.
- 
+
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
 
 from unittest import TestCase
-from mock import Mock, patch, create_autospec, call, sentinel
+
+from mock import patch
 from twisted.internet import reactor
 from twisted.python.failure import Failure
 
 from Products.ZenRRD.zencommand import (
+    defer,
     SshPerformanceCollectionTask,
     TimeoutError,
-    defer,
 )
 
-PATH = {'src': 'Products.ZenRRD.zencommand'}
+PATH = {"src": "Products.ZenRRD.zencommand"}
 
 
 class TestSshPerformanceCollectionTask(TestCase):
-
     def setUp(t):
         # Patch out the queryUtility, don't need it.
         t.queryUtility_patcher = patch(
-            "{src}.queryUtility".format(**PATH), autospec=True,
+            "{src}.queryUtility".format(**PATH),
+            autospec=True,
         )
         t.queryUtility_patcher.start()
         t.addCleanup(t.queryUtility_patcher.stop)
 
         t.makeExecutor_patcher = patch(
-            "{src}.makeExecutor".format(**PATH), autospec=True,
+            "{src}.makeExecutor".format(**PATH),
+            autospec=True,
         )
         t._executor = t.makeExecutor_patcher.start()
         t.addCleanup(t.makeExecutor_patcher.stop)
@@ -41,13 +43,17 @@ class TestSshPerformanceCollectionTask(TestCase):
             "test_device",
             "test_config_id",
             300,
-            type("Config", (object,), {
-                "id": "test_device",
-                "manageIp": "1.2.3.4",
-                "zSshConcurrentSessions": 2,
-                "datasources": [],
-                "zCommandCommandTimeout": 60,
-            })(),
+            type(
+                "Config",
+                (object,),
+                {
+                    "id": "test_device",
+                    "manageIp": "1.2.3.4",
+                    "zSshConcurrentSessions": 2,
+                    "datasources": [],
+                    "zCommandCommandTimeout": 60,
+                },
+            )(),
         )
         t._task._commandMap = {
             "command": ["datasource"],
@@ -58,11 +64,15 @@ class TestSshPerformanceCollectionTask(TestCase):
         executor = _Executor(submit_d)
         t._task._executor = executor
 
-        response = type("Response", (object,), {
-            "exitCode": 2,
-            "stdout": "win",
-            "stderr": "",
-        })()
+        response = type(
+            "Response",
+            (object,),
+            {
+                "exitCode": 2,
+                "stdout": "win",
+                "stderr": "",
+            },
+        )()
         submit_d.callback(response)
 
         def result(*args):
@@ -92,7 +102,6 @@ class TestSshPerformanceCollectionTask(TestCase):
 
 
 class _Executor(object):
-
     def __init__(self, rv):
         self._rv = rv
 

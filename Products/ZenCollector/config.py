@@ -1,51 +1,53 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
 
 """
 The config module provides the implementation of the IConfigurationProxy
 interface used within Zenoss Core. This implementation provides basic
 configuration retrieval services directly from a remote ZenHub service.
 """
-import logging
 
-log = logging.getLogger("zen.collector.config")
+import logging
 import time
-from functools import partial
-from metrology import Metrology
 
 import zope.component
 import zope.interface
-from zope.interface import implements
+
+from cryptography.fernet import Fernet
+from metrology import Metrology
 from twisted.internet import defer
 from twisted.python.failure import Failure
-from cryptography.fernet import Fernet
 
-from Products.ZenCollector.interfaces import ICollector,\
-                                             ICollectorPreferences,\
-                                             IFrameworkFactory,\
-                                             IConfigurationProxy,\
-                                             IScheduledTask,\
-                                             IDataService,\
-                                             IEventService,\
-                                             IConfigurationDispatchingFilter
-from Products.ZenCollector.tasks import TaskStates
-from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenHub.PBDaemon import HubDown
+from Products.ZenUtils.observable import ObservableMixin
 
+from .interfaces import (
+    ICollector,
+    ICollectorPreferences,
+    IFrameworkFactory,
+    IConfigurationProxy,
+    IScheduledTask,
+    IDataService,
+    IEventService,
+)
+from .tasks import TaskStates
+
+log = logging.getLogger("zen.collector.config")
+
+
+@zope.interface.implementer(IConfigurationProxy)
 class ConfigurationProxy(object):
     """
     This implementation of IConfigurationProxy provides basic configuration
     retrieval from the remote ZenHub instance using the remote configuration
     service proxy as specified by the collector's configuration.
     """
-    zope.interface.implements(IConfigurationProxy)
 
     _cipher_suite = None
 
@@ -58,7 +60,7 @@ class ConfigurationProxy(object):
 
         # Load any configuration properties for this daemon
         log.debug("Fetching daemon configuration properties")
-        d = serviceProxy.callRemote('getConfigProperties')
+        d = serviceProxy.callRemote("getConfigProperties")
         d.addCallback(lambda result: dict(result))
         return d
 
@@ -70,7 +72,7 @@ class ConfigurationProxy(object):
         serviceProxy = self._collector.getRemoteConfigServiceProxy()
 
         log.debug("Fetching threshold classes")
-        d = serviceProxy.callRemote('getThresholdClasses')
+        d = serviceProxy.callRemote("getThresholdClasses")
         return d
 
     def getThresholds(self, prefs):
@@ -81,7 +83,7 @@ class ConfigurationProxy(object):
         serviceProxy = self._collector.getRemoteConfigServiceProxy()
 
         log.debug("Fetching collector thresholds")
-        d = serviceProxy.callRemote('getCollectorThresholds')
+        d = serviceProxy.callRemote("getCollectorThresholds")
         return d
 
     def getConfigProxies(self, prefs, ids=[]):
@@ -92,9 +94,10 @@ class ConfigurationProxy(object):
         serviceProxy = self._collector.getRemoteConfigServiceProxy()
 
         log.debug("Fetching configurations")
-        #get options from prefs.options and send to remote
-        d = serviceProxy.callRemote('getDeviceConfigs', ids,
-                options=prefs.options.__dict__)
+        # get options from prefs.options and send to remote
+        d = serviceProxy.callRemote(
+            "getDeviceConfigs", ids, options=prefs.options.__dict__
+        )
         return d
 
     def deleteConfigProxy(self, prefs, id):
@@ -119,10 +122,19 @@ class ConfigurationProxy(object):
         serviceProxy = self._collector.getRemoteConfigServiceProxy()
 
         log.debug("Fetching device names")
-        d = serviceProxy.callRemote('getDeviceNames', options=prefs.options.__dict__)
-        def printNames (names):
-            log.debug("workerid %s Fetched Names %s %s", prefs.options.workerid, len(names), names)  
+        d = serviceProxy.callRemote(
+            "getDeviceNames", options=prefs.options.__dict__
+        )
+
+        def printNames(names):
+            log.debug(
+                "workerid %s Fetched Names %s %s",
+                prefs.options.workerid,
+                len(names),
+                names,
+            )
             return names
+
         d.addCallback(printNames)
         return d
 
@@ -138,7 +150,7 @@ class ConfigurationProxy(object):
                 key = yield proxy.callRemote("getEncryptionKey")
                 self._cipher_suite = Fernet(key)
             except Exception as e:
-                log.warn("Remote exception: {}".format(e))
+                log.warn("Remote exception: %s", e)
                 self._cipher_suite = None
         defer.returnValue(self._cipher_suite)
 
@@ -151,9 +163,9 @@ class ConfigurationProxy(object):
         encrypted_data = None
         if cipher_suite:
             try:
-                encrypted_data  = yield cipher_suite.encrypt(data)
+                encrypted_data = yield cipher_suite.encrypt(data)
             except Exception as e:
-                log.warn("Exception encrypting data {}".format(e))
+                log.warn("Exception encrypting data %s", e)
         defer.returnValue(encrypted_data)
 
     @defer.inlineCallbacks
@@ -167,31 +179,33 @@ class ConfigurationProxy(object):
             try:
                 decrypted_data = yield cipher_suite.decrypt(data)
             except Exception as e:
-                log.warn("Exception decrypting data {}".format(e))
+                log.warn("Exception decrypting data %s", e)
         defer.returnValue(decrypted_data)
 
 
+@zope.interface.implementer(IScheduledTask)
 class ConfigurationLoaderTask(ObservableMixin):
     """
     A task that periodically retrieves collector configuration via the
     IConfigurationProxy service.
     """
-    zope.interface.implements(IScheduledTask)
 
-    STATE_CONNECTING = 'CONNECTING'
-    STATE_FETCH_MISC_CONFIG = 'FETCHING_MISC_CONFIG'
-    STATE_FETCH_DEVICE_CONFIG = 'FETCHING_DEVICE_CONFIG'
-    STATE_PROCESS_DEVICE_CONFIG = 'PROCESSING_DEVICE_CONFIG'
+    STATE_CONNECTING = "CONNECTING"
+    STATE_FETCH_MISC_CONFIG = "FETCHING_MISC_CONFIG"
+    STATE_FETCH_DEVICE_CONFIG = "FETCHING_DEVICE_CONFIG"
+    STATE_PROCESS_DEVICE_CONFIG = "PROCESSING_DEVICE_CONFIG"
 
     _frameworkFactoryName = "core"
 
-    def __init__(self,
-                 name,
-                 configId=None,
-                 scheduleIntervalSeconds=None,
-                 taskConfig=None):
+    def __init__(
+        self,
+        name,
+        configId=None,
+        scheduleIntervalSeconds=None,
+        taskConfig=None,
+    ):
         super(ConfigurationLoaderTask, self).__init__()
-        self._fetchConfigTimer = Metrology.timer('collectordaemon.configs')
+        self._fetchConfigTimer = Metrology.timer("collectordaemon.configs")
 
         # Needed for interface
         self.name = name
@@ -209,13 +223,17 @@ class ConfigurationLoaderTask(ObservableMixin):
 
         self._daemon = zope.component.getUtility(ICollector)
         self._daemon.heartbeatTimeout = self.options.heartbeatTimeout
-        log.debug("Heartbeat timeout set to %ds", self._daemon.heartbeatTimeout)
+        log.debug(
+            "Heartbeat timeout set to %ds", self._daemon.heartbeatTimeout
+        )
 
-        frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)
+        frameworkFactory = zope.component.queryUtility(
+            IFrameworkFactory, self._frameworkFactoryName
+        )
         self._configProxy = frameworkFactory.getConfigurationProxy()
 
         self.devices = []
-        self.startDelay=0
+        self.startDelay = 0
 
     def doTask(self):
         """
@@ -265,8 +283,11 @@ class ConfigurationLoaderTask(ObservableMixin):
 
     def _handleError(self, result):
         if isinstance(result, Failure):
-            log.error("Task %s configure failed: %s",
-                      self.name, result.getErrorMessage())
+            log.error(
+                "Task %s configure failed: %s",
+                self.name,
+                result.getErrorMessage(),
+            )
 
             # stop if a single device was requested and nothing found
             if self.options.device or not self.options.cycle:
@@ -280,25 +301,33 @@ class ConfigurationLoaderTask(ObservableMixin):
         return result
 
     def _fetchPropertyItems(self, previous_cb_result=None):
-        return defer.maybeDeferred(self._configProxy.getPropertyItems, self._prefs)
+        return defer.maybeDeferred(
+            self._configProxy.getPropertyItems, self._prefs
+        )
 
     def _fetchThresholdClasses(self, previous_cb_result):
-        return defer.maybeDeferred(self._configProxy.getThresholdClasses, self._prefs)
+        return defer.maybeDeferred(
+            self._configProxy.getThresholdClasses, self._prefs
+        )
 
     def _fetchThresholds(self, previous_cb_result):
-        return defer.maybeDeferred(self._configProxy.getThresholds, self._prefs)
+        return defer.maybeDeferred(
+            self._configProxy.getThresholds, self._prefs
+        )
 
     def _fetchConfig(self, result, devices):
         self.state = self.STATE_FETCH_DEVICE_CONFIG
         start = time.time()
+
         def recordTime(result):
-            #get in milliseconds
+            # get in milliseconds
             duration = int((time.time() - start) * 1000)
             self._fetchConfigTimer.update(duration)
             return result
 
-        d = defer.maybeDeferred(self._configProxy.getConfigProxies,
-                                   self._prefs, devices)
+        d = defer.maybeDeferred(
+            self._configProxy.getConfigProxies, self._prefs, devices
+        )
         d.addCallback(recordTime)
         return d
 
@@ -320,25 +349,30 @@ class ConfigurationLoaderTask(ObservableMixin):
 
     @defer.inlineCallbacks
     def _processConfig(self, configs, purgeOmitted=True):
-        log.debug("Processing {0} received device configs".format(len(configs)))
+        log.debug("Processing %s received device configs", len(configs))
         if self.options.device:
-            configs = [cfg for cfg in configs \
-                            if self.options.device in (cfg.id, cfg.configId)]
+            configs = [
+                cfg
+                for cfg in configs
+                if self.options.device in (cfg.id, cfg.configId)
+            ]
             if not configs:
-                log.error("Configuration for %s unavailable -- " \
-                               "is that the correct name?",
-                               self.options.device)
+                log.error(
+                    "Configuration for %s unavailable -- "
+                    "is that the correct name?",
+                    self.options.device,
+                )
 
         if not configs:
             # No devices (eg new install), -d name doesn't exist or
             # device explicitly ignored by zenhub service.
             if not self.options.cycle:
                 self._daemon.stop()
-            defer.returnValue(['No device configuration to load'])
+            defer.returnValue(["No device configuration to load"])
 
         self.state = self.STATE_PROCESS_DEVICE_CONFIG
         yield self._daemon._updateDeviceConfigs(configs, purgeOmitted)
         defer.returnValue(configs)
 
     def cleanup(self):
-        pass # Required by interface
+        pass  # Required by interface

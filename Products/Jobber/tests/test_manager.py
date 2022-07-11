@@ -12,8 +12,9 @@ from __future__ import absolute_import, print_function
 import inspect
 import types
 
-from celery import states
 from unittest import TestCase
+
+from celery import states
 from zope.component import getGlobalSiteManager
 
 from ..interfaces import IJobStore
@@ -44,13 +45,13 @@ class JobManagerTest(TestCase):
         t.manager = JobManager("JobManagerTest")
         t.store = JobStore(t.layer.redis)
         getGlobalSiteManager().registerUtility(
-            t.store, IJobStore, name="redis",
+            t.store, IJobStore, name="redis"
         )
 
     def tearDown(t):
         t.layer.redis.flushall()
         getGlobalSiteManager().unregisterUtility(
-            t.store, IJobStore, name="redis",
+            t.store, IJobStore, name="redis"
         )
         del t.store
         del t.manager
@@ -77,7 +78,8 @@ class JobManagerTest(TestCase):
                 method = getattr(JobManager, name, None)
                 t.assertTrue(inspect.ismethod(method))
         all_methods = set(
-            m for m in JobManager.__dict__
+            m
+            for m in JobManager.__dict__
             if not m.startswith("_")
             and inspect.ismethod(getattr(JobManager, m, None))
         )
@@ -150,6 +152,7 @@ class JobManagerTest(TestCase):
 
     def test_getUnfinishedJobs_one_type(t):
         from Products.Jobber.jobs import PausingJob
+
         expected = []
         for idx, st in enumerate(states.ALL_STATES):
             rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
@@ -191,6 +194,7 @@ class JobManagerTest(TestCase):
 
     def test_getRunningJobs_one_type(t):
         from Products.Jobber.jobs import PausingJob
+
         running_states = (states.STARTED, states.RETRY)
         expected = []
         for idx, st in enumerate(states.ALL_STATES):
@@ -233,6 +237,7 @@ class JobManagerTest(TestCase):
 
     def test_getPendingJobs_one_type(t):
         from Products.Jobber.jobs import PausingJob
+
         pending_states = (states.RECEIVED, states.PENDING)
         expected = []
         for idx, st in enumerate(states.ALL_STATES):
@@ -274,6 +279,7 @@ class JobManagerTest(TestCase):
 
     def test_getFinishedJobs_one_type(t):
         from Products.Jobber.jobs import PausingJob
+
         expected = []
         for idx, st in enumerate(states.ALL_STATES):
             rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
@@ -313,6 +319,7 @@ class JobManagerTest(TestCase):
 
     def test_getAllJobs_one_type(t):
         from Products.Jobber.jobs import PausingJob
+
         expected = []
         for idx, st in enumerate(states.ALL_STATES):
             rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
@@ -338,8 +345,5 @@ class JobManagerTest(TestCase):
             if st not in states.READY_STATES:
                 expected.append(JobRecord.make(rec))
         t.manager.clearJobs()
-        actual = [
-            JobRecord.make(val)
-            for val in t.store.values()
-        ]
+        actual = [JobRecord.make(val) for val in t.store.values()]
         t.assertItemsEqual(expected, actual)

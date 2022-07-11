@@ -1,34 +1,44 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, 2010, 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
 import logging
-from twisted.internet import defer
-from Products.ZenEvents.ZenEventClasses import Cmd_Fail, Error
-import zope.component
-
-log = logging.getLogger("zen.collector.tasks")
-from copy import copy
 import random
 
+from copy import copy
+
+import zope.component
 import zope.interface
 
-from Products.ZenCollector.interfaces import IScheduledTaskFactory, ITaskSplitter, ISubTaskSplitter,\
-                                             IScheduledTask, ICollectorWorker, ICollector, IWorkerExecutor
+from twisted.internet import defer
+
+from Products.ZenEvents.ZenEventClasses import Cmd_Fail, Error
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenUtils.Utils import readable_time
+
+from .interfaces import (
+    ICollector,
+    ICollectorWorker,
+    IScheduledTask,
+    IScheduledTaskFactory,
+    ISubTaskSplitter,
+    ITaskSplitter,
+    IWorkerExecutor,
+)
+
+log = logging.getLogger("zen.collector.tasks")
 
 
 class BaseTask(ObservableMixin):
     """
     Convenience class that consolidates some shared code.
     """
+
     # By default, track when this task is 'late.'
     suppress_late = False
 
@@ -37,16 +47,16 @@ class BaseTask(ObservableMixin):
 
         # Store the original cycle interval so that we
         # can go back when an error condition is resolved.
-        interval = kwargs.get('scheduleIntervalSeconds')
+        interval = kwargs.get("scheduleIntervalSeconds")
         if interval is not None:
             self._originalScheduleInterval = interval
         else:
             self._originalScheduleInterval = args[2]
 
-    def cleanup(self): # Required by interface
+    def cleanup(self):  # Required by interface
         pass
-    
-    def scheduled(self, scheduler): # Required by interface
+
+    def scheduled(self, scheduler):  # Required by interface
         pass
 
     def _delayNextCheck(self):
@@ -63,8 +73,10 @@ class BaseTask(ObservableMixin):
         if self.interval != self._maxbackoffseconds:
             delay = random.randint(int(self.interval / 2), self.interval) * 2
             self.interval = min(self._maxbackoffseconds, self.interval + delay)
-            log.debug("Delaying next check for another %s",
-                      readable_time(self.interval))
+            log.debug(
+                "Delaying next check for another %s",
+                readable_time(self.interval),
+            )
 
     def _returnToNormalSchedule(self, ignored=None):
         """
@@ -74,34 +86,36 @@ class BaseTask(ObservableMixin):
         """
         if self.interval != self._originalScheduleInterval:
             self.interval = self._originalScheduleInterval
-            log.debug("Resetting next check back to %s seconds",
-                      self._originalScheduleInterval)
+            log.debug(
+                "Resetting next check back to %s seconds",
+                self._originalScheduleInterval,
+            )
         return ignored
 
     def chunk(self, lst, n):
         """
         Break lst into n-sized chunks
         """
-        return [lst[i:i+n] for i in xrange(0, len(lst), n)]
+        return [lst[i : i + n] for i in xrange(0, len(lst), n)]
 
 
+@zope.interface.implementer(ITaskSplitter)
 class NullTaskSplitter(object):
     """
     A task splitter that is used with a NullConfigService for
     situations where no configuration will be returned.
     """
-    zope.interface.implements(ITaskSplitter)
 
     def splitConfiguration(self, configs):
         return {}
 
 
+@zope.interface.implementer(ITaskSplitter)
 class SimpleTaskSplitter(object):
     """
-    A task splitter that creates a single scheduled task for an entire 
+    A task splitter that creates a single scheduled task for an entire
     configuration.
     """
-    zope.interface.implements(ITaskSplitter)
 
     def __init__(self, taskFactory):
         """
@@ -134,18 +148,20 @@ class SimpleTaskSplitter(object):
 
             configId = config.configId
             interval = config.configCycleInterval
-            tasks[configId] = self._newTask(configId, configId,
-                                            interval, config)
+            tasks[configId] = self._newTask(
+                configId, configId, interval, config
+            )
         return tasks
 
 
+@zope.interface.implementer(ISubTaskSplitter)
 class SubConfigurationTaskSplitter(SimpleTaskSplitter):
     """
     A task splitter that creates a single scheduled task by
     device, cycletime and other criteria.
     """
-    zope.interface.implements(ISubTaskSplitter)
-    subconfigName = 'datasources'
+
+    subconfigName = "datasources"
 
     def makeConfigKey(self, config, subconfig):
         raise NotImplementedError("Required method not implemented")
@@ -171,34 +187,33 @@ class SubConfigurationTaskSplitter(SimpleTaskSplitter):
 
             subconfigs = self._splitSubConfiguration(config)
             for key, subconfigGroup in subconfigs.items():
-                name = ' '.join(map(str, key))
+                name = " ".join(map(str, key))
                 interval = key[1]
 
                 configCopy = copy(config)
                 setattr(configCopy, self.subconfigName, subconfigGroup)
 
-                tasks[name] = self._newTask(name,
-                                            configId,
-                                            interval,
-                                            configCopy)
+                tasks[name] = self._newTask(
+                    name, configId, interval, configCopy
+                )
         return tasks
 
 
+@zope.interface.implementer(IScheduledTaskFactory)
 class SimpleTaskFactory(object):
     """
     A simple task factory that creates a scheduled task using the provided
     task class and the minimum attributes needed for a task.
     """
-    zope.interface.implements(IScheduledTaskFactory)
 
     def __init__(self, taskClass):
         """
         Create a new task factory instance using the specified task class when
-        creating new task objects. The taskClass must provide an __init__ method
-        with the following signature:
-        
+        creating new task objects. The taskClass must provide an __init__
+        method with the following signature:
+
         def __init__(self, name, configId, interval, config):
-        
+
         @param taskClass: the class to use when creating new task objects
         @type taskClass: a Python class object
         """
@@ -206,10 +221,9 @@ class SimpleTaskFactory(object):
         self.reset()
 
     def build(self):
-        return self._taskClass(self.name,
-                               self.configId,
-                               self.interval,
-                               self.config)
+        return self._taskClass(
+            self.name, self.configId, self.interval, self.config
+        )
 
     def reset(self):
         self.name = None
@@ -228,6 +242,7 @@ class RRDWriter(object):
         """
         self.delegate.writeRRD(counter, countervalue, countertype, **kwargs)
 
+
 class EventSender(object):
     def __init__(self, delegate):
         self.delegate = delegate
@@ -236,6 +251,7 @@ class EventSender(object):
         evt = event.copy()
         evt.update(eventData)
         self.delegate.sendEvent(evt)
+
 
 class WorkerOutputProxy(object):
     def __init__(self, daemon=None, rrdWriter=None, eventSender=None):
@@ -247,13 +263,14 @@ class WorkerOutputProxy(object):
     def sendOutput(self, data, events, intervalSeconds):
         if self.rrdWriter:
             for d in data:
-                yield self.rrdWriter.writeRRD(d['path'],
-                                d['value'],
-                                d['rrdType'],
-                                rrdCommand=d['rrdCommand'],
-                                cycleTime=intervalSeconds,
-                                min=d['min'],
-                                max=d['max']
+                yield self.rrdWriter.writeRRD(
+                    d["path"],
+                    d["value"],
+                    d["rrdType"],
+                    rrdCommand=d["rrdCommand"],
+                    cycleTime=intervalSeconds,
+                    min=d["min"],
+                    max=d["max"],
                 )
 
         if self.eventSender:
@@ -264,16 +281,15 @@ class WorkerOutputProxy(object):
     def sendEvent(self, event):
         yield self.eventSender.sendEvent(event)
 
-class SingleWorkerTask(ObservableMixin):
-    zope.interface.implements(IScheduledTask)
 
-    def __init__(self,
-                 deviceId,
-                 taskName,
-                 scheduleIntervalSeconds,
-                 taskConfig):
+@zope.interface.implementer(IScheduledTask)
+class SingleWorkerTask(ObservableMixin):
+    def __init__(
+        self, deviceId, taskName, scheduleIntervalSeconds, taskConfig
+    ):
         """
-        Construct a new task instance to fetch data from the configured worker object
+        Construct a new task instance to fetch data from the configured
+        worker object.
 
         @param deviceId: the Zenoss deviceId to watch
         @type deviceId: string
@@ -301,10 +317,14 @@ class SingleWorkerTask(ObservableMixin):
         self.component = self.daemon.preferences.collectorName
 
         options = self.daemon.options
-        taskOptionDict = dict((attr, value) for (attr, value) in options.__dict__.items()
-            if value is not None and not attr.startswith('_') and not callable(value))
+        taskOptionDict = dict(
+            (attr, value)
+            for (attr, value) in options.__dict__.items()
+            if value is not None
+            and not attr.startswith("_")
+            and not callable(value)
+        )
         self._taskConfig.options = taskOptionDict
-
 
     @property
     def deviceId(self):
@@ -316,6 +336,7 @@ class SingleWorkerTask(ObservableMixin):
         Instance of the worker class to use for all tasks
         """
         return self._worker
+
     @worker.setter
     def worker(self, value):
         self._worker = value
@@ -342,41 +363,63 @@ class SingleWorkerTask(ObservableMixin):
             self.state = TaskStates.STATE_RUNNING
             if self.worker:
                 # perform data collection in the worker object
-                results = yield self.worker.collect(self._devId, self._taskConfig)
+                results = yield self.worker.collect(
+                    self._devId, self._taskConfig
+                )
 
         except Exception as ex:
-            log.error("worker collection: results (exception) = %r (%s)", results, ex)
-            collectionErrorEvent = {'device':self.deviceId, 'severity':Error, 'eventClass':Cmd_Fail,
-                                    'summary':'Exception collecting:'+str(ex),
-                                    'component':self.component, 'agent':self.component}
+            log.error(
+                "worker collection: results (exception) = %r (%s)", results, ex
+            )
+            collectionErrorEvent = {
+                "device": self.deviceId,
+                "severity": Error,
+                "eventClass": Cmd_Fail,
+                "summary": "Exception collecting:" + str(ex),
+                "component": self.component,
+                "agent": self.component,
+            }
             yield self.outputProxy.sendEvent(collectionErrorEvent)
 
         else:
             if results:
-                #send the data through the output proxy
+                # send the data through the output proxy
                 data, events = results
-                if 'testcounter' in self._taskConfig.options:
-                    testCounter = self._taskConfig.options['testcounter']
+                if "testcounter" in self._taskConfig.options:
+                    testCounter = self._taskConfig.options["testcounter"]
                     for dp in data:
-                        if dp['counter'] == testCounter:
-                            log.info("Collected value for %s: %s (%s)", dp['counter'], dp['value'], dp['path'])
+                        if dp["counter"] == testCounter:
+                            log.info(
+                                "Collected value for %s: %s (%s)",
+                                dp["counter"],
+                                dp["value"],
+                                dp["path"],
+                            )
                             break
                     else:
-                        log.info("No value collected for %s from device %s", testCounter, self._devId)
-                        log.debug("Valid counters: %s", [dp['counter'] for dp in data])
+                        log.info(
+                            "No value collected for %s from device %s",
+                            testCounter,
+                            self._devId,
+                        )
+                        log.debug(
+                            "Valid counters: %s",
+                            [dp["counter"] for dp in data],
+                        )
 
                 yield self.outputProxy.sendOutput(data, events, self.interval)
 
         finally:
             self.state = TaskStates.STATE_IDLE
 
+
+@zope.interface.implementer(IScheduledTaskFactory)
 class SingleWorkerTaskFactory(SimpleTaskFactory):
     """
     A task factory that creates a scheduled task using the provided
     task class and the minimum attributes needed for a task, plus redirects
     the 'doTask' and 'cleanup' methods to a single ICollectorWorker instance.
     """
-    zope.interface.implements(IScheduledTaskFactory)
 
     def __init__(self, taskClass=SingleWorkerTask, iCollectorWorker=None):
         super(SingleWorkerTaskFactory, self).__init__(taskClass)
@@ -387,20 +430,23 @@ class SingleWorkerTaskFactory(SimpleTaskFactory):
 
     def postInitialization(self):
         pass
-    
+
     def build(self):
         task = super(SingleWorkerTaskFactory, self).build()
-        if self.workerClass and ICollectorWorker.implementedBy(self.workerClass):
+        if self.workerClass and ICollectorWorker.implementedBy(
+            self.workerClass
+        ):
             worker = self.workerClass()
             worker.prepareToRun()
             task.worker = worker
         return task
 
+
+@zope.interface.implementer(IWorkerExecutor)
 class NullWorkerExecutor(object):
     """
     IWorkerExecutor that does nothing with the provided worker
     """
-    zope.interface.implements(IWorkerExecutor)
 
     def setWorkerClass(self, workerClass):
         pass
@@ -410,12 +456,12 @@ class NullWorkerExecutor(object):
 
 
 class TaskStates(object):
-    STATE_IDLE = 'IDLE'
-    STATE_CONNECTING = 'CONNECTING'
-    STATE_RUNNING = 'RUNNING'
-    STATE_WAITING = 'WAITING'
-    STATE_QUEUED = 'QUEUED'
-    STATE_PAUSED = 'PAUSED'
-    STATE_CLEANING = 'CLEANING'
-    STATE_COMPLETED = 'COMPLETED'
+    STATE_IDLE = "IDLE"
+    STATE_CONNECTING = "CONNECTING"
+    STATE_RUNNING = "RUNNING"
+    STATE_WAITING = "WAITING"
+    STATE_QUEUED = "QUEUED"
+    STATE_PAUSED = "PAUSED"
+    STATE_CLEANING = "CLEANING"
+    STATE_COMPLETED = "COMPLETED"
     STATE_SHUTDOWN = "SHUTDOWN"

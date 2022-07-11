@@ -83,11 +83,7 @@ class FacadeMethodJob(Job):
             kwargs["joblog"] = self.log
 
         # Rebuild kwargs to include only accepted parameter names.
-        kwargs = {
-            k: v
-            for k, v in kwargs.iteritems()
-            if k in accepted
-        }
+        kwargs = {k: v for k, v in kwargs.iteritems() if k in accepted}
         result = bound_method(*args, **kwargs)
 
         # Expect result = {'success': boolean, 'message': string}
@@ -101,6 +97,9 @@ class FacadeMethodJob(Job):
                 self.log.warn(
                     "The output from job %s is not in the right format: "
                     "%s.%s returned %s",
-                    self.request.id, facadefqdn, bound_method, result,
+                    self.request.id,
+                    facadefqdn,
+                    bound_method,
+                    result,
                 )
                 return result

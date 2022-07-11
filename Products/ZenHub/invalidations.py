@@ -7,28 +7,26 @@
 #
 ##############################################################################
 
-
 import logging
-from zope.interface import implements, providedBy
-from zope.component import adapter, getGlobalSiteManager
-from twisted.internet import defer
+
 from BTrees.IIBTree import IITreeSet
+from twisted.internet import defer
 from ZODB.utils import u64
+from zope.component import adapter, getGlobalSiteManager
+from zope.interface import implements, providedBy
 
-from Products.ZenUtils.Utils import unused
-
+from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenRelations.PrimaryPathObjectManager import (
     PrimaryPathObjectManager,
 )
-from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenUtils.Utils import giveTimeToReactor
+
 from .interfaces import IInvalidationProcessor, IHubCreatedEvent
 from .zodb import UpdateEvent, DeletionEvent
 
 
-
-log = logging.getLogger('zen.ZenHub')
-INVALIDATIONS_PAUSED = 'PAUSED'
+log = logging.getLogger("zen.ZenHub")
+INVALIDATIONS_PAUSED = "PAUSED"
 
 
 @defer.inlineCallbacks
@@ -51,21 +49,20 @@ def handle_oid(dmd, oid):
     obj = dmd._p_jar[oid]
     # Don't bother with all the catalog stuff; we're depending on primaryAq
     # existing anyway, so only deal with it if it actually has primaryAq.
-    if (
-        isinstance(obj, PrimaryPathObjectManager)
-        or isinstance(obj, DeviceComponent)
+    if isinstance(obj, PrimaryPathObjectManager) or isinstance(
+        obj, DeviceComponent
     ):
         try:
             # Try to get the object
             obj = obj.__of__(dmd).primaryAq()
-        except (AttributeError, KeyError) as ex:
+        except (AttributeError, KeyError):
             # Object has been removed from its primary path (i.e. was
             # deleted), so make a DeletionEvent
-            log.debug("Notifying services that %r has been deleted" % obj)
+            log.debug("Notifying services that %r has been deleted", obj)
             event = DeletionEvent(obj, oid)
         else:
             # Object was updated, so make an UpdateEvent
-            log.debug("Notifying services that %r has been updated" % obj)
+            log.debug("Notifying services that %r has been updated", obj)
             event = UpdateEvent(obj, oid)
         # Fire the event for all interested services to pick up
         return betterObjectEventNotify(event)
@@ -77,6 +74,7 @@ class InvalidationProcessor(object):
     handles pushing updated objects to the appropriate services, which in turn
     cause collectors to be pushed updates.
     """
+
     implements(IInvalidationProcessor)
 
     _invalidation_queue = None
@@ -99,7 +97,7 @@ class InvalidationProcessor(object):
         i = 0
         queue = self._invalidation_queue
         if self._hub.dmd.pauseHubNotifications:
-            log.debug('notifications are currently paused')
+            log.debug("notifications are currently paused")
             defer.returnValue(INVALIDATIONS_PAUSED)
         for i, oid in enumerate(oids):
             ioid = u64(oid)

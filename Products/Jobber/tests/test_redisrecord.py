@@ -17,7 +17,6 @@ from ..zenjobs import app
 
 
 class BaseBuildRedisRecord(object):
-
     def setUp(t):
         t.args = (10,)
         t.kw = {"named": "charger"}
@@ -49,7 +48,7 @@ class BaseBuildRedisRecord(object):
         description = "alternate description"
         t.expected["description"] = description
         actual = RedisRecord.from_task(
-            t.task, t.jobid, t.args, t.kw, description=description,
+            t.task, t.jobid, t.args, t.kw, description=description
         )
         t.assertDictEqual(t.expected, actual)
 
@@ -57,7 +56,7 @@ class BaseBuildRedisRecord(object):
         status = "PENDING"
         t.expected["status"] = status
         actual = RedisRecord.from_task(
-            t.task, t.jobid, t.args, t.kw, status=status,
+            t.task, t.jobid, t.args, t.kw, status=status
         )
         t.assertDictEqual(t.expected, actual)
 
@@ -65,7 +64,7 @@ class BaseBuildRedisRecord(object):
         created = 1234970434.303
         t.expected["created"] = created
         actual = RedisRecord.from_task(
-            t.task, t.jobid, t.args, t.kw, created=created,
+            t.task, t.jobid, t.args, t.kw, created=created
         )
         t.assertDictEqual(t.expected, actual)
 
@@ -73,7 +72,7 @@ class BaseBuildRedisRecord(object):
         userid = "someuser"
         t.expected["userid"] = userid
         actual = RedisRecord.from_task(
-            t.task, t.jobid, t.args, t.kw, userid=userid,
+            t.task, t.jobid, t.args, t.kw, userid=userid
         )
         t.assertDictEqual(t.expected, actual)
 
@@ -81,7 +80,7 @@ class BaseBuildRedisRecord(object):
         details = {"a": 1, "b": 2}
         t.expected["details"] = details
         actual = RedisRecord.from_task(
-            t.task, t.jobid, t.args, t.kw, details=details,
+            t.task, t.jobid, t.args, t.kw, details=details
         )
         t.assertDictEqual(t.expected, actual)
 
@@ -90,15 +89,23 @@ class BaseBuildRedisRecord(object):
         created = 1234970434.303
         userid = "someuser"
         details = {"a": 1, "b": 2}
-        t.expected.update({
-            "status": status,
-            "created": created,
-            "userid": userid,
-            "details": details,
-        })
+        t.expected.update(
+            {
+                "status": status,
+                "created": created,
+                "userid": userid,
+                "details": details,
+            }
+        )
         actual = RedisRecord.from_task(
-            t.task, t.jobid, t.args, t.kw,
-            status=status, created=created, userid=userid, details=details,
+            t.task,
+            t.jobid,
+            t.args,
+            t.kw,
+            status=status,
+            created=created,
+            userid=userid,
+            details=details,
         )
         t.assertDictEqual(t.expected, actual)
 
@@ -162,7 +169,6 @@ class BuildRedisRecordFromJobTest(BaseBuildRedisRecord, TestCase):
     """Test the RedisRecord class with a Job."""
 
     class TestJob(Job):
-
         @classmethod
         def getJobType(cls):
             return "Test Job"

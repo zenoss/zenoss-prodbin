@@ -7,17 +7,13 @@
 #
 ##############################################################################
 
-
-__doc__ = """netstat_an
-Collect running IP services using `netstat -an` or `ss -lntu`
-"""
-
 import abc
+
 from Products.DataCollector.plugins.CollectorPlugin import LinuxCommandPlugin
 from Products.ZenUtils import IpUtil
 
-class BaseParser(object):
 
+class BaseParser(object):
     """Base class for command output parsers."""
 
     __metaclass__ = abc.ABCMeta
@@ -35,7 +31,6 @@ class BaseParser(object):
 
 
 class SsServicesParser(BaseParser):
-
     """Parser class for `/usr/sbin/ss -lntu` command output.
 
     Supported format:
@@ -70,24 +65,25 @@ class SsServicesParser(BaseParser):
                 proto = fields[0]
                 # please note protocol alway be tcp due a bug in RH;
                 # see https://bugzilla.redhat.com/show_bug.cgi?id=1063927
-                if fields[1] == 'UNCONN':
-                    proto = 'udp'
+                if fields[1] == "UNCONN":
+                    proto = "udp"
 
                 addr, port = fields[4].rsplit(":", 1)
-                if addr == '*':
-                    addr = '0.0.0.0'
+                if addr == "*":
+                    addr = "0.0.0.0"
                 else:
                     ip_version = IpUtil.get_ip_version(addr)
                     if ip_version is None:  # Not a valid ip
                         continue
                     elif ip_version == 6:
-                        proto = proto + '6'
+                        proto = proto + "6"
 
                 self.log.debug("Got %s %s port %s", addr, proto, port)
                 port = int(port)
             except ValueError:
-                self.log.exception("Failed to parse IPService information '%s'",
-                                   line)
+                self.log.exception(
+                    "Failed to parse IPService information '%s'", line
+                )
                 continue
 
             services.append((proto, port, addr))
@@ -96,7 +92,6 @@ class SsServicesParser(BaseParser):
 
 
 class NetstatServicesParser(BaseParser):
-
     """Parser class for `/usr/bin/netstat -an | grep ":\\*";` command output.
 
     Supported format:
@@ -137,8 +132,9 @@ class NetstatServicesParser(BaseParser):
 
                 port = int(port)
             except ValueError:
-                self.log.exception("Failed to parse IPService information '%s'",
-                                   line)
+                self.log.exception(
+                    "Failed to parse IPService information '%s'", line
+                )
                 continue
 
             services.append((proto, port, addr))
@@ -147,6 +143,7 @@ class NetstatServicesParser(BaseParser):
 
 
 class netstat_an(LinuxCommandPlugin):
+    """Collect running IP services using `netstat -an` or `ss -lntu`."""
 
     maptype = "IpServiceMap"
     command = 'export PATH=$PATH:/sbin:/usr/sbin; \
@@ -161,25 +158,29 @@ class netstat_an(LinuxCommandPlugin):
     compname = "os"
     relname = "ipservices"
     modname = "Products.ZenModel.IpService"
-    deviceProperties = \
-        LinuxCommandPlugin.deviceProperties + ('zIpServiceMapMaxPort', )
+    deviceProperties = LinuxCommandPlugin.deviceProperties + (
+        "zIpServiceMapMaxPort",
+    )
 
     def process(self, device, results, log):
-        log.info('Modeler %s processing ip services data for device %s',
-                 self.name(), device.id)
+        log.info(
+            "Modeler %s processing ip services data for device %s",
+            self.name(),
+            device.id,
+        )
         self.log = log
         rm = self.relMap()
-        if not results.strip(): # No output
+        if not results.strip():  # No output
             log.error("No output from the command: %s", self.command)
             return
 
-        if '### ss output' not in results:
+        if "### ss output" not in results:
             parser = NetstatServicesParser(log)
         else:
             parser = SsServicesParser(log)
 
         try:
-            maxport = getattr(device, 'zIpServiceMapMaxPort', 1024)
+            maxport = getattr(device, "zIpServiceMapMaxPort", 1024)
             maxport = int(maxport)
         except ValueError:
             maxport = 1024
@@ -187,29 +188,47 @@ class netstat_an(LinuxCommandPlugin):
         rm = self.relMap()
         ports = {}
         for proto, port, addr in parser.parse(results):
-            if not IpUtil.isRemotelyReachable(addr) or not port: # Can't monitor things we can't reach
+            if (
+                not IpUtil.isRemotelyReachable(addr) or not port
+            ):  # Can't monitor things we can't reach
                 continue
 
             if port > maxport:
-                log.debug("Ignoring entry greater than zIpServiceMapMaxPort "
-                          "(%s): %s %s %s", maxport, addr, proto, port)
+                log.debug(
+                    "Ignoring entry greater than zIpServiceMapMaxPort "
+                    "(%s): %s %s %s",
+                    maxport,
+                    addr,
+                    proto,
+                    port,
+                )
                 continue
 
             om = ports.get((proto, port), None)
             if om:
                 if addr in om.ipaddresses:
                     continue
-                log.debug("Adding %s to the list of addresses listening "
-                          "to %s port %s", addr, proto, port)
+                log.debug(
+                    "Adding %s to the list of addresses listening "
+                    "to %s port %s",
+                    addr,
+                    proto,
+                    port,
+                )
                 om.ipaddresses.append(addr)
             else:
                 om = self.objectMap()
                 om.protocol = proto
                 om.port = int(port)
-                om.id = '%s_%05d' % (om.protocol, om.port)
-                log.debug("Found %s listening to %s port %s (%s)",
-                          addr, proto, port, om.id)
-                om.setServiceClass = {'protocol': proto, 'port': om.port}
+                om.id = "%s_%05d" % (om.protocol, om.port)
+                log.debug(
+                    "Found %s listening to %s port %s (%s)",
+                    addr,
+                    proto,
+                    port,
+                    om.id,
+                )
+                om.setServiceClass = {"protocol": proto, "port": om.port}
                 om.ipaddresses = [addr]
                 om.discoveryAgent = self.name()
                 ports[(proto, port)] = om

@@ -13,8 +13,12 @@ from mock import call, Mock, patch
 from unittest import TestCase
 
 from ..utils import (
-    TCPVersion, tcp, TCPDescriptor,
-    import_name, import_service_class, UnknownServiceError,
+    TCPVersion,
+    tcp,
+    TCPDescriptor,
+    import_name,
+    import_service_class,
+    UnknownServiceError,
 )
 
 PATH = {"src": "Products.ZenHub.server.utils"}
@@ -54,7 +58,8 @@ class ImportNameTest(TestCase):
 
     def setUp(self):
         self.importlib_patcher = patch(
-            "{src}.importlib".format(**PATH), autospec=True,
+            "{src}.importlib".format(**PATH),
+            autospec=True,
         )
         self.importlib = self.importlib_patcher.start()
         self.addCleanup(self.importlib_patcher.stop)
@@ -105,7 +110,8 @@ class ImportServiceClassTest(TestCase):
 
     def setUp(self):
         self.import_name_patcher = patch(
-            "{src}.import_name".format(**PATH), autospec=True,
+            "{src}.import_name".format(**PATH),
+            autospec=True,
         )
         self.import_name = self.import_name_patcher.start()
         self.addCleanup(self.import_name_patcher.stop)
@@ -120,9 +126,12 @@ class ImportServiceClassTest(TestCase):
         service = import_service_class(path)
 
         self.assertIs(cls, service)
-        self.import_name.assert_has_calls((
-            call(path, name), call(fullpath, name),
-        ))
+        self.import_name.assert_has_calls(
+            (
+                call(path, name),
+                call(fullpath, name),
+            )
+        )
 
     def test_nominal_full_path(self):
         cls = Mock()
@@ -144,7 +153,9 @@ class ImportServiceClassTest(TestCase):
         with self.assertRaises(UnknownServiceError):
             import_service_class(path)
 
-        self.import_name.assert_has_calls((
-            call(path, name),
-            call("Products.ZenHub.services.Foo.Bar.Baz", name),
-        ))
+        self.import_name.assert_has_calls(
+            (
+                call(path, name),
+                call("Products.ZenHub.services.Foo.Bar.Baz", name),
+            )
+        )

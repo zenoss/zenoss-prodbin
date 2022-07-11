@@ -91,11 +91,11 @@ class ZodbPackMonkeyHelper(object):
         cursor = store_connection.cursor
         cursor.execute(sql)
         if cursor.rowcount == 0:
-            log.info("Creating reverse reference index on {0}".format(self.REF_TABLE_NAME))
+            log.info("Creating reverse reference index on %s", self.REF_TABLE_NAME)
             start = time.time()
             index_sql = """ CREATE INDEX {0} ON {1} (to_zoid); """.format(self.REVERSE_REF_INDEX, self.REF_TABLE_NAME)
             cursor.execute(index_sql)
-            log.info("Reverse reference index creation took {0} seconds.".format(time.time()-start))
+            log.info("Reverse reference index creation took %s seconds.", time.time()-start)
 
     def get_current_database(self, cursor):
         sql = """SELECT DATABASE();"""
@@ -108,7 +108,7 @@ class ZodbPackMonkeyHelper(object):
         return count
 
     def log_exception(self, e, info=''):
-        log.error("Monkey patch for zodbpack raised and exception: {0}: {1}".format(info, e))
+        log.error("Monkey patch for zodbpack raised and exception: %s: %s", info, e)
 
     def unmark_rolledback_oids(self, conn, cursor, oids):
         """
@@ -241,7 +241,7 @@ class ZodbPackMonkeyHelper(object):
         result = "PASSED"
         if not passed:
             result = "FAILED"
-        log.info("{0}{1}".format(text, result.rjust(8)))
+        log.info("%s%s", text, result.rjust(8))
 
     def run_post_pack_tests(self, cursor, marked_for_removal, to_remove, oids_not_removed):
         """
@@ -254,7 +254,8 @@ class ZodbPackMonkeyHelper(object):
         to_remove = set([ str(oid) for oid, tid in to_remove ])
         not_removed = set([ str(oid) for oid, tid in oids_not_removed])
         removed = to_remove - to_remove.intersection(not_removed)
-        log.info("Validating results: {0} oids marked for removal / {1} oids removed / {2} oids skipped.".format(marked_for_removal, len(to_remove), len(not_removed)))
+        log.info("Validating results: %s oids marked for removal / %s oids removed / %s oids skipped.",
+                 marked_for_removal, len(to_remove), len(not_removed))
 
         # Check tables state, deleted oids must not be in any of the tables and
         # not deleted oids must be in all tables
@@ -285,7 +286,7 @@ class ZodbPackMonkeyHelper(object):
             pfile = open(filename, "wb")
             pickle.dump(skipped_oids, pfile)
             pfile.close()
-            log.info("Not deleted oids pickled to file: {0}".format(filename))
+            log.info("Not deleted oids pickled to file: %s", filename)
         except Exception as e:
             self.log_exception(e, "Failed to create pickle with skipped oids")
 
@@ -321,7 +322,7 @@ class ZodbPackMonkeyHelper(object):
             pfile.write('-'*75)
             pfile.write('\n')
             pfile.write('\n'.join(rolledback_oids));
-            log.info("Mofified oids between pre_pack and pack dumped to file: {0}".format(filename))
+            log.info("Mofified oids between pre_pack and pack dumped to file: %s", filename)
         except Exception as e:
             self.log_exception(e, "Failed to create file with skipped oids")
 
@@ -406,7 +407,7 @@ try:
         ### BEGIN ZENOSS CUSTOM CODE ###
         ################################
 
-        log.info("Running with the following options: {0}".format(GLOBAL_OPTIONS))
+        log.info("Running with the following options: %s", GLOBAL_OPTIONS)
         # Create reverse ref index
         MONKEY_HELPER.create_reverse_ref_index(store_connection)
 
@@ -456,7 +457,7 @@ try:
         explore_references_time = time.time() - group_start
         if explore_references_time > 1:
             explore_references_time = str(explore_references_time).split('.')[0]
-            log.info("Exploring oid connections took {0} seconds.".format(explore_references_time))
+            log.info("Exploring oid connections took %s seconds.", explore_references_time)
 
         return result
 
@@ -561,7 +562,7 @@ try:
                 start = time.time()
 
         if prevent_pke_oids:
-            log.info("{0} oid groups were skipped. ({1} oids)".format(rollbacks, len(prevent_pke_oids)))
+            log.info("%s oid groups were skipped. (%s oids)", rollbacks, len(prevent_pke_oids))
             # unmark the oids from pack_object so _pack_cleanup wont remove them from object_refs_added and object_ref
             MONKEY_HELPER.unmark_rolledback_oids(conn, cursor, prevent_pke_oids)
             """
@@ -603,7 +604,7 @@ try:
                     grouped_oids, to_remove, skipped_oids = get_grouped_oids(cursor, to_remove)
 
                     if skipped_oids:
-                        log.info("{0} oids will be skipped.".format(len(skipped_oids)))
+                        log.info("%s oids will be skipped.", len(skipped_oids))
                         MONKEY_HELPER.unmark_rolledback_oids(conn, cursor, skipped_oids)
 
                     total = len(to_remove)
@@ -678,9 +679,9 @@ try:
                             self.results_queue.put( (self.name, self.oids_processed) )
                 except (KeyboardInterrupt, Exception) as e:
                     if isinstance(e, KeyboardInterrupt):
-                        log.info("{0}: Stopping worker...".format(self.name))
+                        log.info("%s: Stopping worker...", self.name)
                     else:
-                        log.exception("{0}: Exception in worker while building ref tables. {1}".format(self.name, e))
+                        log.exception("%s: Exception in worker while building ref tables. %s", self.name, e)
                     self.store_connection.rollback()
                     break
                 finally:
@@ -699,8 +700,10 @@ try:
         txt_processed = str(processed).rjust(9)
         txt_remaining = str(total - processed).rjust(9)
         txt_proccessed_since_last_report = str(proccessed_since_last_report).rjust(8)
-        log_text = "{0}  | Processed: {1} | Remaining: {2} | Processed since last report: {3}"
-        log.info(log_text.format(txt_progress, txt_processed, txt_remaining, txt_proccessed_since_last_report))
+        log.info(
+            "%s  | Processed: %s | Remaining: %s | Processed since last report: %s",
+            txt_progress, txt_processed, txt_remaining, txt_proccessed_since_last_report,
+        )
 
     def _get_n_workers(total_oids):
         if "N_WORKERS" in GLOBAL_OPTIONS and GLOBAL_OPTIONS["N_WORKERS"] > 0:
@@ -731,7 +734,7 @@ try:
         start = time.time()
         total_oids = len(oids)
         n_workers = _get_n_workers(total_oids)
-        log.info("Starting {0} workers to build ref tables...".format(n_workers))
+        log.info("Starting %s workers to build ref tables...", n_workers)
         # Get tasks
         tasks = _get_tasks(oids)
         oids = None # free some mem
@@ -806,7 +809,7 @@ try:
             if isinstance(e, KeyboardInterrupt):
                 log.warn("Building reference tables interrupted.")
             else:
-                log.exception("Exception while building ref tables. {0}".format(e))
+                log.exception("Exception while building ref tables. %s", e)
             while not results_queue.empty():
                 results_queue.get(block=False)
             for worker in workers:
@@ -828,7 +831,7 @@ try:
         """ Patched version that uses workers if analyzing a large number of oids """
 
         HEADER = "ref-tables-builder"
-        log.info("{0}: Looking for updated objects...".format(HEADER))
+        log.info("%s: Looking for updated objects...", HEADER)
 
         start = time.time()
 
@@ -843,14 +846,15 @@ try:
         oids = [ oid for (oid,) in load_connection.cursor ]
 
         duration = duration_to_pretty_text(time.time()-start)
-        log.info("{0}: Looking for updated objects took {1}. {2} objects found".format(HEADER, duration, len(oids)))
+        log.info("%s: Looking for updated objects took %s. %s objects found",
+                 HEADER, duration, len(oids))
 
         if len(oids) > 0:
             start = time.time()
-            log.info("{0}: Building reference tables...".format(HEADER))
+            log.info("%s: Building reference tables...", HEADER)
             self.workerized_ref_tables_builder(oids, load_connection, store_connection, get_references)
             duration = duration_to_pretty_text(time.time()-start)
-            log.info("{0}: Build reference tables took {1}.".format(HEADER, duration))
+            log.info("%s: Build reference tables took %s.", HEADER, duration)
 
 
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
@@ -928,7 +932,7 @@ try:
                 for from_oid, rows in groupby(load_connection.cursor, itemgetter(0)):
                     children.update(set(row[1] for row in rows))
 
-                log.debug("pre_pack: %d items left" % (len(parents_list)-step))
+                log.debug("pre_pack: %d items left", len(parents_list)-step)
 
             parents = children.difference(keep_set)
             keep_set.update(parents)

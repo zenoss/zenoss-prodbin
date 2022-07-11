@@ -1,20 +1,16 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
-__doc__ = """BaseClient
-Base class for the client interface for data collection
-"""
-
 class BaseClient(object):
     """
-    Define the DataCollector Client interface
+    Base client class for the data collection.
     """
 
     def __init__(self, device, datacollector):
@@ -37,16 +33,14 @@ class BaseClient(object):
     def run(self):
         """
         Start the data gathering.
-        To be implemented by child classes 
+        To be implemented by child classes
         """
-        pass
 
     def stop(self):
         """
         Stopping condition for the collector.
         To be implemented by child classes
         """
-        pass
 
     def getResults(self):
         """

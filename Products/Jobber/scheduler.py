@@ -11,13 +11,15 @@ from __future__ import absolute_import
 
 import json
 import logging
-import redis
 import time
+
+from datetime import datetime, timedelta
+
+import redis
 import yaml
 
 from celery.beat import Scheduler
 from celery.schedules import crontab
-from datetime import datetime, timedelta
 
 from .config import ZenJobs, Celery
 
@@ -80,8 +82,7 @@ class ZenJobsScheduler(Scheduler):
         super(ZenJobsScheduler, self).__init__(*args, **kwargs)
 
     def setup_schedule(self):
-        """Initialize the scheduler.
-        """
+        """Initialize the scheduler."""
         # Retrieve the previously saved schedule from redis.
         raw_data = _getClient().get(_key("entries")) or "{}"
         schedule_stats = ScheduleStatsDecoder().decode(raw_data)
@@ -152,7 +153,7 @@ def load_schedule():
         if unknowns:
             raise RuntimeError(
                 "Schedule '{}' contains invalid fields: {}".format(
-                    name, ",".join(unknowns),
+                    name, ",".join(unknowns)
                 )
             )
 
@@ -193,8 +194,7 @@ def load_schedule():
 
 
 class ScheduleStatsDecoder(json.JSONDecoder):
-    """Convert "last_run_at" field values from UNIX times to datetimes.
-    """
+    """Convert "last_run_at" field values from UNIX times to datetimes."""
 
     def default(self, obj):
         if "last_run_at" in obj:
@@ -203,8 +203,7 @@ class ScheduleStatsDecoder(json.JSONDecoder):
 
 
 class DatetimeEncoder(json.JSONEncoder):
-    """Encode datetime.datetime types into UNIX epoch timestamp.
-    """
+    """Encode datetime.datetime types into UNIX epoch timestamp."""
 
     def default(self, obj):
         if isinstance(obj, datetime):

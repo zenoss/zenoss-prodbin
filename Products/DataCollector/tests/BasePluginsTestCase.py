@@ -1,25 +1,29 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-import os
+from __future__ import print_function
+
 import logging
-log = logging.getLogger("zen.BasePluginsTestCase")
+import os
 
-from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Products.DataCollector.plugins.DataMaps import (
+    MultiArgs,
+    ObjectMap,
+    RelationshipMap,
+)
 from Products.ZenRRD.tests.BaseParsersTestCase import Object, filenames
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
-from Products.DataCollector.plugins.DataMaps \
-        import RelationshipMap, ObjectMap, MultiArgs
+log = logging.getLogger("zen.BasePluginsTestCase")
 
 
 class BasePluginsTestCase(BaseTestCase):
-
     def _testDataFiles(self, datadir, Plugins, device=None):
         """
         Run tests for all of the data files in the data directory.
@@ -30,59 +34,75 @@ class BasePluginsTestCase(BaseTestCase):
             try:
                 counter += self._testDataFile(filename, Plugins, device)
             except Exception as e:
-                format = '%s/%s caught %s: %s'
+                format = "%s/%s caught %s: %s"
                 host, parser = filename.split(os.path.sep)[-2:]
                 args = (host, parser, e.__class__.__name__, str(e))
                 log.error(format % args)
                 raise
 
         if counter:
-            print self.__class__.__name__, "made", counter, "assertions."
+            print(self.__class__.__name__, "made", counter, "assertions.")
         else:
-            print self.__class__.__name__, "had no counters or failed to parse."
+            print(
+                self.__class__.__name__, "had no counters or failed to parse."
+            )
 
     def __parseCommandAndOutput(self, filename, singleLine=True):
         """
-        Parse out the command that was used to generate the output included in the file
+        Parse out the command that was used to generate the output included
+        in the file.
         """
         datafile = open(filename)
         line = datafile.readline()
         command = ""
         if not singleLine:
-            log.debug("failed to find plugin on first go around, trying 2nd time")
+            log.debug(
+                "failed to find plugin on first go around, trying 2nd time"
+            )
             while line != "___HOST_OUTPUT___\n" and line != "":
-               command += line
-               line = datafile.readline()
+                command += line
+                line = datafile.readline()
         else:
             command = line
         command = command.rstrip("\n")
         output = "".join(datafile.readlines())
-        datafile.close()    
+        datafile.close()
         return command, output
 
     def _testDataFile(self, filename, Plugins, device=None):
         """
         Test a data file.
         """
-        command, output = self.__parseCommandAndOutput(filename) 
+        command, output = self.__parseCommandAndOutput(filename)
 
         # read the file containing the expected values
-        expectedfile = open('%s.py' % (filename,))
+        expectedfile = open("%s.py" % (filename,))
         expected = eval("".join(expectedfile.readlines()))
         expectedfile.close()
 
-        cleaner = lambda command: ' '.join(command.split())
+        def cleaner(command):
+            return " ".join(command.split())
+
         command = cleaner(command)
-        plugins = [P() for P in Plugins 
-            if cleaner(P.command) == command and P.__name__ in expected]
+        plugins = [
+            P()
+            for P in Plugins
+            if cleaner(P.command) == command and P.__name__ in expected
+        ]
 
         if not plugins:
-            #if we fail to find a plugin the first time we might be dealing
-            #with a multiline command, let's try to re-parse the datafile once more
-            command, output = self.__parseCommandAndOutput(filename, singleLine=False)
+            # If we fail to find a plugin the first time we might be dealing
+            # with a multiline command, let's try to re-parse the datafile
+            # once more.
+            command, output = self.__parseCommandAndOutput(
+                filename, singleLine=False
+            )
             command = cleaner(command)
-            plugins = [P() for P in Plugins 
-                if cleaner(P.command) == command and P.__name__ in expected]
+            plugins = [
+                P()
+                for P in Plugins
+                if cleaner(P.command) == command and P.__name__ in expected
+            ]
         if not plugins:
             self.fail("No plugins for %s" % command)
 
@@ -106,7 +126,7 @@ class BasePluginsTestCase(BaseTestCase):
                 for exp, act in zip(expected, actual):
                     counter += self._testDataMap(exp, act, filename)
 
-            else: 
+            else:
 
                 counter += self._testDataMap(expected, actual, filename)
 
@@ -141,21 +161,24 @@ class BasePluginsTestCase(BaseTestCase):
         # all ObjectMaps have an id except for OSProcess which uses procName
         objectMapDct = {}
         for objectMap in relationshipMap.maps:
-            if objectMap.modname == 'Products.ZenModel.OSProcess':
-                keyName = 'procName'
+            if objectMap.modname == "Products.ZenModel.OSProcess":
+                keyName = "procName"
             else:
-                keyName = 'id'
+                keyName = "id"
             objectMapDct[getattr(objectMap, keyName)] = objectMap
 
         for id in expected:
             if id in objectMapDct:
-                counter += self._testObjectMap(expected[id], 
-                        objectMapDct[id], filename)
+                counter += self._testObjectMap(
+                    expected[id], objectMapDct[id], filename
+                )
             else:
                 plugin = os.path.sep.join(filename.split(os.path.sep)[-3:])
-                self.fail("No ObjectMap with id=%s in the RelationshipMap " \
-                          "returned by the plugin (%s).\n%s" % (
-                          id, plugin, relationshipMap))
+                self.fail(
+                    "No ObjectMap with id=%s in the RelationshipMap "
+                    "returned by the plugin (%s).\n%s"
+                    % (id, plugin, relationshipMap)
+                )
 
         return counter
 
@@ -171,10 +194,13 @@ class BasePluginsTestCase(BaseTestCase):
 
                 actual = getattr(actualObjMap, key)
 
-                if isinstance(actual, MultiArgs): actual = actual.args
+                if isinstance(actual, MultiArgs):
+                    actual = actual.args
 
-                if isinstance(actual, str): format = "'%s' != '%s' in %s"
-                else                      : format = "%s != %s in %s"
+                if isinstance(actual, str):
+                    format = "'%s' != '%s' in %s"
+                else:
+                    format = "%s != %s in %s"
 
                 testPath = os.path.join(*filename.split(os.path.sep)[-2:])
                 msg = format % (expectedDct[key], actual, testPath)
@@ -183,7 +209,9 @@ class BasePluginsTestCase(BaseTestCase):
 
             else:
 
-                self.fail("ObjectMap %s does not have a %s attribute." % (
-                        actualObjMap, key))
+                self.fail(
+                    "ObjectMap %s does not have a %s attribute."
+                    % (actualObjMap, key)
+                )
 
         return counter

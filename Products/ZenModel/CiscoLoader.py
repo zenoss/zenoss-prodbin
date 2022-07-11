@@ -55,8 +55,7 @@ class CiscoLoader(BasicLoader):
         try:
             description = m.group('descr')
         except Exception:pass
-        self.log.debug("Loading fullid=%s,prodpath=%s,descr=%s" 
-                          % (fullid, model, description))
+        self.log.debug("Loading fullid=%s,prodpath=%s,descr=%s", fullid, model, description)
         prod = HardwareClass(model,productKey=fullid,description=description)
         self.cisco.products._setObject(model, prod)
 

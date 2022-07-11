@@ -30,7 +30,7 @@ def requires(*features):
         for cls in reversed(inspect.getmro(feature)):
             if cls not in culled:
                 culled.insert(0, cls)
-    name = ''.join(t.__name__ for t in features) + "Task"
+    name = "".join(t.__name__ for t in features) + "Task"
     basetask = type(name, tuple(culled), {"abstract": True})
     return basetask
 
@@ -44,8 +44,7 @@ _failure_text = (
 
 
 def job_log_has_errors(task_id):
-    """Return True if the job's log contains any ERROR messages.
-    """
+    """Return True if the job's log contains any ERROR messages."""
     storage = getUtility(IJobStore, "redis")
     logfile = storage.getfield(task_id, "logfile")
     if not logfile:

@@ -18,7 +18,9 @@ from zope.event import notify
 from Products.Zuul.interfaces import IDataRootFactory
 
 from ..events import (
-    ServiceCallReceived, ServiceCallStarted, ServiceCallCompleted,
+    ServiceCallReceived,
+    ServiceCallStarted,
+    ServiceCallCompleted,
 )
 from ..priority import servicecall_priority_map
 
@@ -63,24 +65,31 @@ class SendEventExecutor(object):
         Returns a deferred that will fire when execution completes.
         """
         if call.method not in ("sendEvent", "sendEvents"):
-            return defer.fail(TypeError(
-                "%s does support executing method '%s'"
-                % (type(self).__name__, call.method),
-            ))
+            return defer.fail(
+                TypeError(
+                    "%s does support executing method '%s'"
+                    % (type(self).__name__, call.method),
+                )
+            )
         method = getattr(self.__zem, call.method, None)
         if method is None:
-            return defer.fail(AttributeError(
-                "%s has no method '%s'"
-                % (self.__zem.__class__.__name__, call.method),
-            ))
+            return defer.fail(
+                AttributeError(
+                    "%s has no method '%s'"
+                    % (self.__zem.__class__.__name__, call.method),
+                )
+            )
 
         # Build args for events
         ctx = dict(call)
-        ctx.update({
-            "queue": self.__name,
-            "priority":
-                servicecall_priority_map.get((call.service, call.method)),
-        })
+        ctx.update(
+            {
+                "queue": self.__name,
+                "priority": servicecall_priority_map.get(
+                    (call.service, call.method)
+                ),
+            }
+        )
 
         _notify_listeners(ctx, ServiceCallReceived)
 
