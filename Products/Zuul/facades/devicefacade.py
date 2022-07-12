@@ -1012,9 +1012,12 @@ class DeviceFacade(TreeFacade):
             components = list(getObjectsFromCatalog(obj.componentSearch, None, log))
 
         for component in components:
-            if graphDefs.get(component.meta_type):
-                continue
-            graphDefs[component.meta_type] = [graphDef.id for graphDef, _ in component.getGraphObjects()]
+            current_def = [graphDef.id for graphDef, _ in component.getGraphObjects()]
+            if component.meta_type in graphDefs:
+                prev_def = graphDefs[component.meta_type]
+                graphDefs[component.meta_type] = prev_def + list(set(current_def) - set(prev_def))
+            else:
+                graphDefs[component.meta_type] = current_def
         return graphDefs
 
     def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
@@ -1046,9 +1049,10 @@ class DeviceFacade(TreeFacade):
 
         graphs = []
         for comp in components:
-            graph = graphDict.get(comp.id, graphDefault)
-            info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
-            graphs.append(info)
+            graph = graphDict.get(comp.id)
+            if graph:
+                info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
+                graphs.append(info)
         return graphs
 
     def getDevTypes(self, uid):
