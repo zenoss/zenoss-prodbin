@@ -446,8 +446,8 @@
                 return;
             }
             var values = this.getSearchValues();
-            // ZEN-23418 Convert firstSeen and/or lastSeen date filter params to UTC before making query request
-            var timeParams = ["firstTime", "lastTime"];
+            // ZEN-34076 Convert stateChange to UTC as well
+            var timeParams = ["firstTime", "lastTime", "stateChange"];
             var store = this.grid.getStore();
 
             timeParams.forEach(function (paramKey) {
