@@ -922,7 +922,6 @@ class SshPerformanceCollectionTask(BaseTask):
                             max=dp.rrdMax,
                             threshEventData=threshData,
                             metadata=dp.metadata,
-                            extraTags=getattr(dp, "tags", {}),
                         )
                     except Exception as e:
                         log.exception(
