@@ -490,6 +490,12 @@ class SshPerformanceCollectionTask(BaseTask):
                         self._devId,
                         "timeout",
                     )
+        except defer.CancelledError:
+            message = "Twisted deferred was cancelled."
+            log.debug(
+                "Connection lost  device=%s ip=%s interval=%s description=%s",
+                self._devId, self._manageIp, self.interval, message
+            )
 
         except Exception as e:
             self.state = TaskStates.STATE_PAUSED
@@ -498,7 +504,7 @@ class SshPerformanceCollectionTask(BaseTask):
                     self._devId,
                     self._manageIp,
                     self.interval,
-                    e.message,
+                    str(e),
                 )
             )
             if log.isEnabledFor(logging.DEBUG):
@@ -508,7 +514,7 @@ class SshPerformanceCollectionTask(BaseTask):
             self._eventService.sendEvent(
                 STATUS_EVENT,
                 device=self._devId,
-                summary=e.message,
+                summary=str(e),
                 component=COLLECTOR_NAME,
                 severity=Error,
             )
