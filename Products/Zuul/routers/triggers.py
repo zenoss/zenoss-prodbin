@@ -69,14 +69,17 @@ class TriggersRouter(DirectRouter):
 
     @serviceConnectionError
     def updateTrigger(self, **data):
-        data['rule']['api_version'] = 1
-        data['rule']['type'] = RULE_TYPE_JYTHON
-        triggerUid = data['uuid']
-        response = self._getFacade().updateTrigger(**data)
-        audit('UI.Trigger.Edit', triggerUid, data_=data)
-        return DirectResponse.succeed(
-            msg="Trigger updated successfully.", data=response
-        )
+        try:
+            data['rule']['api_version'] = 1
+            data['rule']['type'] = RULE_TYPE_JYTHON
+            triggerUid = data['uuid']
+            response = self._getFacade().updateTrigger(**data)
+            audit('UI.Trigger.Edit', triggerUid, data_=data)
+            return DirectResponse.succeed(
+                msg="Trigger updated successfully.", data=response
+            )
+        except Exception:
+            return DirectResponse.fail(msg='Trigger not updated')
 
     @serviceConnectionError
     def parseFilter(self, source):
