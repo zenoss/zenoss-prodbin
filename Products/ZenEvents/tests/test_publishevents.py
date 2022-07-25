@@ -85,6 +85,9 @@ class TestPublishEvents(BaseTestCase):
         self.assertEqual(proto.actor.element_identifier, device.id)
         # make sure we have at least one detail
         self.assertTrue(len(proto.details) >= 1)
+
+        for detail in proto.details:
+            self.assertEqual(detail.value, getattr(event, detail.name))
         # the new severity value
         self.assertEqual(proto.severity, 4)
 
