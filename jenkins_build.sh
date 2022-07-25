@@ -120,6 +120,7 @@ if [ "$1" != "--no-tests" ]; then
     export PRODUCT_IMAGE_ID=zendev/devimg:${ZENDEV_ENV}
     export MARIADB_IMAGE_ID=zendev/mariadb:${ZENDEV_ENV}
     export REDIS_IMAGE_ID=zenoss/redis:latest
+    export RABBITMQ_IMAGE_ID=zenoss/rabbitmq:latest
     ./test_image.sh \
     	--no-zenpacks \
     	--mount ${HOME}/.m2:/home/zenoss/.m2 \
