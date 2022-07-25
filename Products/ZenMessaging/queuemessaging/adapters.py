@@ -380,12 +380,13 @@ class EventProtobuf(ObjectProtobuf):
         ObjectProtobuf.__init__(self, obj)
 
     def addDetail(self, proto, name, value):
+        isIterable = lambda x : hasattr(x, '__iter__')
         detail = proto.details.add()
         detail.name = name
-        try:
+        if isIterable(value):
             for v in value:
                 detail.value.append(_safestr(v))
-        except TypeError:  # 'value' is not iterable
+        else:
             detail.value.append(_safestr(value))
 
     def fill(self, proto):
