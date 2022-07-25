@@ -85,9 +85,15 @@ class TestPublishEvents(BaseTestCase):
         self.assertEqual(proto.actor.element_identifier, device.id)
         # make sure we have at least one detail
         self.assertTrue(len(proto.details) >= 1)
-
+        reverse_event_field_map = {
+            "zenoss.device.ip_address": "ipAddress"
+        }
         for detail in proto.details:
-            self.assertEqual(detail.value, getattr(event, detail.name))
+            try:
+                expected = getattr(event, detail.name)
+            except AttributeError:
+                expected = getattr(event, reverse_event_field_map[detail.name])
+            self.assertEqual(detail.value[0], expected)
         # the new severity value
         self.assertEqual(proto.severity, 4)
 
