@@ -52,6 +52,7 @@ from Products.DataCollector.TelnetClient import (
     buildOptions as TCbuildOptions,
     TelnetClient,
 )
+from Products.ZenCollector.cyberark import get_cyberark
 from Products.ZenCollector.daemon import parseWorkerOptions, addWorkerOptions
 from Products.ZenCollector.interfaces import IEventService
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
@@ -154,6 +155,7 @@ class ZenModeler(PBDaemon):
             "zenmodeler.modeledDevices"
         )
         self._failuresMetric = Metrology.counter("zenmodeler.failures")
+        self.cyberark = get_cyberark()
 
     def reportError(self, error):
         """
@@ -1031,6 +1033,10 @@ class ZenModeler(PBDaemon):
                     if d.skipModelMsg:
                         self.log.info(d.skipModelMsg)
                     else:
+                        if self.cyberark:
+                            yield self.cyberark.update_config(d.id, d)
+                            driver.next()
+                            self.log.info("config updated")
                         self.collectDevice(d)
                 else:
                     self.log.info("Device %s not returned is it down?", device)

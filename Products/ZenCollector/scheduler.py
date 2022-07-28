@@ -34,6 +34,7 @@ from Products.ZenUtils.Executor import TwistedExecutor
 from Products.ZenUtils.keyedset import KeyedSet
 from Products.ZenUtils.Utils import dumpCallbacks
 
+from .cyberark import get_cyberark
 from .interfaces import (
     IScheduler,
     IScheduledTask,
@@ -129,6 +130,7 @@ class CallableTask(object):
         else:
             self.task = task
 
+        self.task._scheduler = scheduler
         self._scheduler = scheduler
         self._executor = executor
         self.paused = False
@@ -323,6 +325,7 @@ class Scheduler(object):
         self._cleanupTask.start(Scheduler.CLEANUP_TASKS_INTERVAL)
 
         self._executor = TwistedExecutor(1)
+        self.cyberark = get_cyberark()
 
         # Ensure that we can cleanly shutdown all of our tasks
         reactor.addSystemEventTrigger(
