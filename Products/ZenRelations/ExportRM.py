@@ -1,23 +1,24 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
+from __future__ import print_function
 
-__doc__="""ExportRM
+__doc__ = """ExportRM
 
 Export RelationshipManager objects from a Zope database
 """
 
-import sys
 import datetime
-
+import sys
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+
 
 class ExportRM(ZCmdBase):
     """
@@ -33,9 +34,7 @@ class ExportRM(ZCmdBase):
         if not self.options.outfile:
             self.outfile = sys.stdout
         else:
-            self.outfile = open(self.options.outfile, 'w')
-        
-    
+            self.outfile = open(self.options.outfile, "w")
 
     def buildOptions(self):
         """
@@ -43,15 +42,21 @@ class ExportRM(ZCmdBase):
         """
         ZCmdBase.buildOptions(self)
 
-        self.parser.add_option('-o', '--outfile',
-                    dest="outfile",
-                    help="Output file for exporting XML objects. Default is stdout")
+        self.parser.add_option(
+            "-o",
+            "--outfile",
+            dest="outfile",
+            help="Output file for exporting XML objects. Default is stdout",
+        )
 
-        self.parser.add_option('--ignore', action="append",
-                    dest="ignorerels", default=[],
-                    help="Relations that should be ignored.  Every relation to" + \
-               " ignore must be specified with a separate --ignorerels option." )
-
+        self.parser.add_option(
+            "--ignore",
+            action="append",
+            dest="ignorerels",
+            default=[],
+            help="Relations that should be ignored.  Every relation to "
+            "ignore must be specified with a separate --ignorerels option.",
+        )
 
     def getVersion(self):
         """
@@ -61,9 +66,9 @@ class ExportRM(ZCmdBase):
         @rtype: string
         """
         from Products.ZenModel.ZenossInfo import ZenossInfo
-        zinfo = ZenossInfo('')
-        return str(zinfo.getZenossVersion())
 
+        zinfo = ZenossInfo("")
+        return str(zinfo.getZenossVersion())
 
     def getServerName(self):
         """
@@ -73,22 +78,26 @@ class ExportRM(ZCmdBase):
         @rtype: string
         """
         import socket
-        return socket.gethostname()
 
+        return socket.gethostname()
 
     def export(self, root=None):
         """
-        Create XML header and then call exportXml() for all objects starting at root.
+        Create XML header and then call exportXml() for all objects
+        starting at root.
 
         @param root: DMD object root
         @type root: object
         """
 
-        if not root: 
+        if not root:
             root = self.dataroot
 
         if not hasattr(root, "exportXml"):
-            print  "ERROR: Root object for %s is not exportable (exportXml not found)" % root
+            print(
+                "ERROR: Root object for %s is not exportable "
+                "(exportXml not found)" % root
+            )
             sys.exit(1)
 
         export_date = datetime.datetime.now()
@@ -96,7 +105,8 @@ class ExportRM(ZCmdBase):
         server = self.getServerName()
 
         # TODO: When the DTD gets created, add the reference here
-        self.outfile.write( """<?xml version="1.0" encoding="ISO-8859-1" ?>
+        self.outfile.write(
+            """<?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
     Zenoss RelationshipManager export completed on %s
@@ -106,17 +116,17 @@ class ExportRM(ZCmdBase):
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="%s" export_date="%s" zenoss_server="%s" >\n""" % \
-         ( export_date, version, export_date, server ))
-
+<objects version="%s" export_date="%s" zenoss_server="%s" >\n"""
+            % (export_date, version, export_date, server)
+        )
 
         # Pass off all the hard work to the objects
         root.exportXml(self.outfile, self.options.ignorerels, True)
 
         # Write the ending element
-        self.outfile.write( "</objects>\n" )
+        self.outfile.write("</objects>\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ex = ExportRM()
     ex.export()

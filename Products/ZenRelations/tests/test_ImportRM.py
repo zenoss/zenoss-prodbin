@@ -17,10 +17,8 @@ PATH = {"src": "Products.ZenRelations.ImportRM"}
 
 
 class TestImportRM_endElement(TestCase):
-
     def setUp(t):
-        """Instantiate with default kwargs
-        """
+        """Instantiate with default kwargs"""
         patches = ["ZCmdBase"]
 
         for target in patches:
@@ -51,8 +49,7 @@ class TestImportRM_endElement(TestCase):
         t.assertEqual(t.irm.charvalue, "")
 
     def test_endElement_property_prodstate(t):
-        """If the id is 'prodstate' cary its value over in context
-        """
+        """If the id is 'prodstate' cary its value over in context"""
         t.irm.context = create_autospec(t.irm.context)
         t.irm.curattrs["id"] = "prodstate"
 
