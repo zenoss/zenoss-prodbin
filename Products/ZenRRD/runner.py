@@ -234,8 +234,7 @@ class SshRunner(object):
 
     @defer.inlineCallbacks
     def connect(self, task):
-        """Establish a connection with the device.
-        """
+        """Establish a connection with the device."""
         self.task = task
         yield self._setupConnector()
         self.connection = yield self._establishConnection()
@@ -326,9 +325,7 @@ class SshRunner(object):
                 # Last task is using connection so can be closed
                 self.connection.clientFinished()
                 self.cleanUpPool(close=True)
-                log.debug(
-                    "Connection closed  connection=%s", self.connection,
-                )
+                log.debug("Connection closed  connection=%s", self.connection)
             self.connection = None
         else:
             log.debug("No connection to close")
@@ -361,8 +358,7 @@ class SshRunner(object):
         """
         if isinstance(result, Failure):
             log.debug(
-                "Command failed  device=%s failure=%r",
-                self.deviceId, result,
+                "Command failed  device=%s failure=%r", self.deviceId, result
             )
             return result
 
