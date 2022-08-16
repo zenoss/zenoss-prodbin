@@ -69,17 +69,17 @@ class TriggersRouter(DirectRouter):
 
     @serviceConnectionError
     def updateTrigger(self, **data):
+        data['rule']['api_version'] = 1
+        data['rule']['type'] = RULE_TYPE_JYTHON
+        triggerUid = data['uuid']
         try:
-            data['rule']['api_version'] = 1
-            data['rule']['type'] = RULE_TYPE_JYTHON
-            triggerUid = data['uuid']
             response = self._getFacade().updateTrigger(**data)
-            audit('UI.Trigger.Edit', triggerUid, data_=data)
-            return DirectResponse.succeed(
-                msg="Trigger updated successfully.", data=response
-            )
         except Exception:
             return DirectResponse.fail(msg='Trigger not updated')
+        audit('UI.Trigger.Edit', triggerUid, data_=data)
+        return DirectResponse.succeed(
+            msg="Trigger updated successfully.", data=response
+        )
 
     @serviceConnectionError
     def parseFilter(self, source):
@@ -133,9 +133,12 @@ class TriggersRouter(DirectRouter):
         notificationUid = data['uid']
         facade = self._getFacade()
         passwordFields = facade.getPasswordFields(notificationUid)
-        response = facade.updateNotification(**data)
+        try:
+            response = facade.updateNotification(**data)
+        except Exception:
+            return DirectResponse.fail(msg='Notification not updated')
         audit('UI.Notification.Edit', object_=notificationUid,
-              data_=data, maskFields_=passwordFields)
+            data_=data, maskFields_=passwordFields)
         return DirectResponse.succeed(
             msg="Notification updated successfully.",
             data=Zuul.marshal(response)
