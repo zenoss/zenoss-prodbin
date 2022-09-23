@@ -31,14 +31,9 @@ from optparse import (
     )
 from urllib import quote
 
-# There is a nasty incompatibility between pkg_resources and twisted.
-# This pkg_resources import works around the problem.
-# See http://dev.zenoss.org/trac/ticket/3146 for details
-from Products.ZenUtils.PkgResources import pkg_resources
-
 from Products.ZenUtils.Utils import unused, load_config_override, zenPath, getAllParserOptionsGen
 from Products.ZenUtils.GlobalConfig import _convertConfigLinesToArguments, applyGlobalConfToParser
-unused(pkg_resources)
+
 
 class DMDError: pass
 

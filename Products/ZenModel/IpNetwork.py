@@ -645,8 +645,8 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             new_net = self._getOb(ip_id)
             netobj = aq_base(netobj)
             # zenhub.log
-            log.info("Adding {} as supernet of {}".format(
-                new_net.getNetworkName(), netobj.getNetworkName()))
+            log.info("Adding %s as supernet of %s",
+                     new_net.getNetworkName(), netobj.getNetworkName())
             new_net._setObject(ip_id, netobj)
             ips = filter(
                 lambda n: isinstance(n, IpAddress) and n.interface(), netobj.getSubObjects())
@@ -828,7 +828,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             if organizer is None:
                 if xmlrpc: return 1 # XML-RPC error
                 log.error("Couldn't obtain a network entry for '%s' "
-                            "-- does it exist?" % organizerName)
+                            "-- does it exist?", organizerName)
                 continue
 
             zDiscCommand = getattr(organizer, "zZenDiscCommand", None)

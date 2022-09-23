@@ -1,14 +1,13 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-__doc__ = """ZenTcpClient
+"""ZenTcpClient
 Connect to the remote service and (optionally) test the output from
 the service against what we expect.
 
@@ -20,25 +19,28 @@ Error types:
 
 """
 
-import re
 import logging
-log = logging.getLogger("zen.ZenTcpClient")
-
+import re
 import socket  # So we can refer to the exception socket.error
+
 from socket import getfqdn, SOL_SOCKET, SO_LINGER
 from struct import pack
 
-hostname = getfqdn()
-
 from twisted.internet import reactor, protocol, defer
+
 from Products.ZenEvents.ZenEventClasses import Status_IpService
 from Products.ZenUtils.Utils import unused
+
+log = logging.getLogger("zen.ZenTcpClient")
+hostname = getfqdn()
+
 
 class ZenTcpTest(protocol.Protocol):
     """
     Twisted class to make a TCP/IP connection to a remote IP service
     and report back the result.
     """
+
     defer = None
     data = ""
 
@@ -47,7 +49,7 @@ class ZenTcpTest(protocol.Protocol):
         Connected successfully to the remote device, now test against any
         regex that we might have and record the result.
         """
-        log.debug("Connected to %s" % self.transport.getPeer().host)
+        log.debug("Connected to %s", self.transport.getPeer().host)
         self.factory.msg = "pass"
         self.cfg = self.factory.cfg
 
@@ -57,9 +59,13 @@ class ZenTcpTest(protocol.Protocol):
             self.transport.write(sendString)
 
         if self.cfg.expectRegex:
-            log.debug("Waiting for results to check against regex '%s'",
-                      self.cfg.expectRegex)
-            self.defer = reactor.callLater(self.cfg.timeout, self.expectTimeout)
+            log.debug(
+                "Waiting for results to check against regex '%s'",
+                self.cfg.expectRegex,
+            )
+            self.defer = reactor.callLater(
+                self.cfg.timeout, self.expectTimeout
+            )
         else:
             self.loseConnection()
 
@@ -71,17 +77,27 @@ class ZenTcpTest(protocol.Protocol):
         @parameter data: output from remote service
         @type data: string
         """
-        log.debug("%s %s received data: %s", self.cfg.device,
-                  self.cfg.component, data)
+        log.debug(
+            "%s %s received data: %s",
+            self.cfg.device,
+            self.cfg.component,
+            data,
+        )
         self.data += data
         if self.cfg.expectRegex:
             if re.search(self.cfg.expectRegex, data):
-                log.debug("Found %s in '%s' -- closing connection",
-                          self.cfg.expectRegex, data)
+                log.debug(
+                    "Found %s in '%s' -- closing connection",
+                    self.cfg.expectRegex,
+                    data,
+                )
                 self.loseConnection()
             else:
-                log.debug("No match for %s in '%s' -- looking for more data",
-                          self.cfg.expectRegex, data)
+                log.debug(
+                    "No match for %s in '%s' -- looking for more data",
+                    self.cfg.expectRegex,
+                    data,
+                )
 
     def expectTimeout(self):
         """
@@ -89,7 +105,9 @@ class ZenTcpTest(protocol.Protocol):
         receiving a response from the service that matches our regex.
         """
         msg = "IP Service %s TIMEOUT waiting for '%s'" % (
-                    self.cfg.component, self.cfg.expectRegex)
+            self.cfg.component,
+            self.cfg.expectRegex,
+        )
         log.debug("%s %s", self.cfg.ip, msg)
         self.factory.msg = msg
         self.loseConnection()
@@ -99,8 +117,12 @@ class ZenTcpTest(protocol.Protocol):
         Shut down the connection and cleanup.
         """
         ip, port = self.transport.addr
-        log.debug("Closed connection to %s on port %s for %s",
-                  ip, port, self.cfg.component)
+        log.debug(
+            "Closed connection to %s on port %s for %s",
+            ip,
+            port,
+            self.cfg.component,
+        )
         self.data = ""
         try:
             self.defer.cancel()
@@ -113,6 +135,7 @@ class ZenTcpClient(protocol.ClientFactory):
     """
     Client class to run TCP tests.
     """
+
     protocol = ZenTcpTest
     msg = "pass"
     deferred = None
@@ -132,10 +155,14 @@ class ZenTcpClient(protocol.ClientFactory):
         """
         unused(connector)
         errorMsg = reason.getErrorMessage()
-        if errorMsg != 'Connection was closed cleanly.':
-            log.debug("Lost connection to %s (%s) port %s: %s",
-                  self.cfg.device, self.cfg.ip, self.cfg.port,
-                  reason.getErrorMessage() )
+        if errorMsg != "Connection was closed cleanly.":
+            log.debug(
+                "Lost connection to %s (%s) port %s: %s",
+                self.cfg.device,
+                self.cfg.ip,
+                self.cfg.port,
+                reason.getErrorMessage(),
+            )
         if self.deferred:
             self.deferred.callback(self)
         self.deferred = None
@@ -149,9 +176,13 @@ class ZenTcpClient(protocol.ClientFactory):
         @parameter reason: explanation for the connection loss
         @type reason: Twisted error object
         """
-        log.debug("Connection to %s (%s) port %s failed: %s",
-                  self.cfg.device, connector.host, self.cfg.port,
-                  reason.getErrorMessage() )
+        log.debug(
+            "Connection to %s (%s) port %s failed: %s",
+            self.cfg.device,
+            connector.host,
+            self.cfg.port,
+            reason.getErrorMessage(),
+        )
         self.msg = "IP Service %s is down" % self.cfg.component
         if self.deferred:
             self.deferred.callback(self)
@@ -181,15 +212,17 @@ class ZenTcpClient(protocol.ClientFactory):
             self.status = sev = 0
             self.msg = "IP Service %s back up" % self.cfg.component
 
-        return dict(device=self.cfg.device,
-                    component=self.cfg.component,
-                    ipAddress=self.cfg.ip,
-                    summary=self.msg,
-                    severity=sev,
-                    eventClass=Status_IpService,
-                    eventGroup="TCPTest",
-                    agent="ZenStatus",
-                    manager=hostname)
+        return dict(
+            device=self.cfg.device,
+            component=self.cfg.component,
+            ipAddress=self.cfg.ip,
+            summary=self.msg,
+            severity=sev,
+            eventClass=Status_IpService,
+            eventGroup="TCPTest",
+            agent="ZenStatus",
+            manager=hostname,
+        )
 
     def start(self, ip_address):
         """
@@ -199,13 +232,16 @@ class ZenTcpClient(protocol.ClientFactory):
         @rtype: Twisted deferred
         """
         d = self.deferred = defer.Deferred()
-        connector = reactor.connectTCP(ip_address, self.cfg.port, self, self.cfg.timeout)
+        connector = reactor.connectTCP(
+            ip_address, self.cfg.port, self, self.cfg.timeout
+        )
         self.setNoLinger(connector)
         return d
 
     def setNoLinger(self, connector):
         """
-        Stop zenstatus from leaving large numbers of sockets in TIME-WAIT state.
+        Stop zenstatus from leaving large numbers of sockets in TIME-WAIT
+        state.
 
         The TIME-WAIT state is a TCP/IP sanity check to ensure that a packet
         that arrives from the network AFTER the connection is closed doesn't
@@ -222,11 +258,12 @@ class ZenTcpClient(protocol.ClientFactory):
         This will result in "Connection reset by peer" messages on the
         remote device.
         """
-        OPTION_STATE = 1 # on
-        LINGER = 0       # Wait 0 seconds after closing the socket
-        VALUES_STRUCT = pack('ii', OPTION_STATE, LINGER)
+        OPTION_STATE = 1  # on
+        LINGER = 0  # Wait 0 seconds after closing the socket
+        VALUES_STRUCT = pack("ii", OPTION_STATE, LINGER)
         try:
-            connector.transport.socket.setsockopt(SOL_SOCKET, SO_LINGER, VALUES_STRUCT)
+            connector.transport.socket.setsockopt(
+                SOL_SOCKET, SO_LINGER, VALUES_STRUCT
+            )
         except socket.error as ex:
             log.warn("Unable to set SO_LINGER on socket because: %s", ex)
-

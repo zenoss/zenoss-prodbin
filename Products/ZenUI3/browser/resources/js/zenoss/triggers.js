@@ -152,6 +152,9 @@ Ext.onReady(function () {
         tab.cascade(function(){
             if (Ext.isFunction(this.disable)) {
                 this.disable();
+                if (this.xtype === 'panel') {
+                    this.addCls('x-item-disabled');
+                }
             }
         });
         tab.setDisabled(false);

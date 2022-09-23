@@ -9,12 +9,11 @@
 
 from __future__ import absolute_import
 
+import pkg_resources
 import Products
 
 from zope.dottedname.resolve import resolve
 from Products.CMFCore.utils import ProductsPath
-
-from .PkgResources import pkg_resources
 
 
 def load_zenpacks():

@@ -234,14 +234,14 @@ class SshRunner(object):
 
     @defer.inlineCallbacks
     def connect(self, task):
-        """Establish a connection with the device.
-        """
+        """Establish a connection with the device."""
         self.task = task
         yield self._setupConnector()
         self.connection = yield self._establishConnection()
         log.debug(
             "Connection established  device=%s manage-ip=%s",
-            self.deviceId, self.manageIp,
+            self.deviceId,
+            self.manageIp,
         )
         self.connection.tasks.add(self.task)
         # cleanUpPool called when connection is closed, see MySshClient
@@ -257,7 +257,8 @@ class SshRunner(object):
         if self._poolkey in self._pool:
             log.debug(
                 "Connector already in pool  device=%s pool-key=%s",
-                self.deviceId, self._poolkey,
+                self.deviceId,
+                self._poolkey,
             )
             defer.returnValue(None)
 
@@ -286,11 +287,15 @@ class SshRunner(object):
         Either creates a deferred to append to the pool list otherwise, wraps
         the result
         """
-        if isinstance(self._pool[self._poolkey], list):
+        if self._poolkey not in self._pool:
+            return defer.fail(RuntimeError("No connector found"))
+
+        connection_or_list = self._pool.get(self._poolkey)
+        if isinstance(connection_or_list, list):
             d = defer.Deferred()
-            self._pool[self._poolkey].append(d)
+            connection_or_list.append(d)
         else:
-            d = defer.succeed(self._pool[self._poolkey])
+            d = defer.succeed(connection_or_list)
         return d
 
     def send(self, datasource):
@@ -304,7 +309,8 @@ class SshRunner(object):
         self._deferred.addBoth(self.processEnded)
         log.debug(
             "Command sent  device=%s command=%r",
-            self.deviceId, datasource.command,
+            self.deviceId,
+            datasource.command,
         )
         return self._deferred
 
@@ -319,7 +325,10 @@ class SshRunner(object):
                 # Last task is using connection so can be closed
                 self.connection.clientFinished()
                 self.cleanUpPool(close=True)
+                log.debug("Connection closed  connection=%s", self.connection)
             self.connection = None
+        else:
+            log.debug("No connection to close")
 
     def cleanUpPool(self, connection=None, close=False):
         """
@@ -328,10 +337,17 @@ class SshRunner(object):
         connection = connection or self.connection
 
         if self._poolkey in self._pool:
+            # Cancel the deferreds from other tasks waiting on a connection.
+            content = self._pool.get(self._poolkey)
+            if isinstance(content, list):
+                for d in content:
+                    if not d.called:
+                        d.cancel()
             del self._pool[self._poolkey]
             log.debug(
                 "Deleted connection from pool  device=%s connection=%s",
-                self.deviceId, connection,
+                self.deviceId,
+                connection,
             )
         if close and connection and hasattr(connection, "transport"):
             connection.transport.loseConnection()
@@ -341,6 +357,9 @@ class SshRunner(object):
         Deliver ourselves to the starter with the proper attributes
         """
         if isinstance(result, Failure):
+            log.debug(
+                "Command failed  device=%s failure=%r", self.deviceId, result
+            )
             return result
 
         self.output, self.exitCode, self.stderr = result
@@ -352,7 +371,8 @@ class SshRunner(object):
             log.debug(
                 "Connection expired, cleaning up pool  "
                 "device=%s connection=%s",
-                self.deviceId, self.connection.description,
+                self.deviceId,
+                self.connection.description,
             )
             self.connection.is_expired = True
             self.cleanUpPool(close=True)

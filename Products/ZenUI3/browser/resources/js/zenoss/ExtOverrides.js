@@ -1043,5 +1043,13 @@ Ext.override(Ext.util.Sorter, {
             me.doMultiSelect(toSelect, true);
         }
     });
+    
+    Ext.isEdge = (function () {
+        return /edge/.test(Ext.userAgent);
+    })();
+
+    Ext.isChrome = !Ext.isEdge && (function () {
+        return /\bchrome\b/.test(Ext.userAgent);
+    })();
 
 }());

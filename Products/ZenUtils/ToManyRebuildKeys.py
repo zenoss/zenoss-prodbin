@@ -31,8 +31,8 @@ class ToManyRebuildKeys(ZCmdBase):
     def rebuild(self):
         ccount = 0
         for tomany in getSubObjectsMemo(self.dmd, self.filter, self.decend):
-            self.log.debug("rebuilding keys for relation %s on object %s" %
-                                (tomany.getId(), aq_parent(tomany).getId()))
+            self.log.debug("rebuilding keys for relation %s on object %s",
+                           tomany.getId(), aq_parent(tomany).getId())
             ccount += tomany.rebuildKeys(self.log)
             if ccount >= self.options.commitCount and not self.options.noCommit:
                 trans = get_transaction()

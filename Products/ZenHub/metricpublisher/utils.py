@@ -7,18 +7,19 @@
 #
 ##############################################################################
 
+import base64
+import eventlet
 import logging
-log = logging.getLogger("zen.publisher")
+import string
 
 from functools import wraps
 
-import eventlet
-import base64
-import string
+log = logging.getLogger("zen.publisher")
 
 
-def exponential_backoff(exception, delay=0.1, maxdelay=5,
-                        sleepfunc=eventlet.sleep):
+def exponential_backoff(
+    exception, delay=0.1, maxdelay=5, sleepfunc=eventlet.sleep
+):
     def decorator(f):
         @wraps(f)
         def inner(*args, **kwargs):
@@ -29,7 +30,7 @@ def exponential_backoff(exception, delay=0.1, maxdelay=5,
                     return f(*args, **kwargs)
                 except exception:
                     failures += 1
-                    slots = ((2 ** failures) - 1) / 2.
+                    slots = ((2**failures) - 1) / 2.0
                     mdelay = min(max(slots * mdelay, mdelay), maxdelay)
                     sleepfunc(mdelay)
 
@@ -49,7 +50,7 @@ def basic_auth_string_content(username, password):
     """
     Creates base64 encoded basic auth token without header
     """
-    combined = username + ':' + password
+    combined = username + ":" + password
     encoded = base64.b64encode(combined)
     return "basic {0}".format(encoded)
 
@@ -60,6 +61,7 @@ class DelayedMeter(object):
     threshold has been hit or after a timed delay. The mark call is
     relatively expensive so we don't want to call it so often.
     """
+
     def __init__(self, meter, delayCount=10000):
         self._meter = meter
         self._delayCount = delayCount
@@ -81,8 +83,10 @@ class DelayedMeter(object):
             self._pushThread = None
 
 
-NON_NUMERIC_CHARS = ''.join(
-    set(string.punctuation + string.ascii_letters) - set(['.', '-', '+', 'e', 'E']))
+NON_NUMERIC_CHARS = "".join(
+    set(string.punctuation + string.ascii_letters)
+    - set([".", "-", "+", "e", "E"])
+)
 
 
 def sanitized_float(unsanitized):

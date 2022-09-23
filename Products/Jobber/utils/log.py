@@ -28,8 +28,10 @@ from kombu.log import get_logger as _get_logger
 from kombu.utils.encoding import safe_str
 
 __all__ = (
-    "get_logger", "get_task_logger",
-    "FormatStringAdapter", "TaskFormatter",
+    "get_logger",
+    "get_task_logger",
+    "FormatStringAdapter",
+    "TaskFormatter",
     "WorkerFilter",
     "LoggingProxy",
 )
@@ -132,7 +134,6 @@ class FormatStringAdapter(logging.LoggerAdapter):
 
 
 class _Message(object):
-
     def __init__(self, fmt, args):
         self.fmt = fmt
         self.args = args
@@ -184,7 +185,7 @@ class LoggingProxy(_LoggingProxy):
         """Write data to the logger."""
         if _in_sighandler:
             return print(safe_str(data), file=sys.__stderr__)
-        if getattr(self._thread, 'recurse_protection', False):
+        if getattr(self._thread, "recurse_protection", False):
             # Logger is logging back to this file, so stop recursing.
             return
         if self.closed:
@@ -218,9 +219,9 @@ class TaskLogFileHandler(logging.FileHandler):
     def __init__(self, *args, **kwargs):
         """Initialize a TaskLogFileHandler instance."""
         super(TaskLogFileHandler, self).__init__(*args, **kwargs)
-        self.setFormatter(logging.Formatter(
-            fmt=_task_format, datefmt=_task_datefmt,
-        ))
+        self.setFormatter(
+            logging.Formatter(fmt=_task_format, datefmt=_task_datefmt)
+        )
 
 
 class inject_logger(object):
@@ -269,19 +270,19 @@ class inject_logger(object):
                 mod = inspect.getmodule(func)
                 fname = func.func_name
                 names[:] = [mod.__name__, fname]
-            log = logging.getLogger("zen.{}".format('.'.join(names)))
+            log = logging.getLogger("zen.{}".format(".".join(names)))
 
         log = self.adapter(log)
 
         @wraps(func)
         def inject(*args, **kw):
             return func(log, *args, **kw)
+
         return inject
 
 
 class NullLogger(object):
-    """Defines an object that returns empty callables.
-    """
+    """Defines an object that returns empty callables."""
 
     def __getattr__(self, name):
         return lambda *x: None

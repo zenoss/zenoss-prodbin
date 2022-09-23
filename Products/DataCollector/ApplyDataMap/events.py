@@ -7,12 +7,12 @@
 #
 ##############################################################################
 
-from zope.interface import implements
 from zope.component.interfaces import Interface, Attribute
+from zope.interface import implementer
 
 
 class IDatamapEvent(Interface):
-    dmd = Attribute('a handle for dmd')  # pragma: no mutate
+    dmd = Attribute("a handle for dmd")  # pragma: no mutate
     objectmap = Attribute("an ObjectMap")  # pragma: no mutate
     target = Attribute(
         "The device or component the ObjectMap modifies"  # pragma: no mutate
@@ -27,18 +27,16 @@ class IDatamapUpdateEvent(IDatamapEvent):
     pass
 
 
+@implementer(IDatamapAddEvent)
 class DatamapAddEvent(object):
-    implements(IDatamapAddEvent)
-
     def __init__(self, dmd, objectmap, target):
         self.dmd = dmd
         self.objectmap = objectmap
         self.target = target
 
 
+@implementer(IDatamapUpdateEvent)
 class DatamapUpdateEvent(object):
-    implements(IDatamapUpdateEvent)
-
     def __init__(self, dmd, objectmap, target):
         self.dmd = dmd
         self.objectmap = objectmap
@@ -46,11 +44,10 @@ class DatamapUpdateEvent(object):
 
 
 class IDatamapAppliedEvent(Interface):
-    datamap = Attribute('a completed datamap')
+    datamap = Attribute("a completed datamap")
 
 
+@implementer(IDatamapAppliedEvent)
 class DatamapAppliedEvent(object):
-    implements(IDatamapAppliedEvent)
-
     def __init__(self, datamap):
         self.datamap = datamap

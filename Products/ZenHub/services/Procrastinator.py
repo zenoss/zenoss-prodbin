@@ -1,18 +1,16 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
 
 import logging
 from twisted.internet import reactor, defer
 
-
-log = logging.getLogger('zen.Procrastinator')
+log = logging.getLogger("zen.Procrastinator")
 
 
 class Procrastinate(object):
@@ -39,12 +37,14 @@ class Procrastinate(object):
         d, self._stopping_deferred = self._stopping_deferred, None
         return d
 
-    def doLater(self, device = None):
+    def doLater(self, device=None):
         if not self._stopping:
             if self.timer and not self.timer.called:
                 self.timer.cancel()
             self.devices.add(device)
-            self.timer = reactor.callLater(Procrastinate._DO_LATER_DELAY, self._doNow)
+            self.timer = reactor.callLater(
+                Procrastinate._DO_LATER_DELAY, self._doNow
+            )
 
     def _doNow(self, *unused):
         if self.devices:

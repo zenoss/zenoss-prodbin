@@ -261,7 +261,7 @@ class EventManagerBase(ZenModelRM):
             uuid = IGlobalIdentifier(me).getGUID()
             return zep.getWorstSeverityByUuid(uuid)
         except TypeError:
-            log.warn("Attempted to query events for %r which does not have a uuid" % self)
+            log.warn("Attempted to query events for %r which does not have a uuid", self)
             return 0
 
 

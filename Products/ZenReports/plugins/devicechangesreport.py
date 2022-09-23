@@ -8,16 +8,17 @@
 ##############################################################################
 
 import logging
-log = logging.getLogger('zen.Reports')
 
-import transaction
-from Products.ZenReports.Utils import Record
 from time import time
 
-class devicechangesreport(object):
+log = logging.getLogger("zen.Reports")
 
+
+class devicechangesreport(object):
     def run(self, dmd, args):
         # ZEN-30539
-        if args.get('adapt', ''):
+        if args.get("adapt", ""):
             return []
-        return dmd.getDmdRoot('Devices').getSubDevices(lambda x: x.getLastChange()+1>time())
+        return dmd.getDmdRoot("Devices").getSubDevices(
+            lambda x: x.getLastChange() + 1 > time()
+        )

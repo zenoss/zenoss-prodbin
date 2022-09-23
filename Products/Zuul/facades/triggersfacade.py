@@ -272,7 +272,7 @@ class TriggersFacade(ZuulFacade):
 
         self.triggers_service.addTrigger(trigger)
 
-        log.debug('Created trigger with uuid: %s ' % trigger.uuid)
+        log.debug('Created trigger with uuid: %s', trigger.uuid)
         return trigger.uuid
 
     def removeTrigger(self, uuid):
@@ -320,9 +320,9 @@ class TriggersFacade(ZuulFacade):
         user = getSecurityManager().getUser()
         trigger = self._guidManager.getObject(uuid)
         if trigger is None:
-            log.warning("Could not find trigger with uuid: %s" % uuid)
+            log.warning("Could not find trigger with uuid: %s", uuid)
             raise Exception("Could not find trigger with uuid: %s" % uuid)
-        log.debug('Trying to fetch trigger: %s' % trigger.id)
+        log.debug('Trying to fetch trigger: %s', trigger.id)
         if self.triggerPermissions.userCanViewTrigger(user, trigger):
             response, trigger = self.triggers_service.getTrigger(uuid)
             return to_dict(trigger)
@@ -356,20 +356,20 @@ class TriggersFacade(ZuulFacade):
 
         triggerObj = self._guidManager.getObject(data['uuid'])
 
-        log.debug('Trying to update trigger: %s' % triggerObj.id)
+        log.debug('Trying to update trigger: %s', triggerObj.id)
 
         if self.triggerPermissions.userCanManageTrigger(user, triggerObj):
             if 'globalRead' in data:
                 triggerObj.globalRead = data.get('globalRead', False)
-                log.debug('setting globalRead %s' % triggerObj.globalRead)
+                log.debug('setting globalRead %s', triggerObj.globalRead)
 
             if 'globalWrite' in data:
                 triggerObj.globalWrite = data.get('globalWrite', False)
-                log.debug('setting globalWrite %s' % triggerObj.globalWrite)
+                log.debug('setting globalWrite %s', triggerObj.globalWrite)
 
             if 'globalManage' in data:
                 triggerObj.globalManage = data.get('globalManage', False)
-                log.debug('setting globalManage %s' % triggerObj.globalManage)
+                log.debug('setting globalManage %s', triggerObj.globalManage)
 
             triggerObj.users = data.get('users', [])
             self.triggerPermissions.clearPermissions(triggerObj)
@@ -539,6 +539,19 @@ class TriggersFacade(ZuulFacade):
             notification_guid, subscriptionSet
         )
 
+    def getPasswordFields(self, uid):
+        notification = self._getObject(uid)
+        action = getUtility(IAction, notification.action)
+        passwordFields = set()
+
+        for iface in providedBy(action.getInfo(notification)):
+            f = getFields(iface)
+            if f:
+                for key, value in f.iteritems():
+                    if isinstance(value, Password):
+                        passwordFields.add(key)
+        return passwordFields
+
     def updateNotification(self, **data):
         log.debug(data)
 
@@ -561,14 +574,8 @@ class TriggersFacade(ZuulFacade):
         ):
             # update the action content data
             action = getUtility(IAction, note.action)
+            passwordFields = self.getPasswordFields(uid)
 
-            passwordFields = set()
-            for iface in providedBy(action.getInfo(note)):
-                f = getFields(iface)
-                if f:
-                    for key, value in f.iteritems():
-                        if isinstance(value, Password):
-                            passwordFields.add(key)
             for fieldName in passwordFields:
                 if fieldName in data:
                     currValue = note.content.get(fieldName)
@@ -956,7 +963,7 @@ class TriggerPermissionManager(object):
         for userId, roles in trigger.get_local_roles():
             if OWNER_ROLE not in roles:
                 removeUserIds.append(userId)
-        log.debug('Removing all local roles for users: %s' % removeUserIds)
+        log.debug('Removing all local roles for users: %s', removeUserIds)
         trigger.manage_delLocalRoles(removeUserIds)
 
     def updatePermissions(self, guidManager, trigger):
@@ -1088,7 +1095,7 @@ class NotificationPermissionManager(object):
         for userId, roles in notification.get_local_roles():
             if OWNER_ROLE not in roles:
                 removeUserIds.append(userId)
-        log.debug('Removing all local roles for users: %s' % removeUserIds)
+        log.debug('Removing all local roles for users: %s', removeUserIds)
         notification.manage_delLocalRoles(removeUserIds)
 
     def updatePermissions(self, guidManager, notification):

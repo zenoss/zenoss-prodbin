@@ -1,23 +1,28 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
+from __future__ import print_function
 
 import logging
 
+from Products.DataCollector.plugins.zenoss.nmap.IpServiceMap import (
+    IpServiceMap,
+)
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from Products.DataCollector.plugins.zenoss.nmap.IpServiceMap import IpServiceMap
 
 log = logging.getLogger("zen.testcases")
+
 
 class FakeDevice:
     def __init__(self, id):
         self.id = id
+
 
 def dumpRelMap(relmap):
     """
@@ -25,6 +30,7 @@ def dumpRelMap(relmap):
     """
     for om in relmap:
         dumpObjectMapData(om)
+
 
 def dumpObjectMapData(om):
     """
@@ -34,24 +40,23 @@ def dumpObjectMapData(om):
     """
     for attr in dir(om):
         obj = getattr(om, attr)
-        if not attr.startswith('_') and not hasattr(obj, "__call__"):
-            print "%s = %s" % (attr, obj)
-
+        if not attr.startswith("_") and not hasattr(obj, "__call__"):
+            print("%s = %s" % (attr, obj))
 
 
 class TestIpServiceMap(BaseTestCase):
-
     def afterSetUp(self):
         super(TestIpServiceMap, self).afterSetUp()
-        
-        self.device = FakeDevice('testdevice')
+
+        self.device = FakeDevice("testdevice")
 
     def checkResults(self, omMap, parsed_data):
         for port_obj in omMap:
-            self.assert_( port_obj.id in parsed_data )
+            self.assert_(port_obj.id in parsed_data)
             for attr in parsed_data[port_obj.id].keys():
-                self.assertEquals(getattr(port_obj, attr),
-                                  parsed_data[port_obj.id][attr] )
+                self.assertEquals(
+                    getattr(port_obj, attr), parsed_data[port_obj.id][attr]
+                )
 
             # We should only see the ports once
             del parsed_data[port_obj.id]
@@ -67,10 +72,10 @@ Host: 192.168.10.10 () Ports: 22/open/tcp//ssh///, 80/open/tcp//http///, 199/ope
 """
 
         parsed_data = {
-          'tcp_00022':{ 'port':22, 'ipaddresses':['0.0.0.0'] },
-          'tcp_00080':{ 'port':80, 'ipaddresses':['0.0.0.0'] },
-          'tcp_00199':{ 'port':199, 'ipaddresses':['0.0.0.0'] },
-          'tcp_00443':{ 'port':443, 'ipaddresses':['0.0.0.0'] },
+            "tcp_00022": {"port": 22, "ipaddresses": ["0.0.0.0"]},
+            "tcp_00080": {"port": 80, "ipaddresses": ["0.0.0.0"]},
+            "tcp_00199": {"port": 199, "ipaddresses": ["0.0.0.0"]},
+            "tcp_00443": {"port": 443, "ipaddresses": ["0.0.0.0"]},
         }
 
         omMap = IpServiceMap().process(self.device, results, log)
@@ -89,9 +94,9 @@ Nmap done: 1 IP address (1 host up) scanned in 0.13 seconds
 """
 
         parsed_data = {
-          'tcp_00022':{ 'port':22, 'ipaddresses':['0.0.0.0'] },
-          'tcp_00111':{ 'port':111, 'ipaddresses':['0.0.0.0'] },
-          'tcp_00607':{ 'port':607, 'ipaddresses':['0.0.0.0'] },
+            "tcp_00022": {"port": 22, "ipaddresses": ["0.0.0.0"]},
+            "tcp_00111": {"port": 111, "ipaddresses": ["0.0.0.0"]},
+            "tcp_00607": {"port": 607, "ipaddresses": ["0.0.0.0"]},
         }
 
         omMap = IpServiceMap().process(self.device, results, log)
@@ -104,16 +109,18 @@ Host: 10.175.211.24 (kells-cent5-32-1.zenoss.loc)       Ports: 22/open/tcp//ssh/
 """
 
         parsed_data = {
-          'tcp_00022':{ 'port':22, 'ipaddresses':['0.0.0.0'] },
-          'tcp_00111':{ 'port':111, 'ipaddresses':['0.0.0.0'] },
-          'tcp_00607':{ 'port':607, 'ipaddresses':['0.0.0.0'] },
+            "tcp_00022": {"port": 22, "ipaddresses": ["0.0.0.0"]},
+            "tcp_00111": {"port": 111, "ipaddresses": ["0.0.0.0"]},
+            "tcp_00607": {"port": 607, "ipaddresses": ["0.0.0.0"]},
         }
 
         omMap = IpServiceMap().process(self.device, results, log)
         self.checkResults(omMap, parsed_data)
 
+
 def test_suite():
     from unittest import TestSuite, makeSuite
+
     suite = TestSuite()
     suite.addTest(makeSuite(TestIpServiceMap))
     return suite

@@ -19,7 +19,7 @@ class FixIps(ZCmdBase):
         ips = getSubObjects(self.dmd, self.filter, self.decend)
         self.ccount = 0
         for ip in ips:
-            self.log.debug("fixing ip %s" % ip.id)
+            self.log.debug("fixing ip %s", ip.id)
             int = ip.interface()
             if int:
                 ip.removeRelation("interface")
@@ -49,7 +49,7 @@ class FixIps(ZCmdBase):
             ipname = "all"
         else:
             ipname = ip.id
-        self.log.info('commiting group of ips ending with %s' % ipname)
+        self.log.info('commiting group of ips ending with %s', ipname)
         trans = get_transaction()
         trans.note('FixIps reconnect ips')
         trans.commit()

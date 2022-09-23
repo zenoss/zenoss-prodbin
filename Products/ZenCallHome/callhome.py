@@ -66,10 +66,10 @@ class CallHomeCollector(object):
                                 key=name,
                                 callhome_collector=self.__class__.__name__,
                                 exception=str(e))
-                log.warn(("Continuing after catching exception while "
-                          "generating callhome data for collector "
-                          "%(callhome_collector)s (%(source)s:%(key)s : "
-                          "%(exception)s") % errorObject)
+                log.warn("Continuing after catching exception while "
+                         "generating callhome data for collector "
+                         "%(callhome_collector)s (%(source)s:%(key)s : "
+                         "%(exception)s", errorObject)
                 errors.append(errorObject)
         returnValue = {self._key: stats}
         if errors:
@@ -147,9 +147,9 @@ class CallHomeData(object):
                                   callhome_collector=utilClass.__name__,
                                   name=name,
                                   exception=str(e))
-                log.warn(("Caught exception while generating callhome data "
-                          "%(callhome_collector)s:%(name)s : %(exception)s")
-                         % errorObject)
+                log.warn("Caught exception while generating callhome data "
+                         "%(callhome_collector)s:%(name)s : %(exception)s",
+                         errorObject)
                 errors.append(errorObject)
         if self._master:
             for name, utilClass in getUtilitiesFor(IMasterCallHomeCollector):
@@ -165,9 +165,9 @@ class CallHomeData(object):
                                       callhome_collector=utilClass.__name__,
                                       name=name,
                                       exception=str(e))
-                    log.warn(("Caught exception while generating callhome "
-                              "data %(callhome_collector)s:%(name)s : "
-                              "%(exception)s") % errorObject)
+                    log.warn("Caught exception while generating callhome "
+                             "data %(callhome_collector)s:%(name)s : "
+                             "%(exception)s", errorObject)
                     errors.append(errorObject)
         if self._dmd:
             for name, utilClass in getUtilitiesFor(
@@ -179,9 +179,9 @@ class CallHomeData(object):
                                       callhome_collector=utilClass.__name__,
                                       name=name,
                                       exception=str(e))
-                    log.warn(("Caught exception while adding version "
-                              "history: %(callhome_collector)s:%(name)s : "
-                              "%(exception)s") % errorObject)
+                    log.warn("Caught exception while adding version "
+                             "history: %(callhome_collector)s:%(name)s : "
+                             "%(exception)s", errorObject)
                     errors.append(errorObject)
         if errors:
             data[EXTERNAL_ERROR_KEY] = errors

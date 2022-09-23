@@ -12,6 +12,7 @@ from __future__ import absolute_import, print_function
 import logging
 import os
 import threading
+
 import transaction
 
 from celery import states, chain
@@ -99,8 +100,7 @@ class JobManager(ZenModelRM):
         _job_dispatcher.add(job)
 
         return tuple(
-            JobRecord.make(RedisRecord.from_signature(s))
-            for s in signatures
+            JobRecord.make(RedisRecord.from_signature(s)) for s in signatures
         )
 
     @security.protected(ZEN_MANAGE_DMD)
@@ -379,10 +379,7 @@ class JobManager(ZenModelRM):
         """Delete all finished jobs."""
         storage = getUtility(IJobStore, "redis")
         jobids = tuple(storage.search(status=states.READY_STATES))
-        logfiles = (
-            storage.getfield(j, "logfile")
-            for j in jobids
-        )
+        logfiles = (storage.getfield(j, "logfile") for j in jobids)
         for logfile in (lf for lf in logfiles if lf is not None):
             if os.path.exists(logfile):
                 try:
@@ -400,8 +397,7 @@ class JobManager(ZenModelRM):
 
 @implementer(IDataManager)
 class JobDispatcher(object):
-    """
-    """
+    """ """
 
     transaction_manager = transaction.manager.manager
 
@@ -429,9 +425,7 @@ class JobDispatcher(object):
         self._signatures.append(sig)
 
     def discard(self, task_id):
-        self._staged = [
-            task for task in self._staged if task.id != task_id
-        ]
+        self._staged = [task for task in self._staged if task.id != task_id]
         self._storage.mdelete(*(task_id,))
         self._signatures = [
             task for task in self._signatures if task.id != task_id
@@ -484,7 +478,6 @@ class JobDispatcher(object):
 
 
 class ThreadedJobDispatcher(threading.local):
-
     def __getattr__(self, name):
         # Lazily initialize 'dispatcher'; avoids performing zope component
         # lookups during module loading.

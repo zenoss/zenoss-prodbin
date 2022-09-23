@@ -15,7 +15,14 @@ from Testing.ZopeTestCase.ZopeTestCase import standard_permissions
 
 from Products.ZenRelations.Exceptions import ZenRelationsError
 from Products.ZenRelations.tests.TestSchema import (
-    build, create, DataRoot, Device, Server, Admin, Group, Location,
+    build,
+    create,
+    DataRoot,
+    Device,
+    Server,
+    Admin,
+    Group,
+    Location,
     IpInterface,
 )
 
@@ -28,7 +35,7 @@ class FullZopeTestCases(ZenRelationsBaseTest):
 
     def afterSetUp(self):
         """setup schema manager and add needed permissions"""
-        self.setRoles(['Manager'])
+        self.setRoles(["Manager"])
         perms = [
             "Add Relationship Managers",
             "Delete objects",
@@ -43,25 +50,27 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         """test cut and past of a RM make sure primarypath is set properly"""
         dev = build(self.dataroot, Device, "dev")
         transaction.savepoint()
-        cookie = self.dataroot.manage_cutObjects(ids=('dev',))
+        cookie = self.dataroot.manage_cutObjects(ids=("dev",))
         self.dataroot.subfolder.manage_pasteObjects(cookie)
-        self.failIf(self.dataroot._getOb('dev', False))
-        self.failUnless(self.dataroot.subfolder._getOb('dev'))
-        self.failUnless(self.dataroot.subfolder.getPhysicalPath() ==
-                        dev.getPrimaryPath()[:-1])
+        self.failIf(self.dataroot._getOb("dev", False))
+        self.failUnless(self.dataroot.subfolder._getOb("dev"))
+        self.failUnless(
+            self.dataroot.subfolder.getPhysicalPath()
+            == dev.getPrimaryPath()[:-1]
+        )
 
     def testCutPasteRM2(self):
         """add contained relationship to cut/paste test"""
         dev = build(self.dataroot, Device, "dev")
         eth0 = create(dev.interfaces, IpInterface, "eth0")
         transaction.savepoint()
-        cookie = self.dataroot.manage_cutObjects(ids=('dev',))
+        cookie = self.dataroot.manage_cutObjects(ids=("dev",))
         self.dataroot.subfolder.manage_pasteObjects(cookie)
-        self.failIf(self.dataroot._getOb('dev', False))
-        self.failUnless(self.dataroot.subfolder._getOb('dev'))
+        self.failIf(self.dataroot._getOb("dev", False))
+        self.failUnless(self.dataroot.subfolder._getOb("dev"))
         self.assertEqual(
             self.dataroot.subfolder.getPhysicalPath(),
-            dev.getPrimaryPath()[:-1]
+            dev.getPrimaryPath()[:-1],
         )
         self.assertEqual(
             eth0.getPrimaryUrlPath().find(dev.getPrimaryUrlPath()), 0
@@ -77,7 +86,7 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         dev.groups.addRelation(group)
         dev.location.addRelation(loc)
         self.dataroot._delObject("dev")
-        self.failIf(self.dataroot._getOb('dev', False))
+        self.failIf(self.dataroot._getOb("dev", False))
 
     def testCutPasteRMwRel(self):
         """cut and paste with relationships make sure they persist and
@@ -90,10 +99,10 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         dev.groups.addRelation(group)
         dev.location.addRelation(loc)
         transaction.savepoint()
-        cookie = self.dataroot.manage_cutObjects(ids=('dev',))
+        cookie = self.dataroot.manage_cutObjects(ids=("dev",))
         self.dataroot.subfolder.manage_pasteObjects(cookie)
-        self.failIf(self.dataroot._getOb('dev', False))
-        self.failUnless(self.dataroot.subfolder._getOb('dev'))
+        self.failIf(self.dataroot._getOb("dev", False))
+        self.failUnless(self.dataroot.subfolder._getOb("dev"))
         self.failUnless(dev in group.devices())
         self.failUnless(dev.admin() == jim)
         self.failUnless(dev.location() == loc)
@@ -104,32 +113,32 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         """test that primary path gets set correctly after copy and paste"""
         build(self.dataroot, Device, "dev")
         transaction.savepoint()
-        cookie = self.dataroot.manage_copyObjects(ids=('dev',))
+        cookie = self.dataroot.manage_copyObjects(ids=("dev",))
         self.dataroot.subfolder.manage_pasteObjects(cookie)
-        self.failUnless(self.dataroot.subfolder._getOb('dev'))
+        self.failUnless(self.dataroot.subfolder._getOb("dev"))
         copy = self.dataroot.subfolder._getOb("dev")
         self.assertEqual(
             self.dataroot.subfolder.getPhysicalPath(),
-            copy.getPrimaryPath()[:-1]
+            copy.getPrimaryPath()[:-1],
         )
 
     def testCopyPasteRMSamePath(self):
         """Copy/Paste RM in same folder as original"""
         build(self.dataroot, Device, "dev")
         transaction.savepoint()
-        cookie = self.dataroot.manage_copyObjects(ids=('dev',))
+        cookie = self.dataroot.manage_copyObjects(ids=("dev",))
         self.dataroot.manage_pasteObjects(cookie)
-        self.failUnless(self.dataroot._getOb('dev'))
-        self.failUnless(self.dataroot._getOb('copy_of_dev'))
+        self.failUnless(self.dataroot._getOb("dev"))
+        self.failUnless(self.dataroot._getOb("copy_of_dev"))
 
     def testCopyPasteProperties(self):
         """test that Properties are copied correctly"""
         dev = build(self.dataroot, Device, "dev")
         dev.pingStatus = 3
         transaction.savepoint()
-        cookie = self.dataroot.manage_copyObjects(ids=('dev',))
+        cookie = self.dataroot.manage_copyObjects(ids=("dev",))
         self.dataroot.manage_pasteObjects(cookie)
-        self.failUnless(self.dataroot.copy_of_dev._getOb('pingStatus'))
+        self.failUnless(self.dataroot.copy_of_dev._getOb("pingStatus"))
         copy = self.dataroot._getOb("copy_of_dev")
         self.failUnless(dev.pingStatus == copy.pingStatus)
         self.failUnless(dev.pingStatus == 3)
@@ -140,7 +149,7 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         jim = build(self.dataroot, Admin, "jim")
         dev.admin.addRelation(jim)
         transaction.savepoint()
-        cookie = self.dataroot.manage_copyObjects(ids=('dev',))
+        cookie = self.dataroot.manage_copyObjects(ids=("dev",))
         self.dataroot.subfolder.manage_pasteObjects(cookie)
         copy = self.dataroot.subfolder._getOb("dev")
         self.failUnless(dev.admin() == jim)
@@ -177,11 +186,9 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         dev = build(self.dataroot, Server, "dev")
         jim = build(self.dataroot, Admin, "jim")
         transaction.savepoint()
-        cookie = self.dataroot.manage_copyObjects(ids=('jim',))
+        cookie = self.dataroot.manage_copyObjects(ids=("jim",))
         self.failUnless(cookie)
-        self.dataroot.dev.manage_linkObjects(
-            ids="admin", cb_copy_data=cookie
-        )
+        self.dataroot.dev.manage_linkObjects(ids="admin", cb_copy_data=cookie)
         self.failUnless(jim.server() == dev)
         self.failUnless(dev.admin() == jim)
 
@@ -190,11 +197,9 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         dev = build(self.dataroot, Server, "dev")
         jim = build(self.dataroot, Admin, "jim")
         transaction.savepoint()
-        cookie = self.dataroot.manage_copyObjects(ids='jim')
+        cookie = self.dataroot.manage_copyObjects(ids="jim")
         self.failUnless(cookie)
-        self.dataroot.dev.manage_linkObjects(
-            ids="admin", cb_copy_data=cookie
-        )
+        self.dataroot.dev.manage_linkObjects(ids="admin", cb_copy_data=cookie)
         self.failUnless(jim.server() == dev)
         self.failUnless(dev.admin() == jim)
 
@@ -203,7 +208,7 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         build(self.dataroot, Server, "dev")
         build(self.dataroot, Admin, "jim")
         transaction.savepoint()
-        cookie = self.dataroot.manage_copyObjects(ids='jim')
+        cookie = self.dataroot.manage_copyObjects(ids="jim")
         self.failUnless(cookie)
         with self.assertRaises(ZenRelationsError):
             self.dataroot.dev.manage_linkObjects(
@@ -224,7 +229,7 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         anna = build(self.dataroot, Location, "anna")
         dev.location.addRelation(anna)
         transaction.savepoint()
-        cookie = self.dataroot.manage_copyObjects(ids=('dev',))
+        cookie = self.dataroot.manage_copyObjects(ids=("dev",))
         self.dataroot.subfolder.manage_pasteObjects(cookie)
         copy = self.dataroot.subfolder._getOb("dev")
         self.failUnless(copy.location() == anna)
@@ -291,7 +296,7 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         dev = build(self.dataroot, Device, "dev")
         loc = build(self.dataroot, Location, "loc")
         transaction.savepoint()
-        cookie = self.dataroot.manage_copyObjects(ids=('dev',))
+        cookie = self.dataroot.manage_copyObjects(ids=("dev",))
         self.dataroot.loc.devices.manage_pasteObjects(cookie)
         self.failUnless(dev.location() == loc)
         self.failUnless(dev in loc.devices())
@@ -299,6 +304,7 @@ class FullZopeTestCases(ZenRelationsBaseTest):
 
 def test_suite():
     from unittest import TestSuite, makeSuite
+
     suite = TestSuite()
     suite.addTest(makeSuite(FullZopeTestCases))
     return suite

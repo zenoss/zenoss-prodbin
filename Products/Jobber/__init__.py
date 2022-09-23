@@ -22,17 +22,18 @@ def _patchstate():
         "ALL_STATES",
     )
     for attr in groupings:
-        setattr(
-            states, attr, frozenset({ABORTED} | getattr(states, attr)),
-        )
+        setattr(states, attr, frozenset({ABORTED} | getattr(states, attr)))
     setattr(states, "ABORTED", ABORTED)
 
     # Update the PRECENDENCE stuff to account for ABORTED
     offset = states.PRECEDENCE.index(None)
     states.PRECEDENCE.insert(offset, ABORTED)
-    states.PRECEDENCE_LOOKUP = dict(zip(
-        states.PRECEDENCE, range(0, len(states.PRECEDENCE)),
-    ))
+    states.PRECEDENCE_LOOKUP = dict(
+        zip(
+            states.PRECEDENCE,
+            range(0, len(states.PRECEDENCE)),
+        )
+    )
 
 
 _patchstate()

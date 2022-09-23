@@ -247,10 +247,8 @@ class DeviceFacade(TreeFacade):
             try:
                 comps.append(IInfo(unbrain(brain)))
             except Exception:
-                log.warn('There is broken component "{}" in componentSearch catalog on {} device.'.format(
-                     brain.id, obj.device().id
-                     )
-                )
+                log.warn('There is broken component "%s" in componentSearch catalog on %s device.',
+                         brain.id, obj.device().id)
 
         # filter the components
         if name is not None:
@@ -1002,7 +1000,7 @@ class DeviceFacade(TreeFacade):
             try:
                 brain.getObject().latlong = None
             except Exception:
-                log.warn("Unable to clear the geocodecache from %s " % brain.getPath())
+                log.warn("Unable to clear the geocodecache from %s", brain.getPath())
 
     @info
     def getGraphDefinitionsForComponent(self, uid):
@@ -1014,9 +1012,12 @@ class DeviceFacade(TreeFacade):
             components = list(getObjectsFromCatalog(obj.componentSearch, None, log))
 
         for component in components:
-            if graphDefs.get(component.meta_type):
-                continue
-            graphDefs[component.meta_type] = [graphDef.id for graphDef, _ in component.getGraphObjects()]
+            current_def = [graphDef.id for graphDef, _ in component.getGraphObjects()]
+            if component.meta_type in graphDefs:
+                prev_def = graphDefs[component.meta_type]
+                graphDefs[component.meta_type] = prev_def + list(set(current_def) - set(prev_def))
+            else:
+                graphDefs[component.meta_type] = current_def
         return graphDefs
 
     def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
@@ -1048,9 +1049,10 @@ class DeviceFacade(TreeFacade):
 
         graphs = []
         for comp in components:
-            graph = graphDict.get(comp.id, graphDefault)
-            info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
-            graphs.append(info)
+            graph = graphDict.get(comp.id)
+            if graph:
+                info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
+                graphs.append(info)
         return graphs
 
     def getDevTypes(self, uid):

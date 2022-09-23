@@ -11,8 +11,9 @@ from __future__ import absolute_import, print_function
 
 import inspect
 
-from celery.contrib.abortable import AbortableTask
 from unittest import TestCase
+
+from celery.contrib.abortable import AbortableTask
 
 from ..exceptions import NoSuchJobException
 from ..jobs import Job
@@ -44,9 +45,9 @@ class JobAPITest(TestCase):
                 t.assertFalse(inspect.ismethod(attr))
 
     def test_is_abstract(t):
-        t.assertTrue(not any(
-            name.split(".")[-1] == "Job" for name in app.tasks.keys()
-        ))
+        t.assertTrue(
+            not any(name.split(".")[-1] == "Job" for name in app.tasks.keys())
+        )
 
     def test_job_is_task(t):
         t.assertTrue(issubclass(Job, ZenTask))

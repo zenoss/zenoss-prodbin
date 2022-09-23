@@ -13,17 +13,19 @@
 Ext.ns('Zenoss');
 
 
-var oldActiveItem = Ext.layout.CardLayout.prototype.setActiveItem;
-var oldInitEvents = Ext.layout.CardLayout.prototype.initEvents;
-
 Ext.override(Ext.layout.CardLayout, {
+    // store old functionality to have acces to it from other app parts;
+    oldInitEvents: Ext.layout.CardLayout.prototype.initEvents,
+    oldSetActiveItem: Ext.layout.CardLayout.prototype.setActiveItem,
     initEvents: function() {
         oldInitEvents.apply(this, arguments);
         this.owner.addEvents('cardchange');
     },
     setActiveItem: function(item) {
-        oldActiveItem.apply(this, arguments);
+        var result = this.oldSetActiveItem.apply(this, arguments);
         this.owner.fireEvent('cardchange', this.owner, item);
+        // we need to return result from old "setActiveItem" to avoid conflicts in layout owner on card change;
+        return result;
     }
 });
 

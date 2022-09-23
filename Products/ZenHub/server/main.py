@@ -115,7 +115,7 @@ def make_pools():
 def make_executors(config, pools):
     global _executors
     for name, spec in config.executors.items():
-        modpath, clsname = spec.split(":")
+        modpath, clsname = spec.split(":", 1)
         cls = import_name(modpath, clsname)
         executor = cls.create(name, config=config, pool=pools.get(name))
         _executors[name] = executor

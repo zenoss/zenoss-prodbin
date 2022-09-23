@@ -15,8 +15,13 @@ from unittest import TestCase
 
 from ..interface import IHubServerConfig
 from ..main import (
-    start_server, stop_server, make_server_factory, make_pools,
-    make_service_manager, WorkerInterceptor, make_executors,
+    start_server,
+    stop_server,
+    make_server_factory,
+    make_pools,
+    make_service_manager,
+    WorkerInterceptor,
+    make_executors,
 )
 from ..utils import subTest
 
@@ -32,7 +37,12 @@ class StartServerTest(TestCase):
     @patch("{src}.serverFromString".format(**PATH), autospec=True)
     @patch("{src}.setKeepAlive".format(**PATH), autospec=True)
     def test_start_server(
-        self, _setKeepAlive, _serverFromString, _tcpd, _getUtility, _executors,
+        self,
+        _setKeepAlive,
+        _serverFromString,
+        _tcpd,
+        _getUtility,
+        _executors,
     ):
         executor = Mock(spec=["start"])
         _executors.values.return_value = [executor]
@@ -63,7 +73,6 @@ class StartServerTest(TestCase):
 
 
 class stop_server_test(TestCase):
-
     @patch("{src}._executors".format(**PATH), autospec=True)
     def test_stop_server(t, _executors):
         _executors.values.return_value = [Mock() for _ in range(3)]
@@ -82,7 +91,11 @@ class MakeServerFactoryTest(TestCase):
     @patch("{src}.HubRealm".format(**PATH), autospec=True)
     @patch("{src}.HubAvatar".format(**PATH), autospec=True)
     def test_make_server_factory(
-        self, _HubAvatar, _HubRealm, _portal, _ZenPBServerFactory,
+        self,
+        _HubAvatar,
+        _HubRealm,
+        _portal,
+        _ZenPBServerFactory,
     ):
         avatar = NonCallableMock()
         _HubAvatar.return_value = avatar
@@ -117,8 +130,13 @@ class MakeServiceManagerTest(TestCase):
     @patch("{src}.ServiceRegistry".format(**PATH), autospec=True)
     @patch("{src}.getUtility".format(**PATH), autospec=True)
     def test_make_service_manager(
-        self, _getUtility, _ServiceRegistry, _ServiceCallRouter,
-        _make_executors, _ServiceLoader, _ServiceReferenceFactory,
+        self,
+        _getUtility,
+        _ServiceRegistry,
+        _ServiceCallRouter,
+        _make_executors,
+        _ServiceLoader,
+        _ServiceReferenceFactory,
         _ServiceManager,
     ):
         pools = NonCallableMock()
@@ -175,19 +193,23 @@ class MakeExecutorsTest(TestCase):
 
     @patch("{src}.import_name".format(**PATH), autospec=True)
     def test_make_executors(t, import_name):
-        config = Mock(name='config')
-        config.executors = {'executor_1': 'module_path:class_name', }
+        config = Mock(name="config")
+        config.executors = {
+            "executor_1": "module_path:class_name",
+        }
 
-        executor_1 = Mock(name='executor_1')
+        executor_1 = Mock(name="executor_1")
         import_name.return_value.create.return_value = executor_1
 
-        pool_1 = Mock(name='pool_1')
-        pools = {'executor_1': pool_1, }
+        pool_1 = Mock(name="pool_1")
+        pools = {
+            "executor_1": pool_1,
+        }
 
         ret = make_executors(config, pools)
 
-        import_name.assert_called_with('module_path', 'class_name')
+        import_name.assert_called_with("module_path", "class_name")
         import_name.return_value.create.assert_called_with(
-            'executor_1', config=config, pool=pool_1
+            "executor_1", config=config, pool=pool_1
         )
-        t.assertEqual(ret['executor_1'], executor_1)
+        t.assertEqual(ret["executor_1"], executor_1)

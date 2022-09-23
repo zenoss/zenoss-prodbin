@@ -537,7 +537,7 @@ class ZenEventMigrate(ZenScriptBase):
             self._setConfig('%s_last_evid' % table, rows[-1]['evid'])
             self._storeConfig()
             if self.options.sleep:
-                log.debug("Pausing event migration for %s seconds" % self.options.sleep)
+                log.debug("Pausing event migration for %s seconds", self.options.sleep)
                 sleep(self.options.sleep)
             offset += self.options.batchsize
             rows = self._execQuery(conn, query, (self.options.batchsize, offset))

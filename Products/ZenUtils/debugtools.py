@@ -63,7 +63,7 @@ def rpdb_set_trace(log=None):
     port=4444
     print "connect to rpdb remotely with: nc %s %d  # Control-C to exit nc" % (ip, port)
     if log:
-        log.warn("connect to rpdb remotely with: nc %s %d  # Control-C to exit nc" % (ip, port))
+        log.warn("connect to rpdb remotely with: nc %s %d  # Control-C to exit nc", ip, port)
     debugger = rpdb.Rpdb(ip, port)
     debugger.set_trace()
 
@@ -107,5 +107,5 @@ class ContinuousProfiler(object):
 
         self.__profile.dump_stats(stats_filepath)
         if self.log:
-            self.log.debug("pStats file created at {}".format(stats_filepath))
+            self.log.debug("pStats file created at %s", stats_filepath)
         return stats_filepath

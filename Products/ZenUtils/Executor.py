@@ -10,7 +10,9 @@
 import logging
 import uuid
 
-from twisted.internet import defer, reactor
+from functools import partial
+
+from twisted.internet import defer, error, reactor
 from twisted.internet.task import LoopingCall
 
 log = logging.getLogger("zen.executor")
@@ -131,7 +133,7 @@ class AsyncExecutor(object):
     def queued(self):
         return len(self._queue.pending)
 
-    def submit(self, call, timeout=None):
+    def submit(self, call, timeout=None, label=""):
         """Submit a callable to run asynchronously.
 
         @param call: A callable to be executed
@@ -142,9 +144,10 @@ class AsyncExecutor(object):
             exception, the Deferred returns the exception.
         """
         d = defer.Deferred()
-        task = ExecutorTask(d, call, timeout, self._log)
+        task = ExecutorTask(d, call, timeout, self._log, label)
         self._log.debug(
-            "Received task  executor=%s task-id=%s", self._id, task.id,
+            "Received task  executor=%s task-id=%s label=%s",
+            self._id, task.id, task.label,
         )
         self._queue.put(task)
         return d
@@ -169,8 +172,8 @@ class AsyncExecutor(object):
 
             # Schedule the task to run at the next available moment.
             self._log.debug(
-                "Scheduled task to run  executor=%s task-id=%s",
-                self._id, task.id,
+                "Scheduled task to run  executor=%s task-id=%s label=%s",
+                self._id, task.id, task.label,
             )
             self._reactor.callLater(0, self.execute, task)
         except Exception:
@@ -181,7 +184,8 @@ class AsyncExecutor(object):
     @defer.inlineCallbacks
     def execute(self, task):
         self._log.debug(
-            "Running task  executor=%s task-id=%s", self._id, task.id,
+            "Running task  executor=%s task-id=%s label=%s",
+            self._id, task.id, task.label,
         )
         try:
             # Wait for the task to complete.
@@ -189,8 +193,24 @@ class AsyncExecutor(object):
             task.finished(result)
         except _ShutdownException:
             self._log.debug("Executor has stopped  executor=%s", self._id)
+        except (error.TimeoutError, defer.TimeoutError) as ex:
+            self._log.error(
+                "Task timed out  executor=%s task-id=%s label=%s",
+                self._id, task.id, task.label,
+            )
+            task.error(ex)
+        except defer.CancelledError as ex:
+            self._log.debug(
+                "Task cancelled (probably due to a connection timeout)  "
+                "executor=%s task-id=%s label=%s",
+                self._id, task.id, task.label,
+            )
+            task.error(ex)
         except Exception as ex:
-            message = "Bad task  executor={} task-id={}".format(self._id, task.id)
+            message = (
+                "Bad task  executor=%s task-id=%s label=%s",
+                self._id, task.id, task.label
+            )
             if self._log.isEnabledFor(logging.DEBUG):
                 self._log.exception(message)
             else:
@@ -201,8 +221,8 @@ class AsyncExecutor(object):
             self._tasks_running -= 1
             self._tokens.release()
             self._log.debug(
-                "Finished running task  executor=%s task-id=%s",
-                self._id, task.id,
+                "Finished running task  executor=%s task-id=%s label=%s",
+                self._id, task.id, task.label,
             )
 
 
@@ -245,11 +265,12 @@ class ExecutorTask(object):
     @ivar call: The callable called when the task is invoked.
     """
 
-    def __init__(self, deferred, call, timeout, log):
+    def __init__(self, deferred, call, timeout, log, label=""):
         self.id = "%x" % uuid.uuid4().time
         self.deferred = deferred
         self.timeout = timeout
         self.call = call
+        self.label = label
         self._log = log
         self._ontimeout = None
 
@@ -257,26 +278,34 @@ class ExecutorTask(object):
         d = defer.maybeDeferred(self.call)
         if self.timeout:
             self._log.debug(
-                "Setting timeout  task-id=%s duration=%s",
-                self.id, self.timeout,
+                "Setting timeout  task-id=%s label=%s duration=%s",
+                self.id, self.label, self.timeout,
             )
             self._ontimeout = defer.Deferred()
-            self._ontimeout.addTimeout(self.timeout, reactor, self._timeout)
+            timeout_handler = partial(self._timeout, d)
+            self._ontimeout.addTimeout(self.timeout, reactor, timeout_handler)
             # Add a do-nothing errback handler for when the deferred is
             # cancelled before time has elapsed.
             self._ontimeout.addErrback(lambda x: None)
         else:
-            self._log.debug("No timeout set  task-id=%s", self.id)
+            self._log.debug(
+                "No timeout set  task-id=%s label=%s", self.id, self.label,
+            )
         return d
 
     def finished(self, result):
         if self._ontimeout:
             self._ontimeout.cancel()
         if not self.deferred.called:
+            self._log.debug(
+                "Setting callback  task-id=%s label=%s result=%r",
+                self.id, self.label, result,
+            )
             self.deferred.callback(result)
         else:
             self._log.debug(
-                "Result ignored  task-id=%s reason=timeout", self.id,
+                "Result ignored  task-id=%s label=%s reason=timeout",
+                self.id, self.label,
             )
 
     def error(self, ex):
@@ -288,18 +317,24 @@ class ExecutorTask(object):
             self.deferred.errback(ex)
         else:
             self._log.debug(
-                "Failure ignored  task-id=%s reason=timeout", self.id,
+                "Failure ignored  task-id=%s label=%s reason=timeout",
+                self.id, self.label,
             )
 
-    def _timeout(self, failure, timeout):
-        self._log.debug("Task timed out  task-id=%s", self.id)
-        self.deferred.errback(defer.TimeoutError("timeout"))
+    def _timeout(self, calld, failure, timeout):
+        # calld is the deferred returned by __call__.
+        self._log.debug(
+            "Task timed out  task-id=%s label=%s", self.id, self.label,
+        )
+        error = defer.TimeoutError("timeout")
+        calld.errback(error)
+        self.deferred.errback(error)
         self._ontimeout = None
 
     def __repr__(self):
         return (
-            "<{0.__module__}.{0.__name__} id={1}>"
-        ).format(type(self), self.id)
+            "<{0.__module__}.{0.__name__} id={1} label={2}>"
+        ).format(type(self), self.id, self.label)
 
 
 class _ShutdownException(Exception):

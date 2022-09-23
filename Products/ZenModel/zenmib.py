@@ -235,7 +235,9 @@ class ZenMib(ZCmdBase):
                 sys.exit(1)
 
         # Verify that the target MIB organizer exists
-        miborgpath = os.path.join("/zport/dmd/Mibs", self.options.path)
+        if self.options.path and self.options.path[0] != '/':
+            self.options.path = '/' + self.options.path
+        miborgpath = "/zport/dmd/Mibs" + self.options.path
         miborg = self.dmd.unrestrictedTraverse(miborgpath, None)
         if miborg is None:
             self.log.error(
