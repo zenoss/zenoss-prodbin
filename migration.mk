@@ -42,9 +42,9 @@ replace-zmigrateversion:
 	        sed \
 	            -i \
 	            -e "/ZMigrateVersion/d" \
-				-e "s/%SCHEMA_MAJOR%/$(SCHEMA_MAJOR)/g" \
-				-e "s/%SCHEMA_MINOR%/$(SCHEMA_MINOR)/g" \
-				-e "s/%SCHEMA_REVISION%/$(SCHEMA_REVISION)/g" \
+				-e "s/SCHEMA_MAJOR/$(SCHEMA_MAJOR)/g" \
+				-e "s/SCHEMA_MINOR/$(SCHEMA_MINOR)/g" \
+				-e "s/SCHEMA_REVISION/$(SCHEMA_REVISION)/g" \
 	            $$file; \
 	    done
 

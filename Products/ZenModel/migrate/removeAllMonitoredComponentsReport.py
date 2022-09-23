@@ -14,13 +14,12 @@ large amount of devices.
 
 import logging
 import Migrate
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 
 
 class RemoveAllMonitoredComponentsReport(Migrate.Step):
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 6, 0)
 
     def cutover(self, dmd):
         deviceReports = dmd.Reports._getOb('Device Reports', None)
