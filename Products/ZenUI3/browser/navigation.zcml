@@ -189,17 +189,6 @@
             />
 
     <browser:viewlet
-        name="Reports"
-        url="/zport/dmd/reports"
-        subviews="/zport/dmd/Reports"
-        weight="4"
-        manager="..navigation.interfaces.IPrimaryNavigationMenu"
-        class="..navigation.menuitem.PrimaryNavigationMenuItem"
-        permission="zenoss.Common"
-        layer="..navigation.interfaces.IZenossNav"
-        />
-
-    <browser:viewlet
         name="Advanced"
         url="/zport/dmd/editSettings"
         weight="6"
