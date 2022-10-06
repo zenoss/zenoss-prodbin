@@ -1,14 +1,13 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, 2009, 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-__doc__ = """CiscoMap
+"""CiscoMap
 
 Models Cisco device attributes.
     * Serial Number
@@ -18,93 +17,92 @@ Models Cisco device attributes.
 
 import re
 import sys
+
 from Products.DataCollector.plugins.DataMaps import ObjectMap
-from Products.DataCollector.plugins.CollectorPlugin \
-    import SnmpPlugin, GetMap, GetTableMap
+from Products.DataCollector.plugins.CollectorPlugin import (
+    GetMap,
+    GetTableMap,
+    SnmpPlugin,
+)
+
 
 class CiscoMap(SnmpPlugin):
 
     maptype = "CiscoDeviceMap"
 
-    snmpGetMap = GetMap({
-        '.1.3.6.1.2.1.1.2.0': 'snmpOid',
-        '.1.3.6.1.4.1.9.3.6.3.0': '_serialNumber',
-        '.1.3.6.1.4.1.9.9.48.1.1.1.5.1': '_memUsed',
-        '.1.3.6.1.4.1.9.9.48.1.1.1.6.1': '_memFree',
-        })
+    snmpGetMap = GetMap(
+        {
+            ".1.3.6.1.2.1.1.2.0": "snmpOid",
+            ".1.3.6.1.4.1.9.3.6.3.0": "_serialNumber",
+            ".1.3.6.1.4.1.9.9.48.1.1.1.5.1": "_memUsed",
+            ".1.3.6.1.4.1.9.9.48.1.1.1.6.1": "_memFree",
+        }
+    )
 
     snmpGetTableMaps = (
-        GetTableMap('entPhysicalTable', '.1.3.6.1.2.1.47.1.1.1.1', {
-            '.11': 'serialNum'
-            }),
-        )
+        GetTableMap(
+            "entPhysicalTable", ".1.3.6.1.2.1.47.1.1.1.1", {".11": "serialNum"}
+        ),
+    )
 
     badSerialPatterns = [
         # Cisco, Catalyst, CAT
-        r'^(Cisco|Catalyst|CAT)$',
-
+        r"^(Cisco|Catalyst|CAT)$",
         # 0x0E
-        r'^0x',
-
+        r"^0x",
         # WS-C3548-XL
-        r'^WS-',
-
+        r"^WS-",
         # VG224
-        r'^VG\d{3}$',
-
+        r"^VG\d{3}$",
         # C3845-VSEC-SRST/K9
-        r'^C\d{4}-',
-
+        r"^C\d{4}-",
         # Model numbers: 1841, 2811, 2851, 3845, etc.
-        r'^\d{4}$',
-
+        r"^\d{4}$",
         # Other
-        r'^(CISCO|C|Cat|CAT|AS)?\d{4}[A-Z]{0,2}(-(\w|\d{0,3}))?$',
-        ]
+        r"^(CISCO|C|Cat|CAT|AS)?\d{4}[A-Z]{0,2}(-(\w|\d{0,3}))?$",
+    ]
 
     snmpOidPreferEntity = [
-        '.1.3.6.1.4.1.9.1.525', # ciscoAIRAP1210
-        ]
-
+        ".1.3.6.1.4.1.9.1.525",  # ciscoAIRAP1210
+    ]
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing %s for device %s', self.name(), device.id)
+        log.info("processing %s for device %s", self.name(), device.id)
         getdata, tabledata = results
 
         maps = []
 
         serialNumber = self.getSerialNumber(getdata, tabledata)
         if serialNumber is not None:
-            maps.append(ObjectMap({'setHWSerialNumber': serialNumber}))
+            maps.append(ObjectMap({"setHWSerialNumber": serialNumber}))
 
         totalMemory = self.getTotalMemory(getdata)
         if totalMemory is not None:
-            maps.append(ObjectMap({'totalMemory': totalMemory}, compname='hw'))
+            maps.append(ObjectMap({"totalMemory": totalMemory}, compname="hw"))
 
         return maps
 
-
     def getSerialNumber(self, getdata, tabledata):
-        serialNumber = getdata.get('_serialNumber', None)
+        serialNumber = getdata.get("_serialNumber", None)
 
         # In most cases we want to prefer the serial number in the Cisco
         # enterprise MIB if it is available.
         preferEntityMib = False
-        if getdata.get('_snmpOid', None) in self.snmpOidPreferEntity:
+        if getdata.get("_snmpOid", None) in self.snmpOidPreferEntity:
             preferEntityMib = True
 
         if serialNumber and not preferEntityMib:
 
             # If there's a space in the serial we only want the first part.
-            serialNumber = serialNumber.split(' ', 1)[0]
+            serialNumber = serialNumber.split(" ", 1)[0]
 
             # There are Cisco devices out there that return invalid serial
             # numbers with non-ASCII characters. Note them.
             try:
-                unused = serialNumber.encode('ascii')
+                _ = serialNumber.encode("ascii")
             except (UnicodeEncodeError, UnicodeDecodeError):
-                serialNumber = 'Invalid'
+                serialNumber = "Invalid"
 
             # Some Cisco devices return a bogus serial. Ignore them.
             for pattern in self.badSerialPatterns:
@@ -114,11 +112,11 @@ class CiscoMap(SnmpPlugin):
                 return serialNumber
 
         # Some Cisco devices expose their serial number via the ENTITY-MIB.
-        entPhysicalTable = tabledata.get('entPhysicalTable', {})
+        entPhysicalTable = tabledata.get("entPhysicalTable", {})
 
         lowestIndex = sys.maxint
         for index, entry in entPhysicalTable.items():
-            serialNum = entry.get('serialNum', None)
+            serialNum = entry.get("serialNum", None)
             if serialNum and int(index) < lowestIndex:
                 serialNumber = serialNum
                 lowestIndex = int(index)
@@ -127,10 +125,9 @@ class CiscoMap(SnmpPlugin):
         # a value provided by another modeler plugin.
         return serialNumber
 
-
     def getTotalMemory(self, getdata):
-        used = getdata.get('_memUsed', None)
-        free = getdata.get('_memFree', None)
+        used = getdata.get("_memUsed", None)
+        free = getdata.get("_memFree", None)
         if used is not None and free is not None:
             return used + free
 

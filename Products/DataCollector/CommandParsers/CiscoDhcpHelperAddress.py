@@ -1,45 +1,41 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-__doc__ = """CommandParser
+"""CommandParser
 
 CommandParser parses the output of a command to return a datamap
 
-$Id: CiscoDhcpHelperAddress.py,v 1.3 2003/10/02 19:05:28 edahl Exp $"""
-
-__version__ = '$Revision: 1.3 $'[11:-2]
+"""
 
 import re
 
-from CommandParser import CommandParser
+from .CommandParser import CommandParser
+
 
 class CiscoDhcpHelperAddress(CommandParser):
-    
-    command = 'show run | include helper-address'
+
+    command = "show run | include helper-address"
 
     def condition(self, device, log):
         return "UBR" in device.getPrimaryPath()
 
-
     def parse(self, device, results, log):
         dhcpips = {}
-        findip = re.compile('(\d+\.\d+\.\d+\.\d+)$').search
-        for line in results.split('\n'):
-            m = findip(line) 
+        findip = re.compile(r"(\d+\.\d+\.\d+\.\d+)$").search
+        for line in results.split("\n"):
+            m = findip(line)
             if m:
                 ip = m.group(1)
                 dhcpips[ip] = 1
-        om = self.newObjectMap() 
-        om['setDhcpHelpers'] = dhcpips.keys()
+        om = self.newObjectMap()
+        om["setDhcpHelpers"] = dhcpips.keys()
         return om
-
 
     def description(self):
         return "Collect dhcp helper servers that a UBR uses"

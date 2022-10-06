@@ -9,8 +9,8 @@
 ##############################################################################
 
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
-from Products.ZenModel.Device import Device
 from Products.DataCollector.plugins.DataMaps import RelationshipMap
+from Products.ZenModel.Device import Device
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 
