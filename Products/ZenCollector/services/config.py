@@ -1,42 +1,40 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-from twisted.internet import defer
-from twisted.spread import pb
-import logging
-import hashlib
 import base64
+import hashlib
+import logging
 
 from Acquisition import aq_parent
-from zope import component
-from ZODB.transact import transact
-
 from cryptography.fernet import Fernet
+from twisted.internet import defer
+from twisted.spread import pb
+from ZODB.transact import transact
+from zope import component
+
 from Products.ZenHub.HubService import HubService
+from Products.ZenHub.interfaces import IBatchNotifier
 from Products.ZenHub.PBDaemon import translateError
 from Products.ZenHub.services.Procrastinator import Procrastinate
 from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
 from Products.ZenHub.zodb import onUpdate, onDelete
-from Products.ZenHub.interfaces import IBatchNotifier
-
-from Products.ZenCollector.interfaces import IConfigurationDispatchingFilter
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.PerformanceConf import PerformanceConf
+from Products.ZenModel.privateobject import is_private
 from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.ZenPack import ZenPack
-from Products.ZenModel.ThresholdClass import ThresholdClass
-from Products.ZenModel.privateobject import is_private
 from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
 from Products.ZenUtils.picklezipper import Zipper
 from Products.Zuul.utils import safe_hasattr as hasattr
+
+from ..interfaces import IConfigurationDispatchingFilter
 
 
 class DeviceProxy(pb.Copyable, pb.RemoteCopy):
@@ -58,24 +56,24 @@ class DeviceProxy(pb.Copyable, pb.RemoteCopy):
 
     @property
     def deviceGuid(self):
-        """
-        """
+        """ """
         return getattr(self, "_device_guid", None)
-
 
     def __str__(self):
         return self.id
 
     def __repr__(self):
-        return '%s:%s' % (self.__class__.__name__, self.id)
+        return "%s:%s" % (self.__class__.__name__, self.id)
+
 
 pb.setUnjellyableForClass(DeviceProxy, DeviceProxy)
 
 
 # TODO: doc me!
-BASE_ATTRIBUTES = ('id',
-                   'manageIp',
-                   )
+BASE_ATTRIBUTES = (
+    "id",
+    "manageIp",
+)
 
 
 class CollectorConfigService(HubService, ThresholdMixin):
@@ -98,7 +96,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
         # Get the collector information (eg the 'localhost' collector)
         self._prefs = self.dmd.Monitors.Performance._getOb(self.instance)
-        self.config = self._prefs # TODO fix me, needed for ThresholdMixin
+        self.config = self._prefs  # TODO fix me, needed for ThresholdMixin
         self.configFilter = None
 
         # When about to notify daemons about device changes, wait for a little
@@ -110,7 +108,8 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
     def _wrapFunction(self, functor, *args, **kwargs):
         """
-        Call the functor using the arguments, and trap any unhandled exceptions.
+        Call the functor using the arguments,
+        and trap any unhandled exceptions.
 
         @parameter functor: function to call
         @type functor: method
@@ -124,8 +123,10 @@ class CollectorConfigService(HubService, ThresholdMixin):
         try:
             return functor(*args, **kwargs)
         except Exception as ex:
-            msg = 'Unhandled exception in zenhub service %s: %s' % (
-                      self.__class__, str(ex))
+            msg = "Unhandled exception in zenhub service %s: %s" % (
+                self.__class__,
+                str(ex),
+            )
             self.log.exception(msg)
 
             import traceback
@@ -137,7 +138,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
                 traceback=traceback.format_exc(),
                 summary=msg,
                 device=self.instance,
-                methodCall="%s(%s, %s)" % (functor.__name__, args, kwargs)
+                methodCall="%s(%s, %s)" % (functor.__name__, args, kwargs),
             )
             self.sendEvent(evt)
         return None
@@ -147,24 +148,30 @@ class CollectorConfigService(HubService, ThresholdMixin):
         with gc_cache_every(1000, db=self.dmd._p_jar._db):
             if object.id == self.instance:
                 for listener in self.listeners:
-                    listener.callRemote('setPropertyItems', object.propertyItems())
+                    listener.callRemote(
+                        "setPropertyItems", object.propertyItems()
+                    )
 
     @onUpdate(ZenPack)
     def zenPackUpdated(self, object, event):
         with gc_cache_every(1000, db=self.dmd._p_jar._db):
             for listener in self.listeners:
                 try:
-                    listener.callRemote('updateThresholdClasses',
-                                        self.remote_getThresholdClasses())
-                except Exception as ex:
-                    self.log.warning("Error notifying a listener of new classes")
+                    listener.callRemote(
+                        "updateThresholdClasses",
+                        self.remote_getThresholdClasses(),
+                    )
+                except Exception:
+                    self.log.warning(
+                        "Error notifying a listener of new classes"
+                    )
 
     @onUpdate(Device)
     def deviceUpdated(self, object, event):
         with gc_cache_every(1000, db=self.dmd._p_jar._db):
             self._notifyAll(object)
 
-    @onUpdate(None) # Matches all
+    @onUpdate(None)  # Matches all
     def notifyAffectedDevices(self, object, event):
         # FIXME: This is horrible
         with gc_cache_every(1000, db=self.dmd._p_jar._db):
@@ -187,26 +194,10 @@ class CollectorConfigService(HubService, ThresholdMixin):
                         uid = (self.__class__.__name__, self.instance)
                         devfilter = None
                         if template:
-                            def hasTemplate(device):
-                                if issubclass(template.getTargetPythonClass(), Device):
-                                    result = template in device.getRRDTemplates()
-                                    if result:
-                                        self.log.debug("%s bound to template %s", device.getPrimaryId(), template.getPrimaryId())
-                                    else:
-                                        self.log.debug("%s not bound to template %s", device.getPrimaryId(), template.getPrimaryId())
-                                    return result
-                                else:
-                                    # check components, Too expensive?
-                                    for comp in device.getMonitoredComponents(type=template.getTargetPythonClass().meta_type):
-                                        result = template in comp.getRRDTemplates()
-                                        if result:
-                                            self.log.debug("%s bound to template %s", comp.getPrimaryId(), template.getPrimaryId())
-                                            return True
-                                        else:
-                                            self.log.debug("%s not bound to template %s", comp.getPrimaryId(), template.getPrimaryId())
-                                    return False
-                            devfilter = hasTemplate
-                        self._notifier.notify_subdevices(object, uid, self._notifyAll, devfilter)
+                            devfilter = _HasTemplate(template, self.log)
+                        self._notifier.notify_subdevices(
+                            object, uid, self._notifyAll, devfilter
+                        )
                         break
 
                     if isinstance(object, Device):
@@ -220,14 +211,24 @@ class CollectorConfigService(HubService, ThresholdMixin):
         with gc_cache_every(1000, db=self.dmd._p_jar._db):
             devid = object.id
             collector = object.getPerformanceServer().getId()
-            # The invalidation is only sent to the collector where the deleted device was
+            # The invalidation is only sent to the collector where the
+            # deleted device was.
             if collector == self.instance:
-                self.log.debug('Invalidation: Performing remote call to delete device %s from collector %s', devid, self.instance)
+                self.log.debug(
+                    "Invalidation: Performing remote call to delete "
+                    "device %s from collector %s",
+                    devid,
+                    self.instance,
+                )
                 for listener in self.listeners:
-                    listener.callRemote('deleteDevice', devid)
+                    listener.callRemote("deleteDevice", devid)
             else:
-                self.log.debug('Invalidation: Skipping remote call to delete device %s from collector %s', devid, self.instance)
-
+                self.log.debug(
+                    "Invalidation: Skipping remote call to delete "
+                    "device %s from collector %s",
+                    devid,
+                    self.instance,
+                )
 
     @translateError
     def remote_getConfigProperties(self):
@@ -235,7 +236,9 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
     @translateError
     def remote_getDeviceNames(self, options=None):
-        devices = self._getDevices(deviceFilter=self._getOptionsFilter(options))
+        devices = self._getDevices(
+            deviceFilter=self._getOptionsFilter(options)
+        )
         return [x.id for x in self._filterDevices(devices)]
 
     def _getDevices(self, deviceNames=None, deviceFilter=None):
@@ -280,10 +283,14 @@ class CollectorConfigService(HubService, ThresholdMixin):
     @translateError
     def remote_getEncryptionKey(self):
         # Get or create an encryption key for this collector
-        collector = self.getPerformanceMonitor()
-        key = getattr(self.getPerformanceMonitor(), "_encryption_key", self._create_encryption_key())
+        key = getattr(
+            self.getPerformanceMonitor(),
+            "_encryption_key",
+            self._create_encryption_key(),
+        )
 
-        # Hash the key with the daemon identifier to get unique key per collector daemon
+        # Hash the key with the daemon identifier to get unique key
+        # per collector daemon.
         s = hashlib.sha256()
         s.update(key)
         s.update(self.__class__.__name__)
@@ -316,9 +323,10 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
         if isinstance(device, Device):
             from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+
             guid = IGlobalIdentifier(device).getGUID()
             if guid:
-                setattr(proxy,'_device_guid', guid)
+                setattr(proxy, "_device_guid", guid)
         return proxy
 
     def _filterDevice(self, device):
@@ -334,24 +342,34 @@ class CollectorConfigService(HubService, ThresholdMixin):
         @rtype: boolean
         """
         try:
-            return device.monitorDevice() and \
-                   (not self.configFilter or self.configFilter(device))
+            return device.monitorDevice() and (
+                not self.configFilter or self.configFilter(device)
+            )
         except AttributeError as e:
-            self.log.warn("got an attribute exception on device.monitorDevice()")
+            self.log.warn(
+                "got an attribute exception on device.monitorDevice()"
+            )
             self.log.debug(e)
         return False
 
     def _getOptionsFilter(self, options):
-        deviceFilter = lambda x: True
+        def _alwaysTrue(x):
+            return True
+
+        deviceFilter = _alwaysTrue
         if options:
-            dispatchFilterName = options.get('configDispatch', '') if options else ''
-            filterFactories = dict(component.getUtilitiesFor(IConfigurationDispatchingFilter))
-            filterFactory = filterFactories.get(dispatchFilterName, None) or \
-                            filterFactories.get('', None)
+            dispatchFilterName = (
+                options.get("configDispatch", "") if options else ""
+            )
+            filterFactories = dict(
+                component.getUtilitiesFor(IConfigurationDispatchingFilter)
+            )
+            filterFactory = filterFactories.get(
+                dispatchFilterName, None
+            ) or filterFactories.get("", None)
             if filterFactory:
                 deviceFilter = filterFactory.getFilter(options) or deviceFilter
         return deviceFilter
-
 
     def _filterDevices(self, devices):
         """
@@ -373,9 +391,10 @@ class CollectorConfigService(HubService, ThresholdMixin):
                     filteredDevices.append(device)
                     self.log.debug("Device %s included by filter", device.id)
                 else:
-                    # don't use .id just in case there is something crazy returned
+                    # don't use .id just in case there is something
+                    # crazy returned.
                     self.log.debug("Device %r excluded by filter", device)
-            except Exception as e:
+            except Exception:
                 if self.log.isEnabledFor(logging.DEBUG):
                     self.log.exception("Got an exception filtering %r", dev)
                 else:
@@ -388,8 +407,10 @@ class CollectorConfigService(HubService, ThresholdMixin):
         or if the device's associated monitor has a name matching this
         collector's name.  Otherise, return False.
         """
-        return (not hasattr(obj, 'perfServer')
-                or obj.perfServer.getRelatedId() == self.instance)
+        return (
+            not hasattr(obj, "perfServer")
+            or obj.perfServer.getRelatedId() == self.instance
+        )
 
     def _notifyAll(self, object):
         """
@@ -411,25 +432,54 @@ class CollectorConfigService(HubService, ThresholdMixin):
         else:
             proxies = None
 
-        prev_collector = device.dmd.Monitors.primaryAq().getPreviousCollectorForDevice(device.id)
+        prev_collector = (
+            device.dmd.Monitors.primaryAq().getPreviousCollectorForDevice(
+                device.id
+            )
+        )
         for listener in self.listeners:
             if not proxies:
-                if hasattr(device, 'getPerformanceServer'):
-                    # The invalidation is only sent to the previous and current collectors
-                    if self.instance in ( prev_collector, device.getPerformanceServer().getId() ):
-                        self.log.debug('Invalidation: Performing remote call for device %s on collector %s', device.id, self.instance)
-                        deferreds.append(listener.callRemote('deleteDevice', device.id))
+                if hasattr(device, "getPerformanceServer"):
+                    # The invalidation is only sent to the previous and
+                    # current collectors.
+                    if self.instance in (
+                        prev_collector,
+                        device.getPerformanceServer().getId(),
+                    ):
+                        self.log.debug(
+                            "Invalidation: Performing remote call for "
+                            "device %s on collector %s",
+                            device.id,
+                            self.instance,
+                        )
+                        deferreds.append(
+                            listener.callRemote("deleteDevice", device.id)
+                        )
                     else:
-                        self.log.debug('Invalidation: Skipping remote call for device %s on collector %s', device.id, self.instance)
+                        self.log.debug(
+                            "Invalidation: Skipping remote call for "
+                            "device %s on collector %s",
+                            device.id,
+                            self.instance,
+                        )
                 else:
-                    deferreds.append(listener.callRemote('deleteDevice', device.id))
-                    self.log.debug('Invalidation: Performing remote call for device %s on collector %s', device.id, self.instance)
+                    deferreds.append(
+                        listener.callRemote("deleteDevice", device.id)
+                    )
+                    self.log.debug(
+                        "Invalidation: Performing remote call for "
+                        "device %s on collector %s",
+                        device.id,
+                        self.instance,
+                    )
             else:
                 options = self.listenerOptions.get(listener, None)
                 deviceFilter = self._getOptionsFilter(options)
                 for proxy in proxies:
                     if deviceFilter(proxy):
-                        deferreds.append(self._sendDeviceProxy(listener, proxy))
+                        deferreds.append(
+                            self._sendDeviceProxy(listener, proxy)
+                        )
 
         return defer.DeferredList(deferreds)
 
@@ -437,24 +487,28 @@ class CollectorConfigService(HubService, ThresholdMixin):
         """
         TODO
         """
-        return listener.callRemote('updateDeviceConfig', proxy)
+        return listener.callRemote("updateDeviceConfig", proxy)
 
     def sendDeviceConfigs(self, configs):
         deferreds = []
 
         def errback(failure):
-            self.log.critical("Unable to update configs for service instance %s: %s",
-                    self.__class__.__name__, failure)
+            self.log.critical(
+                "Unable to update configs for service instance %s: %s",
+                self.__class__.__name__,
+                failure,
+            )
 
         for listener in self.listeners:
             options = self.listenerOptions.get(listener, None)
             deviceFilter = self._getOptionsFilter(options)
             filteredConfigs = filter(deviceFilter, configs)
             args = Zipper.dump(filteredConfigs)
-            d = listener.callRemote('updateDeviceConfigs', args).addErrback(errback)
+            d = listener.callRemote("updateDeviceConfigs", args).addErrback(
+                errback
+            )
             deferreds.append(d)
         return deferreds
-
 
     # FIXME: Don't use _getNotifiableClasses, use @onUpdate(myclasses)
     def _getNotifiableClasses(self):
@@ -471,16 +525,21 @@ class CollectorConfigService(HubService, ThresholdMixin):
         """
         notify the collector to reread the entire configuration
         """
-        #value is unused but needed for the procrastinator framework
+        # value is unused but needed for the procrastinator framework
         for listener in self.listeners:
-            listener.callRemote('notifyConfigChanged')
+            listener.callRemote("notifyConfigChanged")
         self._reconfigProcrastinator.clear()
 
     def _reconfigureIfNotify(self, object):
         ncc = self._notifyConfigChange(object)
-        self.log.debug("services/config.py _reconfigureIfNotify object=%r _notifyConfigChange=%s", object, ncc)
+        self.log.debug(
+            "services/config.py _reconfigureIfNotify object=%r "
+            "_notifyConfigChange=%s",
+            object,
+            ncc,
+        )
         if ncc:
-            self.log.debug('scheduling collector reconfigure')
+            self.log.debug("scheduling collector reconfigure")
             self._reconfigProcrastinator.doLater(True)
 
     def _notifyConfigChange(self, object):
@@ -493,11 +552,58 @@ class CollectorConfigService(HubService, ThresholdMixin):
         return True
 
 
+class _HasTemplate(object):
+    """Predicate class that checks whether a given device has a template
+    matching the given template.
+    """
+
+    def __init__(self, template, log):
+        self.template = template
+        self.log = log
+
+    def __call__(self, device):
+        if issubclass(self.template.getTargetPythonClass(), Device):
+            if self.template in device.getRRDTemplates():
+                self.log.debug(
+                    "%s bound to template %s",
+                    device.getPrimaryId(),
+                    self.template.getPrimaryId(),
+                )
+                return True
+            else:
+                self.log.debug(
+                    "%s not bound to template %s",
+                    device.getPrimaryId(),
+                    self.template.getPrimaryId(),
+                )
+                return False
+        else:
+            # check components, Too expensive?
+            for comp in device.getMonitoredComponents(
+                type=self.template.getTargetPythonClass().meta_type
+            ):
+                if self.template in comp.getRRDTemplates():
+                    self.log.debug(
+                        "%s bound to template %s",
+                        comp.getPrimaryId(),
+                        self.template.getPrimaryId(),
+                    )
+                    return True
+                else:
+                    self.log.debug(
+                        "%s not bound to template %s",
+                        comp.getPrimaryId(),
+                        self.template.getPrimaryId(),
+                    )
+            return False
+
+
 class NullConfigService(CollectorConfigService):
     """
     The collector framework requires a configuration service, but some
     daemons do not need any configuration.
     """
+
     def __init__(self, dmd, instance):
         CollectorConfigService.__init__(self, dmd, instance)
 
