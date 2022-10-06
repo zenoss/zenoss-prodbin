@@ -7,32 +7,32 @@
 #
 ##############################################################################
 
-
 import logging
 import os
 import time
 
 import transaction
+
+from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.task import LoopingCall
-from twisted.internet import reactor
 
+from Products.ZenCallHome.CallHomeStatus import CallHomeStatus
 from Products.ZenCallHome.transport import CallHome
 from Products.ZenCallHome.transport.methods.directpost import direct_post
 from Products.ZenUtils.Utils import zenPath
 from Products.Zuul.utils import safe_hasattr
-from Products.ZenCallHome.CallHomeStatus import CallHomeStatus
 
 # number of seconds between metrics updates
-GATHER_METRICS_INTERVAL = 60*60*24*30
+GATHER_METRICS_INTERVAL = 60 * 60 * 24 * 30
 
-logger = logging.getLogger('zen.callhome')
+logger = logging.getLogger("zen.callhome")
 
 
 class CallHomeCycler(object):
     def __init__(self, dmd):
         self.dmd = dmd
-        if not safe_hasattr(dmd, 'callHome') or dmd.callHome is None:
+        if not safe_hasattr(dmd, "callHome") or dmd.callHome is None:
             dmd._p_jar.sync()
             CallHome(dmd).callHome
             transaction.commit()
@@ -50,30 +50,29 @@ class CallHomeCycler(object):
             self.dmd._p_jar.sync()
             # Start metrics gather if needed
             if (
-                 (
-                  now - self.callhome.lastMetricsGather >
-                  GATHER_METRICS_INTERVAL
-                  or
-                  self.callhome.requestMetricsGather
-                 )
-                 and not
-                 self.gatherProtocol
-               ):
+                now - self.callhome.lastMetricsGather > GATHER_METRICS_INTERVAL
+                or self.callhome.requestMetricsGather
+            ) and not self.gatherProtocol:
                 self.gatherProtocol = GatherMetricsProtocol()
                 self.callhome.requestMetricsGather = True
 
             # Update metrics if run complete
-            if self.gatherProtocol and (self.gatherProtocol.data or
-                                        self.gatherProtocol.failed):
+            if self.gatherProtocol and (
+                self.gatherProtocol.data or self.gatherProtocol.failed
+            ):
                 chs.stage(chs.GPROTOCOL)
                 if not self.gatherProtocol.failed:
                     self.callhome.metrics = self.gatherProtocol.data
                 try:
                     chs.stage(chs.GPROTOCOL, "FINISHED")
                     chs.stage(chs.UPDATE_REPORT, "FINISHED")
-                    chs.updateStat('lastTook', int(time.time()) - chs.getStat('startedAt'))
+                    chs.updateStat(
+                        "lastTook", int(time.time()) - chs.getStat("startedAt")
+                    )
                 except Exception as e:
-                    logger.warning("Callhome cycle status update failed: '%r'", e)
+                    logger.warning(
+                        "Callhome cycle status update failed: '%r'", e
+                    )
                 self.callhome.lastMetricsGather = now
                 self.callhome.requestMetricsGather = False
                 self.gatherProtocol = None
@@ -88,15 +87,15 @@ class CallHomeCycler(object):
 
 
 class GatherMetricsProtocol(ProcessProtocol):
-
     def __init__(self):
         self.data = None
         self.failed = False
         self.output = []
         self.error = []
-        chPath = zenPath('Products', 'ZenCallHome', 'callhome.py')
-        reactor.spawnProcess(self, 'python', args=['python', chPath, '-M'],
-                             env=os.environ)
+        chPath = zenPath("Products", "ZenCallHome", "callhome.py")
+        reactor.spawnProcess(
+            self, "python", args=["python", chPath, "-M"], env=os.environ
+        )
 
     def outReceived(self, data):
         self.output.append(data)
@@ -105,11 +104,17 @@ class GatherMetricsProtocol(ProcessProtocol):
         self.error.append(data)
 
     def processEnded(self, reason):
-        out = ''.join(self.output)
-        err = ''.join(self.error)
+        out = "".join(self.output)
+        err = "".join(self.error)
         if reason.value.exitCode != 0:
             self.failed = True
-            logger.warning(('Callhome metrics gathering failed: ' +
-                            'stdout: %s, stderr: %s'), out, err)
+            logger.warning(
+                (
+                    "Callhome metrics gathering failed: "
+                    + "stdout: %s, stderr: %s"
+                ),
+                out,
+                err,
+            )
         else:
             self.data = out

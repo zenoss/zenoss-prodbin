@@ -7,20 +7,26 @@
 #
 ##############################################################################
 
-
+import logging
 import time
-from Products.ZenCallHome import (IZenossData, IDeviceResource,
-                                  IDeviceCpuCount, IDeviceType,
-                                  IVirtualDeviceType)
-from zope.interface import implements
-from zope.component import subscribers, getAdapters
-from Products.Zuul import getFacade
-from Products.ZenModel.DeviceComponent import DeviceComponent
+
 from itertools import chain
 
-import logging
-from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from zenoss.protocols.services.zep import ZepConnectionError
+from zope.interface import implements
+from zope.component import subscribers, getAdapters
+
+from Products.ZenCallHome import (
+    IDeviceCpuCount,
+    IDeviceResource,
+    IDeviceType,
+    IVirtualDeviceType,
+    IZenossData,
+)
+from Products.ZenModel.DeviceComponent import DeviceComponent
+from Products.Zuul import getFacade
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+
 from . import IDeviceLink
 
 log = logging.getLogger("zen.callhome")
@@ -32,33 +38,36 @@ class ZenossAppData(object):
     def callHomeData(self, dmd):
         self.dmd = dmd
         self._catalog = IModelCatalogTool(self.dmd)
-        stats = (self.server_key,
-                 self.google_key,
-                 self.all_versions,
-                 self.event_classes,
-                 self.event_count,
-                 self.reports,
-                 self.templates,
-                 self.systems,
-                 self.groups,
-                 self.locations,
-                 self.total_collectors,
-                 self.zenpacks,
-                 self.user_count,
-                 self.product_count,
-                 self.product_name,
-                 self.components)
+        stats = (
+            self.server_key,
+            self.google_key,
+            self.all_versions,
+            self.event_classes,
+            self.event_count,
+            self.reports,
+            self.templates,
+            self.systems,
+            self.groups,
+            self.locations,
+            self.total_collectors,
+            self.zenpacks,
+            self.user_count,
+            self.product_count,
+            self.product_name,
+            self.components,
+        )
         return chain.from_iterable(map(lambda fn: fn(), stats))
 
     def components(self):
-        brains = self._catalog.search(types=(DeviceComponent,), facets_for_field=["meta_type"])
+        brains = self._catalog.search(
+            types=(DeviceComponent,), facets_for_field=["meta_type"]
+        )
         if brains.facets and brains.facets.get("meta_type"):
             facets = brains.facets["meta_type"]
             comps = facets.get_values()
             for comp, count in comps.iteritems():
                 if count > 0:
-                    yield ("Components",
-                        "{}: {}".format(comp, count))
+                    yield ("Components", "{}: {}".format(comp, count))
 
         yield ("Components:", [])
 
@@ -67,7 +76,8 @@ class ZenossAppData(object):
 
     def product_count(self):
         manufacturers = self.dmd.Manufacturers.objectValues(
-                        spec='Manufacturer')
+            spec="Manufacturer"
+        )
         prodCount = 0
         for m in manufacturers:
             prodCount += m.products.countObjects()
@@ -75,7 +85,9 @@ class ZenossAppData(object):
         yield "Product Count", prodCount
 
     def user_count(self):
-        yield "User Count", len(self.dmd.ZenUsers.objectValues(spec="UserSettings"))
+        yield "User Count", len(
+            self.dmd.ZenUsers.objectValues(spec="UserSettings")
+        )
 
     def server_key(self):
         key = self.dmd.uuid or "NOT ACTIVATED"
@@ -86,16 +98,21 @@ class ZenossAppData(object):
 
     def zenpacks(self):
         for zenpack in self.dmd.ZenPackManager.packs():
-            yield ("Zenpack",
-                   "{zenpack.id} {zenpack.version}".format(**locals()))
+            yield (
+                "Zenpack",
+                "{zenpack.id} {zenpack.version}".format(**locals()),
+            )
 
     def all_versions(self):
-        zenoss_version, cc_version = self.dmd.About.getZenossVersion(), self.dmd.About.getControlCenterVersion()
+        zenoss_version, cc_version = (
+            self.dmd.About.getZenossVersion(),
+            self.dmd.About.getControlCenterVersion(),
+        )
         yield zenoss_version.name, zenoss_version.full()
         yield cc_version.name, cc_version.full()
 
     def event_classes(self):
-        yield 'Evt Mappings', self.dmd.Events.countInstances()
+        yield "Evt Mappings", self.dmd.Events.countInstances()
 
     def reports(self):
         yield "Reports", self.dmd.Reports.countReports()
@@ -117,16 +134,21 @@ class ZenossAppData(object):
         yield "Collectors", len(results)
 
     def event_count(self):
-        zep = getFacade('zep', self.dmd)
+        zep = getFacade("zep", self.dmd)
         try:
-            yield ("Event Count",
-                   zep.countEventsSince(time.time() - 24 * 60 * 60))
+            yield (
+                "Event Count",
+                zep.countEventsSince(time.time() - 24 * 60 * 60),
+            )
         except ZepConnectionError:
             yield "Event Count: last 24hr", "Not Available"
 
-VM_MACS = {"00:0C:29": 'VMware Guest',
-           "00:50:56": 'VMware Guest',
-           "00:16:3e": 'Xen Guest'}
+
+VM_MACS = {
+    "00:0C:29": "VMware Guest",
+    "00:50:56": "VMware Guest",
+    "00:16:3e": "Xen Guest",
+}
 
 
 class MacAddressVirtualDeviceType(object):
@@ -164,7 +186,7 @@ class DeviceType(object):
         return self._isVM
 
     def type(self):
-        dType = 'Physical'
+        dType = "Physical"
         if self._isVM is None:
             self.isVM()
         if self._vmType:
@@ -200,8 +222,10 @@ class DeviceClassProductionStateCount(object):
         self._device = device
 
     def processDevice(self, stats):
-        key = "%s: %s" % (self._device.getDeviceClassPath(),
-                          self._device.getProductionStateString())
+        key = "%s: %s" % (
+            self._device.getDeviceClassPath(),
+            self._device.getProductionStateString(),
+        )
         stats.setdefault(key, 0)
         stats[key] += 1
 
@@ -234,26 +258,32 @@ class ZenossResourceData(object):
             yield key, value
 
     def _process_devices(self):
-        stats = {'Device Count': 0,
-                 'Decommissioned Devices': 0,
-                 'CPU Cores': 0}
+        stats = {
+            "Device Count": 0,
+            "Decommissioned Devices": 0,
+            "CPU Cores": 0,
+        }
         LINKED_DEVICES = "Linked Devices"
         if LINKED_DEVICES not in stats:
             stats[LINKED_DEVICES] = 0
         for device in self._dmd.Devices.getSubDevicesGen_recursive():
             if device.getDeviceClassPath() == "/SRE":
                 continue
-            stats['Device Count'] += 1
+            stats["Device Count"] += 1
             if device.getProductionState() < 0:
                 stats["Decommissioned Devices"] += 1
             cpuCount = IDeviceCpuCount(device).cpuCount()
             log.debug("Devices %s has %s cpu cores", device, cpuCount)
-            stats['CPU Cores'] += cpuCount
+            stats["CPU Cores"] += cpuCount
             for adapter in subscribers([device], IDeviceResource):
                 adapter.processDevice(stats)
             found_linked = False
             for name, adapter in getAdapters((device,), IDeviceLink):
-                if adapter.linkedDevice() and adapter.linkedDevice().device().getProductionState() > 0:
+                if (
+                    adapter.linkedDevice()
+                    and adapter.linkedDevice().device().getProductionState()
+                    > 0
+                ):
                     key = "%s - %s" % (LINKED_DEVICES, name)
                     if key not in stats:
                         stats[key] = 0
