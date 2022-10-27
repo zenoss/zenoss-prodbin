@@ -17,14 +17,16 @@ from twisted.python.failure import Failure
 from Products.ZenHub.server.service import ServiceCall
 
 from ..workerpool import (
-    RemoteServiceRegistry, WorkerPool, WorkerRef, WorkerAvailabilityQueue,
+    RemoteServiceRegistry,
+    WorkerPool,
+    WorkerRef,
+    WorkerAvailabilityQueue,
 )
 
-PATH = {'src': 'Products.ZenHub.server.workerpool'}
+PATH = {"src": "Products.ZenHub.server.workerpool"}
 
 
 class WorkerPoolTest(TestCase):  # noqa: D101
-
     def setUp(self):
         self.queue = "default"
         self.pool = WorkerPool(self.queue)
@@ -180,8 +182,9 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertIs(worker_ref.ref, worker)
 
     def test_hire_no_available_workers(self):
-        with patch.object(WorkerPool, "available", return_value=0)\
-                as available:
+        with patch.object(
+            WorkerPool, "available", return_value=0
+        ) as available:
             pool = WorkerPool(self.queue)
             worker = Mock(workerId=1, sessionId="1")
             pool.add(worker)
@@ -236,8 +239,8 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertEqual(len(self.pool), 1)
 
     def test_handleReportStatus(self):
-        worker_1 = Mock(name='worker_1')
-        worker_2 = Mock(name='worker_2')
+        worker_1 = Mock(name="worker_1")
+        worker_2 = Mock(name="worker_2")
         self.pool.add(worker_1)
         self.pool.add(worker_2)
 
@@ -248,7 +251,6 @@ class WorkerPoolTest(TestCase):  # noqa: D101
 
 
 class RemoteServiceRegistryTest(TestCase):  # noqa: D101
-
     def setUp(self):
         self.worker = Mock(workerId=1, sessionId="1")
         self.registry = RemoteServiceRegistry(self.worker)
@@ -275,15 +277,17 @@ class RemoteServiceRegistryTest(TestCase):  # noqa: D101
 
         # Note: 'callRemote' is called only once per (service, method).
         self.worker.callRemote.assert_called_once_with(
-            "getService", name, monitor,
+            "getService",
+            name,
+            monitor,
         )
 
 
 class WorkerRefTest(TestCase):  # noqa: D101
-
     def setUp(self):
         self.getLogger_patcher = patch(
-            "{src}.getLogger".format(**PATH), autospec=True,
+            "{src}.getLogger".format(**PATH),
+            autospec=True,
         )
         self.getLogger = self.getLogger_patcher.start()
         self.addCleanup(self.getLogger_patcher.stop)
@@ -306,7 +310,8 @@ class WorkerRefTest(TestCase):  # noqa: D101
             monitor="localhost",
             service="service",
             method="method",
-            args=[], kwargs={},
+            args=[],
+            kwargs={},
         )
         expected_result = service.callRemote.return_value
 
@@ -316,7 +321,8 @@ class WorkerRefTest(TestCase):  # noqa: D101
         self.assertTrue(dfr.called)
         self.assertEqual(dfr.result, expected_result)
         self.services.lookup.assert_called_once_with(
-            call.service, call.monitor,
+            call.service,
+            call.monitor,
         )
         service.callRemote.assert_called_once_with(call.method)
 
@@ -327,7 +333,8 @@ class WorkerRefTest(TestCase):  # noqa: D101
             monitor="localhost",
             service="service",
             method="method",
-            args=['arg'], kwargs={'arg': 1},
+            args=["arg"],
+            kwargs={"arg": 1},
         )
         expected_result = service.callRemote.return_value
 
@@ -337,10 +344,13 @@ class WorkerRefTest(TestCase):  # noqa: D101
         self.assertTrue(dfr.called)
         self.assertEqual(dfr.result, expected_result)
         self.services.lookup.assert_called_once_with(
-            call.service, call.monitor,
+            call.service,
+            call.monitor,
         )
         service.callRemote.assert_called_once_with(
-            call.method, call.args[0], arg=call.kwargs['arg'],
+            call.method,
+            call.args[0],
+            arg=call.kwargs["arg"],
         )
 
     def test_run_lookup_failure(self):
@@ -350,7 +360,8 @@ class WorkerRefTest(TestCase):  # noqa: D101
             monitor="localhost",
             service="the_service",
             method="method",
-            args=[], kwargs={},
+            args=[],
+            kwargs={},
         )
 
         result = []
@@ -358,7 +369,8 @@ class WorkerRefTest(TestCase):  # noqa: D101
         dfr.addErrback(lambda x: result.append(x))
 
         self.services.lookup.assert_called_once_with(
-            call.service, call.monitor,
+            call.service,
+            call.monitor,
         )
         self.assertEqual(len(result), 1)
         failure = result[0]
@@ -368,7 +380,10 @@ class WorkerRefTest(TestCase):  # noqa: D101
         self.logger.error.assert_called_once_with(
             "Failed to retrieve remote service "
             "service=%s worker=%s error=(%s) %s",
-            call.service, 1, "ValueError", expected_error,
+            call.service,
+            1,
+            "ValueError",
+            expected_error,
         )
 
     def test_run_callremote_failure(self):
@@ -378,7 +393,8 @@ class WorkerRefTest(TestCase):  # noqa: D101
             monitor="localhost",
             service="service",
             method="method",
-            args=[], kwargs={},
+            args=[],
+            kwargs={},
         )
         expected_error = ValueError("boom")
         service.callRemote.side_effect = expected_error
@@ -388,7 +404,8 @@ class WorkerRefTest(TestCase):  # noqa: D101
         dfr.addErrback(lambda x: result.append(x))
 
         self.services.lookup.assert_called_once_with(
-            call.service, call.monitor,
+            call.service,
+            call.monitor,
         )
         service.callRemote.assert_called_once_with(call.method)
         self.assertEqual(len(result), 1)
@@ -399,8 +416,12 @@ class WorkerRefTest(TestCase):  # noqa: D101
         self.logger.error.assert_called_once_with(
             "Failed to execute remote method "
             "service=%s method=%s id=%s worker=%s error=(%s) %s",
-            call.service, call.method, call.id.hex, 1,
-            "ValueError", expected_error,
+            call.service,
+            call.method,
+            call.id.hex,
+            1,
+            "ValueError",
+            expected_error,
         )
 
 

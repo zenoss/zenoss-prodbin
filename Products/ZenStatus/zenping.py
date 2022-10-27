@@ -9,47 +9,49 @@
 #
 #
 
-
-__doc__ = """zenping
+"""zenping
 
 Determines the availability of a IP addresses using ping (ICMP).
 
 """
-import sys
-import os.path
-import logging
-log = logging.getLogger("zen.zenping")
 
-import zope.interface
+import logging
+import os.path
+import sys
+
 import zope.component
 
 from Products import ZenStatus
-from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector import tasks
+from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenUtils import IpUtil
 from Products.ZenUtils.FileCache import FileCache
+from Products.ZenUtils.Utils import unused, zenPath
 
 # perform some imports to allow twisted's PB to serialize these objects
-from Products.ZenUtils.Utils import unused, zenPath
 from Products.ZenCollector.services.config import DeviceProxy
-from Products.ZenHub.services.PingPerformanceConfig import PingPerformanceConfig
+from Products.ZenHub.services.PingPerformanceConfig import (
+    PingPerformanceConfig,
+)
+
 unused(DeviceProxy)
 unused(PingPerformanceConfig)
 
 # define some constants strings
 COLLECTOR_NAME = "zenping"
-CONFIG_SERVICE = 'Products.ZenHub.services.PingPerformanceConfig'
+CONFIG_SERVICE = "Products.ZenHub.services.PingPerformanceConfig"
+
+log = logging.getLogger("zen.zenping")
 
 
 class PingDaemon(CollectorDaemon):
-
     def runPostConfigTasks(self, result=None):
         CollectorDaemon.runPostConfigTasks(self, result=result)
         self.preferences.runPostConfigTasks()
 
 
 class PerIpAddressTaskSplitter(tasks.SubConfigurationTaskSplitter):
-    subconfigName = 'monitoredIps'
+    subconfigName = "monitoredIps"
 
     def makeConfigKey(self, config, subconfig):
         return config.id, subconfig.cycleTime, IpUtil.ipunwrap(subconfig.ip)
@@ -61,8 +63,12 @@ def getConfigOption(filename, option, default):
     """
     if not os.path.exists(filename):
         return default
-    with open(filename, 'r') as f:
-        lines = [line.strip() for line in f.readlines() if not line.startswith('#') and line]
+    with open(filename, "r") as f:
+        lines = [
+            line.strip()
+            for line in f.readlines()
+            if not line.startswith("#") and line
+        ]
         for line in reversed(lines):
             parts = line.split()
             if len(parts):
@@ -85,7 +91,7 @@ def getCmdOption(option, default):
             if arg == optionStr:
                 return sys.argv[i + 1]
             elif arg.startswith(optionStrEq):
-                return arg.split('=', 1)[1]
+                return arg.split("=", 1)[1]
     except IndexError:
         pass
     return default
@@ -96,24 +102,33 @@ def getPingBackend():
     Introspect the command line args to find --ping-backend because
     buildOptions doesn't get called until later.
     """
-    configFiles = ['global.conf', 'zenping.conf']
-    backend = 'nmap'
+    configFiles = ["global.conf", "zenping.conf"]
+    backend = "nmap"
     for configFile in configFiles:
-        backend = getConfigOption(zenPath('etc', configFile), 'ping-backend', backend)
+        backend = getConfigOption(
+            zenPath("etc", configFile), "ping-backend", backend
+        )
     return backend
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    # load zcml for the product
-    import Products.ZenossStartup
+    from OFS.Application import import_products
     from Zope2.App import zcml
+    from Products.ZenUtils.zenpackload import load_zenpacks
+
+    import_products
+    load_zenpacks()
     zcml.load_site()
+
     pingBackend = getPingBackend()
 
     myPreferences = zope.component.getUtility(
-        ZenStatus.interfaces.IPingCollectionPreferences, pingBackend)
-    myTaskFactory = zope.component.getUtility(ZenStatus.interfaces.IPingTaskFactory, pingBackend)
+        ZenStatus.interfaces.IPingCollectionPreferences, pingBackend
+    )
+    myTaskFactory = zope.component.getUtility(
+        ZenStatus.interfaces.IPingTaskFactory, pingBackend
+    )
     myTaskSplitter = PerIpAddressTaskSplitter(myTaskFactory)
 
     myDaemon = PingDaemon(
@@ -123,7 +138,7 @@ if __name__ == '__main__':
     )
 
     # add trace cache to preferences, so tasks can find it
-    traceCachePath = zenPath('var', 'zenping', myDaemon.options.monitor)
+    traceCachePath = zenPath("var", "zenping", myDaemon.options.monitor)
     myPreferences.options.traceCache = FileCache(traceCachePath)
 
     myDaemon.run()

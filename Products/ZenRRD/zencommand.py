@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 ##############################################################################
 #
 # Copyright (C) Zenoss, Inc. 2007, 2009, 2010, 2012,  all rights reserved.
@@ -69,10 +70,8 @@ log = logging.getLogger("zen.zencommand")
 
 @implementer(ICollectorPreferences)
 class SshPerformanceCollectionPreferences(object):
-
     def __init__(self):
-        """Initialize a SshPerformanceCollectionPreferences instance.
-        """
+        """Initialize a SshPerformanceCollectionPreferences instance."""
         self.collectorName = COLLECTOR_NAME
         self.configCycleInterval = 20  # minutes
         self.cycleInterval = 5 * 60  # seconds
@@ -412,9 +411,7 @@ class SshPerformanceCollectionTask(BaseTask):
 
         # Associate commands to datasources.
         # Set _commandMap *after* _chosenDatasource has been set.
-        self._commandMap = _groupCommands(
-            self.getDatasources(), self._device,
-        )
+        self._commandMap = _groupCommands(self.getDatasources(), self._device)
 
         self._executor = makeExecutor(limit=taskConfig.zSshConcurrentSessions)
 
@@ -424,9 +421,10 @@ class SshPerformanceCollectionTask(BaseTask):
         self.manage_ip_event = {
             "eventClass": Cmd_Fail,
             "device": self._devId,
-            "summary":
+            "summary": (
                 "IP address not set, collection will be attempted "
-                "with host name",
+                "with host name"
+            ),
             "component": COLLECTOR_NAME,
             "eventKey": "Empty_IP_address",
         }
@@ -451,22 +449,30 @@ class SshPerformanceCollectionTask(BaseTask):
         @return: Deferred actions to run against a device configuration
         @rtype: Twisted deferred object
         """
+
         if self._scheduler.cyberark:
             old_pass = self._device.zCommandPassword
             old_name = self._device.zCommandUsername
             yield self._scheduler.cyberark.update_config(
-                self._devId, self._device,
+                self._devId, self._device
             )
-            if (old_pass != self._device.zCommandPassword or old_name != self._device.zCommandUsername):
+            if (
+                old_pass != self._device.zCommandPassword
+                or old_name != self._device.zCommandUsername
+            ):
                 self._connector.close()
-                self.__init__(self.name, self.configId, self.interval, self._device)
+                self.__init__(
+                    self.name, self.configId, self.interval, self._device
+                )
 
         log.debug(
             "Starting collection task  device=%s interval=%s",
-            self._devId, self.interval,
+            self._devId,
+            self.interval,
         )
         self._doTask_start = datetime.now()
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
+
         try:
             if not self._manageIp and self._useSsh:
                 self._eventService.sendEvent(
@@ -499,18 +505,27 @@ class SshPerformanceCollectionTask(BaseTask):
                     self._connector.close()
                     log.info(
                         "Connection closed  device=%s reason=%s",
-                        self._devId, "timeout",
+                        self._devId,
+                        "timeout",
                     )
+
+        except defer.CancelledError:
+            message = "Twisted deferred was cancelled."
+            log.debug(
+                "Connection lost  device=%s ip=%s interval=%s description=%s",
+                self._devId,
+                self._manageIp,
+                self.interval,
+                message,
+            )
 
         except Exception as e:
             self.state = TaskStates.STATE_PAUSED
-            err_msg = (
-                "Task paused  device=%s ip=%s interval=%s message=%s" % (
-                    self._devId,
-                    self._manageIp,
-                    self.interval,
-                    e.message,
-                )
+            err_msg = "Task paused  device=%s ip=%s interval=%s message=%s" % (
+                self._devId,
+                self._manageIp,
+                self.interval,
+                e,
             )
             if log.isEnabledFor(logging.DEBUG):
                 log.exception(err_msg)
@@ -519,7 +534,7 @@ class SshPerformanceCollectionTask(BaseTask):
             self._eventService.sendEvent(
                 STATUS_EVENT,
                 device=self._devId,
-                summary=e.message,
+                summary=str(e),
                 component=COLLECTOR_NAME,
                 severity=Error,
             )
@@ -570,8 +585,7 @@ class SshPerformanceCollectionTask(BaseTask):
         processes the results.
         """
         log.debug(
-            "Fetching data  device=%s interval=%s",
-            self._devId, self.interval,
+            "Fetching data  device=%s interval=%s", self._devId, self.interval
         )
         self.state = SshPerformanceCollectionTask.STATE_FETCH_DATA
 
@@ -666,7 +680,8 @@ class SshPerformanceCollectionTask(BaseTask):
         """
         log.debug(
             "Parsing fetched data  device=%s interval=%s",
-            self._devId, self.interval,
+            self._devId,
+            self.interval,
         )
         self.state = SshPerformanceCollectionTask.STATE_PARSE_DATA
 
@@ -720,7 +735,7 @@ class SshPerformanceCollectionTask(BaseTask):
 
     def _unexpected_error_result(self, response, datasource):
         event = makeCmdEvent(
-            self._devId, datasource, "Unexpected result from command",
+            self._devId, datasource, "Unexpected result from command"
         )
         event["result"] = str(response)
         if self._showfullcommand:
@@ -770,7 +785,8 @@ class SshPerformanceCollectionTask(BaseTask):
         # OSProcess matching the same process
         if ds.name == "OSProcess/ps":
             return self._process_os_processes_results_in_sequence(
-                datasources, response,
+                datasources,
+                response,
             )
 
         results = []
@@ -819,20 +835,22 @@ class SshPerformanceCollectionTask(BaseTask):
             parser.preprocessResults(datasource, log)
             parser.processResults(datasource, parsed)
 
-            if (
-                not parsed.events
-                and parser.createDefaultEventUsingExitCode
-            ):
+            if not parsed.events and parser.createDefaultEventUsingExitCode:
                 if exitCode == 0:
                     msg = ""
                     severity = Clear
                 else:
                     msg = "Datasource: %s - Code: %s - Msg: %s" % (
-                        datasource.name, exitCode, getExitMessage(exitCode),
+                        datasource.name,
+                        exitCode,
+                        getExitMessage(exitCode),
                     )
                     severity = datasource.severity
                 event = makeCmdEvent(
-                    self._devId, datasource, msg, severity=severity,
+                    self._devId,
+                    datasource,
+                    msg,
+                    severity=severity,
                 )
                 parsed.events.append(event)
 
@@ -859,10 +877,12 @@ class SshPerformanceCollectionTask(BaseTask):
             parsed.events.append(event)
         else:
             # Determine whether a non-timeout related event exists.
-            hasNonTimeoutEvent = any((
-                event.get("eventKey") == datasource.eventKey
-                for event in parsed.events
-            ))
+            hasNonTimeoutEvent = any(
+                (
+                    event.get("eventKey") == datasource.eventKey
+                    for event in parsed.events
+                )
+            )
             if not hasNonTimeoutEvent:
                 # No existing non-timeout event, so add a Clear event to
                 # clear any prior events on this datasource.
@@ -887,7 +907,8 @@ class SshPerformanceCollectionTask(BaseTask):
         """
         log.debug(
             "Store parsed data  device=%s interval=%s",
-            self._devId, self.interval,
+            self._devId,
+            self.interval,
         )
         self.state = SshPerformanceCollectionTask.STATE_STORE_PERF
 
@@ -898,7 +919,9 @@ class SshPerformanceCollectionTask(BaseTask):
             for datasource, results in resultList:
                 log.debug(
                     "Store values  device=%s interval=%s datasource=%s",
-                    self._devId, self.interval, datasource.name,
+                    self._devId,
+                    self.interval,
+                    datasource.name,
                 )
                 for dp, value in results.values:
                     log.debug(
@@ -940,7 +963,9 @@ class SshPerformanceCollectionTask(BaseTask):
                             self.interval,
                             datasource.name,
                             dp.dpName,
-                            dp.metadata, e.__class__.__name__, e,
+                            dp.metadata,
+                            e.__class__.__name__,
+                            e,
                         )
 
                 # Send accumulated events

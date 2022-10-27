@@ -63,10 +63,7 @@ class WithoutUnicodeTest(TestCase):
         data = {
             "id": "woeijfoejf",
             "args": ["a", ["c", "f"]],
-            "info": [
-                {"a": 1},
-                {"b": {"d": "y", "e": 42}}
-            ],
+            "info": [{"a": 1}, {"b": {"d": "y", "e": 42}}],
         }
         dumped = without_unicode.dump(data)
         loaded = without_unicode.load(dumped)

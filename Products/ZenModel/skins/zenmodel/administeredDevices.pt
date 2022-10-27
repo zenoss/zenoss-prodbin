@@ -67,10 +67,10 @@ loader.insert({onSuccess:function(){
       tal:attributes="class python:odd and 'odd' or 'even'">
     <td class="tablevalues" align="left">
        <input type="hidden" name="ids" 
-              tal:attributes="value ur/managedObjectName"/>
+              tal:attributes="value python:ur.managedObject().getPrimaryDmdId()"/>
        <input type="checkbox" style="float:left" name="delids"
               tal:condition="editable"
-              tal:attributes="value ur/managedObjectName"/>
+              tal:attributes="value python:ur.managedObject().getPrimaryDmdId()"/>
         <div style="float:left" 
                 tal:define=" link python:ur.managedObject().getPrettyLink()"
                 tal:content="structure link"/>

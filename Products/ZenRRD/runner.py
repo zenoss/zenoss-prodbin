@@ -241,7 +241,8 @@ class SshRunner(object):
         self.connection = yield self._establishConnection()
         log.debug(
             "Connection established  device=%s manage-ip=%s",
-            self.deviceId, self.manageIp,
+            self.deviceId,
+            self.manageIp,
         )
         self.connection.tasks.add(self.task)
         # cleanUpPool called when connection is closed, see MySshClient
@@ -257,7 +258,8 @@ class SshRunner(object):
         if self._poolkey in self._pool:
             log.debug(
                 "Connector already in pool  device=%s pool-key=%s",
-                self.deviceId, self._poolkey,
+                self.deviceId,
+                self._poolkey,
             )
             defer.returnValue(None)
 
@@ -308,7 +310,8 @@ class SshRunner(object):
         self._deferred.addBoth(self.processEnded)
         log.debug(
             "Command sent  device=%s command=%r",
-            self.deviceId, datasource.command,
+            self.deviceId,
+            datasource.command,
         )
         return self._deferred
 
@@ -346,7 +349,8 @@ class SshRunner(object):
             del self._pool[self._poolkey]
             log.debug(
                 "Deleted connection from pool  device=%s connection=%s",
-                self.deviceId, connection,
+                self.deviceId,
+                connection,
             )
         if close and connection and hasattr(connection, "transport"):
             connection.transport.loseConnection()
@@ -358,7 +362,8 @@ class SshRunner(object):
         if isinstance(result, Failure):
             log.debug(
                 "Command failed  device=%s failure=%r",
-                self.deviceId, result,
+                self.deviceId,
+                result,
             )
             return result
 
@@ -371,7 +376,8 @@ class SshRunner(object):
             log.debug(
                 "Connection expired, cleaning up pool  "
                 "device=%s connection=%s",
-                self.deviceId, self.connection.description,
+                self.deviceId,
+                self.connection.description,
             )
             self.connection.is_expired = True
             self.cleanUpPool(close=True)

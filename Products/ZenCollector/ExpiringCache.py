@@ -6,6 +6,7 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
+
 import time
 
 
@@ -31,8 +32,7 @@ class ExpiringCache(object):
             self.set(key, value, asof=asof, set_fn=set_fn)
 
     def validate(self, key):
-        """Returns True if the key is still valid.
-        """
+        """Returns True if the key is still valid."""
         now = time.time()
         if key not in self.data:
             return False

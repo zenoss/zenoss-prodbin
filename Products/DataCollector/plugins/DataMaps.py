@@ -10,6 +10,7 @@
 import logging
 
 from pprint import pformat
+
 from twisted.spread import pb
 
 log = logging.getLogger("zen.plugins.DataMap")
@@ -34,7 +35,7 @@ class RelationshipMap(PBSafe):
         modname="",
         objmaps=[],
         parentId="",
-        plugin_name=""
+        plugin_name="",
     ):
         self.parentId = parentId
         self.relname = relname
@@ -53,9 +54,9 @@ class RelationshipMap(PBSafe):
 
     def __repr__(self):
         display = self.__dict__.copy()
-        del display['maps']
-        display['objmaps'] = self.maps
-        return '<%s %s>' % (self.__class__.__name__, pformat(display))
+        del display["maps"]
+        display["objmaps"] = self.maps
+        return "<%s %s>" % (self.__class__.__name__, pformat(display))
 
     def __iter__(self):
         return iter(self.maps)
@@ -68,7 +69,7 @@ class RelationshipMap(PBSafe):
             self._add_map(map)
 
     def _add_map(self, objmap):
-        if self.plugin_name and not getattr(objmap, 'plugin_name', None):
+        if self.plugin_name and not getattr(objmap, "plugin_name", None):
             objmap.plugin_name = self.plugin_name
         self.maps.append(objmap)
 
@@ -90,15 +91,22 @@ class ObjectMap(PBSafe):
     be created is defined.  If the class name is the same as the module
     classname doesn't need to be defined.
     """
+
     compname = ""
     modname = ""
     classname = ""
     plugin_name = ""
-    _blockattrs = ('compname', 'modname', 'classname', PLUGIN_NAME_ATTR)
+    _blockattrs = ("compname", "modname", "classname", PLUGIN_NAME_ATTR)
     _attrs = []
     __valid_directives = (
-        'remove', 'delete_locked', 'add', 'update', 'update_locked', 'rebuild',
-        'nochange', None
+        "remove",
+        "delete_locked",
+        "add",
+        "update",
+        "update_locked",
+        "rebuild",
+        "nochange",
+        None,
     )
 
     def __init__(
@@ -118,35 +126,33 @@ class ObjectMap(PBSafe):
     def __setattr__(self, name, value):
         if name not in self._attrs and not name.startswith("_"):
             self._attrs.append(name)
-        if name == '_directive' and value not in self.__valid_directives:
-            raise RuntimeError('invalid directive: %s' % value)
+        if name == "_directive" and value not in self.__valid_directives:
+            raise RuntimeError("invalid directive: %s" % value)
         self.__dict__[name] = value
 
     def __repr__(self):
         map = {}
         map.update(self.__dict__)
         del map["_attrs"]
-        return '<%s %s>' % (self.__class__.__name__, pformat(map))
+        return "<%s %s>" % (self.__class__.__name__, pformat(map))
 
     def items(self):
-        """Return the name value pairs for this ObjectMap.
-        """
+        """Return the name value pairs for this ObjectMap."""
         return [
-            (n, v) for n, v in self.__dict__.items()
-            if n not in self._blockattrs
-            and n in self._attrs
+            (n, v)
+            for n, v in self.__dict__.items()
+            if n not in self._blockattrs and n in self._attrs
         ]
 
     def iteritems(self):
         return (
-            (n, v) for n, v in self.__dict__.iteritems()
-            if n not in self._blockattrs
-            and n in self._attrs
+            (n, v)
+            for n, v in self.__dict__.iteritems()
+            if n not in self._blockattrs and n in self._attrs
         )
 
     def updateFromDict(self, data):
-        """Update this ObjectMap from a dictionary's values.
-        """
+        """Update this ObjectMap from a dictionary's values."""
         for key, value in data.items():
             setattr(self, key, value)
 

@@ -348,7 +348,7 @@ class ModelCatalogTransactionState(object):
         self.temp_deleted_uids = self.temp_deleted_uids - indexed_uids
         self.indexed_updates.update(indexed_updates)
         self.pending_updates = {} # clear pending updates
-        #log.info("SEARCH TRIGGERED TEMP INDEXING. {0}".format(traceback.format_stack()))   # @TODO TEMP LOGGING
+        #log.info("SEARCH TRIGGERED TEMP INDEXING. %s", traceback.format_stack())   # @TODO TEMP LOGGING
 
 
 class ModelCatalogDataManager(object):
@@ -359,7 +359,7 @@ class ModelCatalogDataManager(object):
     def __init__(self, solr_servers, context):
         config = getGlobalConfiguration()
         self.model_index = zope.component.createObject('ModelIndex', solr_servers)
-        self.model_index.searcher.default_row_count = config.get('solr-search-limit', DEFAULT_SEARCH_LIMIT)
+        self.model_index.searcher.default_row_count = int(config.get('solr-search-limit', DEFAULT_SEARCH_LIMIT))
         self.context = context
         self._current_transactions = {} # { transaction_id : ModelCatalogTransactionState }
         # @TODO ^^ Make that an OOBTREE to avoid concurrency issues? I dont think we need it since we have one per thread

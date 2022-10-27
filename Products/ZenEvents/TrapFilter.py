@@ -342,9 +342,9 @@ class TrapFilter(object):
 
                 self._filtersDefined = 0 != (len(self._v1Traps) + len(self._v1Filters) + len(self._v2Filters))
                 if self._filtersDefined:
-                    log.info("Finished reading filter definition file %s", format(path))
+                    log.info("Finished reading filter definition file %s", path)
                 else:
-                    log.warn("No zentrap filters found in %s", format(path))
+                    log.warn("No zentrap filters found in %s", path)
             else:
                 errorMessage = "Could find filter definition file %s" % format(path)
                 raise TrapFilterError(errorMessage)

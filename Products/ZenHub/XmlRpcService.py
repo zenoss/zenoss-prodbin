@@ -20,8 +20,13 @@ from Products.ZenUtils.ZenTales import talesEval
 class XmlRpcService(xmlrpc.XMLRPC):
     # serializable types
     PRIMITIVES = [
-        types.IntType, types.StringType, types.BooleanType,
-        types.DictType, types.FloatType, types.LongType, types.NoneType
+        types.IntType,
+        types.StringType,
+        types.BooleanType,
+        types.DictType,
+        types.FloatType,
+        types.LongType,
+        types.NoneType,
     ]
 
     def __init__(self, dmd):
@@ -40,7 +45,7 @@ class XmlRpcService(xmlrpc.XMLRPC):
         return self.zem.sendEvents(data)
 
     def xmlrpc_getDevicePingIssues(self, *unused):
-        zep = getFacade('zep')
+        zep = getFacade("zep")
         return zep.getDevicePingIssues()
 
     def xmlrpc_getDeviceWinInfo(self, *args):
@@ -49,35 +54,36 @@ class XmlRpcService(xmlrpc.XMLRPC):
     def xmlrpc_getWinServices(self, *args):
         return self.dmd.Devices.Server.Windows.getWinServices(*args)
 
-    def xmlrpc_applyDataMap(self, devName, datamap,
-                            relname="", compname="", modname=""):
-        """Apply a datamap passed as a list of dicts through XML-RPC.
-        """
+    def xmlrpc_applyDataMap(
+        self, devName, datamap, relname="", compname="", modname=""
+    ):
+        """Apply a datamap passed as a list of dicts through XML-RPC."""
         dev = self.dmd.findDevice(devName)
         adm = ApplyDataMap()
-        adm.applyDataMap(dev, datamap, relname=relname,
-                         compname=compname, modname=modname)
+        adm.applyDataMap(
+            dev, datamap, relname=relname, compname=compname, modname=modname
+        )
 
     def xmlrpc_getConfigs(self, monitor, dstype):
-        '''Return the performance configurations for the monitor name and data
-        source provided. '''
+        """Return the performance configurations for the monitor name and data
+        source provided."""
 
         def toDict(device, ds, dps=[]):
-            '''marshall the fields from the datasource into a dictionary and
-            ignore everything that is not a primitive'''
+            """marshall the fields from the datasource into a dictionary and
+            ignore everything that is not a primitive"""
 
             vals = {}
-            vals['dps'] = []
-            vals['dptypes'] = []
+            vals["dps"] = []
+            vals["dptypes"] = []
             for key, val in ds.__dict__.items():
                 if isinstance(val, XmlRpcService.PRIMITIVES):
-                    if isinstance(val, basestring) and '$' in val:
-                        val = talesEval('string:%s' % (val, ), device)
+                    if isinstance(val, basestring) and "$" in val:
+                        val = talesEval("string:%s" % (val,), device)
                     vals[key] = val
 
             for dp in dps:
-                vals['dps'].append(dp.id)
-                vals['dptypes'].append(dp.rrdtype)
+                vals["dps"].append(dp.id)
+                vals["dptypes"].append(dp.rrdtype)
 
             # add zproperties
             for propertyId in device.propertyIds():
@@ -90,8 +96,8 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
                 vals[propertyId] = value
 
-            vals['device'] = device.id
-            vals['manageIp'] = device.manageIp
+            vals["device"] = device.id
+            vals["manageIp"] = device.manageIp
 
             return vals
 
@@ -125,8 +131,10 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
         result = {}
         fields = [
-            'configCycleInterval', 'statusCycleInterval',
-            'eventlogCycleInterval', 'winCycleInterval'
+            "configCycleInterval",
+            "statusCycleInterval",
+            "eventlogCycleInterval",
+            "winCycleInterval",
         ]
 
         # get the performance conf (if it exists)

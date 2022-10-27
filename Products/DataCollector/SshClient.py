@@ -21,12 +21,16 @@ import sys
 import socket
 
 from twisted.conch.ssh import (
-    channel, common, connection, transport, userauth,
+    channel,
+    common,
+    connection,
+    transport,
+    userauth,
 )
 from twisted.conch.ssh.keys import Key
 from twisted.internet import defer, reactor
-
-
+from zope.component import queryUtility
+from Products.ZenCollector.interfaces import IEventService
 from Products.DataCollector import CollectorClient
 from Products.DataCollector.Exceptions import LoginFailed
 from Products.ZenEvents import Event
@@ -70,6 +74,7 @@ def sendEvent(
         @return: is object_root.path sane?
         @rtype: boolean
         """
+
         obj = object_root
         for chunk in path.split("."):
             obj = getattr(obj, chunk, None)
@@ -99,20 +104,8 @@ def sendEvent(
     if event_key:
         error_event["eventKey"] = event_key
 
-    # At this point, we don't know what we have
-    try:
-        if hasattr_path(self, "factory.datacollector.sendEvent"):
-            self.factory.datacollector.sendEvent(error_event)
-        elif hasattr_path(self, "factory.sendEvent"):
-            self.factory.sendEvent(error_event)
-        elif hasattr_path(self, "datacollector.sendEvent"):
-            self.datacollector.sendEvent(error_event)
-        elif hasattr_path(self, "conn.factory.datacollector.sendEvent"):
-            self.conn.factory.datacollector.sendEvent(error_event)
-        else:
-            log.debug("Unable to send event for %s", error_event)
-    except Exception:
-        pass  # Don't cause other issues
+    event_service = queryUtility(IEventService)
+    event_service.sendEvent(error_event)
 
 
 class SshClientError(Exception):
@@ -148,7 +141,9 @@ class SshClientTransport(transport.SSHClientTransport):
 
         unused(hostKey)
         log.debug(
-            "%s host fingerprint: %s", self.factory.hostname, fingerprint,
+            "%s host fingerprint: %s",
+            self.factory.hostname,
+            fingerprint,
         )
         return defer.succeed(1)
 
@@ -386,14 +381,15 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         keyPath = os.path.expanduser(self.factory.keyPath)
         log.debug(
             "Expanded SSH key path from zKeyPath %s to %s",
-            self.factory.keyPath, keyPath,
+            self.factory.keyPath,
+            keyPath,
         )
         key = None
         if os.path.exists(keyPath):
             try:
                 data = "".join(open(keyPath).readlines()).strip()
                 key = Key.fromString(data, passphrase=self.factory.password)
-            except IOError, ex:
+            except IOError as ex:
                 message = "Unable to read the SSH key file because %s" % ex
                 log.warn(message)
                 device = "localhost"  # Fallback

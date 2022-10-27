@@ -9,17 +9,17 @@
 
 from __future__ import absolute_import
 
-from unittest import TestCase
 from mock import DEFAULT, MagicMock, Mock, patch
 from twisted.internet import defer
 from twisted.python.failure import Failure
+from unittest import TestCase
 
 from Products.ZenHub.server.service import ServiceCall
 from Products.Zuul.interfaces import IDataRootFactory
 
 from ..event import SendEventExecutor
 
-PATH = {'src': 'Products.ZenHub.server.executors.event'}
+PATH = {"src": "Products.ZenHub.server.executors.event"}
 
 
 class SendEventExecutorTest(TestCase):
@@ -58,21 +58,21 @@ class SendEventExecutorTest(TestCase):
         self.assertEqual(self.name, self.executor.name)
 
     def test_start(self):
-        '''noop, required for interface
-        '''
-        reactor = Mock(name='reactor')
+        """noop, required for interface"""
+        reactor = Mock(name="reactor")
         self.executor.start(reactor)
 
     def test_stop(self):
-        '''noop, required for interface
-        '''
+        """noop, required for interface"""
         self.executor.stop()
 
     def test_wrong_method(self):
         servicecall = ServiceCall(
             monitor="localhost",
-            service="EventService", method="badmethod",
-            args=["event"], kwargs={},
+            service="EventService",
+            method="badmethod",
+            args=["event"],
+            kwargs={},
         )
 
         handler = Mock()
@@ -93,8 +93,10 @@ class SendEventExecutorTest(TestCase):
     def test_missing_method(self):
         servicecall = ServiceCall(
             monitor="localhost",
-            service="EventService", method="sendEvent",
-            args=["event"], kwargs={},
+            service="EventService",
+            method="sendEvent",
+            args=["event"],
+            kwargs={},
         )
 
         self.getattr.return_value = None
@@ -104,7 +106,9 @@ class SendEventExecutorTest(TestCase):
         dfr.addErrback(handler)
 
         self.getattr.assert_called_once_with(
-            self.zem, servicecall.method, None,
+            self.zem,
+            servicecall.method,
+            None,
         )
         self.assertEqual(len(handler.mock_calls), 1)
 
@@ -119,8 +123,10 @@ class SendEventExecutorTest(TestCase):
     def test_sendEvent(self):
         servicecall = ServiceCall(
             monitor="localhost",
-            service="EventService", method="sendEvent",
-            args=["event"], kwargs={},
+            service="EventService",
+            method="sendEvent",
+            args=["event"],
+            kwargs={},
         )
 
         sendEvent = self.zem.sendEvent
@@ -131,7 +137,9 @@ class SendEventExecutorTest(TestCase):
 
         self.assertIsInstance(dfr, defer.Deferred)
         self.getattr.assert_called_once_with(
-            self.zem, servicecall.method, None,
+            self.zem,
+            servicecall.method,
+            None,
         )
         self.assertEqual(sendEvent.return_value, dfr.result)
         sendEvent.assert_called_once_with("event")
@@ -140,8 +148,10 @@ class SendEventExecutorTest(TestCase):
     def test_sendEvents(self):
         servicecall = ServiceCall(
             monitor="localhost",
-            service="EventService", method="sendEvents",
-            args=[["event"]], kwargs={},
+            service="EventService",
+            method="sendEvents",
+            args=[["event"]],
+            kwargs={},
         )
 
         sendEvent = self.zem.sendEvent
@@ -152,7 +162,9 @@ class SendEventExecutorTest(TestCase):
 
         self.assertIsInstance(dfr, defer.Deferred)
         self.getattr.assert_called_once_with(
-            self.zem, servicecall.method, None,
+            self.zem,
+            servicecall.method,
+            None,
         )
         self.assertEqual(sendEvents.return_value, dfr.result)
         sendEvents.assert_called_once_with(["event"])
@@ -161,7 +173,10 @@ class SendEventExecutorTest(TestCase):
     def test_exception_from_service(self):
         servicecall = ServiceCall(
             monitor="localhost",
-            service="EventService", method="sendEvent", args=[], kwargs={},
+            service="EventService",
+            method="sendEvent",
+            args=[],
+            kwargs={},
         )
 
         error = ValueError("boom")
@@ -177,7 +192,9 @@ class SendEventExecutorTest(TestCase):
         self.assertEqual(len(handler.mock_calls), 1)
 
         self.getattr.assert_called_once_with(
-            self.zem, servicecall.method, None,
+            self.zem,
+            servicecall.method,
+            None,
         )
         f = handler.call_args[0][0]
         self.assertIsInstance(f, Failure)

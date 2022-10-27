@@ -35,7 +35,9 @@ from ..worklist import ZenHubWorklist
 from ..utils import UNSPECIFIED as _UNSPECIFIED, getLogger
 
 _InternalErrors = (
-    pb.ProtocolError, banana.BananaError, jelly.InsecureJelly,
+    pb.ProtocolError,
+    banana.BananaError,
+    jelly.InsecureJelly,
 )
 _RemoteErrors = (RemoteException, pb.RemoteError)
 
@@ -61,7 +63,7 @@ class WorkerPoolExecutor(object):
             config.modeling_pause_timeout,
         )
         selection = PrioritySelection(
-            ServiceCallPriority, exclude=modeling_paused,
+            ServiceCallPriority, exclude=modeling_paused
         )
         worklist = ZenHubWorklist(selection)
         return cls(name, worklist, pool)
@@ -142,7 +144,9 @@ class _Running(object):
         notify(task.received())
         self.log.info(
             "Received task service=%s method=%s id=%s",
-            call.service, call.method, call.id.hex,
+            call.service,
+            call.method,
+            call.id.hex,
         )
         self.worklist.push(task.priority, task)
         return task.deferred
@@ -153,7 +157,9 @@ class _Running(object):
         self.log.debug(
             "There are %s workers currently available to work %s tasks "
             "worklist=%s",
-            self.workers.available, len(self.worklist), self.name,
+            self.workers.available,
+            len(self.worklist),
+            self.name,
         )
         worker = None
         try:
@@ -199,20 +205,26 @@ class _Running(object):
             # returned to the submitter.
             self.log.error(
                 "(%s) %s service=%s method=%s id=%s worker=%s",
-                type(ex), ex, task.call.service, task.call.method,
-                task.call.id, worker.workerId,
+                type(ex),
+                ex,
+                task.call.service,
+                task.call.method,
+                task.call.id,
+                worker.workerId,
             )
-            error = pb.Error((
-                "Internal ZenHub error: ({0.__class__.__name__}) {0}"
+            error = pb.Error(
+                ("Internal ZenHub error: ({0.__class__.__name__}) {0}")
                 .format(ex)
-            ).strip())
+                .strip()
+            )
             self._handle_failure(task, error)
         except pb.PBConnectionLost as ex:
             # Lost connection to the worker; not a failure.
             # The attempt count is _not_ incremented.
             self.log.warn(
                 "Worker no longer accepting work worker=%s error=%s",
-                worker.workerId, ex,
+                worker.workerId,
+                ex,
             )
             self._handle_retry(task, ex)
         except Exception as ex:
@@ -225,7 +237,9 @@ class _Running(object):
                 self.worklist.pushfront(task.priority, task)
                 self.log.debug(
                     "Task queued for retry service=%s method=%s id=%s",
-                    task.call.service, task.call.method, task.call.id.hex,
+                    task.call.service,
+                    task.call.method,
+                    task.call.id.hex,
                 )
             # Make the worker available for work again
             self.workers.layoff(worker)
@@ -243,12 +257,15 @@ class _Running(object):
             # No more attempts, handle the error as a failure.
             self.log.warn(
                 "Retries exhausted service=%s method=%s id=%s",
-                task.call.service, task.call.method, task.call.id.hex,
+                task.call.service,
+                task.call.method,
+                task.call.id.hex,
             )
-            ex = pb.Error((
-                "Internal ZenHub error: ({0.__class__.__name__}) {0}"
+            ex = pb.Error(
+                ("Internal ZenHub error: ({0.__class__.__name__}) {0}")
                 .format(exception)
-            ).strip())
+                .strip()
+            )
             self._handle_failure(task, ex)
         else:
             # Still have attempts, handle the error as a retry.
@@ -277,7 +294,11 @@ class _Running(object):
         waited = task.started_tm - task.received_tm
         self.log.info(
             "Begin task service=%s method=%s id=%s worker=%s waited=%0.2f",
-            call.service, call.method, call.id.hex, task.workerId, waited,
+            call.service,
+            call.method,
+            call.id.hex,
+            task.workerId,
+            waited,
         )
 
     def _log_subsequent_starts(self, task):
@@ -286,8 +307,12 @@ class _Running(object):
         self.log.info(
             "Retry task service=%s method=%s id=%s "
             "worker=%s attempt=%s waited=%0.2f",
-            call.service, call.method, call.id.hex,
-            task.workerId, task.attempt, waited,
+            call.service,
+            call.method,
+            call.id.hex,
+            task.workerId,
+            task.attempt,
+            waited,
         )
 
     def _log_incomplete(self, task):
@@ -296,8 +321,12 @@ class _Running(object):
         self.log.info(
             "Failed to complete task service=%s method=%s id=%s "
             "worker=%s duration=%0.2f error=%s",
-            call.service, call.method, call.id.hex,
-            task.workerId, elapsed, task.error,
+            call.service,
+            call.method,
+            call.id.hex,
+            task.workerId,
+            elapsed,
+            task.error,
         )
 
     def _log_completed(self, task):
@@ -308,8 +337,13 @@ class _Running(object):
         self.log.info(
             "Completed task service=%s method=%s id=%s "
             "worker=%s status=%s duration=%0.2f lifetime=%0.2f",
-            call.service, call.method, call.id.hex,
-            task.workerId, status, elapsed, lifetime,
+            call.service,
+            call.method,
+            call.id.hex,
+            task.workerId,
+            status,
+            elapsed,
+            lifetime,
         )
 
 
@@ -317,9 +351,18 @@ class ServiceCallTask(object):
     """Wraps a ServiceCall to track for use with WorkerPoolExecutor."""
 
     __slots__ = (
-        "call", "deferred", "desc", "attempt", "priority",
-        "received_tm", "started_tm", "completed_tm",
-        "error", "retryable", "workerId", "event_data",
+        "call",
+        "deferred",
+        "desc",
+        "attempt",
+        "priority",
+        "received_tm",
+        "started_tm",
+        "completed_tm",
+        "error",
+        "retryable",
+        "workerId",
+        "event_data",
     )
 
     def __init__(self, name, call):
@@ -337,10 +380,12 @@ class ServiceCallTask(object):
         self.retryable = True
         self.workerId = None
         self.event_data = dict(call)
-        self.event_data.update({
-            "queue": name,
-            "priority": self.priority,
-        })
+        self.event_data.update(
+            {
+                "queue": name,
+                "priority": self.priority,
+            }
+        )
 
     def received(self):
         """Return a ServiceCallReceived object."""
@@ -355,14 +400,19 @@ class ServiceCallTask(object):
         self.workerId = workerId
         self.event_data["worker"] = workerId
         data = dict(self.event_data)
-        data.update({
-            "timestamp": self.started_tm,
-            "attempts": self.attempt,
-        })
+        data.update(
+            {
+                "timestamp": self.started_tm,
+                "attempts": self.attempt,
+            }
+        )
         return ServiceCallStarted(**data)
 
     def completed(
-        self, result=_UNSPECIFIED, error=_UNSPECIFIED, retry=_UNSPECIFIED,
+        self,
+        result=_UNSPECIFIED,
+        error=_UNSPECIFIED,
+        retry=_UNSPECIFIED,
     ):
         """Return a ServiceCallCompleted object."""
         self.completed_tm = time.time()
@@ -383,11 +433,13 @@ class ServiceCallTask(object):
                 "Require one of 'result', 'error', or 'retry' parameters",
             )
         data = dict(self.event_data)
-        data.update({
-            "timestamp": self.completed_tm,
-            "attempts": self.attempt,
-            key: value,
-        })
+        data.update(
+            {
+                "timestamp": self.completed_tm,
+                "attempts": self.attempt,
+                key: value,
+            }
+        )
         return ServiceCallCompleted(**data)
 
     def failure(self, error):

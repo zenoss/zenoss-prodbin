@@ -1,25 +1,28 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2011, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-__doc__ = """CollectionStatistic
+"""CollectionStatistic
 Class that calculates common stats for a collected value.
 """
 
-from math import fsum, sqrt, pow
 import logging
+
+from math import fsum, sqrt, pow
+
 log = logging.getLogger("zen.CollectionStatistic")
+
 
 class CollectionStatistic(object):
     """
     Class that calculates common stats for a collected value.
     """
+
     def __init__(self):
         self.reset()
 
@@ -72,6 +75,6 @@ class CollectionStatistic(object):
         if n < 1:
             return 0
         # sum of squared differences from the average
-        total = fsum( map(lambda x: pow(x - avg, 2), self.results) )
+        total = fsum(map(lambda x: pow(x - avg, 2), self.results))
         # Bessel's correction uses n - 1 rather than n
-        return sqrt( total / (n - 1) )
+        return sqrt(total / (n - 1))

@@ -1,12 +1,11 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
 
 """JSON
 
@@ -47,9 +46,10 @@ events from a single COMMAND datasource.
 
 import json
 import logging
-log = logging.getLogger('zen.json')
 
 from Products.ZenRRD.CommandParser import CommandParser
+
+log = logging.getLogger("zen.json")
 
 
 def stringify_keys(dictionary):
@@ -74,14 +74,16 @@ class JSON(CommandParser):
             data = json.loads(cmd.result.output)
         except Exception as ex:
             # See NOTE below. If this event ever occurs it will not auto-clear.
-            result.events.append({
-                'severity': cmd.severity,
-                'summary': 'error parsing command output',
-                'eventKey': cmd.eventKey,
-                'eventClass': cmd.eventClass,
-                'command_output': cmd.result.output,
-                'exception': str(ex),
-                })
+            result.events.append(
+                {
+                    "severity": cmd.severity,
+                    "summary": "error parsing command output",
+                    "eventKey": cmd.eventKey,
+                    "eventClass": cmd.eventClass,
+                    "command_output": cmd.result.output,
+                    "exception": str(ex),
+                }
+            )
 
             return
 
@@ -91,19 +93,25 @@ class JSON(CommandParser):
         # plugin to always return JSON data of some sort.
 
         # Pass incoming events straight through.
-        result.events.extend(map(stringify_keys, data.get('events', [])))
+        result.events.extend(map(stringify_keys, data.get("events", [])))
 
         # Map incoming values to their components and datapoints.
-        if len(data.get('values', {}).keys()) > 0:
+        if len(data.get("values", {}).keys()) > 0:
             for point in cmd.points:
-                if point.component not in data['values']:
+                if point.component not in data["values"]:
                     continue
 
-                if point.id not in data['values'][point.component]:
-                    log.debug('No matches found in parsed data for datasource "%s.%s"', point.id, cmd.ds)
+                if point.id not in data["values"][point.component]:
+                    log.debug(
+                        "No matches found in parsed data for "
+                        "datasource '%s.%s'",
+                        point.id,
+                        cmd.ds,
+                    )
                     continue
 
-                result.values.append((
-                    point, data['values'][point.component][point.id]))
+                result.values.append(
+                    (point, data["values"][point.component][point.id])
+                )
 
         return result

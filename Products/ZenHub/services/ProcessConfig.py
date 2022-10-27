@@ -1,34 +1,37 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
+from __future__ import print_function
 
-import re
 import logging
-log = logging.getLogger('zen.HubService.ProcessConfig')
-
-
-from Products.ZenCollector.services.config import CollectorConfigService
-from Products.ZenUtils.Utils import unused
-from Products.ZenCollector.services.config import DeviceProxy
-from Products.ZenEvents import Event
-from Products.ZenModel.OSProcessClass import OSProcessClass
-from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
-from Products.ZenHub.zodb import onUpdate
-from Products.Zuul.catalog.interfaces import IModelCatalogTool
-unused(DeviceProxy)
+import re
 
 from twisted.spread import pb
+
+from Products.ZenCollector.services.config import CollectorConfigService
+from Products.ZenEvents import Event
+from Products.ZenHub.zodb import onUpdate
+from Products.ZenModel.OSProcessClass import OSProcessClass
+from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+
+# DeviceProxy must be present for twisted PB serialization to work.
+from Products.ZenCollector.services.config import DeviceProxy  # noqa F401
+
+log = logging.getLogger("zen.HubService.ProcessConfig")
+
 
 class ProcessProxy(pb.Copyable, pb.RemoteCopy):
     """
     Track process-specific configuration data
     """
+
     name = None
     originalName = None
     restart = None
@@ -52,6 +55,7 @@ class ProcessProxy(pb.Copyable, pb.RemoteCopy):
         Override the Python default to represent ourselves as a string
         """
         return str(self.name)
+
     __repr__ = __str__
 
     def processClassPrimaryUrlPath(self):
@@ -62,10 +66,11 @@ pb.setUnjellyableForClass(ProcessProxy, ProcessProxy)
 
 
 class ProcessConfig(CollectorConfigService):
-
     def __init__(self, dmd, instance):
-        deviceProxyAttributes = ('zMaxOIDPerRequest',)
-        CollectorConfigService.__init__(self, dmd, instance, deviceProxyAttributes)
+        deviceProxyAttributes = ("zMaxOIDPerRequest",)
+        CollectorConfigService.__init__(
+            self, dmd, instance, deviceProxyAttributes
+        )
 
     def _filterDevice(self, device):
         include = CollectorConfigService._filterDevice(self, device)
@@ -74,14 +79,17 @@ class ProcessConfig(CollectorConfigService):
         return include
 
     def _createDeviceProxy(self, device, proxy=None):
-        procs = device.getMonitoredComponents(collector='zenprocess')
+        procs = device.getMonitoredComponents(collector="zenprocess")
         if not procs:
-            log.debug("Device %s has no monitored processes -- ignoring",
-                      device.titleOrId())
+            log.debug(
+                "Device %s has no monitored processes -- ignoring",
+                device.titleOrId(),
+            )
             return None
 
         proxy = CollectorConfigService._createDeviceProxy(
-            self, device, proxy=proxy)
+            self, device, proxy=proxy
+        )
 
         proxy.configCycleInterval = self._prefs.processCycleInterval
 
@@ -109,23 +117,31 @@ class ProcessConfig(CollectorConfigService):
 
             # In case the process is not SNMP monitored
             if not snmpMonitored:
-                log.debug("Skipping process %r - not an SNMP monitored process", p)
+                log.debug(
+                    "Skipping process %r - not an SNMP monitored process", p
+                )
                 continue
             # In case the catalog is out of sync above
             if not p.monitored():
                 log.debug("Skipping process %r - zMonitor disabled", p)
                 continue
-            includeRegex = getattr(p.osProcessClass(), 'includeRegex', False)
-            excludeRegex = getattr(p.osProcessClass(), 'excludeRegex', False)
-            replaceRegex = getattr(p.osProcessClass(), 'replaceRegex', False)
-            replacement  = getattr(p.osProcessClass(), 'replacement', False)
-            generatedId  = getattr(p, 'generatedId', False)
-            primaryUrlPath = getattr(p.osProcessClass(), 'processClassPrimaryUrlPath', False)
-            if primaryUrlPath: primaryUrlPath = primaryUrlPath()
+            includeRegex = getattr(p.osProcessClass(), "includeRegex", False)
+            excludeRegex = getattr(p.osProcessClass(), "excludeRegex", False)
+            replaceRegex = getattr(p.osProcessClass(), "replaceRegex", False)
+            replacement = getattr(p.osProcessClass(), "replacement", False)
+            generatedId = getattr(p, "generatedId", False)
+            primaryUrlPath = getattr(
+                p.osProcessClass(), "processClassPrimaryUrlPath", False
+            )
+            if primaryUrlPath:
+                primaryUrlPath = primaryUrlPath()
 
             if not includeRegex:
-                log.warn("OS process class %s has no defined regex, this process not being monitored",
-                         p.getOSProcessClass())
+                log.warn(
+                    "OS process class %s has no defined regex, "
+                    "this process not being monitored",
+                    p.getOSProcessClass(),
+                )
                 continue
             bad_regex = False
             for regex in [includeRegex, excludeRegex, replaceRegex]:
@@ -134,8 +150,12 @@ class ProcessConfig(CollectorConfigService):
                         re.compile(regex)
                     except re.error as ex:
                         log.warn(
-                            "OS process class %s has an invalid regex (%s): %s",
-                            p.getOSProcessClass(), regex, ex)
+                            "OS process class %s has an invalid regex (%s): "
+                            "%s",
+                            p.getOSProcessClass(),
+                            regex,
+                            ex,
+                        )
                         bad_regex = True
                         break
             if bad_regex:
@@ -156,7 +176,7 @@ class ProcessConfig(CollectorConfigService):
             proc.severity = p.getFailSeverity()
             proc.processClass = p.getOSProcessClass()
             proxy.processes[p.id] = proc
-            proxy.thresholds.extend(p.getThresholdInstances('SNMP'))
+            proxy.thresholds.extend(p.getThresholdInstances("SNMP"))
 
         if proxy.processes:
             return proxy
@@ -170,7 +190,7 @@ class ProcessConfig(CollectorConfigService):
                 continue
             device = device.primaryAq()
             device_path = device.getPrimaryUrlPath()
-            if not device_path in devices:
+            if device_path not in devices:
                 self._notifyAll(device)
                 devices.add(device_path)
 
@@ -190,16 +210,19 @@ class ProcessConfig(CollectorConfigService):
                     continue
                 device = device.primaryAq()
                 device_path = device.getPrimaryUrlPath()
-                if not device_path in devices:
+                if device_path not in devices:
                     self._notifyAll(device)
                     devices.add(device_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from Products.ZenHub.ServiceTester import ServiceTester
+
     tester = ServiceTester(ProcessConfig)
+
     def printer(config):
         for proc in config.processes.values():
-            print '\t'.join([proc.name, str(proc.includeRegex)])
+            print("\t".join([proc.name, str(proc.includeRegex)]))
+
     tester.printDeviceProxy = printer
     tester.showDeviceInfo()

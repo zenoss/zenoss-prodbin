@@ -17,22 +17,22 @@ from Products.ZenHub.metricmanager import (
 )
 
 
-PATH = {'src': 'Products.ZenHub.metricmanager'}
+PATH = {"src": "Products.ZenHub.metricmanager"}
 
 
 class MetricManagerTest(TestCase):
-
     def setUp(t):
         t.tmr_patcher = patch(
-            '{src}.TwistedMetricReporter'.format(**PATH), autospec=True,
+            "{src}.TwistedMetricReporter".format(**PATH),
+            autospec=True,
         )
         t.TwistedMetricReporter = t.tmr_patcher.start()
         t.addCleanup(t.tmr_patcher.stop)
 
         t.daemon_tags = {
-            'zenoss_daemon': 'zenhub',
-            'zenoss_monitor': 'localhost',
-            'internal': True
+            "zenoss_daemon": "zenhub",
+            "zenoss_monitor": "localhost",
+            "internal": True,
         }
 
         t.mm = MetricManager(t.daemon_tags)
@@ -56,20 +56,20 @@ class MetricManagerTest(TestCase):
             metricWriter=t.mm.metric_writer, tags=t.mm.daemon_tags
         )
 
-    @patch('{src}._cc_metric_writer_factory'.format(**PATH), autospec=True)
+    @patch("{src}._cc_metric_writer_factory".format(**PATH), autospec=True)
     def test_metric_writer(t, _cc_metric_writer_factory):
         ret = t.mm.metric_writer
         t.assertEqual(ret, _cc_metric_writer_factory.return_value)
 
-    @patch('{src}.BuiltInDS'.format(**PATH), autospec=True)
-    @patch('{src}.DerivativeTracker'.format(**PATH), autospec=True)
-    @patch('{src}.ThresholdNotifier'.format(**PATH), autospec=True)
-    @patch('{src}.DaemonStats'.format(**PATH), autospec=True)
+    @patch("{src}.BuiltInDS".format(**PATH), autospec=True)
+    @patch("{src}.DerivativeTracker".format(**PATH), autospec=True)
+    @patch("{src}.ThresholdNotifier".format(**PATH), autospec=True)
+    @patch("{src}.DaemonStats".format(**PATH), autospec=True)
     def test_get_rrd_stats(
         t, DaemonStats, ThresholdNotifier, DerivativeTracker, BuiltInDS
     ):
         hub_config = Mock(
-            name='hub_config', spec_set=['getThresholdInstances', 'id']
+            name="hub_config", spec_set=["getThresholdInstances", "id"]
         )
         send_event = sentinel.send_event_function
 
@@ -86,35 +86,39 @@ class MetricManagerTest(TestCase):
         ThresholdNotifier.assert_called_with(send_event, thresholds)
 
         rrd_stats.config.assert_called_with(
-            'zenhub',
+            "zenhub",
             hub_config.id,
             t.mm.metric_writer,
             threshold_notifier,
-            derivative_tracker
+            derivative_tracker,
         )
 
         t.assertEqual(ret, DaemonStats.return_value)
 
 
 class MetricManagerModuleTest(TestCase):
-
-    @patch('{src}.AggregateMetricWriter'.format(**PATH), autospec=True)
-    @patch('{src}.FilteredMetricWriter'.format(**PATH), autospec=True)
-    @patch('{src}.HttpPostPublisher'.format(**PATH), autospec=True)
-    @patch('{src}.os'.format(**PATH), autospec=True)
-    @patch('{src}.RedisListPublisher'.format(**PATH), autospec=True)
-    @patch('{src}.MetricWriter'.format(**PATH), autospec=True)
+    @patch("{src}.AggregateMetricWriter".format(**PATH), autospec=True)
+    @patch("{src}.FilteredMetricWriter".format(**PATH), autospec=True)
+    @patch("{src}.HttpPostPublisher".format(**PATH), autospec=True)
+    @patch("{src}.os".format(**PATH), autospec=True)
+    @patch("{src}.RedisListPublisher".format(**PATH), autospec=True)
+    @patch("{src}.MetricWriter".format(**PATH), autospec=True)
     def test__cc_metric_writer_factory(
-        t, MetricWriter, RedisListPublisher, os, HttpPostPublisher,
-        FilteredMetricWriter, AggregateMetricWriter,
+        t,
+        MetricWriter,
+        RedisListPublisher,
+        os,
+        HttpPostPublisher,
+        FilteredMetricWriter,
+        AggregateMetricWriter,
     ):
-        usr, pas = 'consumer_username', 'consumer_password'
-        internal_url = 'consumer_url'
+        usr, pas = "consumer_username", "consumer_password"
+        internal_url = "consumer_url"
         os.environ = {
-            'CONTROLPLANE': '1',
-            'CONTROLPLANE_CONSUMER_URL': internal_url,
-            'CONTROLPLANE_CONSUMER_USERNAME': usr,
-            'CONTROLPLANE_CONSUMER_PASSWORD': pas,
+            "CONTROLPLANE": "1",
+            "CONTROLPLANE_CONSUMER_URL": internal_url,
+            "CONTROLPLANE_CONSUMER_USERNAME": usr,
+            "CONTROLPLANE_CONSUMER_PASSWORD": pas,
         }
 
         metric_writer = _cc_metric_writer_factory()
@@ -130,14 +134,14 @@ class MetricManagerModuleTest(TestCase):
         t.assertEqual(metric_writer, AggregateMetricWriter.return_value)
 
     def test_internal_metric_filter(t):
-        tags = {'t1': True, 'internal': True}
+        tags = {"t1": True, "internal": True}
         ret = _internal_metric_filter(
             sentinel.metric, sentinel.value, sentinel.timestamp, tags
         )
         t.assertEqual(ret, True)
 
     def test_internal_metric_filter_False(t):
-        tags = {'t1': True, 'not internal': True}
+        tags = {"t1": True, "not internal": True}
         ret = _internal_metric_filter(
             sentinel.metric, sentinel.value, sentinel.timestamp, tags
         )

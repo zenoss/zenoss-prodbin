@@ -26,8 +26,10 @@ def _get_all():
     # Return the names of all the celery Task classes
     import inspect
     from celery import Task
+
     return tuple(
-        n for n, j in globals().items()
+        n
+        for n, j in globals().items()
         if inspect.isclass(j) and issubclass(j, Task)
     )
 

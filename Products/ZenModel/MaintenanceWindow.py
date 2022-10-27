@@ -286,7 +286,7 @@ class MaintenanceWindow(ZenModelRM):
             timezone = time.strftime('%Z')
         try:
             tzInstance = tz.gettz(timezone)
-        except:
+        except Exception:
             msgs.append("'timezone' has wrong value")
     
         if startDateTime:

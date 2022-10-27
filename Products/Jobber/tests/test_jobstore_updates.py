@@ -12,10 +12,10 @@ from __future__ import absolute_import, print_function
 import logging
 import types
 
-from celery import states
-from mock import patch, Mock
 from unittest import TestCase
 
+from celery import states
+from mock import patch, Mock
 from zope.component import getGlobalSiteManager
 
 from ..model import (
@@ -53,7 +53,7 @@ class _CommonFixture(object):
         t.store = JobStore(t.layer.redis)
         t.store[t.jobid] = t.initial
         getGlobalSiteManager().registerUtility(
-            t.store, IJobStore, name="redis",
+            t.store, IJobStore, name="redis"
         )
         rootLogger = logging.getLogger()
         t.handlers = rootLogger.handlers
@@ -62,7 +62,7 @@ class _CommonFixture(object):
     def tearDown(t):
         t.layer.redis.flushall()
         getGlobalSiteManager().unregisterUtility(
-            t.store, IJobStore, name="redis",
+            t.store, IJobStore, name="redis"
         )
         del t.store
         rootLogger = logging.getLogger()
@@ -292,8 +292,7 @@ def noop_task(self, *args, **kw):
 
 
 class IgnoreResultTest(TestCase):
-    """Test update_job_status when a task's ignore_result is True.
-    """
+    """Test update_job_status when a task's ignore_result is True."""
 
     @patch("{src}.getUtility".format(**PATH))
     def test_job_start(t, _getUtility):
@@ -335,7 +334,7 @@ job_end = next(
         for c in job_end.func_closure
         if isinstance(c.cell_contents, types.FunctionType)
     ),
-    None
+    None,
 )
 
 
@@ -347,13 +346,13 @@ class JobEndTest(TestCase):
     def setUp(t):
         t.store = JobStore(t.layer.redis)
         getGlobalSiteManager().registerUtility(
-            t.store, IJobStore, name="redis",
+            t.store, IJobStore, name="redis"
         )
 
     def tearDown(t):
         t.layer.redis.flushall()
         getGlobalSiteManager().unregisterUtility(
-            t.store, IJobStore, name="redis",
+            t.store, IJobStore, name="redis"
         )
         del t.store
 

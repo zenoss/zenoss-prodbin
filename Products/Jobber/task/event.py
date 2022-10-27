@@ -24,15 +24,14 @@ mlog = get_logger("zen.zenjobs.task.event")
 
 
 class SendZenossEventMixin(object):
-    """Mixin class to send an Zenoss event when a job fails.
-    """
+    """Mixin class to send an Zenoss event when a job fails."""
 
     abstract = True
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         try:
             return super(SendZenossEventMixin, self).on_failure(
-                exc, task_id, args, kwargs, einfo,
+                exc, task_id, args, kwargs, einfo
             )
         finally:
             try:
@@ -45,20 +44,24 @@ def _send_event(task, exc, task_id, args, kwargs):
     classkey, summary = _getErrorInfo(task.app, exc)
     name = task.getJobType() if hasattr(task, "getJobType") else task.name
     publisher = getUtility(IEventPublisher)
-    event = Event.Event(**{
-        "evid": guid.generate(1),
-        "device": name,
-        "severity": Event.Error,
-        "component": "zenjobs",
-        "eventClassKey": classkey,
-        "eventKey": "{}|{}".format(classkey, name),
-        "message": task.description_from(*args, **kwargs),
-        "summary": summary,
-        "jobid": str(task_id),
-    })
+    event = Event.Event(
+        **{
+            "evid": guid.generate(1),
+            "device": name,
+            "severity": Event.Error,
+            "component": "zenjobs",
+            "eventClassKey": classkey,
+            "eventKey": "{}|{}".format(classkey, name),
+            "message": task.description_from(*args, **kwargs),
+            "summary": summary,
+            "jobid": str(task_id),
+        }
+    )
     publisher.publish(event)
     log_message = (
-        "Event sent  event-class-key=%s summary=%s", classkey, summary,
+        "Event sent  event-class-key=%s summary=%s",
+        classkey,
+        summary,
     )
     task.log.info(*log_message)
     mlog.info(*log_message)
@@ -83,19 +86,14 @@ def _getErrorSummary(app, ex):
 
 
 _error_eventkey_map = {
-    "TaskAborted": (
-        "zenjobs-aborted", _getAbortedSummary,
-    ),
-    "SoftTimeLimitExceeded": (
-        "zenjobs-timeout", _getTimeoutSummary,
-    )
+    "TaskAborted": ("zenjobs-aborted", _getAbortedSummary),
+    "SoftTimeLimitExceeded": ("zenjobs-timeout", _getTimeoutSummary),
 }
 
 
 def _getErrorInfo(app, ex):
-    """Returns (eventkey, summary).
-    """
+    """Returns (eventkey, summary)."""
     key, summary_fn = _error_eventkey_map.get(
-        type(ex).__name__, ("zenjobs-failure", _getErrorSummary),
+        type(ex).__name__, ("zenjobs-failure", _getErrorSummary)
     )
     return key, summary_fn(app, ex)
