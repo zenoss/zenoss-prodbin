@@ -303,3 +303,25 @@ class DiscoverService(ModelerService):
     def remote_getDefaultNetworks(self):
         monitor = self.dmd.Monitors.Performance._getOb(self.instance)
         return [net for net in monitor.discoveryNetworks]
+
+    @translateError
+    def remote_removeNetAppInterfaces(self, net):
+        """
+        Remove IPs for particular network
+        already assigned to NetApp interfaces (nodes)
+
+        @param net - network to discover
+        @return:  a list of IPs without IP assigned for NetApp interfaces
+        @rtype: list
+        """
+
+        full_ip_list = net.fullIpList()
+        all_existing_interfaces = [interface.getIpAddressObj() for d in self.dmd.Devices.getSubDevices()
+                                   for interface in d.os.interfaces() if interface.getIpAddressObj()]
+
+        for interface in all_existing_interfaces:
+            if interface.getIp() in full_ip_list and net.netmask == interface.netmask:
+                if '/Storage/NetApp' in interface.getDeviceClassName():
+                    full_ip_list.remove(interface.getIp())
+
+        return full_ip_list

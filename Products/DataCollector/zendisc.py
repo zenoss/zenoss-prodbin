@@ -138,7 +138,10 @@ class ZenDisc(ZenModeler):
                 )
                 continue
             self.log.info("Discover network '%s'", net.getNetworkName())
-            results = yield self.pingMany(net.fullIpList())
+            full_ip_list = yield self.config().callRemote(
+                "removeNetAppInterfaces", net)
+
+            results = yield self.pingMany(full_ip_list)
             goodips, badips = _partitionPingResults(results)
             self.log.debug(
                 "Found %d good IPs and %d bad IPs", len(goodips), len(badips)
