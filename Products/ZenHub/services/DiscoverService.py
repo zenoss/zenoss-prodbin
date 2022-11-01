@@ -316,12 +316,11 @@ class DiscoverService(ModelerService):
         """
 
         full_ip_list = net.fullIpList()
-        all_existing_interfaces = [interface.getIpAddressObj() for d in self.dmd.Devices.getSubDevices()
-                                   for interface in d.os.interfaces() if interface.getIpAddressObj()]
 
-        for interface in all_existing_interfaces:
-            if interface.getIp() in full_ip_list and net.netmask == interface.netmask:
-                if '/Storage/NetApp' in interface.getDeviceClassName():
-                    full_ip_list.remove(interface.getIp())
+        for d in self.dmd.Devices.getSubDevices():
+            for interface in d.os.interfaces():
+                if '/Storage/NetApp' in interface.getDeviceClassName() and interface.getIpAddressObj():
+                    if net.netmask == interface.getIpAddressObj().netmask and interface.getIp() in full_ip_list:
+                        full_ip_list.remove(interface.getIp())
 
         return full_ip_list
