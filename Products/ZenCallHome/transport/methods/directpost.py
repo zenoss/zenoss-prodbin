@@ -17,7 +17,7 @@ from Products.ZenCallHome.transport import CallHome
 from Products.ZenCallHome.CallHomeStatus import CallHomeStatus
 
 POST_CHECKIN_URL = "https://callhome.zenoss.com/callhome/v2/post"
-_URL_TIMEOUT = 5
+_URL_TIMEOUT = 30
 
 logger = logging.getLogger("zen.callhome")
 
