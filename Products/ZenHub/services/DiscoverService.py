@@ -305,13 +305,13 @@ class DiscoverService(ModelerService):
         return [net for net in monitor.discoveryNetworks]
 
     @translateError
-    def remote_removeNetAppInterfaces(self, net):
+    def remote_removeInterfaces(self, net):
         """
         Remove IPs for particular network
-        already assigned to NetApp interfaces (nodes)
+        already assigned to interfaces (device components)
 
         @param net - network to discover
-        @return:  a list of IPs without IP assigned for NetApp interfaces
+        @return:  a list of IPs without addresses assigned for interfaces
         @rtype: list
         """
 
@@ -319,8 +319,9 @@ class DiscoverService(ModelerService):
 
         for d in self.dmd.Devices.getSubDevices():
             for interface in d.os.interfaces():
-                if '/Storage/NetApp' in interface.getDeviceClassName() and interface.getIpAddressObj():
-                    if net.netmask == interface.getIpAddressObj().netmask and interface.getIp() in full_ip_list:
-                        full_ip_list.remove(interface.getIp())
+                ip_obj = interface.getIpAddressObj()
+                if ip_obj:
+                    if net.netmask == ip_obj.netmask and ip_obj.getIp() in full_ip_list:
+                        full_ip_list.remove(ip_obj.getIp())
 
         return full_ip_list
