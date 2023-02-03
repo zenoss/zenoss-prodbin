@@ -10,18 +10,21 @@
 
 from zope.interface import Interface
 
+
 class ITooltipProvider(Interface):
     """
-    A marker interface for utilites that want to provide new/overridden pagehelp
-    and tooltop XML to supplement that found in Products/ZenUI3/data
+    A marker interface for utilites that want to provide new/overridden
+    pagehelp and tooltop XML to supplement that found in Products/ZenUI3/data.
     """
 
     def path(self):
-        """ Return an absolute directory path of pagehelp + tooltip XML.
-        The expected file/directory layout is identical to Products/ZenUI3/data.
+        """Return an absolute directory path of pagehelp + tooltip XML.
+        The expected file/directory layout is identical to
+        Products/ZenUI3/data.
+
         For example, a valid returned path of
-        '/opt/zenoss/ZenPacks/ZenPacks.zenoss.Example/tooltips' might have this
-        structure:
+        '/opt/zenoss/ZenPacks/ZenPacks.zenoss.Example/tooltips' might have
+        this structure:
 
             tooltips
             |---en

@@ -1,14 +1,14 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
 from zope.viewlet.interfaces import IViewletManager, IViewlet
+
 
 class IJavaScriptSnippetManager(IViewletManager):
     """
@@ -17,11 +17,13 @@ class IJavaScriptSnippetManager(IViewletManager):
     template.
     """
 
+
 class IJavaScriptSnippet(IViewlet):
     """
     Holds raw JavaScript to be delivered to the template by a
     RawJavaScriptManager. Subclass and override the L{snippet} method.
     """
+
     def snippet():
         """
         Returns a string containing raw javascript to be written to the page.

@@ -1,40 +1,43 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
+import re
 
 from itertools import chain
-import re
+
 import zope.interface
-from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
+
 from Products.Five.viewlet import viewlet
+from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 
-from interfaces import INavigationItem
-from manager import SecondaryNavigationManager
+from .interfaces import INavigationItem
+from .manager import SecondaryNavigationManager
 
+
+@zope.interface.implementer(INavigationItem)
 class PrimaryNavigationMenuItem(viewlet.ViewletBase):
-    zope.interface.implements(INavigationItem)
 
-    template = ViewPageTemplateFile('nav_item.pt')
+    template = ViewPageTemplateFile("nav_item.pt")
 
-    url = ''
-    target = '_self'
-    active_class = 'active'
-    inactive_class = 'inactive'
+    url = ""
+    target = "_self"
+    active_class = "active"
+    inactive_class = "inactive"
     subviews = ()
 
     @property
     def title(self):
         return self.__name__
-        
+
     @property
     def elementid(self):
-        return "{0}-nav-button".format(self.__name__).replace(' ', '-')   
+        return "{0}-nav-button".format(self.__name__).replace(" ", "-")
 
     def update(self):
         super(PrimaryNavigationMenuItem, self).update()
@@ -43,12 +46,13 @@ class PrimaryNavigationMenuItem(viewlet.ViewletBase):
 
     @property
     def selected(self):
-        requestURL = self.request.getURL().replace('/@@', '/')
+        requestURL = self.request.getURL().replace("/@@", "/")
         for url in chain((self.url,), self.subviews):
-            if re.search(url, requestURL) :
+            if re.search(url, requestURL):
                 return True
-        sec = SecondaryNavigationManager(self.context, self.request,
-                                         self.__parent__)
+        sec = SecondaryNavigationManager(
+            self.context, self.request, self.__parent__
+        )
         if sec:
             for v in sec.getViewletsByParentName(self.__name__):
                 if v.selected:
@@ -84,18 +88,18 @@ class PrimaryNavigationMenuItem(viewlet.ViewletBase):
             return self.template()
 
         # user does not have permission to view the menu item globally
-        return ''
+        return ""
 
 
+@zope.interface.implementer(INavigationItem)
 class SecondaryNavigationMenuItem(PrimaryNavigationMenuItem):
-    zope.interface.implements(INavigationItem)
 
     parentItem = ""
 
     @property
     def selected(self):
-        requestURL = self.request.getURL().replace('/@@', '/')
+        requestURL = self.request.getURL().replace("/@@", "/")
         for url in chain((self.url,), self.subviews):
-            if re.search(url, requestURL) :
+            if re.search(url, requestURL):
                 return True
         return False

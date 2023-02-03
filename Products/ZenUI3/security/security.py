@@ -7,23 +7,23 @@
 #
 ##############################################################################
 
-
-from zope import interface, component
-from Products.Five.viewlet.manager import ViewletManagerBase
-from Products.ZenUtils.jsonutils import json
-from Products.Five.viewlet import viewlet
-from interfaces import ISecurityManager, IPermissionsDeclarationViewlet
 from AccessControl import getSecurityManager
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-from Products.Zuul.interfaces import IAuthorizationTool
 from collective.beaker.interfaces import ISession
+from Products.Five.viewlet import viewlet
+from Products.Five.viewlet.manager import ViewletManagerBase
+from zope import interface
 
-ZAUTH_COOKIE = 'ZAuthToken'
+from Products.ZenUtils.jsonutils import json
+from Products.Zuul.interfaces import IAuthorizationTool
 
+from .interfaces import ISecurityManager, IPermissionsDeclarationViewlet
+
+ZAUTH_COOKIE = "ZAuthToken"
+
+
+@interface.implementer(ISecurityManager)
 class SecurityManager(ViewletManagerBase):
-    """The Viewlet manager class for the permissions declaration
-    """
-    interface.implements(ISecurityManager)
+    """The Viewlet manager class for the permissions declaration"""
 
 
 def permissionsForContext(context):
@@ -35,8 +35,11 @@ def permissionsForContext(context):
     all_permissions = context.zport.acl_users.possible_permissions()
 
     # filter out the ones we have in this context
-    valid_permissions = [permission for permission in all_permissions
-                         if manager.checkPermission(permission, context)]
+    valid_permissions = [
+        permission
+        for permission in all_permissions
+        if manager.checkPermission(permission, context)
+    ]
 
     # turn the list into a dictionary to make it easier to look up on
     # the client side (just look up the key instead of iterating)
@@ -45,11 +48,12 @@ def permissionsForContext(context):
         perms[permission.lower()] = True
     return perms
 
+
+@interface.implementer(IPermissionsDeclarationViewlet)
 class PermissionsDeclaration(viewlet.ViewletBase):
     """This is responsible for sending to the client side
     which permissions the user has
     """
-    interface.implements(IPermissionsDeclarationViewlet)
 
     def render(self):
         """Creates a global function in JavaScript that returns the
@@ -59,7 +63,9 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         """
         self._setAuthorizationCookie()
         permissions = self.permissionsForCurrentContext()
-        managedObjectGuids = self.getManagedObjectGuids(returnChildrenForRootObj=True)
+        managedObjectGuids = self.getManagedObjectGuids(
+            returnChildrenForRootObj=True
+        )
         data = json(permissions)
         func = """
 <script type="text/javascript">
@@ -75,7 +81,11 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         return %s
     }
 </script>
-        """ % (data, json(managedObjectGuids), str(self.hasGlobalRoles()).lower())
+        """ % (
+            data,
+            json(managedObjectGuids),
+            str(self.hasGlobalRoles()).lower(),
+        )
         return func
 
     def _setAuthorizationCookie(self):
@@ -83,7 +93,13 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         authorization = IAuthorizationTool(self.context)
         token = authorization.createAuthToken(self.request)
 
-        self.request.response.setCookie(ZAUTH_COOKIE, token['id'], path="/", secure=session.secure, http_only=True)
+        self.request.response.setCookie(
+            ZAUTH_COOKIE,
+            token["id"],
+            path="/",
+            secure=session.secure,
+            http_only=True,
+        )
 
     def hasGlobalRoles(self):
         """
@@ -106,5 +122,7 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         guids = []
         us = self.context.dmd.ZenUsers.getUserSettings()
         if us.hasNoGlobalRoles():
-            guids = us.getAllAdminGuids(returnChildrenForRootObj=returnChildrenForRootObj)
+            guids = us.getAllAdminGuids(
+                returnChildrenForRootObj=returnChildrenForRootObj
+            )
         return guids

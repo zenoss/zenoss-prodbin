@@ -9,18 +9,20 @@
 
 import json
 import transaction
-from uuid import uuid1
+
 from Products.Five.browser import BrowserView
+
 from Products.Zuul.interfaces import IAuthorizationTool
 
-ZAUTH_HEADER_ID = 'X-ZAuth-Token'
+ZAUTH_HEADER_ID = "X-ZAuth-Token"
 
 
 class Authorization(BrowserView):
     """
-    This view acts as a namespace so the client requests are /authorization/login and
-    /authorization/validate
+    This view acts as a namespace so the client requests are
+    /authorization/login and /authorization/validate.
     """
+
     def __getitem__(self, index):
         if index == "login":
             return Login(self.context, self.request)
@@ -33,43 +35,49 @@ class Login(BrowserView):
     """
     Validates the credentials supplied and creates a new authorization token.
     """
+
     def __call__(self, *args, **kwargs):
         """
-        Extract login/password credentials, test authentication, and create a token
+        Extract login/password credentials, test authentication,
+        and create a token.
         """
 
         # test for uuid
         if self.uuid is None:
             self.request.response.setStatus(503)
-            self.request.response.write( "System uninitialized - please execute setup wizard")
+            self.request.response.write(
+                "System uninitialized - please execute setup wizard"
+            )
             transaction.abort()
             return
 
-        authorization = IAuthorizationTool( self.context.context)
+        authorization = IAuthorizationTool(self.context.context)
         credentials = authorization.extractCredentials(self.request)
 
-        login = credentials.get('login', None)
-        password = credentials.get('password', None)
+        login = credentials.get("login", None)
+        password = credentials.get("password", None)
 
         # no credentials to test authentication
         if login is None or password is None:
             self.request.response.setStatus(401)
-            self.request.response.write( "Missing Authentication Credentials")
+            self.request.response.write("Missing Authentication Credentials")
             transaction.abort()
             return
 
         # test authentication
         if not authorization.authenticateCredentials(login, password):
             self.request.response.setStatus(401)
-            self.request.response.write( "Failed Authentication")
+            self.request.response.write("Failed Authentication")
             transaction.abort()
             return
 
         # create the session data
         token = authorization.createAuthToken(self.request)
-        self.request.response.setHeader( 'X-ZAuth-TokenId', token['id'])
-        self.request.response.setHeader( 'X-ZAuth-TokenExpiration', token['expires'])
-        self.request.response.setHeader( 'X-ZAuth-TenantId', self.uuid)
+        self.request.response.setHeader("X-ZAuth-TokenId", token["id"])
+        self.request.response.setHeader(
+            "X-ZAuth-TokenExpiration", token["expires"]
+        )
+        self.request.response.setHeader("X-ZAuth-TenantId", self.uuid)
         return json.dumps(token)
 
     @property
@@ -80,6 +88,7 @@ class Login(BrowserView):
     def uuid(self):
         return self.dmd.uuid
 
+
 class Validate(BrowserView):
     """
     Assert token id exists in session data and token id hasn't expired
@@ -87,37 +96,42 @@ class Validate(BrowserView):
 
     def __call__(self, *args, **kwargs):
         """
-            extract token id, test token expiration, and return token
+        extract token id, test token expiration, and return token
         """
         # test for uuid
         if self.uuid is None:
             self.request.response.setStatus(503)
-            self.request.response.write( "System uninitialized - please execute setup wizard")
+            self.request.response.write(
+                "System uninitialized - please execute setup wizard"
+            )
             return
 
-        tokenId = self.request.get('id', None)
+        tokenId = self.request.get("id", None)
         if tokenId is None:
             tokenId = self.request.getHeader(ZAUTH_HEADER_ID)
 
         # missing token id
         if tokenId is None:
             self.request.response.setStatus(401)
-            self.request.response.write( "Missing Token Id")
+            self.request.response.write("Missing Token Id")
             return
 
-        authorization = IAuthorizationTool( self.context.context)
+        authorization = IAuthorizationTool(self.context.context)
 
-        #grab token to handle edge case, when expiration happens after expiration test
+        # Grab token to handle edge case, when expiration happens after
+        # expiration test.
         tokenId = tokenId.strip('"')
         token = authorization.getToken(tokenId)
         if authorization.tokenExpired(tokenId):
             self.request.response.setStatus(401)
-            self.request.response.write( "Token Expired")
+            self.request.response.write("Token Expired")
             return
 
-        self.request.response.setHeader( 'X-ZAuth-TokenId', token['id'])
-        self.request.response.setHeader( 'X-ZAuth-TokenExpiration', token['expires'])
-        self.request.response.setHeader( 'X-ZAuth-TenantId', self.uuid)
+        self.request.response.setHeader("X-ZAuth-TokenId", token["id"])
+        self.request.response.setHeader(
+            "X-ZAuth-TokenExpiration", token["expires"]
+        )
+        self.request.response.setHeader("X-ZAuth-TenantId", self.uuid)
         return json.dumps(token)
 
     @property
