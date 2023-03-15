@@ -130,7 +130,7 @@ def json(value, **kw):
     If C{value} is callable, a decorated version of C{value} that serializes its
     return value will be returned.
 
-        >>> value = (dict(a=1L), u"123", 123)
+        >>> value = (dict(a=1), u"123", 123)
         >>> print json(value)
         [{"a": 1}, "123", 123]
         >>> @json

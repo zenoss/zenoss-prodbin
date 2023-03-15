@@ -72,7 +72,7 @@ class IpNetProxy(pb.Copyable, pb.RemoteCopy):
         net = IPNetwork(ipunwrap(self.id))
         if self.netmask == net.max_prefixlen:
             return [ipunwrap(self.id)]
-        ipnumb = long(int(net))
+        ipnumb = int(net)
         maxip = math.pow(2, net.max_prefixlen - self.netmask)
         start = int(ipnumb + 1)
         end = int(ipnumb + maxip - 1)

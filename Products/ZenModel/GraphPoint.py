@@ -113,7 +113,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
 
         def IsHex(s):
             try:
-                _ = long(color, 16)
+                _ = int(color, 16)
             except ValueError:
                 return False
             return True
@@ -178,7 +178,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
         if self.color:
             color = self.color
             try:
-                _ = long(color.replace("#", ""), 16)
+                _ = int(color.replace("#", ""), 16)
             except ValueError:
                 color = None
         if not color:

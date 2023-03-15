@@ -419,7 +419,7 @@ class EmailAction(IActionBase, TargetableAction):
         """
         Convert event timestamp to timezone from user property.
         """
-        return long(isoToTimestamp(convertTimestampToTimeZone(
+        return int(isoToTimestamp(convertTimestampToTimeZone(
                     millis / 1000, timezone, "%Y-%m-%d %H:%M:%S"
                     ))) * 1000
 

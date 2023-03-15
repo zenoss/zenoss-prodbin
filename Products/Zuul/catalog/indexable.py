@@ -489,8 +489,8 @@ class IpNetworkIndexable(object):
         last_decimal_ip = None
         if isip(self.id):
             net = IPNetwork(ipunwrap(self.id))
-            first_decimal_ip = long(int(net.network))
-            last_decimal_ip = str(long(first_decimal_ip + math.pow(2, net.max_prefixlen - self.netmask) - 1))
+            first_decimal_ip = int(net.network)
+            last_decimal_ip = str(int(first_decimal_ip + math.pow(2, net.max_prefixlen - self.netmask) - 1))
         return last_decimal_ip
 
 class ProductIndexable(object):
