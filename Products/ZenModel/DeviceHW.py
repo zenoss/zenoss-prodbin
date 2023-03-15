@@ -25,7 +25,7 @@ class DeviceHW(Hardware):
 
     meta_type = "DeviceHW"
 
-    totalMemory = 0L
+    totalMemory = 0
 
     _properties = Hardware._properties + (
         {'id':'totalMemory', 'type':'long', 'mode':'w'},

@@ -46,7 +46,7 @@ class CallHomeCycler(object):
         chs = CallHomeStatus()
         chs.stage(chs.START_CALLHOME)
         try:
-            now = long(time.time())
+            now = int(time.time())
             self.dmd._p_jar.sync()
             # Start metrics gather if needed
             if (

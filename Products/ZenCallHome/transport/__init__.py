@@ -64,7 +64,7 @@ class CallHome(object):
                 not self.callHome.requestCallhome):
             return False
 
-        now = long(time.time())
+        now = int(time.time())
 
         # If we have waited long enough between checkings or attempts (or one
         # has been requested), and we have metrics to send and are not
@@ -148,7 +148,7 @@ class CallHome(object):
             if 'latestVersion' in data:
                 # Save the latest version, and send a
                 # message if new version available
-                self.dmd.lastVersionCheck = long(time.time())
+                self.dmd.lastVersionCheck = int(time.time())
                 available = Version.parse('Zenoss ' + data['latestVersion'])
                 if (getattr(self.dmd, 'availableVersion', '')
                         != available.short()):
@@ -169,8 +169,8 @@ class CallHome(object):
                 if name in data:
                     utility.process(self.dmd, data[name])
 
-        self.callHome.lastSuccess = long(time.time())
-        self.chs.updateStat('lastSuccess', long(time.time()))
+        self.callHome.lastSuccess = int(time.time())
+        self.chs.updateStat('lastSuccess', int(time.time()))
         return
 
 

@@ -58,7 +58,7 @@ class df(CommandPlugin):
                 om.totalBlocks = 0
             else:
                 try:
-                    om.totalBlocks = long(tblocks)
+                    om.totalBlocks = int(tblocks)
                 except ValueError:
                     # Ignore this filesystem if what we thought was total
                     # blocks isn't a number.
