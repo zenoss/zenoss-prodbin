@@ -104,7 +104,7 @@ class interface(AliasPlugin):
                 "percentUsed",
                 PythonColumnHandler(
                     # total == total is False if total is NaN
-                    "((long(total) if total == total else total) * 8)"
+                    "((int(total) if total == total else total) * 8)"
                     "* 100.0 / speed"
                 ),
             ),

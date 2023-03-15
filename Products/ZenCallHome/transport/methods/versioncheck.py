@@ -31,6 +31,6 @@ def version_check(dmd):
     else:
         available = Version.parse('Zenoss ' + returnPayload['latest'])
         version = available.short()
-        dmd.lastVersionCheck = long(time.time())
+        dmd.lastVersionCheck = int(time.time())
         if getattr(dmd, 'availableVersion', '') != version:
             dmd.availableVersion = version

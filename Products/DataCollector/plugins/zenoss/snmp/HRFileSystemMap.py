@@ -111,13 +111,13 @@ class HRFileSystemMap(SnmpPlugin):
                 totalBlocks = unsigned(totalBlocks)
                 fs["totalBlocks"] = totalBlocks
 
-            size = long(fs["blockSize"] * totalBlocks)
+            size = int(fs["blockSize"] * totalBlocks)
             if size <= 0:
                 log.info("Skipping %s. 0 total blocks.", fs["mount"])
                 continue
 
             fs["type"] = self.typemap.get(fs["type"], "other")
-            size = long(fs["blockSize"] * totalBlocks)
+            size = int(fs["blockSize"] * totalBlocks)
 
             # Handle file systems that need to be mapped into other parts of
             # the model such as total memory or total swap.

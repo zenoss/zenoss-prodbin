@@ -82,7 +82,7 @@ class Fan(HWComponent):
         """
         rpm = self.cacheRRDValue('rpm', default)
         if rpm is not None and not isnan(rpm):
-            return long(rpm)
+            return int(rpm)
         return None
 
 

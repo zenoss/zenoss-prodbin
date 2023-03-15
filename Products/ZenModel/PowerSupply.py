@@ -84,7 +84,7 @@ class PowerSupply(HWComponent):
         """
         millivolts = self.cacheRRDValue('millivolts', default)
         if millivolts is not None:
-            return long(millivolts)
+            return int(millivolts)
         return None
 
 

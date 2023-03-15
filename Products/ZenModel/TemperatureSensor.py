@@ -76,7 +76,7 @@ class TemperatureSensor(HWComponent):
             if tempF is not None and not isnan(tempF):
                 tempC = (tempF - 32) / 9.0 * 5
         if tempC is not None and not isnan(tempC):
-            return long(tempC)
+            return int(tempC)
         return None
     temperature = temperatureCelsius
 
@@ -87,7 +87,7 @@ class TemperatureSensor(HWComponent):
         tempC = self.temperatureCelsius(default)
         if tempC is not None and not isnan(tempC):
             tempF = tempC * 9 / 5 + 32.0
-            return long(tempF)
+            return int(tempF)
         return None
 
     def temperatureCelsiusString(self):

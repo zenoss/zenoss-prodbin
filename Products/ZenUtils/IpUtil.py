@@ -195,7 +195,7 @@ def ipToDecimal(ip):
     calculating netmasks etc.
 
     >>> ipToDecimal('10.10.20.5')
-    168432645L
+    168432645
     >>> try: ipToDecimal('10.10.20.500')
     ... except IpAddressError as ex: print ex
     10.10.20.500 is an invalid address
@@ -208,7 +208,7 @@ def ipToDecimal(ip):
         address = unwrapped[:unwrapped.index('%')]
     else:
         address = unwrapped
-    return long(int(IPAddress(address)))
+    return int(IPAddress(address))
 
 def ipFromIpMask(ipmask):
     """
@@ -333,16 +333,16 @@ def bitsToDecimalMask(netbits):
     Convert integer number of netbits to a decimal number
 
     >>> bitsToDecimalMask(32)
-    4294967295L
+    4294967295
     >>> bitsToDecimalMask(19)
-    4294959104L
+    4294959104
     >>> bitsToDecimalMask(0)
-    0L
+    0
     """
-    masknumb = 0L
+    masknumb = 0
     netbits=int(netbits)
     for i in range(32-netbits, 32):
-        masknumb += 2L ** i
+        masknumb += 2 ** i
     return masknumb
    
 
@@ -371,12 +371,12 @@ def decimalNetFromIpAndNet(ip, netmask):
     Get network address of IP as string netmask as in the form 255.255.255.0
 
     >>> getnet('10.12.25.33', 24)
-    168564992L
+    168564992
     >>> getnet('10.12.25.33', '255.255.255.0')
-    168564992L
+    168564992
     """
     checkip(ip)
-    return long(int(IPNetwork( ipunwrap(ip) + '/' + str(netmask)).network))
+    return int(IPNetwork( ipunwrap(ip) + '/' + str(netmask)).network)
 
 def getnetstr(ip, netmask):
     """

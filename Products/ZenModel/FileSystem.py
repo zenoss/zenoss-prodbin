@@ -57,8 +57,8 @@ class FileSystem(OSComponent):
     storageDevice = ""
     type = ""
     blockSize = 0
-    totalBlocks = 0L
-    totalFiles = 0L
+    totalBlocks = 0
+    totalFiles = 0
     capacity = 0
     inodeCapacity = 0
     maxNameLen = 0
@@ -207,14 +207,14 @@ class FileSystem(OSComponent):
 
         blocks = self.cacheRRDValue('usedBlocks', default)
         if blocks is not None and not isnan(blocks):
-            return long(blocks)
+            return int(blocks)
         elif self.blockSize:
             # no usedBlocks datapoint, so this is probably a Windows device
             # using perfmon for data collection and therefore we'll look for
             # the freeMegabytes datapoint
             freeMB = self.cacheRRDValue('FreeMegabytes', default)
             if freeMB is not None and not isnan(freeMB):
-                usedBytes = self.totalBytes() - long(freeMB) * 1024 * 1024
+                usedBytes = self.totalBytes() - int(freeMB) * 1024 * 1024
                 return usedBytes / self.blockSize
         return None
 
@@ -225,7 +225,7 @@ class FileSystem(OSComponent):
         """
         blocks = self.cacheRRDValue('availBlocks', default)
         if blocks is not None and not isnan(blocks):
-            return long(blocks)
+            return int(blocks)
         usedBlocks = self.usedBlocks()
         if usedBlocks is None:
             return None
