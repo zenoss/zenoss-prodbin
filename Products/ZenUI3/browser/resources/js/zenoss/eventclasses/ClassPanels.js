@@ -29,7 +29,9 @@ Ext.onReady(function(){
             config = config || {};
             Ext.applyIf(config, {
                 model: 'Zenoss.sequencegrid.Model',
-                initialSortColumn: "id",
+                remoteSort: true,
+                initialSortColumn: 'sequence',
+                lockedOrder: 'asc',
                 directFn: Zenoss.remote.EventClassesRouter.getSequence,
                 root: 'data'
             });
@@ -98,17 +100,20 @@ Ext.onReady(function(){
                             }
                             return value;
                         },
-                        flex: 1
+                        flex: 1,
+                        sortable: false
                     },{
                         header: _t("Event Class"),
                         id: 'class_seq_id',
                         dataIndex: 'eventClass',
-                        width: 200
+                        width: 200,
+                        sortable: false
                     },{
                         header: _t("EventClass Key"),
                         id: 'key_seq_id',
                         dataIndex: 'eventClassKey',
-                        flex: 1
+                        flex: 1,
+                        sortable: false
                     },{
                         header: _t("Evaluation"),
                         id: 'eval_seq_id',
