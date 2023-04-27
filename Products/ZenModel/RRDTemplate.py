@@ -111,6 +111,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
 
     description = ""
     targetPythonClass = "Products.ZenModel.Device"
+    zNoRelationshipCopy = ["pack"]
 
     _properties = (
         {'id':'description', 'type':'text', 'mode':'w'},
