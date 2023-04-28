@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2008, 2011, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2008, 2011, 2023 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -189,7 +189,8 @@ class SyslogTask(BaseTask, DatagramProtocol):
         #   yield self.model().callRemote('getDefaultPriority')
         self.processor = SyslogProcessor(self._eventService.sendEvent,
                     self.options.minpriority, self.options.parsehost,
-                    self.options.monitor, self._daemon.defaultPriority)
+                    self.options.monitor, self._daemon.defaultPriority,
+                    self._daemon.syslogParsers)
 
     def doTask(self):
         """
@@ -342,6 +343,7 @@ class SyslogConfigTask(ObservableMixin):
         self._daemon = zope.component.getUtility(ICollector)
 
         self._daemon.defaultPriority = self._preferences.defaultPriority
+        self._daemon.syslogParsers = self._preferences.syslogParsers
 
     def doTask(self):
         return defer.succeed("Already updated default syslog priority...")

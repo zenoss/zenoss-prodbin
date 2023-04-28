@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007, 2023 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -21,86 +21,13 @@ from Products.ZenEvents.syslog_h import *
 from Products.ZenUtils.IpUtil import isip
 
 
-# Regular expressions that parse syslog tags from different sources
-# A tuple can also be specified, in which case the second item in the
-# tuple is a boolean which tells whether or not to keep the entry (default)
-# or to discard the entry and not create an event.
-parsers = (
-# generic mark
-r"^(?P<summary>-- (?P<eventClassKey>MARK) --)",
-
-# Cisco UCS
-# : 2010 Oct 19 15:47:45 CDT: snmpd: SNMP Operation (GET) failed. Reason:2 reqId (257790979) errno (42) error index (1)
-r'^: \d{4} \w{3}\s+\d{1,2}\s+\d{1,2}:\d\d:\d\d \w{3}: %(?P<eventClassKey>[^:]+): (?P<summary>.*)',
-
-# ntsyslog windows msg
-r"^(?P<component>.+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
-
-# cisco msg with card indicator
-r"%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)",
-
-# cisco standard msg
-r"%(?P<eventClassKey>(?P<component>\S+)-(?P<overwriteSeverity>\d)-\S+): *(?P<summary>.*)",
-
-# Cisco ACS
-r"^(?P<ipAddress>\S+)\s+(?P<summary>(?P<eventClassKey>(CisACS_\d\d|CSCOacs)_\S+)\s+(?P<eventKey>\S+)\s.*)",
-
-# netscreen device msg
-r"device_id=\S+\s+\[\S+\](?P<eventClassKey>\S+\d+):\s+(?P<summary>.*)\s+\((?P<originalTime>\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d)\)",
-
-# NetApp
-# [deviceName: 10/100/1000/e1a:warning]: Client 10.0.0.101 (xid 4251521131) is trying to access an unexported mount (fileid 64, snapid 0, generation 6111516 and flags 0x0 on volume 0xc97d89a [No volume name available])
-r"^\[[^:]+: (?P<component>[^:]+)[^\]]+\]: (?P<summary>.*)",
-
-# unix syslog with pid
-r"(?P<component>\S+)\[(?P<pid>\d+)\]:\s*(?P<summary>.*)",
-
-# unix syslog without pid
-r"(?P<component>\S+): (?P<summary>.*)",
-
-# adtran devices
-r"^(?P<deviceModel>[^\[]+)\[(?P<deviceManufacturer>ADTRAN)\]:(?P<component>[^\|]+\|\d+\|\d+)\|(?P<summary>.*)",
-
-r"^date=.+ (?P<summary>devname=.+ log_id=(?P<eventClassKey>\d+) type=(?P<component>\S+).+)",
-
-# proprietary message passing system
-r"^(?P<component>\S+)(\.|\s)[A-Z]{3} \d \S+ \d\d:\d\d:\d\d-\d\d:\d\d:\d\d \d{5} \d{2} \d{5} \S+ \d{4} \d{3,5} (- )*(?P<summary>.*) \d{4} \d{4}",
-
-# Cisco port state logging info
-r"^Process (?P<process_id>\d+), Nbr (?P<device>\d+\.\d+\.\d+\.\d+) on (?P<interface>\w+/\d+) from (?P<start_state>\w+) to (?P<end_state>\w+), (?P<summary>.+)",
-
-# Cisco VPN Concentrator
-# 54884 05/25/2009 13:41:14.060 SEV=3 HTTP/42 RPT=4623 Error on socket accept.
-r"^\d+ \d+\/\d+\/\d+ \d+:\d+:\d+\.\d+ SEV=\d+ (?P<eventClassKey>\S+) RPT=\d+ (?P<summary>.*)",
-
-# Dell Storage Array
-# 2626:48:VolExec:27-Aug-2009 13:15:58.072049:VE_VolSetWorker.hh:75:WARNING:43.3.2:Volume volumeName has reached 96 percent of its reported size and is currently using 492690MB.
-r'^\d+:\d+:(?P<component>[^:]+):\d+-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d+:[^:]+:\d+:\w+:(?P<eventClassKey>[^:]+):(?P<summary>.*)',
-
-# 1-Oct-2009 23:00:00.383809:snapshotDelete.cc:290:INFO:8.2.5:Successfully deleted snapshot 'UNVSQLCLUSTERTEMPDB-2009-09-30-23:00:14.11563'.
-r'^\d+-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d+:[^:]+:\d+:\w+:(?P<eventClassKey>[^:]+):(?P<summary>.*)',
-)
-
-# compile regex parsers on load
-compiledParsers = []
-for regex in parsers:
-    keepEntry = True
-    if isinstance(regex, tuple):
-        regex, keepEntry = regex
-    try:
-        compiled = re.compile(regex, re.DOTALL)
-        compiledParsers.append((compiled, keepEntry))
-    except Exception:
-        pass
-
-
 class SyslogProcessor(object):
     """
     Class to process syslog messages and convert them into events viewable
     in the Zenoss event console.
     """
 
-    def __init__(self,sendEvent,minpriority,parsehost,monitor,defaultPriority):
+    def __init__(self,sendEvent,minpriority,parsehost,monitor,defaultPriority,syslogParsers):
         """
         Initializer
 
@@ -114,13 +41,30 @@ class SyslogProcessor(object):
         @type monitor: string
         @param defaultPriority: priority to use if it can't be understood from the received packet
         @type defaultPriority: integer
+        @param syslogParsers: configureable syslog parsers
+        @type defaultPriority: list
         """
         self.minpriority = minpriority
         self.parsehost = parsehost
         self.sendEvent = sendEvent
         self.monitor = monitor
         self.defaultPriority = defaultPriority
+        self.compiledParsers = self.compiledParsers(syslogParsers)
 
+    def compiledParsers(self, parsers):
+        compiledParsers = []
+        for regex in parsers.split('\n'):
+            keepEntry = True
+            if isinstance(regex, tuple):
+                regex, keepEntry = regex
+            try:
+                compiled = re.compile(regex, re.DOTALL)
+                compiledParsers.append((compiled, keepEntry))
+            except Exception as ex:
+                # TODO - probably needs to generate an event as well as log entry
+                slog.warn('Could not compile parser "%s", %r', regex, ex)
+                pass
+        return compiledParsers
 
     def process(self, msg, ipaddr, host, rtime):
         """
@@ -261,7 +205,7 @@ class SyslogProcessor(object):
         @type: dictionary
         """
         slog.debug(msg)
-        for parser, keepEntry in compiledParsers:
+        for parser, keepEntry in self.compiledParsers:
             slog.debug("tag regex: %s", parser.pattern)
             m = parser.search(msg)
             if not m:

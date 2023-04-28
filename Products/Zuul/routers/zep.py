@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009, 2023 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -1034,6 +1034,11 @@ class EventsRouter(DirectRouter):
                 'allowNegative': False,
                 'value': self.context.dmd.ZenEventManager.defaultPriority
                 },{
+                'id': 'syslog_parsers',                                                                                                          │[zenoss@sma-dev03 Products]$ cp /z/zenProducts/ZenEvents/zensyslog.py ZenEvents/zensyslog.py
+                'name': _t('Syslog Parsers'),                                                                                                    │[zenoss@sma-dev03 Products]$ cp /z/zenProducts/ZenHub/services/SyslogConfig.py ZenHub/services/SyslogConfig.py
+                'xtype': 'textarea',                                                                                                             │[zenoss@sma-dev03 Products]$ git status
+                'value': self.context.dmd.ZenEventManager.syslogParsers                                                                          │# On branch feature/ZEN-34363
+                },{           
                 'id': 'default_availability_days',
                 'name': _t('Default Availability Report (days)'),
                 'xtype': 'numberfield',
@@ -1129,6 +1134,10 @@ class EventsRouter(DirectRouter):
         defaultSyslogPriority = values.pop('default_syslog_priority', None)
         if defaultSyslogPriority is not None:
             self.context.dmd.ZenEventManager.defaultPriority = int(defaultSyslogPriority)
+
+        syslogParsers = values.pop('syslog_parsers', None)                                                                                       │#   (use "git checkout -- <file>..." to discard changes in working directory)
+        if syslogParsers is not None:                                                                                                            │#
+            self.context.dmd.ZenEventManager.syslogParsers = syslogParsers                                                                       │#       modified:   ZenEvents/SyslogProcessing.py
 
         defaultAvailabilityDays = values.pop('default_availability_days', None)
         if defaultAvailabilityDays is not None:
