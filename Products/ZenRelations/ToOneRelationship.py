@@ -144,7 +144,7 @@ class ToOneRelationship(RelationshipBase):
         rel = self.__class__(self.id)
         rel.__primary_parent__ = container
         rel = rel.__of__(container)
-        norelcopy = getattr(self.__primary_parent__, 'zNoRelationshipCopy', [])
+        norelcopy = getattr(self, 'zNoRelationshipCopy', [])
         if self.id in norelcopy: return rel
         if (self.remoteTypeName() == "ToMany" and self.obj):
             rel.addRelation(self.obj)
