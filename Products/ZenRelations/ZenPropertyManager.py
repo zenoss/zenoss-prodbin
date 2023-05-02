@@ -137,7 +137,7 @@ Z_PROPERTIES = [
 
     ('zCredentialsZProperties', [], 'lines', 'Connection Information', 'Used by ZenPack authors to denote which zProperties comprise the credentials for this device class.'),
 
-    ('zNoRelationshipCopy', [], 'lines', 'Relations to skip during copying',
+    ('zNoRelationshipCopy', ['pack'], 'lines', 'Relations to skip during copying',
      'Determine which relations should not being built during copying.'),
 ]
 
