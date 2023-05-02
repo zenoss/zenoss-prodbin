@@ -157,6 +157,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         Properties are also set on the new object.
         """
         id = self.id
+        log.info("got in getcopy %s, %r", id, self)
         if getattr(aq_base(container), id, zenmarker) is not zenmarker:
             id = "copy_of_" + id
         cobj = self.__class__(id, buildRelations=False) #make new instance

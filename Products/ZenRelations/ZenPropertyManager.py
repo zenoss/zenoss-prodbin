@@ -136,6 +136,9 @@ Z_PROPERTIES = [
     ('zSshConcurrentSessions', 10, 'int', 'SSH Concurrent Sessions', 'How many SSH sessions to open up to one device (some SSH servers have a limit)'),
 
     ('zCredentialsZProperties', [], 'lines', 'Connection Information', 'Used by ZenPack authors to denote which zProperties comprise the credentials for this device class.'),
+
+    ('zNoRelationshipCopy', [], 'lines', 'Relations to skip during copying',
+     'Determine which relations should not being built during copying.'),
 ]
 
 
