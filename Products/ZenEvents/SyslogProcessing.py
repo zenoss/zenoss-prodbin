@@ -55,10 +55,10 @@ class SyslogProcessor(object):
     def updateParsers(self, parsers):
         slog.info('Updating syslog parsing configuration')
         self.compiledParsers = []
-        for regex in parsers.split('\n'):
-            keepEntry = True
-            if isinstance(regex, tuple):
-                regex, keepEntry = regex
+        for parser in parsers:
+            # TODO - maybe event/log if missing or blank value parser fields; expr, keep, etc.
+            regex = parser.get('expr', '')
+            keepEntry = parser.get('keep', True)
             try:
                 compiled = re.compile(regex, re.DOTALL)
                 self.compiledParsers.append((compiled, keepEntry))

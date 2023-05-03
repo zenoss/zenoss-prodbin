@@ -18,7 +18,7 @@ import logging
 import re
 import time
 from dateutil.parser import parse as parse_to_dt
-from json import loads
+from json import loads, dumps
 from lxml.html.clean import clean_html
 from zope.component import getUtility
 from zenoss.protocols.exceptions import NoConsumersException, PublishException
@@ -1037,8 +1037,8 @@ class EventsRouter(DirectRouter):
                 'id': 'syslog_parsers',
                 'name': _t('Syslog Parsers'),
                 'xtype': 'textarea',
-                'value': self.context.dmd.ZenEventManager.syslogParsers
-                },{           
+                'value': dumps(self.context.dmd.ZenEventManager.syslogParsers, indent=2)
+                },{
                 'id': 'default_availability_days',
                 'name': _t('Default Availability Report (days)'),
                 'xtype': 'numberfield',
@@ -1137,7 +1137,7 @@ class EventsRouter(DirectRouter):
 
         syslogParsers = values.pop('syslog_parsers', None)
         if syslogParsers is not None:
-            self.context.dmd.ZenEventManager.syslogParsers = syslogParsers
+            self.context.dmd.ZenEventManager.syslogParsers = loads(syslogParsers)
 
         defaultAvailabilityDays = values.pop('default_availability_days', None)
         if defaultAvailabilityDays is not None:
