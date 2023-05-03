@@ -349,7 +349,7 @@ class SyslogConfigTask(ObservableMixin):
 
         self._daemon.defaultPriority = self._preferences.defaultPriority
         self._daemon.syslogParsers = self._preferences.syslogParsers
-        self._daemon.prevSyslogParsers = ''
+        self._daemon.prevSyslogParsers = []
 
     def doTask(self):
         return defer.succeed("Already updated default syslog priority...")
