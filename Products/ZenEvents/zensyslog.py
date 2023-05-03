@@ -169,7 +169,6 @@ class SyslogTask(BaseTask, DatagramProtocol):
                                     self.options.syslogport))
         self._daemon.changeUser()
         self.minpriority = self.options.minpriority
-        self.processor = None
 
         if self.options.logorig:
             self.olog = logging.getLogger('origsyslog')
@@ -191,6 +190,8 @@ class SyslogTask(BaseTask, DatagramProtocol):
                     self.options.minpriority, self.options.parsehost,
                     self.options.monitor, self._daemon.defaultPriority,
                     self._daemon.syslogParsers)
+        # Keep track of values to determine if a config update was pushed
+        self._daemon.prevSyslogParsers = self._daemon.syslogParsers
 
     def doTask(self):
         """
@@ -302,6 +303,10 @@ class SyslogTask(BaseTask, DatagramProtocol):
         else:
             host = response
         if self.processor:
+            # Check if a config update has pushed an updated syslogParsers value
+            if self._daemon.syslogParsers != self._daemon.prevSyslogParsers:
+                    self._daemon.prevSyslogParsers = self._daemon.syslogParsers
+                    self.processor.updateParsers(self._daemon.syslogParsers)
             self.processor.process(msg, ipaddr, host, rtime)
             totalTime, totalEvents, maxTime = self.stats.report()
             stat = self._statService.getStatistic("events")
@@ -344,6 +349,7 @@ class SyslogConfigTask(ObservableMixin):
 
         self._daemon.defaultPriority = self._preferences.defaultPriority
         self._daemon.syslogParsers = self._preferences.syslogParsers
+        self._daemon.prevSyslogParsers = ''
 
     def doTask(self):
         return defer.succeed("Already updated default syslog priority...")

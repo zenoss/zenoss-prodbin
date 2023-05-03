@@ -49,22 +49,23 @@ class SyslogProcessor(object):
         self.sendEvent = sendEvent
         self.monitor = monitor
         self.defaultPriority = defaultPriority
-        self.compiledParsers = self.compiledParsers(syslogParsers)
+        self.compiledParsers = []
+        self.updateParsers(syslogParsers)
 
-    def compiledParsers(self, parsers):
-        compiledParsers = []
+    def updateParsers(self, parsers):
+        slog.info('Updating syslog parsing configuration')
+        self.compiledParsers = []
         for regex in parsers.split('\n'):
             keepEntry = True
             if isinstance(regex, tuple):
                 regex, keepEntry = regex
             try:
                 compiled = re.compile(regex, re.DOTALL)
-                compiledParsers.append((compiled, keepEntry))
+                self.compiledParsers.append((compiled, keepEntry))
             except Exception as ex:
                 # TODO - probably needs to generate an event as well as log entry
                 slog.warn('Could not compile parser "%s", %r', regex, ex)
                 pass
-        return compiledParsers
 
     def process(self, msg, ipaddr, host, rtime):
         """
