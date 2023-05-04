@@ -24,8 +24,7 @@ class Linux_ifconfig(CommandPlugin):
     modname = "Products.ZenModel.IpInterface"
 
     ifstart = re.compile(
-        r"^(\S+)\s+Link encap:(.+)HWaddr (\S+)"
-        r"|^(\S+)\s+Link encap:(.+)"
+        r"^(\S+)\s+Link encap:(.+)HWaddr (\S+)|^(\S+)\s+Link encap:(.+)"
     ).search
     v4addr = re.compile(r"inet addr:(\S+).*Mask:(\S+)").search
     flags = re.compile(r"^(.*) MTU:(\d+)\s+Metric:.*").search
