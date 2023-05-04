@@ -206,9 +206,9 @@ class TrapFilterTest(BaseTestCase):
         filter._eventService = Mock()
         filter._daemon = Mock()
         filter._daemon.options.monitor = 'localhost'
-        results = filter._parseFilterDefinition("include V3 ignored", 99)
+        results = filter._parseFilterDefinition("include V4 ignored", 99)
         self.assertEquals(filter._eventService.sendEvent.called, False)
-        self.assertEquals(results, "Invalid SNMP version 'V3'; the only valid versions are 'v1' or 'v2'")
+        self.assertEquals(results, "Invalid SNMP version 'V4'; the only valid versions are 'v1' or 'v2' or 'v3'")
 
     def testParseFilterDefinitionForInvalidV1Definition(self):
         filter = TrapFilter()
@@ -253,6 +253,16 @@ class TrapFilterTest(BaseTestCase):
         filter._daemon.options.monitor = 'localhost'
         results = filter._parseFilterDefinition("include V2 .1.3.6.1.4.*", 99)
         self.assertEquals(filter._eventService.sendEvent.called, False)
+        self.assertEquals(results, None)
+
+    def testParseFilterDefinitionForInvalidV3Definition(self):
+        filter = TrapFilter()
+        results = filter._parseFilterDefinition("include V3 .", 99)
+        self.assertEquals(results, "'' is not a valid OID: Empty OID is invalid")
+
+    def testParseFilterDefinitionForValidV3Definition(self):
+        filter = TrapFilter()
+        results = filter._parseFilterDefinition("include V3 .1.3.6.1.4.*", 99)
         self.assertEquals(results, None)
 
     def testParseV1FilterDefinitionForGenericTrap(self):
@@ -467,13 +477,13 @@ class TrapFilterTest(BaseTestCase):
         results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5", "-1"], ".*")
         self.assertEquals(results, "Specific trap '-1' invalid; must be non-negative integer")
 
-    def testParseV1FilterDefinitionFailsForMissingEnterpriseSpecificTrap(self):
+    def testParseV1FilterDefinitionForSpecificOid(self):
         filter = TrapFilter()
         filter._eventService = Mock()
         filter._daemon = Mock()
         filter._daemon.options.monitor = 'localhost'
         results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5"], ".*")
-        self.assertEquals(results, "Missing specific trap number or '*'")
+        self.assertEquals(results, None)
 
     def testParseV2FilterDefinition(self):
         filter = TrapFilter()

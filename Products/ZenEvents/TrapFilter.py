@@ -174,8 +174,8 @@ class TrapFilter(object):
             remainingTokens = tokens[3:]
         if action != "include" and action != "exclude":
             return "Invalid action '%s'; the only valid actions are 'include' or 'exclude'" % tokens[0]
-        elif snmpVersion != "v1" and snmpVersion != "v2":
-            return "Invalid SNMP version '%s'; the only valid versions are 'v1' or 'v2'" % tokens[1]
+        elif snmpVersion != "v1" and snmpVersion != "v2" and snmpVersion != "v3":
+            return "Invalid SNMP version '%s'; the only valid versions are 'v1' or 'v2' or 'v3'" % tokens[1]
 
         # Do not parse if CollectorRegex does not match collector name
         try:
@@ -235,12 +235,13 @@ class TrapFilter(object):
                 [COLLECTOR REGEX] v1 include|exclude TRAP_TYPE
                 [COLLECTOR REGEX] v1 include|exclude GLOBBED_OID
                 [COLLECTOR REGEX] v1 include|exclude OID *|SPECIFIC_TRAP
+                [COLLECTOR REGEX] v1 include|exclude OID
             where
                 COLLECTOR REGEX is a regular expression pattern applied against the
                                 collector zentrap is running under
                 TRAP_TYPE       is a generic trap type in the rage [0-5]
                 GLOBBED_OID     is an OID ending with ".*"
-                OID             is an valid OID
+                OID             is a valid OID
                 SPECIFIC_TRAP   is any specific trap type (any non-negative integer)
             Note that the last two cases are used for enterprise-specific traps (i.e.
             where the generic trap type is 6).
@@ -287,8 +288,6 @@ class TrapFilter(object):
                 filterDef.specificTrap = remainingTokens[1]
                 if filterDef.specificTrap != "*" and not filterDef.specificTrap.isdigit():
                     return "Specific trap '%s' invalid; must be non-negative integer" % filterDef.specificTrap
-            else:
-                return "Missing specific trap number or '*'"
 
         key = oid
         if filterDef.specificTrap != None:
