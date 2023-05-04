@@ -167,7 +167,7 @@ class TrapFilter(object):
         snmpVersion = tokens[1].lower()
         if action != "include" and action != "exclude":
             return "Invalid action '%s'; the only valid actions are 'include' or 'exclude'" % tokens[0]
-        elif snmpVersion != "v1" and snmpVersion != "v2":
+        elif snmpVersion != "v1" and snmpVersion != "v2" and snmpVersion != "v3":
             return "Invalid SNMP version '%s'; the only valid versions are 'v1' or 'v2'" % tokens[1]
 
         if snmpVersion == "v1":
