@@ -287,9 +287,7 @@ class PluginManager(object):
                 if modname not in self.loadedZenpacks:
                     self.loadedZenpacks.append(modname)
                     modPathPrefix = ".".join(
-                        (modname,)
-                        + self.packPath
-                        + (self.lastModName,)
+                        (modname,) + self.packPath + (self.lastModName,)
                     )
                     factory = PackLoaderFactory(OsWalker(), modPathPrefix)
                     package = pack.path(*self.packPath + (self.lastModName,))

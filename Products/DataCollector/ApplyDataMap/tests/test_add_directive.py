@@ -13,12 +13,11 @@ from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 from ..applydatamap import ApplyDataMap, ObjectMap
 
-PATH = {'src': 'Products.DataCollector.ApplyDataMap.applydatamap'}
+PATH = {"src": "Products.DataCollector.ApplyDataMap.applydatamap"}
 
 
 class TestImplicitAdd(BaseTestCase):
-    """Test ApplyDataMap directives.
-    """
+    """Test ApplyDataMap directives."""
 
     def afterSetUp(t):
         super(TestImplicitAdd, t).afterSetUp()
@@ -52,7 +51,6 @@ class TestImplicitAdd(BaseTestCase):
 
 
 class TestExplicitAdd(BaseTestCase):
-
     def afterSetUp(t):
         super(TestExplicitAdd, t).afterSetUp()
         t.om1 = ObjectMap(
@@ -125,8 +123,7 @@ class TestExplicitAdd(BaseTestCase):
 
 
 class TestAddSequence(BaseTestCase):
-    """Test ApplyDataMap directives.
-    """
+    """Test ApplyDataMap directives."""
 
     def afterSetUp(t):
         super(TestAddSequence, t).afterSetUp()
