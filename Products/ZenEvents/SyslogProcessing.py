@@ -17,6 +17,7 @@ import logging
 slog = logging.getLogger("zen.Syslog")
 import socket
 
+from copy import copy
 from Products.ZenEvents.syslog_h import *
 from Products.ZenUtils.IpUtil import isip
 
@@ -53,18 +54,17 @@ class SyslogProcessor(object):
         self.updateParsers(syslogParsers)
 
     def updateParsers(self, parsers):
-        slog.info('Updating syslog parsing configuration')
-        self.compiledParsers = []
-        for parser in parsers:
+        self.compiledParsers = copy(parsers)
+        for parserCfg in self.compiledParsers:
             # TODO - maybe event/log if missing or blank value parser fields; expr, keep, etc.
-            regex = parser.get('expr', '')
-            keepEntry = parser.get('keep', True)
+            if 'expr' not in parserCfg:
+                # TODO error
+                continue            
             try:
-                compiled = re.compile(regex, re.DOTALL)
-                self.compiledParsers.append((compiled, keepEntry))
+                parserCfg['expr'] = re.compile(parserCfg['expr'], re.DOTALL)
             except Exception as ex:
                 # TODO - probably needs to generate an event as well as log entry
-                slog.warn('Could not compile parser "%s", %r', regex, ex)
+                slog.warn('Could not compile parser "%s", %r', parserCfg['expr'], ex)
                 pass
 
     def process(self, msg, ipaddr, host, rtime):
@@ -103,9 +103,10 @@ class SyslogProcessor(object):
             #rest of msg now in summary of event
             evt = self.buildEventClassKey(evt)
             evt['monitor'] = self.monitor
-            evt['message'] = unicode(msg)
-            if 'summary' in evt:
-                evt['summary'] = unicode(evt['summary'] )
+            # Convert strings to unicode, previous code coverted 'summary' &
+            # 'message' fields. With parsing group name matching, good idea to
+            # convert all fields.
+            evt.update({k: unicode(v) for k,v in evt.iteritems() if isinstance(v, str)})
             self.sendEvent(evt)
 
 
@@ -206,19 +207,32 @@ class SyslogProcessor(object):
         @type: dictionary
         """
         slog.debug(msg)
-        for parser, keepEntry in self.compiledParsers:
-            slog.debug("tag regex: %s", parser.pattern)
-            m = parser.search(msg)
+        for i, parserCfg in enumerate(self.compiledParsers):
+            slog.debug("parserCfg[%s] regex: %s", i, parserCfg['expr'].pattern)
+            m = parserCfg['expr'].search(msg)
             if not m:
                 continue
-            elif not keepEntry:
-                slog.debug("Dropping syslog message due to parser rule.")
+            elif not parserCfg['keep']:
+                slog.debug("parserCfg[%s] matched but DROPPED due to parserCfg. msg:%r, pattern:%r, parsedGroups:%r",
+                    i,
+                    msg,
+                    parserCfg['expr'].pattern,
+                    m.groupdict())
                 return None
-            slog.debug("tag match: %s", m.groupdict())
+            slog.debug("parserCfg[%s] matched. msg:%r, pattern:%r, parsedGroups:%r",
+                i,
+                msg,
+                parserCfg['expr'].pattern,
+                m.groupdict())
             evt.update(m.groupdict())
+            evt['parserRuleMatched'] = i
+            if parserCfg.get('summaryToMessage', False):
+                evt['message'] = evt['summary']
+                evt['unparsedMessage'] = msg
             break
         else:
-            slog.debug("No matching parser: '%s'", msg)
+            # TODO
+            slog.debug("No matching parser: %r", msg)
             evt['summary'] = msg
         return evt
 

@@ -186,12 +186,6 @@ class SyslogTask(BaseTask, DatagramProtocol):
                               interface=self.options.listenip)
 
         #   yield self.model().callRemote('getDefaultPriority')
-        self.processor = SyslogProcessor(self._eventService.sendEvent,
-                    self.options.minpriority, self.options.parsehost,
-                    self.options.monitor, self._daemon.defaultPriority,
-                    self._daemon.syslogParsers)
-        # Keep track of values to determine if a config update was pushed
-        self._daemon.prevSyslogParsers = self._daemon.syslogParsers
 
     def doTask(self):
         """
@@ -302,12 +296,9 @@ class SyslogTask(BaseTask, DatagramProtocol):
             host = ipaddr
         else:
             host = response
-        if self.processor:
-            # Check if a config update has pushed an updated syslogParsers value
-            if self._daemon.syslogParsers != self._daemon.prevSyslogParsers:
-                    self._daemon.prevSyslogParsers = self._daemon.syslogParsers
-                    self.processor.updateParsers(self._daemon.syslogParsers)
-            self.processor.process(msg, ipaddr, host, rtime)
+
+        if self._daemon.processor:
+            self._daemon.processor.process(msg, ipaddr, host, rtime)
             totalTime, totalEvents, maxTime = self.stats.report()
             stat = self._statService.getStatistic("events")
             stat.value = totalEvents
@@ -350,6 +341,14 @@ class SyslogConfigTask(ObservableMixin):
         self._daemon.defaultPriority = self._preferences.defaultPriority
         self._daemon.syslogParsers = self._preferences.syslogParsers
         self._daemon.prevSyslogParsers = []
+
+        eventService = zope.component.queryUtility(IEventService)
+
+        self._daemon.processor = SyslogProcessor(eventService.sendEvent,
+                    self._daemon.options.minpriority, self._daemon.options.parsehost,
+                    self._daemon.options.monitor, self._daemon.defaultPriority,
+                    self._daemon.syslogParsers)
+        log.info('New SyslogProcessor initialized %r', self._daemon.processor)
 
     def doTask(self):
         return defer.succeed("Already updated default syslog priority...")
