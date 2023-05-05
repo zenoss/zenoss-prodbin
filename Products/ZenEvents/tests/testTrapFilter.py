@@ -169,8 +169,8 @@ class TrapFilterTest(BaseTestCase):
 
     def testParseFilterDefinitionForInvalidVersion(self):
         filter = TrapFilter()
-        results = filter._parseFilterDefinition("include V3 ignored", 99)
-        self.assertEquals(results, "Invalid SNMP version 'V3'; the only valid versions are 'v1' or 'v2'")
+        results = filter._parseFilterDefinition("include V4 ignored", 99)
+        self.assertEquals(results, "Invalid SNMP version 'V4'; the only valid versions are 'v1' or 'v2' or 'v3'")
 
     def testParseFilterDefinitionForInvalidV1Definition(self):
         filter = TrapFilter()
@@ -195,6 +195,16 @@ class TrapFilterTest(BaseTestCase):
     def testParseFilterDefinitionForValidV2Definition(self):
         filter = TrapFilter()
         results = filter._parseFilterDefinition("include V2 .1.3.6.1.4.*", 99)
+        self.assertEquals(results, None)
+
+    def testParseFilterDefinitionForInvalidV3Definition(self):
+        filter = TrapFilter()
+        results = filter._parseFilterDefinition("include V3 .", 99)
+        self.assertEquals(results, "'' is not a valid OID: Empty OID is invalid")
+
+    def testParseFilterDefinitionForValidV3Definition(self):
+        filter = TrapFilter()
+        results = filter._parseFilterDefinition("include V3 .1.3.6.1.4.*", 99)
         self.assertEquals(results, None)
 
     def testParseV1FilterDefinitionForGenericTrap(self):
