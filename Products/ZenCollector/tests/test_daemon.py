@@ -105,7 +105,6 @@ class TestCollectorDaemon_maintenanceCycle(TestCase):
 
 
 class _Capture(object):
-
     def __init__(self):
         self.err = None
 
