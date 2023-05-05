@@ -123,72 +123,89 @@ class EventManagerBase(ZenModelRM):
     # or to discard the entry and not create an event.
     syslogParsers = [{
     "description": "generic mark",
-    "expr":"r'^(?P<summary>-- (?P<eventClassKey>MARK) --)'",
-    "keep": True
+    "expr": "^(?P<summary>-- (?P<eventClassKey>MARK) --)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "Cisco UCS: 2010 Oct 19 15:47:45 CDT: snmpd: SNMP Operation (GET) failed. Reason:2 reqId (257790979) errno (42) error index (1)",
-    "expr":"r'^: \d{4} \w{3}\s+\d{1,2}\s+\d{1,2}:\d\d:\d\d \w{3}: %(?P<eventClassKey>[^:]+): (?P<summary>.*)'",
-    "keep": True
+    "expr": "^: \d{4} \w{3}\s+\d{1,2}\s+\d{1,2}:\d\d:\d\d \w{3}: %(?P<eventClassKey>[^:]+): (?P<summary>.*)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "ntsyslog windows msg",
-    "expr":"r'^(?P<component>.+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)'",
-    "keep": True
+    "expr": "^(?P<component>.+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "cisco msg with card indicator",
-    "expr":"r'%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)'",
-    "keep": True
+    "expr": "%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "cisco standard msg",
-    "expr":"r'%(?P<eventClassKey>(?P<component>\S+)-(?P<overwriteSeverity>\d)-\S+): *(?P<summary>.*)'",
-    "keep": True
+    "expr": "%(?P<eventClassKey>(?P<component>\S+)-(?P<overwriteSeverity>\d)-\S+): *(?P<summary>.*)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "Cisco ACS",
-    "expr":"r'^(?P<ipAddress>\S+)\s+(?P<summary>(?P<eventClassKey>(CisACS_\d\d|CSCOacs)_\S+)\s+(?P<eventKey>\S+)\s.*)'",
-    "keep": True
+    "expr": "^(?P<ipAddress>\S+)\s+(?P<summary>(?P<eventClassKey>(CisACS_\d\d|CSCOacs)_\S+)\s+(?P<eventKey>\S+)\s.*)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "netscreen device msg",
-    "expr":"r'device_id=\S+\s+\[\S+\](?P<eventClassKey>\S+\d+):\s+(?P<summary>.*)\s+\((?P<originalTime>\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d)\)'",
-    "keep": True
+    "expr": "device_id=\S+\s+\[\S+\](?P<eventClassKey>\S+\d+):\s+(?P<summary>.*)\s+\((?P<originalTime>\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d)\)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "NetApp: [deviceName: 10/100/1000/e1a:warning]: Client 10.0.0.101 (xid 4251521131) is trying to access an unexported mount (fileid 64, snapid 0, generation 6111516 and flags 0x0 on volume 0xc97d89a [No volume name available])",
-    "expr":"r'^\[[^:]+: (?P<component>[^:]+)[^\]]+\]: (?P<summary>.*)'",
-    "keep": True
+    "expr": "^\[[^:]+: (?P<component>[^:]+)[^\]]+\]: (?P<summary>.*)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "unix syslog with pid",
-    "expr":"r'(?P<component>\S+)\[(?P<pid>\d+)\]:\s*(?P<summary>.*)'",
-    "keep": True
+    "expr": "(?P<component>\S+)\[(?P<pid>\d+)\]:\s*(?P<summary>.*)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "unix syslog without pid",
-    "expr":"r'(?P<component>\S+): (?P<summary>.*)'",
-    "keep": True
+    "expr": "(?P<component>\S+): (?P<summary>.*)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "adtran devices",
-    "expr":"r'^(?P<deviceModel>[^\[]+)\[(?P<deviceManufacturer>ADTRAN)\]:(?P<component>[^\|]+\|\d+\|\d+)\|(?P<summary>.*)'",
-    "keep": True
+    "expr": "^(?P<deviceModel>[^\[]+)\[(?P<deviceManufacturer>ADTRAN)\]:(?P<component>[^\|]+\|\d+\|\d+)\|(?P<summary>.*)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "",
-    "expr":"r'^date=.+ (?P<summary>devname=.+ log_id=(?P<eventClassKey>\d+) type=(?P<component>\S+).+)'",
-    "keep": True
+    "expr": "^date=.+ (?P<summary>devname=.+ log_id=(?P<eventClassKey>\d+) type=(?P<component>\S+).+)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "proprietary message passing system",
-    "expr":"r'^(?P<component>\S+)(\.|\s)[A-Z]{3} \d \S+ \d\d:\d\d:\d\d-\d\d:\d\d:\d\d \d{5} \d{2} \d{5} \S+ \d{4} \d{3,5} (- )*(?P<summary>.*) \d{4} \d{4}'",
-    "keep": True
+    "expr": "^(?P<component>\S+)(\.|\s)[A-Z]{3} \d \S+ \d\d:\d\d:\d\d-\d\d:\d\d:\d\d \d{5} \d{2} \d{5} \S+ \d{4} \d{3,5} (- )*(?P<summary>.*) \d{4} \d{4}",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "Cisco port state logging info",
-    "expr":"r'^Process (?P<process_id>\d+), Nbr (?P<device>\d+\.\d+\.\d+\.\d+) on (?P<interface>\w+/\d+) from (?P<start_state>\w+) to (?P<end_state>\w+), (?P<summary>.+)'",
-    "keep": True
+    "expr": "^Process (?P<process_id>\d+), Nbr (?P<device>\d+\.\d+\.\d+\.\d+) on (?P<interface>\w+/\d+) from (?P<start_state>\w+) to (?P<end_state>\w+), (?P<summary>.+)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "Cisco VPN Concentrator: 54884 05/25/2009 13:41:14.060 SEV=3 HTTP/42 RPT=4623 Error on socket accept.",
-    "expr":"r'^\d+ \d+\/\d+\/\d+ \d+:\d+:\d+\.\d+ SEV=\d+ (?P<eventClassKey>\S+) RPT=\d+ (?P<summary>.*)'",
-    "keep": True
+    "expr": "^\d+ \d+\/\d+\/\d+ \d+:\d+:\d+\.\d+ SEV=\d+ (?P<eventClassKey>\S+) RPT=\d+ (?P<summary>.*)",
+    "keep": True,
+    "summaryToMessage": False
 },{
     "description": "Dell Storage Array: 2626:48:VolExec:27-Aug-2009 13:15:58.072049:VE_VolSetWorker.hh:75:WARNING:43.3.2:Volume volumeName has reached 96 percent of its reported size and is currently using 492690MB.",
-    "expr":"r'^\d+:\d+:(?P<component>[^:]+):\d+-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d+:[^:]+:\d+:\w+:(?P<eventClassKey>[^:]+):(?P<summary>.*)'",
-    "keep": True
+    "expr": "^\d+:\d+:(?P<component>[^:]+):\d+-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d+:[^:]+:\d+:\w+:(?P<eventClassKey>[^:]+):(?P<summary>.*)",
+    "keep": True,
+    "summaryToMessage": False
 },{
-    "description": "1-Oct-2009 23:00:00.383809:snapshotDelete.cc:290:INFO:8.2.5:Successfully deleted snapshot \"UNVSQLCLUSTERTEMPDB-2009-09-30-23:00:14.11563\'",
-    "expr":"r'^\d+-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d+:[^:]+:\d+:\w+:(?P<eventClassKey>[^:]+):(?P<summary>.*)'",
-    "keep": True
+    "description": "1-Oct-2009 23:00:00.383809:snapshotDelete.cc:290:INFO:8.2.5:Successfully deleted snapshot \"UNVSQLCLUSTERTEMPDB-2009-09-30-23:00:14.11563\"",
+    "expr": "^\d+-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d+:[^:]+:\d+:\w+:(?P<eventClassKey>[^:]+):(?P<summary>.*)",
+    "keep": True,
+    "summaryToMessage": False
 }]
 
     _properties = (
