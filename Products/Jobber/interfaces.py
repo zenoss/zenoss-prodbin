@@ -9,6 +9,8 @@
 
 from __future__ import absolute_import
 
+import six
+
 from celery import states
 from zope.interface import Interface
 from zope.schema import Bool, Choice, Datetime, TextLine, Timedelta
@@ -19,60 +21,66 @@ class IJobRecord(Interface):
     """ """
 
     jobid = TextLine(
-        title=u"Job ID",
-        description=u"The Job's unique identifier",
+        title=six.text_type("Job ID"),
+        description=six.text_type("The Job's unique identifier"),
     )
 
     name = TextLine(
-        title=u"Name",
-        description=u"The full class name of the job",
+        title=six.text_type("Name"),
+        description=six.text_type("The full class name of the job"),
     )
 
     summary = TextLine(
-        title=u"Summary",
-        description=u"A brief and general summary of the job's function",
+        title=six.text_type("Summary"),
+        description=six.text_type(
+            "A brief and general summary of the job's function"
+        ),
     )
 
     description = TextLine(
-        title=u"Description",
-        description=u"A description of what this job will do",
+        title=six.text_type("Description"),
+        description=six.text_type("A description of what this job will do"),
     )
 
     userid = TextLine(
-        title=u"User ID",
-        description=u"The user that created the job",
+        title=six.text_type("User ID"),
+        description=six.text_type("The user that created the job"),
     )
 
     logfile = TextLine(
-        title=u"Logfile",
-        description=u"Path to this job's log file.",
+        title=six.text_type("Logfile"),
+        description=six.text_type("Path to this job's log file."),
     )
 
     status = Choice(
-        title=u"Status",
-        description=u"The current status of the job",
+        title=six.text_type("Status"),
+        description=six.text_type("The current status of the job"),
         vocabulary=SimpleVocabulary.fromValues(states.ALL_STATES),
     )
 
     created = Datetime(
-        title=u"Created", description=u"When the job was created"
+        title=six.text_type("Created"),
+        description=six.text_type("When the job was created"),
     )
 
     started = Datetime(
-        title=u"Started", description=u"When the job began executing"
+        title=six.text_type("Started"),
+        description=six.text_type("When the job began executing"),
     )
 
     finished = Datetime(
-        title=u"Finished", description=u"When the job finished executing"
+        title=six.text_type("Finished"),
+        description=six.text_type("When the job finished executing"),
     )
 
     duration = Timedelta(
-        title=u"Duration", description=u"How long the job has run"
+        title=six.text_type("Duration"),
+        description=six.text_type("How long the job has run"),
     )
 
     complete = Bool(
-        title=u"Complete",
-        description=u"True if the job has finished running",
+        title=six.text_type("Complete"),
+        description=six.text_type("True if the job has finished running"),
     )
 
     def abort():
