@@ -20,13 +20,13 @@ class IJob(Interface):
     """Registers a ZenJobs Job class."""
 
     class_ = GlobalObject(
-        title=six.u("Job Class"),
-        description=six.u("The class of the job to register"),
+        title=six.text_type("Job Class"),
+        description=six.text_type("The class of the job to register"),
     )
 
     name = TextLine(
-        title=six.u("Name"),
-        description=six.u("Optional name of the job"),
+        title=six.text_type("Name"),
+        description=six.text_type("Optional name of the job"),
         required=False,
     )
 
@@ -35,11 +35,11 @@ class ICelerySignal(Interface):
     """Registers a Celery signal handler."""
 
     name = TextLine(
-        title=six.u("Name"),
-        description=six.u("The signal receiving a handler"),
+        title=six.text_type("Name"),
+        description=six.text_type("The signal receiving a handler"),
     )
 
     handler = TextLine(
-        title=six.u("Handler"),
-        description=six.u("Classpath to the function handling the signal"),
+        title=six.text_type("Handler"),
+        description=six.text_type("Classpath to the function handling the signal"),
     )

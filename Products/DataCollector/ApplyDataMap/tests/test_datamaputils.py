@@ -316,22 +316,22 @@ class TestObjectMapToDeviceDiff(BaseTestCase):
             ),
             "utf-8": ObjectMap(
                 {
-                    "a": six.u("\xe0").encode("utf-8"),
-                    "b": six.u("\xe0").encode("utf-8"),
-                    "c": six.u("\xe0").encode("utf-8"),
+                    "a": six.text_type("\xe0").encode("utf-8"),
+                    "b": six.text_type("\xe0").encode("utf-8"),
+                    "c": six.text_type("\xe0").encode("utf-8"),
                 }
             ),
             "latin-1": ObjectMap(
                 {
-                    "a": six.u("\xe0").encode("latin-1"),
-                    "b": six.u("\xe0").encode("latin-1"),
-                    "c": six.u("\xe0").encode("latin-1"),
+                    "a": six.text_type("\xe0").encode("latin-1"),
+                    "b": six.text_type("\xe0").encode("latin-1"),
+                    "c": six.text_type("\xe0").encode("latin-1"),
                 }
             ),
             "utf-16": ObjectMap(
                 {
-                    "a": six.u("\xff\xfeabcdef").encode("utf-16"),
-                    "b": six.u("\xff\xfexyzwow").encode("utf-16"),
+                    "a": six.text_type("\xff\xfeabcdef").encode("utf-16"),
+                    "b": six.text_type("\xff\xfexyzwow").encode("utf-16"),
                     # (water, z, G clef), UTF-16 encoded,
                     # little-endian with BOM
                     "c": "\xff\xfe\x34\x6c\x7a\x00\x34\xd8\x13\xdd",
