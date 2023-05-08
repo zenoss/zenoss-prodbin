@@ -1039,6 +1039,11 @@ class EventsRouter(DirectRouter):
                 'xtype': 'textarea',
                 'value': dumps(self.context.dmd.ZenEventManager.syslogParsers, indent=2)
                 },{
+                'id': 'syslog_summary_to_message',
+                'name': _t('Mirror Syslog Event\'s Summary value to Message field'),
+                'xtype': 'checkbox',
+                'value': self.context.dmd.ZenEventManager.syslogSummaryToMessage
+                },{
                 'id': 'default_availability_days',
                 'name': _t('Default Availability Report (days)'),
                 'xtype': 'numberfield',
@@ -1138,6 +1143,10 @@ class EventsRouter(DirectRouter):
         syslogParsers = values.pop('syslog_parsers', None)
         if syslogParsers is not None:
             self.context.dmd.ZenEventManager.syslogParsers = loads(syslogParsers)
+
+        syslogSummaryToMessage = values.pop('syslog_summary_to_message', None)
+        if syslogParsers is not None:
+            self.context.dmd.ZenEventManager.syslogSummaryToMessage = syslogSummaryToMessage
 
         defaultAvailabilityDays = values.pop('default_availability_days', None)
         if defaultAvailabilityDays is not None:
