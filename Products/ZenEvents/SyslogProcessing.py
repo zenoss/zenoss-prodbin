@@ -55,17 +55,35 @@ class SyslogProcessor(object):
 
     def updateParsers(self, parsers):
         self.compiledParsers = copy(parsers)
-        for parserCfg in self.compiledParsers:
-            # TODO - maybe event/log if missing or blank value parser fields; expr, keep, etc.
+        for i, parserCfg in enumerate(self.compiledParsers):
             if 'expr' not in parserCfg:
-                # TODO error
+                msg = 'Parser configuration #{} missing a "expr" attribute'.fornat(i)
+                slog.warn(msg)
+                self.syslogParserErrorEvent(message=msg)
                 continue            
             try:
                 parserCfg['expr'] = re.compile(parserCfg['expr'], re.DOTALL)
             except Exception as ex:
-                # TODO - probably needs to generate an event as well as log entry
-                slog.warn('Could not compile parser "%s", %r', parserCfg['expr'], ex)
+                msg = 'Parser configuration #{} Could not compile expression "{!r}", {!r}'.format(i, parserCfg['expr'], ex)
+                slog.warn(msg)
+                self.syslogParserErrorEvent(message=msg)
                 pass
+
+    def syslogParserErrorEvent(self, **kwargs):
+        """
+        Build an Event dict from parameters.n
+        """
+        eventDict = {
+            'device': '127.0.0.1',
+            'eventClass': '/App/Zenoss',
+            'severity': 4,
+            'eventClassKey': '',
+            'summary': 'Syslog Parser processing issue',
+            'component': 'zensyslog'
+        }
+        if kwargs:
+            eventDict.update(kwargs)
+        self.sendEvent(eventDict)
 
     def process(self, msg, ipaddr, host, rtime):
         """
