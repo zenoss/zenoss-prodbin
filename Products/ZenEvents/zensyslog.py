@@ -338,16 +338,12 @@ class SyslogConfigTask(ObservableMixin):
         self._preferences = taskConfig
         self._daemon = zope.component.getUtility(ICollector)
 
-        self._daemon.defaultPriority = self._preferences.defaultPriority
-        self._daemon.syslogParsers = self._preferences.syslogParsers
-        self._daemon.prevSyslogParsers = []
-
         eventService = zope.component.queryUtility(IEventService)
 
         self._daemon.processor = SyslogProcessor(eventService.sendEvent,
                     self._daemon.options.minpriority, self._daemon.options.parsehost,
-                    self._daemon.options.monitor, self._daemon.defaultPriority,
-                    self._daemon.syslogParsers)
+                    self._daemon.options.monitor, self._preferences.defaultPriority,
+                    self._preferences.syslogParsers, self._preferences.syslogSummaryToMessage)
         log.info('New SyslogProcessor initialized %r', self._daemon.processor)
 
     def doTask(self):

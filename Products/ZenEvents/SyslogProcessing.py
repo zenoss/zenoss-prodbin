@@ -28,7 +28,7 @@ class SyslogProcessor(object):
     in the Zenoss event console.
     """
 
-    def __init__(self,sendEvent,minpriority,parsehost,monitor,defaultPriority,syslogParsers):
+    def __init__(self,sendEvent,minpriority,parsehost,monitor,defaultPriority,syslogParsers,syslogSummaryToMessage):
         """
         Initializer
 
@@ -52,6 +52,7 @@ class SyslogProcessor(object):
         self.defaultPriority = defaultPriority
         self.compiledParsers = []
         self.updateParsers(syslogParsers)
+        self.syslogSummaryToMessage = syslogSummaryToMessage
 
     def updateParsers(self, parsers):
         self.compiledParsers = copy(parsers)
@@ -121,7 +122,7 @@ class SyslogProcessor(object):
             #rest of msg now in summary of event
             evt = self.buildEventClassKey(evt)
             evt['monitor'] = self.monitor
-            # Convert strings to unicode, previous code coverted 'summary' &
+            # Convert strings to unicode, previous code converted 'summary' &
             # 'message' fields. With parsing group name matching, good idea to
             # convert all fields.
             evt.update({k: unicode(v) for k,v in evt.iteritems() if isinstance(v, str)})
@@ -244,13 +245,13 @@ class SyslogProcessor(object):
                 m.groupdict())
             evt.update(m.groupdict())
             evt['parserRuleMatched'] = i
-            if parserCfg.get('summaryToMessage', False):
-                evt['message'] = evt['summary']
-                evt['unparsedMessage'] = msg
             break
         else:
             slog.debug("No matching parser: %r", msg)
             evt['summary'] = msg
+        if self.syslogSummaryToMessage:
+            evt['message'] = evt['summary']
+            evt['unparsedMessage'] = msg
         return evt
 
 
