@@ -249,7 +249,6 @@ class SyslogProcessor(object):
                 evt['unparsedMessage'] = msg
             break
         else:
-            # TODO
             slog.debug("No matching parser: %r", msg)
             evt['summary'] = msg
         return evt
