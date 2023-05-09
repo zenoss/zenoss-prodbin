@@ -260,8 +260,12 @@ class TwistedQueueConsumerTask(BaseQueueConsumerTask):
                 if log.isEnabledFor(logging.DEBUG):
                     # assume to_dict() is expensive.
                     log.debug("Publishing event: %s", to_dict(zepRawEvent))
-                yield self.queueConsumer.publishMessage(EXCHANGE_ZEP_ZEN_EVENTS,
-                    self._routing_key(zepRawEvent), zepRawEvent, declareExchange=False)
+                yield self.queueConsumer.publishMessage(
+                    EXCHANGE_ZEP_ZEN_EVENTS,
+                    self._routing_key(zepRawEvent),
+                    zepRawEvent,
+                    declareExchange=False
+                )
                 yield self.queueConsumer.acknowledge(message)
             except DropEvent as e:
                 if log.isEnabledFor(logging.DEBUG):
@@ -282,7 +286,9 @@ class EventDTwistedWorker(object):
         super(EventDTwistedWorker, self).__init__()
         self._amqpConnectionInfo = getUtility(IAMQPConnectionInfo)
         self._queueSchema = getUtility(IQueueSchema)
-        self._consumer_task = TwistedQueueConsumerTask(EventPipelineProcessor(dmd))
+        self._consumer_task = TwistedQueueConsumerTask(
+            EventPipelineProcessor(dmd)
+        )
         self._consumer = QueueConsumer(self._consumer_task, dmd)
 
     def run(self):

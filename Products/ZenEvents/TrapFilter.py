@@ -337,16 +337,16 @@ class TrapFilter(object):
 
                         errorMessage = self._parseFilterDefinition(line, lineNumber)
                         if errorMessage:
-                            errorMessage = "Failed to parse filter definition file %s at line %d: %s" % (format(path), lineNumber, errorMessage)
+                            errorMessage = "Failed to parse filter definition file %s at line %d: %s" % (path, lineNumber, errorMessage)
                             raise TrapFilterError(errorMessage)
 
                 self._filtersDefined = 0 != (len(self._v1Traps) + len(self._v1Filters) + len(self._v2Filters))
                 if self._filtersDefined:
-                    log.info("Finished reading filter definition file %s", format(path))
+                    log.info("Finished reading filter definition file %s", path)
                 else:
-                    log.warn("No zentrap filters found in %s", format(path))
+                    log.warn("No zentrap filters found in %s", path)
             else:
-                errorMessage = "Could find filter definition file %s" % format(path)
+                errorMessage = "Could find filter definition file %s" % (path,)
                 raise TrapFilterError(errorMessage)
 
     def initialize(self):
