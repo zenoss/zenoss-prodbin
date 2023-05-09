@@ -30,8 +30,7 @@ from .crypt import encrypt, decrypt
 from .interfaces import IReturnPayloadProcessor
 
 __doc__ = (
-    "Callhome mechanism. Reports anonymous statistics "
-    "back to Zenoss, Inc."
+    "Callhome mechanism. Reports anonymous statistics back to Zenoss, Inc."
 )
 
 # number of seconds between successful checkins
