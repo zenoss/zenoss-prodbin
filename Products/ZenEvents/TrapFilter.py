@@ -182,10 +182,11 @@ class TrapFilter(object):
                 v1 include|exclude TRAP_TYPE
                 v1 include|exclude GLOBBED_OID
                 v1 include|exclude OID *|SPECIFIC_TRAP
+                v1 include|exclude OID
             where
                 TRAP_TYPE       is a generic trap type in the rage [0-5]
                 GLOBBED_OID     is an OID ending with ".*"
-                OID             is an valid OID
+                OID             is a valid OID
                 SPECIFIC_TRAP   is any specific trap type (any non-negative integer)
             Note that the last two cases are used for enterprise-specific traps (i.e.
             where the generic trap type is 6).
@@ -232,8 +233,8 @@ class TrapFilter(object):
                 filterDef.specificTrap = remainingTokens[1]
                 if filterDef.specificTrap != "*" and not filterDef.specificTrap.isdigit():
                     return "Specific trap '%s' invalid; must be non-negative integer" % filterDef.specificTrap
-            else:
-                return "Missing specific trap number or '*'"
+            elif len(remainingTokens) == 1:
+                oid = oidOrGenericTrap
 
         key = oid
         if filterDef.specificTrap != None:
@@ -257,7 +258,7 @@ class TrapFilter(object):
                 v2 include|exclude OID
                 v2 include|exclude GLOBBED_OID
             where
-                OID             is an valid OID
+                OID             is a valid OID
                 GLOBBED_OID     is an OID ending with ".*"
 
         @param lineNumber: The line number of the filter defintion within the file

@@ -389,10 +389,10 @@ class TrapFilterTest(BaseTestCase):
         results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5", "-1"])
         self.assertEquals(results, "Specific trap '-1' invalid; must be non-negative integer")
 
-    def testParseV1FilterDefinitionFailsForMissingEnterpriseSpecificTrap(self):
+    def testParseV1FilterDefinitionForSpecificOid(self):
         filter = TrapFilter()
         results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5"])
-        self.assertEquals(results, "Missing specific trap number or '*'")
+        self.assertEquals(results, None)
 
     def testParseV2FilterDefinition(self):
         filter = TrapFilter()
