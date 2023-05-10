@@ -392,6 +392,12 @@ class SyslogDaemon(CollectorDaemon):
             self.setExitCode(1)
             self.stop()
 
+    def _updateConfig(self, cfg):
+        result = super(SyslogDaemon, self)._updateConfig(cfg)
+        if result:
+            self._syslogMsgFilter.updateRuleSet(cfg.syslogMsgEvtFieldFilterRules)
+        return result
+
 
 if __name__=='__main__':
     myPreferences = SyslogPreferences()

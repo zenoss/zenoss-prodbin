@@ -117,6 +117,7 @@ class EventManagerBase(ZenModelRM):
     eventAgingHours = 4
     eventAgingSeverity = 4
     historyMaxAgeDays = 0
+    syslogMsgEvtFieldFilterRules = {}
 
     _properties = (
         {'id':'backend', 'type':'string','mode':'r', },
@@ -158,6 +159,7 @@ class EventManagerBase(ZenModelRM):
         {'id':'eventAgingHours', 'type':'int', 'mode':'w'},
         {'id':'eventAgingSeverity', 'type':'int', 'mode':'w'},
         {'id':'historyMaxAgeDays', 'type':'int', 'mode':'w'},
+        {'id':'syslogMsgEvtFieldFilterRules', 'type':'dict', 'mode':'w'},
         )
 
     _relations =  (

@@ -18,7 +18,7 @@ import logging
 import re
 import time
 from dateutil.parser import parse as parse_to_dt
-from json import loads
+from json import loads, dumps
 from lxml.html.clean import clean_html
 from zope.component import getUtility
 from zenoss.protocols.exceptions import NoConsumersException, PublishException
@@ -1034,6 +1034,12 @@ class EventsRouter(DirectRouter):
                 'allowNegative': False,
                 'value': self.context.dmd.ZenEventManager.defaultPriority
                 },{
+                'id': 'default_syslog_message_filtering_rules',
+                'name': _t('Syslog Message Filtering Rules'),
+                'xtype': 'textarea',
+                'allowNegative': False,
+                'value': dumps(self.context.dmd.ZenEventManager.syslogMsgEvtFieldFilterRules, indent=2)
+                },{
                 'id': 'default_availability_days',
                 'name': _t('Default Availability Report (days)'),
                 'xtype': 'numberfield',
@@ -1129,6 +1135,10 @@ class EventsRouter(DirectRouter):
         defaultSyslogPriority = values.pop('default_syslog_priority', None)
         if defaultSyslogPriority is not None:
             self.context.dmd.ZenEventManager.defaultPriority = int(defaultSyslogPriority)
+
+        syslogMsgEvtFieldFilterRules = values.pop('default_syslog_message_filtering_rules', None)
+        if syslogMsgEvtFieldFilterRules is not None:
+            self.context.dmd.ZenEventManager.syslogMsgEvtFieldFilterRules = loads(syslogMsgEvtFieldFilterRules)
 
         defaultAvailabilityDays = values.pop('default_availability_days', None)
         if defaultAvailabilityDays is not None:

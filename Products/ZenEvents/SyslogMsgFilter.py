@@ -54,6 +54,7 @@ class SyslogMsgFilter(object):
     def __init__(self):
         self._daemon = None
         self._eventService = None
+        self._ruleSet = {}
 
         # TODO ....
 
@@ -61,6 +62,13 @@ class SyslogMsgFilter(object):
         self._daemon = zope.component.getUtility(ICollector)
         self._eventService = zope.component.queryUtility(IEventService)
         self._initialized = True
+        log.info('SMA Syslog Message Filter Initialized...')
+
+    def updateRuleSet(self, rules):
+        # TODO compile regex'es
+        if self._ruleSet != rules:
+            log.info('Updating rule-set configuration')
+            self._ruleSet = rules
 
     def transform(self, event):
         """
@@ -76,6 +84,9 @@ class SyslogMsgFilter(object):
         """
         result = TRANSFORM_CONTINUE
 
-        # TODO ....
+        if self._daemon and self._ruleSet:
+            log.info('SMA: transform %r - %r', self._ruleSet, event)
+            # TODO, loop through rules
+
 
         return result
