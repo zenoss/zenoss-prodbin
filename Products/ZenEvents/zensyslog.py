@@ -375,7 +375,6 @@ class SyslogDaemon(CollectorDaemon):
                 'severity': Clear,
             }
             self.sendEvent(initializationSucceededEvent)
-
         except SyslogMsgFilterError as e:
             initializationFailedEvent = {
                 'component': 'zensyslog',
@@ -386,7 +385,6 @@ class SyslogDaemon(CollectorDaemon):
                 'message': e.message,
                 'severity': Critical,
             }
-
             log.error("Failed to initialize syslog message filter: %s", e.message)
             self.sendEvent(initializationFailedEvent)
             self.setExitCode(1)
@@ -395,7 +393,30 @@ class SyslogDaemon(CollectorDaemon):
     def _updateConfig(self, cfg):
         result = super(SyslogDaemon, self)._updateConfig(cfg)
         if result:
-            self._syslogMsgFilter.updateRuleSet(cfg.syslogMsgEvtFieldFilterRules)
+            try:
+                self._syslogMsgFilter.updateRuleSet(cfg.syslogMsgEvtFieldFilterRules)
+                cfgUpdateSucceededEvent = {
+                    'component': 'zensyslog',
+                    'device': self.options.monitor,
+                    'eventClass': "/Status",
+                    'eventKey': "SyslogMessageFilterCfgUpdate",
+                    'summary': 'syslog message filtering rule-set updated',
+                    'severity': Clear,
+                }
+                self.sendEvent(cfgUpdateSucceededEvent)
+            except SyslogMsgFilterError as e:
+                cfgUpdateFailedEvent = {
+                    'component': 'zensyslog',
+                    'device': self.options.monitor,
+                    'eventClass': "/Status",
+                    'eventKey': "SyslogMessageFilterCfgUpdate",
+                    'summary': 'syslog message filtering rule-set FAILED to update',
+                    'message': e.message,
+                    'severity': Critical,
+                }
+                log.error("syslog message filtering rule-set FAILED to update: %s", e.message)
+                self.sendEvent(cfgUpdateFailedEvent)
+
         return result
 
 
