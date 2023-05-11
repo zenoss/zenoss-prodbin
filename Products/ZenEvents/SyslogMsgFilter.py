@@ -17,6 +17,7 @@ Filters Syslog Messages.
 import sys
 import logging
 import os.path
+import re
 
 import zope.interface
 import zope.component
@@ -56,19 +57,50 @@ class SyslogMsgFilter(object):
         self._eventService = None
         self._ruleSet = {}
 
-        # TODO ....
-
     def initialize(self):
         self._daemon = zope.component.getUtility(ICollector)
         self._eventService = zope.component.queryUtility(IEventService)
         self._initialized = True
-        log.info('SMA Syslog Message Filter Initialized...')
+
+    def syslogMsgFilterErrorEvent(self, **kwargs):
+        """
+        Build an Event dict from parameters.n
+        """
+        eventDict = {
+            'device': '127.0.0.1',
+            'eventClass': '/App/Zenoss',
+            'severity': 4,
+            'eventClassKey': '',
+            'summary': 'Syslog Message Filter processing issue',
+            'component': 'zensyslog'
+        }
+        if kwargs:
+            eventDict.update(kwargs)
+        self._eventService.sendEvent(eventDict)
 
     def updateRuleSet(self, rules):
-        # TODO compile regex'es
-        if self._ruleSet != rules:
-            log.info('Updating rule-set configuration')
-            self._ruleSet = rules
+        processedRuleSet = {}
+        for evtFieldName, evtFieldRules in rules.iteritems():
+            if evtFieldName not in processedRuleSet:
+                processedRuleSet[evtFieldName] = []
+            for i, evtFieldRule in enumerate(evtFieldRules):
+                try:
+                    compiledRule = re.compile(evtFieldRule, re.DOTALL)
+                except Exception as ex:
+                    msg = 'Syslog Message Filter configuration for the ' \
+                            '{!r} event field could not compile rule #{!r}' \
+                            ' with the expression of {!r}. Error {!r}'.format(
+                                evtFieldName,
+                                i,
+                                evtFieldRule,
+                                ex)
+                    log.warn(msg)
+                    self.syslogMsgFilterErrorEvent(
+                        message=msg,
+                        eventKey="SyslogMessageFilter.{}.{}".format(evtFieldName, i))
+                else:
+                    processedRuleSet[evtFieldName].append(compiledRule)
+        self._ruleSet = processedRuleSet
 
     def transform(self, event):
         """
@@ -85,8 +117,21 @@ class SyslogMsgFilter(object):
         result = TRANSFORM_CONTINUE
 
         if self._daemon and self._ruleSet:
-            log.info('SMA: transform %r - %r', self._ruleSet, event)
-            # TODO, loop through rules
-
-
+            for evtFieldName, evtFieldRules in self._ruleSet.iteritems():
+                if evtFieldName in event:
+                    for i, compiledRule in enumerate(evtFieldRules):
+                        m = compiledRule.search(event[evtFieldName])
+                        if not m:
+                            continue
+                        else:
+                            log.debug(
+                                'Syslog Message Filter match! EventFieldName:%r '
+                                'EventFieldValue:%r FilterRuleNumber:%s '
+                                'FilterRuleExpression:%r',
+                                evtFieldName,
+                                event[evtFieldName],
+                                i,
+                                compiledRule.pattern)
+                            self._daemon.counters["eventFilterDroppedCount"] += 1
+                            return TRANSFORM_DROP
         return result
