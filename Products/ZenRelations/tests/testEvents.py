@@ -54,7 +54,6 @@ class ITestItem(interface.Interface):
 
 @interface.implementer(ITestItem, IItem)
 class TestItem(RelationshipManager):
-
     def __init__(self, id):
         self.id = id
         self.buildRelations()

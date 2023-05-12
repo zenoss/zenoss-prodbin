@@ -9,99 +9,112 @@
 
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from mock import Mock, MagicMock, create_autospec, patch
+from mock import Mock, create_autospec, patch
 
 from Products.ZenReports.ReportLoader import (
     zenPath,
-    transaction,
     ReportLoader,
-    Report
+    Report,
 )
 
 
 class ReportLoaderTest(BaseTestCase):
-
     def setUp(self):
-        self.rp_load = ReportLoader()       
+        self.rp_load = ReportLoader()
 
     def test_loadDatabase(self):
-        self.rp_load.loadAllReports = create_autospec(self.rp_load.loadAllReports)
+        self.rp_load.loadAllReports = create_autospec(
+            self.rp_load.loadAllReports
+        )
         self.rp_load.loadDatabase()
         self.rp_load.loadAllReports.assert_called_once_with()
 
     @patch(
-        'Products.ZenReports.ReportLoader.transaction.commit',
-        autospec=True, spec_set=True
+        "Products.ZenReports.ReportLoader.transaction.commit",
+        autospec=True,
+        spec_set=True,
     )
     def test_loadAllReports(self, commit):
-        repdir = zenPath('Products/ZenReports', self.rp_load.options.dir)
-        self.rp_load.loadDirectory = create_autospec(self.rp_load.loadDirectory)
+        repdir = zenPath("Products/ZenReports", self.rp_load.options.dir)
+        self.rp_load.loadDirectory = create_autospec(
+            self.rp_load.loadDirectory
+        )
         self.rp_load.loadAllReports()
         self.rp_load.loadDirectory.assert_called_once_with(repdir)
         commit.assert_called_once_with()
 
-    def test_loadAllReports_zp(self):        
+    def test_loadAllReports_zp(self):
         self.rp_load.options.zenpack = True
-        self.rp_load.getZenPackDirs = create_autospec(self.rp_load.getZenPackDirs)
+        self.rp_load.getZenPackDirs = create_autospec(
+            self.rp_load.getZenPackDirs
+        )
         self.rp_load.loadAllReports()
-        self.rp_load.getZenPackDirs.assert_called_once_with(self.rp_load.options.zenpack)
+        self.rp_load.getZenPackDirs.assert_called_once_with(
+            self.rp_load.options.zenpack
+        )
 
     def test_getZenPackDirs(self):
-        zp_name = 'test_zp'
-        zp_path = '/path/to/test_zp'
-        zp_obj = Mock(id='test_zp')
+        zp_name = "test_zp"
+        zp_path = "/path/to/test_zp"
+        zp_obj = Mock(id="test_zp")
         zp_obj.path = Mock(return_value=zp_path)
         self.rp_load.dmd.ZenPackManager.packs = create_autospec(
-            self.rp_load.dmd.ZenPackManager.packs,
-            return_value=[zp_obj]
+            self.rp_load.dmd.ZenPackManager.packs, return_value=[zp_obj]
         )
-        self.rp_load.options.dir = 'reports'
-        zp_dir_result = ['/path/to/test_zp/reports']
+        self.rp_load.options.dir = "reports"
+        zp_dir_result = ["/path/to/test_zp/reports"]
         result = self.rp_load.getZenPackDirs(name=zp_name)
         self.assertEqual(result, zp_dir_result)
         self.assertIsInstance(result, list)
         self.assertEqual(len(result), 1)
 
     def test_getZenPackDirs_error(self):
-        zp_name = 'noname_zp'
-        zp_path = '/path/to/test_zp'
-        zp_obj = Mock(id='test_zp')
+        zp_name = "noname_zp"
+        zp_path = "/path/to/test_zp"
+        zp_obj = Mock(id="test_zp")
         zp_obj.path = Mock(return_value=zp_path)
         self.rp_load.dmd.ZenPackManager.packs = create_autospec(
-            self.rp_load.dmd.ZenPackManager.packs,
-            return_value=[zp_obj]
+            self.rp_load.dmd.ZenPackManager.packs, return_value=[zp_obj]
         )
-        self.rp_load.options.dir = 'reports'
-        #set loglevel to 50(CRITICAL) this will remove error log
-        self.rp_load.log.setLevel('CRITICAL')
+        self.rp_load.options.dir = "reports"
+        # set loglevel to 50(CRITICAL) this will remove error log
+        self.rp_load.log.setLevel("CRITICAL")
         with self.assertRaises(SystemExit) as exc:
             self.rp_load.getZenPackDirs(name=zp_name)
         self.assertEqual(exc.exception.code, 1)
 
     @patch(
-        'Products.ZenReports.ReportLoader.os.walk',
-        autospec=True, spec_set=True
+        "Products.ZenReports.ReportLoader.os.walk",
+        autospec=True,
+        spec_set=True,
     )
     def test_reports(self, walk):
-        rp_dir = '/path/to/test_zp/reports/SomeReports'
-        os_walk_data = [(rp_dir, [], ['reportName.rpt'])]
+        rp_dir = "/path/to/test_zp/reports/SomeReports"
+        os_walk_data = [(rp_dir, [], ["reportName.rpt"])]
         walk.return_value = os_walk_data
-        ret_data = [('/SomeReports',
-            'reportName', '/path/to/test_zp/reports/SomeReports/reportName.rpt'
-        )]
+        ret_data = [
+            (
+                "/SomeReports",
+                "reportName",
+                "/path/to/test_zp/reports/SomeReports/reportName.rpt",
+            )
+        ]
         result = self.rp_load.reports(rp_dir)
         self.assertEqual(result, ret_data)
 
-
     def test_unloadDirectory(self):
-        rp_dir = '/path/to/test_zp/reports/SomeReports'
-        orgpath = '/SomeReports'
-        rp_id = 'reportName'
-        report_data = [(orgpath,
-            rp_id, '/path/to/test_zp/Reports/SomeReports/reportName.rpt'
-        )]
+        rp_dir = "/path/to/test_zp/reports/SomeReports"
+        orgpath = "/SomeReports"
+        rp_id = "reportName"
+        report_data = [
+            (
+                orgpath,
+                rp_id,
+                "/path/to/test_zp/Reports/SomeReports/reportName.rpt",
+            )
+        ]
         rorg = Mock(id=rp_id)
-        rorg_parent = Mock(id='Reports')
+        rorg_parent = Mock(id="Reports")
         setattr(rorg, rp_id, True)
         rorg._delObject = Mock()
         rorg.objectValues = Mock(return_value=False)
@@ -111,23 +124,27 @@ class ReportLoaderTest(BaseTestCase):
 
         self.rp_load.unloadDirectory(repdir=rp_dir)
 
-        self.rp_load.dmd.Reports.createOrganizer.assert_called_once_with(orgpath)
+        self.rp_load.dmd.Reports.createOrganizer.assert_called_once_with(
+            orgpath
+        )
         rorg._delObject.assert_called_with(rp_id)
         rorg.objectValues.assert_called_once_with()
         rorg.getPrimaryParent.assert_called_once_with()
 
-
     def test_unloadDirectory_false(self):
-        '''test that _delObject method was not called
-        '''
-        rp_dir = '/path/to/test_zp/reports/SomeReports'
-        orgpath = '/SomeReports'
-        rp_id = 'reportName'
-        report_data = [(orgpath,
-            rp_id, '/path/to/test_zp/Reports/SomeReports/reportName.rpt'
-        )]
-        rorg = Mock(id='Reports')
-        rorg_parent = Mock(id='Reports')
+        """test that _delObject method was not called"""
+        rp_dir = "/path/to/test_zp/reports/SomeReports"
+        orgpath = "/SomeReports"
+        rp_id = "reportName"
+        report_data = [
+            (
+                orgpath,
+                rp_id,
+                "/path/to/test_zp/Reports/SomeReports/reportName.rpt",
+            )
+        ]
+        rorg = Mock(id="Reports")
+        rorg_parent = Mock(id="Reports")
         rorg._delObject = Mock()
         rorg.objectValues = Mock(return_value=False)
         rorg.getPrimaryParent = Mock(return_value=rorg_parent)
@@ -139,17 +156,16 @@ class ReportLoaderTest(BaseTestCase):
 
         rorg._delObject.assert_not_called()
 
-
     def test_loadDirectory_force(self):
-        full_path = '/path/to/test_zp/Reports/SomeReports/reportName.rpt'
-        rp_dir = '/path/to/test_zp/reports/SomeReports'
-        orgpath = '/SomeReports'
-        rp_id = 'reportName'
+        full_path = "/path/to/test_zp/Reports/SomeReports/reportName.rpt"
+        rp_dir = "/path/to/test_zp/reports/SomeReports"
+        orgpath = "/SomeReports"
+        rp_id = "reportName"
         report_data = [(orgpath, rp_id, full_path)]
         self.rp_load.options.force = True
         rorg = Mock()
         report = Mock()
-        #set that this report is not from zenpack
+        # set that this report is not from zenpack
         report.pack = Mock(return_value=False)
         setattr(rorg, rp_id, report)
         rorg._delObject = Mock()
@@ -160,20 +176,22 @@ class ReportLoaderTest(BaseTestCase):
 
         self.rp_load.loadDirectory(rp_dir)
 
-        self.rp_load.dmd.Reports.createOrganizer.assert_called_once_with(orgpath)
+        self.rp_load.dmd.Reports.createOrganizer.assert_called_once_with(
+            orgpath
+        )
         rorg._delObject.assert_called_once_with(rp_id)
         self.rp_load.loadFile.assert_called_with(rorg, rp_id, full_path)
 
-
     def test_loadDirectory(self):
-        '''test that _delObject method was not called and we didn't overwrite reports
-        '''
-        full_path = '/path/to/test_zp/Reports/SomeReports/reportName.rpt'
-        rp_dir = '/path/to/test_zp/reports/SomeReports'
-        orgpath = '/SomeReports'
-        rp_id = 'reportName'
+        """
+        Test that _delObject method was not called reports wasn't overwritten.
+        """
+        full_path = "/path/to/test_zp/Reports/SomeReports/reportName.rpt"
+        rp_dir = "/path/to/test_zp/reports/SomeReports"
+        orgpath = "/SomeReports"
+        rp_id = "reportName"
         report_data = [(orgpath, rp_id, full_path)]
-        #force option is False by default, this is for better clarity
+        # force option is False by default, this is for better clarity
         self.rp_load.options.force = False
         rorg = Mock()
         setattr(rorg, rp_id, True)
@@ -188,15 +206,12 @@ class ReportLoaderTest(BaseTestCase):
         rorg._delObject.assert_not_called()
         self.rp_load.loadFile.assert_not_called()
 
-    @patch(
-        '__builtin__.file',
-        autospec=True, spec_set=True
-    )
+    @patch("__builtin__.file", autospec=True, spec_set=True)
     def test_loadFile(self, file_mock):
-        rp_name = 'reportName'
-        full_rp_path = '/path/to/test_zp/Reports/SomeReports/reportName.rpt'
+        rp_name = "reportName"
+        full_rp_path = "/path/to/test_zp/Reports/SomeReports/reportName.rpt"
         report_txt = "some report data"
-        #mock build in file method and its instance read method
+        # mock build in file method and its instance read method
         file_read = Mock()
         file_read.read = Mock(return_value=report_txt)
         file_mock.return_value = file_read
@@ -206,4 +221,3 @@ class ReportLoaderTest(BaseTestCase):
         self.assertIsInstance(rp, Report)
         self.assertEqual(rp.id, rp_name)
         root._setObject.assert_called_once_with(rp_name, rp)
-        

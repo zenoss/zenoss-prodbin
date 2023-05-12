@@ -52,7 +52,7 @@ class StateStatistics(object):
 
     def addCall(self, elapsedTime):
         self.totalElapsedTime += elapsedTime
-        self.totalElapsedTimeSquared += elapsedTime**2
+        self.totalElapsedTimeSquared += elapsedTime ** 2
         self.totalCalls += 1
 
         if self.totalCalls == 1:
@@ -82,7 +82,7 @@ class StateStatistics(object):
             return math.sqrt(
                 (
                     self.totalElapsedTimeSquared
-                    - self.totalElapsedTime**2 / self.totalCalls
+                    - self.totalElapsedTime ** 2 / self.totalCalls
                 )
                 / (self.totalCalls - 1)
             )

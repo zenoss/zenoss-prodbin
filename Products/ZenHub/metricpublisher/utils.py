@@ -30,7 +30,7 @@ def exponential_backoff(
                     return f(*args, **kwargs)
                 except exception:
                     failures += 1
-                    slots = ((2**failures) - 1) / 2.0
+                    slots = ((2 ** failures) - 1) / 2.0
                     mdelay = min(max(slots * mdelay, mdelay), maxdelay)
                     sleepfunc(mdelay)
 
