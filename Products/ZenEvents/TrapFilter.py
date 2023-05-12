@@ -233,8 +233,6 @@ class TrapFilter(object):
                 filterDef.specificTrap = remainingTokens[1]
                 if filterDef.specificTrap != "*" and not filterDef.specificTrap.isdigit():
                     return "Specific trap '%s' invalid; must be non-negative integer" % filterDef.specificTrap
-            elif len(remainingTokens) == 1:
-                oid = oidOrGenericTrap
 
         key = oid
         if filterDef.specificTrap != None:
