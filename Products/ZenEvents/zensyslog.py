@@ -43,8 +43,8 @@ from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.IpUtil import asyncNameLookup
 
 from Products.ZenEvents.EventServer import Stats
-from Products.ZenEvents.SyslogMsgFilter import SyslogMsgFilter, SyslogMsgFilterError
-from Products.ZenEvents.ZenEventClasses import Clear, Critical
+from Products.ZenEvents.SyslogMsgFilter import SyslogMsgFilter
+from Products.ZenEvents.ZenEventClasses import Clear, Info, Critical
 from Products.ZenHub.interfaces import ICollectorEventTransformer
 from Products.ZenUtils.Utils import unused
 from Products.ZenCollector.services.config import DeviceProxy
@@ -375,7 +375,7 @@ class SyslogDaemon(CollectorDaemon):
                 'severity': Clear,
             }
             self.sendEvent(initializationSucceededEvent)
-        except SyslogMsgFilterError as e:
+        except Exception as e:
             initializationFailedEvent = {
                 'component': 'zensyslog',
                 'device': self.options.monitor,
@@ -393,31 +393,30 @@ class SyslogDaemon(CollectorDaemon):
     def _updateConfig(self, cfg):
         result = super(SyslogDaemon, self)._updateConfig(cfg)
         if result:
-            try:
-                self._syslogMsgFilter.updateRuleSet(cfg.syslogMsgEvtFieldFilterRules)
-                cfgUpdateSucceededEvent = {
-                    'component': 'zensyslog',
-                    'device': self.options.monitor,
-                    'eventClass': "/Status",
-                    'eventKey': "SyslogMessageFilterCfgUpdate",
-                    'summary': 'syslog message filtering rule-set updated',
-                    'severity': Clear,
-                }
-                self.sendEvent(cfgUpdateSucceededEvent)
-            except SyslogMsgFilterError as e:
-                cfgUpdateFailedEvent = {
-                    'component': 'zensyslog',
-                    'device': self.options.monitor,
-                    'eventClass': "/Status",
-                    'eventKey': "SyslogMessageFilterCfgUpdate",
-                    'summary': 'syslog message filtering rule-set FAILED to update',
-                    'message': e.message,
-                    'severity': Critical,
-                }
-                log.error("syslog message filtering rule-set FAILED to update: %s", e.message)
-                self.sendEvent(cfgUpdateFailedEvent)
-
+            self._syslogMsgFilter.updateRuleSet(cfg.syslogMsgEvtFieldFilterRules)
         return result
+
+    def _displayStatistics(self, verbose=False):
+        super(SyslogDaemon, self)._displayStatistics(verbose)
+        sendEventsOnCounters = ['eventFilterDroppedCount']
+        if not hasattr(self, 'lastCounterEventTime'):
+            self.lastCounterEventTime = time.time()
+        # Send an update event every hour
+        if self.lastCounterEventTime < (time.time() - 3600):
+            for counterName in sendEventsOnCounters:
+                counterEvent = {
+                    'component': 'zensyslog',
+                    'device': self.options.monitor,
+                    'eventClass': "/App/Zenoss",
+                    'eventKey': "zensyslog.{}".format(counterName),
+                    'summary': '{}: {}'.format(
+                        counterName,
+                        self.counters[counterName]),
+                    'severity': Info,
+                }
+                self.sendEvent(counterEvent)
+            self.lastCounterEventTime = time.time()
+
 
 
 if __name__=='__main__':

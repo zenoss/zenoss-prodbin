@@ -32,13 +32,6 @@ from Products.ZenUtils.Utils import unused, zenPath
 
 log = logging.getLogger("zen.zensyslog.filter")
 
-class SyslogMsgFilterError(Exception):
-    def __init__(self, message):
-        self.message = message
-    def __str__(self):
-        return self.message
-
-
 class SyslogMsgFilter(object):
     implements(ICollectorEventTransformer)
     """
@@ -55,6 +48,7 @@ class SyslogMsgFilter(object):
     def __init__(self):
         self._daemon = None
         self._eventService = None
+        self._initialized = False
         self._ruleSet = {}
 
     def initialize(self):
@@ -133,5 +127,6 @@ class SyslogMsgFilter(object):
                                 i,
                                 compiledRule.pattern)
                             self._daemon.counters["eventFilterDroppedCount"] += 1
+                            self._daemon.counters["eventCount"] -= 1
                             return TRANSFORM_DROP
         return result
