@@ -305,7 +305,6 @@ class SyslogTask(BaseTask, DatagramProtocol):
                 stat.value = totalEvents
             elif processResult == "ParserDropped":
                 self._daemon.counters["eventParserDroppedCount"] += 1
-                self.log.info('SMA ParserDropped counter incremented')
 
     def displayStatistics(self):
         totalTime, totalEvents, maxTime = self.stats.report()
