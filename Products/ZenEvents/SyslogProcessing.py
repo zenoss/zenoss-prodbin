@@ -112,7 +112,9 @@ class SyslogProcessor(object):
 
         evt, msg = self.parseHEADER(evt, msg)
         evt = self.parseTag(evt, msg)
-        if evt:
+        if evt == "ParserDropped":
+            return evt
+        elif evt:
             # Cisco standard msg includes the severity in the tag
             if 'overwriteSeverity' in evt.keys():
                 old_severity = evt['severity']
@@ -127,6 +129,9 @@ class SyslogProcessor(object):
             # convert all fields.
             evt.update({k: unicode(v) for k,v in evt.iteritems() if isinstance(v, str)})
             self.sendEvent(evt)
+            return "EventSent"
+        else:
+            return None
 
 
     def parsePRI(self, evt, msg):
@@ -237,7 +242,7 @@ class SyslogProcessor(object):
                     msg,
                     parserCfg['expr'].pattern,
                     m.groupdict())
-                return None
+                return "ParserDropped"
             slog.debug("parserCfg[%s] matched. msg:%r, pattern:%r, parsedGroups:%r",
                 i,
                 msg,
