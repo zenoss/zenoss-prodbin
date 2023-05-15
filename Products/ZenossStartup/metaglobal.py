@@ -7,8 +7,6 @@
 #
 ##############################################################################
 
-import six
-
 from zope.interface import Interface
 
 from Products.ZenUtils.GlobalConfig import globalConfToDict
@@ -30,10 +28,10 @@ def addGlobalFeatures(_context):
 
             if (
                 not feature
-                or not isinstance(value, six.string_types)
+                or not isinstance(value, basestring)
                 or (value.lower() != "feature" and value.lower() != "yes")
             ):
 
                 continue
             # add the feature to the existing global zcml context
-            _context.provideFeature(six.text_type(feature))
+            _context.provideFeature(unicode(feature))

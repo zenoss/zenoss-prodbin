@@ -9,8 +9,6 @@
 
 import collections
 
-import six
-
 from zenoss.protocols.protobufs import zep_pb2 as eventConstants
 from zenoss.protocols.protobufs import model_pb2 as modelConstants
 from zope.interface import implementer
@@ -57,7 +55,7 @@ class ObjectProtobuf(object):
             if value is None:
                 continue
             try:
-                if isinstance(value, six.string_types):
+                if isinstance(value, basestring):
                     value = _safestr(value)
                 setattr(proto, field.name, value)
             except (AttributeError, TypeError):
@@ -126,14 +124,14 @@ def _safestr(s):
     decoded safely with UTF-8.  If any specialized encoding is desired, it
     is the responsibility of the caller/sender to take care of it.
     """
-    if isinstance(s, six.binary_type):
+    if isinstance(s, str):
         try:
-            s = six.text_type(s, "utf_8")
+            s = unicode(s, "utf_8")
         except UnicodeDecodeError:
             # Could not force string to unicode so trying best effort
             # to treat as ASCII.
             s = str(s.decode("ascii", "replace"))
-    elif not isinstance(s, six.string_types):
+    elif not isinstance(s, basestring):
         s = str(s)
     return s
 
@@ -383,7 +381,7 @@ class EventProtobuf(ObjectProtobuf):
         detail = proto.details.add()
         detail.name = name
         if isinstance(value, collections.Iterable) and not isinstance(
-            value, six.string_types
+            value, basestring
         ):
             for v in value:
                 detail.value.append(_safestr(v))

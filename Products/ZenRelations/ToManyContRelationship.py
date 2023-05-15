@@ -14,8 +14,6 @@ A to-many container relationship
 import sys
 import logging
 
-import six
-
 from AccessControl import ClassSecurityInfo
 from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
@@ -90,7 +88,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         """look in the two object stores for related objects"""
         if "_objects" in self.__dict__:
             objects = self._objects
-            if objects.has_key(name):
+            if name in objects:
                 return objects[name]
         raise AttributeError("Unable to find the attribute '%s'" % name)
 
@@ -99,7 +97,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         this will fail if passed a short id and object is stored
         with fullid (ie: it is related not contained)
         use hasobject to get around this issue"""
-        return self._objects.has_key(name)
+        return name in self._objects
 
     def hasobject(self, obj):
         "check to see if we have this object"
@@ -107,7 +105,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
 
     def addRelation(self, obj):
         """Override base to run manage_afterAdd like ObjectManager"""
-        if self._objects.has_key(obj.getId()):
+        if obj.getId() in self._objects:
             log.debug(
                 "obj %s already exists on %s",
                 obj.getPrimaryId(),
@@ -147,7 +145,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
     def _add(self, obj):
         """add an object to one side of a ToManyContRelationship."""
         id = obj.id
-        if self._objects.has_key(id):
+        if id in self._objects:
             raise RelationshipExistsError
         v = checkValidId(self, id)
         if v is not None:
@@ -166,7 +164,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
                 notify(ObjectWillBeRemovedEvent(robj, self, robj.getId()))
         if obj:
             id = obj.id
-            if not self._objects.has_key(id):
+            if id not in self._objects:
                 raise ObjectNotFound(
                     "object %s not found on %s"
                     % (obj.getPrimaryId(), self.getPrimaryId())
@@ -183,7 +181,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         """remove an object from the far side of this relationship
         if no object is passed in remove all objects"""
         if obj:
-            if not self._objects.has_key(obj.id):
+            if obj.id not in self._objects:
                 raise ObjectNotFound(
                     "object %s not found on %s"
                     % (obj.getPrimaryId(), self.getPrimaryId())
@@ -206,7 +204,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
 
     def _getOb(self, id, default=zenmarker):
         """look up in our local store and wrap in our aq_chain"""
-        if self._objects.has_key(id):
+        if id in self._objects:
             return self._objects[id].__of__(self)
         elif default == zenmarker:
             raise AttributeError("Unable to find %s" % id)
@@ -217,7 +215,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
     def objectIds(self, spec=None):
         """only return contained objects"""
         if spec:
-            if isinstance(spec, six.string_types):
+            if isinstance(spec, basestring):
                 spec = [spec]
             return [
                 obj.id
@@ -233,7 +231,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
     def objectValues(self, spec=None):
         """override to only return owned objects for many to many rel"""
         if spec:
-            if isinstance(spec, six.string_types):
+            if isinstance(spec, basestring):
                 spec = [spec]
             return [
                 ob.__of__(self)
@@ -252,7 +250,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
     def objectItems(self, spec=None):
         """over ride to only return owned objects for many to many rel"""
         if spec:
-            if isinstance(spec, six.string_types):
+            if isinstance(spec, basestring):
                 spec = [spec]
             return [
                 (key, value.__of__(self))

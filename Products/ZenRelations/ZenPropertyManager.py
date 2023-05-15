@@ -10,8 +10,6 @@
 import logging
 import re
 
-import six
-
 from AccessControl import ClassSecurityInfo
 from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base, aq_chain
@@ -734,7 +732,7 @@ class ZenPropertyManager(object, PropertyManager):
             select_values = getattr(self, value)
             if not (
                 isinstance(select_values, (list, tuple))
-                and all(isinstance(v, six.string_types) for v in select_values)
+                and all(isinstance(v, basestring) for v in select_values)
             ):
                 IMessageSender(self).sendToBrowser(
                     "Selection variable '%s' must be a LINES type" % value,
@@ -748,7 +746,7 @@ class ZenPropertyManager(object, PropertyManager):
             setprops(id=id, type=type, visible=visible)
             self._setPropValue(id, value)
 
-    _onlystars = re.compile("^\*+$").search
+    _onlystars = re.compile(r"^\*+$").search
 
     def _updateProperty(self, id, value):
         """This method sets a property on a zope object. It overrides the

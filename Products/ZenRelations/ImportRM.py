@@ -24,7 +24,6 @@ import sys
 from xml.sax import make_parser, saxutils, SAXParseException
 from xml.sax.handler import ContentHandler
 
-import six
 import transaction
 import zope.component
 
@@ -450,7 +449,7 @@ class ImportRM(ZCmdBase, ContentHandler):
         if proptype == "selection":
             try:
                 firstElement = getattr(obj, name)[0]
-                if isinstance(firstElement, six.string_types):
+                if isinstance(firstElement, basestring):
                     proptype = "string"
             except (TypeError, IndexError) as ex:
                 self.log.warn(
@@ -576,7 +575,7 @@ class ImportRM(ZCmdBase, ContentHandler):
         self.objectnumber = 0
         self.uncommittedObjects = 0
         self.charvalue = ""
-        if xmlfile and isinstance(xmlfile, six.string_types):
+        if xmlfile and isinstance(xmlfile, basestring):
             self.infile = open(xmlfile)
         elif hasattr(xmlfile, "read"):
             self.infile = xmlfile

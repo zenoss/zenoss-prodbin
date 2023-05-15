@@ -16,8 +16,6 @@ remain.
 
 """
 
-import six
-
 from AccessControl import getSecurityManager
 from App.Dialogs import MessageDialog
 from OFS import Moniker
@@ -106,7 +104,7 @@ class RelCopyContainer(CopyContainer):
                 return self.getId()
             else:
                 raise ZenRelationsError("No relation name defined")
-        if isinstance(ids, six.string_types):
+        if isinstance(ids, basestring):
             return ids
         if len(ids) > 1:
             raise ZenRelationsError("You can only link to one relationship!")
@@ -140,7 +138,7 @@ class RelCopyContainer(CopyContainer):
         if cb_copy_data is not None:
             cp = cb_copy_data
         else:
-            if REQUEST and REQUEST.has_key("__cp"):
+            if REQUEST and "__cp" in REQUEST:
                 cp = REQUEST["__cp"]
         if cp is None:
             raise CopyError(eNoData)

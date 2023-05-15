@@ -10,14 +10,13 @@
 """RelationshipManager
 
 RelationshipManager is a mix in class to manage relationships
-defined by the SchemaManager.  
+defined by the SchemaManager.
 """
 
 import logging
 
 from xml.sax import saxutils
 
-import six
 import zope.interface
 import zope.component
 
@@ -333,8 +332,8 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
                 stag.append("%s=%s" % (k, v))
             stag.append(">")
             ofile.write(" ".join(stag) + "\n")
-            if not isinstance(value, six.string_types):
-                value = six.text_type(value)
+            if not isinstance(value, basestring):
+                value = unicode(value)
             elif isinstance(value, str):
                 value = value.decode("latin-1")
             valuestr = saxutils.escape(value).encode("utf-8").strip()

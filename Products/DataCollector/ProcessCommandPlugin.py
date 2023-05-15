@@ -7,8 +7,6 @@
 #
 ##############################################################################
 
-import six
-
 from Products.ZenModel.OSProcessMatcher import buildObjectMapData
 
 from .plugins.CollectorPlugin import CommandPlugin
@@ -41,7 +39,7 @@ class ProcessCommandPlugin(CommandPlugin):
             log.error("Unable to get data for %s -- skipping model", device.id)
             return None
         # without relying on "ps" command output
-        results = six.text_type(results, errors="replace")
+        results = unicode(results, errors="replace")
         psOutputLines = self._filterLines(results.splitlines())
 
         cmds = map(lambda s: s.strip(), psOutputLines)
