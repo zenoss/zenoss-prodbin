@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007, 2023 all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -117,6 +117,19 @@ class EventManagerBase(ZenModelRM):
     eventAgingHours = 4
     eventAgingSeverity = 4
     historyMaxAgeDays = 0
+    trapFilters = """# Include all generic SNMP V1 Traps 0-5
+include v1 0
+include v1 1
+include v1 2
+include v1 3
+include v1 4
+include v1 5
+
+# Include all enterprise-specific SNMP V1 traps
+include v1 *
+
+# Include all SNMP V2 traps
+include v2 *"""
 
     _properties = (
         {'id':'backend', 'type':'string','mode':'r', },
@@ -158,6 +171,7 @@ class EventManagerBase(ZenModelRM):
         {'id':'eventAgingHours', 'type':'int', 'mode':'w'},
         {'id':'eventAgingSeverity', 'type':'int', 'mode':'w'},
         {'id':'historyMaxAgeDays', 'type':'int', 'mode':'w'},
+        {'id':'trapFilters', 'type':'string', 'mode':'w'},
         )
 
     _relations =  (
@@ -233,6 +247,9 @@ class EventManagerBase(ZenModelRM):
         for name in allowedFilters:
             if hasattr(state, name):
                 kw.setdefault(name, getattr(state, name))
+        # ZEN-30539
+        if not getattr(state, 'generate', ''):
+            return None
         if getattr(state, 'startDate', None) is not None:
             kw.setdefault('startDate', Time.ParseUSDate(state.startDate))
         if getattr(state, 'endDate', None) is not None:

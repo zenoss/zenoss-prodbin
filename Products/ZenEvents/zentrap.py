@@ -45,7 +45,7 @@ from Products.ZenCollector.tasks import (
 )
 from Products.ZenEvents.EventServer import Stats
 from Products.ZenEvents.TrapFilter import TrapFilter, TrapFilterError
-from Products.ZenEvents.ZenEventClasses import Clear, Critical
+from Products.ZenEvents.ZenEventClasses import Clear, Critical, Info
 from Products.ZenHub.interfaces import ICollectorEventTransformer
 from Products.ZenHub.services.SnmpTrapConfig import User
 from Products.ZenUtils.captureReplay import CaptureReplay
@@ -983,9 +983,9 @@ class TrapDaemon(CollectorDaemon):
         kwargs["initializationCallback"] = self._initializeTrapFilter
         super(TrapDaemon, self).__init__(*args, **kwargs)
 
-    def _initializeTrapFilter(self):
+    def _initializeTrapFilter(self, trapFilters=None):
         try:
-            self._trapFilter.initialize()
+            self._trapFilter.initialize(trapFilters)
             initializationSucceededEvent = {
                 'component': 'zentrap',
                 'device': self.options.monitor,
@@ -996,7 +996,7 @@ class TrapDaemon(CollectorDaemon):
             }
             self.sendEvent(initializationSucceededEvent)
 
-        except TrapFilterError as e:
+        except Exception as e:
             initializationFailedEvent = {
                 'component': 'zentrap',
                 'device': self.options.monitor,
@@ -1032,6 +1032,35 @@ class TrapDaemon(CollectorDaemon):
             log.debug("No session created, so unable to create users")
         else:
             self._prefs.task.session.create_users(users)
+
+    def _updateConfig(self, cfg):
+        result = super(TrapDaemon, self)._updateConfig(cfg)
+        if result:
+            self._trapFilter._resetFilters()
+            self._trapFilter.updateFilter(cfg.trapFilters)
+        return result
+
+    def _displayStatistics(self, verbose=False):
+        super(TrapDaemon, self)._displayStatistics(verbose)
+        sendEventsOnCounters = ['eventFilterDroppedCount']
+        if not hasattr(self, 'lastCounterEventTime'):
+            self.lastCounterEventTime = time.time()
+        # Send an update event every hour
+        if self.lastCounterEventTime < (time.time() - 3600):
+            for counterName in sendEventsOnCounters:
+                log.info('sma stat event, counter %s: %s', counterName, self.counters[counterName])
+                counterEvent = {
+                    'component': 'zentrap',
+                    'device': self.options.monitor,
+                    'eventClass': "/App/Zenoss",
+                    'eventKey': "zentrap.{}".format(counterName),
+                    'summary': '{}: {}'.format(
+                        counterName,
+                        self.counters[counterName]),
+                    'severity': Info,
+                }
+                self.sendEvent(counterEvent)
+            self.lastCounterEventTime = time.time()
 
 
 if __name__ == '__main__':

@@ -55,6 +55,7 @@ ZEN_MANAGER_EDIT_PERM = (
     'event_archive_interval_minutes',
     'event_age_severity_inclusive',
     'default_syslog_priority',
+    'default_trap_filtering_definition',
     'default_availability_days',
     'event_time_purge_interval_days',
     'enable_event_flapping_detection',
@@ -1034,6 +1035,12 @@ class EventsRouter(DirectRouter):
                 'allowNegative': False,
                 'value': self.context.dmd.ZenEventManager.defaultPriority
                 },{
+                'id': 'default_trap_filtering_definition',
+                'name': _t('SNMP Trap Filtering Rules'),
+                'xtype': 'textarea',
+                'allowNegative': False,
+                'value': self.context.dmd.ZenEventManager.trapFilters
+                },{
                 'id': 'default_availability_days',
                 'name': _t('Default Availability Report (days)'),
                 'xtype': 'numberfield',
@@ -1130,6 +1137,10 @@ class EventsRouter(DirectRouter):
         if defaultSyslogPriority is not None:
             self.context.dmd.ZenEventManager.defaultPriority = int(defaultSyslogPriority)
 
+        trapFilters = values.pop('default_trap_filtering_definition', None)
+        if trapFilters is not None:
+            self.context.dmd.ZenEventManager.trapFilters = trapFilters
+            
         defaultAvailabilityDays = values.pop('default_availability_days', None)
         if defaultAvailabilityDays is not None:
             self.context.dmd.ZenEventManager.defaultAvailabilityDays = int(defaultAvailabilityDays)

@@ -30,12 +30,6 @@ from Products.ZenUtils.Utils import unused, zenPath
 
 log = logging.getLogger("zen.zentrap")
 
-class TrapFilterError(Exception):
-    def __init__(self, message):
-        self.message = message
-    def __str__(self):
-        return self.message
-
 def countOidLevels(oid):
     """
     @return: The number of levels in an OID
@@ -131,6 +125,10 @@ class TrapFilter(object):
 
         self._genericTraps = frozenset([0, 1, 2, 3, 4, 5])
 
+        self._initialized = False
+        self._resetFilters()
+
+    def _resetFilters(self):
         # Map of SNMP V1 Generic Trap filters where key is the generic trap number and
         # value is a GenericTrapFilterDefinition
         self._v1Traps = dict()
@@ -145,7 +143,6 @@ class TrapFilter(object):
         # The map of V2FilterDefinition objects is keyed by OID
         self._v2Filters = dict()
         self._filtersDefined = False
-        self._initialized = False
 
     def _parseFilterDefinition(self, line, lineNumber):
         """
@@ -318,42 +315,52 @@ class TrapFilter(object):
             return "At least one '.' required"
         return None
 
-    def _readFilters(self):
-        fileName = self._daemon.options.trapFilterFile
-        if fileName:
-            path = zenPath('etc', fileName)
-            if os.path.exists(path):
-                with open(path) as filterDefinitionFile:
-                    lineNumber = 0
-                    for line in filterDefinitionFile:
-                        lineNumber += 1
-                        if line.startswith('#'):
-                            continue
+    # def _readFile(self):
+    #     fileName = self._daemon.options.trapFilterFile
+    #     if fileName:
+    #         path = zenPath('etc', fileName)
+    #         if os.path.exists(path):
+    #             with open(path) as filterDefinitionFile:
 
-                        # skip blank lines
-                        line = line.strip()
-                        if not line:
-                            continue;
+    def _readFilters(self, trapFilters):
+        for lineNumber, line in enumerate(trapFilters.split('\n')):
+            if line.startswith('#'):
+                continue
 
-                        errorMessage = self._parseFilterDefinition(line, lineNumber)
-                        if errorMessage:
-                            errorMessage = "Failed to parse filter definition file %s at line %d: %s" % (format(path), lineNumber, errorMessage)
-                            raise TrapFilterError(errorMessage)
+            # skip blank lines
+            line = line.strip()
+            if not line:
+                continue;
 
-                self._filtersDefined = 0 != (len(self._v1Traps) + len(self._v1Filters) + len(self._v2Filters))
-                if self._filtersDefined:
-                    log.info("Finished reading filter definition file %s", path)
-                else:
-                    log.warn("No zentrap filters found in %s", path)
-            else:
-                errorMessage = "Could find filter definition file %s" % format(path)
-                raise TrapFilterError(errorMessage)
+            errorMessage = self._parseFilterDefinition(line, lineNumber)
+            if errorMessage:
+                errorMessage = "Failed to parse filter definition at line %d: %s" % (lineNumber, errorMessage)
+                log.warn(errorMessage)
+                self._eventService.sendEvent({
+                    'device': '127.0.0.1',
+                    'eventClass': '/App/Zenoss',
+                    'severity': 4,
+                    'eventClassKey': '',
+                    'summary': 'SNMP Trap Filter processing issue',
+                    'component': 'zentrap',
+                    'message': errorMessage,
+                    'eventKey': "SnmpTrapFilter.{}".format(lineNumber)
+                })
+                continue
+        self._filtersDefined = 0 != (len(self._v1Traps) + len(self._v1Filters) + len(self._v2Filters))
+        if self._filtersDefined:
+            log.info("Finished reading filter definition (lines:%s)", lineNumber)
+        else:
+            log.warn("No zentrap filters defined.")
 
-    def initialize(self):
+    def initialize(self, trapFilters):
         self._daemon = zope.component.getUtility(ICollector)
         self._eventService = zope.component.queryUtility(IEventService)
-        self._readFilters()
         self._initialized = True
+
+    def updateFilter(self, trapFilters):
+        if trapFilters != None:
+            self._readFilters(trapFilters)
 
     def transform(self, event):
         """
@@ -373,6 +380,7 @@ class TrapFilter(object):
             log.debug("Filtering V%s event %s", snmpVersion, event)
             if self._dropEvent(event):
                 log.debug("Dropping event %s", event)
+                self._daemon.counters['eventFilterDroppedCount'] += 1
                 result = TRANSFORM_DROP
         else:
             log.debug("Skipping filter for event=%s, filtersDefined=%s",
