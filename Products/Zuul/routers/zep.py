@@ -20,7 +20,6 @@ import time
 from dateutil.parser import parse as parse_to_dt
 from json import loads, dumps
 from lxml.html.clean import clean_html
-from zope.component import getUtility
 from zenoss.protocols.exceptions import NoConsumersException, PublishException
 from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED
 from zenoss.protocols.services import ServiceResponseError
@@ -30,13 +29,11 @@ from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
-from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenEvents.EventClass import EventClass
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.ZenossSecurity import (
     ZEN_MANAGE_EVENTS,
-    ZEN_MANAGER_ROLE,
-    CZ_ADMIN_ROLE
+    ZEN_MANAGER_ROLE
 )
 from Products.ZenUtils.deprecated import deprecated
 from Products.Zuul.utils import resolve_context
@@ -648,7 +645,6 @@ class EventsRouter(DirectRouter):
                 return Zuul.checkPermission('ZenCommon', self.context)
         try:
             if uid is not None:
-                uid = getUtility(IVirtualRoot).strip_virtual_root(uid)
                 organizer = self.context.dmd.Devices.getOrganizer(uid)
             else:
                 return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS, evids)
@@ -1103,8 +1099,6 @@ class EventsRouter(DirectRouter):
     def iseditable(self, field):
         currentUser = self.context.dmd.ZenUsers.getUser()
         if currentUser:
-            if currentUser.has_role((CZ_ADMIN_ROLE)):
-                return True
 
             if currentUser.has_role(ZEN_MANAGER_ROLE) and field in ZEN_MANAGER_EDIT_PERM:
                 return True
