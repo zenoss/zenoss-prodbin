@@ -91,6 +91,8 @@ class SnmpTrapConfig(CollectorConfigService):
             (b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid
         )
 
+        proxy.trapFilters = self.zem.trapFilters
+
         return proxy
 
     def _create_user(self, obj):
