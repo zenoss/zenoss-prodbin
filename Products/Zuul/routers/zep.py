@@ -55,6 +55,7 @@ ZEN_MANAGER_EDIT_PERM = (
     'event_archive_interval_minutes',
     'event_age_severity_inclusive',
     'default_syslog_priority',
+    'syslog_parsers',
     'default_availability_days',
     'event_time_purge_interval_days',
     'enable_event_flapping_detection',
