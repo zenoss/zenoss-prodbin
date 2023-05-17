@@ -325,9 +325,6 @@ include v2 *"""
         for name in allowedFilters:
             if hasattr(state, name):
                 kw.setdefault(name, getattr(state, name))
-        # ZEN-30539
-        if not getattr(state, 'generate', ''):
-            return None
         if getattr(state, 'startDate', None) is not None:
             kw.setdefault('startDate', Time.ParseUSDate(state.startDate))
         if getattr(state, 'endDate', None) is not None:
