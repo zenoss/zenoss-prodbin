@@ -117,7 +117,8 @@ class EventManagerBase(ZenModelRM):
     eventAgingHours = 4
     eventAgingSeverity = 4
     historyMaxAgeDays = 0
-    trapFilters = """# Include all generic SNMP V1 Traps 0-5
+    trapFilters = """# Format: [COLLECTOR REGEX] include|exclude v1|v2 <version-specific options>
+# Include all generic SNMP V1 Traps 0-5
 include v1 0
 include v1 1
 include v1 2
