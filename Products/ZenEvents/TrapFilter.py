@@ -182,8 +182,19 @@ class TrapFilter(object):
             if not re.search(collectorRegex, self._daemon.options.monitor):
                 return
         except Exception as ex:
-            # TODO send error event as well
-            log.error('Could not compile collector expression %r on line %d', collectorRegex, lineNumber)
+            errorMessage = 'Could not compile collector expression {!r} on ' \
+                           'line {}'.format(collectorRegex, lineNumber)
+            log.error(errorMessage)
+            self._eventService.sendEvent({
+                'device': '127.0.0.1',
+                'eventClass': '/App/Zenoss',
+                'severity': 4,
+                'eventClassKey': '',
+                'summary': 'SNMP Trap Filter processing issue',
+                'component': 'zentrap',
+                'message': errorMessage,
+                'eventKey': "SnmpTrapFilter.{}".format(lineNumber)
+            })
             return
 
         if snmpVersion == "v1":
