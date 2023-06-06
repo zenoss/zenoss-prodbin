@@ -139,10 +139,19 @@ class MetricMixin(object):
         return False
 
     def getRRDTemplates(self):
-        default = self.getRRDTemplateByName(self.getRRDTemplateName())
-        if not default:
-            return []
-        return [default]
+        templates = []
+        defaultName = self.getRRDTemplateName()
+        replacement = self.getRRDTemplateByName('{}-replacement'.format(defaultName))
+        if replacement:
+            templates.append(replacement)
+        else:
+            default = self.getRRDTemplateByName(defaultName)
+            if default:
+                templates.append(default)
+        addition = self.getRRDTemplateByName('{}-addition'.format(defaultName))
+        if addition:
+            templates.append(addition)
+        return templates
 
     def getRRDTemplate(self):
         try:
@@ -335,7 +344,6 @@ class MetricMixin(object):
         results = []
         if isinstance(dpnames, basestring):
             dpnames = [dpnames]
-        facade = getFacade('metric', self.dmd)
 
         # parse start and end into unix timestamps
         start, end = self._rrdAtTimeToUnix(start, end)
