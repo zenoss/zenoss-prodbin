@@ -124,6 +124,8 @@ class SyslogProcessor(object):
             #rest of msg now in summary of event
             evt = self.buildEventClassKey(evt)
             evt['monitor'] = self.monitor
+            if 'message' not in evt:
+                evt['message'] = msg
             # Convert strings to unicode, previous code converted 'summary' &
             # 'message' fields. With parsing group name matching, good idea to
             # convert all fields.
