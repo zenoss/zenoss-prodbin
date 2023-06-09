@@ -17,7 +17,7 @@ import logging
 slog = logging.getLogger("zen.Syslog")
 import socket
 
-from copy import copy
+from copy import deepcopy
 from Products.ZenEvents.syslog_h import *
 from Products.ZenUtils.IpUtil import isip
 
@@ -55,10 +55,10 @@ class SyslogProcessor(object):
         self.syslogSummaryToMessage = syslogSummaryToMessage
 
     def updateParsers(self, parsers):
-        self.compiledParsers = copy(parsers)
+        self.compiledParsers = deepcopy(parsers)
         for i, parserCfg in enumerate(self.compiledParsers):
             if 'expr' not in parserCfg:
-                msg = 'Parser configuration #{} missing a "expr" attribute'.fornat(i)
+                msg = 'Parser configuration #{} missing a "expr" attribute'.format(i)
                 slog.warn(msg)
                 self.syslogParserErrorEvent(message=msg)
                 continue            

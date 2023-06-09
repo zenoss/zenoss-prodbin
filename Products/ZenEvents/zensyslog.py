@@ -347,7 +347,6 @@ class SyslogConfigTask(ObservableMixin):
                     self._daemon.options.minpriority, self._daemon.options.parsehost,
                     self._daemon.options.monitor, self._preferences.defaultPriority,
                     self._preferences.syslogParsers, self._preferences.syslogSummaryToMessage)
-        log.info('New SyslogProcessor initialized %r', self._daemon.processor)
 
     def doTask(self):
         return defer.succeed("Already updated default syslog priority...")
