@@ -180,7 +180,7 @@ class TrapFilter(object):
         # Do not parse if CollectorRegex does not match collector name
         try:
             if not re.search(collectorRegex, self._daemon.options.monitor):
-                return
+                return None
         except Exception as ex:
             errorMessage = 'Could not compile collector expression {!r} on ' \
                            'line {}'.format(collectorRegex, lineNumber)
@@ -195,7 +195,7 @@ class TrapFilter(object):
                 'message': errorMessage,
                 'eventKey': "SnmpTrapFilter.{}".format(lineNumber)
             })
-            return
+            return errorMessage
 
         if snmpVersion == "v1":
             return self._parseV1FilterDefinition(lineNumber, action, remainingTokens, collectorRegex)
