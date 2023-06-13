@@ -1082,6 +1082,46 @@ class TrapFilterTest(BaseTestCase):
         }
         self.assertEquals(TRANSFORM_CONTINUE, filter.transform(event))
 
+    def testTrapFilterDefaultParse(self):
+        from Products.ZenEvents.EventManagerBase import EventManagerBase
+        from mock import Mock
+
+        filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        filter.updateFilter(EventManagerBase.trapFilters)
+        self.assertEquals(filter._eventService.sendevent.called, False)
+        self.assertEquals(len(filter._v1Traps), 6)
+        self.assertEquals(len(filter._v1Filters), 1)
+        self.assertEquals(len(filter._v2Filters), 1)
+
+    def testTrapFilterParseCollectorMatch(self):
+        from Products.ZenEvents.EventManagerBase import EventManagerBase
+        from mock import Mock
+
+        filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        filterCfg = "localhost exclude v2 1.3.6.1.2.1.43.18.2.0.1"
+        filter.updateFilter(filterCfg)
+        self.assertEquals(filter._eventService.sendevent.called, False)
+        self.assertEquals(len(filter._v2Filters), 1)
+
+    def testTrapFilterParseCollectorNotMatch(self):
+        from Products.ZenEvents.EventManagerBase import EventManagerBase
+        from mock import Mock
+
+        filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        filterCfg = "remoteDMZ exclude v2 1.3.6.1.2.1.43.18.2.0.1"
+        filter.updateFilter(filterCfg)
+        self.assertEquals(filter._eventService.sendevent.called, False)
+        self.assertEquals(len(filter._v2Filters), 0)
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
