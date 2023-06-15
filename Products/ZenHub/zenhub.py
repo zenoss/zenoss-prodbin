@@ -17,7 +17,6 @@ import sys
 from time import time
 
 from twisted.internet import reactor, task
-from twisted.internet.defer import inlineCallbacks
 from zope.component import getUtility, adapts, provideUtility
 from zope.event import notify
 from zope.interface import implementer
@@ -43,7 +42,6 @@ from Products.ZenHub.interfaces import (
     IHubWillBeCreatedEvent,
     IParserReadyForOptionsEvent,
 )
-from Products.ZenHub.invalidationmanager import InvalidationManager
 from Products.ZenHub.metricmanager import MetricManager, IMetricManager
 from Products.ZenHub.server import (
     config as server_config,
@@ -84,16 +82,6 @@ log = logging.getLogger("zen.zenhub")
 class ZenHub(ZCmdBase):
     """A server managing access to the Model and Event databases.
 
-    Listen for changes to objects in the Zeo database and update the
-    collectors' configuration.
-
-    The remote collectors connect the ZenHub and request configuration
-    information and stay connected.  When changes are detected in the
-    Zeo database, configuration updates are sent out to collectors
-    asynchronously.  In this way, changes made in the web GUI can
-    affect collection immediately, instead of waiting for a
-    configuration cycle.
-
     Each collector uses a different, pluggable service within ZenHub
     to translate objects into configuration and data.  ZenPacks can
     add services for their collectors.  Collectors communicate using
@@ -107,8 +95,6 @@ class ZenHub(ZCmdBase):
     the work to a pool of zenhubworkers, running zenhubworker.py. zenhub
     manages these workers with 1 data structure:
     - workers - a list of remote PB instances
-
-    TODO: document invalidation workers
     """
 
     totalTime = 0.0
@@ -151,16 +137,6 @@ class ZenHub(ZCmdBase):
         )
         self._xmlrpc_manager = XmlRpcManager(self.dmd, authenticators[0])
         register_legacy_worklist_metrics()
-
-        # Invalidation Processing
-        self._invalidation_manager = InvalidationManager(
-            self.dmd,
-            self.log,
-            self.async_syncdb,
-            self.storage.poll_invalidations,
-            self.sendEvent,
-            poll_interval=self.options.invalidation_poll_interval,
-        )
 
         # Setup Metric Reporting
         self._metric_manager = MetricManager(
@@ -208,14 +184,6 @@ class ZenHub(ZCmdBase):
         # Start XMLRPC server
         self._xmlrpc_manager.start(reactor)
 
-        # Start Processing Invalidations
-        self.process_invalidations_task = task.LoopingCall(
-            self._invalidation_manager.process_invalidations,
-        )
-        self.process_invalidations_task.start(
-            self.options.invalidation_poll_interval,
-        )
-
         # Start tracking reactor metrics
         self.report_reactor_delayed_calls_task = task.LoopingCall(
             report_reactor_delayed_calls, self.options.monitor, self.name
@@ -261,12 +229,6 @@ class ZenHub(ZCmdBase):
             self._getConf(), self.zem.sendEvent
         )
 
-    # Legacy API
-    @inlineCallbacks
-    def processQueue(self):
-        """Periodically process database changes."""
-        yield self._invalidation_manager.process_invalidations()
-
     def sendEvent(self, **kw):
         """Post events to the EventManager.
 
@@ -299,10 +261,6 @@ class ZenHub(ZCmdBase):
         reactor.callLater(seconds, self.heartbeat)
 
         r = self.rrdStats
-        r.counter(
-            "totalTime", int(self._invalidation_manager.totalTime * 1000)
-        )
-        r.counter("totalEvents", self._invalidation_manager.totalEvents)
         self._monitor.update_rrd_stats(r, self._service_manager)
 
         try:
@@ -348,12 +306,6 @@ class ZenHub(ZCmdBase):
             type="int",
             default=1,
             help="Number of worker instances to reserve for handling events",
-        )
-        self.parser.add_option(
-            "--invalidation-poll-interval",
-            type="int",
-            default=30,
-            help="Interval at which to poll invalidations (default: %default)",
         )
         self.parser.add_option(
             "--profiling",

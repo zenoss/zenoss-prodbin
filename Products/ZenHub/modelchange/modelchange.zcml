@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!--
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2009, 2019 all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+-->
+
+<!-- Only load this in a ZenModelChange process -->
+
+<configure xmlns="http://namespaces.zope.org/zope">
+
+   <adapter
+      factory=".pollers.RelStorageInvalidationPoller"
+      />
+
+   <!-- utility
+      factory=".processors.InvalidationProcessor"
+      provides=".interfaces.IInvalidationProcessor"
+      /-->
+
+   <utility
+      factory=".processors.SimpleInvalidationPrinter"
+      provides=".interfaces.IInvalidationProcessor"
+      />
+   
+   <utility
+      factory=".filters.DeviceClassInvalidationFilter"
+      provides=".interfaces.IInvalidationFilter"
+      name="DeviceClass"
+      />
+   
+   <utility
+      factory=".filters.OSProcessOrganizerFilter"
+      provides=".interfaces.IInvalidationFilter"
+      name="OSProcessOrganizer"
+      />
+   
+   <utility
+      factory=".filters.OSProcessClassFilter"
+      provides=".interfaces.IInvalidationFilter"
+      name="OSProcessClass"
+      />
+   
+   <utility
+      factory=".filters.IgnorableClassesFilter"
+      provides=".interfaces.IInvalidationFilter"
+      name="IgnorableClasses"
+      />
+
+   <subscriber
+      provides=".interfaces.IInvalidationOid"
+      for="Products.ZenModel.DeviceComponent.DeviceComponent"
+      factory=".oids.DeviceOidTransform"
+      />
+
+   <subscriber
+      provides=".interfaces.IInvalidationOid"
+      for="Products.ZenModel.DeviceHW.DeviceHW"
+      factory=".oids.DeviceOidTransform"
+      />
+
+   <subscriber
+      provides=".interfaces.IInvalidationOid"
+      for="Products.ZenModel.OperatingSystem.OperatingSystem"
+      factory=".oids.DeviceOidTransform"
+      />
+
+   <subscriber
+      provides=".interfaces.IInvalidationOid"
+      for="Products.ZenRelations.PrimaryPathObjectManager.PrimaryPathObjectManager"
+      factory=".oids.DefaultOidTransform"
+      />
+
+</configure>

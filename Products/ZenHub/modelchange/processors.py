@@ -15,18 +15,28 @@ from ZODB.utils import u64
 from zope.component import adapter, getGlobalSiteManager
 from zope.interface import implementer, providedBy
 
+from Products.ZenHub.interfaces import IHubCreatedEvent
+from Products.ZenHub.zodb import UpdateEvent, DeletionEvent
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenRelations.PrimaryPathObjectManager import (
     PrimaryPathObjectManager,
 )
 from Products.ZenUtils.Utils import giveTimeToReactor
 
-from .interfaces import IInvalidationProcessor, IHubCreatedEvent
-from .zodb import UpdateEvent, DeletionEvent
+from .interfaces import IInvalidationProcessor
 
 
 log = logging.getLogger("zen.ZenHub")
 INVALIDATIONS_PAUSED = "PAUSED"
+
+
+@implementer(IInvalidationProcessor)
+class SimpleInvalidationPrinter(object):
+
+    def processQueue(self, invalidations):
+        for inval in invalidations:
+            print("Detected: %s" % (inval,))
+        # print("recieved %s invalidations" % len(invalidations))
 
 
 @defer.inlineCallbacks

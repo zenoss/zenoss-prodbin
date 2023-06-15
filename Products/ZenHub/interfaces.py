@@ -7,39 +7,15 @@
 #
 ##############################################################################
 
-from zope.component.interfaces import Interface, IObjectEvent
+from zope.component.interfaces import Interface
 from zope.interface import Attribute
 
-# "Enum" for return values for IInvalidationFilters.
-FILTER_EXCLUDE = 0
-FILTER_INCLUDE = 1
-FILTER_CONTINUE = 2
-
-
-class IInvalidationEvent(IObjectEvent):
-    """
-    ZenHub has noticed an invalidation.
-    """
-
-    oid = Attribute("OID of the changed object")
-
-
-class IUpdateEvent(IInvalidationEvent):
-    """
-    An object has been updated.
-    """
-
-
-class IDeletionEvent(IInvalidationEvent):
-    """
-    An object has been deleted.
-    """
+# Import invalidation related names for compatibility with ZenPacks.
+from .modelchange.interfaces import *  # noqa E403
 
 
 class IBatchNotifier(Interface):
-    """
-    Processes subdevices in batches.
-    """
+    """Processes subdevices in batches."""
 
     def notify_subdevices(device_class, service_uid, callback):
         """
@@ -49,88 +25,29 @@ class IBatchNotifier(Interface):
         """
 
 
-class IInvalidationProcessor(Interface):
-    """
-    Accepts an invalidation queue.
-    """
-
-    def processQueue(queue):
-        """
-        Read invalidations off a queue and deal with them. Return a Deferred
-        that fires when all invalidations are done processing.
-        """
-
-    def setHub(hub):
-        """
-        Set the instance of ZenHub that this processor will deal with.
-        """
-
-
 class IServiceAddedEvent(Interface):
-    """
-    ZenHub has created a service.
-    """
+    """ZenHub has created a service."""
 
     name = Attribute("Dotted class name of the service")
     instance = Attribute("Collector name")
 
 
 class IHubWillBeCreatedEvent(Interface):
-    """
-    A hub has been instantiated.
-    """
+    """A hub has been instantiated."""
 
     hub = Attribute("The hub")
 
 
 class IHubCreatedEvent(Interface):
-    """
-    A hub has been instantiated.
-    """
+    """A hub has been instantiated."""
 
     hub = Attribute("The hub")
 
 
 class IParserReadyForOptionsEvent(Interface):
-    """
-    A parser is ready for extra options to be added.
-    """
+    """A parser is ready for extra options to be added."""
 
     parser = Attribute("The option parser")
-
-
-class IInvalidationFilter(Interface):
-    """
-    Filters invalidations before they're pushed to workers.
-    """
-
-    weight = Attribute(
-        "Where this filter should be in the process. Lower is earlier.",
-    )
-
-    def initialize(context):
-        """
-        Initialize any state necessary for this filter to function.
-        """
-
-    def include(obj):
-        """
-        Return whether to exclude this device, include it absolutely, or move
-        on to the next filter (L{FILTER_EXCLUDE}, L{FILTER_INCLUDE} or
-        L{FILTER_CONTINUE}).
-        """
-
-
-class IInvalidationOid(Interface):
-    """
-    Allows an invalidation OID to be changed to a different OID or dropped
-    """
-
-    def transformOid(oid):
-        """
-        Given an OID, return the same oid, a different one,
-        a list of other oids or None.
-        """
 
 
 class IHubConfProvider(Interface):

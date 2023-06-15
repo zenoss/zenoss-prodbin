@@ -1,0 +1,188 @@
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2023, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
+from itertools import chain
+
+from ZODB.POSException import POSKeyError
+from zope.component import subscribers
+
+from Products.ZenModel.DeviceComponent import DeviceComponent
+from Products.ZenRelations.PrimaryPathObjectManager import (
+    PrimaryPathObjectManager,
+)
+
+from .interfaces import FILTER_INCLUDE, FILTER_EXCLUDE, IInvalidationOid
+from .invalidation import Invalidation, InvalidationCause
+from .pipeline import Pipe, IterablePipe, Action
+from .utils import make_iterable
+
+
+class InvalidationValidator(object):
+    """A Pipeline that applies filters and transforms to an oid
+    Then passes the transformed/expanded list of oids
+    to the InvalidationProcessor processQueue
+    """
+
+    def __init__(self, app, filters, sink):
+        oid2obj_1 = Pipe(OidToObject(app))
+        oid2obj_2 = IterablePipe(OidToObject(app))
+        apply_filter = Pipe(ApplyFilters(filters))
+        apply_transforms = Pipe(ApplyTransforms())
+        collect = Pipe(CollectInvalidations(sink))
+
+        oid2obj_1.connect(apply_filter)
+        oid2obj_1.connect(collect, tid=OidToObject.SINK)
+        apply_filter.connect(apply_transforms)
+        apply_transforms.connect(oid2obj_2)
+        apply_transforms.connect(collect, tid=ApplyTransforms.SINK)
+        oid2obj_2.connect(collect)
+        oid2obj_2.connect(collect, tid=OidToObject.SINK)
+
+        self.__pipeline = oid2obj_1.node()
+
+    def apply(self, oid):
+        """Send data into the pipeline."""
+        self.__pipeline.send(oid)
+
+
+class OidToObject(Action):
+    """Validates the OID to ensure it references a device."""
+
+    SINK = "sink"
+
+    def __init__(self, app):
+        """
+        Initialize an OidToObject instance.
+
+        :param app: ZODB application root object.
+        :type app: OFS.Application.Application
+        """
+        super(OidToObject, self).__init__()
+        self._app = app
+
+    def __call__(self, oid):
+        print("%s: received %r" % (self.__class__, oid))
+        try:
+            # Retrieve the object using its OID.
+            obj = self._app._p_jar[oid]
+        except POSKeyError:
+            print("%s: poskeyerror" % (self.__class__,))
+            # Skip if this OID doesn't exist.
+            return
+        # Exclude the object if it doesn't have the right base class.
+        if not isinstance(obj, (PrimaryPathObjectManager, DeviceComponent)):
+            print("%s: wrong type: %r" % (self.__class__, obj))
+            return
+        try:
+            # Wrap the bare object into an Acquisition wrapper.
+            obj = obj.__of__(self._app.zport.dmd).primaryAq()
+        except (AttributeError, KeyError):
+            # An exception at this implies a deleted device.
+            return (
+                self.SINK,
+                Invalidation(oid, obj, InvalidationCause.Removed),
+            )
+        else:
+            return (
+                self.DEFAULT,
+                Invalidation(oid, obj, InvalidationCause.Updated),
+            )
+
+
+class ApplyFilters(Action):
+    """
+    Filter the invalidation against IInvalidationFilter objects.
+
+    Invalidations explicitely excluded by a filter are dropped from the
+    pipeline.
+    """
+
+    def __init__(self, filters):
+        """
+        Initialize a FilterObject instance.
+
+        :param filters: The invalidation filters.
+        :type filters: Sequence[IInvalidationFilter]
+        """
+        super(ApplyFilters, self).__init__()
+        self._filters = filters
+
+    def __call__(self, invalidation):
+        print("%s: received %r" % (self.__class__, invalidation))
+        for fltr in self._filters:
+            result = fltr.include(invalidation.device)
+            if result in (FILTER_INCLUDE, FILTER_EXCLUDE):
+                break
+        else:
+            result = FILTER_INCLUDE
+        if result is not FILTER_EXCLUDE:
+            return invalidation
+        else:
+            print("%s: excluded: %r" % (self.__class__, invalidation.device))
+
+
+class ApplyTransforms(Action):
+    """
+    The invalidation pipeline concerns itself with certain types of
+    objects.  The `ApplyTransforms` node determines whether the OID refers
+    to a nested object within a desired object type and if the OID is
+    a nested object, the OID of the parent object is returned to be used
+    in its place.
+    """
+
+    SINK = "sink"
+
+    def __call__(self, invalidation):
+        print("%s: received %r" % (self.__class__, invalidation))
+        # First, get any subscription adapters registered as transforms
+        adapters = subscribers((invalidation.device,), IInvalidationOid)
+        # Next check for an old-style (regular adapter) transform
+        try:
+            adapters = chain(
+                adapters, (IInvalidationOid(invalidation.device),)
+            )
+        except TypeError:
+            # No old-style adapter is registered
+            pass
+        transformed = set()
+        for _adapter in adapters:
+            result = _adapter.transformOid(invalidation.oid)
+            if isinstance(result, str):
+                transformed.add(result)
+            elif hasattr(result, "__iter__"):
+                # If the transform didn't give back a string, it should have
+                # given back an iterable
+                transformed.update(result)
+        # Remove any Nones a transform may have returned.
+        transformed.discard(None)
+        # Remove the original OID from the set of transformed OIDs;
+        # we don't want the original OID if any OIDs were returned.
+        transformed.discard(invalidation.oid)
+
+        if transformed:
+            print(
+                "%s: transformed into %s oids"
+                % (self.__class__, len(transformed))
+            )
+            return (self.DEFAULT, transformed)
+        else:
+            print("%s: no transformations" % (self.__class__,))
+        return (self.SINK, (invalidation,))
+
+
+class CollectInvalidations(Action):
+    """Collects the results of the pipeline."""
+
+    def __init__(self, output):
+        self.output = output
+
+    def __call__(self, result):
+        print("%s: collected %r" % (self.__class__, result))
+        result = make_iterable(result)
+        self.output.update(result)
