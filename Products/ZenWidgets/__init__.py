@@ -7,17 +7,13 @@
 #
 ##############################################################################
 
-try:
-    from Products.CMFCore.DirectoryView import registerDirectory
-
-    registerDirectory("skins", globals())
-except ImportError:
-    pass
-
+from Products.CMFCore.DirectoryView import registerDirectory
 from Products.Five.browser import BrowserView
 
 from .ZenossPortlets.ZenossPortlets import register_default_portlets
 from .ZenTableManager import manage_addZenTableManager, ZenTableManager
+
+registerDirectory("skins", globals())
 
 
 def update_portlets(app):

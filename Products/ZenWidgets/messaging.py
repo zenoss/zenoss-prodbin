@@ -125,7 +125,7 @@ class BrowserMessageBox(MessageBox):
         """Initialize a BrowserMessageBox instance.
 
         @param context: The object being adapted. Must have access to the
-                        current request object via acquisition.
+            current request object via acquisition.
         @type context: Persistent
         """
         self.context = context
@@ -153,11 +153,11 @@ class UserMessageBox(MessageBox):
         """Initialize a UserMessageBox instance.
 
         @param context: The object being adapted. Must have access to the dmd
-                        via acquisition.
+            via acquisition.
         @type context: Persistent
         @param user: Optional username corresponding to the queue from which
-                     messages will be retrieved. If left as C{None}, the
-                     current user's queue will be used.
+            messages will be retrieved. If left as C{None}, the current
+            user's queue will be used.
         @type user: str
         """
         self.context = context

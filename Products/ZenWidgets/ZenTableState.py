@@ -10,7 +10,6 @@
 """ZenTableState
 
 Track the state of a given table.
-
 """
 
 from AccessControl import ClassSecurityInfo
@@ -28,7 +27,8 @@ class ZenTableState:
         "filter",
         "sortedHeader",
         "sortedSence",
-        "defaultValue" "onlyMonitored",
+        "defaultValue",
+        "onlyMonitored",
     ]
 
     requestAtts = [
@@ -175,11 +175,6 @@ class ZenTableState:
 
     def buildPageNavigation(self, objects):
         self.pagenav = []
-        # this conditional is for setting the batchSize on a "showAll"
-        # if self.showAll:
-        #    self.batchSize = len(objects)
-        #    self.start = 0
-        #    self.showAll = False
         if self.batchSize == 0:
             return self.pagenav
         lastindex = 0
@@ -192,7 +187,7 @@ class ZenTableState:
         self.lastindex = lastindex
 
     def _pageLabel(self, objects, index):
-        """make label for page navigation if field isn't sorted use page #"""
+        """Make label for page navigation if field isn't sorted use page #."""
         pageLabel = ""
         # do not show the page label if there is only one page
         if self.totalobjs > self.batchSize:

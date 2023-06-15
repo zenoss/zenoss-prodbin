@@ -107,9 +107,7 @@ class Portlet(ZenModelRM):
             f.close()
 
     def getPrimaryPath(self, fromNode=None):
-        """
-        Override the default, which doesn't account for things on zport
-        """
+        """Override the default, which doesn't account for things on zport."""
         return ("", "zport") + super(Portlet, self).getPrimaryPath(fromNode)
 
     def get_source(self, debug_mode=False):

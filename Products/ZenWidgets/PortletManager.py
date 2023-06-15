@@ -60,9 +60,7 @@ class PortletManager(ZenModelRM):
     def register_extjsPortlet(
         self, id, title, height=200, permission=ZEN_COMMON
     ):
-        """
-        Registers an ExtJS portlet
-        """
+        """Registers an ExtJS portlet."""
         ppath = os.path.join(
             "Products", "ZenWidgets", "ZenossPortlets", "ExtPortlet.js"
         )
@@ -131,10 +129,11 @@ class PortletManager(ZenModelRM):
     def find(self, id="", sourcepath=""):
         """Look for a registered portlet with an id or source path."""
         for portlet in self.portlets():
-            # special case for ExtJs portlets which will all have the same sourcepath
+            # Special case for ExtJs portlets which will all have the same
+            # sourcepath.
             if portlet.id == id or (
                 portlet.sourcepath == sourcepath
-                and not "ExtPortlet" in sourcepath
+                and "ExtPortlet" not in sourcepath
             ):
                 return portlet
         return None
