@@ -21,6 +21,8 @@ import servicemigration as sm
 from servicemigration.metrics import Metric
 from servicemigration.graphdatapoint import GraphDatapoint
 
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
+
 
 log = logging.getLogger("zen.migrate")
 svcNamesToUpdate = ['zensyslog']
@@ -32,7 +34,7 @@ class ZensyslogSvcDevForMsgParsing(Migrate.Step):
     add 'Filter Dropped Events' to zensyslog 'Events' graph
     '''
 
-    version = Migrate.Version(6, 7, 0)
+    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
         try:
@@ -46,7 +48,6 @@ class ZensyslogSvcDevForMsgParsing(Migrate.Step):
         svcs = filter(lambda s: s.name in svcNamesToUpdate, ctx.services)
         log.info("Found %i %r services to update.", len(svcs), svcNamesToUpdate)
         for svc in svcs:
-            collectorName = ctx.getServiceParent(svc).name
             # Update the existing 'Events' graph with new graphpoint
             gc = next(
                 (x for x in svc.monitoringProfile.graphConfigs if x.name == 'Events'),
@@ -54,13 +55,13 @@ class ZensyslogSvcDevForMsgParsing(Migrate.Step):
             )
             if gc is None:
                 log.error(
-                    "%s %s service: No 'Events' graph configuration found; "
-                    "broken service def; skipping.", collectorName, svc.name)
+                    "%s service: No 'Events' graph configuration found; "
+                    "broken service def; skipping.", svc.name)
                 continue
             if not filter(lambda x: x.pointID == "eventFilterDroppedCount", gc.datapoints):
                 log.info(
-                    "%s %s service: Adding 'Filter Dropped Events' graphpoint to the"
-                    " 'Events' graph.", collectorName, svc.name)
+                    "%s service: Adding 'Filter Dropped Events' graphpoint to the"
+                    " 'Events' graph.", svc.name)
                 gc.datapoints.append(
                     GraphDatapoint(
                             aggregator='avg',
@@ -77,8 +78,8 @@ class ZensyslogSvcDevForMsgParsing(Migrate.Step):
                 commit = True
             else:
                 log.info(
-                    "%s %s service: 'Filter Dropped Events' graphpoint exists"
-                    " on the 'Events' graph; skipping.", collectorName, svc.name)
+                    "%s service: 'Filter Dropped Events' graphpoint exists"
+                    " on the 'Events' graph; skipping.", svc.name)
             # Add new Service metric
             mc = next(
                 (x for x in svc.monitoringProfile.metricConfigs
@@ -87,14 +88,14 @@ class ZensyslogSvcDevForMsgParsing(Migrate.Step):
             )
             if mc is None:
                 log.error(
-                    "%s %s service: No 'zensyslog internal metrics' metric "
-                    "config found; broken service def; skipping.", collectorName, svc.name)
+                    "%s service: No 'zensyslog internal metrics' metric "
+                    "config found; broken service def; skipping.", svc.name)
                 continue
             else:
                 if not filter(lambda x: x.ID == "eventFilterDroppedCount", mc.metrics):
                     log.info(
-                        "%s %s service: Adding 'Filter Dropped Events' "
-                        "metric", collectorName, svc.name)
+                        "%s service: Adding 'Filter Dropped Events' "
+                        "metric", svc.name)
                     mc.metrics.append(
                         Metric(
                             ID='eventFilterDroppedCount',
@@ -107,8 +108,8 @@ class ZensyslogSvcDevForMsgParsing(Migrate.Step):
                     commit = True
                 else:
                     log.info(
-                        "%s %s service: 'Filter Dropped Events' metric "
-                        "exists; skipping.", collectorName, svc.name)
+                        "%s service: 'Filter Dropped Events' metric "
+                        "exists; skipping.", svc.name)
 
         if commit:
             ctx.commit()
