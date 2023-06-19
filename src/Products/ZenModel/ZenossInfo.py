@@ -30,7 +30,7 @@ from Products.ZenCallHome.transport.methods.versioncheck import version_check
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.mysql import MySQLdb
-from Products.ZenUtils.Utils import zenPath, binPath, isZenBinFile
+from Products.ZenUtils.path import binPath, isZenBinFile, zenPath
 from Products.ZenUtils.Version import (
     getVersionTupleFromString,
     Version,

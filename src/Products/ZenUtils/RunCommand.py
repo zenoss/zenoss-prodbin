@@ -25,7 +25,7 @@ import signal
 import subprocess
 import sys
 
-from .Utils import zenPath
+from .path import zenPath
 from .ZenScriptBase import ZenScriptBase
 
 log = logging.getLogger("zen.runCommand")

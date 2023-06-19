@@ -28,7 +28,7 @@ from Products.ZenUtils.AccountLocker.AccountLocker import (
     setup as account_locker_setup,
 )
 from Products.ZenUtils.CmdBase import CmdBase
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.path import zenPath
 
 
 class zenbuild(CmdBase):

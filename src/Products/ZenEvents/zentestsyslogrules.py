@@ -18,9 +18,9 @@ This allows one to test the effectiveness of the drop filtering.
 
 from Products.ZenEvents.SyslogProcessing import SyslogProcessor
 from Products.ZenUtils.CmdBase import CmdBase
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.path import zenPath
 
-defaultInfile = zenPath("log", "origsyslog.log")
+defaultInfile = zenPath("log/origsyslog.log")
 
 # The format of the capture syslog message is:
 # timestamp timestamp ip_address: message

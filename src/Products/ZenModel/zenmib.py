@@ -66,7 +66,7 @@ from Products.ZenUtils.mib import (
     SMIDump,
     SMIDumpTool,
 )
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.path import zenPath
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from zenoss.app.command import Command
 
