@@ -7,74 +7,75 @@
 #
 ##############################################################################
 
-
 """ZenTableManager
 
-ZenTableManager is a Zope Product that helps manage and display
-large sets of tabular data.  It allows for column sorting,
-break down of the set into pages, and filtering of elements
-in the table.  It also allows users to store their own default
-page size (but publishes a hook to get this values from
-a different location).
+ZenTableManager is a Zope Product that helps manage and display large sets of
+tabular data.  It allows for column sorting, break down of the set into pages,
+and filtering of elements in the table.  It also allows users to store their
+own default page size (but publishes a hook to get this values from a
+different location).
 """
 
 import logging
 import math
 import re
-import ZTUtils
 import urllib
-from AccessControl.class_init import InitializeClass
+
+import ZTUtils
+
 from Acquisition import aq_base
-from OFS.SimpleItem import SimpleItem
-from OFS.PropertyManager import PropertyManager
+from AccessControl.class_init import InitializeClass
 from DocumentTemplate.sequence.SortEx import sort
+from OFS.PropertyManager import PropertyManager
+from OFS.SimpleItem import SimpleItem
 from persistent.dict import PersistentDict
 
-from ZenTableState import ZenTableState
 from Products.ZenUtils.Utils import getTranslation
 
-log = logging.getLogger('zen.ZenTableManager')
+from .ZenTableState import ZenTableState
 
-class TableStateNotFound(Exception): pass
-
-
-def convert(x): 
-    return 0.0 if isinstance(x, float) and math.isnan(x) else x 
-
-def zencmp(o1, o2): 
-    return cmp(convert(o1), convert(o2)) 
+log = logging.getLogger("zen.ZenTableManager")
 
 
-def manage_addZenTableManager(context, id="", REQUEST = None):
-    """make a CVDeviceLoader"""
-    if not id: id = "ZenTableManager"
+class TableStateNotFound(Exception):
+    pass
+
+
+def convert(x):
+    return 0.0 if isinstance(x, float) and math.isnan(x) else x
+
+
+def zencmp(o1, o2):
+    return cmp(convert(o1), convert(o2))
+
+
+def manage_addZenTableManager(context, id="", REQUEST=None):
+    """Make a CVDeviceLoader."""
+    if not id:
+        id = "ZenTableManager"
     ztm = ZenTableManager(id)
     context._setObject(id, ztm)
     ztm = context._getOb(id)
     ztm.initTableManagerSkins()
 
     if REQUEST is not None:
-        REQUEST.RESPONSE.redirect(context.absolute_url_path()
-                                     +'/manage_main')
+        REQUEST.RESPONSE.redirect(context.absolute_url_path() + "/manage_main")
+
 
 class ZenTableManager(SimpleItem, PropertyManager):
-    """ZenTableManager manages display of tabular data"""
+    """ZenTableManager manages display of tabular data."""
 
-    portal_type = meta_type = 'ZenTableManager'
+    portal_type = meta_type = "ZenTableManager"
 
     _properties = (
-        {'id':'defaultBatchSize', 'type':'int','mode':'w'},
-        {'id':'abbrStartLabel', 'type':'int','mode':'w'},
-        {'id':'abbrEndLabel', 'type':'int','mode':'w'},
-        {'id':'abbrPadding', 'type':'int','mode':'w'},
-        {'id':'abbrSeparator', 'type':'string','mode':'w'},
+        {"id": "defaultBatchSize", "type": "int", "mode": "w"},
+        {"id": "abbrStartLabel", "type": "int", "mode": "w"},
+        {"id": "abbrEndLabel", "type": "int", "mode": "w"},
+        {"id": "abbrPadding", "type": "int", "mode": "w"},
+        {"id": "abbrSeparator", "type": "string", "mode": "w"},
     )
 
-    manage_options = (
-                        PropertyManager.manage_options +
-                        SimpleItem.manage_options
-                     )
-
+    manage_options = PropertyManager.manage_options + SimpleItem.manage_options
 
     def __init__(self, id):
         self.id = id
@@ -83,9 +84,9 @@ class ZenTableManager(SimpleItem, PropertyManager):
         self.abbrEndLabel = 5
         self.abbrPadding = 5
         self.abbrSeparator = ".."
-        self.abbrThresh = self.abbrStartLabel + \
-                        self.abbrEndLabel + self.abbrPadding
-
+        self.abbrThresh = (
+            self.abbrStartLabel + self.abbrEndLabel + self.abbrPadding
+        )
 
     def getDefaultBatchSize(self):
         dbs = self.defaultBatchSize
@@ -94,80 +95,80 @@ class ZenTableManager(SimpleItem, PropertyManager):
             dbs = zu.getUserSettings().defaultPageSize
         return dbs
 
-
     def setupTableState(self, tableName, **keys):
-        """initialize or setup the session variable to track table state"""
+        """Initialize or setup the session variable to track table state."""
         tableState = self.getTableState(tableName, **keys)
         request = self.REQUEST
         tableState.updateFromRequest(request)
         return tableState
 
-
     def getTableState(self, tableName, attrname=None, default=None, **keys):
-        """return an existing table state or a single value from the state"""
+        """Return an existing table state or a single value from the state."""
         from Products.ZenUtils.Utils import unused
+
         unused(default)
         request = self.REQUEST
         tableStates = self.getTableStates()
         tableState = tableStates.get(tableName, None)
         if not tableState:
             dbs = self.getDefaultBatchSize()
-            tableStates[tableName] = ZenTableState(request,tableName,dbs,**keys)
+            tableStates[tableName] = ZenTableState(
+                request, tableName, dbs, **keys
+            )
             tableState = tableStates[tableName]
-        if attrname == None:
+        if attrname is None:
             return tableStates[tableName]
         return getattr(tableState, attrname, None)
-
 
     def getReqTableState(self, tableName, attrname):
         """
         Return attrname from request if present if not return from tableState.
         """
         request = self.REQUEST
-        if request.has_key(attrname):
+        if request.has_key(attrname):  # noqa W601
             return request[attrname]
         return self.getTableState(tableName, attrname)
-
 
     def setTableState(self, tableName, attrname, value):
         """Set the value of a table state attribute and return it."""
         tableState = self.getTableState(tableName)
         return tableState.setTableState(attrname, value)
 
-
     def setReqTableState(self, tableName, attrname, default=None, reset=False):
-        """set the a value in the table state from the request"""
+        """Set the a value in the table state from the request."""
         tableState = self.getTableState(tableName)
         value = self.REQUEST.get(attrname, None)
         tableState = self.getTableState(tableName)
-        return tableState.setTableState(attrname, value,
-                                        default=default, reset=reset)
-
+        return tableState.setTableState(
+            attrname, value, default=default, reset=reset
+        )
 
     def deleteTableState(self, tableName):
-        """delete an existing table state"""
+        """Delete an existing table state."""
         tableStates = self.getTableStates()
 
         if tableName in tableStates:
             del tableStates[tableName]
 
-
     def getBatch(self, tableName, objects, **keys):
-        """Filter, sort and batch objects and pass return set.
-        """
+        """Filter, sort and batch objects and pass return set."""
         if log.isEnabledFor(logging.DEBUG):
             import os
-            fmt = 'getBatch pid=%s, tableName=%s, %s objects'
+
+            fmt = "getBatch pid=%s, tableName=%s, %s objects"
             pid = os.getpid()
             log.debug(fmt, pid, tableName, len(objects))
         if not objects:
             objects = []
         tableState = self.setupTableState(tableName, **keys)
         if tableState.onlyMonitored and objects:
-            objects = [o for o in objects if getattr(o, 'isMonitored', o.monitored)()]
+            objects = [
+                o for o in objects if getattr(o, "isMonitored", o.monitored)()
+            ]
         if tableState.filter and objects:
-            objects = self.filterObjects(objects, tableState.filter,
-                                        tableState.filterFields)
+            objects = self.filterObjects(
+                objects, tableState.filter, tableState.filterFields
+            )
         # objects is frequently a generator.  Need a list in order to sort
         if not isinstance(objects, list):
             objects = list(objects)
@@ -175,53 +176,57 @@ class ZenTableManager(SimpleItem, PropertyManager):
             objects = self.sortObjects(objects, tableState)
         tableState.totalobjs = len(objects)
         tableState.buildPageNavigation(objects)
-        if not hasattr(self.REQUEST, 'doExport'):
-            objects = ZTUtils.Batch(objects,
-                        tableState.batchSize or len(objects),
-                        start=tableState.start, orphan=0)
+        if not hasattr(self.REQUEST, "doExport"):
+            objects = ZTUtils.Batch(
+                objects,
+                tableState.batchSize or len(objects),
+                start=tableState.start,
+                orphan=0,
+            )
         return objects
 
-
     def getBatchForm(self, objects, request):
-        """Create batch based on objects no sorting for filter applied.
-        """
-        batchSize = request.get('batchSize',self.defaultBatchSize)
-        if batchSize in ['', '0']:
+        """Create batch based on objects no sorting for filter applied."""
+        batchSize = request.get("batchSize", self.defaultBatchSize)
+        if batchSize in ["", "0"]:
             batchSize = 0
         else:
             batchSize = int(batchSize)
-        start = int(request.get('start',0))
-        resetStart = int(request.get('resetStart',0))
-        lastindex = request.get('lastindex',0)
-        navbutton = request.get('navbutton',None)
+        start = int(request.get("start", 0))
+        resetStart = int(request.get("resetStart", 0))
+        lastindex = request.get("lastindex", 0)
+        navbutton = request.get("navbutton", None)
         if navbutton == "first" or resetStart:
             start = 0
         elif navbutton == "last":
-            start=lastindex
+            start = lastindex
         elif navbutton == "next":
             start = start + batchSize
-            if start > lastindex: start = lastindex
+            if start > lastindex:
+                start = lastindex
         elif navbutton == "prev":
             start = start - batchSize
-        elif request.has_key("nextstart"):
+        elif request.has_key("nextstart"):  # noqa W601
             start = request.nextstart
-        if 0 < start > len(objects): start = 0
+        if 0 < start > len(objects):
+            start = 0
         request.start = start
-        objects = ZTUtils.Batch(objects, batchSize or len(objects),
-                    start=request.start, orphan=0)
+        objects = ZTUtils.Batch(
+            objects, batchSize or len(objects), start=request.start, orphan=0
+        )
         return objects
 
-
     def filterObjects(self, objects, regex, filterFields):
-        """filter objects base on a regex in regex and list of fields
+        """Filter objects base on a regex in regex and list of fields
         in filterFields."""
-        if self.REQUEST.SESSION.has_key('message'):
-            self.REQUEST.SESSION.delete('message')
+        if self.REQUEST.SESSION.has_key("message"):  # noqa W601
+            self.REQUEST.SESSION.delete("message")
         if not regex:
             return objects
-        try: search = re.compile(regex,re.I).search
+        try:
+            search = re.compile(regex, re.I).search
         except re.error:
-            self.REQUEST.SESSION['message'] = "Invalid regular expression."
+            self.REQUEST.SESSION["message"] = "Invalid regular expression."
             return objects
         filteredObjects = []
         for obj in objects:
@@ -237,61 +242,78 @@ class ZenTableManager(SimpleItem, PropertyManager):
                     value = str(value)
                 target.append(value)
             targetstring = " ".join(target)
-            if search(targetstring): filteredObjects.append(obj)
+            if search(targetstring):
+                filteredObjects.append(obj)
         return filteredObjects
-
 
     def evaluateTales(self, expression, dev):
         log.warning("evaluating %s", dev.__dict__)
-        variables_and_funcs = {
-            'device':dev, 'dev':dev
-        }
-        expression = expression.replace('python:', 'attr=')
+        variables_and_funcs = {"device": dev, "dev": dev}
+        expression = expression.replace("python:", "attr=")
         try:
-            exec(expression, variables_and_funcs)
-            attr = variables_and_funcs['attr']
+            exec (expression, variables_and_funcs)
+            attr = variables_and_funcs["attr"]
             log.warning("attr is %s", attr)
         except Exception as ex:
             attr = str(ex)
         return attr
 
     def sortObjects(self, objects, request):
-        """Sort objects.
-        """
+        """Sort objects."""
+
         def dictAwareSort(objects, field, rule, sence):
             if not objects:
                 return objects
+
             class Wrapper:
                 def __init__(self, field, cargo):
-                    if callable(field): field = field()
-                    #make sorting case-insensitive
-                    if isinstance(field, basestring): field = field.lower()
+                    if callable(field):
+                        field = field()
+                    # make sorting case-insensitive
+                    if isinstance(field, basestring):
+                        field = field.lower()
                     self.field = field
                     self.cargo = cargo
+
             if field.startswith("python:"):
-                objects = [Wrapper(self.evaluateTales(field, o), o) for o in objects]
+                objects = [
+                    Wrapper(self.evaluateTales(field, o), o) for o in objects
+                ]
             else:
                 if isinstance(objects[0], dict):
-                    objects = [Wrapper(o.get(field, ''), o) for o in objects]
+                    objects = [Wrapper(o.get(field, ""), o) for o in objects]
                 else:
-                    objects = [Wrapper(getattr(o, field, ''), o) for o in objects]
-            objects = sort(objects, (('field', rule, sence),), {'zencmp': zencmp})
+                    objects = [
+                        Wrapper(getattr(o, field, ""), o) for o in objects
+                    ]
+            objects = sort(
+                objects, (("field", rule, sence),), {"zencmp": zencmp}
+            )
             return [w.cargo for w in objects]
 
-        if (getattr(aq_base(request), 'sortedHeader', False)
-            and getattr(aq_base(request),"sortedSence", False)):
+        if getattr(aq_base(request), "sortedHeader", False) and getattr(
+            aq_base(request), "sortedSence", False
+        ):
             sortedHeader = request.sortedHeader
             sortedSence = request.sortedSence
             sortRule = getattr(aq_base(request), "sortRule", "cmp")
-            objects = dictAwareSort(objects, sortedHeader, sortRule, sortedSence)
+            objects = dictAwareSort(
+                objects, sortedHeader, sortRule, sortedSence
+            )
 
         return objects
 
-
-    def getTableHeader(self, tableName, fieldName, fieldTitle,
-                sortRule='cmp', style='tableheader',attributes="",
-                i18n_domain='zenoss'):
-        """generate a <th></th> tag that allows column sorting"""
+    def getTableHeader(
+        self,
+        tableName,
+        fieldName,
+        fieldTitle,
+        sortRule="cmp",
+        style="tableheader",
+        attributes="",
+        i18n_domain="zenoss",
+    ):
+        """Generate a <th></th> tag that allows column sorting."""
         href = self.getTableHeaderHref(tableName, fieldName, sortRule)
         style = self.getTableHeaderStyle(tableName, fieldName, style)
         tag = """<th class="%s" %s>""" % (style, attributes)
@@ -299,33 +321,38 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
         # Owwwwwwwwwww
         from Products.Zuul.utils import ZuulMessageFactory as _t
+
         msg = getTranslation(_t(fieldTitle), self.REQUEST, domain=i18n_domain)
         tag += msg + "</a></th>\n"
 
         return tag
 
-
-    def getTableHeaderHref(self, tableName, fieldName,
-                            sortRule='cmp',params=""):
-        """build the href attribute for the table headers"""
-
+    def getTableHeaderHref(
+        self, tableName, fieldName, sortRule="cmp", params=""
+    ):
+        """Build the href attribute for the table headers."""
         tableState = self.getTableState(tableName)
         sortedHeader = tableState.sortedHeader
         sortedSence = tableState.sortedSence
         if sortedHeader == fieldName:
-            if sortedSence == 'asc':
-                sortedSence = 'desc'
-            elif sortedSence == 'desc':
-                sortedSence = 'asc'
+            if sortedSence == "asc":
+                sortedSence = "desc"
+            elif sortedSence == "desc":
+                sortedSence = "asc"
         else:
-            sortedSence = 'asc'
+            sortedSence = "asc"
         href = "%s?tableName=%s&sortedHeader=%s&" % (
-                self.REQUEST.URL, tableName, urllib.quote_plus(fieldName))
-        href += "sortedSence=%s&sortRule=%s%s\">" % (
-                sortedSence, sortRule, params)
+            self.REQUEST.URL,
+            tableName,
+            urllib.quote_plus(fieldName),
+        )
+        href += 'sortedSence=%s&sortRule=%s%s">' % (
+            sortedSence,
+            sortRule,
+            params,
+        )
         tableState.addFilterField(fieldName)
         return href
-
 
     def getTableHeaderStyle(self, tableName, fieldName, style):
         """apends "selected" onto the CSS style if this field is selected"""
@@ -333,24 +360,21 @@ class ZenTableManager(SimpleItem, PropertyManager):
             style = style + "selected"
         return style
 
-
     def getTableStates(self):
         session = self.REQUEST.SESSION
         try:
-            return session['zentablestates']
+            return session["zentablestates"]
         except KeyError:
             init = PersistentDict()
-            session['zentablestates'] = init
+            session["zentablestates"] = init
             return init
 
-
     def tableStatesHasTable(self, tableName):
-        return self.getTableStates().has_key(tableName)
-
+        return tableName in self.getTableStates()
 
     def getNavData(self, objects, batchSize, sortedHeader):
         pagenav = []
-        if batchSize in ['', '0']:
+        if batchSize in ["", "0"]:
             batchSize = 0
         else:
             batchSize = int(batchSize)
@@ -358,55 +382,59 @@ class ZenTableManager(SimpleItem, PropertyManager):
             if sortedHeader:
                 label = self._buildTextLabel(objects[index], sortedHeader)
             elif batchSize:
-                label = str(1+index/batchSize)
+                label = str(1 + index / batchSize)
             else:
-                label = '1'
-            pagenav.append({ 'label': label, 'index': index })
+                label = "1"
+            pagenav.append({"label": label, "index": index})
         return pagenav
-
 
     def _buildTextLabel(self, item, sortedHeader):
         endAbbr = ""
         attr = getattr(item, sortedHeader, "")
-        if callable(attr): attr = attr()
+        if callable(attr):
+            attr = attr()
         label = str(attr)
         if len(label) > self.abbrThresh:
-            startAbbr = label[:self.abbrStartLabel]
+            startAbbr = label[: self.abbrStartLabel]
             if self.abbrEndLabel > 0:
-                endAbbr = label[-self.abbrEndLabel:]
+                endAbbr = label[-self.abbrEndLabel :]
             label = "".join((startAbbr, self.abbrSeparator, endAbbr))
         return label
 
-
     def initTableManagerSkins(self):
         """setup the skins that come with ZenTableManager"""
-        layers = ('zentablemanager','zenui')
+        layers = ("zentablemanager", "zenui")
         try:
             import string
             from Products.CMFCore.utils import getToolByName
             from Products.CMFCore.DirectoryView import addDirectoryViews
-            skinstool = getToolByName(self, 'portal_skins')
+
+            skinstool = getToolByName(self, "portal_skins")
             for layer in layers:
                 if layer not in skinstool.objectIds():
-                    addDirectoryViews(skinstool, 'skins', globals())
+                    addDirectoryViews(skinstool, "skins", globals())
             skins = skinstool.getSkinSelections()
             for skin in skins:
                 path = skinstool.getSkinPath(skin)
-                path = map(string.strip, string.split(path,','))
+                path = map(string.strip, string.split(path, ","))
                 for layer in layers:
                     if layer not in path:
                         try:
-                            path.insert(path.index('custom')+1, layer)
+                            path.insert(path.index("custom") + 1, layer)
                         except ValueError:
                             path.append(layer)
-                path = ','.join(path)
+                path = ",".join(path)
                 skinstool.addSkinSelection(skin, path)
         except ImportError as e:
-            if "Products.CMFCore.utils" in e.args: pass
-            else: raise
+            if "Products.CMFCore.utils" in e.args:
+                pass
+            else:
+                raise
         except AttributeError as e:
-            if "portal_skin" in e.args: pass
-            else: raise
+            if "portal_skin" in e.args:
+                pass
+            else:
+                raise
 
 
 InitializeClass(ZenTableManager)
