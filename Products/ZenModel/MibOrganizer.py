@@ -19,7 +19,8 @@ from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD, ZEN_ADD
 from Products.ZenRelations.RelSchema import ToOne, ToManyCont
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenWidgets import messaging
-from Products.ZenUtils.Utils import atomicWrite, binPath, zenPath
+from Products.ZenUtils.path import binPath, zenPath
+from Products.ZenUtils.Utils import atomicWrite
 
 from Organizer import Organizer
 from MibModule import MibModule

@@ -57,7 +57,8 @@ from Products.ZenCollector.interfaces import IEventService
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon, HubDown
 from Products.ZenUtils.Driver import drive, driveLater
-from Products.ZenUtils.Utils import unused, zenPath
+from Products.ZenUtils.path import zenPath
+from Products.ZenUtils.Utils import unused
 from Products.Zuul.utils import safe_hasattr as hasattr
 
 # needed for Twisted's PB (Perspective Broker) to work

@@ -14,9 +14,7 @@ __doc__ = """zensyslog
 Filters Syslog Messages.
 """
 
-import sys
 import logging
-import os.path
 import re
 
 import zope.interface
@@ -28,7 +26,6 @@ from Products.ZenCollector.interfaces import ICollector, IEventService
 from Products.ZenHub.interfaces import ICollectorEventTransformer, \
     TRANSFORM_CONTINUE, \
     TRANSFORM_DROP
-from Products.ZenUtils.Utils import unused, zenPath
 
 log = logging.getLogger("zen.zensyslog.filter")
 

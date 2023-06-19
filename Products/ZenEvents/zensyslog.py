@@ -39,7 +39,7 @@ from Products.ZenUtils.observable import ObservableMixin
 
 from Products.ZenEvents.SyslogProcessing import SyslogProcessor
 
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.path import zenPath
 from Products.ZenUtils.IpUtil import asyncNameLookup
 
 from Products.ZenEvents.EventServer import Stats
