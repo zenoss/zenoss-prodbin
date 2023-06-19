@@ -619,8 +619,7 @@ class CollectorDaemon(RRDDaemon):
         if "METRIC_DATA" not in str(metricinfo):
             raise Exception(
                 "Unable to write Metric with given path { %s } "
-                "please see the rrdpath method"
-                % (metricinfo,)
+                "please see the rrdpath method" % (metricinfo,)
             )
 
         metadata = json.loads(metricinfo)
