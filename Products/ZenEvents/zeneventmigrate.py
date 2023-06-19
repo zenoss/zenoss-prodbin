@@ -60,7 +60,7 @@ from zenoss.protocols.protobufs.model_pb2 import DEVICE, COMPONENT
 from Products.ZenEvents.syslog_h import fac_values, LOG_FAC
 from Products.ZenUtils.AmqpDataManager import AmqpTransaction
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.path import zenPath
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from zope.component import getUtility
 from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
