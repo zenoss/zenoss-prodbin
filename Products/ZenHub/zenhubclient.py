@@ -19,8 +19,9 @@ from twisted.application.internet import backoffPolicy, ClientService
 from twisted.internet import defer, task
 from twisted.spread import pb
 
+from Products.ZenUtils.path import zenPath
 from Products.ZenUtils.PBUtil import setKeepAlive
-from Products.ZenUtils.Utils import zenPath, atomicWrite
+from Products.ZenUtils.Utils import atomicWrite
 
 from .errors import HubDown
 from .server import ZenPBClientFactory
