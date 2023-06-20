@@ -1045,6 +1045,7 @@ class EventsRouter(DirectRouter):
                 'name': _t('Mirror Syslog Event\'s Summary value to Message field'),
                 'xtype': 'checkbox',
                 'value': self.context.dmd.ZenEventManager.syslogSummaryToMessage
+                },{
                 'id': 'default_syslog_message_filtering_rules',
                 'name': _t('Syslog Message Filtering Rules'),
                 'xtype': 'textarea',
