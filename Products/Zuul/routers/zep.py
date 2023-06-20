@@ -56,6 +56,7 @@ ZEN_MANAGER_EDIT_PERM = (
     'event_age_severity_inclusive',
     'default_syslog_priority',
     'syslog_parsers',
+    'default_syslog_message_filtering_rules',
     'default_availability_days',
     'event_time_purge_interval_days',
     'enable_event_flapping_detection',
@@ -1044,6 +1045,11 @@ class EventsRouter(DirectRouter):
                 'name': _t('Mirror Syslog Event\'s Summary value to Message field'),
                 'xtype': 'checkbox',
                 'value': self.context.dmd.ZenEventManager.syslogSummaryToMessage
+                'id': 'default_syslog_message_filtering_rules',
+                'name': _t('Syslog Message Filtering Rules'),
+                'xtype': 'textarea',
+                'allowNegative': False,
+                'value': dumps(self.context.dmd.ZenEventManager.syslogMsgEvtFieldFilterRules, indent=2)
                 },{
                 'id': 'default_availability_days',
                 'name': _t('Default Availability Report (days)'),
@@ -1148,6 +1154,9 @@ class EventsRouter(DirectRouter):
         syslogSummaryToMessage = values.pop('syslog_summary_to_message', None)
         if syslogParsers is not None:
             self.context.dmd.ZenEventManager.syslogSummaryToMessage = syslogSummaryToMessage
+        syslogMsgEvtFieldFilterRules = values.pop('default_syslog_message_filtering_rules', None)
+        if syslogMsgEvtFieldFilterRules is not None:
+            self.context.dmd.ZenEventManager.syslogMsgEvtFieldFilterRules = loads(syslogMsgEvtFieldFilterRules)
 
         defaultAvailabilityDays = values.pop('default_availability_days', None)
         if defaultAvailabilityDays is not None:

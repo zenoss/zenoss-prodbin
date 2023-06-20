@@ -191,6 +191,7 @@ class EventManagerBase(ZenModelRM):
     "keep": True
 }]
     syslogSummaryToMessage = False
+    syslogMsgEvtFieldFilterRules = {}
 
     _properties = (
         {'id':'backend', 'type':'string','mode':'r', },
@@ -234,6 +235,7 @@ class EventManagerBase(ZenModelRM):
         {'id':'historyMaxAgeDays', 'type':'int', 'mode':'w'},
         {'id':'syslogParsers', 'type':'list', 'mode':'w'},
         {'id':'syslogSummaryToMessage', 'type':'boolean', 'mode':'w'},
+        {'id':'syslogMsgEvtFieldFilterRules', 'type':'dict', 'mode':'w'},
         )
 
     _relations =  (
