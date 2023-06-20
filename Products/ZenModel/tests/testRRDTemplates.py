@@ -76,9 +76,12 @@ class TestRRDTemplates(ZenModelBaseTest):
         linux = self.dmd.Devices.createOrganizer('/Server/Linux')
 
         devices.manage_addRRDTemplate('Device')
-        devices.manage_addRRDTemplate('Device-addition')
+        server.manage_addRRDTemplate('Device-addition')
         server.manage_addRRDTemplate('Device-replacement')
         linux.manage_addRRDTemplate('Device')
+        # the next two should be ignored because the base template does not exist
+        linux.manage_addRRDTemplate('nothere-additional')
+        linux.manage_addRRDTemplate('nothere-replacement')
 
         devdev = devices.createInstance('devdev')
         devdev.setZenProperty('zDeviceTemplates', ['Device'])
@@ -92,7 +95,7 @@ class TestRRDTemplates(ZenModelBaseTest):
         sertemps = map(getid, serdev.getRRDTemplates())
         lintemps = map(getid, lindev.getRRDTemplates())
 
-        devtmpls = ['/Devices/Device', '/Devices/Device-addition']
+        devtmpls = ['/Devices/Device']
         sertmpls = ['/Devices/Server/Device-replacement', '/Devices/Device-addition']
         lintmpls = ['/Devices/Server/Linux/Device', '/Devices/Device-addition']
 

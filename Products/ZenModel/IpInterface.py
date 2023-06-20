@@ -576,8 +576,10 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
         for name in order:
             templates = []
             template = self.getRRDTemplateByName(name)
+            if not template:
+                continue
             replacement = self.getRRDTemplateByName(
-                '{}-replacement'.format(templateName))
+                '{}-replacement'.format(name))
 
             if replacement and replacement not in templates:
                 templates.append(replacement)
@@ -585,7 +587,7 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
                 templates.append(template)
 
             addition = self.getRRDTemplateByName(
-                '{}-addition'.format(templateName))
+                '{}-addition'.format(name))
 
             if addition and addition not in templates:
                 templates.append(addition)
