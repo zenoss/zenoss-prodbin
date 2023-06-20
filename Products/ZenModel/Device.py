@@ -407,14 +407,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 continue
 
             template = self.getRRDTemplateByName(templateName)
+            if not template:
+                continue
             replacement = self.getRRDTemplateByName(
                 '{}-replacement'.format(templateName))
 
             if replacement and replacement not in templates:
                 templates.append(replacement)
-                #self.setZenProperty(
-                #    'zDeviceTemplates',
-                #    self.zDeviceTemplates + [replacement.titleOrId()])
             else:
                 templates.append(template)
 
@@ -423,12 +422,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
             if addition and addition not in templates:
                 templates.append(addition)
-                #self.setZenProperty(
-                #    'zDeviceTemplates',
-                #    self.zDeviceTemplates + [addition.titleOrId()])
 
-            if template:
-                templates.append(template)
         return templates
 
     def getDataSourceOptions(self):

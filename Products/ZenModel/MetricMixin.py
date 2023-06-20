@@ -141,11 +141,13 @@ class MetricMixin(object):
     def getRRDTemplates(self):
         templates = []
         defaultName = self.getRRDTemplateName()
+        default = self.getRRDTemplateByName(defaultName)
+        if not default:
+            return []
         replacement = self.getRRDTemplateByName('{}-replacement'.format(defaultName))
         if replacement:
             templates.append(replacement)
         else:
-            default = self.getRRDTemplateByName(defaultName)
             if default:
                 templates.append(default)
         addition = self.getRRDTemplateByName('{}-addition'.format(defaultName))
