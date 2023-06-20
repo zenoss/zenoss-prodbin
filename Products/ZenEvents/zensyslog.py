@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2008, 2011, 2023, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2008, 2011, 2023 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -172,7 +172,6 @@ class SyslogTask(BaseTask, DatagramProtocol):
                                     self.options.syslogport))
         self._daemon.changeUser()
         self.minpriority = self.options.minpriority
-        self.processor = None
 
         if self.options.logorig:
             self.olog = logging.getLogger('origsyslog')
@@ -190,9 +189,6 @@ class SyslogTask(BaseTask, DatagramProtocol):
                               interface=self.options.listenip)
 
         #   yield self.model().callRemote('getDefaultPriority')
-        self.processor = SyslogProcessor(self._eventService.sendEvent,
-                    self.options.minpriority, self.options.parsehost,
-                    self.options.monitor, self._daemon.defaultPriority)
 
     def doTask(self):
         """
@@ -303,11 +299,15 @@ class SyslogTask(BaseTask, DatagramProtocol):
             host = ipaddr
         else:
             host = response
-        if self.processor:
-            self.processor.process(msg, ipaddr, host, rtime)
-            totalTime, totalEvents, maxTime = self.stats.report()
-            stat = self._statService.getStatistic("events")
-            stat.value = totalEvents
+
+        if self._daemon.processor:
+            processResult = self._daemon.processor.process(msg, ipaddr, host, rtime)
+            if processResult == "EventSent":
+                totalTime, totalEvents, maxTime = self.stats.report()
+                stat = self._statService.getStatistic("events")
+                stat.value = totalEvents
+            elif processResult == "ParserDropped":
+                self._daemon.counters["eventParserDroppedCount"] += 1
 
     def displayStatistics(self):
         totalTime, totalEvents, maxTime = self.stats.report()
@@ -344,7 +344,12 @@ class SyslogConfigTask(ObservableMixin):
         self._preferences = taskConfig
         self._daemon = zope.component.getUtility(ICollector)
 
-        self._daemon.defaultPriority = self._preferences.defaultPriority
+        eventService = zope.component.queryUtility(IEventService)
+
+        self._daemon.processor = SyslogProcessor(eventService.sendEvent,
+                    self._daemon.options.minpriority, self._daemon.options.parsehost,
+                    self._daemon.options.monitor, self._preferences.defaultPriority,
+                    self._preferences.syslogParsers, self._preferences.syslogSummaryToMessage)
 
     def doTask(self):
         return defer.succeed("Already updated default syslog priority...")

@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009, 2023 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -55,6 +55,7 @@ ZEN_MANAGER_EDIT_PERM = (
     'event_archive_interval_minutes',
     'event_age_severity_inclusive',
     'default_syslog_priority',
+    'syslog_parsers',
     'default_syslog_message_filtering_rules',
     'default_availability_days',
     'event_time_purge_interval_days',
@@ -1035,6 +1036,16 @@ class EventsRouter(DirectRouter):
                 'allowNegative': False,
                 'value': self.context.dmd.ZenEventManager.defaultPriority
                 },{
+                'id': 'syslog_parsers',
+                'name': _t('Syslog Parsers'),
+                'xtype': 'textarea',
+                'value': dumps(self.context.dmd.ZenEventManager.syslogParsers, indent=2)
+                },{
+                'id': 'syslog_summary_to_message',
+                'name': _t('Mirror Syslog Event\'s Summary value to Message field'),
+                'xtype': 'checkbox',
+                'value': self.context.dmd.ZenEventManager.syslogSummaryToMessage
+                },{
                 'id': 'default_syslog_message_filtering_rules',
                 'name': _t('Syslog Message Filtering Rules'),
                 'xtype': 'textarea',
@@ -1137,6 +1148,13 @@ class EventsRouter(DirectRouter):
         if defaultSyslogPriority is not None:
             self.context.dmd.ZenEventManager.defaultPriority = int(defaultSyslogPriority)
 
+        syslogParsers = values.pop('syslog_parsers', None)
+        if syslogParsers is not None:
+            self.context.dmd.ZenEventManager.syslogParsers = loads(syslogParsers)
+
+        syslogSummaryToMessage = values.pop('syslog_summary_to_message', None)
+        if syslogParsers is not None:
+            self.context.dmd.ZenEventManager.syslogSummaryToMessage = syslogSummaryToMessage
         syslogMsgEvtFieldFilterRules = values.pop('default_syslog_message_filtering_rules', None)
         if syslogMsgEvtFieldFilterRules is not None:
             self.context.dmd.ZenEventManager.syslogMsgEvtFieldFilterRules = loads(syslogMsgEvtFieldFilterRules)
