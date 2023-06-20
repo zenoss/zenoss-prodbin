@@ -68,6 +68,41 @@ class TestRRDTemplates(ZenModelBaseTest):
         self.assert_('test2' not in lintemps)
         self.assert_('test3' in lintemps)
 
+    def testDeviceTemplateSelection(self):
+        # test correct selection of templates for a device
+
+        devices = self.dmd.Devices
+        server = self.dmd.Devices.createOrganizer('/Server')
+        linux = self.dmd.Devices.createOrganizer('/Server/Linux')
+
+        devices.manage_addRRDTemplate('Device')
+        server.manage_addRRDTemplate('Device-addition')
+        server.manage_addRRDTemplate('Device-replacement')
+        linux.manage_addRRDTemplate('Device')
+        # the next two should be ignored because the base template does not exist
+        linux.manage_addRRDTemplate('nothere-additional')
+        linux.manage_addRRDTemplate('nothere-replacement')
+
+        devdev = devices.createInstance('devdev')
+        devdev.setZenProperty('zDeviceTemplates', ['Device'])
+        serdev = devices.createInstance('serdev')
+        serdev.setZenProperty('zDeviceTemplates', ['Device'])
+        lindev = devices.createInstance('lindev')
+        lindev.setZenProperty('zDeviceTemplates', ['Device'])
+
+        getid = lambda x:'/'.join((x.getRRDPath(), x.id))
+        devtemps = map(getid, devdev.getRRDTemplates())
+        sertemps = map(getid, serdev.getRRDTemplates())
+        lintemps = map(getid, lindev.getRRDTemplates())
+
+        devtmpls = ['/Devices/Device']
+        sertmpls = ['/Devices/Server/Device-replacement', '/Devices/Device-addition']
+        lintmpls = ['/Devices/Server/Linux/Device', '/Devices/Device-addition']
+
+        self.assertEqual(devtmpls, devtemps)
+        self.assertEqual(devtmpls, sertemps)
+        self.assertEqual(devtmpls, lintemps)
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
