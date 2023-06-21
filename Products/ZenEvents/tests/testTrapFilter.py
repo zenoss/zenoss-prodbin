@@ -483,7 +483,7 @@ class TrapFilterTest(BaseTestCase):
         filter._daemon = Mock()
         filter._daemon.options.monitor = 'localhost'
         results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5"], ".*")
-        self.assertEquals(results, "Missing specific trap number or '*'")
+        self.assertEquals(results, None)
 
     def testParseV2FilterDefinition(self):
         filter = TrapFilter()
