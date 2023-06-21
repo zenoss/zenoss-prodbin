@@ -79,7 +79,8 @@ class CollectorPlugin(object):
         return True
 
     def preprocess(self, results, log):
-        """Perform any plugin house keeping before calling user func process.
+        """
+        Perform any plugin house keeping before calling user func process.
         """
         return results
 

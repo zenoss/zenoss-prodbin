@@ -12,6 +12,7 @@ from Products.ZenMessaging.queuemessaging.adapters import _safestr
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
+
 class TestAdapters(BaseTestCase):
     def test_safestr(self):
         tested_string = "text with 今導降 unicode"

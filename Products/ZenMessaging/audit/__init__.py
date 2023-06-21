@@ -1,12 +1,11 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2011, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
 
 """
 Announces messages so they can be tracked or handled.
@@ -64,4 +63,4 @@ def audit(*args, **kwargs):
 
 def auditComment(comment, **kwargs):
     """Convenience method for scripts and zendmd. Don't call from the UI."""
-    audit('Shell.Comment.Log', comment, **kwargs)
+    audit("Shell.Comment.Log", comment, **kwargs)

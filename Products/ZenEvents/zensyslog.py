@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2008, 2011, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2008, 2011, 2023 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -43,6 +43,9 @@ from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.IpUtil import asyncNameLookup
 
 from Products.ZenEvents.EventServer import Stats
+from Products.ZenEvents.SyslogMsgFilter import SyslogMsgFilter
+from Products.ZenEvents.ZenEventClasses import Clear, Info, Critical
+from Products.ZenHub.interfaces import ICollectorEventTransformer
 from Products.ZenUtils.Utils import unused
 from Products.ZenCollector.services.config import DeviceProxy
 unused(DeviceProxy)
@@ -169,7 +172,6 @@ class SyslogTask(BaseTask, DatagramProtocol):
                                     self.options.syslogport))
         self._daemon.changeUser()
         self.minpriority = self.options.minpriority
-        self.processor = None
 
         if self.options.logorig:
             self.olog = logging.getLogger('origsyslog')
@@ -187,9 +189,6 @@ class SyslogTask(BaseTask, DatagramProtocol):
                               interface=self.options.listenip)
 
         #   yield self.model().callRemote('getDefaultPriority')
-        self.processor = SyslogProcessor(self._eventService.sendEvent,
-                    self.options.minpriority, self.options.parsehost,
-                    self.options.monitor, self._daemon.defaultPriority)
 
     def doTask(self):
         """
@@ -300,11 +299,15 @@ class SyslogTask(BaseTask, DatagramProtocol):
             host = ipaddr
         else:
             host = response
-        if self.processor:
-            self.processor.process(msg, ipaddr, host, rtime)
-            totalTime, totalEvents, maxTime = self.stats.report()
-            stat = self._statService.getStatistic("events")
-            stat.value = totalEvents
+
+        if self._daemon.processor:
+            processResult = self._daemon.processor.process(msg, ipaddr, host, rtime)
+            if processResult == "EventSent":
+                totalTime, totalEvents, maxTime = self.stats.report()
+                stat = self._statService.getStatistic("events")
+                stat.value = totalEvents
+            elif processResult == "ParserDropped":
+                self._daemon.counters["eventParserDroppedCount"] += 1
 
     def displayStatistics(self):
         totalTime, totalEvents, maxTime = self.stats.report()
@@ -341,7 +344,12 @@ class SyslogConfigTask(ObservableMixin):
         self._preferences = taskConfig
         self._daemon = zope.component.getUtility(ICollector)
 
-        self._daemon.defaultPriority = self._preferences.defaultPriority
+        eventService = zope.component.queryUtility(IEventService)
+
+        self._daemon.processor = SyslogProcessor(eventService.sendEvent,
+                    self._daemon.options.minpriority, self._daemon.options.parsehost,
+                    self._daemon.options.monitor, self._preferences.defaultPriority,
+                    self._preferences.syslogParsers, self._preferences.syslogSummaryToMessage)
 
     def doTask(self):
         return defer.succeed("Already updated default syslog priority...")
@@ -353,6 +361,67 @@ class SyslogConfigTask(ObservableMixin):
 class SyslogDaemon(CollectorDaemon):
 
     _frameworkFactoryName = "nosip"
+
+    def __init__(self, *args, **kwargs):
+        self._syslogMsgFilter = SyslogMsgFilter()
+        zope.component.provideUtility(self._syslogMsgFilter, ICollectorEventTransformer)
+        kwargs["initializationCallback"] = self._initializeSyslogMsgFilter
+        super(SyslogDaemon, self).__init__(*args, **kwargs)
+
+    def _initializeSyslogMsgFilter(self):
+        try:
+            self._syslogMsgFilter.initialize()
+            initializationSucceededEvent = {
+                'component': 'zensyslog',
+                'device': self.options.monitor,
+                'eventClass': "/Status",
+                'eventKey': "SyslogMessageFilterInit",
+                'summary': 'initialized',
+                'severity': Clear,
+            }
+            self.sendEvent(initializationSucceededEvent)
+        except Exception as e:
+            initializationFailedEvent = {
+                'component': 'zensyslog',
+                'device': self.options.monitor,
+                'eventClass': "/Status",
+                'eventKey': "SyslogMessageFilterInit",
+                'summary': 'initialization failed',
+                'message': e.message,
+                'severity': Critical,
+            }
+            log.error("Failed to initialize syslog message filter: %s", e.message)
+            self.sendEvent(initializationFailedEvent)
+            self.setExitCode(1)
+            self.stop()
+
+    def _updateConfig(self, cfg):
+        result = super(SyslogDaemon, self)._updateConfig(cfg)
+        if result:
+            self._syslogMsgFilter.updateRuleSet(cfg.syslogMsgEvtFieldFilterRules)
+        return result
+
+    def _displayStatistics(self, verbose=False):
+        super(SyslogDaemon, self)._displayStatistics(verbose)
+        sendEventsOnCounters = ['eventFilterDroppedCount']
+        if not hasattr(self, 'lastCounterEventTime'):
+            self.lastCounterEventTime = time.time()
+        # Send an update event every hour
+        if self.lastCounterEventTime < (time.time() - 3600):
+            for counterName in sendEventsOnCounters:
+                counterEvent = {
+                    'component': 'zensyslog',
+                    'device': self.options.monitor,
+                    'eventClass': "/App/Zenoss",
+                    'eventKey': "zensyslog.{}".format(counterName),
+                    'summary': '{}: {}'.format(
+                        counterName,
+                        self.counters[counterName]),
+                    'severity': Info,
+                }
+                self.sendEvent(counterEvent)
+            self.lastCounterEventTime = time.time()
+
 
 
 if __name__=='__main__':

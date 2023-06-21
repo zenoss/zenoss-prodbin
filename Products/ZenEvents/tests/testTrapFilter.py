@@ -9,6 +9,10 @@
 
 #runtests -v -t unit Products.ZenEvents -m testZentrap
 
+from mock import Mock
+
+from Products.ZenEvents.EventManagerBase import EventManagerBase
+
 from Products.ZenEvents.TrapFilter import BaseFilterDefinition
 from Products.ZenEvents.TrapFilter import OIDBasedFilterDefinition
 from Products.ZenEvents.TrapFilter import GenericTrapFilterDefinition
@@ -97,6 +101,9 @@ class GenericTrapFilterDefinitionTest(BaseTestCase):
 class TrapFilterTest(BaseTestCase):
     def testValidateOIDForGlob(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._validateOID("*")
         self.assertEquals(results, None)
 
@@ -105,26 +112,41 @@ class TrapFilterTest(BaseTestCase):
 
     def testValidateOIDFailsForEmptyString(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._validateOID("")
         self.assertEquals(results, "Empty OID is invalid")
 
     def testValidateOIDFailsForSimpleNumber(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._validateOID("123")
         self.assertEquals(results, "At least one '.' required")
 
     def testValidateOIDFailsForInvalidChars(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._validateOID("1.2.3-5.*")
         self.assertEquals(results, "Invalid character found; only digits, '.' and '*' allowed")
 
     def testValidateOIDFailsForDoubleDots(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._validateOID("1.2..3")
         self.assertEquals(results, "Consecutive '.'s not allowed")
 
     def testValidateOIDFailsForInvalidGlobbing(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._validateOID("1.2.3.*.5.*")
         self.assertEquals(results, "When using '*', only a single '*' at the end of OID is allowed")
 
@@ -154,47 +176,83 @@ class TrapFilterTest(BaseTestCase):
 
     def testParseFilterDefinitionForEmptyLine(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._parseFilterDefinition("", 99)
+        self.assertEquals(filter._eventService.sendEvent.called, False)
         self.assertEquals(results, "Incomplete filter definition")
 
     def testParseFilterDefinitionForIncompleteLine(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._parseFilterDefinition("a b", 99)
+        self.assertEquals(filter._eventService.sendEvent.called, False)
         self.assertEquals(results, "Incomplete filter definition")
 
     def testParseFilterDefinitionForInvalidAction(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._parseFilterDefinition("invalid V1 ignored", 99)
+        self.assertEquals(filter._eventService.sendEvent.called, False)
         self.assertEquals(results, "Invalid action 'invalid'; the only valid actions are 'include' or 'exclude'")
 
     def testParseFilterDefinitionForInvalidVersion(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._parseFilterDefinition("include V4 ignored", 99)
+        self.assertEquals(filter._eventService.sendEvent.called, False)
         self.assertEquals(results, "Invalid SNMP version 'V4'; the only valid versions are 'v1' or 'v2' or 'v3'")
 
     def testParseFilterDefinitionForInvalidV1Definition(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._parseFilterDefinition("include V1 .", 99)
+        self.assertEquals(filter._eventService.sendEvent.called, False)
         self.assertEquals(results, "'' is not a valid OID: Empty OID is invalid")
 
     def testParseFilterDefinitionForCaseInsensitiveDefinition(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._parseFilterDefinition("InClude v1 3", 99)
+        self.assertEquals(filter._eventService.sendEvent.called, False)
         self.assertEquals(results, None)
 
     def testParseFilterDefinitionForValidV1Definition(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._parseFilterDefinition("include V1 3", 99)
+        self.assertEquals(filter._eventService.sendEvent.called, False)
         self.assertEquals(results, None)
 
     def testParseFilterDefinitionForInvalidV2Definition(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._parseFilterDefinition("include V2 .", 99)
+        self.assertEquals(filter._eventService.sendEvent.called, False)
         self.assertEquals(results, "'' is not a valid OID: Empty OID is invalid")
 
     def testParseFilterDefinitionForValidV2Definition(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         results = filter._parseFilterDefinition("include V2 .1.3.6.1.4.*", 99)
+        self.assertEquals(filter._eventService.sendEvent.called, False)
         self.assertEquals(results, None)
 
     def testParseFilterDefinitionForInvalidV3Definition(self):
@@ -209,7 +267,10 @@ class TrapFilterTest(BaseTestCase):
 
     def testParseV1FilterDefinitionForGenericTrap(self):
         filter = TrapFilter()
-        results = filter._parseV1FilterDefinition(99, "include", ["0"])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV1FilterDefinition(99, "include", ["0"], ".*")
         self.assertEquals(results, None)
         self.assertEquals(len(filter._v1Traps), 1)
         self.assertEquals(len(filter._v1Filters), 0)
@@ -222,7 +283,7 @@ class TrapFilterTest(BaseTestCase):
         self.assertEquals(genericTrapDefinition.genericTrap, "0")
 
         # Now add another to make sure we can parse more than one
-        results = filter._parseV1FilterDefinition(100, "exclude", ["5"])
+        results = filter._parseV1FilterDefinition(100, "exclude", ["5"], ".*")
         self.assertEquals(results, None)
         self.assertEquals(len(filter._v1Traps), 2)
         self.assertEquals(len(filter._v1Filters), 0)
@@ -236,7 +297,10 @@ class TrapFilterTest(BaseTestCase):
 
     def testParseV1FilterDefinitionEnterpriseSpecificTrap(self):
         filter = TrapFilter()
-        results = filter._parseV1FilterDefinition(99, "include", ["1.2.3.*"])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV1FilterDefinition(99, "include", ["1.2.3.*"], ".*")
         self.assertEquals(results, None)
         self.assertEquals(len(filter._v1Traps), 0)
         self.assertEquals(len(filter._v1Filters), 1)
@@ -255,7 +319,7 @@ class TrapFilterTest(BaseTestCase):
         self.assertEquals(filterDef.specificTrap, None)
 
         # Add another 4-level OID
-        results = filter._parseV1FilterDefinition(100, "exclude", ["1.2.3.4", "25"])
+        results = filter._parseV1FilterDefinition(100, "exclude", ["1.2.3.4", "25"], ".*")
         self.assertEquals(results, None)
         self.assertEquals(len(filter._v1Traps), 0)
         self.assertEquals(len(filter._v1Filters), 1)
@@ -273,7 +337,7 @@ class TrapFilterTest(BaseTestCase):
         self.assertEquals(filterDef.specificTrap, "25")
 
         # Add a different specific trap for the same OID
-        results = filter._parseV1FilterDefinition(101, "exclude", ["1.2.3.4", "99"])
+        results = filter._parseV1FilterDefinition(101, "exclude", ["1.2.3.4", "99"], ".*")
         self.assertEquals(results, None)
         self.assertEquals(len(filter._v1Traps), 0)
         self.assertEquals(len(filter._v1Filters), 1)
@@ -291,7 +355,7 @@ class TrapFilterTest(BaseTestCase):
         self.assertEquals(filterDef.specificTrap, "99")
 
         # Add another single-level OID
-        results = filter._parseV1FilterDefinition(101, "exclude", ["*"])
+        results = filter._parseV1FilterDefinition(101, "exclude", ["*"], ".*")
         self.assertEquals(results, None)
         self.assertEquals(len(filter._v1Traps), 0)
         self.assertEquals(len(filter._v1Filters), 2)
@@ -311,92 +375,122 @@ class TrapFilterTest(BaseTestCase):
 
     def testParseV1FilterDefinitionFailsForTooManyArgs(self):
         filter = TrapFilter()
-        results = filter._parseV1FilterDefinition(99, "include", ["0", "1", "2"])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV1FilterDefinition(99, "include", ["0", "1", "2"], ".*")
         self.assertEquals(results, "Too many fields found; at most 4 fields allowed for V1 filters")
 
     def testParseV1FilterDefinitionFailsForEmptyOID(self):
         filter = TrapFilter()
-        results = filter._parseV1FilterDefinition(99, "include", [])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV1FilterDefinition(99, "include", [], ".*")
         self.assertEquals(results, "'' is not a valid OID: Empty OID is invalid")
 
-        results = filter._parseV1FilterDefinition(99, "include", [""])
+        results = filter._parseV1FilterDefinition(99, "include", [""], ".*")
         self.assertEquals(results, "'' is not a valid OID: Empty OID is invalid")
 
-        results = filter._parseV1FilterDefinition(99, "include", ["."])
+        results = filter._parseV1FilterDefinition(99, "include", ["."], ".*")
         self.assertEquals(results, "'' is not a valid OID: Empty OID is invalid")
 
-        results = filter._parseV1FilterDefinition(99, "include", ["..."])
+        results = filter._parseV1FilterDefinition(99, "include", ["..."], ".*")
         self.assertEquals(results, "'' is not a valid OID: Empty OID is invalid")
 
     def testParseV1FilterDefinitionFailsForInvalidOID(self):
         filter = TrapFilter()
-        results = filter._parseV1FilterDefinition(99, "include", ["invalidOID"])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV1FilterDefinition(99, "include", ["invalidOID"], ".*")
         self.assertEquals(results, "'invalidOID' is not a valid OID: Invalid character found; only digits, '.' and '*' allowed")
 
     def testParseV1FilterDefinitionFailsForInvalidTrap(self):
         filter = TrapFilter()
-        results = filter._parseV1FilterDefinition(99, "include", ["a"])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV1FilterDefinition(99, "include", ["a"], ".*")
         self.assertEquals(results, "Invalid generic trap 'a'; must be one of 0-5")
 
-        results = filter._parseV1FilterDefinition(99, "include", ["6"])
+        results = filter._parseV1FilterDefinition(99, "include", ["6"], ".*")
         self.assertEquals(results, "Invalid generic trap '6'; must be one of 0-5")
 
     def testParseV1FilterDefinitionFailsForConflictingTrap(self):
         filter = TrapFilter()
-        results = filter._parseV1FilterDefinition(99, "include", ["1"])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV1FilterDefinition(99, "include", ["1"], ".*")
         self.assertEquals(results, None)
 
-        results = filter._parseV1FilterDefinition(100, "include", ["1"])
+        results = filter._parseV1FilterDefinition(100, "include", ["1"], ".*")
         self.assertEquals(results, "Generic trap '1' conflicts with previous definition at line 99")
 
         # Verify we find a conflict for generic traps where the action differs
-        results = filter._parseV1FilterDefinition(100, "exclude", ["1"])
+        results = filter._parseV1FilterDefinition(100, "exclude", ["1"], ".*")
         self.assertEquals(results, "Generic trap '1' conflicts with previous definition at line 99")
 
     def testParseV1FilterDefinitionFailsForConflictingOID(self):
         filter = TrapFilter()
-        results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5", "2"])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5", "2"], ".*")
         self.assertEquals(results, None)
 
-        results = filter._parseV1FilterDefinition(100, "include", [".1.3.6.1.4.5", "2"])
+        results = filter._parseV1FilterDefinition(100, "include", [".1.3.6.1.4.5", "2"], ".*")
         self.assertEquals(results, "OID '1.3.6.1.4.5' conflicts with previous definition at line 99")
 
         # Verify we find a conflict for OIDs where the action differs
-        results = filter._parseV1FilterDefinition(100, "exclude", [".1.3.6.1.4.5", "2"])
+        results = filter._parseV1FilterDefinition(100, "exclude", [".1.3.6.1.4.5", "2"], ".*")
         self.assertEquals(results, "OID '1.3.6.1.4.5' conflicts with previous definition at line 99")
 
-        results = filter._parseV1FilterDefinition(101, "include", [".1.3.6.1.4.*"])
+        results = filter._parseV1FilterDefinition(101, "include", [".1.3.6.1.4.*"], ".*")
         self.assertEquals(results, None)
 
         # Verify we find a conflict for glob-based OIDs
-        results = filter._parseV1FilterDefinition(102, "include", [".1.3.6.1.4.*"])
+        results = filter._parseV1FilterDefinition(102, "include", [".1.3.6.1.4.*"], ".*")
         self.assertEquals(results, "OID '1.3.6.1.4.*' conflicts with previous definition at line 101")
 
         # Verify we find a conflict for glob-based OIDs where the action differs
-        results = filter._parseV1FilterDefinition(102, "exclude", [".1.3.6.1.4.*"])
+        results = filter._parseV1FilterDefinition(102, "exclude", [".1.3.6.1.4.*"], ".*")
         self.assertEquals(results, "OID '1.3.6.1.4.*' conflicts with previous definition at line 101")
 
     def testParseV1FilterDefinitionFailsForEnterpriseSpecificGlob(self):
         filter = TrapFilter()
-        results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5.*", "23"])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5.*", "23"], ".*")
         self.assertEquals(results, "Specific trap not allowed with globbed OID")
 
     def testParseV1FilterDefinitionFailsForInvalidEnterpriseSpecificTrap(self):
         filter = TrapFilter()
-        results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5", "abc"])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5", "abc"], ".*")
         self.assertEquals(results, "Specific trap 'abc' invalid; must be non-negative integer")
 
-        results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5", "-1"])
+        results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5", "-1"], ".*")
         self.assertEquals(results, "Specific trap '-1' invalid; must be non-negative integer")
 
     def testParseV1FilterDefinitionForSpecificOid(self):
         filter = TrapFilter()
-        results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5"])
-        self.assertEquals(results, None)
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV1FilterDefinition(99, "include", [".1.3.6.1.4.5"], ".*")
+        self.assertEquals(results, "Missing specific trap number or '*'")
 
     def testParseV2FilterDefinition(self):
         filter = TrapFilter()
-        results = filter._parseV2FilterDefinition(99, "include", ["1.2.3.*"])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV2FilterDefinition(99, "include", ["1.2.3.*"], ".*")
         self.assertEquals(results, None)
         self.assertEquals(len(filter._v1Traps), 0)
         self.assertEquals(len(filter._v1Filters), 0)
@@ -414,7 +508,7 @@ class TrapFilterTest(BaseTestCase):
         self.assertEquals(filterDef.oid, "1.2.3.*")
 
         # Add another 4-level OID
-        results = filter._parseV2FilterDefinition(100, "exclude", ["1.2.3.4"])
+        results = filter._parseV2FilterDefinition(100, "exclude", ["1.2.3.4"], ".*")
         self.assertEquals(results, None)
         self.assertEquals(len(filter._v1Traps), 0)
         self.assertEquals(len(filter._v1Filters), 0)
@@ -431,7 +525,7 @@ class TrapFilterTest(BaseTestCase):
         self.assertEquals(filterDef.oid, "1.2.3.4")
 
         # Add another single-level OID
-        results = filter._parseV2FilterDefinition(101, "exclude", ["*"])
+        results = filter._parseV2FilterDefinition(101, "exclude", ["*"], ".*")
         self.assertEquals(results, None)
         self.assertEquals(len(filter._v1Traps), 0)
         self.assertEquals(len(filter._v1Filters), 0)
@@ -450,55 +544,70 @@ class TrapFilterTest(BaseTestCase):
 
     def testParseV2FilterDefinitionFailsForTooManyArgs(self):
         filter = TrapFilter()
-        results = filter._parseV2FilterDefinition(99, "include", ["0", "1"])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV2FilterDefinition(99, "include", ["0", "1"], ".*")
         self.assertEquals(results, "Too many fields found; at most 3 fields allowed for V2 filters")
 
     def testParseV2FilterDefinitionFailsForEmptyOID(self):
         filter = TrapFilter()
-        results = filter._parseV2FilterDefinition(99, "include", [])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV2FilterDefinition(99, "include", [], ".*")
         self.assertEquals(results, "'' is not a valid OID: Empty OID is invalid")
 
-        results = filter._parseV2FilterDefinition(99, "include", [""])
+        results = filter._parseV2FilterDefinition(99, "include", [""], ".*")
         self.assertEquals(results, "'' is not a valid OID: Empty OID is invalid")
 
-        results = filter._parseV2FilterDefinition(99, "include", ["."])
+        results = filter._parseV2FilterDefinition(99, "include", ["."], ".*")
         self.assertEquals(results, "'' is not a valid OID: Empty OID is invalid")
 
-        results = filter._parseV2FilterDefinition(99, "include", ["..."])
+        results = filter._parseV2FilterDefinition(99, "include", ["..."], ".*")
         self.assertEquals(results, "'' is not a valid OID: Empty OID is invalid")
 
     def testParseV2FilterDefinitionFailsForInvalidOID(self):
         filter = TrapFilter()
-        results = filter._parseV2FilterDefinition(99, "include", ["invalidOID"])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV2FilterDefinition(99, "include", ["invalidOID"], ".*")
         self.assertEquals(results, "'invalidOID' is not a valid OID: Invalid character found; only digits, '.' and '*' allowed")
 
     def testParseV2FilterDefinitionFailsForConflictingOID(self):
         filter = TrapFilter()
-        results = filter._parseV2FilterDefinition(99, "include", [".1.3.6.1.4.5"])
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        results = filter._parseV2FilterDefinition(99, "include", [".1.3.6.1.4.5"], ".*")
         self.assertEquals(results, None)
 
-        results = filter._parseV2FilterDefinition(100, "include", [".1.3.6.1.4.5"])
+        results = filter._parseV2FilterDefinition(100, "include", [".1.3.6.1.4.5"], ".*")
         self.assertEquals(results, "OID '1.3.6.1.4.5' conflicts with previous definition at line 99")
 
         # Verify we find a conflict for OIDs where the action differs
-        results = filter._parseV2FilterDefinition(100, "exclude", [".1.3.6.1.4.5"])
+        results = filter._parseV2FilterDefinition(100, "exclude", [".1.3.6.1.4.5"], ".*")
         self.assertEquals(results, "OID '1.3.6.1.4.5' conflicts with previous definition at line 99")
 
-        results = filter._parseV2FilterDefinition(101, "include", [".1.3.6.1.4.*"])
+        results = filter._parseV2FilterDefinition(101, "include", [".1.3.6.1.4.*"], ".*")
         self.assertEquals(results, None)
 
         # Verify we find a conflict for glob-based OIDs
-        results = filter._parseV2FilterDefinition(102, "include", [".1.3.6.1.4.*"])
+        results = filter._parseV2FilterDefinition(102, "include", [".1.3.6.1.4.*"], ".*")
         self.assertEquals(results, "OID '1.3.6.1.4.*' conflicts with previous definition at line 101")
 
         # Verify we find a conflict for glob-based OIDs where the action differs
-        results = filter._parseV2FilterDefinition(102, "exclude", [".1.3.6.1.4.*"])
+        results = filter._parseV2FilterDefinition(102, "exclude", [".1.3.6.1.4.*"], ".*")
         self.assertEquals(results, "OID '1.3.6.1.4.*' conflicts with previous definition at line 101")
 
     def testDropV1EventForGenericTrapInclusion(self):
         genericTrap = 0
         filterDef = GenericTrapFilterDefinition(99, "include", genericTrap)
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Traps[genericTrap] = filterDef
 
         event = {"snmpVersion": "1", "snmpV1GenericTrapType": genericTrap}
@@ -508,6 +617,9 @@ class TrapFilterTest(BaseTestCase):
         genericTrap = 1
         filterDef = GenericTrapFilterDefinition(99, "exclude", genericTrap)
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Traps[genericTrap] = filterDef
 
         event = {"snmpVersion": "1", "snmpV1GenericTrapType": genericTrap}
@@ -517,6 +629,9 @@ class TrapFilterTest(BaseTestCase):
         genericTrap = 1
         filterDef = GenericTrapFilterDefinition(99, "exclude", genericTrap)
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Traps[genericTrap] = filterDef
 
         event = {"snmpVersion": "1", "snmpV1GenericTrapType": 2}
@@ -526,6 +641,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V1FilterDefinition(99, "exclude", "1.2.3.*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Filters[4] = filtersByLevel
 
         event = {
@@ -543,6 +661,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V1FilterDefinition(99, "include", "1.2.3.*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Filters[4] = filtersByLevel
 
         filterDef = V1FilterDefinition(99, "include", "1.2.3.4.5.*")
@@ -587,6 +708,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V1FilterDefinition(99, "include", "*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Filters[1] = filtersByLevel
 
         event = {
@@ -606,6 +730,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V1FilterDefinition(99, "exclude", "*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Filters[1] = filtersByLevel
 
         event = {
@@ -622,6 +749,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V1FilterDefinition(99, "exclude", "*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Filters[1] = filtersByLevel
 
         filterDef = V1FilterDefinition(99, "include", "1.2.3.*")
@@ -666,6 +796,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V1FilterDefinition(99, "include", "*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Filters[1] = filtersByLevel
 
         filterDef = V1FilterDefinition(99, "exclude", "1.2.3.*")
@@ -706,6 +839,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V1FilterDefinition(99, "include", "*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Filters[1] = filtersByLevel
 
         event = {
@@ -719,6 +855,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V1FilterDefinition(99, "include", "*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Filters[1] = filtersByLevel
 
         event = {
@@ -731,6 +870,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V1FilterDefinition(99, "include", "*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Filters[1] = filtersByLevel
 
         event = {
@@ -744,6 +886,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef.specificTrap = "*"
         filtersByLevel = {"1.2.3-*": filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Filters[3] = filtersByLevel
 
         filterDef = V1FilterDefinition(99, "exclude", "1.2.3")
@@ -772,6 +917,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef.specificTrap = "59"
         filtersByLevel = {"1.2.3-59": filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Filters[3] = filtersByLevel
 
         filterDef = V1FilterDefinition(99, "include", "1.2.3")
@@ -802,6 +950,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V2FilterDefinition(99, "exclude", "1.2.3.4")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v2Filters[4] = filtersByLevel
 
         event = {"snmpVersion": "2", "oid": "1.2.3.4"}
@@ -814,6 +965,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V2FilterDefinition(99, "exclude", "1.2.3.*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v2Filters[4] = filtersByLevel
 
         event = {"snmpVersion": "2", "oid": "1.2.3.4"}
@@ -827,6 +981,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V2FilterDefinition(99, "include", "1.2.3")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v2Filters[3] = filtersByLevel
 
         filterDef = V2FilterDefinition(99, "include", "1.2.3.4")
@@ -856,6 +1013,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V2FilterDefinition(99, "include", "1.2.3.*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v2Filters[4] = filtersByLevel
 
         filterDef = V2FilterDefinition(99, "include", "1.2.3.4.5.*")
@@ -896,6 +1056,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V2FilterDefinition(99, "include", "*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v2Filters[1] = filtersByLevel
 
         event = {"snmpVersion": "2", "oid": "1"}
@@ -911,6 +1074,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V2FilterDefinition(99, "exclude", "*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v2Filters[1] = filtersByLevel
 
         event = {"snmpVersion": "2", "oid": "1"}
@@ -923,6 +1089,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V2FilterDefinition(99, "exclude", "*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v2Filters[1] = filtersByLevel
 
         filterDef = V2FilterDefinition(99, "include", "1.2.3.*")
@@ -958,6 +1127,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V2FilterDefinition(99, "include", "*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v2Filters[1] = filtersByLevel
 
         filterDef = V2FilterDefinition(99, "exclude", "1.2.3.*")
@@ -993,6 +1165,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V1FilterDefinition(99, "include", "*")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Filters[1] = filtersByLevel
 
         filterDef = V2FilterDefinition(99, "include", "*")
@@ -1021,6 +1196,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef.specificTrap = "59"
         filtersByLevel = {"1.2.3-59": filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v1Filters[3] = filtersByLevel
         filter._filtersDefined = True
 
@@ -1037,6 +1215,12 @@ class TrapFilterTest(BaseTestCase):
         filterDef.specificTrap = "59"
         filtersByLevel = {"1.2.3-59": filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        filter._daemon.counters = {
+            'eventCount': 0,
+            'eventFilterDroppedCount': 0}
         filter._v1Filters[3] = filtersByLevel
         filter._filtersDefined = True
 
@@ -1052,6 +1236,9 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V2FilterDefinition(99, "include", "1.2.3")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._v2Filters[3] = filtersByLevel
         filter._filtersDefined = True
 
@@ -1065,6 +1252,12 @@ class TrapFilterTest(BaseTestCase):
         filterDef = V2FilterDefinition(99, "exclude", "1.2.3")
         filtersByLevel = {filterDef.oid: filterDef}
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        filter._daemon.counters = {
+            'eventCount': 0,
+            'eventFilterDroppedCount': 0}
         filter._v2Filters[3] = filtersByLevel
         filter._filtersDefined = True
 
@@ -1076,6 +1269,9 @@ class TrapFilterTest(BaseTestCase):
 
     def testTransformWithoutFilters(self):
         filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
         filter._filtersDefined = False
 
         event = {
@@ -1091,6 +1287,37 @@ class TrapFilterTest(BaseTestCase):
             "oid": "1.2.3",
         }
         self.assertEquals(TRANSFORM_CONTINUE, filter.transform(event))
+
+    def testTrapFilterDefaultParse(self):
+        filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        filter.updateFilter(EventManagerBase.trapFilters)
+        self.assertEquals(filter._eventService.sendEvent.called, False)
+        self.assertEquals(len(filter._v1Traps), 6)
+        self.assertEquals(len(filter._v1Filters), 1)
+        self.assertEquals(len(filter._v2Filters), 1)
+
+    def testTrapFilterParseCollectorMatch(self):
+        filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        filterCfg = "localhost exclude v2 1.3.6.1.2.1.43.18.2.0.1"
+        filter.updateFilter(filterCfg)
+        self.assertEquals(filter._eventService.sendEvent.called, False)
+        self.assertEquals(len(filter._v2Filters), 1)
+
+    def testTrapFilterParseCollectorNotMatch(self):
+        filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        filterCfg = "remoteDMZ exclude v2 1.3.6.1.2.1.43.18.2.0.1"
+        filter.updateFilter(filterCfg)
+        self.assertEquals(filter._eventService.sendEvent.called, False)
+        self.assertEquals(len(filter._v2Filters), 0)
 
 def test_suite():
     from unittest import TestSuite, makeSuite

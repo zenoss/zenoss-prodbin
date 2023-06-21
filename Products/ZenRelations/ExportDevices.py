@@ -1,30 +1,30 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-__doc__= """ExportDevices
+"""ExportDevices
 Export devices from /zport/dmd/Devices inside the Zope database
 """
 
-import sys
-from xml.dom.minidom import parseString
-import StringIO
-import re
 import datetime
+import re
+import StringIO
+import sys
 
+from xml.dom.minidom import parseString
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 # Blank line regular expression
-_newlines = re.compile('\n[\t \r]*\n', re.M)
+_newlines = re.compile(r"\n[\t \r]*\n", re.M)
 
-#TODO: ZEN-2505 May want to remove this class
+
+# TODO: ZEN-2505 May want to remove this class
 class ExportDevices(ZCmdBase):
     """
     Wrapper class around exportXml() to create XML exports of devices.
@@ -41,25 +41,30 @@ class ExportDevices(ZCmdBase):
             self.outfile = sys.stdout
 
         else:
-            self.outfile = open(self.options.outfile, 'w')
-        
-    
+            self.outfile = open(self.options.outfile, "w")
+
     def buildOptions(self):
         """
         Command-line options setup
         """
 
         ZCmdBase.buildOptions(self)
-        self.parser.add_option('-o', '--outfile',
-                    dest="outfile",
-                    help= "Output file for exporting XML objects. Default is stdout" )
+        self.parser.add_option(
+            "-o",
+            "--outfile",
+            dest="outfile",
+            help="Output file for exporting XML objects. " "Default is stdout",
+        )
 
-        self.parser.add_option('--ignore', action="append",
-                    dest="ignorerels", default=[],
-                    help="Relations that should be ignored.  Every relation to" + \
-               " ignore must be specified with a separate --ignorerels option." )
-
-
+        self.parser.add_option(
+            "--ignore",
+            action="append",
+            dest="ignorerels",
+            default=[],
+            help="Relations that should be ignored. Every relation "
+            "to ignore must be specified with a separate "
+            "--ignorerels option.",
+        )
 
     def strip_out_zenoss_internals(self, doc):
         """
@@ -75,14 +80,14 @@ class ExportDevices(ZCmdBase):
         _retain_class = (
             "Products.ZenModel.DeviceClass",
             "Products.ZenModel.Device",
-            )
+        )
 
         _retain_props = (
             "description",
             "productionState",
             "priority",
             "monitors",
-            )
+        )
 
         def denewline(s):
             """
@@ -94,9 +99,9 @@ class ExportDevices(ZCmdBase):
             @rtype: string
             """
             while re.search(_newlines, s):
-                s = re.sub(_newlines, '\n', s)
+                s = re.sub(_newlines, "\n", s)
             return s
-        
+
         def clearObjects(node):
             """
             Remove devices from the export list
@@ -114,15 +119,18 @@ class ExportDevices(ZCmdBase):
                 @return: should the element be kept in the resulting output?
                 @rtype: boolean
                 """
-                try: return not elem.getAttribute('module') in _retain_class
-                except Exception: return True
+                try:
+                    return elem.getAttribute("module") not in _retain_class
+                except Exception:
+                    return True
 
-            try: elems = node.getElementsByTagName('object')
-            except AttributeError: pass
+            try:
+                elems = node.getElementsByTagName("object")
+            except AttributeError:
+                pass
             else:
                 elems = filter(keepDevice, elems)
                 [elem.parentNode.removeChild(elem) for elem in elems]
-
 
         def clearProps(node):
             """
@@ -132,22 +140,22 @@ class ExportDevices(ZCmdBase):
             @type node: XML DOM object
             """
             try:
-                props = node.getElementsByTagName('property')
+                props = node.getElementsByTagName("property")
             except AttributeError:
                 pass
             else:
                 for prop in props:
-                    if prop.getAttribute('module') not in _retain_props:
+                    if prop.getAttribute("module") not in _retain_props:
                         prop.parentNode.removeChild(prop)
 
-        # From our XML document root, do any last-minute cleanup before exporting
-        root = doc.getElementsByTagName('objects')[0]
+        # From our XML document root, do any last-minute cleanup
+        # before exporting.
+        root = doc.getElementsByTagName("objects")[0]
         clearObjects(root)
         clearProps(root)
 
         # Standardize the output of the standard XML pretty printer
-        return denewline(doc.toprettyxml().replace('\t', ' '*4))
-
+        return denewline(doc.toprettyxml().replace("\t", " " * 4))
 
     def getVersion(self):
         """
@@ -157,9 +165,9 @@ class ExportDevices(ZCmdBase):
         @rtype: string
         """
         from Products.ZenModel.ZenossInfo import ZenossInfo
-        zinfo = ZenossInfo('')
-        return str(zinfo.getZenossVersion())
 
+        zinfo = ZenossInfo("")
+        return str(zinfo.getZenossVersion())
 
     def getServerName(self):
         """
@@ -169,17 +177,21 @@ class ExportDevices(ZCmdBase):
         @rtype: string
         """
         import socket
-        return socket.gethostname()
 
+        return socket.gethostname()
 
     def export(self):
         """
-        Create XML header and then call exportXml() for all objects starting at root.
+        Create XML header and then call exportXml() for all objects
+        starting at root.
         """
 
         root = self.dmd.Devices
         if not hasattr(root, "exportXml"):
-            print  "ERROR: Root object for %s is not exportable (exportXml not found)" % root
+            print(
+                "ERROR: Root object for %s is not exportable "
+                "(exportXml not found)" % root
+            )
             sys.exit(1)
 
         export_date = datetime.datetime.now()
@@ -188,7 +200,8 @@ class ExportDevices(ZCmdBase):
 
         # TODO: When the DTD gets created, add the reference here
         buffer = StringIO.StringIO()
-        buffer.write( """<?xml version="1.0" encoding="ISO-8859-1" ?>
+        buffer.write(
+            """<?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
     Zenoss Device export completed on %s
@@ -198,15 +211,15 @@ class ExportDevices(ZCmdBase):
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="%s" export_date="%s" zenoss_server="%s" >\n""" % \
-         ( export_date, version, export_date, server ))
-
+<objects version="%s" export_date="%s" zenoss_server="%s" >\n"""
+            % (export_date, version, export_date, server)
+        )
 
         # Pass off all the hard work to the objects
-        root.exportXml( buffer, self.options.ignorerels, True )
+        root.exportXml(buffer, self.options.ignorerels, True)
 
         # Write the ending tag
-        buffer.write( "</objects>\n" )
+        buffer.write("</objects>\n")
 
         # Create an XML document tree that we clean up and then export
         doc = parseString(buffer.getvalue())
@@ -221,6 +234,6 @@ class ExportDevices(ZCmdBase):
         doc.unlink()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ex = ExportDevices()
     ex.export()

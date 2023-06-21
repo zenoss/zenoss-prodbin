@@ -10,6 +10,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
+
 """ZopeTestCase framework
 
 COPY THIS FILE TO YOUR 'tests' DIRECTORY.
@@ -43,17 +44,21 @@ The following code should be at the top of every test module:
   if __name__ == '__main__':
       framework()
 
-$Id: framework.py 30245 2005-05-05 09:50:09Z shh $
 """
 
-__version__ = '0.2.4'
+from __future__ import print_function
 
 # Save start state
 #
 import os
 import sys
-__SOFTWARE_HOME = os.environ.get('SOFTWARE_HOME', '')
-__INSTANCE_HOME = os.environ.get('INSTANCE_HOME', '')
+
+import six
+
+__version__ = "0.2.4"
+
+__SOFTWARE_HOME = os.environ.get("SOFTWARE_HOME", "")
+__INSTANCE_HOME = os.environ.get("INSTANCE_HOME", "")
 
 if __SOFTWARE_HOME.endswith(os.sep):
     __SOFTWARE_HOME = os.path.dirname(__SOFTWARE_HOME)
@@ -63,56 +68,74 @@ if __INSTANCE_HOME.endswith(os.sep):
 
 # Find and import the Testing package
 #
-if not 'Testing' in sys.modules:
+if "Testing" not in sys.modules:
     p0 = sys.path[0]
-    if p0 and __name__ == '__main__':
+    if p0 and __name__ == "__main__":
         os.chdir(p0)
-        p0 = ''
+        p0 = ""
     s = __SOFTWARE_HOME
     p = d = s and s or os.getcwd()
     while d:
-        if os.path.isdir(os.path.join(p, 'Testing')):
+        if os.path.isdir(os.path.join(p, "Testing")):
             zope_home = os.path.dirname(os.path.dirname(p))
             sys.path[:1] = [p0, p, zope_home]
             break
-        p, d = s and ('','') or os.path.split(p)
+        p, d = s and ("", "") or os.path.split(p)
     else:
-        print 'Unable to locate Testing package.',
-        print 'You might need to set SOFTWARE_HOME.'
+        print(
+            "Unable to locate Testing package.",
+        )
+        print("You might need to set SOFTWARE_HOME.")
         sys.exit(1)
 
-import Testing
-execfile(os.path.join(os.path.dirname(Testing.__file__), 'common.py'))
+
+def _compile_file(filename):
+    with open(filename) as f:
+        return compile(f.read(), filename, "exec")
+
+
+def _exec_common():
+    import Testing
+
+    six.exec_(
+        _compile_file(
+            os.path.join(os.path.dirname(Testing.__file__), "common.py")
+        )
+    )
+    return Testing
+
+
+Testing = _exec_common()
+
 
 # Include ZopeTestCase support
 #
-if 1:   # Create a new scope
+if 1:  # Create a new scope
 
-    p = os.path.join(os.path.dirname(Testing.__file__), 'ZopeTestCase')
+    p = os.path.join(os.path.dirname(Testing.__file__), "ZopeTestCase")
 
     if not os.path.isdir(p):
-        print 'Unable to locate ZopeTestCase package.',
-        print 'You might need to install ZopeTestCase.'
+        print("Unable to locate ZopeTestCase package.", end="")
+        print("You might need to install ZopeTestCase.")
         sys.exit(1)
 
-    ztc_common = 'ztc_common.py'
+    ztc_common = "ztc_common.py"
     ztc_common_global = os.path.join(p, ztc_common)
 
     f = 0
     if os.path.exists(ztc_common_global):
-        execfile(ztc_common_global)
+        six.exec_(ztc_common_global)
         f = 1
     if os.path.exists(ztc_common):
-        execfile(ztc_common)
+        six.exec_(ztc_common)
         f = 1
 
     if not f:
-        print 'Unable to locate %s.' % ztc_common
+        print("Unable to locate %s." % ztc_common)
         sys.exit(1)
 
 # Debug
 #
-print 'SOFTWARE_HOME: %s' % os.environ.get('SOFTWARE_HOME', 'Not set')
-print 'INSTANCE_HOME: %s' % os.environ.get('INSTANCE_HOME', 'Not set')
+print("SOFTWARE_HOME: %s" % os.environ.get("SOFTWARE_HOME", "Not set"))
+print("INSTANCE_HOME: %s" % os.environ.get("INSTANCE_HOME", "Not set"))
 sys.stdout.flush()
-
