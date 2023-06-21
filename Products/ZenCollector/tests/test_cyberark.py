@@ -29,19 +29,18 @@ from Products.ZenCollector.cyberark import (
     CyberArkProperty,
 )
 
-PATH = {'src': 'Products.ZenCollector.cyberark'}
+PATH = {"src": "Products.ZenCollector.cyberark"}
 
 
 class TestFunctions(TestCase):
-
     def setUp(t):
         t.log_patcher = patch("{src}.log".format(**PATH), autospec=True)
         t.log = t.log_patcher.start()
         t.addCleanup(t.log_patcher.stop)
 
         t.getGlobalConfiguration_patcher = patch(
-            '{src}.getGlobalConfiguration'.format(**PATH),
-            name='getGlobalConfiguration',
+            "{src}.getGlobalConfiguration".format(**PATH),
+            name="getGlobalConfiguration",
             autospec=True,
         )
         t.getGlobalConfiguration = t.getGlobalConfiguration_patcher.start()
@@ -98,7 +97,6 @@ class TestFunctions(TestCase):
 
 
 class TestCyberArk(TestCase):
-
     class Conf(object):
         def __init__(self, query):
             self.configId = "dev1"
@@ -111,7 +109,8 @@ class TestCyberArk(TestCase):
         t.addCleanup(t.log_patcher.stop)
 
         t.queryUtility_patcher = patch(
-            "{src}.queryUtility".format(**PATH), autospec=True,
+            "{src}.queryUtility".format(**PATH),
+            autospec=True,
         )
         t.queryUtility = t.queryUtility_patcher.start()
         t.addCleanup(t.queryUtility_patcher.stop)
@@ -190,14 +189,14 @@ class TestCyberArk(TestCase):
 
 
 class TestCyberArkManager(TestCase):
-
     def setUp(t):
         t.log_patcher = patch("{src}.log".format(**PATH), autospec=True)
         t.log = t.log_patcher.start()
         t.addCleanup(t.log_patcher.stop)
 
         t.queryUtility_patcher = patch(
-            "{src}.queryUtility".format(**PATH), autospec=True,
+            "{src}.queryUtility".format(**PATH),
+            autospec=True,
         )
         t.queryUtility = t.queryUtility_patcher.start()
         t.addCleanup(t.queryUtility_patcher.stop)
@@ -277,9 +276,13 @@ class TestCyberArkManager(TestCase):
             "Bad CyberArk query  "
             "status=%s %s device=%s zproperty=%s query=%s "
             "ErrorCode=%s ErrorMsg=%s",
-            status, httplib.responses.get(status),
-            devId, zprop, query,
-            "4E", "object not found",
+            status,
+            httplib.responses.get(status),
+            devId,
+            zprop,
+            query,
+            "4E",
+            "object not found",
         )
 
         mgr.add(devId, zprop, query)
@@ -306,8 +309,11 @@ class TestCyberArkManager(TestCase):
             "Bad CyberArk query  "
             "status=%s %s device=%s zproperty=%s query=%s "
             "result=%s",
-            status, httplib.responses.get(status),
-            devId, zprop, query,
+            status,
+            httplib.responses.get(status),
+            devId,
+            zprop,
+            query,
             "Unexpected format",
         )
 
@@ -333,7 +339,10 @@ class TestCyberArkManager(TestCase):
         expected = call(
             "Failed to execute CyberArk query - %s  "
             "device=%s zproperty=%s query=%s",
-            ex, devId, zprop, query,
+            ex,
+            devId,
+            zprop,
+            query,
         )
 
         mgr.add(devId, zprop, query)
@@ -346,26 +355,28 @@ class TestCyberArkManager(TestCase):
 
 
 class TestCyberArkClient(TestCase):
-
     def setUp(t):
         t.log_patcher = patch("{src}.log".format(**PATH), autospec=True)
         t.log = t.log_patcher.start()
         t.addCleanup(t.log_patcher.stop)
 
         t.load_certificates_patcher = patch(
-            "{src}.load_certificates".format(**PATH), autospec=True,
+            "{src}.load_certificates".format(**PATH),
+            autospec=True,
         )
         t.load_certificates = t.load_certificates_patcher.start()
         t.addCleanup(t.load_certificates_patcher.stop)
 
         t.agent_patcher = patch(
-            "{src}.client.Agent".format(**PATH), autospec=True,
+            "{src}.client.Agent".format(**PATH),
+            autospec=True,
         )
         t.agent = t.agent_patcher.start()
         t.addCleanup(t.agent_patcher.stop)
 
         t.readBody_patcher = patch(
-            "{src}.client.readBody".format(**PATH), autospec=True,
+            "{src}.client.readBody".format(**PATH),
+            autospec=True,
         )
         t.readBody = t.readBody_patcher.start()
         t.addCleanup(t.readBody_patcher.stop)
@@ -419,10 +430,7 @@ class TestCyberArkClient(TestCase):
         t.assertEqual(result, expected_result)
         t.assertEqual(code, expected_code)
         ag.request.assert_called_once_with(
-            "GET",
-            "https://vault/bar/baz?appid=foo&object=foo",
-            None,
-            None
+            "GET", "https://vault/bar/baz?appid=foo&object=foo", None, None
         )
 
     def test_request_with_extra_path(t):
@@ -439,7 +447,7 @@ class TestCyberArkClient(TestCase):
             "GET",
             "https://vault/alias/bar/baz?appid=foo&object=foo",
             None,
-            None
+            None,
         )
 
     def test_request_failure(t):
@@ -474,7 +482,6 @@ class TestCyberArkClient(TestCase):
 
 
 class TestCyberArkProperty(TestCase):
-
     def test_init(t):
         dev = "device1"
         zprop = "prop1"
@@ -548,7 +555,6 @@ zUc7lh/1HLm55dzLz2Csrosc5YX3ZV99h58Mm5k+Vw==
 
 
 class TestLoadCertificates(TestCase):
-
     def setUp(t):
         t.FilePath_patcher = patch(
             "{src}.FilePath".format(**PATH),

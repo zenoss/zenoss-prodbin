@@ -1,21 +1,17 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-import zope.component, zope.interface
-
 from Products.ZenCollector import CoreCollectorFrameworkFactory
-from Products.ZenCollector.interfaces import IFrameworkFactory
-from Products.ZenTestCase.BaseTestCase import BaseTestCase
-
 from Products.ZenCollector.config import ConfigurationProxy
 from Products.ZenCollector.scheduler import Scheduler
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
+
 
 class TestFactory(BaseTestCase):
     def testFactoryInstall(self):
@@ -33,6 +29,7 @@ class TestFactory(BaseTestCase):
 
 def test_suite():
     from unittest import TestSuite, makeSuite
+
     suite = TestSuite()
     suite.addTest(makeSuite(TestFactory))
     return suite

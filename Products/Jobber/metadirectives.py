@@ -18,13 +18,13 @@ class IJob(Interface):
     """Registers a ZenJobs Job class."""
 
     class_ = GlobalObject(
-        title=u"Job Class",
-        description=u"The class of the job to register",
+        title="Job Class",
+        description="The class of the job to register",
     )
 
     name = TextLine(
-        title=u"Name",
-        description=u"Optional name of the job",
+        title="Name",
+        description="Optional name of the job",
         required=False,
     )
 
@@ -33,11 +33,11 @@ class ICelerySignal(Interface):
     """Registers a Celery signal handler."""
 
     name = TextLine(
-        title=u"Name",
-        description=u"The signal receiving a handler",
+        title="Name",
+        description="The signal receiving a handler",
     )
 
     handler = TextLine(
-        title=u"Handler",
-        description=u"Classpath to the function handling the signal",
+        title="Handler",
+        description="Classpath to the function handling the signal",
     )

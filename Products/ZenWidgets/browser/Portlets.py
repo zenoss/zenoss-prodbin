@@ -1,38 +1,36 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-import re
-import json
+import logging
 
 from Products.Five.browser import BrowserView
 from Products.AdvancedQuery import Eq, In, And
-
-from Products.ZenUtils.Utils import relative_time
-from Products.Zuul import getFacade
-from Products.ZenEvents.HeartbeatUtils import getHeartbeatObjects
 from zenoss.protocols.services import ServiceException
 from zenoss.protocols.services.zep import ZepConnectionError
+
+from Products.ZenEvents.browser.EventPillsAndSummaries import (
+    getDashboardObjectsEventSummary,
+    getEventPillME,
+    ObjectsEventSummary,
+)
+from Products.ZenEvents.HeartbeatUtils import getHeartbeatObjects
+from Products.ZenModel.Device import Device
+from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils.jsonutils import json
-from Products.ZenUtils.Utils import nocache, formreq, extractPostContent
-from Products.ZenWidgets import messaging
-from Products.ZenModel.Device import Device
-from Products.ZenModel.ZenossSecurity import *
-from Products.ZenEvents.browser.EventPillsAndSummaries import \
-                                   getDashboardObjectsEventSummary, \
-                                   ObjectsEventSummary,    \
-                                   getEventPillME
+from Products.ZenUtils.Utils import nocache, formreq, relative_time
+from Products.Zuul import getFacade
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
-import logging
-log = logging.getLogger('zen.portlets')
+from .. import messaging
+
+log = logging.getLogger("zen.portlets")
 
 
 def zepConnectionError(retval=None):
@@ -40,21 +38,28 @@ def zepConnectionError(retval=None):
         def inner(self, *args, **kwargs):
             try:
                 return func(self, *args, **kwargs)
-            except ZepConnectionError as e:
-                msg = 'Connection refused. Check zeneventserver status on <a href="/zport/dmd/daemons">Services</a>'
-                messaging.IMessageSender(self.context).sendToBrowser("ZEP connection error",
-                                                        msg,
-                                                        priority=messaging.CRITICAL,
-                                                        sticky=True)
+            except ZepConnectionError:
+                msg = (
+                    "Connection refused. Check zeneventserver status on "
+                    '<a href="/zport/dmd/daemons">Services</a>'
+                )
+                messaging.IMessageSender(self.context).sendToBrowser(
+                    "ZEP connection error",
+                    msg,
+                    priority=messaging.CRITICAL,
+                    sticky=True,
+                )
                 log.warn("Could not connect to ZEP")
             return retval
+
         return inner
+
     return outer
 
+
 class TopLevelOrganizerPortletView(ObjectsEventSummary):
-    """
-    Return JSON event summaries for a root organizer.
-    """
+    """Return JSON event summaries for a root organizer."""
+
     @nocache
     @formreq
     def __call__(self, dataRoot):
@@ -70,13 +75,14 @@ class ProductionStatePortletView(BrowserView):
     Return a map of device to production state in a format suitable for a
     YUI data table.
     """
+
     @nocache
     @formreq
     def __call__(self, *args, **kwargs):
         return self.getDevProdStateJSON(*args, **kwargs)
 
     @json
-    def getDevProdStateJSON(self, prodStates=['Maintenance']):
+    def getDevProdStateJSON(self, prodStates=["Maintenance"]):
         """
         Return a map of device to production state in a format suitable for a
         YUI data table.
@@ -101,20 +107,27 @@ class ProductionStatePortletView(BrowserView):
         numericProdStates = [getProdStateInt(p) for p in prodStates]
 
         catalog = IModelCatalogTool(self.context.getPhysicalRoot().zport.dmd)
-        query = In('productionState', numericProdStates)
+        query = In("productionState", numericProdStates)
 
-        query = And(query, Eq('objectImplements', 'Products.ZenModel.Device.Device'))
-        objects = list(catalog.search(query=query, orderby='id', fields="uuid"))
+        query = And(
+            query, Eq("objectImplements", "Products.ZenModel.Device.Device")
+        )
+        objects = list(
+            catalog.search(query=query, orderby="id", fields="uuid")
+        )
         devs = (x.getObject() for x in objects)
 
-        mydict = {'columns':['Device', 'Prod State'], 'data':[]}
+        mydict = {"columns": ["Device", "Prod State"], "data": []}
         for dev in devs:
-            if not self.context.checkRemotePerm(ZEN_VIEW, dev): continue
-            mydict['data'].append({
-                'Device' : dev.getPrettyLink(),
-                'Prod State' : dev.getProdState()
-            })
-            if len(mydict['data'])>=100:
+            if not self.context.checkRemotePerm(ZEN_VIEW, dev):
+                continue
+            mydict["data"].append(
+                {
+                    "Device": dev.getPrettyLink(),
+                    "Prod State": dev.getProdState(),
+                }
+            )
+            if len(mydict["data"]) >= 100:
                 break
         return mydict
 
@@ -132,6 +145,7 @@ class WatchListPortletView(BrowserView):
         of the table
     @rtype: string
     """
+
     @nocache
     @formreq
     def __call__(self, *args, **kwargs):
@@ -143,24 +157,27 @@ class WatchListPortletView(BrowserView):
             entities = []
         elif isinstance(entities, basestring):
             entities = [entities]
+
         def getob(e):
             e = str(e)
             try:
-                if not e.startswith('/zport/dmd'):
-                    bigdev = '/zport/dmd' + e
+                if not e.startswith("/zport/dmd"):
+                    bigdev = "/zport/dmd" + e
                 obj = self.context.dmd.unrestrictedTraverse(bigdev)
             except (AttributeError, KeyError):
                 obj = self.context.dmd.Devices.findDevice(e)
-            if self.context.has_permission("View", obj): return obj
-        entities = filter(lambda x:x is not None, map(getob, entities))
+            if self.context.has_permission("View", obj):
+                return obj
+
+        entities = filter(lambda x: x is not None, map(getob, entities))
         return getDashboardObjectsEventSummary(
-            self.context.dmd.ZenEventManager, entities)
+            self.context.dmd.ZenEventManager, entities
+        )
 
 
 class DeviceIssuesPortletView(BrowserView):
-    """
-    A list of devices with issues.
-    """
+    """A list of devices with issues."""
+
     @nocache
     def __call__(self):
         return self.getDeviceIssuesJSON()
@@ -179,18 +196,17 @@ class DeviceIssuesPortletView(BrowserView):
                 {'Device':'<a href=/>', 'Events':'<div/>'},
             ]}"
         """
-        mydict = {'columns':[], 'data':[]}
-        mydict['columns'] = ['Device', 'Events']
+        mydict = {"columns": [], "data": []}
+        mydict["columns"] = ["Device", "Events"]
         deviceinfo = self.getDeviceDashboard()
         for alink, pill in deviceinfo:
-            mydict['data'].append({'Device':alink,
-                                   'Events':pill})
+            mydict["data"].append({"Device": alink, "Events": pill})
         return mydict
 
     @zepConnectionError([])
     def getDeviceDashboard(self):
         """return device info for bad device to dashboard"""
-        zep = getFacade('zep')
+        zep = getFacade("zep")
         manager = IGUIDManager(self.context.dmd)
         deviceSeverities = zep.getDeviceIssuesDict()
         zem = self.context.dmd.ZenEventManager
@@ -199,49 +215,62 @@ class DeviceIssuesPortletView(BrowserView):
 
         for uuid in deviceSeverities.keys():
             uuid_data = {}
-            uuid_data['uuid'] = uuid
+            uuid_data["uuid"] = uuid
             severities = deviceSeverities[uuid]
             try:
-                uuid_data['severities'] = dict((zep.getSeverityName(sev).lower(), counts) for (sev, counts) in severities.iteritems())
+                uuid_data["severities"] = dict(
+                    (zep.getSeverityName(sev).lower(), counts)
+                    for (sev, counts) in severities.iteritems()
+                )
             except ServiceException:
                 continue
             bulk_data.append(uuid_data)
 
-        bulk_data.sort(key=lambda x:(x['severities']['critical'], x['severities']['error'], x['severities']['warning']), reverse=True)
+        bulk_data.sort(
+            key=lambda x: (
+                x["severities"]["critical"],
+                x["severities"]["error"],
+                x["severities"]["warning"],
+            ),
+            reverse=True,
+        )
 
         devices_found = 0
         MAX_DEVICES = 100
 
         devdata = []
         for data in bulk_data:
-            uuid = data['uuid']
-            severities = data['severities']
+            uuid = data["uuid"]
+            severities = data["severities"]
             dev = manager.getObject(uuid)
             if dev and isinstance(dev, Device):
-                if (not zem.checkRemotePerm(ZEN_VIEW, dev)
+                if (
+                    not zem.checkRemotePerm(ZEN_VIEW, dev)
                     or dev.getProductionState() < zem.prodStateDashboardThresh
-                    or dev.priority < zem.priorityDashboardThresh):
+                    or dev.priority < zem.priorityDashboardThresh
+                ):
                     continue
                 alink = dev.getPrettyLink()
                 pill = getEventPillME(dev, severities=severities)
-                evts = [alink,pill]
+                evts = [alink, pill]
                 devdata.append(evts)
                 devices_found = devices_found + 1
                 if devices_found >= MAX_DEVICES:
                     break
         return devdata
 
-heartbeat_columns = ['Host', 'Daemon Process', 'Seconds Down']
+
+heartbeat_columns = ["Host", "Daemon Process", "Seconds Down"]
+
 
 class HeartbeatPortletView(BrowserView):
-    """
-    Heartbeat issues in YUI table form, for the dashboard portlet
-    """
+    """Heartbeat issues in YUI table form, for the dashboard portlet."""
+
     @nocache
     def __call__(self):
         return self.getHeartbeatIssuesJSON()
 
-    @zepConnectionError({'columns': heartbeat_columns, 'data':[]})
+    @zepConnectionError({"columns": heartbeat_columns, "data": []})
     @json
     def getHeartbeatIssuesJSON(self):
         """
@@ -254,15 +283,15 @@ class HeartbeatPortletView(BrowserView):
                 {'Device':'<a href=/>', 'Daemon':'zenhub', 'Seconds':10}
             ]}"
         """
-        data = getHeartbeatObjects(deviceRoot=self.context.dmd.Devices,
-                keys=heartbeat_columns)
-        return {'columns': heartbeat_columns, 'data': data}
+        data = getHeartbeatObjects(
+            deviceRoot=self.context.dmd.Devices, keys=heartbeat_columns
+        )
+        return {"columns": heartbeat_columns, "data": data}
 
 
 class UserMessagesPortletView(BrowserView):
-    """
-    User messages in YUI table form, for the dashboard portlet.
-    """
+    """User messages in YUI table form, for the dashboard portlet."""
+
     @nocache
     @json
     def __call__(self):
@@ -276,20 +305,24 @@ class UserMessagesPortletView(BrowserView):
                 {'Device':'<a href=/>', 'Daemon':'zenhub', 'Seconds':10}
             ]}"
         """
-        ICONS = ['/zport/dmd/img/agt_action_success-32.png',
-                 '/zport/dmd/img/messagebox_warning-32.png',
-                 '/zport/dmd/img/agt_stop-32.png']
+        ICONS = [
+            "/zport/dmd/img/agt_action_success-32.png",
+            "/zport/dmd/img/messagebox_warning-32.png",
+            "/zport/dmd/img/agt_stop-32.png",
+        ]
         msgbox = messaging.IUserMessages(self.context)
         msgs = msgbox.get_messages()
-        cols = ['Message']
+        cols = ["Message"]
         res = []
         for msg in msgs:
-            res.append(dict(
-                title = msg.title,
-                imgpath = ICONS[msg.priority],
-                body = msg.body,
-                ago = relative_time(msg.timestamp),
-                deletelink = msg.absolute_url_path() + '/delMsg'
-            ))
+            res.append(
+                dict(
+                    title=msg.title,
+                    imgpath=ICONS[msg.priority],
+                    body=msg.body,
+                    ago=relative_time(msg.timestamp),
+                    deletelink=msg.absolute_url_path() + "/delMsg",
+                )
+            )
         res.reverse()
-        return { 'columns': cols, 'data': res }
+        return {"columns": cols, "data": res}

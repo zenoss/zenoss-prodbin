@@ -17,6 +17,7 @@ class ProcessCommandPlugin(CommandPlugin):
     Base class for Linux and AIX command plugins for parsing ps command output
     and modeling processes.
     """
+
     compname = "os"
     relname = "processes"
     modname = "Products.ZenModel.OSProcess"
@@ -37,9 +38,8 @@ class ProcessCommandPlugin(CommandPlugin):
         if not results:
             log.error("Unable to get data for %s -- skipping model", device.id)
             return None
-        results = unicode(
-            results, errors="replace"
-        )  # without relying on "ps" command output
+        # without relying on "ps" command output
+        results = unicode(results, errors="replace")
         psOutputLines = self._filterLines(results.splitlines())
 
         cmds = map(lambda s: s.strip(), psOutputLines)

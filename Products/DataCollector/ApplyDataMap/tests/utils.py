@@ -13,7 +13,6 @@ from unittest import TestCase
 
 
 class BaseTestCase(TestCase):
-
     def setUp(t):
         logging.disable(logging.CRITICAL)
 
