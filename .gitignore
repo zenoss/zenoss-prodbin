@@ -17,3 +17,4 @@ lib/python2.7/site-packages/Zenoss.egg-link
 *.pyc
 *~
 *.sw?
+/venv
