@@ -110,4 +110,6 @@ class RouteMap(SnmpPlugin):
         "bbnSpfIgrp",
         "ospf",
         "bgp",
+        "idpr",
+        "ciscoEigrp",
     )
