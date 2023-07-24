@@ -9,7 +9,7 @@
 
 """PBDaemon
 
-Base for daemons that connect to zenhub
+Base for daemons that connect to zenhub.
 
 """
 
@@ -40,7 +40,7 @@ from twisted.python.failure import Failure
 from twisted.spread import pb
 from ZODB.POSException import ConflictError
 from zope.component import getUtilitiesFor
-from zope.interface import implements
+from zope.interface import implementer
 
 from Products.ZenEvents.ZenEventClasses import (
     App_Start,
@@ -182,12 +182,9 @@ class FakeRemote:
         return defer.fail(ex)
 
 
+@implementer(ICollectorEventFingerprintGenerator)
 class DefaultFingerprintGenerator(object):
-    """
-    Generates a fingerprint using a checksum of properties of the event.
-    """
-
-    implements(ICollectorEventFingerprintGenerator)
+    """Generates a fingerprint using a checksum of properties of the event."""
 
     weight = 100
 
