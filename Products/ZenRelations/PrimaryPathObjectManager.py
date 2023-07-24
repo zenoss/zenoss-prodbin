@@ -94,9 +94,7 @@ class PrimaryPathObjectManager(
     PrimaryPathManager,
     App.Undo.UndoSupport,
 ):
-    """
-    PrimaryPathObjectManager with basic Zope persistent classes.
-    """
+    """PrimaryPathObjectManager with basic Zope persistent classes."""
 
     manage_options = (
         ObjectManager.manage_options

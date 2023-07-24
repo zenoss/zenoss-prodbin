@@ -13,7 +13,7 @@ import re
 from cStringIO import StringIO
 from hashlib import md5
 
-from zope.interface import implements
+from zope.interface import implementer
 
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.GraphDefinition import GraphDefinition
@@ -29,16 +29,12 @@ from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from .interfaces import IInvalidationFilter, FILTER_EXCLUDE, FILTER_CONTINUE
 
-log = logging.getLogger("zen.InvalidationFilter")
+log = logging.getLogger("zen.{}".format(__name__.split(".")[-1].lower()))
 
 
+@implementer(IInvalidationFilter)
 class IgnorableClassesFilter(object):
-    """
-    This filter specifies which classes we want to ignore the
-    invalidations on.
-    """
-
-    implements(IInvalidationFilter)
+    """Ignore invalidations on certain classes."""
 
     CLASSES_TO_IGNORE = (
         IpAddress,
@@ -60,16 +56,36 @@ class IgnorableClassesFilter(object):
         return FILTER_CONTINUE
 
 
+_iszorcustprop = re.compile("[zc][A-Z]").match
+
+
+def _getZorCProperties(organizer):
+    for zId in sorted(organizer.zenPropertyIds(pfilt=_iszorcustprop)):
+        try:
+            if organizer.zenPropIsPassword(zId):
+                propertyString = organizer.getProperty(zId, "")
+            else:
+                propertyString = organizer.zenPropertyString(zId)
+            yield zId, propertyString
+        except AttributeError:
+            # ZEN-3666: If an attribute error is raised on a zProperty
+            # assume it was produced by a zenpack
+            # install whose daemons haven't been restarted and continue
+            # excluding the offending property.
+            log.debug("Excluding '%s' property", zId)
+
+
+@implementer(IInvalidationFilter)
 class BaseOrganizerFilter(object):
     """
-    Base invalidation filter for organizers. Calculates a checksum for
-    the organizer based on its sorted z/c properties.
+    Base invalidation filter for organizers.
+
+    The default implementation will reject organizers that do not have
+    updated calculated checksum values. The checksum is calculated using
+    accumulation of each 'z' and 'c' property associated with organizer.
     """
 
-    implements(IInvalidationFilter)
-
     weight = 10
-    iszorcustprop = re.compile("[zc][A-Z]").match
 
     def __init__(self, types):
         self._types = types
@@ -89,24 +105,9 @@ class BaseOrganizerFilter(object):
                 log.warn("Unable to retrieve object: %s", brain.getPath())
         self.checksum_map = results
 
-    def getZorCProperties(self, organizer):
-        for zId in sorted(organizer.zenPropertyIds(pfilt=self.iszorcustprop)):
-            try:
-                if organizer.zenPropIsPassword(zId):
-                    propertyString = organizer.getProperty(zId, "")
-                else:
-                    propertyString = organizer.zenPropertyString(zId)
-                yield zId, propertyString
-            except AttributeError:
-                # ZEN-3666: If an attribute error is raised on a zProperty
-                # assume it was produced by a zenpack
-                # install whose daemons haven't been restarted and continue
-                # excluding the offending property.
-                log.debug("Excluding '%s' property", zId)
-
     def generateChecksum(self, organizer, md5_checksum):
         # Checksum all zProperties and custom properties
-        for zId, propertyString in self.getZorCProperties(organizer):
+        for zId, propertyString in _getZorCProperties(organizer):
             md5_checksum.update("%s|%s" % (zId, propertyString))
 
     def organizerChecksum(self, organizer):
@@ -135,9 +136,10 @@ class BaseOrganizerFilter(object):
 
 class DeviceClassInvalidationFilter(BaseOrganizerFilter):
     """
-    Subclass of BaseOrganizerFilter with specific logic for
-    Device classes. Uses both z/c properties as well as locally
-    bound RRD templates to create the checksum.
+    Invalidation filter for DeviceClass organizers.
+
+    Uses both 'z' and 'c' properties as well as locally bound RRD templates
+    to create the checksum.
     """
 
     def __init__(self):
@@ -167,10 +169,7 @@ class DeviceClassInvalidationFilter(BaseOrganizerFilter):
 
 
 class OSProcessOrganizerFilter(BaseOrganizerFilter):
-    """
-    Invalidation filter for OSProcessOrganizer objects. This filter only
-    looks at z/c properties defined on the organizer.
-    """
+    """Invalidation filter for OSProcessOrganizer objects."""
 
     def __init__(self):
         super(OSProcessOrganizerFilter, self).__init__((OSProcessOrganizer,))
@@ -181,9 +180,10 @@ class OSProcessOrganizerFilter(BaseOrganizerFilter):
 
 class OSProcessClassFilter(BaseOrganizerFilter):
     """
-    Invalidation filter for OSProcessClass objects. This filter uses
-    z/c properties as well as local _properties defined on the organizer
-    to create a checksum.
+    Invalidation filter for OSProcessClass objects.
+
+    This filter uses 'z' and 'c' properties as well as local _properties
+    defined on the organizer to create a checksum.
     """
 
     def __init__(self):

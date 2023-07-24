@@ -267,12 +267,6 @@ class ZenHub(ZCmdBase):
         """Periodically process database changes."""
         yield self._invalidation_manager.process_invalidations()
 
-    # Legacy API
-    def _initialize_invalidation_filters(self):
-        self._invalidation_filters = (
-            self._invalidation_manager.initialize_invalidation_filters()
-        )
-
     def sendEvent(self, **kw):
         """Post events to the EventManager.
 
