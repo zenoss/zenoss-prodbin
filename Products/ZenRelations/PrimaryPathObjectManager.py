@@ -15,8 +15,8 @@ from AccessControl.Role import RoleManager
 from Acquisition import Implicit, aq_base
 from OFS.ObjectManager import ObjectManager
 from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2
-from RelCopySupport import RelCopyContainer
 
+from .RelCopySupport import RelCopyContainer
 from .ZItem import ZItem
 
 log = logging.getLogger("zen.PrimaryPathObjectManager")
@@ -92,9 +92,7 @@ class PrimaryPathObjectManager(
     PrimaryPathManager,
     App.Undo.UndoSupport,
 ):
-    """
-    PrimaryPathObjectManager with basic Zope persistent classes.
-    """
+    """PrimaryPathObjectManager with basic Zope persistent classes."""
 
     manage_options = (
         ObjectManager.manage_options

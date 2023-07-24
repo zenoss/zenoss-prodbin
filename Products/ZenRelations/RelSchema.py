@@ -29,18 +29,18 @@ class RelSchema(object):
 
 
 class ToOne(RelSchema):
-    from ToOneRelationship import ToOneRelationship
+    from .ToOneRelationship import ToOneRelationship
 
     _relationClass = ToOneRelationship
 
 
 class ToMany(RelSchema):
-    from ToManyRelationship import ToManyRelationship
+    from .ToManyRelationship import ToManyRelationship
 
     _relationClass = ToManyRelationship
 
 
 class ToManyCont(RelSchema):
-    from ToManyContRelationship import ToManyContRelationship
+    from .ToManyContRelationship import ToManyContRelationship
 
     _relationClass = ToManyContRelationship

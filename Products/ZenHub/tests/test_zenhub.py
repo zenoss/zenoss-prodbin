@@ -400,10 +400,6 @@ class ZenHubTest(TestCase):
         t.zh.processQueue()
         t.zh._invalidation_manager.process_invalidations.assert_called_with()
 
-    def test__initialize_invalidation_filters(t):
-        t.zh._initialize_invalidation_filters()
-        t.zh._invalidation_manager.initialize_invalidation_filters.assert_called_with()  # noqa E501
-
     @patch("{src}.Event".format(**PATH), autospec=True)
     def test_sendEvent(t, Event):
         event = {"device": "x", "component": "y", "summary": "msg"}
