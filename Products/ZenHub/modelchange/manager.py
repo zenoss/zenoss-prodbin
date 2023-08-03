@@ -17,8 +17,8 @@ from zenoss.protocols.protobufs.zep_pb2 import (
 from zope.component import getUtility, getUtilitiesFor
 
 from .interfaces import IInvalidationFilter, IInvalidationProcessor
-from .processors import INVALIDATIONS_PAUSED
-from .validator import InvalidationValidator
+from .handlers import INVALIDATIONS_PAUSED
+from .processor import InvalidationProcessor
 
 log = logging.getLogger("zen.{}".format(__name__.split(".")[-1].lower()))
 
@@ -69,20 +69,16 @@ class InvalidationManager(object):
         self.__dmd = dmd
         self._poller = poller
         self._interval = interval
-        self._processor = getUtility(IInvalidationProcessor)
-        self._queue = set()
+        # self._processor = getUtility(IInvalidationProcessor)
+        # self._queue = set()
         app = self.__dmd.getPhysicalRoot()
         filters = initialize_invalidation_filters(dmd)
-        self.invalidation_pipeline = InvalidationValidator(
-            app, filters, self._queue
-        )
+        self.processor = InvalidationProcessor(app, filters)
 
-    def process_invalidations(self):
+    def poll(self):
         """
-        Periodically process database changes.
-
-        Synchronize with the database, and poll invalidated oids from it,
-        filter the oids,  send them to the invalidation_processor
+        Return a set of ZODB objects that have changed since the last
+        time `poll` was called.
 
         @return: None
         """
@@ -96,7 +92,7 @@ class InvalidationManager(object):
                 self.invalidation_pipeline.apply(oid)
 
             log.debug("Processed %s raw invalidations", len(oids))
-            self._processor.processQueue(self._queue)
+            # self._processor.processQueue(self._queue)
             self._queue.clear()
         except Exception:
             log.exception("error in process_invalidations")

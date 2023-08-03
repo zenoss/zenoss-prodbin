@@ -116,7 +116,7 @@ class IterablePipe(Pipe):
 class Action(object):
     """Base class for action objects passed to Pipes."""
 
-    DEFAULT = 0
+    DEFAULT = object()
     """Default target ID."""
 
     def __call__(self, *data):

@@ -23,18 +23,21 @@ from .pipeline import Pipe, IterablePipe, Action
 from .utils import make_iterable
 
 
-class InvalidationValidator(object):
-    """A Pipeline that applies filters and transforms to an oid
-    Then passes the transformed/expanded list of oids
-    to the InvalidationProcessor processQueue
+class InvalidationProcessor(object):
+    """Takes an invalidation and produces ZODB objects.
+
+    An invalidation is represented as an ZODB object ID (oid).
+    An oid is accepted by the `get` method and a sequence of ZODB objects
+    are returned.  Generally, only one object is in the sequence, but it
+    is possible for more than one object to be returned.
     """
 
-    def __init__(self, app, filters, sink):
+    def __init__(self, app, filters):
         oid2obj_1 = Pipe(OidToObject(app))
         oid2obj_2 = IterablePipe(OidToObject(app))
         apply_filter = Pipe(ApplyFilters(filters))
         apply_transforms = Pipe(ApplyTransforms())
-        collect = Pipe(CollectInvalidations(sink))
+        collect = Pipe(CollectInvalidations())
 
         oid2obj_1.connect(apply_filter)
         oid2obj_1.connect(collect, tid=OidToObject.SINK)
@@ -46,7 +49,7 @@ class InvalidationValidator(object):
 
         self.__pipeline = oid2obj_1.node()
 
-    def apply(self, oid):
+    def get(self, oid):
         """Send data into the pipeline."""
         self.__pipeline.send(oid)
 

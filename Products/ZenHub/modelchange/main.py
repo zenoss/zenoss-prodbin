@@ -23,16 +23,27 @@ from .zodb import getDB, dataroot
 
 def app(args):
     _initialize_env()
-    config_classes = getConfigServices()
     with closing(getDB(args.zodb_config_file)) as db:
         poller = getAdapter(db.storage, InvalidationPoller)
         with closing(db.open()) as session:
             with dataroot(session) as dmd:
-                work(dmd, config_classes, poller)
+                work(dmd, poller)
 
 
-def work(dmd, config_classes, poller):
+def work(dmd, poller):
+    print("Creating configurations and writing them to Redis")
+    stores = create_and_load_configs(dmd)  # noqa F821
+
+    print("Monitoring for changes")
+    im = InvalidationManager(dmd, poller)
+    while True:
+        im.process_invalidations()
+        sleep(1)
+
+
+def create_and_load_configs(dmd):
     stores = {}
+    config_classes = getConfigServices()
     for monitorname in dmd.Monitors.getPerformanceMonitorNames():
         for cls in config_classes:
             configsvc = cls(dmd, monitorname)
@@ -46,12 +57,7 @@ def work(dmd, config_classes, poller):
                 "Added %d configs for the %s config service"
                 % (len(dcs), svcname)
             )
-
-    print("Monitoring for changes")
-    im = InvalidationManager(dmd, poller)
-    while True:
-        im.process_invalidations()
-        sleep(1)
+    return stores
 
 
 def _build_cli_args():
