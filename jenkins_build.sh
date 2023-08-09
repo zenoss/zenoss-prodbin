@@ -51,8 +51,8 @@ cleanup() {
     RC="$?"
     if [[ $RC == 0 ]]; then
         zendev drop ${ZENDEV_ENV}
-        docker image rm zendev/devimg:${ZENDEV_ENV} zendev/product-base:${ZENDEV_ENV}
-        docker image rm zendev/mariadb:${ZENDEV_ENV} zendev/mariadb-base:${ZENDEV_ENV}
+        docker image rm -f zendev/devimg:${ZENDEV_ENV} zendev/product-base:${ZENDEV_ENV}
+        docker image rm -f zendev/mariadb:${ZENDEV_ENV} zendev/mariadb-base:${ZENDEV_ENV}
     fi
 }
 trap cleanup INT TERM EXIT
