@@ -50,9 +50,8 @@ from time import sleep
 
 
 from Products.ZenUtils.mysql import MySQLdb
-from MySQLdb import connect
+from MySQLdb import connect, escape_string
 from MySQLdb.cursors import DictCursor
-from _mysql import escape_string
 
 from zenoss.protocols.protobufs.zep_pb2 import (EventSummary, ZepRawEvent, STATUS_NEW, STATUS_ACKNOWLEDGED,
                                                 STATUS_SUPPRESSED, STATUS_CLOSED, STATUS_CLEARED,
