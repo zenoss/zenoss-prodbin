@@ -15,6 +15,7 @@ import os
 import os.path
 import re
 import sys
+import textwrap
 
 from copy import copy
 from optparse import (
@@ -42,6 +43,18 @@ from .Utils import (
 from .GlobalConfig import (
     _convertConfigLinesToArguments,
     applyGlobalConfToParser,
+)
+
+
+# List of options to not include when generating a config file.
+_OPTIONS_TO_IGNORE = (
+    "",
+    "configfile",
+    "genconf",
+    "genxmlconfigs",
+    "genxmltable",
+    "help",
+    "version",
 )
 
 
@@ -387,7 +400,6 @@ class CmdBase(object):
             commented out.
         @type correctErrors: boolean
         """
-
         output = []
         errors = []
         validLines = []
@@ -426,11 +438,7 @@ class CmdBase(object):
                 for lineno, message in errors:
                     print(
                         "INFO: Commenting out %s on line %d in %s"
-                        % (
-                            message,
-                            lineno,
-                            filename,
-                        ),
+                        % (message, lineno, filename),
                         file=sys.stderr,
                     )
 
@@ -441,11 +449,7 @@ class CmdBase(object):
                 for lineno, message in errors:
                     print(
                         "WARN: %s on line %d in %s"
-                        % (
-                            message,
-                            lineno,
-                            filename,
-                        ),
+                        % (message, lineno, filename),
                         file=sys.stderr,
                     )
 
@@ -491,9 +495,7 @@ class CmdBase(object):
             logging.basicConfig()
 
     def checkLogpath(self):
-        """
-        Validate the logpath is valid.
-        """
+        """Validate the logpath is valid."""
         if not self.options.logpath:
             return None
         else:
@@ -518,65 +520,30 @@ class CmdBase(object):
         Quick and dirty pretty printer for comments that happen to be longer
         than can comfortably be seen on the display.
         """
-        max_size = 40
-        #
-        # As a heuristic we'll accept strings that are +-  text_window
-        # size in length.
-        #
-        text_window = 5
+        new_comment = textwrap.wrap(comment, width=75)
+        return "# " + "\n# ".join(new_comment)
 
-        if len(comment) <= max_size + text_window:
-            return comment
+    def _get_default_value(self, parser, opt):
+        default_value = parser.defaults.get(opt.dest)
+        if default_value is NO_DEFAULT or default_value is None:
+            return ""
+        return str(default_value)
 
-        #
-        # First, take care of embedded newlines and expand them out to
-        # array entries.
-        #
-        new_comment = []
-        all_lines = comment.split("\n")
-        for line in all_lines:
-            if len(line) <= max_size + text_window:
-                new_comment.append(line)
-                continue
-
-            start_position = max_size - text_window
-            while len(line) > max_size + text_window:
-                index = line.find(" ", start_position)
-                if index > 0:
-                    new_comment.append(line[0:index])
-                    line = line[index:]
-
-                else:
-                    if start_position == 0:
-                        #
-                        # If we get here it means that the line is just one
-                        # big string with no spaces in it.  There's nothing
-                        # that we can do except print it out.  Doh!
-                        #
-                        new_comment.append(line)
-                        break
-
-                    #
-                    # Okay, haven't found anything to split on
-                    # -- go back and try again
-                    #
-                    start_position = start_position - text_window
-                    if start_position < 0:
-                        start_position = 0
-
-            else:
-                new_comment.append(line)
-
-        return "\n# ".join(new_comment)
+    def _get_help_text(self, opt, default_value):
+        if "%default" in opt.help:
+            return opt.help.replace("%default", default_value)
+        default_text = ""
+        if default_value != "":
+            default_text = " [default %s]" % (default_value,)
+        return opt.help + default_text
 
     def generate_configs(self, parser, options):
         """
-        Create a configuration file based on the long-form of the option names
+        Create a configuration file based on the long-form of the option names.
 
         :param parser: an optparse parser object which contains defaults, help
         :param options: parsed options list containing actual values
         """
-
         #
         # Header for the configuration file
         #
@@ -589,13 +556,9 @@ class CmdBase(object):
 # Configuration file for %s
 #
 #  To enable a particular option, uncomment the desired entry.
-#
-# Parameter     Setting
-# ---------     -------"""
-            % (daemon_name)
+#"""
+            % (daemon_name,)
         )
-
-        options_to_ignore = ("help", "version", "", "genconf", "genxmltable")
 
         #
         # Create an entry for each of the command line flags
@@ -603,58 +566,44 @@ class CmdBase(object):
         # NB: Ideally, this should print out only the option parser dest
         #     entries, rather than the command line options.
         #
-        import re
-
         for opt in getAllParserOptionsGen(parser):
             if opt.help is SUPPRESS_HELP:
                 continue
 
             #
-            # Get rid of the short version of the command
+            # Don't include items in the ignore list
             #
             option_name = re.sub(r".*/--", "", "%s" % opt)
-
-            #
-            # And what if there's no short version?
-            #
             option_name = re.sub(r"^--", "", "%s" % option_name)
-
-            #
-            # Don't display anything we shouldn't be displaying
-            #
-            if option_name in options_to_ignore:
+            if option_name in _OPTIONS_TO_IGNORE:
                 continue
 
             #
             # Find the actual value specified on the command line, if any,
             # and display it
             #
+            default_value = self._get_default_value(parser, opt)
+            help_text = self._get_help_text(opt, default_value)
+            description = self.pretty_print_config_comment(help_text)
 
             value = getattr(parser.values, opt.dest)
+            if value is None:
+                value = default_value
 
-            default_value = parser.defaults.get(opt.dest)
-            if default_value is NO_DEFAULT or default_value is None:
-                default_value = ""
-
-            if "%default" in opt.help:
-                help_txt = opt.help.replace("%default", str(default_value))
-            else:
-                default_string = ""
-                if default_value != "":
-                    default_string = ", default: " + str(default_value)
-                help_txt = opt.help + default_string
-
-            comment = self.pretty_print_config_comment(help_txt)
+            comment_char = "#" if str(value) == str(default_value) else ""
 
             #
             # NB: I would prefer to use tabs to separate the parameter name
             #     and value, but I don't know that this would work.
             #
             print(
-                """#
-# %s
-#%s %s"""
-                % (comment, option_name, value)
+                "\n".join(
+                    (
+                        "#",
+                        description,
+                        "%s%s %s" % (comment_char, option_name, value),
+                    )
+                )
             )
 
         #
@@ -689,13 +638,13 @@ class CmdBase(object):
    xmlns:html="http://www.w3.org/1999/xhtml"
    xmlns:db="http://docbook.org/ns/docbook"
 
-  xml:id="%s.options"
+  xml:id="{name}.options"
 >
 
-<title>%s Options</title>
+<title>{name} Options</title>
 <para />
 <table frame="all">
-  <caption>%s <indexterm><primary>Daemons</primary><secondary>%s</secondary></indexterm> options</caption>
+  <caption>{name} <indexterm><primary>Daemons</primary><secondary>{name}</secondary></indexterm> options</caption>
 <tgroup cols="2">
 <colspec colname="option" colwidth="1*" />
 <colspec colname="description" colwidth="2*" />
@@ -706,16 +655,10 @@ class CmdBase(object):
 </row>
 </thead>
 <tbody>
-"""  # noqa E501
-            % (
-                daemon_name,
-                daemon_name,
-                daemon_name,
-                daemon_name,
+""".format(  # noqa E501
+                name=daemon_name
             )
         )
-
-        options_to_ignore = ("help", "version", "", "genconf", "genxmltable")
 
         #
         # Create an entry for each of the command line flags
@@ -747,12 +690,16 @@ class CmdBase(object):
             #
             option_name = re.sub(r".*/--", "", "%s" % opt)
             option_name = re.sub(r"^--", "", "%s" % option_name)
-            if option_name in options_to_ignore:
+            if option_name in _OPTIONS_TO_IGNORE:
                 continue
 
-            default_value = parser.defaults.get(opt.dest)
-            if default_value is NO_DEFAULT or default_value is None:
-                default_value = ""
+            default_value = self._get_default_value(parser, opt)
+
+            if "%default" in opt.help:
+                comment = opt.help.replace("%default", default_value)
+            else:
+                comment = opt.help
+
             default_string = ""
             if default_value != "":
                 default_string = (
@@ -761,7 +708,7 @@ class CmdBase(object):
                     + "</literal></para>\n"
                 )
 
-            comment = self.pretty_print_config_comment(opt.help)
+            # comment = self.pretty_print_config_comment(opt.help)
 
             #
             # TODO: Determine the variable name used and display the
@@ -774,13 +721,8 @@ class CmdBase(object):
 <entry>
 <para>%s</para>
 %s</entry>
-</row>
-"""
-                    % (
-                        all_options,
-                        comment,
-                        default_string,
-                    )
+</row>"""
+                    % (all_options, comment, default_string)
                 )
 
             else:
@@ -793,13 +735,8 @@ class CmdBase(object):
 <entry>
 <para>%s</para>
 %s</entry>
-</row>
-"""
-                    % (
-                        all_options,
-                        comment,
-                        default_string,
-                    )
+</row>"""
+                    % (all_options, comment, default_string)
                 )
 
         #
@@ -839,15 +776,6 @@ class CmdBase(object):
             % (export_date, daemon_name)
         )
 
-        options_to_ignore = (
-            "help",
-            "version",
-            "",
-            "genconf",
-            "genxmltable",
-            "genxmlconfigs",
-        )
-
         #
         # Create an entry for each of the command line flags
         #
@@ -863,14 +791,11 @@ class CmdBase(object):
             #
             option_name = re.sub(r".*/--", "", "%s" % opt)
             option_name = re.sub(r"^--", "", "%s" % option_name)
-            if option_name in options_to_ignore:
+            if option_name in _OPTIONS_TO_IGNORE:
                 continue
 
-            default_value = parser.defaults.get(opt.dest)
-            if default_value is NO_DEFAULT or default_value is None:
-                default_string = ""
-            else:
-                default_string = str(default_value)
+            default_value = self._get_default_value(parser, opt)
+            help_text = quote(self._get_help_text(opt, default_value))
 
             #
             # TODO: Determine the variable name used and display the
@@ -880,12 +805,7 @@ class CmdBase(object):
                 print(
                     """    <option id="%s" type="%s" default="%s" help="%s" />
 """
-                    % (
-                        option_name,
-                        "boolean",
-                        default_string,
-                        quote(opt.help),
-                    ),
+                    % (option_name, "boolean", default_value, help_text),
                     end="",
                 )
 
@@ -897,9 +817,9 @@ class CmdBase(object):
                     % (
                         option_name,
                         opt.type,
-                        quote(default_string),
+                        quote(default_value),
                         target,
-                        quote(opt.help),
+                        help_text,
                     ),
                     end="",
                 )
