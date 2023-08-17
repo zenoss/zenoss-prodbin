@@ -223,7 +223,7 @@ class SshRunner(object):
             searchPath="",
             existenceTest=None,
             username=_username,
-            password=_password,
+            password=_password if _password != "" else None,
             loginTimeout=_loginTimeout,
             commandTimeout=_commandTimeout,
             keyPath=_keyPath,
