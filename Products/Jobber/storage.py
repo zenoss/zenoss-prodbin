@@ -192,7 +192,7 @@ class JobStore(Container, Iterable, Sized):
 
         return (
             self.__client.hget(key, "jobid")
-            for key in _iterkeys(self.__client)
+            for key in self.__client.scan_iter(match=_keypattern)
             if matchers == dict(zip(field_names, get_fields(key)))
         )
 
@@ -261,7 +261,7 @@ class JobStore(Container, Iterable, Sized):
         """
         return (
             self.__client.hget(key, "jobid")
-            for key in _iterkeys(self.__client)
+            for key in self.__client.scan_iter(match=_keypattern)
         )
 
     def values(self):
@@ -392,14 +392,7 @@ class JobStore(Container, Iterable, Sized):
         return self.__client.exists(_key(jobid))
 
     def __len__(self):
-        cursor = 0
-        count = 0
-        while True:
-            cursor, keys = self.__client.scan(cursor, match=_keypattern)
-            count += len(keys)
-            if cursor == 0:
-                break
-        return count
+        return sum(1 for _ in self.__client.scan_iter(match=_keypattern))
 
     def __iter__(self):
         """Return an iterator producing all the job IDs in the datastore.
@@ -423,24 +416,12 @@ def _key(jobid):
     return _keytemplate.format(jobid)
 
 
-def _iterkeys(client):
-    """Return an iterable of redis keys to job data."""
-    cursor = 0
-    while True:
-        cursor, data = client.scan(cursor, match=_keypattern)
-        for key in data:
-            yield key
-        else:
-            if cursor == 0:
-                break
-
-
 def _iteritems(client):
     """Return an iterable of (redis key, job data) pairs.
 
     Only (key, data) pairs where data is not None are returned.
     """
-    keys = _iterkeys(client)
+    keys = client.scan_iter(match=_keypattern)
     raw = ((key, client.hgetall(key)) for key in keys)
     return ((key, data) for key, data in raw if data)
 
