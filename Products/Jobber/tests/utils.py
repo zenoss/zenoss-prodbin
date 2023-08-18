@@ -48,12 +48,21 @@ class RedisLayer(object):
 
     @classmethod
     def setUp(cls):
+        pass
+
+    @classmethod
+    def tearDown(cls):
+        pass
+
+    @classmethod
+    def testSetUp(cls):
         parsed = urlparse(getRedisUrl())
         url = "redis://{0}/{1}".format(parsed.netloc, cls.db)
         cls.redis = getRedisClient(url)
 
     @classmethod
-    def tearDown(cls):
+    def testTearDown(cls):
+        cls.redis.flushdb()
         del cls.redis
 
 
