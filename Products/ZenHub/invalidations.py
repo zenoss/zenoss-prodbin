@@ -13,7 +13,7 @@ from BTrees.IIBTree import IITreeSet
 from twisted.internet import defer
 from ZODB.utils import u64
 from zope.component import adapter, getGlobalSiteManager
-from zope.interface import implements, providedBy
+from zope.interface import implementer, providedBy
 
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenRelations.PrimaryPathObjectManager import (
@@ -68,14 +68,13 @@ def handle_oid(dmd, oid):
         return betterObjectEventNotify(event)
 
 
+@implementer(IInvalidationProcessor)
 class InvalidationProcessor(object):
     """
     Registered as a global utility. Given a database hook and a list of oids,
     handles pushing updated objects to the appropriate services, which in turn
     cause collectors to be pushed updates.
     """
-
-    implements(IInvalidationProcessor)
 
     _invalidation_queue = None
     _hub = None

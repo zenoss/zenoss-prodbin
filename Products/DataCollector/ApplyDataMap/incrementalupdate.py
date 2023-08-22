@@ -9,8 +9,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-import logging
 import inspect
+import logging
 import six
 import sys
 
@@ -32,9 +32,7 @@ from .datamaputils import (
 )
 from .events import DatamapUpdateEvent, DatamapAppliedEvent
 
-log = logging.getLogger(
-    "zen.IncrementalDataMap"  # pragma: no mutate
-)
+log = logging.getLogger("zen.IncrementalDataMap")  # pragma: no mutate
 
 _NOTSET = type("NotSet", (object,), {})()
 
@@ -282,7 +280,7 @@ class IncrementalDataMap(object):
                 for objId, obj in self.relationship.objectItemsAll()
                 if objId == self._target_id
             ),
-            _NOTSET
+            _NOTSET,
         )
         if self._target is _NOTSET:
             changed = True

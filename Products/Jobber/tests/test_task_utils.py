@@ -47,7 +47,6 @@ class JobLogHasErrorsTest(TestCase):
         )
 
     def tearDown(t):
-        t.layer.redis.flushall()
         getGlobalSiteManager().unregisterUtility(
             t.store, IJobStore, name="redis"
         )

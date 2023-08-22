@@ -7,7 +7,6 @@
 #
 ##############################################################################
 
-
 from zope.interface import Interface
 
 
@@ -148,6 +147,7 @@ class IVirtualDeviceType(Interface):
     Subscription adapter. Determine the virtual machine type of a device
     if any. More than one impl can be registered per Device
     """
+
     def vmType(self):
         """
         @return the type of virtual machine or None if not a virtual

@@ -45,7 +45,7 @@ class CallHomeStatus(object):
         return client
 
     def _connected_to_redis(self):
-        """ ensures we have a connection to redis """
+        """ensures we have a connection to redis"""
         if self._redis_client is None:
             now = time.time()
             if (

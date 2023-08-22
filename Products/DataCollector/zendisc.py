@@ -16,19 +16,17 @@ Scan networks and routes looking for devices to add to the ZODB
 # ensure that the proper WmiReactor is installed before anyone else grabs
 # a reference to the wrong reactor.
 try:
-    import pysamba.twisted.reactor
+    import pysamba.twisted.reactor  # noqa F401
 except ImportError:
     pass
 
-import socket
-
 import logging
+import socket
 
 from optparse import SUPPRESS_HELP
 
-from twisted.internet import defer, reactor
+from twisted.internet import defer
 from twisted.names.error import DNSNameError
-
 
 from Products.DataCollector.zenmodeler import ZenModeler
 from Products.ZenEvents.Event import Info
@@ -40,16 +38,24 @@ from Products.ZenModel.Exceptions import NoIPAddress
 from Products.ZenStatus.nmap.util import executeNmapForIps
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenUtils.IpUtil import (
-    asyncNameLookup, isip, parse_iprange, getHostByName, ipunwrap
+    asyncNameLookup,
+    getHostByName,
+    ipunwrap,
+    isip,
+    parse_iprange,
 )
 from Products.ZenUtils.snmp import (
-    SnmpAgentDiscoverer, SnmpV1Config, SnmpV2cConfig, SnmpV3Config
+    SnmpAgentDiscoverer,
+    SnmpV1Config,
+    SnmpV2cConfig,
+    SnmpV3Config,
 )
 from Products.ZenUtils.Utils import unused
 
 unused(DiscoverService, ModelerService, JobPropertiesProxy)
 
-DEFAULT_COMMUNITIES = ['public', 'private']
+DEFAULT_COMMUNITIES = ["public", "private"]
+
 
 def _partitionPingResults(results):
     """Groups the results into a 'good' results and 'bad' results and
@@ -71,8 +77,8 @@ class ZenDisc(ZenModeler):
     Scan networks and routes looking for devices to add to the ZODB
     """
 
-    initialServices = PBDaemon.initialServices + ['DiscoverService']
-    name = 'zendisc'
+    initialServices = PBDaemon.initialServices + ["DiscoverService"]
+    name = "zendisc"
     scanned = 0
 
     def __init__(self, single=True):
@@ -92,7 +98,7 @@ class ZenDisc(ZenModeler):
         @return: a DiscoverService from zenhub
         @rtype: function
         """
-        return self.services.get('DiscoverService', FakeRemote())
+        return self.services.get("DiscoverService", FakeRemote())
 
     @defer.inlineCallbacks
     def pingMany(self, ipList):
@@ -104,7 +110,8 @@ class ZenDisc(ZenModeler):
         self.log.info("Found %s addresses", len(results))
         if self.log.isEnabledFor(logging.DEBUG):
             self.log.debug(
-                "Addresses found: %s", ", ".join(a for a in results))
+                "Addresses found: %s", ", ".join(a for a in results)
+            )
         defer.returnValue(results.values())
 
     @defer.inlineCallbacks
@@ -123,7 +130,7 @@ class ZenDisc(ZenModeler):
             if not getattr(net, "zAutoDiscover", False):
                 self.log.info(
                     "Skipping network %s because zAutoDiscover is False",
-                    net.getNetworkName()
+                    net.getNetworkName(),
                 )
                 continue
             self.log.info("Discover network '%s'", net.getNetworkName())
@@ -133,8 +140,12 @@ class ZenDisc(ZenModeler):
                 "Found %d good IPs and %d bad IPs", len(goodips), len(badips)
             )
             yield self.config().callRemote(
-                "pingStatus", net, goodips, badips,
-                self.options.resetPtr, self.options.addInactive
+                "pingStatus",
+                net,
+                goodips,
+                badips,
+                self.options.resetPtr,
+                self.options.addInactive,
             )
             ips += goodips
             self.log.info("Discovered %s active ips", len(ips))
@@ -152,7 +163,7 @@ class ZenDisc(ZenModeler):
         # in case someone uses 10.0.0.0-5,192.168.0.1-5 instead of
         # --range 10.0.0.0-5 --range 192.168.0.1-5
         if isinstance(iprange, list) and iprange[0].find(",") > -1:
-            iprange = [n.strip() for n in iprange[0].split(',')]
+            iprange = [n.strip() for n in iprange[0].split(",")]
         ips = []
         for rangelimit in iprange:
             # Parse to find ips included
@@ -160,7 +171,8 @@ class ZenDisc(ZenModeler):
         results = yield self.pingMany(ips)
         goodips, badips = _partitionPingResults(results)
         self.log.debug(
-            "Found %d good IPs and %d bad IPs", len(goodips), len(badips))
+            "Found %d good IPs and %d bad IPs", len(goodips), len(badips)
+        )
         devices = yield self.discoverDevices(goodips)
         self.log.info("Discovered %d active IPs", len(goodips))
         defer.returnValue(devices)
@@ -175,7 +187,7 @@ class ZenDisc(ZenModeler):
         """
         if not seenips:
             seenips = []
-        ips = yield self.config().callRemote('followNextHopIps', rootdev.id)
+        ips = yield self.config().callRemote("followNextHopIps", rootdev.id)
         for ip in ips:
             if ip in seenips:
                 continue
@@ -203,10 +215,16 @@ class ZenDisc(ZenModeler):
         if dev:
             devname = dev.id
         msg = "Discovered device name '%s' for ip '%s'" % (devname, ip)
-        evt = dict(device=devname, ipAddress=ip, eventKey=ip,
-                   component=comp, eventClass=Status_Snmp,
-                   summary=msg, severity=sev,
-                   agent="Discover")
+        evt = dict(
+            device=devname,
+            ipAddress=ip,
+            eventKey=ip,
+            component=comp,
+            eventClass=Status_Snmp,
+            summary=msg,
+            severity=sev,
+            agent="Discover",
+        )
         self.sendEvent(evt)
 
     @defer.inlineCallbacks
@@ -252,40 +270,60 @@ class ZenDisc(ZenModeler):
         """
         self.log.debug("Doing SNMP lookup on device %s", ip)
         snmp_conf = yield self.config().callRemote(
-            'getDeviceClassSnmpConfig', devicePath)
+            "getDeviceClassSnmpConfig", devicePath
+        )
 
         configs = []
-        ports = snmp_conf.get('zSnmpDiscoveryPorts') \
-                or [snmp_conf['zSnmpPort']]
-        timeout, retries = snmp_conf['zSnmpTimeout'], snmp_conf['zSnmpTries']
-        if snmp_conf['zSnmpVer'] == SnmpV3Config.version:
+        ports = snmp_conf.get("zSnmpDiscoveryPorts") or [
+            snmp_conf["zSnmpPort"]
+        ]
+        timeout, retries = snmp_conf["zSnmpTimeout"], snmp_conf["zSnmpTries"]
+        if snmp_conf["zSnmpVer"] == SnmpV3Config.version:
             for port in ports:
-                if snmp_conf['zSnmpPrivType'] and snmp_conf['zSnmpAuthType']:
-                    configs.append(SnmpV3Config(
-                        ip, port=port,
-                        timeout=timeout, retries=retries, weight=3,
-                        securityName=snmp_conf['zSnmpSecurityName'],
-                        authType=snmp_conf['zSnmpAuthType'],
-                        authPassphrase=snmp_conf['zSnmpAuthPassword'],
-                        privType=snmp_conf['zSnmpPrivType'],
-                        privPassphrase=snmp_conf['zSnmpPrivPassword']))
-                elif snmp_conf['zSnmpAuthType']:
-                    configs.append(SnmpV3Config(
-                        ip, port=port,
-                        timeout=timeout, retries=retries, weight=2,
-                        securityName=snmp_conf['zSnmpSecurityName'],
-                        authType=snmp_conf['zSnmpAuthType'],
-                        authPassphrase=snmp_conf['zSnmpAuthPassword']))
+                if snmp_conf["zSnmpPrivType"] and snmp_conf["zSnmpAuthType"]:
+                    configs.append(
+                        SnmpV3Config(
+                            ip,
+                            port=port,
+                            timeout=timeout,
+                            retries=retries,
+                            weight=3,
+                            securityName=snmp_conf["zSnmpSecurityName"],
+                            authType=snmp_conf["zSnmpAuthType"],
+                            authPassphrase=snmp_conf["zSnmpAuthPassword"],
+                            privType=snmp_conf["zSnmpPrivType"],
+                            privPassphrase=snmp_conf["zSnmpPrivPassword"],
+                        )
+                    )
+                elif snmp_conf["zSnmpAuthType"]:
+                    configs.append(
+                        SnmpV3Config(
+                            ip,
+                            port=port,
+                            timeout=timeout,
+                            retries=retries,
+                            weight=2,
+                            securityName=snmp_conf["zSnmpSecurityName"],
+                            authType=snmp_conf["zSnmpAuthType"],
+                            authPassphrase=snmp_conf["zSnmpAuthPassword"],
+                        )
+                    )
                 else:
-                    configs.append(SnmpV3Config(
-                        ip, port=port,
-                        timeout=timeout, retries=retries, weight=1,
-                        securityName=snmp_conf['zSnmpSecurityName']))
+                    configs.append(
+                        SnmpV3Config(
+                            ip,
+                            port=port,
+                            timeout=timeout,
+                            retries=retries,
+                            weight=1,
+                            securityName=snmp_conf["zSnmpSecurityName"],
+                        )
+                    )
         else:
             self.log.debug("Override acquired community strings")
             # Use a default set of SNMP community strings if the device
             # class has none configured.
-            communities = snmp_conf['zSnmpCommunities'] or DEFAULT_COMMUNITIES
+            communities = snmp_conf["zSnmpCommunities"] or DEFAULT_COMMUNITIES
 
             # If they exist, use this device's SNMP community strings instead
             # of the strings from the device class.
@@ -299,12 +337,26 @@ class ZenDisc(ZenModeler):
             for i, community in enumerate(communities):
                 for port in ports:
                     port = int(port)
-                    configs.append(SnmpV1Config(
-                        ip, weight=i, port=port, timeout=timeout,
-                        retries=retries, community=community))
-                    configs.append(SnmpV2cConfig(
-                        ip, weight=i + 100, port=port, timeout=timeout,
-                        retries=retries, community=community))
+                    configs.append(
+                        SnmpV1Config(
+                            ip,
+                            weight=i,
+                            port=port,
+                            timeout=timeout,
+                            retries=retries,
+                            community=community,
+                        )
+                    )
+                    configs.append(
+                        SnmpV2cConfig(
+                            ip,
+                            weight=i + 100,
+                            port=port,
+                            timeout=timeout,
+                            retries=retries,
+                            community=community,
+                        )
+                    )
 
         config = yield SnmpAgentDiscoverer().findBestConfig(configs)
 
@@ -312,8 +364,9 @@ class ZenDisc(ZenModeler):
         defer.returnValue(config)
 
     @defer.inlineCallbacks
-    def discoverDevice(self, ip, devicepath=None, prodState=None,
-                       deviceConfig=None):
+    def discoverDevice(
+        self, ip, devicepath=None, prodState=None, deviceConfig=None
+    ):
         """
         Discover the device at the given IP address.
 
@@ -334,8 +387,9 @@ class ZenDisc(ZenModeler):
         self.scanned += 1
         if self.options.maxdevices:
             if self.scanned >= self.options.maxdevices:
-                self.log.info("Limit of %d devices reached",
-                              self.options.maxdevices)
+                self.log.info(
+                    "Limit of %d devices reached", self.options.maxdevices
+                )
                 defer.returnValue(None)
 
         try:
@@ -347,17 +401,17 @@ class ZenDisc(ZenModeler):
                 locationPath=self.options.location,
                 groupPaths=self.options.groups,
                 systemPaths=self.options.systems,
-                productionState=prodState
+                productionState=prodState,
             )
 
             # If zProperties are set via a job, get them and pass them in
             if self.options.job:
                 job_props = yield self.config().callRemote(
-                    'getJobProperties', self.options.job
+                    "getJobProperties", self.options.job
                 )
                 if job_props is not None:
                     # grab zProperties from Job
-                    kw['zProperties'] = getattr(job_props, 'zProperties', {})
+                    kw["zProperties"] = getattr(job_props, "zProperties", {})
                     # grab other Device properties from jobs
                     # deviceProps = job_props.get('deviceProps', {})
                     # kw.update(deviceProps)
@@ -368,31 +422,33 @@ class ZenDisc(ZenModeler):
             # name defined there for deviceName
             if not self.options.nosnmp:
                 self.log.debug("Scanning device with address %s", ip)
-                zProps = kw.get('zProperties', {})
-                deviceSnmpCommunities = zProps.get('zSnmpCommunities', None)
+                zProps = kw.get("zProperties", {})
+                deviceSnmpCommunities = zProps.get("zSnmpCommunities", None)
                 if not deviceSnmpCommunities and deviceConfig:
                     deviceSnmpCommunities = getattr(
-                        deviceConfig, 'zSnmpCommunities', None)
+                        deviceConfig, "zSnmpCommunities", None
+                    )
 
                 snmp_config = yield self.findRemoteDeviceInfo(
                     ip, devicepath, deviceSnmpCommunities
                 )
                 if snmp_config:
                     if snmp_config.sysName:
-                        kw['deviceName'] = snmp_config.sysName
+                        kw["deviceName"] = snmp_config.sysName
                     if snmp_config.version:
-                        kw['zSnmpVer'] = snmp_config.version
+                        kw["zSnmpVer"] = snmp_config.version
                     if snmp_config.port:
-                        kw['zSnmpPort'] = snmp_config.port
+                        kw["zSnmpPort"] = snmp_config.port
                     if snmp_config.community:
-                        kw['zSnmpCommunity'] = snmp_config.community
+                        kw["zSnmpCommunity"] = snmp_config.community
 
                 # Since we did not find any snmp info and we are in
                 # strict discovery mode, do not create a device
                 elif self.options.zSnmpStrictDiscovery:
                     self.log.info(
                         "zSnmpStrictDiscovery is True. "
-                        "Not creating device for %s.", ip
+                        "Not creating device for %s.",
+                        ip,
                     )
                     defer.returnValue(None)
 
@@ -405,12 +461,12 @@ class ZenDisc(ZenModeler):
             #        If we are discovering a single device and a name is
             #        passed in instead of an IP, use the passed-in name.
             #        Otherwise, do a dns lookup on the ip.
-            if self.options.zPreferSnmpNaming and not isip(kw['deviceName']):
+            if self.options.zPreferSnmpNaming and not isip(kw["deviceName"]):
                 # In this case, we want to keep kw['deviceName'] as-is,
                 # because it is what we got from snmp
                 pass
             elif self.options.device and not isip(self.options.device):
-                kw['deviceName'] = self.options.device
+                kw["deviceName"] = self.options.device
             else:
                 # An IP was passed in so we do a reverse lookup on it to get
                 # deviceName
@@ -427,7 +483,7 @@ class ZenDisc(ZenModeler):
             result = None
             try:
                 result = yield self.config().callRemote(
-                    'createDevice', ipunwrap(ip), force=forceDiscovery, **kw
+                    "createDevice", ipunwrap(ip), force=forceDiscovery, **kw
                 )
             except Exception as ex:
                 raise ZentinelException(ex)
@@ -447,15 +503,17 @@ class ZenDisc(ZenModeler):
                 # if we shouldn't remodel skip the device by returning
                 # at the end of this block
                 if not self.options.remodel:
-                    self.log.info("Found IP '%s' on device '%s';"
-                                  " skipping discovery", ip, dev.id)
+                    self.log.info(
+                        "Found IP '%s' on device '%s';" " skipping discovery",
+                        ip,
+                        dev.id,
+                    )
                     if self.options.device:
                         self.setExitCode(3)
                     defer.returnValue(dev)
                 else:
                     # we continue on to model the device.
-                    self.log.info("IP '%s' on device '%s' remodel",
-                                  ip, dev.id)
+                    self.log.info("IP '%s' on device '%s' remodel", ip, dev.id)
             self.sendDiscoveredEvent(ip, dev)
 
             # the device that we found/created or that should be remodeled
@@ -463,21 +521,23 @@ class ZenDisc(ZenModeler):
             if not self.options.nosnmp:
                 self.discovered.append(dev.id)
 
-            yield self.config().callRemote('succeedDiscovery', dev.id)
+            yield self.config().callRemote("succeedDiscovery", dev.id)
             defer.returnValue(dev)
         except ZentinelException as e:
             self.log.exception(e)
             if self.options.snmpMissing:
-                self.sendEvent(dict(
-                    device=ip,
-                    component=ip,
-                    ipAddress=ip,
-                    eventKey=ip,
-                    eventClass=Status_Snmp,
-                    summary=str(e),
-                    severity=Info,
-                    agent="Discover"
-                ))
+                self.sendEvent(
+                    dict(
+                        device=ip,
+                        component=ip,
+                        ipAddress=ip,
+                        eventKey=ip,
+                        eventClass=Status_Snmp,
+                        summary=str(e),
+                        severity=Info,
+                        agent="Discover",
+                    )
+                )
         except Exception as e:
             self.log.exception("Failed device discovery for '%s'", ip)
         finally:
@@ -499,12 +559,12 @@ class ZenDisc(ZenModeler):
             network = [network]
         # in case someone uses 10.0.0.0,192.168.0.1 instead of
         # --net 10.0.0.0 --net 192.168.0.1
-        if isinstance(network, (list, tuple)) and ',' in network[0]:
-            network = [n.strip() for n in network[0].split(',')]
+        if isinstance(network, (list, tuple)) and "," in network[0]:
+            network = [n.strip() for n in network[0].split(",")]
         count = 0
         devices = []
         if not network:
-            network = yield self.config().callRemote('getDefaultNetworks')
+            network = yield self.config().callRemote("getDefaultNetworks")
 
         if not network:
             self.log.warning("No networks configured")
@@ -513,7 +573,8 @@ class ZenDisc(ZenModeler):
         for net in network:
             try:
                 nets = yield self.config().callRemote(
-                    'getNetworks', net, self.options.subnets)
+                    "getNetworks", net, self.options.subnets
+                )
                 if not nets:
                     self.log.warning("No networks found for %s", net)
                     continue
@@ -553,7 +614,7 @@ class ZenDisc(ZenModeler):
                 raise NoIPAddress("No IP found for name %s" % deviceName)
         self.log.info("Found IP %s for device %s", ip, deviceName)
         configs = yield self.config().callRemote(
-            'getDeviceConfig', [deviceName]
+            "getDeviceConfig", [deviceName]
         )
         config = configs[0] if configs else None
         if not config or config.temp_device or self.options.remodel:
@@ -561,7 +622,7 @@ class ZenDisc(ZenModeler):
                 ip,
                 devicepath=self.options.deviceclass,
                 prodState=self.options.productionState,
-                deviceConfig=config
+                deviceConfig=config,
             )
             if device:
                 self.log.info("Discovered device %s.", device.id)
@@ -584,12 +645,13 @@ class ZenDisc(ZenModeler):
             self.log.debug("My IP address = %s", myip)
         except (socket.error, DNSNameError):
             raise SystemExit("Failed lookup of my IP for name %s" % myname)
-        configs = yield self.config().callRemote('getDeviceConfig', [myname])
+        configs = yield self.config().callRemote("getDeviceConfig", [myname])
         me = configs[0] if configs else None
         if not me or self.options.remodel:
             me = yield self.discoverDevice(
-                myip, devicepath=self.options.deviceclass,
-                prodState=self.options.productionState
+                myip,
+                devicepath=self.options.deviceclass,
+                prodState=self.options.productionState,
             )
         if not me:
             raise SystemExit("SNMP discover of self '%s' failed" % myname)
@@ -605,7 +667,7 @@ class ZenDisc(ZenModeler):
             defer.returnValue(None)
 
         ips = yield self.discoverIps(
-            (yield self.config().callRemote('getSubNetworks'))
+            (yield self.config().callRemote("getSubNetworks"))
         )
         if not self.options.nosnmp:
             defer.returnValue((yield self.discoverDevices(ips)))
@@ -653,73 +715,157 @@ class ZenDisc(ZenModeler):
         Command-line option builder for optparse
         """
         ZenModeler.buildOptions(self)
-        self.parser.add_option('--net', dest='net', action="append",
-            help="Discover all device on this network")
-        self.parser.add_option('--range', dest='range', action='append',
-            help="Discover all IPs in this range")
-        self.parser.add_option('--deviceclass', dest='deviceclass',
+        self.parser.add_option(
+            "--net",
+            dest="net",
+            action="append",
+            help="Discover all device on this network",
+        )
+        self.parser.add_option(
+            "--range",
+            dest="range",
+            action="append",
+            help="Discover all IPs in this range",
+        )
+        self.parser.add_option(
+            "--deviceclass",
+            dest="deviceclass",
             default="/Discovered",
-            help="Default device class for discovered devices")
-        self.parser.add_option('--prod_state', dest='productionState',
-            default=1000, type='int',
-            help="Initial production state for discovered devices")
-        self.parser.add_option('--prod-state', dest='productionState',
-            default=1000, type='int',
-            help="Initial production state for discovered devices")
-        self.parser.add_option('--location', dest='location',
+            help="Default device class for discovered devices",
+        )
+        self.parser.add_option(
+            "--prod_state",
+            dest="productionState",
+            default=1000,
+            type="int",
+            help="Initial production state for discovered devices",
+        )
+        self.parser.add_option(
+            "--prod-state",
+            dest="productionState",
+            default=1000,
+            type="int",
+            help="Initial production state for discovered devices",
+        )
+        self.parser.add_option(
+            "--location",
+            dest="location",
             default=None,
-            help="Initial location for discovered devices")
-        self.parser.add_option('--group', dest='groups', action="append",
-            help="Group to which discovered devices should be added")
-        self.parser.add_option('--system', dest='systems', action="append",
-            help="System to which discovered devices should be added")
-        self.parser.add_option('--remodel', dest='remodel',
-            action="store_true", default=False,
-            help="Remodel existing objects")
-        self.parser.add_option('--routers', dest='routersonly',
-            action="store_true", default=False,
-            help="Only discover routers")
-        self.parser.add_option('--tries', dest='tries', default=1, type="int",
-            help="How many ping tries")
-        self.parser.add_option('--timeout', dest='timeout',
-            default=2, type="float",
-            help="ping timeout in seconds")
-        self.parser.add_option('--chunk', dest='chunkSize',
-            default=10, type="int",
-            help="Number of in-flight ping packets")
-        self.parser.add_option('--snmp-missing', dest='snmpMissing',
-            action="store_true", default=False,
-            help="Send an event if SNMP is not found on the device")
-        self.parser.add_option('--add-inactive', dest='addInactive',
-            action="store_true", default=False,
-            help="Add all IPs found, even if they are unresponsive")
-        self.parser.add_option('--reset-ptr', dest='resetPtr',
-            action="store_true", default=False,
-            help="Reset all IP PTR records")
-        self.parser.add_option('--no-snmp', dest='nosnmp',
-            action="store_true", default=False,
-            help="Skip SNMP discovery on found IP addresses")
-        self.parser.add_option('--subnets', dest='subnets',
-            action="store_true", default=False,
-            help="Recurse into subnets for discovery")
-        self.parser.add_option('--walk', dest='walk', action='store_true',
+            help="Initial location for discovered devices",
+        )
+        self.parser.add_option(
+            "--group",
+            dest="groups",
+            action="append",
+            help="Group to which discovered devices should be added",
+        )
+        self.parser.add_option(
+            "--system",
+            dest="systems",
+            action="append",
+            help="System to which discovered devices should be added",
+        )
+        self.parser.add_option(
+            "--remodel",
+            dest="remodel",
+            action="store_true",
             default=False,
-            help="Walk the route tree, performing discovery on all networks")
-        self.parser.add_option('--max-devices', dest='maxdevices',
+            help="Remodel existing objects",
+        )
+        self.parser.add_option(
+            "--routers",
+            dest="routersonly",
+            action="store_true",
+            default=False,
+            help="Only discover routers",
+        )
+        self.parser.add_option(
+            "--tries",
+            dest="tries",
+            default=1,
+            type="int",
+            help="How many ping tries",
+        )
+        self.parser.add_option(
+            "--timeout",
+            dest="timeout",
+            default=2,
+            type="float",
+            help="ping timeout in seconds",
+        )
+        self.parser.add_option(
+            "--chunk",
+            dest="chunkSize",
+            default=10,
+            type="int",
+            help="Number of in-flight ping packets",
+        )
+        self.parser.add_option(
+            "--snmp-missing",
+            dest="snmpMissing",
+            action="store_true",
+            default=False,
+            help="Send an event if SNMP is not found on the device",
+        )
+        self.parser.add_option(
+            "--add-inactive",
+            dest="addInactive",
+            action="store_true",
+            default=False,
+            help="Add all IPs found, even if they are unresponsive",
+        )
+        self.parser.add_option(
+            "--reset-ptr",
+            dest="resetPtr",
+            action="store_true",
+            default=False,
+            help="Reset all IP PTR records",
+        )
+        self.parser.add_option(
+            "--no-snmp",
+            dest="nosnmp",
+            action="store_true",
+            default=False,
+            help="Skip SNMP discovery on found IP addresses",
+        )
+        self.parser.add_option(
+            "--subnets",
+            dest="subnets",
+            action="store_true",
+            default=False,
+            help="Recurse into subnets for discovery",
+        )
+        self.parser.add_option(
+            "--walk",
+            dest="walk",
+            action="store_true",
+            default=False,
+            help="Walk the route tree, performing discovery on all networks",
+        )
+        self.parser.add_option(
+            "--max-devices",
+            dest="maxdevices",
             default=0,
-            type='int',
-            help="Collect a maximum number of devices. Default is no limit.")
-        self.parser.add_option('--snmp-strict-discovery',
-            dest='zSnmpStrictDiscovery',
-            action="store_true", default=False,
-            help="Only add devices that can be modeled via SNMP.")
-        self.parser.add_option('--prefer-snmp-naming',
-            dest='zPreferSnmpNaming',
-            action="store_true", default=False,
-            help="Prefer SNMP name to DNS name when modeling via SNMP.")
+            type="int",
+            help="Collect a maximum number of devices. Default is no limit.",
+        )
+        self.parser.add_option(
+            "--snmp-strict-discovery",
+            dest="zSnmpStrictDiscovery",
+            action="store_true",
+            default=False,
+            help="Only add devices that can be modeled via SNMP.",
+        )
+        self.parser.add_option(
+            "--prefer-snmp-naming",
+            dest="zPreferSnmpNaming",
+            action="store_true",
+            default=False,
+            help="Prefer SNMP name to DNS name when modeling via SNMP.",
+        )
         # --job: a development-only option that jobs will use to communicate
         # their existence to zendisc. Not for users, so help is suppressed.
-        self.parser.add_option('--job', dest='job', help=SUPPRESS_HELP)
+        self.parser.add_option("--job", dest="job", help=SUPPRESS_HELP)
 
 
 if __name__ == "__main__":

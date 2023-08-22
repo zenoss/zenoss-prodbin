@@ -7,12 +7,16 @@
 #
 ##############################################################################
 
+import logging
 
 from zope.interface import implements
+
 from Products.ZenCallHome import IVersionHistoryCallHomeCollector
-from Products.ZenCallHome.callhome import (REPORT_DATE_KEY,
-                                           VERSION_HISTORIES_KEY)
-import logging
+from Products.ZenCallHome.callhome import (
+    REPORT_DATE_KEY,
+    VERSION_HISTORIES_KEY,
+)
+
 log = logging.getLogger("zen.callhome")
 
 VERSION_START_KEY = "Version Start"
@@ -24,6 +28,7 @@ class VersionHistoryCallHomeCollector(object):
     provides some basic functionality if you
     provide the code to get the current version
     """
+
     implements(IVersionHistoryCallHomeCollector)
 
     def __init__(self, versionedEntity):
@@ -62,13 +67,15 @@ class KeyedVersionHistoryCallHomeCollector(VersionHistoryCallHomeCollector):
     """
 
     def __init__(self, versionedEntity, historyRecordKeys=[]):
-        super(KeyedVersionHistoryCallHomeCollector,
-              self).__init__(versionedEntity)
+        super(KeyedVersionHistoryCallHomeCollector, self).__init__(
+            versionedEntity
+        )
         self._historyRecordKeys = historyRecordKeys
 
     def createVersionHistoryRecord(self, dmd, callHomeData):
-        record = super(KeyedVersionHistoryCallHomeCollector,
-                       self).createVersionHistoryRecord(dmd, callHomeData)
+        record = super(
+            KeyedVersionHistoryCallHomeCollector, self
+        ).createVersionHistoryRecord(dmd, callHomeData)
         if self._historyRecordKeys:
             for hrKey, targetKey in self._historyRecordKeys.iteritems():
                 value = self.getKeyedValue(hrKey, callHomeData)
@@ -77,7 +84,7 @@ class KeyedVersionHistoryCallHomeCollector(VersionHistoryCallHomeCollector):
         return record
 
     def getKeyedValue(self, hrKey, callHomeData):
-        key_list = hrKey.split('.')
+        key_list = hrKey.split(".")
         currObj = callHomeData
         for key in key_list:
             currObj = currObj.get(key, None)
@@ -87,16 +94,18 @@ class KeyedVersionHistoryCallHomeCollector(VersionHistoryCallHomeCollector):
 
 
 class ZenossVersionHistoryCallHomeCollector(
-          KeyedVersionHistoryCallHomeCollector):
-    """
-    """
+    KeyedVersionHistoryCallHomeCollector
+):
+    """ """
+
     ZENOSS_VERSION_HISTORY_KEY = "Zenoss"
     ZENOSS_VERSION_HISTORY_RECORD_KEYS = {}
 
     def __init__(self):
         super(ZenossVersionHistoryCallHomeCollector, self).__init__(
             self.ZENOSS_VERSION_HISTORY_KEY,
-            self.ZENOSS_VERSION_HISTORY_RECORD_KEYS)
+            self.ZENOSS_VERSION_HISTORY_RECORD_KEYS,
+        )
 
     def getCurrentVersion(self, dmd, callHomeData):
-        return self.getKeyedValue('Zenoss App Data.Zenoss', callHomeData)
+        return self.getKeyedValue("Zenoss App Data.Zenoss", callHomeData)

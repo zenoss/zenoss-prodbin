@@ -24,7 +24,7 @@ import sys
 
 from twisted.internet import protocol
 
-from BaseClient import BaseClient
+from .BaseClient import BaseClient
 
 log = logging.getLogger("zen.CmdClient")
 
@@ -230,7 +230,9 @@ def buildOptions(parser=None, usage=None):
     if not parser:
         from optparse import OptionParser
 
-        parser = OptionParser(usage=usage,)
+        parser = OptionParser(
+            usage=usage,
+        )
 
     parser.add_option(
         "-u",

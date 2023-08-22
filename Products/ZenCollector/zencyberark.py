@@ -93,7 +93,10 @@ def parse_args():
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
-        "-d", "--debug", action="store_true", default=False,
+        "-d",
+        "--debug",
+        action="store_true",
+        default=False,
     )
     subparsers = parser.add_subparsers(help="sub-command help")
 

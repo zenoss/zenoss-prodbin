@@ -1,42 +1,45 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
+from __future__ import absolute_import, print_function
 
 import logging
-log = logging.getLogger('zen.GlobalConfig')
-import sys
-from optparse import OptionValueError, BadOptionError
-import re
 import os.path
+import re
+import sys
 
-from Products.ZenUtils.Utils import zenPath, getAllParserOptionsGen
-from Products.ZenUtils.config import Config, ConfigLoader
+from optparse import OptionValueError, BadOptionError
 
+from .config import Config, ConfigLoader
+from .Utils import zenPath, getAllParserOptionsGen
 
-CONFIG_FILE = zenPath('etc', 'global.conf')
+log = logging.getLogger("zen.GlobalConfig")
+CONFIG_FILE = zenPath("etc", "global.conf")
+_KEYVALUE = re.compile(
+    r"^[\s ]*(?P<key>[a-z_]+[a-z0-9_-]*)[\s]+(?P<value>[^\s#]+)", re.IGNORECASE
+).search
 
-
-_KEYVALUE = re.compile("^[\s ]*(?P<key>[a-z_]+[a-z0-9_-]*)[\s]+(?P<value>[^\s#]+)", re.IGNORECASE).search
 
 def globalConfToDict():
     settings = {}
-    globalConfFile = zenPath('etc','global.conf')
+    globalConfFile = zenPath("etc", "global.conf")
     if os.path.exists(globalConfFile):
-        with open(globalConfFile, 'r') as f:
+        with open(globalConfFile, "r") as f:
             for line in f.xreadlines():
                 match = _KEYVALUE(line)
                 if match:
-                    value = match.group('value')
+                    value = match.group("value")
                     if value.isdigit():
                         value = int(value)
-                    settings[match.group('key')] = value
+                    settings[match.group("key")] = value
     return settings
+
 
 class GlobalConfig(Config):
     """
@@ -46,18 +49,22 @@ class GlobalConfig(Config):
 
     @todo Add validation for expected keys and values
     """
-    pass
+
 
 _GLOBAL_CONFIG = ConfigLoader(CONFIG_FILE, GlobalConfig)
+
+
 def getGlobalConfiguration():
     return _GLOBAL_CONFIG()
 
 
 def flagToConfig(flag):
     return flag.trim().lstrip("-").replace("-", "_")
-    
+
+
 def configToFlag(option):
     return "--" + option.strip().replace("_", "-")
+
 
 def _convertConfigLinesToArguments(parser, lines):
     """
@@ -73,38 +80,49 @@ def _convertConfigLinesToArguments(parser, lines):
 
     @parameter parser: OptionParser object containing configuration options.
     @type parser: OptionParser
-    @parameter lines: List of dictionary object parsed from a configuration file.
-                      Each option is expected to have 'type', 'key', 'value' entries.
+    @parameter lines: List of dictionary object parsed from a configuration
+        file. Each option is expected to have 'type', 'key', 'value' entries.
     @type lines: list of dictionaries.
-    @return: List of command-line arguments corresponding to the configuration file.
+    @return: List of command-line arguments corresponding to the
+        configuration file.
     @rtype: list of strings
     """
     # valid key
     #     an option's string without the leading "--"
     #     can differ from an option's destination
-    validOpts = set((opt.get_opt_string() for opt in getAllParserOptionsGen(parser)))
-            
+    validOpts = set(
+        (opt.get_opt_string() for opt in getAllParserOptionsGen(parser))
+    )
+
     args = []
     for line in lines:
-        if line.get('type', None) != 'option':
+        if line.get("type", None) != "option":
             continue
-        optstring = configToFlag(line['key'])
+        optstring = configToFlag(line["key"])
         if optstring in validOpts:
             option = parser.get_option(optstring)
-            value = line.get('value', '')
-            boolean_value = value.lower() in ('true','yes','1') if value else False
-            if option.action == 'store_true':
+            value = line.get("value", "")
+            boolean_value = (
+                value.lower() in ("true", "yes", "1") if value else False
+            )
+            if option.action == "store_true":
                 if boolean_value:
                     args.append(optstring)
-            elif option.action == 'store_false':
+            elif option.action == "store_false":
                 if not boolean_value:
                     args.append(optstring)
             else:
-                args.extend([optstring, line['value'],])
+                args.extend(
+                    [
+                        optstring,
+                        line["value"],
+                    ]
+                )
         else:
             log.debug("Unknown option: %s", optstring)
 
     return args
+
 
 class _GlobalConfParserAdapter(object):
     def __init__(self, parser):
@@ -126,8 +144,9 @@ class _GlobalConfParserAdapter(object):
             args = _convertConfigLinesToArguments(self.parser, lines)
             try:
                 self.parser._process_args([], args, options)
-            except (BadOptionError, OptionValueError) as err:
-                # Ignore it, we only care about our own options as defined in the parser
+            except (BadOptionError, OptionValueError):
+                # Ignore it, we only care about our own options as defined
+                # in the parser.
                 pass
         return options.__dict__
 
@@ -143,24 +162,42 @@ class _GlobalConfParserAdapter(object):
         try:
             with open(filename) as file:
                 for line in file:
-                    if line.lstrip().startswith('#') or line.strip() == '':
-                        lines.append(dict(type='comment', line=line))
+                    if line.lstrip().startswith("#") or line.strip() == "":
+                        lines.append(dict(type="comment", line=line))
                     else:
                         try:
                             key, value = line.strip().split(None, 1)
                         except ValueError:
-                            lines.append(dict(type='option', line=line, key=line.strip(), value=None, option=None))
+                            lines.append(
+                                dict(
+                                    type="option",
+                                    line=line,
+                                    key=line.strip(),
+                                    value=None,
+                                    option=None,
+                                )
+                            )
                         else:
-                            option = self.parser.get_option('--%s' % key)
-                            lines.append(dict(type='option', line=line, key=key, value=value, option=option))
+                            option = self.parser.get_option("--%s" % key)
+                            lines.append(
+                                dict(
+                                    type="option",
+                                    line=line,
+                                    key=key,
+                                    value=value,
+                                    option=option,
+                                )
+                            )
         except IOError as e:
-            errorMessage = 'WARN: unable to read config file {filename} \
-                -- skipping. ({exceptionName}: {exception})'.format(
-                filename=filename,
-                exceptionName=e.__class__.__name__,
-                exception=e
+            errorMessage = (
+                "WARN: unable to read config file {filename} -- skipping. "
+                "({exceptionName}: {exception})".format(
+                    filename=filename,
+                    exceptionName=e.__class__.__name__,
+                    exception=e,
+                )
             )
-            print >>sys.stderr, errorMessage
+            print(errorMessage, file=sys.stderr)
             return []
 
         return lines

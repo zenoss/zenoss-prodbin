@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from celery import states
 from zope.interface import Interface
@@ -19,60 +19,64 @@ class IJobRecord(Interface):
     """ """
 
     jobid = TextLine(
-        title=u"Job ID",
-        description=u"The Job's unique identifier",
+        title="Job ID",
+        description="The Job's unique identifier",
     )
 
     name = TextLine(
-        title=u"Name",
-        description=u"The full class name of the job",
+        title="Name",
+        description="The full class name of the job",
     )
 
     summary = TextLine(
-        title=u"Summary",
-        description=u"A brief and general summary of the job's function",
+        title="Summary",
+        description="A brief and general summary of the job's function",
     )
 
     description = TextLine(
-        title=u"Description",
-        description=u"A description of what this job will do",
+        title="Description",
+        description="A description of what this job will do",
     )
 
     userid = TextLine(
-        title=u"User ID",
-        description=u"The user that created the job",
+        title="User ID",
+        description="The user that created the job",
     )
 
     logfile = TextLine(
-        title=u"Logfile",
-        description=u"Path to this job's log file.",
+        title="Logfile",
+        description="Path to this job's log file.",
     )
 
     status = Choice(
-        title=u"Status",
-        description=u"The current status of the job",
+        title="Status",
+        description="The current status of the job",
         vocabulary=SimpleVocabulary.fromValues(states.ALL_STATES),
     )
 
     created = Datetime(
-        title=u"Created", description=u"When the job was created"
+        title="Created",
+        description="When the job was created",
     )
 
     started = Datetime(
-        title=u"Started", description=u"When the job began executing"
+        title="Started",
+        description="When the job began executing",
     )
 
     finished = Datetime(
-        title=u"Finished", description=u"When the job finished executing"
+        title="Finished",
+        description="When the job finished executing",
     )
 
     duration = Timedelta(
-        title=u"Duration", description=u"How long the job has run"
+        title="Duration",
+        description="How long the job has run",
     )
 
     complete = Bool(
-        title=u"Complete",
-        description=u"True if the job has finished running",
+        title="Complete",
+        description="True if the job has finished running",
     )
 
     def abort():

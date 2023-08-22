@@ -582,7 +582,7 @@ class PerformanceConf(Monitor, StatusColor):
         cmd = [zm]
         deviceName = self._escapeParentheses(deviceName)
         options = [
-            'run', '--now', '-d', '"{}"'.format(deviceName), '--monitor', performanceMonitor,
+            'run', '--now', '-d', deviceName, '--monitor', performanceMonitor,
             '--collect={}'.format(collectPlugins)
         ]
         cmd.extend(options)

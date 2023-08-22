@@ -441,7 +441,7 @@ class Scheduler(object):
         if task_name in self._loopingCalls:
             loopingCall = self._loopingCalls[task_name]
             if not loopingCall.running:
-                if configId in self._tasksToCleanup:
+                if self._tasksToCleanup.has_key(configId):  # noqa W601
                     delay = random.randint(0, int(interval / 2))
                     delayed = delayed + delay
                     if attempts > Scheduler.ATTEMPTS:

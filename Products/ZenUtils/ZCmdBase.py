@@ -1,50 +1,49 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-__doc__="""ZenDaemon
-
-$Id: ZC.py,v 1.9 2004/02/16 17:19:31 edahl Exp $"""
-
-__version__ = "$Revision: 1.9 $"[11:-2]
+from __future__ import absolute_import, print_function
 
 import time
-from collections import Iterator
 
+from collections import Iterator
 from threading import Lock
+
+from AccessControl.SecurityManagement import (
+    newSecurityManager,
+    noSecurityManager,
+)
 from twisted.internet import defer
 from zope.component import getUtility
 
-from AccessControl.SecurityManagement import newSecurityManager
-from AccessControl.SecurityManagement import noSecurityManager
-
-from Products.ZenUtils.Utils import getObjByPath, zenPath
-from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
-
-from Exceptions import ZentinelException
-from ZenDaemon import ZenDaemon
-
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
-from Products.ZenUtils.mysql import MySQLdb
-from Products.ZenUtils.Utils import wait
 
-defaultCacheDir = zenPath('var')
+from .Exceptions import ZentinelException
+from .mysql import MySQLdb
+from .Utils import getObjByPath, wait, zenPath
+from .ZenDaemon import ZenDaemon
+from .ZodbFactory import IZodbFactoryLookup
 
-class DataRootError(Exception):pass
+defaultCacheDir = zenPath("var")
 
-def login(context, name='admin', userfolder=None):
+
+class DataRootError(Exception):
+    pass
+
+
+def login(context, name="admin", userfolder=None):
     """Logs in."""
     if userfolder is None:
         userfolder = context.getPhysicalRoot().acl_users
     user = userfolder.getUserById(name)
-    if user is None: return
-    if not hasattr(user, 'aq_base'):
+    if user is None:
+        return
+    if not hasattr(user, "aq_base"):
         user = user.__of__(userfolder)
     newSecurityManager(None, user)
     return user
@@ -86,6 +85,7 @@ class _RetryIterator(Iterator):
 
 
 class ZCmdBase(ZenDaemon):
+    """Base class for daemons that need ZODB access."""
 
     def __init__(self, noopts=0, app=None, keeproot=False):
         ZenDaemon.__init__(self, noopts, keeproot)
@@ -102,52 +102,47 @@ class ZCmdBase(ZenDaemon):
 
     def zodbConnect(self):
         connectionFactory = getUtility(IZodbFactoryLookup).get()
-        self.db, self.storage = connectionFactory.getConnection(**self.options.__dict__)
+        self.db, self.storage = connectionFactory.getConnection(
+            **self.options.__dict__
+        )
 
-    def login(self, name='admin', userfolder=None):
+    def login(self, name="admin", userfolder=None):
         """Logs in."""
         login(self.dmd, name, userfolder)
-
 
     def logout(self):
         """Logs out."""
         noSecurityManager()
 
-
     def getConnection(self):
-        """Return a wrapped app connection from the connection pool.
-        """
+        """Return a wrapped app connection from the connection pool."""
         if not self.db:
             raise ZentinelException(
-                "running inside zope can't open connections.")
+                "running inside zope can't open connections."
+            )
         with self.poollock:
-            connection=self.db.open()
-            root=connection.root()
-            app=root['Application']
+            connection = self.db.open()
+            root = connection.root()
+            app = root["Application"]
             app = self.getContext(app)
             app._p_jar.sync()
             return app
 
-
     def closeAll(self):
-        """Close all connections in both free an inuse pools.
-        """
+        """Close all connections in both free an inuse pools."""
         self.db.close()
 
-
     def opendb(self):
-        if self.app: return 
-        self.connection=self.db.open()
-        root=self.connection.root()
-        app=root['Application']
+        if self.app:
+            return
+        self.connection = self.db.open()
+        root = self.connection.root()
+        app = root["Application"]
         self.app = self.getContext(app)
-
 
     @defer.inlineCallbacks
     def async_syncdb(self):
-        """
-        Asynchronous version of the syncdb method.
-        """
+        """Asynchronous version of the syncdb method."""
         last_exc = None
         for delay in _RetryIterator():
             try:
@@ -156,7 +151,8 @@ class ZCmdBase(ZenDaemon):
                 last_exc = str(exc)
                 self.log.warn(
                     "Connection to ZODB interrupted, will try "
-                    "to reconnect again in %.3f seconds.", delay
+                    "to reconnect again in %.3f seconds.",
+                    delay,
                 )
                 # yield back to reactor for 'delay' seconds
                 yield wait(delay)
@@ -170,18 +166,20 @@ class ZCmdBase(ZenDaemon):
                 "Timed out trying to reconnect to ZODB: %s", last_exc
             )
 
-
     def syncdb(self):
         MAX_RETRY_TIME_MINUTES = 10
         MAX_RETRY_DELAY_SECONDS = 30
 
         retryStartedAt = None
+
         def timedOut():
             if retryStartedAt is None:
                 return False
             else:
-                return retryStartedAt + MAX_RETRY_TIME_MINUTES * 60 < time.time()
-        
+                return (
+                    retryStartedAt + MAX_RETRY_TIME_MINUTES * 60 < time.time()
+                )
+
         retryMultiplier = 1.618
         retryDelay = 1
 
@@ -196,17 +194,21 @@ class ZCmdBase(ZenDaemon):
                     self.log.exception(e)
                     keepTrying = False
                     break
-    
+
                 if retryDelay * retryMultiplier >= MAX_RETRY_DELAY_SECONDS:
                     retryDelay = MAX_RETRY_DELAY_SECONDS
                 else:
                     retryDelay *= retryMultiplier
 
-                self.log.warn("Connection to ZODB interrupted, will try to reconnect again in %d seconds.", retryDelay)
-                
+                self.log.warn(
+                    "Connection to ZODB interrupted, will try to "
+                    "reconnect again in %d seconds.",
+                    retryDelay,
+                )
+
                 if retryStartedAt is None:
                     retryStartedAt = time.time()
-                
+
                 try:
                     time.sleep(retryDelay)
                 except Exception as e:
@@ -214,49 +216,46 @@ class ZCmdBase(ZenDaemon):
 
             else:
                 keepTrying = False
-	
 
     def closedb(self):
         self.connection.close()
-        #self.db.close()
+        # self.db.close()
         self.app = None
         self.dataroot = None
         self.dmd = None
 
-
     def getDataRoot(self):
-        if not self.app: self.opendb()
+        if not self.app:
+            self.opendb()
         if not self.dataroot:
             self.dataroot = getObjByPath(self.app, self.options.dataroot)
             self.dmd = self.dataroot
-
 
     def getContext(self, app):
         from ZPublisher.HTTPRequest import HTTPRequest
         from ZPublisher.HTTPResponse import HTTPResponse
         from ZPublisher.BaseRequest import RequestContainer
+
         resp = HTTPResponse(stdout=None)
         env = {
-            'SERVER_NAME':'localhost',
-            'SERVER_PORT':'8080',
-            'REQUEST_METHOD':'GET'
-            }
+            "SERVER_NAME": "localhost",
+            "SERVER_PORT": "8080",
+            "REQUEST_METHOD": "GET",
+        }
         req = HTTPRequest(None, env, resp)
-        return app.__of__(RequestContainer(REQUEST = req))
-
+        return app.__of__(RequestContainer(REQUEST=req))
 
     def getDmdObj(self, path):
-        """return an object based on a path starting from the dmd"""
-        return getObjByPath(self.app, self.options.dataroot+path)
-
+        """Return an object based on a path starting from the dmd."""
+        return getObjByPath(self.app, self.options.dataroot + path)
 
     def findDevice(self, name):
-        """return a device based on its FQDN"""
+        """Return a device based on its FQDN."""
         devices = self.dataroot.getDmdRoot("Devices")
         return devices.findDevice(name)
 
     def buildOptions(self):
-        """basic options setup sub classes can add more options here"""
+        """Basic options setup sub classes can add more options here."""
         ZenDaemon.buildOptions(self)
 
         connectionFactory = getUtility(IZodbFactoryLookup).get()

@@ -7,17 +7,15 @@
 #
 ##############################################################################
 
-
 from datetime import datetime, timedelta
-
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenCallHome.callhome import REPORT_DATE_KEY
 from Products.ZenCallHome.VersionHistory import (
-        VERSION_START_KEY,
-        VERSION_HISTORIES_KEY,
-        KeyedVersionHistoryCallHomeCollector)
-
+    VERSION_START_KEY,
+    VERSION_HISTORIES_KEY,
+    KeyedVersionHistoryCallHomeCollector,
+)
 
 TEST_ENTITY = "testentity"
 
@@ -34,8 +32,8 @@ TEST_VERSION_KEY = "app.testversion"
 TEST_VERSION_VALUE_1 = "versionstring_1"
 TEST_VERSION_VALUE_2 = "versionstring_2"
 REPORT_DATE_VALUE_1 = datetime.utcnow()
-REPORT_DATE_VALUE_2 = (REPORT_DATE_VALUE_1 + timedelta(days=1))
-REPORT_DATE_VALUE_3 = (REPORT_DATE_VALUE_2 + timedelta(days=1))
+REPORT_DATE_VALUE_2 = REPORT_DATE_VALUE_1 + timedelta(days=1)
+REPORT_DATE_VALUE_3 = REPORT_DATE_VALUE_2 + timedelta(days=1)
 REPORT_DATE_VALUE_1 = REPORT_DATE_VALUE_1.isoformat()
 REPORT_DATE_VALUE_2 = REPORT_DATE_VALUE_2.isoformat()
 REPORT_DATE_VALUE_3 = REPORT_DATE_VALUE_3.isoformat()
@@ -46,30 +44,31 @@ def createTestCallHomeData():
         "histprop1": "testvalue1",
         "app": {
             "histprop2": "testvalue2",
-            "testversion": TEST_VERSION_VALUE_1
-            },
-        REPORT_DATE_KEY: REPORT_DATE_VALUE_1
-        }
+            "testversion": TEST_VERSION_VALUE_1,
+        },
+        REPORT_DATE_KEY: REPORT_DATE_VALUE_1,
+    }
+
 
 TEST_KEY_MAP = {
     HISTPROP1_KEY: PROP1_TARGET_KEY,
-    HISTPROP2_KEY: PROP2_TARGET_KEY
+    HISTPROP2_KEY: PROP2_TARGET_KEY,
 }
 
 
 class TestVersionHistoryCollector(KeyedVersionHistoryCallHomeCollector):
-    """
-    """
+    """ """
+
     def __init__(self):
-        super(TestVersionHistoryCollector, self).__init__(TEST_ENTITY,
-                                                          TEST_KEY_MAP)
+        super(TestVersionHistoryCollector, self).__init__(
+            TEST_ENTITY, TEST_KEY_MAP
+        )
 
     def getCurrentVersion(self, dmd, callHomeData):
         return self.getKeyedValue(TEST_VERSION_KEY, callHomeData)
 
 
 class testVersionHistory(BaseTestCase):
-
     def afterSetUp(self):
         super(testVersionHistory, self).afterSetUp()
         # zcml.load_config('meta.zcml', Products.ZenCallHome)
@@ -101,8 +100,9 @@ class testVersionHistory(BaseTestCase):
         self.assertTrue(TEST_VERSION_VALUE_1 in versionHistory)
         historyRecord = versionHistory[TEST_VERSION_VALUE_1]
         self.assertTrue(VERSION_START_KEY in historyRecord)
-        self.assertEquals(REPORT_DATE_VALUE_1,
-                          historyRecord[VERSION_START_KEY])
+        self.assertEquals(
+            REPORT_DATE_VALUE_1, historyRecord[VERSION_START_KEY]
+        )
         self.assertTrue(PROP1_TARGET_KEY in historyRecord)
         self.assertEquals(HISTPROP1_VALUE, historyRecord[PROP1_TARGET_KEY])
         self.assertTrue(PROP2_TARGET_KEY in historyRecord)
@@ -128,8 +128,9 @@ class testVersionHistory(BaseTestCase):
         self.assertTrue(TEST_VERSION_VALUE_1 in versionHistory)
         historyRecord = versionHistory[TEST_VERSION_VALUE_1]
         self.assertTrue(VERSION_START_KEY in historyRecord)
-        self.assertEquals(REPORT_DATE_VALUE_1,
-                          historyRecord[VERSION_START_KEY])
+        self.assertEquals(
+            REPORT_DATE_VALUE_1, historyRecord[VERSION_START_KEY]
+        )
         self.assertTrue(PROP1_TARGET_KEY in historyRecord)
         self.assertEquals(HISTPROP1_VALUE, historyRecord[PROP1_TARGET_KEY])
         self.assertTrue(PROP2_TARGET_KEY in historyRecord)
@@ -137,7 +138,7 @@ class testVersionHistory(BaseTestCase):
 
         # Update the version and report date.
         testCallHomeData[REPORT_DATE_KEY] = REPORT_DATE_VALUE_3
-        testCallHomeData['app']['testversion'] = TEST_VERSION_VALUE_2
+        testCallHomeData["app"]["testversion"] = TEST_VERSION_VALUE_2
 
         # Update the version history
         collector.addVersionHistory(self.dmd, testCallHomeData)
@@ -153,17 +154,20 @@ class testVersionHistory(BaseTestCase):
         self.assertTrue(TEST_VERSION_VALUE_2 in versionHistory)
         historyRecord = versionHistory[TEST_VERSION_VALUE_2]
         self.assertTrue(VERSION_START_KEY in historyRecord)
-        self.assertEquals(REPORT_DATE_VALUE_3,
-                          historyRecord[VERSION_START_KEY])
+        self.assertEquals(
+            REPORT_DATE_VALUE_3, historyRecord[VERSION_START_KEY]
+        )
         self.assertTrue(PROP1_TARGET_KEY in historyRecord)
-        self.assertEquals(HISTPROP1_SECONDVALUE,
-                          historyRecord[PROP1_TARGET_KEY])
+        self.assertEquals(
+            HISTPROP1_SECONDVALUE, historyRecord[PROP1_TARGET_KEY]
+        )
         self.assertTrue(PROP2_TARGET_KEY in historyRecord)
         self.assertEquals(HISTPROP2_VALUE, historyRecord[PROP2_TARGET_KEY])
 
 
 def test_suite():
     from unittest import TestSuite, makeSuite
+
     suite = TestSuite()
     suite.addTest(makeSuite(testVersionHistory))
     return suite

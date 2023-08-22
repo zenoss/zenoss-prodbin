@@ -82,8 +82,7 @@ def _check_config(config):
 
 
 class _Config(object):
-    """Wraps a dict to provide default values from a provided dict.
-    """
+    """Wraps a dict to provide default values from a provided dict."""
 
     def __init__(self, cfg, defaults):
         self._config = cfg
@@ -94,8 +93,7 @@ class _Config(object):
 
 
 class CyberArk(object):
-    """Top level API for updating device configs from CyberArk.
-    """
+    """Top level API for updating device configs from CyberArk."""
 
     @staticmethod
     def from_dict(conf):
@@ -155,9 +153,8 @@ class CyberArk(object):
     def _add_queries(self, deviceId, config):
         has_queries = False
         for name, value in vars(config).items():
-            if (
-                isinstance(value, basestring)
-                and value.startswith(self._base_query)
+            if isinstance(value, basestring) and value.startswith(
+                self._base_query
             ):
                 self._manager.add(deviceId, name, value.strip())
                 has_queries = True
@@ -165,8 +162,7 @@ class CyberArk(object):
 
 
 class CyberArkManager(object):
-    """Manages the integration with CyberArk.
-    """
+    """Manages the integration with CyberArk."""
 
     @staticmethod
     def from_dict(conf):
@@ -230,7 +226,9 @@ class CyberArkManager(object):
             if prop.query in self._cache:
                 log.debug(
                     "Using cached value  device=%s zproperty=%s query=%s",
-                    prop.deviceId, prop.name, prop.query,
+                    prop.deviceId,
+                    prop.name,
+                    prop.query,
                 )
                 if prop.value is None:
                     prop.value = self._cache.get(prop.query)
@@ -241,13 +239,18 @@ class CyberArkManager(object):
                 log.error(
                     "Failed to execute CyberArk query - %s  "
                     "device=%s zproperty=%s query=%s",
-                    ex, prop.deviceId, prop.name, prop.query,
+                    ex,
+                    prop.deviceId,
+                    prop.name,
+                    prop.query,
                 )
                 _log_previously_used_value(prop)
                 event = _makeErrorEvent(
                     prop.deviceId,
-                    "CyberArk request for zproperty %s failed: %s" % (
-                        prop.name, ex,
+                    "CyberArk request for zproperty %s failed: %s"
+                    % (
+                        prop.name,
+                        ex,
                     ),
                 )
             else:
@@ -261,8 +264,7 @@ class CyberArkManager(object):
     def _handle_ok(self, status, prop, result):
         if not result:
             log.error(
-                "Empty response  "
-                "device=%s zproperty=%s query=%s",
+                "Empty response  " "device=%s zproperty=%s query=%s",
                 prop.deviceId,
                 prop.name,
                 prop.query,
@@ -313,16 +315,19 @@ class CyberArkManager(object):
             mesg_args.append(result)
         else:
             format_mesg += "ErrorCode=%s ErrorMsg=%s"
-            mesg_args.extend([
-                decoded.get("ErrorCode"),
-                decoded.get("ErrorMsg"),
-            ])
+            mesg_args.extend(
+                [
+                    decoded.get("ErrorCode"),
+                    decoded.get("ErrorMsg"),
+                ]
+            )
 
         log.error(format_mesg, *mesg_args)
         _log_previously_used_value(prop)
         return _makeErrorEvent(
             prop.deviceId,
-            "CyberArk query for %s failed with HTTP error %s %s" % (
+            "CyberArk query for %s failed with HTTP error %s %s"
+            % (
                 prop.name,
                 status,
                 httplib.responses.get(status),
@@ -348,24 +353,29 @@ _base_event_data = {
 
 
 def _makeClearEvent(deviceId):
-    return dict(_base_event_data, **{
-        "device": deviceId,
-        "summary": "Successful CyberArk request.",
-        "severity": Event.Clear,
-    })
+    return dict(
+        _base_event_data,
+        **{
+            "device": deviceId,
+            "summary": "Successful CyberArk request.",
+            "severity": Event.Clear,
+        }
+    )
 
 
 def _makeErrorEvent(deviceId, summary):
-    return dict(_base_event_data, **{
-        "device": deviceId,
-        "summary": summary,
-        "severity": Event.Error,
-    })
+    return dict(
+        _base_event_data,
+        **{
+            "device": deviceId,
+            "summary": summary,
+            "severity": Event.Error,
+        }
+    )
 
 
 class CyberArkClient(object):
-    """Provides an API to communicate with CyberArk.
-    """
+    """Provides an API to communicate with CyberArk."""
 
     @staticmethod
     def from_dict(conf):
@@ -393,9 +403,8 @@ class CyberArkClient(object):
         """
         port = int(port)
         parts = urlparse.urlsplit(url)
-        if (
-            (parts.scheme == "https" and port == 443)
-            or (parts.scheme == "http" and port == 80)
+        if (parts.scheme == "https" and port == 443) or (
+            parts.scheme == "http" and port == 80
         ):
             self.base_url = "%s://%s" % (parts.scheme, parts.hostname)
         else:
