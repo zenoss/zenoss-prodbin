@@ -21,7 +21,11 @@ import sys
 import socket
 
 from twisted.conch.ssh import (
-    channel, common, connection, transport, userauth,
+    channel,
+    common,
+    connection,
+    transport,
+    userauth,
 )
 from twisted.conch.ssh.keys import Key
 from twisted.internet import defer, reactor
@@ -137,7 +141,9 @@ class SshClientTransport(transport.SSHClientTransport):
 
         unused(hostKey)
         log.debug(
-            "%s host fingerprint: %s", self.factory.hostname, fingerprint,
+            "%s host fingerprint: %s",
+            self.factory.hostname,
+            fingerprint,
         )
         return defer.succeed(1)
 
@@ -375,7 +381,8 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         keyPath = os.path.expanduser(self.factory.keyPath)
         log.debug(
             "Expanded SSH key path from zKeyPath %s to %s",
-            self.factory.keyPath, keyPath,
+            self.factory.keyPath,
+            keyPath,
         )
         key = None
         if os.path.exists(keyPath):

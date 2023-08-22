@@ -79,21 +79,21 @@ class InvalidationManagerTest(TestCase):
     def test_initialize_invalidation_filters(t, getUtilitiesFor):
         MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
         filters = [MockIInvalidationFilter() for i in range(3)]
-        # weighted in reverse order
-        for i, filter in enumerate(filters):
-            filter.weight = 10 - i
+        # Weighted in reverse order
+        for i, fltr in enumerate(filters):
+            fltr.weight = 10 - i
         getUtilitiesFor.return_value = [
             ("f%s" % i, f) for i, f in enumerate(filters)
         ]
 
-        t.im.initialize_invalidation_filters()
+        initialized_filters = t.im.initialize_invalidation_filters(t.dmd)
 
-        for filter in filters:
-            filter.initialize.assert_called_with(t.dmd)
+        for fltr in filters:
+            fltr.initialize.assert_called_with(t.dmd)
 
         # check sorted by weight
         filters.reverse()
-        t.assertEqual(t.im._invalidation_filters, filters)
+        t.assertListEqual(initialized_filters, filters)
 
     @patch("{src}.time".format(**PATH), autospec=True)
     def test_process_invalidations(t, time):

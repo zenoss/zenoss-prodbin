@@ -1,20 +1,24 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-__doc__ = """HRSWInstalledMap
+"""HRSWInstalledMap
 
 HRSWInstalledMap finds various software packages installed on a device.
-Uses the HOST-RESOURCES-MIB OIDs. 
+Uses the HOST-RESOURCES-MIB OIDs.
 
 """
-from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetTableMap
+
+from Products.DataCollector.plugins.CollectorPlugin import (
+    GetTableMap,
+    SnmpPlugin,
+)
+
 
 class HRSWInstalledMap(SnmpPlugin):
 
@@ -24,27 +28,27 @@ class HRSWInstalledMap(SnmpPlugin):
     compname = "os"
 
     columns = {
-        '.1': 'snmpindex',
-         '.2': 'setProductKey',
-         #'.4': 'type',
-         '.5': 'setInstallDate',
-         }
+        ".1": "snmpindex",
+        ".2": "setProductKey",
+        # '.4': 'type',
+        ".5": "setInstallDate",
+    }
     snmpGetTableMaps = (
-        GetTableMap('swTableOid', '.1.3.6.1.2.1.25.6.3.1', columns),
+        GetTableMap("swTableOid", ".1.3.6.1.2.1.25.6.3.1", columns),
     )
-
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing %s for device %s', self.name(), device.id)
+        log.info("processing %s for device %s", self.name(), device.id)
         getdata, tabledata = results
         swtable = tabledata.get("swTableOid")
         rm = self.relMap()
         for sw in swtable.values():
             om = self.objectMap(sw)
             om.id = self.prepId(om.setProductKey)
-            if not om.id: continue
-            if hasattr(om, 'setInstallDate'):
+            if not om.id:
+                continue
+            if hasattr(om, "setInstallDate"):
                 om.setInstallDate = self.asdate(om.setInstallDate)
             rm.append(om)
         return rm

@@ -10,7 +10,6 @@
 import logging
 import sys
 
-from six import string_types
 from zope.event import notify
 
 from Products.DataCollector.plugins.DataMaps import MultiArgs
@@ -155,7 +154,7 @@ def _get_attr_value(obj, attr):
 
 
 def _sanitize_value(value, obj):
-    if isinstance(value, string_types):
+    if isinstance(value, basestring):
         try:
             return _decode_value(value, obj)
         except UnicodeDecodeError:

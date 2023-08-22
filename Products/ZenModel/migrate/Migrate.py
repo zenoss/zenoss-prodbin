@@ -264,11 +264,10 @@ class Migration(ZenScriptBase):
         return steps
 
 
-    def migrate(self):
+    def migrate(self, steps, executed):
         """
         Determine the correct migrate steps to run and apply them
         """
-        steps = self.determineSteps()
         if steps:
             for m in steps:
                 m.prepare()
@@ -286,6 +285,7 @@ class Migration(ZenScriptBase):
                                 % (m.name(), m.version.short()))
 
                 m.cutover(self.dmd)
+                executed.append(m)
                 if m.version > currentDbVers and not self.options.dont_bump:
                     self.dmd.version = m.version.long()
             for m in steps:
@@ -312,13 +312,19 @@ class Migration(ZenScriptBase):
             self.message('There are no migrate scripts.')
             return
         self.backup()
+        steps = self.determineSteps()
+        executed = []
         try:
             self.disableTimeout()
-            self.migrate()
+            self.migrate(steps, executed)
+            if not self.options.steps:
+                self.list(steps, executed)
             self.success()
         except Exception:
             log.warning("Recovering")
             self.recover()
+            if not self.options.steps:
+                self.list(steps, executed)
             raise
 
     def disableTimeout(self):
@@ -417,10 +423,30 @@ class Migration(ZenScriptBase):
     def orderedSteps(self):
         return self.allSteps
 
-    def list(self):
-        print ' Ver      Name        Description'
-        print '-----+---------------+-----------' + '-'*40
-        for s in self.allSteps:
+    def list(self, inputSteps=None, execSteps=None):
+        steps = inputSteps or self.allSteps
+        nameWidth = max(list(len(x.name()) for x in steps))
+
+        def switch(inp):
+            switcher = {
+                1: ((" Ver     Name" + " "*(nameWidth-3) + "Status\n"
+                       "--------+" + "-"*nameWidth +"+-------"),
+                    "%-8s %-{}s %-8s".format(nameWidth+1)),
+                0: ((" Ver     Name" + " "*(nameWidth-3) + "Description\n"
+                       "--------+" + "-"*nameWidth +"+-----------" + "-"*30),
+                    "%-8s %-{}s %s".format(nameWidth+1))
+            }
+            return switcher.get(inp)
+        header, outputTemplate = switch(1 if inputSteps else 0)
+        print header
+
+        def printState(tpl, version, name, doc=None, status=None):
+            if status:
+                print tpl%(version, name, status)
+            else:
+                print tpl%(version, name, doc)
+
+        for s in steps:
             doc = s.__doc__
             if not doc:
                 doc = sys.modules[s.__class__.__module__].__doc__ \
@@ -431,7 +457,15 @@ class Migration(ZenScriptBase):
                                  initial_indent=indent,
                                  subsequent_indent=indent))
             doc = doc.lstrip()
-            print "%-8s %-15s %s" % (s.version.short(), s.name(), doc)
+            if inputSteps:
+                if s.name() in (x.name() for x in execSteps):
+                    status = "OK"
+                else:
+                    status = "FAIL"
+                printState(outputTemplate, s.version.short(), s.name(), status)
+            else:
+                printState(outputTemplate, s.version.short(), s.name(), doc)
+
 
     def main(self):
         if self.options.list:

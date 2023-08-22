@@ -1,35 +1,45 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-__doc__ = """
+"""
 This is in a separate module to prevent recursive import.
 """
+
 import cgi
 import time
-from zope.interface import implements
+
+from zope.interface import implementer
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.ZenRelations.RelSchema import *
-from Products.ZenWidgets.interfaces import IMessage
-from Products.ZenWidgets.messaging import INFO
+from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 
+from .interfaces import IMessage
+from .messaging import INFO
+
+
+@implementer(IMessage)
 class PersistentMessage(ZenModelRM):
-    """
-    A single message. Messages are stored as relations on UserSettings and in
-    the session object.
-    """
-    implements(IMessage)
+    """A single message.
 
-    _relations = (("messageQueue", ToOne(
-      ToManyCont, "Products.ZenModel.UserSettings.UserSettings", "messages")
-    ),)
+    Messages are stored as relations on UserSettings and in the session object.
+    """
+
+    _relations = (
+        (
+            "messageQueue",
+            ToOne(
+                ToManyCont,
+                "Products.ZenModel.UserSettings.UserSettings",
+                "messages",
+            ),
+        ),
+    )
 
     title = None
     body = None
@@ -38,8 +48,7 @@ class PersistentMessage(ZenModelRM):
     _read = False
 
     def __init__(self, id, title, body, priority=INFO, image=None):
-        """
-        Initialization method.
+        """Initialize an PersistentMessage instance.
 
         @param title: The message title
         @type title: str
@@ -58,13 +67,9 @@ class PersistentMessage(ZenModelRM):
         self.timestamp = time.time()
 
     def mark_as_read(self):
-        """
-        Mark this message as read.
-        """
+        """Mark this message as read."""
         self._read = True
 
     def delete(self):
-        """
-        Delete this message from the system.
-        """
+        """Delete this message from the system."""
         self.__primary_parent__._delObject(self.id)

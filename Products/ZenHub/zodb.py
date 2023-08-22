@@ -11,8 +11,8 @@ import logging
 
 from zope.component import provideHandler
 from zope.component.interfaces import ObjectEvent
+from zope.interface import implementer
 from zope.interface.advice import addClassAdvisor
-from zope.interface import implements
 
 from .interfaces import IUpdateEvent, IDeletionEvent
 
@@ -25,12 +25,14 @@ class InvalidationEvent(ObjectEvent):
         self.oid = oid
 
 
+@implementer(IUpdateEvent)
 class UpdateEvent(InvalidationEvent):
-    implements(IUpdateEvent)
+    pass
 
 
+@implementer(IDeletionEvent)
 class DeletionEvent(InvalidationEvent):
-    implements(IDeletionEvent)
+    pass
 
 
 def _listener_decorator_factory(eventtype):
