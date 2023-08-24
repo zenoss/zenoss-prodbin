@@ -7,7 +7,11 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import, print_function
+
 import logging
+
+from itertools import chain
 
 from twisted.internet.defer import inlineCallbacks
 from zenoss.protocols.protobufs.zep_pb2 import (
@@ -67,35 +71,35 @@ class InvalidationManager(object):
 
     def __init__(self, dmd, poller, interval=30):
         self.__dmd = dmd
-        self._poller = poller
+        self.__poller = poller
         self._interval = interval
-        # self._processor = getUtility(IInvalidationProcessor)
-        # self._queue = set()
         app = self.__dmd.getPhysicalRoot()
         filters = initialize_invalidation_filters(dmd)
-        self.processor = InvalidationProcessor(app, filters)
+        self.__processor = InvalidationProcessor(app, filters)
 
     def poll(self):
         """
         Return a set of ZODB objects that have changed since the last
         time `poll` was called.
 
-        @return: None
+        :rtype: Set[ZODB object]
         """
         try:
-            oids = self._poller.poll()
+            oids = self.__poller.poll()
             if not oids:
                 log.debug("no invalidations found")
                 return
 
-            for oid in oids:
-                self.invalidation_pipeline.apply(oid)
-
-            log.debug("Processed %s raw invalidations", len(oids))
-            # self._processor.processQueue(self._queue)
-            self._queue.clear()
-        except Exception:
-            log.exception("error in process_invalidations")
+            try:
+                return set(
+                    chain.from_iterable(
+                        self.__processor.get(oid) for oid in oids
+                    )
+                )
+            finally:
+                log.debug("Processed %s raw invalidations", len(oids))
+        # except Exception:
+        #     log.exception("error in process_invalidations")
         finally:
             log.debug("end process_invalidations")
 

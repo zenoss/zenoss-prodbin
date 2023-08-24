@@ -17,7 +17,7 @@ from cryptography.fernet import Fernet
 from twisted.internet import defer
 from twisted.spread import pb
 from ZODB.transact import transact
-from zope import component
+from zope.component import getUtilitiesFor, getUtility
 
 from Products.ZenEvents.ZenEventClasses import Critical
 from Products.ZenHub.HubService import HubService
@@ -33,6 +33,7 @@ from Products.ZenModel.privateobject import is_private
 from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.ZenPack import ZenPack
 from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.picklezipper import Zipper
 from Products.Zuul.utils import safe_hasattr as hasattr
 
@@ -82,11 +83,11 @@ class CollectorConfigService(HubService, ThresholdMixin):
         """
         Initializes a CollectorConfigService instance.
 
-        @param dmd: the Zenoss DMD reference
-        @param instance: the collector instance name
-        @param deviceProxyAttributes: a tuple of names for device attributes
+        :param dmd: the Zenoss DMD reference
+        :param instance: the collector instance name
+        :param deviceProxyAttributes: a tuple of names for device attributes
             that should be copied to every device proxy created
-        @type deviceProxyAttributes: tuple
+        :type deviceProxyAttributes: tuple
         """
         HubService.__init__(self, dmd, instance)
 
@@ -102,21 +103,21 @@ class CollectorConfigService(HubService, ThresholdMixin):
         self._procrastinator = Procrastinate(self._pushConfig)
         self._reconfigProcrastinator = Procrastinate(self._pushReconfigure)
 
-        self._notifier = component.getUtility(IBatchNotifier)
+        self._notifier = getUtility(IBatchNotifier)
 
-    def _wrapFunction(self, functor, *args, **kwargs):
+    def _trapException(self, functor, *args, **kwargs):
         """
-        Call the functor using the arguments,
-        and trap any unhandled exceptions.
+        Call the functor using the arguments and trap unhandled exceptions.
 
-        @parameter functor: function to call
-        @type functor: method
-        @parameter args: positional arguments
-        @type args: array of arguments
-        @parameter kwargs: keyword arguments
-        @type kwargs: dictionary
-        @return: result of functor(*args, **kwargs) or None if failure
-        @rtype: result of functor
+        :parameter functor: function to call.
+        :type functor: Callable[Any, Any]
+        :parameter args: positional arguments to functor.
+        :type args: Sequence[Any]
+        :parameter kwargs: keyword arguments to functor.
+        :type kwargs: Map[Any, Any]
+        :returns: result of calling functor(*args, **kwargs)
+            or None if functor raises an exception.
+        :rtype: Any
         """
         try:
             return functor(*args, **kwargs)
@@ -127,14 +128,15 @@ class CollectorConfigService(HubService, ThresholdMixin):
             )
             self.log.exception(msg)
             self.sendEvent(
-                dict(
-                    severity=Critical,
-                    component=str(self.__class__),
-                    traceback=traceback.format_exc(),
-                    summary=msg,
-                    device=self.instance,
-                    methodCall="%s(%s, %s)" % (functor.__name__, args, kwargs),
-                )
+                {
+                    "severity": Critical,
+                    "component": str(self.__class__),
+                    "traceback": traceback.format_exc(),
+                    "summary": msg,
+                    "device": self.instance,
+                    "methodCall": "%s(%s, %s)"
+                    % (functor.__name__, args, kwargs),
+                }
             )
 
     @onUpdate(PerformanceConf)
@@ -228,40 +230,59 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
     @translateError
     def remote_getDeviceNames(self, options=None):
-        devices = self._getDevices(
-            deviceFilter=self._getOptionsFilter(options)
-        )
-        return [x.id for x in self._filterDevices(devices)]
-
-    def _getDevices(self, deviceNames=None, deviceFilter=None):
-
-        if not deviceNames:
-            devices = filter(deviceFilter, self._prefs.devices())
-        else:
-            devices = []
-            for name in deviceNames:
-                device = self.dmd.Devices.findDeviceByIdExact(name)
-                if not device:
-                    continue
-                else:
-                    if deviceFilter(device):
-                        devices.append(device)
-        return devices
+        return [
+            device.id
+            for device in self._selectDevices(self._prefs.devices(), options)
+        ]
 
     @translateError
     def remote_getDeviceConfigs(self, deviceNames=None, options=None):
-        deviceFilter = self._getOptionsFilter(options)
-        devices = self._getDevices(deviceNames, deviceFilter)
-        devices = self._filterDevices(devices)
-
-        deviceConfigs = []
-        for device in devices:
-            proxies = self._wrapFunction(self._createDeviceProxies, device)
+        if deviceNames:
+            devices = self._getDevicesByName(deviceNames)
+        else:
+            devices = self._prefs.devices()
+        selected_devices = self._selectDevices(devices, options)
+        configs = []
+        for device in selected_devices:
+            proxies = self._trapException(self._createDeviceProxies, device)
             if proxies:
-                deviceConfigs.extend(proxies)
+                configs.extend(proxies)
 
-        self._wrapFunction(self._postCreateDeviceProxy, deviceConfigs)
-        return deviceConfigs
+        self._trapException(self._postCreateDeviceProxy, configs)
+        return configs
+
+    def _getDevicesByName(self, names):
+        # Returns a generator that produces Device objects.
+        return (
+            device
+            for device in (
+                self.dmd.Devices.findDeviceByIdExact(name) for name in names
+            )
+            if device is not None
+        )
+
+    def _selectDevices(self, devices, options):
+        # _getDevices is a generator function returning Device objects
+        # `devices` is an iterator returning Device objects.
+        # `options` is a dict-like
+        predicate = self._getOptionsFilter(options)
+        for device in devices:
+            device = device.primaryAq()
+            try:
+                if all(
+                    (
+                        predicate(device),
+                        self._perfIdFilter(device),
+                        self._filterDevice(device),
+                    )
+                ):
+                    yield device
+            except Exception as ex:
+                if self.log.isEnabledFor(logging.DEBUG):
+                    method = self.log.exception
+                else:
+                    method = self.log.warn
+                method("error filtering device %r: %s", device, ex)
 
     @transact
     def _create_encryption_key(self):
@@ -303,19 +324,18 @@ class CollectorConfigService(HubService, ThresholdMixin):
         instance, and then add any additional data to the proxy as their needs
         require.
 
-        @param device: the regular device object to create a proxy from
-        @return: a new device proxy object, or None if no proxy can be created
-        @rtype: DeviceProxy
+        :param device: the regular device object to create a proxy from
+        :type device: Products.ZenModel.Device
+        :return: a new device proxy object, or None if no proxy can be created
+        :rtype: DeviceProxy
         """
-        proxy = proxy if (proxy is not None) else DeviceProxy()
+        proxy = DeviceProxy() if proxy is None else proxy
 
         # copy over all the attributes requested
         for attrName in self._deviceProxyAttributes:
             setattr(proxy, attrName, getattr(device, attrName, None))
 
         if isinstance(device, Device):
-            from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-
             guid = IGlobalIdentifier(device).getGUID()
             if guid:
                 setattr(proxy, "_device_guid", guid)
@@ -338,57 +358,22 @@ class CollectorConfigService(HubService, ThresholdMixin):
                 not self.configFilter or self.configFilter(device)
             )
         except AttributeError as e:
-            self.log.warn(
-                "got an attribute exception on device.monitorDevice()"
-            )
-            self.log.debug(e)
+            self.log.warn("No such attribute  device=%r error=%s", device, e)
         return False
 
     def _getOptionsFilter(self, options):
-        def _alwaysTrue(x):
-            return True
-
-        deviceFilter = _alwaysTrue
         if options:
-            dispatchFilterName = (
-                options.get("configDispatch", "") if options else ""
-            )
-            filterFactories = dict(
-                component.getUtilitiesFor(IConfigurationDispatchingFilter)
-            )
-            filterFactory = filterFactories.get(
-                dispatchFilterName, None
-            ) or filterFactories.get("", None)
-            if filterFactory:
-                deviceFilter = filterFactory.getFilter(options) or deviceFilter
-        return deviceFilter
+            name = options.get("configDispatch", "") if options else ""
+            factories = dict(getUtilitiesFor(IConfigurationDispatchingFilter))
+            factory = factories.get(name, None)
+            if factory is None:
+                factory = factories.get("", None)
+            if factory is not None:
+                devicefilter = factory.getFilter(options)
+                if devicefilter:
+                    return devicefilter
 
-    def _filterDevices(self, devices):
-        """
-        Filters out devices from the provided list that should not be
-        converted into DeviceProxy instances and sent back to the collector
-        client.
-
-        @param device: the device object to filter
-        @return: a list of devices that are to be included
-        @rtype: list
-        """
-        filteredDevices = []
-        for dev in (d for d in devices if d is not None):
-            try:
-                device = dev.primaryAq()
-                if self._perfIdFilter(device) and self._filterDevice(device):
-                    filteredDevices.append(device)
-                    self.log.debug("Device %s included by filter", device.id)
-                else:
-                    # don't use .id just in case something crazy returned.
-                    self.log.debug("Device %r excluded by filter", device)
-            except Exception:
-                if self.log.isEnabledFor(logging.DEBUG):
-                    self.log.exception("Got an exception filtering %r", dev)
-                else:
-                    self.log.warn("Got an exception filtering %r", dev)
-        return filteredDevices
+        return lambda x: True
 
     def _perfIdFilter(self, obj):
         """
@@ -411,9 +396,9 @@ class CollectorConfigService(HubService, ThresholdMixin):
         deferreds = []
 
         if self._perfIdFilter(device) and self._filterDevice(device):
-            proxies = self._wrapFunction(self._createDeviceProxies, device)
+            proxies = self._trapException(self._createDeviceProxies, device)
             if proxies:
-                self._wrapFunction(self._postCreateDeviceProxy, proxies)
+                self._trapException(self._postCreateDeviceProxy, proxies)
         else:
             proxies = None
 

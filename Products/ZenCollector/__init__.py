@@ -75,16 +75,14 @@ following steps:
 import zope.component
 import zope.interface
 
-from Products.ZenCollector.interfaces import IFrameworkFactory
-from Products.ZenCollector.config import (
-    ConfigurationProxy,
-    ConfigurationLoaderTask,
-)
-from Products.ZenCollector.scheduler import Scheduler
+from .interfaces import IFrameworkFactory
+from .config import ConfigurationProxy, ConfigurationLoaderTask
+from .scheduler import Scheduler
 
 
+@zope.interface.implementer(IFrameworkFactory)
 class CoreCollectorFrameworkFactory(object):
-    zope.interface.implements(IFrameworkFactory)
+    """Simple class for make various framework bits."""
 
     def __init__(self):
         self._configProxy = ConfigurationProxy()

@@ -6,8 +6,3 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
-
-from .main import main
-
-
-__all__ = ("main",)

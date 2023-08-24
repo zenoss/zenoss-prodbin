@@ -33,11 +33,20 @@ class InvalidationProcessor(object):
     """
 
     def __init__(self, app, filters):
+        """Initialize an InvalidationProcessor instance.
+
+        :param app: The dmd object
+        :type app:
+        :param filters: A list of filters to apply to the invalidation
+        :type filters:
+        """
         oid2obj_1 = Pipe(OidToObject(app))
         oid2obj_2 = IterablePipe(OidToObject(app))
         apply_filter = Pipe(ApplyFilters(filters))
         apply_transforms = Pipe(ApplyTransforms())
-        collect = Pipe(CollectInvalidations())
+
+        self.__results = CollectInvalidations()
+        collect = Pipe(self.__results)
 
         oid2obj_1.connect(apply_filter)
         oid2obj_1.connect(collect, tid=OidToObject.SINK)
@@ -52,6 +61,7 @@ class InvalidationProcessor(object):
     def get(self, oid):
         """Send data into the pipeline."""
         self.__pipeline.send(oid)
+        return self.__results.pop()
 
 
 class OidToObject(Action):
@@ -182,10 +192,17 @@ class ApplyTransforms(Action):
 class CollectInvalidations(Action):
     """Collects the results of the pipeline."""
 
-    def __init__(self, output):
-        self.output = output
+    def __init__(self):
+        self._output = set()
 
     def __call__(self, result):
         print("%s: collected %r" % (self.__class__, result))
         result = make_iterable(result)
-        self.output.update(result)
+        self._output.update(result)
+
+    def pop(self):
+        """Return the collected data, removing it from the set."""
+        try:
+            return self._output.copy()
+        finally:
+            self._output.clear()

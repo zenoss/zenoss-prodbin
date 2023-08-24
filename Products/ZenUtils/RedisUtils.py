@@ -22,7 +22,11 @@ REDIS_URL_RE = re.compile(
     r"$"
 )
 
-DEFAULT_REDIS_URL = "redis://localhost:6379/0"
+_HOST = "localhost"
+_PORT = 6379
+_DB = 0
+
+DEFAULT_REDIS_URL = "redis://{}:{}/{}".format(_HOST, _PORT, _DB)
 
 
 def parseRedisUrl(url):
@@ -34,8 +38,8 @@ def parseRedisUrl(url):
         raise ValueError("malformed redis URL")
     host = parsedUrl.group('host')
     port = parsedUrl.group('port')
-    port = 16379 if port is None else int(port)
-    db = 0 if parsedUrl.group('db') is None else int(parsedUrl.group('db'))
+    port = _PORT if port is None else int(port)
+    db = _DB if parsedUrl.group('db') is None else int(parsedUrl.group('db'))
     options = {'host': host, 'port': port, 'db': db}
     optStr = parsedUrl.group('optionStr')
     if optStr is not None and len(optStr):
@@ -61,9 +65,17 @@ def getRedisUrl():
     return getGlobalConfiguration().get("redis-url", DEFAULT_REDIS_URL)
 
 
+_RedisConnectionPools = {}
+
+
 def getRedisClient(url=None):
     """Return an instance of a redis client.
     """
     if url is None:
         url = getRedisUrl()
-    return redis.StrictRedis.from_url(url)
+    parts = parseRedisUrl(url)
+    key = "{host}:{port}:{db}".format(**parts)
+    if key not in _RedisConnectionPools:
+        _RedisConnectionPools[key] = redis.ConnectionPool(**parts)
+    pool = _RedisConnectionPools[key]
+    return redis.StrictRedis(connection_pool=pool)

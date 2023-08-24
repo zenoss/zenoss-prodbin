@@ -18,7 +18,7 @@ class ServiceCallRouter(collections.Mapping):
     """Maps ServiceCall objects to executor objects.
 
     Service call routing has method priority, meaning that a route having
-    a specified method name has higher precedence that a route not having
+    a specified method name has higher precedence than a route not having
     that method name specified.
 
     For example, given the two routes:

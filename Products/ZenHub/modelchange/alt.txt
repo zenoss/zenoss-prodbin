@@ -1,0 +1,153 @@
+Metrics
+-------
+Time, Duration, and Frequency of config build per device.
+
+
+Rendezvous Hashing for Distributing Configs to Collectors
+=========================================================
+Rendezvous hashing (RH) hashes a key with a bucket ID to produce a score.
+If there are 10 buckets, then 10 scores are computed.  The bucket ID that
+produced the highest score gets the key.
+
+* Removing Buckets
+  - Only the keys in the removed bucket need to recompute the scores (unless
+    the scores were cached) to select which of the remaining buckets they will
+    go into.
+
+* Adding Buckets
+  - All keys have to compute a score for the new bucket.  The new score is
+    compared to the score for the bucket the key currently resides in (which
+    must be recomputed if not cached). If the new score is higher, the key
+    moves to the new bucket.
+
+
+How RH Applies to Configuration Distribution
+--------------------------------------------
+In the CZ and ZSD products, collectors use 'configurations' as the input
+parameters for collecting metrics from monitored devices.  For scalability,
+each collector type may have multiple instances where each instance works on
+a subset of the configurations.
+
+A collector type is defined as the configuration service used to produce the
+configuration data.
+
+For use in RH, each configuration is the key and the collector instances are
+the buckets.  Each configuration and collector instance have unique IDs which
+are globally known values so that scores can be computed and configurations
+mapped to instances by any part of the system.
+
+
+Configuration Identifiers
+-------------------------
+In CZ/ZSD, configurations correspond to specific monitored entities, so a
+configuration's ID is generally also the ID of the monitored entity.  However,
+since there are different types of entities, there are also different
+types of configurations, so the total number of RH scores to compute for
+a given type of collector is restricted to the configuration type that
+collector will handle.
+
+
+Collector Instance Identifiers - Current Implementation
+-------------------------------------------------------
+Currently, each collector instance is assigned an ID that's unique within its
+collector type by the container orchestration server (i.e. Control Center).
+Control Center also provides the count of instances to each instance.
+
+Specific IDs are unknown to all but Control Center and the instance receiving
+the ID.
+
+The instance count is known only by Control Center and the instances of that
+collector type.
+
+For the duration of an instance, the ID and instance count values within that
+instance do not change regardless of whether Control Center has added or
+removed instances.
+
+
+Collector Instance Identifiers - Future?
+----------------------------------------
+Each collector instance joins a cluster coordination system (e.g. zookeeper).
+Each instance is assigned an ID in first-come, first-served order.  Each type
+of collector specifies the same cluster ID to the coordination system that
+functions like a namespace where all the instance IDs are unique.
+
+The coordination system is known to all as are the cluster IDs the collector
+types use.  This means that an interested component can discover the instance
+count of any particular collector type and IDs of each instance.
+
+The cluster ID is the name of the service generating the device configurations.
+
+zenmodelchange creates configurations and stores them into Redis.  It knows the
+IDs of all configurations.  It can also discover the number of instances and
+the instance IDs from the cluster coordination system.
+
+Options:
+- Collector instances can gather all configuration IDs, compute the RH scores,
+  and use the configuration IDs that scored the highest for their instance ID.
+- zenmodelchange computes the scores and records the results into Redis.
+  Collector instances lookup their bucket in Redis to know which configurations
+  they need to pull.
+
+
+=================================
+Using Redis for tracking what collector instances are alive and how many?
+- Set a key with a TTL (time-to-live).
+- The client that set the key will periodically update the TTL.
+- When the client goes away, the TTL eventually will delete the key.
+  - A TTL that's longer than the time for a client to quit and restart will
+	result in the appearance that the client was running the whole time.
+
+This behavior is similar to zookeeper's ephemeral znode + ping behavior.
+
+If the keys are given a structured format, clients could query Redis using a
+regex to determine which members of the cluster are live.
+
+Collector instance tracking keys will have a name format matching the structure
+of collectors, e.g. hub/monitor/collector/instance.
+
+So, for a single instance zenperfsnmp in the localhost monitor of the localhost
+hub, the key name will look like this:
+
+   zenccs:live:localhost/localhost/zenperfsnmp/0
+
+The 'zenccs:live:' prefix is used to group all the keys together.
+
+The value of the key should be a list of zenhub services.  This is not an
+efficient use of space, all instances of the same collector will have the
+same set of services, but it's simpler to handle.  A more sophisticated
+strategy to store the service names can be implemented later.
+
+zenmodelchange can read the services from the instance key values and match
+the names to the list of configuration service it discovered.  Matching on
+the configuration service names is how zenmodelchange can map devices to
+collector instances.
+
+A separate key will be used to map device configs to collector instances.
+The name of the config mapping key will look like the following:
+
+    zenconfig:device:collector:/<hub>/<monitor>/<collector>/<instance>
+
+Each config mapping key's value will be a list of device config keys.
+Device config keys look like this:
+
+    zenconfig:device:config:<config-service-class-name>:<device-id>
+
+Technically, the <device-id> value is actually the "config ID" from the device
+configuration itself, but it's usually the device's ID.
+
+The name structure of the keys should be useful in supporting other kinds
+of configurations such as templates, properties, and thresholds.  E.g.
+
+    zenconfig:template:config:...
+
+
+====================================================
+Alternatively, continue to use the existing device distribution framework but
+use a new API call (in CollectorConfigService)?
+
+The collector daemon retrieves device names from zenhub and uses those names
+to look up the configs from Redis.
+
+Maybe use ZenHub to retrieve the configurations?  Add a new ZenHub service
+that retrieves the configurations from Redis and returns them to the client
+collection service.

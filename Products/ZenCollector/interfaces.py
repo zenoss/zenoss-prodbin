@@ -183,14 +183,13 @@ class IScheduler(zope.interface.Interface):
     """
 
     maxTasks = zope.interface.Attribute(
-        """
-    Max tasks the scheduler should run at once; unlimited if None
-    """
+        "Max tasks the scheduler should run at once; unlimited if None."
     )
 
     def addTask(self, newTask, callback=None, now=False):
         """
         Add a new IScheduledTask to the scheduler for execution.
+
         @param newTask: the new task to schedule
         @type newTask: IScheduledTask
         @param callback: a callback to be notified each time the task completes
@@ -647,9 +646,7 @@ class ICollectorWorker(zope.interface.Interface):
     """
 
     def prepareToRun(self):
-        """
-        Pre-run initialization
-        """
+        """Pre-run initialization."""
 
     def collect(self, device, taskConfig, *args):
         """
@@ -691,3 +688,29 @@ class IConfigurationDispatchingFilter(zope.interface.Interface):
         for use with the 'filter' builtin. 'options' is a dictionary of
         potential control options for the filter.
         """
+
+
+class IDeviceConfigCache(zope.interface.Interface):
+    """
+    """
+
+    def keys():
+        """Return an iterable producing all configuration IDs."""
+
+    def values():
+        """Return an iterable producing all configurations."""
+
+    def items():
+        """Return an iterable producing all ID/configuration pairs."""
+
+    def mget(*configIds):
+        """
+        Return an iterable producing the configurations identified by
+        `configIds`.
+        """
+
+    def get(configId, default=None):
+        """Return the configuration identified by configId."""
+
+    def __len__():
+        """Return the count of configurations."""

@@ -26,7 +26,7 @@ class HubService(pb.Referenceable):
     :type fqdn: str
     :attr dmd: Root ZODB object
     :type dmd: Products.ZenModel.DataRoot.DataRoot
-    :attr instance: The name of the Collection Hub.
+    :attr instance: The name of the collector (a.k.a. the monitor).
     :type instance: str
     :attr callTime: The total time, in seconds, this service has spent processing remote requests.
     :type callTime: float

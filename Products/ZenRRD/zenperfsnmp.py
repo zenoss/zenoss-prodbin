@@ -881,6 +881,17 @@ class SnmpPerformanceCollectionTask(BaseTask):
         return display
 
 
+def main():
+    prefs = SnmpPerformanceCollectionPreferences()
+    taskfactory = SimpleTaskFactory(SnmpPerformanceCollectionTask)
+    tasksplitter = SimpleTaskSplitter(taskfactory)
+    daemon = getMultiAdapter((prefs, tasksplitter), ICollector)
+    daemon.run()
+    # daemon = createObject(
+    #     "collectordaemon",
+    #     getUtility(ICollectorPreferences, "zenperfsnmp"),
+
+
 if __name__ == "__main__":
     myPreferences = SnmpPerformanceCollectionPreferences()
     myTaskFactory = SimpleTaskFactory(SnmpPerformanceCollectionTask)

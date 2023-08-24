@@ -61,27 +61,39 @@ class Pipe(object):
     def apply(self, args):
         """Applies the arguments to the action."""
         args = make_iterable(args)
-        try:
-            results = self.run(*args)
-        except Exception:
-            log.exception(
-                "failed to apply arguments to pipeline node: "
-                "node=%s args=%s",
-                self.__class__,
-                args,
-            )
+        results = self.run(*args)
+        if results is None:
+            return
+        results = make_iterable(results)
+        if len(results) == 1:
+            tid, output = self.run.DEFAULT, results[0]
         else:
-            if results is None:
-                return
-            results = make_iterable(results)
-            if len(results) == 1:
-                tid, output = self.run.DEFAULT, results[0]
-            else:
-                tid, output = results[0], results[1]
-            if tid not in self.targets:
-                log.warn("no such target ID: %s", tid)
-                return
-            self.targets[tid].send(output)
+            tid, output = results[0], results[1]
+        if tid not in self.targets:
+            log.warn("no such target ID: %s", tid)
+            return
+        self.targets[tid].send(output)
+        # try:
+        #     results = self.run(*args)
+        # except Exception:
+        #     log.exception(
+        #         "failed to apply arguments to pipeline node: "
+        #         "node=%s args=%s",
+        #         self.__class__,
+        #         args,
+        #     )
+        # else:
+        #     if results is None:
+        #         return
+        #     results = make_iterable(results)
+        #     if len(results) == 1:
+        #         tid, output = self.run.DEFAULT, results[0]
+        #     else:
+        #         tid, output = results[0], results[1]
+        #     if tid not in self.targets:
+        #         log.warn("no such target ID: %s", tid)
+        #         return
+        #     self.targets[tid].send(output)
 
     def connect(self, target, tid=None):
         """

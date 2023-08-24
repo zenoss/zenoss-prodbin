@@ -52,7 +52,7 @@ class StateStatistics(object):
 
     def addCall(self, elapsedTime):
         self.totalElapsedTime += elapsedTime
-        self.totalElapsedTimeSquared += elapsedTime**2
+        self.totalElapsedTimeSquared += elapsedTime ** 2
         self.totalCalls += 1
 
         if self.totalCalls == 1:
@@ -82,7 +82,7 @@ class StateStatistics(object):
             return math.sqrt(
                 (
                     self.totalElapsedTimeSquared
-                    - self.totalElapsedTime**2 / self.totalCalls
+                    - self.totalElapsedTime ** 2 / self.totalCalls
                 )
                 / (self.totalCalls - 1)
             )
@@ -117,7 +117,6 @@ class TaskStatistics(object):
 
 
 class CallableTask(object):
-
     """
     A CallableTask wraps an object providing IScheduledTask so that it can be
     treated as a callable object. This allows the scheduler to make use of the
@@ -289,7 +288,6 @@ class CallableTask(object):
 
 
 class CallableTaskFactory(object):
-
     """
     A factory that creates instances of CallableTask, allowing it to be
     easily subclassed or replaced in different scheduler implementations.
@@ -303,14 +301,12 @@ def getConfigId(task):
     return task.configId
 
 
+@zope.interface.implementer(IScheduler)
 class Scheduler(object):
-
     """
     A simple interval-based scheduler that makes use of the Twisted framework's
     LoopingCall construct.
     """
-
-    zope.interface.implements(IScheduler)
 
     CLEANUP_TASKS_INTERVAL = 10  # seconds
     ATTEMPTS = 3
@@ -411,13 +407,13 @@ class Scheduler(object):
     def executor(self):
         return self._executor
 
-    def _getMaxTasks(self):
-        return self._executor.getMax()
+    @property
+    def maxTasks(self):
+        return self._executor.limit
 
-    def _setMaxTasks(self, max):
-        return self._executor.setMax(max)
-
-    maxTasks = property(_getMaxTasks, _setMaxTasks)
+    @maxTasks.setter
+    def maxTasks(self, limit):
+        self._executor.limit = limit
 
     def _ltCallback(self, result, task_name):
         """last call back in the chain, if it gets called as an errBack
@@ -435,61 +431,87 @@ class Scheduler(object):
     def _startTask(
         self, result, task_name, interval, configId, delayed, attempts=0
     ):
-        """start the task using a callback so that its put at the bottom of
-        the Twisted event queue, to allow other processing to continue and
-        to support a task start-time jitter"""
-        if task_name in self._loopingCalls:
-            loopingCall = self._loopingCalls[task_name]
-            if not loopingCall.running:
-                if self._tasksToCleanup.has_key(configId):  # noqa W601
-                    delay = random.randint(0, int(interval / 2))
-                    delayed = delayed + delay
-                    if attempts > Scheduler.ATTEMPTS:
-                        obj = self._tasksToCleanup.pop_by_key(configId)
-                        log.debug(
-                            "Forced cleanup of %s. Task: %s",
-                            configId,
-                            obj.name,
-                        )
-                        attempts = 0
-                    attempts += 1
-                    log.debug(
-                        "Waiting for cleanup of %s. Task %s postponing its "
-                        "start %d seconds (%d so far). Attempt: %s",
-                        configId,
-                        task_name,
-                        delay,
-                        delayed,
-                        attempts,
-                    )
-                    d = defer.Deferred()
-                    d.addCallback(
-                        self._startTask,
-                        task_name,
-                        interval,
-                        configId,
-                        delayed,
-                        attempts,
-                    )
-                    reactor.callLater(delay, d.callback, None)
-                else:
-                    log.debug(
-                        "Task %s starting (waited %d seconds) on %d "
-                        "second intervals",
-                        task_name,
-                        delayed,
-                        interval,
-                    )
-                    d = loopingCall.start(interval)
-                    d.addBoth(self._ltCallback, task_name)
+        """
+        Schedule a task to start running.
+
+        If a task was previously run but has 'cleanup' pending, the task's
+        start is delayed until 'cleanup' is complete.
+
+        :param result: Ignored???
+        :param task_name: The name of the task.
+        :type task_name: str
+        :param interval: The task runs every `interval` seconds.
+        :param interval: float
+        :param configId: Used for 'task cleanup'
+        :param configId: str
+        :param delayed: The number of seconds a task was delayed before it
+            could start running.
+        :type delayed: int
+        :param attempts: The number of times a task attmpted to start?
+        :type attempts: int
+        """
+        loopingCall = self._loopingCalls.get(task_name)
+        if loopingCall is None:
+            return  # task not found
+
+        if loopingCall.running:
+            return  # task already started
+
+        if self._tasksToCleanup.has_key(configId):  # noqa W601
+            if attempts > Scheduler.ATTEMPTS:
+                obj = self._tasksToCleanup.pop_by_key(configId)
+                log.debug(
+                    "Forced cleanup of %s. Task: %s",
+                    configId,
+                    obj.name,
+                )
+                attempts = 0
+            else:
+                attempts += 1
+                delay = random.randint(0, int(interval / 2))
+                delayed = delayed + delay
+                log.debug(
+                    "Waiting for cleanup of %s. Task %s postponing its "
+                    "start %d seconds (%d so far). Attempt: %s",
+                    configId,
+                    task_name,
+                    delay,
+                    delayed,
+                    attempts,
+                )
+                d = defer.Deferred()
+                d.addCallback(
+                    self._startTask,
+                    result,
+                    task_name,
+                    interval,
+                    configId,
+                    delayed,
+                    attempts,
+                )
+                reactor.callLater(delay, d.callback, None)
+
+        if attempts == 0:
+            log.debug(
+                "Task %s starting (waited %d seconds) on %d second intervals",
+                task_name,
+                delayed,
+                interval,
+            )
+            d = loopingCall.start(interval)
+            d.addBoth(self._ltCallback, task_name)
 
     def addTask(self, newTask, callback=None, now=False):
         """
         Add a new IScheduledTask to the scheduler for execution.
-        @param newTask the new task to schedule
-        @type newTask IScheduledTask
-        @param callback a callback to be notified each time the task completes
-        @type callback a Python callable
+
+        :param newTask: the new task to schedule
+        :type newTask: IScheduledTask
+        :param callback: a callback to be notified each time the task completes
+        :type callback: a Python callable
+        :param now: True to start the task now rather waiting a predetermined
+            amount of time.
+        :type now: boolean
         """
         if newTask.name in self._tasks:
             raise ValueError("Task %s already exists" % newTask.name)
@@ -524,9 +546,10 @@ class Scheduler(object):
 
     def _getStartDelay(self, task):
         """
-        amount of time to delay the start of a task. Prevents bunching up of
-        task execution when a large amount of tasks are scheduled at the same
-        time.
+        Amount of time to delay the start of a task.
+
+        Prevents bunching up of task execution when a large amount of tasks
+        are scheduled at the same time.
         """
         # simple delay of random number between 0 and half the task interval
         delay = random.randint(0, int(task.interval / 2))
@@ -535,22 +558,28 @@ class Scheduler(object):
     def taskAdded(self, taskWrapper):
         """
         Called whenever the scheduler adds a task.
+
+        :param taskWrapper: The wrapped task
+        :type taskWrapper: CallableTask
         """
         task = taskWrapper.task
 
-        # watch the task's attribute changes
+        # Watch the task's attribute changes
         task.attachAttributeObserver("state", self._taskStateChangeListener)
         task.attachAttributeObserver(
             "interval", self._taskIntervalChangeListener
         )
 
-        # create the statistics data for this task
+        # Create the statistics data for this task
         self._taskStats[task.name] = TaskStatistics(task)
         taskWrapper.taskStats = self._taskStats[task.name]
 
     def taskRemoved(self, taskWrapper):
         """
         Called whenever the scheduler removes a task.
+
+        :param taskWrapper: The wrapped task
+        :type taskWrapper: CallableTask
         """
         task = taskWrapper.task
         task.detachAttributeObserver("state", self._taskStateChangeListener)
@@ -561,6 +590,9 @@ class Scheduler(object):
     def taskPaused(self, taskWrapper):
         """
         Called whenever the scheduler pauses a task.
+
+        :param taskWrapper: The wrapped task
+        :type taskWrapper: CallableTask
         """
         if IPausingScheduledTask.providedBy(taskWrapper.task):
             taskWrapper.task.pause()
@@ -568,17 +600,23 @@ class Scheduler(object):
     def taskResumed(self, taskWrapper):
         """
         Called whenever the scheduler resumes a task.
+
+        :param taskWrapper: The wrapped task
+        :type taskWrapper: CallableTask
         """
         if IPausingScheduledTask.providedBy(taskWrapper.task):
             taskWrapper.task.resume()
 
     def getTasksForConfig(self, configId):
         """
-        Get all tasks associated with the specified identifier.
+        Get all tasks associated with grouping ID `configId`.
+
+        :param configId: The grouping ID associated with tasks
+        :type configId: str
         """
         tasks = []
-        for (taskName, taskWrapper) in self._tasks.iteritems():
-            task = taskWrapper.task
+        for (name, wrapper) in self._tasks.iteritems():
+            task = wrapper.task
             if task.configId == configId:
                 tasks.append(task)
         return tasks
@@ -586,44 +624,55 @@ class Scheduler(object):
     def getNextExpectedRun(self, taskName):
         """
         Get the next expected execution time for given task.
+
+        :param taskName: The name of the task
+        :type taskName: str
         """
         loopingCall = self._loopingCalls.get(taskName, None)
         if loopingCall:
             return getattr(loopingCall, "_expectNextCallAt", None)
 
-    def setNextExpectedRun(self, taskName, taskInterval):
+    def setNextExpectedRun(self, name, delay):
         """
         Set the next expected execution time for given task.
+
+        :param name: The name of the task
+        :type name: str
+        :param delay: The number of seconds to wait to execute the task again.
+        :type delay: float
         """
-        loopingCall = self._loopingCalls.get(taskName, None)
+        loopingCall = self._loopingCalls.get(name, None)
         if loopingCall:
-            loopingCall._expectNextCallAt = time.time() + taskInterval
+            loopingCall._expectNextCallAt = time.time() + delay
             log.debug(
                 "Next expected run %s has been set for task %s",
                 loopingCall._expectNextCallAt,
-                taskName,
+                name,
             )
 
-    def removeTasks(self, taskNames):
+    def removeTasks(self, names):
         """
-        Remove tasks
+        Remove tasks from the scheduler.
+
+        :param names: An iterable of task names.
+        :type names: Iterable[str]
         """
         doomedTasks = []
         # child ids are any task that are children of the current task being
         # removed
         childIds = []
-        for taskName in taskNames:
-            taskWrapper = self._tasks[taskName]
-            task = taskWrapper.task
+        for name in names:
+            wrapper = self._tasks[name]
+            task = wrapper.task
             subIds = getattr(task, "childIds", None)
             if subIds:
                 childIds.extend(subIds)
-            log.debug("Stopping task %s, %s", taskName, task)
-            if self._loopingCalls[taskName].running:
-                self._loopingCalls[taskName].stop()
+            log.debug("Stopping task %s, %s", name, task)
+            if self._loopingCalls[name].running:
+                self._loopingCalls[name].stop()
 
-            doomedTasks.append(taskName)
-            self.taskRemoved(taskWrapper)
+            doomedTasks.append(name)
+            self.taskRemoved(wrapper)
 
         for taskName in doomedTasks:
             task = self._tasks[taskName].task
@@ -640,8 +689,8 @@ class Scheduler(object):
         """
         Remove all tasks associated with the specified identifier.
 
-        @paramater configId: the identifier to search for
-        @type configId: string
+        :param configId: the identifier to search for
+        :type configId: str
         """
         self.removeTasks(
             taskName
@@ -650,37 +699,35 @@ class Scheduler(object):
         )
 
     def pauseTasksForConfig(self, configId):
-        for (taskName, taskWrapper) in self._tasks.items():
-            task = taskWrapper.task
+        for (name, wrapper) in self._tasks.items():
+            task = wrapper.task
             if task.configId == configId:
-                log.debug("Pausing task %s", taskName)
-                taskWrapper.paused = True
-                self.taskPaused(taskWrapper)
+                log.debug("Pausing task %s", name)
+                wrapper.paused = True
+                self.taskPaused(wrapper)
 
     def resumeTasksForConfig(self, configId):
-        for (taskName, taskWrapper) in self._tasks.iteritems():
-            task = taskWrapper.task
+        for (name, wrapper) in self._tasks.iteritems():
+            task = wrapper.task
             if task.configId == configId:
-                log.debug("Resuming task %s", taskName)
-                taskWrapper.paused = False
-                self.taskResumed(taskWrapper)
+                log.debug("Resuming task %s", name)
+                wrapper.paused = False
+                self.taskResumed(wrapper)
 
-    def taskDone(self, taskName):
-        if callable(self._taskCallback[taskName]):
-            self._taskCallback[taskName](taskName=taskName)
+    def taskDone(self, name):
+        if callable(self._taskCallback[name]):
+            self._taskCallback[name](taskName=name)
 
     def _taskStateChangeListener(
         self, observable, attrName, oldValue, newValue
     ):
         task = observable
-
         log.debug(
             "Task %s changing state from %s to %s",
             task.name,
             oldValue,
             newValue,
         )
-
         taskStat = self._taskStats[task.name]
         taskStat.trackStateChange(oldValue, newValue)
 

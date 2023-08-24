@@ -293,11 +293,7 @@ class CmdBase(object):
                 self.parser._process_args([], args, options)
             except (BadOptionError, OptionValueError) as err:
                 print(
-                    "WARN: %s in config file %s"
-                    % (
-                        err,
-                        filename,
-                    ),
+                    "WARN: %s in config file %s" % (err, filename),
                     file=sys.stderr,
                 )
 

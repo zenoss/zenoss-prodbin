@@ -41,14 +41,13 @@ from .tasks import TaskStates
 log = logging.getLogger("zen.collector.config")
 
 
+@zope.interface.implementer(IConfigurationProxy)
 class ConfigurationProxy(object):
     """
     This implementation of IConfigurationProxy provides basic configuration
     retrieval from the remote ZenHub instance using the remote configuration
     service proxy as specified by the collector's configuration.
     """
-
-    zope.interface.implements(IConfigurationProxy)
 
     _cipher_suite = None
 
@@ -184,13 +183,12 @@ class ConfigurationProxy(object):
         defer.returnValue(decrypted_data)
 
 
+@zope.interface.implementer(IScheduledTask)
 class ConfigurationLoaderTask(ObservableMixin):
     """
     A task that periodically retrieves collector configuration via the
     IConfigurationProxy service.
     """
-
-    zope.interface.implements(IScheduledTask)
 
     STATE_CONNECTING = "CONNECTING"
     STATE_FETCH_MISC_CONFIG = "FETCHING_MISC_CONFIG"
@@ -206,7 +204,11 @@ class ConfigurationLoaderTask(ObservableMixin):
         scheduleIntervalSeconds=None,
         taskConfig=None,
     ):
+        if taskConfig is None:
+            raise TypeError("taskConfig cannot be None")
+
         super(ConfigurationLoaderTask, self).__init__()
+
         self._fetchConfigTimer = Metrology.timer("collectordaemon.configs")
 
         # Needed for interface
@@ -217,8 +219,6 @@ class ConfigurationLoaderTask(ObservableMixin):
         self._dataService = zope.component.queryUtility(IDataService)
         self._eventService = zope.component.queryUtility(IEventService)
 
-        if taskConfig is None:
-            raise TypeError("taskConfig cannot be None")
         self._prefs = taskConfig
         self.interval = self._prefs.configCycleInterval * 60
         self.options = self._prefs.options
@@ -237,6 +237,7 @@ class ConfigurationLoaderTask(ObservableMixin):
         self.devices = []
         self.startDelay = 0
 
+    @defer.inlineCallbacks
     def doTask(self):
         """
         Contact zenhub and gather configuration data.
@@ -251,87 +252,48 @@ class ConfigurationLoaderTask(ObservableMixin):
         if self.options.device:
             self.devices = [self.options.device]
 
-        d = self._baseConfigs()
-        self._deviceConfigs(d, self.devices)
-        d.addCallback(self._notifyConfigLoaded)
-        d.addErrback(self._handleError)
-        return d
-
-    def _baseConfigs(self):
-        """
-        Load the configuration that doesn't depend on loading devices.
-        """
-        d = self._fetchPropertyItems()
-        d.addCallback(self._processPropertyItems)
-        d.addCallback(self._fetchThresholdClasses)
-        d.addCallback(self._processThresholdClasses)
-        d.addCallback(self._fetchThresholds)
-        d.addCallback(self._processThresholds)
-        return d
-
-    def _deviceConfigs(self, d, devices):
-        """
-        Load the device configuration
-        """
-        d.addCallback(self._fetchConfig, devices)
-        d.addCallback(self._processConfig)
-
-    def _notifyConfigLoaded(self, result):
-        # This method is prematuraly called in enterprise bc
-        # _splitConfiguration calls defer.succeed after creating
-        # a new task for incremental loading
-        self._daemon.runPostConfigTasks()
-        return defer.succeed("Configuration loaded")
-
-    def _handleError(self, result):
-        if isinstance(result, Failure):
-            log.error(
-                "Task %s configure failed: %s",
-                self.name,
-                result.getErrorMessage(),
-            )
+        try:
+            yield self._baseConfigs()
+            configs = yield self._fetchConfig(self.devices)
+            configs = yield self._processConfig(configs)
+            self._daemon.runPostConfigTasks()
+        except Exception as ex:
+            log.error("Task %s configure failed: %s", self.name, ex)
 
             # stop if a single device was requested and nothing found
             if self.options.device or not self.options.cycle:
                 self._daemon.stop()
 
-            ex = result.value
             if isinstance(ex, HubDown):
-                result = str(ex)
                 # Allow the loader to be reaped and re-added
                 self.state = TaskStates.STATE_COMPLETED
-        return result
 
-    def _fetchPropertyItems(self, previous_cb_result=None):
-        return defer.maybeDeferred(
+    @defer.inlineCallbacks
+    def _baseConfigs(self):
+        """Load the configuration that doesn't depend on loading devices."""
+        propertyItems = yield defer.maybeDeferred(
             self._configProxy.getPropertyItems, self._prefs
         )
-
-    def _fetchThresholdClasses(self, previous_cb_result):
-        return defer.maybeDeferred(
+        self._processPropertyItems(propertyItems)
+        thresholdClasses = yield defer.maybeDeferred(
             self._configProxy.getThresholdClasses, self._prefs
         )
-
-    def _fetchThresholds(self, previous_cb_result):
-        return defer.maybeDeferred(
+        self._processThresholdClasses(thresholdClasses)
+        thresholds = yield defer.maybeDeferred(
             self._configProxy.getThresholds, self._prefs
         )
+        self._processThresholds(thresholds)
 
-    def _fetchConfig(self, result, devices):
+    @defer.inlineCallbacks
+    def _fetchConfig(self, devices):
         self.state = self.STATE_FETCH_DEVICE_CONFIG
         start = time.time()
-
-        def recordTime(result):
-            # get in milliseconds
-            duration = int((time.time() - start) * 1000)
-            self._fetchConfigTimer.update(duration)
-            return result
-
-        d = defer.maybeDeferred(
+        configs = yield defer.maybeDeferred(
             self._configProxy.getConfigProxies, self._prefs, devices
         )
-        d.addCallback(recordTime)
-        return d
+        duration = int((time.time() - start) * 1000)
+        self._fetchConfigTimer.update(duration)
+        defer.returnValue(configs)
 
     def _processPropertyItems(self, propertyItems):
         log.debug("Processing received property items")

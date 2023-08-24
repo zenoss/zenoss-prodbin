@@ -56,7 +56,7 @@ class HubAvatar(pb.Avatar):
         :param listener: A remote reference to the client
         :type listener: twisted.spread.pb.RemoteReference
         :return: A reference to a service
-        :rtype: .service.WorkerInterceptor
+        :rtype: .service.ServiceReference
         """
         try:
             service = self.__services.getService(name, monitor)

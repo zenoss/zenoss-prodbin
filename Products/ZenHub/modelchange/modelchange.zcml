@@ -19,12 +19,12 @@
       />
 
    <!-- utility
-      factory=".processors.InvalidationProcessor"
+      factory=".handlers.InvalidationProcessor"
       provides=".interfaces.IInvalidationProcessor"
       /-->
 
    <utility
-      factory=".processors.SimpleInvalidationPrinter"
+      factory=".handlers.SimpleInvalidationPrinter"
       provides=".interfaces.IInvalidationProcessor"
       />
    

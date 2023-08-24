@@ -36,11 +36,11 @@ class ServiceManager(object):
         """Initialize a ServiceManager instance.
 
         :param registry: Stores references to services
-        :type registry: Mapping[str, WorkerInterceptor]
+        :type registry: Mapping[str, ServiceReference]
         :param loader: Loads and initializes ZenHub services
         :type loader: Callable[[dmd, str, str], HubService]
-        :param factory: Builds WorkerInterceptor objects.
-        :type factory: Callable[[HubService, str, str], WorkerInterceptor]
+        :param factory: Builds ServiceReference objects.
+        :type factory: Callable[[HubService, str, str], ServiceReference]
         """
         self.__services = registry
         self.__load = loader
@@ -77,7 +77,7 @@ class ServiceManager(object):
 
         :type str name: Name of the service
         :type str monitor: Name of a performance monitor
-        :rtype: WorkerInterceptor
+        :rtype: ServiceReference
         """
         if (monitor, name) not in self.__services:
             # Sanity check the names given to us
@@ -109,7 +109,7 @@ def _monitor_exists(dmd, monitor):
 
 
 class ServiceRegistry(collections.Mapping):
-    """Registry of WorkerInterceptor objects."""
+    """Registry of ServiceReference objects."""
 
     def __init__(self):
         self.__services = {}
@@ -151,7 +151,7 @@ class ServiceCall(object):
     """Metadata for calling a method on a service."""
 
     __slots__ = {
-        "id": "Unique instance identifier",
+        "id": "Identifier for this ServiceCall instance",
         "monitor": "Name of performance monitor",
         "service": "Name of service class",
         "method": "Name of method found in service class",
@@ -190,7 +190,7 @@ class ServiceCall(object):
 
 
 class ServiceReferenceFactory(object):
-    """Builds WorkerInterceptor objects."""
+    """Builds ServiceReference objects."""
 
     def __init__(self, cls, routes, executors):
         """Initialize an instance of ServiceReferenceFactory.
@@ -205,13 +205,13 @@ class ServiceReferenceFactory(object):
         self.__kwargs = {"routes": routes, "executors": executors}
 
     def __call__(self, service, name, monitor):
-        """Build and return a WorkerInterceptor object.
+        """Build and return a ServiceReference object.
 
         :param service: The HubService instance
         :type service: HubService sub-class
         :param str name: Name of the service
         :param str monitor: Name of the performance monitor (collector)
-        :rtype: WorkerInterceptor
+        :rtype: ServiceReference
         """
         args = (service, name, monitor)
         return self.__cls(*args, **self.__kwargs)

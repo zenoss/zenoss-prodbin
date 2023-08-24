@@ -50,7 +50,6 @@ class ZenHubInitTest(TestCase):
 
     @patch("{src}.register_legacy_worklist_metrics".format(**PATH))
     @patch("{src}.provideUtility".format(**PATH))
-    @patch("{src}.InvalidationManager".format(**PATH))
     @patch("{src}.MetricManager".format(**PATH), autospec=True)
     @patch("{src}.StatsMonitor".format(**PATH), autospec=True)
     @patch("{src}.ZenHubStatusReporter".format(**PATH), autospec=True)
@@ -93,7 +92,6 @@ class ZenHubInitTest(TestCase):
         ZenHubStatusReporter,
         StatsMonitor,
         MetricManager,
-        InvalidationManager,
         provideUtility,
         register_legacy_worklist_metrics,
     ):
@@ -114,7 +112,6 @@ class ZenHubInitTest(TestCase):
             t.addCleanup(patcher.stop)
 
         ZenHub._getConf.return_value.id = "config_id"
-        ZenHub.storage.mock_add_spec(["poll_invalidations"])
 
         zh = ZenHub()
 
@@ -145,7 +142,7 @@ class ZenHubInitTest(TestCase):
         # Event Handler shortcut
         t.assertEqual(zh.zem, zh.dmd.ZenEventManager)
 
-        # Messageing config, including work and invalidations
+        # Messaging config, including work
         # Patched internal import of Products.ZenMessaging.queuemessaging
         load_config_override.assert_called_with(
             "twistedpublisher.zcml",
@@ -187,10 +184,6 @@ class ZenHubInitTest(TestCase):
             },
         )
         t.assertEqual(zh._metric_manager, MetricManager.return_value)
-        t.assertEqual(
-            zh._invalidation_manager,
-            InvalidationManager.return_value,
-        )
         provideUtility.assert_called_once_with(zh._metric_manager)
 
         signal.signal.assert_called_with(signal.SIGUSR2, zh.sighandler_USR2)
@@ -227,12 +220,6 @@ class ZenHubTest(TestCase):
             patch.object(ZenHub, "log", create=True),
             patch.object(ZenHub, "options", create=True),
             patch.object(ZenHub, "niceDoggie", create=True),
-            patch.object(
-                ZenHub,
-                "storage",
-                create=True,
-                set_spec=["poll_invalidations"],
-            ),
         ]
         for patcher in t.zcmdbase_patchers:
             patcher.start()
@@ -248,7 +235,6 @@ class ZenHubTest(TestCase):
             "make_pools",
             "ZenHubStatusReporter",
             "StatsMonitor",
-            "InvalidationManager",
             "MetricManager",
             "notify",
             "ContinuousProfiler",
@@ -286,7 +272,6 @@ class ZenHubTest(TestCase):
         t.zh.options.monitor = "localhost"
         t.zh.options.cycle = True
         t.zh.options.profiling = True
-        t.zh.options.invalidation_poll_interval = sentinel.inval_poll
         # Metric Management
         t.zh._metric_manager = t.MetricManager.return_value
         t.zh._metric_writer = sentinel.metric_writer
@@ -304,7 +289,6 @@ class ZenHubTest(TestCase):
 
         LoopingCall.assert_has_calls(
             [
-                call(t.zh._invalidation_manager.process_invalidations),
                 call().start(sentinel.inval_poll),
                 call(
                     report_reactor_delayed_calls,
@@ -313,10 +297,6 @@ class ZenHubTest(TestCase):
                 ),
                 call().start(30),
             ]
-        )
-        t.assertEqual(
-            LoopingCall.return_value,
-            t.zh.process_invalidations_task,
         )
 
         t.assertEqual(t.zh.metricreporter, t.zh._metric_manager.metricreporter)
@@ -398,7 +378,6 @@ class ZenHubTest(TestCase):
 
     def test_processQueue(t):
         t.zh.processQueue()
-        t.zh._invalidation_manager.process_invalidations.assert_called_with()
 
     @patch("{src}.Event".format(**PATH), autospec=True)
     def test_sendEvent(t, Event):
@@ -431,8 +410,6 @@ class ZenHubTest(TestCase):
             name="options",
             spec_set=["monitor", "name", "heartbeatTimeout"],
         )
-        t.zh._invalidation_manager.totalTime = 100
-        t.zh._invalidation_manager.totalEvents = 20
         # static value defined in function
         seconds = 30
         # Metrics reporting portion needs to be factored out
@@ -493,7 +470,6 @@ class ZenHubTest(TestCase):
         t.assertEqual(t.zh.options.passwordfile, zenPath.return_value)
         t.assertEqual(t.zh.options.monitor, "localhost")
         t.assertEqual(t.zh.options.workersReservedForEvents, 1)
-        t.assertEqual(t.zh.options.invalidation_poll_interval, 30)
         t.assertFalse(t.zh.options.profiling)
         t.assertEqual(t.zh.options.modeling_pause_timeout, 3600)
         # delay before actually parsing the options

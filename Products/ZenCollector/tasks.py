@@ -29,15 +29,14 @@ from .interfaces import (
     ISubTaskSplitter,
     ITaskSplitter,
     IWorkerExecutor,
+    IWorkerTaskFactory,
 )
 
 log = logging.getLogger("zen.collector.tasks")
 
 
 class BaseTask(ObservableMixin):
-    """
-    Convenience class that consolidates some shared code.
-    """
+    """Base class for collection tasks."""
 
     # By default, track when this task is 'late.'
     suppress_late = False
@@ -53,10 +52,10 @@ class BaseTask(ObservableMixin):
         else:
             self._originalScheduleInterval = args[2]
 
-    def cleanup(self):  # Required by interface
+    def cleanup(self):  # Required by IScheduled interface
         pass
 
-    def scheduled(self, scheduler):  # Required by interface
+    def scheduled(self, scheduler):  # Required by IScheduled interface
         pass
 
     def _delayNextCheck(self):
@@ -99,49 +98,36 @@ class BaseTask(ObservableMixin):
         return [lst[i : i + n] for i in xrange(0, len(lst), n)]
 
 
+@zope.interface.implementer(ITaskSplitter)
 class NullTaskSplitter(object):
     """
-    A task splitter that is used with a NullConfigService for
-    situations where no configuration will be returned.
+    A task splitter used with a NullConfigService for situations where no
+    configurations are returned.
     """
-
-    zope.interface.implements(ITaskSplitter)
 
     def splitConfiguration(self, configs):
         return {}
 
 
+@zope.interface.implementer(ITaskSplitter)
 class SimpleTaskSplitter(object):
     """
-    A task splitter that creates a single scheduled task for an entire
-    configuration.
+    A task splitter that creates a single task for an entire configuration.
     """
-
-    zope.interface.implements(ITaskSplitter)
 
     def __init__(self, taskFactory):
         """
-        Creates a new instance of DeviceTaskSpliter.
+        Initialize a SimpleTaskSplitter instance.
 
-        @param taskClass the class to use when creating new tasks
-        @type any Python class
+        :param taskClass: the class to use when creating new tasks
+        :type taskClass: IScheduledTaskFactory
         """
         if not IScheduledTaskFactory.providedBy(taskFactory):
-            raise TypeError("taskFactory must implement IScheduledTaskFactory")
-        else:
-            self._taskFactory = taskFactory
-
-    def _newTask(self, name, configId, interval, config):
-        """
-        Handle the dirty work of creating a task
-        """
-        self._taskFactory.reset()
-        self._taskFactory.name = name
-        self._taskFactory.configId = configId
-        self._taskFactory.interval = interval
-        self._taskFactory.config = config
-
-        return self._taskFactory.build()
+            raise TypeError(
+                "taskFactory must provide the IScheduledTaskFactory "
+                "interface: %r" % (taskFactory,)
+            )
+        self._taskFactory = taskFactory
 
     def splitConfiguration(self, configs):
         tasks = {}
@@ -155,29 +141,29 @@ class SimpleTaskSplitter(object):
             )
         return tasks
 
+    def _newTask(self, name, configId, interval, config):
+        self._taskFactory.reset()
+        self._taskFactory.name = name
+        self._taskFactory.configId = configId
+        self._taskFactory.interval = interval
+        self._taskFactory.config = config
 
+        return self._taskFactory.build()
+
+
+@zope.interface.implementer(ISubTaskSplitter)
 class SubConfigurationTaskSplitter(SimpleTaskSplitter):
     """
     A task splitter that creates a single scheduled task by
-    device, cycletime and other criteria.
+    device, cycletime, and other criteria.
     """
 
-    zope.interface.implements(ISubTaskSplitter)
     subconfigName = "datasources"
 
     def makeConfigKey(self, config, subconfig):
-        raise NotImplementedError("Required method not implemented")
-
-    def _splitSubConfiguration(self, config):
-        subconfigs = {}
-        for subconfig in getattr(config, self.subconfigName):
-            key = self.makeConfigKey(config, subconfig)
-            subconfigList = subconfigs.setdefault(key, [])
-            subconfigList.append(subconfig)
-        return subconfigs
+        raise NotImplementedError("makeConfigKey not implemented")
 
     def splitConfiguration(self, configs):
-        # This name required by ITaskSplitter interface
         tasks = {}
         for config in configs:
             log.debug("Splitting config %s", config)
@@ -200,14 +186,21 @@ class SubConfigurationTaskSplitter(SimpleTaskSplitter):
                 )
         return tasks
 
+    def _splitSubConfiguration(self, config):
+        subconfigs = {}
+        for subconfig in getattr(config, self.subconfigName):
+            key = self.makeConfigKey(config, subconfig)
+            subconfigList = subconfigs.setdefault(key, [])
+            subconfigList.append(subconfig)
+        return subconfigs
 
+
+@zope.interface.implementer(IScheduledTaskFactory)
 class SimpleTaskFactory(object):
     """
     A simple task factory that creates a scheduled task using the provided
     task class and the minimum attributes needed for a task.
     """
-
-    zope.interface.implements(IScheduledTaskFactory)
 
     def __init__(self, taskClass):
         """
@@ -285,24 +278,21 @@ class WorkerOutputProxy(object):
         yield self.eventSender.sendEvent(event)
 
 
+@zope.interface.implementer(IScheduledTask)
 class SingleWorkerTask(ObservableMixin):
-    zope.interface.implements(IScheduledTask)
-
     def __init__(
         self, deviceId, taskName, scheduleIntervalSeconds, taskConfig
     ):
         """
-        Construct a new task instance to fetch data from the configured
-        worker object.
+        Initialize a new SingleWorkerTask instance.
 
-        @param deviceId: the Zenoss deviceId to watch
-        @type deviceId: string
-        @param taskName: the unique identifier for this task
-        @type taskName: string
-        @param scheduleIntervalSeconds: the interval at which this task will be
-               collected
-        @type scheduleIntervalSeconds: int
-        @param taskConfig: the configuration for this task
+        :param deviceId: the ID of the device to watch
+        :type deviceId: str
+        :param taskName: the unique identifier for this task
+        :type taskName: string
+        :param scheduleIntervalSeconds: the interval this task is run.
+        :type scheduleIntervalSeconds: int
+        :param taskConfig: the configuration for this task
         """
         super(SingleWorkerTask, self).__init__()
 
@@ -417,6 +407,7 @@ class SingleWorkerTask(ObservableMixin):
             self.state = TaskStates.STATE_IDLE
 
 
+@zope.interface.implementer(IWorkerTaskFactory)
 class SingleWorkerTaskFactory(SimpleTaskFactory):
     """
     A task factory that creates a scheduled task using the provided
@@ -424,14 +415,18 @@ class SingleWorkerTaskFactory(SimpleTaskFactory):
     the 'doTask' and 'cleanup' methods to a single ICollectorWorker instance.
     """
 
-    zope.interface.implements(IScheduledTaskFactory)
-
     def __init__(self, taskClass=SingleWorkerTask, iCollectorWorker=None):
         super(SingleWorkerTaskFactory, self).__init__(taskClass)
-        self.workerClass = iCollectorWorker
+        self.workerClass = None
+        if iCollectorWorker is not None:
+            self.setWorkerClass(iCollectorWorker)
 
-    def setWorkerClass(self, iCollectorWorker):
-        self.workerClass = iCollectorWorker
+    def setWorkerClass(self, workerClass):
+        if not ICollectorWorker.implementedBy(workerClass):
+            raise TypeError(
+                "ICollectorWorker implementation required: %s" % (workerClass,)
+            )
+        self.workerClass = workerClass
 
     def postInitialization(self):
         pass
@@ -447,12 +442,9 @@ class SingleWorkerTaskFactory(SimpleTaskFactory):
         return task
 
 
+@zope.interface.implementer(IWorkerExecutor)
 class NullWorkerExecutor(object):
-    """
-    IWorkerExecutor that does nothing with the provided worker
-    """
-
-    zope.interface.implements(IWorkerExecutor)
+    """IWorkerExecutor implementation that does nothing."""
 
     def setWorkerClass(self, workerClass):
         pass

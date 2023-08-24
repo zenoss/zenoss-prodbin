@@ -7,14 +7,22 @@
 #
 ##############################################################################
 
+from __future__ import print_function
+
 import argparse
 
 from contextlib import closing
 from time import sleep
 
+import transaction
+
+from MySQLdb import OperationalError
 from zope.component import getAdapter
 
-from .configstore import makeDeviceConfigurationStore
+from .configstore import (
+    makeDeviceConfigurationStore,
+    makeMonitorDeviceMappingStore,
+)
 from .interfaces import InvalidationPoller
 from .services import getConfigServices
 from .manager import InvalidationManager
@@ -23,11 +31,21 @@ from .zodb import getDB, dataroot
 
 def app(args):
     _initialize_env()
-    with closing(getDB(args.zodb_config_file)) as db:
-        poller = getAdapter(db.storage, InvalidationPoller)
-        with closing(db.open()) as session:
-            with dataroot(session) as dmd:
-                work(dmd, poller)
+    while True:
+        try:
+            with closing(getDB(args.zodb_config_file)) as db:
+                poller = getAdapter(db.storage, InvalidationPoller)
+                with closing(db.open()) as session:
+                    try:
+                        with dataroot(session) as dmd:
+                            work(dmd, poller)
+                    finally:
+                        transaction.abort()
+        except OperationalError as oe:
+            print("Lost database connection: %s" % (oe,))
+            pass
+        else:
+            break
 
 
 def work(dmd, poller):
@@ -37,42 +55,33 @@ def work(dmd, poller):
     print("Monitoring for changes")
     im = InvalidationManager(dmd, poller)
     while True:
-        im.process_invalidations()
+        updates = im.poll()
+        if updates:
+            print(updates)
         sleep(1)
 
 
 def create_and_load_configs(dmd):
-    stores = {}
+    configStores = {}
+    monitorStores = {}
     config_classes = getConfigServices()
     for monitorname in dmd.Monitors.getPerformanceMonitorNames():
         for cls in config_classes:
             configsvc = cls(dmd, monitorname)
             svcname = configsvc.__module__
+            mdms = makeMonitorDeviceMappingStore(monitorname, svcname)
             dcs = makeDeviceConfigurationStore(svcname)
             configs = configsvc.remote_getDeviceConfigs()
             for config in configs:
                 dcs[config.configId] = config
-            stores[svcname] = dcs
+                mdms.add(config.configId)
+            configStores[svcname] = dcs
             print(
                 "Added %d configs for the %s config service"
                 % (len(dcs), svcname)
             )
-    return stores
-
-
-def _build_cli_args():
-    parser = argparse.ArgumentParser(
-        description="Monitors model changes to update device configurations.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-    parser.add_argument(
-        "--zodb-config-file",
-        default="/opt/zenoss/etc/zodb.conf",
-        help="ZODB connection config file.  If the file doesn't exist, "
-        "the ZODB connection is created using /opt/zenoss/etc/globals.conf",
-    )
-    parser.set_defaults(func=app)
-    return parser
+        monitorStores[monitorname] = mdms
+    return monitorStores, configStores
 
 
 def _initialize_env():
@@ -88,6 +97,21 @@ def _initialize_env():
     zcml.load_site()
     load_config("modelchange.zcml", Products.ZenHub.modelchange)
     load_config_override("scriptmessaging.zcml", Products.ZenWidgets)
+
+
+def _build_cli_args():
+    parser = argparse.ArgumentParser(
+        description="Monitors model changes to update device configurations.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--zodb-config-file",
+        default="/opt/zenoss/etc/zodb.conf",
+        help="ZODB connection config file.  If the file doesn't exist, "
+        "the ZODB connection is created using /opt/zenoss/etc/globals.conf",
+    )
+    parser.set_defaults(func=app)
+    return parser
 
 
 def main():

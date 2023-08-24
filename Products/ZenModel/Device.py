@@ -7,11 +7,6 @@
 #
 ##############################################################################
 
-"""Device
-
-Base device (remote computer) class
-"""
-
 import cgi
 import itertools
 import logging
@@ -113,6 +108,9 @@ log = logging.getLogger("zen.Device")
 def getNetworkRoot(context, performanceMonitor):
     """
     Return the default network root.
+
+    :param context: the dmd object
+    :param performanceMonitor: ignored
     """
     return context.getDmdRoot("Networks")
 
@@ -191,7 +189,7 @@ def findCommunity(
     Find the SNMP community and version for an IP address using
     zSnmpCommunities.
 
-    @rtype: tuple of (community, port, version, device name)
+    :rtype: tuple of (community, port, version, device name)
     """
     from pynetsnmp.SnmpSession import SnmpSession
 
@@ -236,9 +234,7 @@ def findCommunity(
 
 @deprecated  # 1/31/12
 def manage_addDevice(context, id, REQUEST=None):
-    """
-    Creates a device
-    """
+    """Creates a device."""
     serv = Device(id)
     context._setObject(serv.id, serv)
     if REQUEST is not None:
@@ -274,9 +270,8 @@ class Device(
     DeviceIndexable,
 ):
     """
-    Device is a base class that represents the idea of a single computer system
-    that is made up of software running on hardware. It currently must be IP
-    enabled but maybe this will change.
+    A base class that represents the idea of a single computer system
+    that is made up of software running on hardware.
     """
 
     event_key = portal_type = meta_type = "Device"
@@ -419,7 +414,9 @@ class Device(
 
     def name(self):
         """
-        Return the name of this device.  Default is titleOrId.
+        Return the name of this device.
+
+        :rtype: str
         """
         return self.titleOrId()
 
@@ -428,13 +425,13 @@ class Device(
     def changeDeviceClass(self, deviceClassPath, REQUEST=None):
         """
         Wrapper for DeviceClass.moveDevices. The primary reason to use this
-        method instead of that one is that this one returns the new path to the
-        device.
+        method instead of that one is that this one returns the new path to
+        the device.
 
-        @param deviceClassPath: device class in DMD path
-        @type deviceClassPath: string
-        @param REQUEST: Zope REQUEST object
-        @type REQUEST: Zope REQUEST object
+        :param deviceClassPath: device class in DMD path
+        :type deviceClassPath: string
+        :param REQUEST: Zope REQUEST object
+        :type REQUEST: Zope REQUEST object
         """
         self.deviceClass().moveDevices(deviceClassPath, (self.id,))
         device = self.getDmdRoot("Devices").findDevice(self.id)
@@ -448,9 +445,6 @@ class Device(
 
     @deprecated
     def getRRDTemplate(self):
-        """
-        DEPRECATED
-        """
         import warnings
 
         warnings.warn(
@@ -462,7 +456,7 @@ class Device(
         """
         Returns all the templates bound to this Device
 
-        @rtype: list
+        :rtype: List[RRDTemplate]
 
         >>> from Products.ZenModel.Device import manage_addDevice
         >>> manage_addDevice(devices, 'test')
@@ -506,8 +500,8 @@ class Device(
         and is a string.  See L{RRDTemplate.RRDTemplate.getDataSourceOptions}
         for more information.
 
-        @rtype: list
-        @return: [(displayName, dsOption),]
+        :return: list of data source options key/value tuple pairs
+        :rtype: List[Tuple(str, str)]
         """
         # This is an unfortunate hack.  Called from the device templates
         # page where we show multiple templates now.  This only really
@@ -793,6 +787,7 @@ class Device(
         """
         return self.hw.getManufacturerName()
 
+    @deprecated
     def getHWProductName(self):
         """
         Return the hardware product name of this device.
@@ -801,6 +796,7 @@ class Device(
         """
         return self.hw.getProductName()
 
+    @deprecated
     def getHWProductClass(self):
         """
         Return the hardware product class of this device.
@@ -1305,7 +1301,6 @@ class Device(
         is not passed it will not be updated; the value of any unpassed device
         propeties will remain the same.
 
-        @permission: ZEN_CHANGE_DEVICE
         Keyword arguments:
           title              -- device title [string]
           tag                -- tag number [string]
@@ -2100,7 +2095,7 @@ class Device(
         debug=False,
     ):
         """
-        Collect the configuration of this device AKA Model Device
+        Collect the configuration of this device, e.g. model the device.
 
         @param setlog: If true, set up the output log of this process
         @permission: ZEN_MANAGE_DEVICE
@@ -2713,6 +2708,7 @@ class Device(
         """
         Used by the user commands this returns which ping command
         this device should use.
+
         @rtype: string
         @return "ping" or "ping6" depending on if the manageIp is ipv6 or not
         """
@@ -2768,7 +2764,7 @@ class Device(
 
     def _getPingStatus(self, statusclass):
         if not self.zPingMonitorIgnore and self.getManageIp():
-            # Override normal behavior - we only care if the manage IP is down
+            # Override normal behavior - we only care if the manage IP is down.
 
             # Need to add the ipinterface component id to search since we may
             # be pinging interfaces and only care about status of the one that
