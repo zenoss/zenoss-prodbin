@@ -38,6 +38,8 @@ from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
 from Products.ZenUtils.picklezipper import Zipper
 from Products.Zuul.utils import safe_hasattr as hasattr
 
+from .metrics import measureConfigBuild
+
 
 class DeviceProxy(pb.Copyable, pb.RemoteCopy):
     def __init__(self):
@@ -405,9 +407,10 @@ class CollectorConfigService(HubService, ThresholdMixin):
         deferreds = []
 
         if self._perfIdFilter(device) and self._filterDevice(device):
-            proxies = self._wrapFunction(self._createDeviceProxies, device)
-            if proxies:
-                self._wrapFunction(self._postCreateDeviceProxy, proxies)
+            with measureConfigBuild(self, device):
+                proxies = self._wrapFunction(self._createDeviceProxies, device)
+                if proxies:
+                    self._wrapFunction(self._postCreateDeviceProxy, proxies)
         else:
             proxies = None
 
