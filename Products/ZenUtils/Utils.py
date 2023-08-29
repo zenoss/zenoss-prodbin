@@ -1362,7 +1362,7 @@ def executeCommand(cmd, REQUEST, write=None):
         raise
     else:
         result = f.wait()
-        result = int(hex(result)[:-2], 16)
+        result = int(hex(result)[2:], 16)
     return result
 
 
