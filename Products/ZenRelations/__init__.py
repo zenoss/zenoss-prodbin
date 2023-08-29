@@ -7,29 +7,38 @@
 #
 ##############################################################################
 
+import logging
+
+from .RelationshipManager import (
+    addRelationshipManager,
+    manage_addRelationshipManager,
+    RelationshipManager,
+)
+from .ToManyContRelationship import (
+    addToManyContRelationship,
+    manage_addToManyContRelationship,
+    ToManyContRelationship,
+)
+from .ToManyRelationship import (
+    addToManyRelationship,
+    manage_addToManyRelationship,
+    ToManyRelationship,
+)
+from .ToOneRelationship import (
+    addToOneRelationship,
+    manage_addToOneRelationship,
+    ToOneRelationship,
+)
+from .ZenPropertyManager import setDescriptors
+
+log = logging.getLogger("zen.ZenRelations")
+
+
+class ZODBConnectionError(Exception):
+    pass
+
 
 def initialize(registrar):
-    from .RelationshipManager import (
-        addRelationshipManager,
-        manage_addRelationshipManager,
-        RelationshipManager,
-    )
-    from .ToManyContRelationship import (
-        addToManyContRelationship,
-        manage_addToManyContRelationship,
-        ToManyContRelationship,
-    )
-    from .ToManyRelationship import (
-        addToManyRelationship,
-        manage_addToManyRelationship,
-        ToManyRelationship,
-    )
-    from .ToOneRelationship import (
-        addToOneRelationship,
-        manage_addToOneRelationship,
-        ToOneRelationship,
-    )
-
     registrar.registerClass(
         RelationshipManager,
         constructors=(addRelationshipManager, manage_addRelationshipManager),
@@ -56,15 +65,12 @@ def initialize(registrar):
 
 def registerDescriptors(event):
     """
-    IZopeApplicationOpenedEvent handler which registers property descriptors.
+    Handler for IZopeApplicationOpenedEvent which registers property
+    descriptors.
     """
     zport = getattr(event.app, "zport", None)
     # zport may not exist if we are using zenbuild to initialize the database
     if zport:
-        from logging import getLogger
-        from .ZenPropertyManager import setDescriptors
-
-        log = getLogger("zen.{}".format(__name__.split(".")[-1].lower()))
         try:
             setDescriptors(zport.dmd)
         except Exception as e:
