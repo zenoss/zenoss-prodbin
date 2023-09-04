@@ -42,7 +42,6 @@ class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
         ds=None,
         perfServer="localhost",
         metadata=None,
-        tags=None,
     ):
         self.ip = ipunwrap(ip)
         self.ipVersion = ipVersion
@@ -71,7 +70,7 @@ class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
                 dp.rrdmin,
                 dp.rrdmax,
                 metadata,
-                tags,
+                dp.getTags(iface),
             )
 
             self.points.append(ipdData)
@@ -138,15 +137,6 @@ class PingPerformanceConfig(CollectorConfigService):
                     ds for ds in templ.getRRDDataSources("PING") if ds.enabled
                 ]
                 if dsList:
-                    dps = dsList[0].getRRDDataPoints()
-                    tags = {}
-
-                    # zenping doesn't consider each datapoint's configuration.
-                    # It assumes a static list of datapoints, so combine tags
-                    # from all datapoints and use them for all datapoints.
-                    for dp in dps:
-                        tags.update(dp.getTags(iface))
-
                     ipVersion = getattr(ipAddress, "version", 4)
                     ipProxy = IpAddressProxy(
                         ip,
@@ -155,7 +145,6 @@ class PingPerformanceConfig(CollectorConfigService):
                         ds=dsList[0],
                         perfServer=perfServer,
                         metadata=metadata,
-                        tags=tags,
                     )
                     monitoredIps.append(ipProxy)
 
