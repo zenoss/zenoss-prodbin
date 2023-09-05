@@ -412,7 +412,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         deferreds = []
 
         if self._perfIdFilter(device) and self._filterDevice(device):
-            with measureConfigBuild(self, device.id):
+            with measureConfigBuild(self, device):
                 proxies = self._wrapFunction(self._createDeviceProxies, device)
                 if proxies:
                     self._wrapFunction(self._postCreateDeviceProxy, proxies)
