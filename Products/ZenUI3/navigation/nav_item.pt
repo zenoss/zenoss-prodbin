@@ -5,7 +5,6 @@
            tal:content="view/title"
            i18n:translate="">Menu item</a>
         <span tal:condition="python: view.title == 'Dashboard'" style="font-size: 8px;color: orange;position: relative;top: -43px;left: 40px;">deprecated</span>
-        <span tal:condition="python: view.title == 'Reports'" style="font-size: 8px;color: orange;position: relative;top: -43px;left: 20px;">deprecated</span>
-    </div>
+   </div>
 </div>
 </li>
