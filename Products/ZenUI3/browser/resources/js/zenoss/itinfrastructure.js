@@ -926,9 +926,15 @@ Ext.onReady(function () {
                 devids = Ext.pluck(Ext.pluck(selections, 'data'), 'uid');
 
             function showWindow() {
+                var uid = getSelectionModel().getSelectedNode().data.uid;
+
+                if (Zenoss.env.CSE_VIRTUAL_ROOT && !uid.startsWith(Zenoss.env.CSE_VIRTUAL_ROOT)) {
+                    uid = uid.replace(/^\/(?!\/)/, Zenoss.env.CSE_VIRTUAL_ROOT);
+                }
+
                 var win = new Zenoss.CommandWindow({
                     uids: devids,
-                    target: getSelectionModel().getSelectedNode().data.uid + '/run_command',
+                    target: uid + '/run_command',
                     command: command
                 });
                 win.show();
