@@ -97,6 +97,11 @@ class Celery(object):
     # List of modules to import when the Celery worker starts
     CELERY_IMPORTS = ("Products.Jobber.jobs",)
 
+    # Job/Task routing
+    CELERY_ROUTES = {
+        "modelchange.build_device_config": {"queue": "modelchange"}
+    }
+
     # Result backend (redis)
     CELERY_RESULT_BACKEND = ZenJobs.get("redis-url")
     CELERY_RESULT_SERIALIZER = "without-unicode"

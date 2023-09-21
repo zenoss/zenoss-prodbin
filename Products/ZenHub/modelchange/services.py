@@ -10,12 +10,14 @@
 import importlib
 import inspect
 import itertools
-import pathlib2
+import pathlib2 as pathlib
 
 import Products
 import ZenPacks
 
 from Products.ZenCollector.services.config import CollectorConfigService
+
+_excluded_config_classes = ("NullConfigService", "NullConfig")
 
 
 def mod_from_path(path):
@@ -29,9 +31,9 @@ def mod_from_path(path):
     Products.ZenHub.services.ProcessConfig
 
     :param path: The module path
-    :type path: pathlib2.Path
+    :type path: pathlib.Path
     :returns: The package path
-    :rtype: pathlib2.Path
+    :rtype: pathlib.Path
     """
     if "Products" in path.parts:
         offset = path.parts.index("Products")
@@ -46,7 +48,7 @@ def getConfigServicesFromModule(name):
     An empty tuple is returned if no config service classes are found.
 
     :param name: The full name of the module.
-    :type name: pathlib2.Path
+    :type name: pathlib.Path
     :returns: Tuple of Configuration service classes
     :rtype: tuple[CollectorConfigService]
     """
@@ -79,14 +81,14 @@ def getConfigServices():
     that found in a package named "services".  The "services" package can
     be found in multiple package paths.
 
-    :returns: Tuple of Configuration service classes
+    :returns: Tuple of configuration service classes
     :rtype: tuple[CollectorConfigService]
     """
     search_paths = itertools.chain(Products.__path__, ZenPacks.__path__)
     service_paths = (
         svcpath
         for path in search_paths
-        for svcpath in pathlib2.Path(path).rglob("**/services")
+        for svcpath in pathlib.Path(path).rglob("**/services")
     )
     module_names = (
         mod_from_path(codepath)
@@ -95,7 +97,9 @@ def getConfigServices():
         if codepath.stem != "__init__" and "tests" not in codepath.parts
     )
     return tuple(
-        itertools.chain.from_iterable(
+        cls
+        for cls in itertools.chain.from_iterable(
             getConfigServicesFromModule(name) for name in module_names
         )
+        if cls.__name__ not in _excluded_config_classes
     )

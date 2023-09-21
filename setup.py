@@ -77,7 +77,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "zenmodelchange=Products.ZenHub.modelchange.main:main",
+            "zenmodelchange=Products.ZenHub.zenmodelchange:main",
         ],
         "celery.commands": [
             "monitor=Products.Jobber.monitor:ZenJobsMonitor",

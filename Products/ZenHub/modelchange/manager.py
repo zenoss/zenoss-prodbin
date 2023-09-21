@@ -13,7 +13,6 @@ import logging
 
 from itertools import chain
 
-from twisted.internet.defer import inlineCallbacks
 from zenoss.protocols.protobufs.zep_pb2 import (
     SEVERITY_CLEAR,
     SEVERITY_CRITICAL,
@@ -122,7 +121,3 @@ class InvalidationManager(object):
                 log.info("invalidation processing has been unpaused")
                 self._send_event(self._invalidation_unpaused_event)
                 return False
-
-    @inlineCallbacks
-    def _send_event(self, event):
-        yield self.__send_event(event)

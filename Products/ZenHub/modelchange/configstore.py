@@ -7,38 +7,6 @@
 #
 ##############################################################################
 
-# Key structure
-# zenconfig:device:<service-name>:<config-id> <pickled python data>
-# ^         ^      ^              ^
-# |         |      |              +- The ID the config gives itself.
-# |         |      +- Full name of the config class the produced the config
-# |         +- Category
-# +- Constant string that categorizes these values in Redis.
-
-# deviceconfig:<service-name> [config-id-1, config-id-2, ...]
-
-# Collector instances want a subset of configs from a config class.
-
-# The config service will generate configurations and write the configs
-# into Redis.  After generating all the configs, the list of config IDs
-# is written to another key associated with the config class.
-#
-# The config service will expose a new API that returns the set of config IDs
-# to the collector.  The API excepts the filter argument to distribute
-# different sets of configs to different collector instances.  The collector
-# uses the returned set of config IDs to read the configs from Redis.
-#
-# The 'maintenance cycle' of the collector includes getting a refreshed list
-# of config IDs and updating its set of configs to match.  The collector will
-# monitor Redis for changes in configs.
-
-# The config service publishes updated config IDs to the
-# "deviceconfignotify:<service-name>" channel.  The collector instances
-# subscribe to this channel to become aware of which configs are stale and
-# need to be refreshed from Redis.  In the collector, receiving updates
-# from the pub/sub channel are used to mark stale configs. Prior to the next
-# collection cycle, the collector will refresh the stale configs.
-
 # Usage Patterns
 # ==============
 #
@@ -50,213 +18,165 @@
 # - 'last-update' is a Unix timestamp of the last update to the configuration.
 #   This value will change every time the configuration is changed.
 #
-# Cases
-# -----
-# 1. Get configuration IDs according to service, monitor, and last-update.
-#    The 'last-update' is used to select config IDs of configs that
-#    have changed since the 'last-update' value.
+# Use Cases
+# ---------
+# 1. Return configuration IDs having 'last-update' timestamps greater than
+#    a given timestamp.
 #
 #    Config IDs in stored in a sorted set.  The key is formed using the
 #    service and monitor names. The last-update values are the scores
 #    associated with each config ID in the set.
 #
-# 2. Get the configurations for the given configuration IDs
-# 3. Write a new configuration
-# 4. Move a device from one monitor to another
-# 5. Device is deleted
+# 2. Return all configurations newer than a given timestamp.
+#
+# 3. Return the configurations for a given set of devices (1+).
+#    a. Client will request configurations for a set of devices.
+#
+# 4. Create the configuration for new devices.
+#
+# 5. Refresh configurations that exceed some age.
+#
+# 6. Update a configuration's metadata when a device is moved between monitors.
+#    a. Client will request updates for a given set of devices; devices not
+#       assigned to the current monitor will be marked 'not found' in the
+#       response.
+#
+# 7. Remove a configuration when a device is deleted.
+#    a. Client will request updates for a given set of devices; devices that
+#       aren't found will be marked 'not found' in the response.
 
-from __future__ import absolute_import, print_function
+# When requesting updates, the client will provide the set of devices it
+# knows, with a timestamp associated with each device.
+# The server will respond with configs that have newer timestamps than what
+# the client provided.  If a device is no longer available for the client,
+# a 'not found' marker is returned instead of a config.
+# The server will also respond with configs for devices that were not given
+# by the client, but are available to the client.
+
+# Key structure
+# =============
+# modelchange:device:config:<monitor>:<service>:<id> <data>
+# modelchange:device:age:<monitor>:<service> <data>
+#
+# While "device" seems redundant, other values in this position could be
+# "threshold" and "property".
+#
+# The "config" segment identifies a key storing a device configuration.
+# The "age" segment identifies a key storing a set of device IDs sorted by
+# the timestamp of when the configuration was created.
+#
+# <monitor> names the monitor (collector) the device belongs to.
+# <service> names the configuration service class used to generate the
+# configuration.
+#
+# <id> is the ID of the device
+#
+
+from __future__ import absolute_import, print_function, division
 
 import ast
 import logging
+import time
 
-from collections import Container, Sized
 from itertools import chain, islice
 
 from twisted.spread.jelly import jelly, unjelly
 
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
-_app = "zenconfig"
-_basepatterntemplate = "{}:{{}}:{{}}:{{}}:*".format(_app)
-_basetemplate = "{}:{{}}:{{}}:{{}}:{{{{}}}}".format(_app)
-
-log = logging.getLogger("zen.zenjobs")
+_app = "modelchange"
+log = logging.getLogger("zen.modelchange")
 
 
-class DeviceConfigurationKey(object):
+class DeviceConfigStore(object):
     """
-    The key to a specific configuration.
+    Manages device configuration data for a specific configuration service.
     """
 
-    __slots__ = ("service", "configid")
+    @classmethod
+    def make(cls, servicename):
+        """
+        Create and return a DeviceConfigStore for device configurations.
 
-    def __init__(self, service, configid):
-        self.service = service
-        self.configid = configid
+        The `servicename` parameter should be the fully qualified module name
+        to the class used to generate the device configurations.
 
-    def __str__(self):
-        return "{}:device:config:{}:{}".format(
-            _app, self.service, self.configid
-        )
+        :param servicename: The name of the device config class
+        :type servicename: str
+        """
+        client = getRedisClient(url=getRedisUrl())
+        return cls(client, servicename)
 
-
-class ConfigurationRecord(object):
-
-    __slots__ = ("key", "data")
-
-
-def makeDeviceConfigurationStore():
-    """
-    Create and return a ConfigurationStore for device configurations.
-
-    :param serviceid: The full Python package name of the
-        configuration service.
-    :type serviceid: str
-    """
-    client = getRedisClient(url=getRedisUrl())
-    segments = ("service", "device")
-    return ConfigurationStore(client, segments)
-
-# cfg:device:service:<service-name>:<config-id> <config-data>
-# cfg:device:monitor:<monitor-name>:<service-name> <(time, config-id), ...>
-#
-# How to track when a device is moved from one monitor to another?
-# - How to notify collection daemons of this activity?
-#   - The receiving daemon is notified because it'll show up when updates
-#     are requested.
-#   - Where can the losing daemon look to determine it's no longer
-#     responsible for a device?
-#     - Maybe a flag to indicate that the collection daemon needs to
-#       refresh (sync?) its set of device configs?  A "refresh" meaning
-#       it verifies that its local cache matches the data in Redis.
-# - How to track when a device is deleted?
-#   - A flag is set that the losing daemon will notice?
-#     - The data is organized by monitor and service, not specific daemons.
-#       I don't want to cause all daemons to refresh their local caches.
-# - Use a notification pubsub channel? -- still need to know specific
-#   daemon instances so that messages are sent to the correct place.
-#
-# Redis is fast, so maybe always load the cfg:device:monitor:*:* key and
-# compare that set against the local cache?  Remove configs from the local
-# cache that aren't present in the set and request newer configs, comparing
-# the timestamps locally rather than using zrangebyscore.  This may sidestep
-# the load on Redis that zrangebyscore could cause if the key has a enough
-# members in the set, although a large enough set to cause this issue may
-# cause issues with reading the key on the Python side.
-
-
-class ConfigurationStore(Container, Sized):
-    """Implements an API for managing configuration data."""
-
-    def __init__(self, client, keysegments, expires=None, batchsize=100):
+    def __init__(self, client, service):
         """Initialize a ConfigurationStore instance.
 
         :param client: A Redis client instance.
         :type client: redis.StrictRedis
-        :param keysegments: A list of names used to identify values.
-        :type keysegments: Sequence[str]
-        :param expires: The number of seconds a key will exist.
-        :type expires: Union[int, None]
+        :param service: The name of the configuration service.
+        :type service: str
         :param batchsize: The number of key values to retrieve at a time
             for certain APIs.  The default size is 100.
         :type batchsize: int
         """
         self.__client = client
-        self.__configkeytemplate = (
-            "{app}:{segments}:{{service}}:{{configid}}".format(
-                app=_app, segments=":".join(keysegments)
+        # modelchange:device:config:<monitor>:<service>:<id> <data>
+        self.__template = (
+            "{app}:device:config:{{monitor}}:{service}:{{device}}".format(
+                app=_app, service=service
             )
         )
-        self.__keypattern = "{app}:device:config:*".format(app=_app)
-        self.__expires = expires
-        self.__batchsize = batchsize
+        self.__scan_count = 1000
+        self.__mget_count = 10
 
-    def _makekey(self, service, configid):
-        return self.__keytemplate.format(service=service, configid=configid)
+    def _makekey(self, monitorid, configid):
+        return self.__template.format(monitor=monitorid, device=configid)
 
-    def __contains__(self, key):
-        """Return True if configuration data exists for the given record.
+    def exists(self, monitorid, configid):
+        """Return True if configuration data exists for the given ID.
 
-        :type key: DeviceConfigurationKey
+        :param monitorid: Name of the monitor the device is a member of.
+        :type monitorid: str
+        :param configid: The ID of the device
+        :type configid: str
         :rtype: boolean
         """
-        return self.__client.exists(key)
+        return self.__client.exists(self._makekey(monitorid, configid))
 
-    def __len__(self):
-        return sum(1 for _ in self.__client.scan_iter(match=self.__keypattern))
-
-    def _keyiter(self, service=None, monitor=None):
-        if monitor is not None:
-            key = "{}:device:monitor:{}".format(_app, monitor)
-            if service is not None:
-                pattern = "{}:*".format(service)
-                return (
-                    elem[0]
-                    for elem in self.__client.zscan_iter(key, match=pattern)
-                )
-            else:
-                return (elem[0] for elem in self.__client.zscan_iter(key))
-
-        if service is not None:
-            pattern = self.__keytemplate.format(service=service, configid="*")
-        else:
-            pattern = self.__keypattern
-        return self.__client.scan_iter(match=pattern)
-
-    def keys(self, service=None, monitor=None):
-        """Return the keys matching search criteria.
-
-        :rtype: Iterator[DeviceConfigurationKey]
+    def search(self, monitorid="*", configid="*"):
         """
-        keys = self._keyiter(service, monitor)
-        return (DeviceConfigurationKey(*key.split(":")[-2:]) for key in keys)
-
-    def values(self, service=None, monitor=None):
-        """Return the ConfigurationRecords matching the search criteria.
-
-        :rtype: Iterator[ConfigurationRecord]
+        Return an iterable of tuples of (monitorid, configId).
         """
-        # generator to build the config keys
-        keys = (
-            "{}:device:config:{}".format(_app, *k.split(":")[-2:])
-            for k in self._keyiter(service, monitor)
-        )
-        raw = ((key, self.__client.get(key)) for key in keys)
-        return (ConfigurationRecord(key, data) for key, data in raw if data)
-
-    def items(self, service=None, monitor=None):
-        """Return all existing config objects as (ID, config) pairs.
-
-        :rtype: Iterator[Tuple[str, IJellyable]]]
-        """
-        keys = (
-            "{}:device:config:{}".format(_app, *k.split(":")[-2:])
-            for k in self._keyiter(service, monitor)
-        )
-        raw = ((key, self.__client.get(key)) for key in keys)
+        pattern = self._makekey(monitorid, configid)
         return (
-            (DeviceConfigurationKey(key), ConfigurationRecord(key, data))
-            for key, data in raw if data
+            (key.split(":")[3], key.split(":")[-1])
+            for key in self.__client.scan_iter(
+                match=pattern, count=self.__scan_count
+            )
         )
 
-    def mget(self, configids):
-        """Return config data for each provided config ID.
+    def mget(self, *configids):
+        """Return config data for each provided monitor ID/config ID pair.
 
         The returned iterable will produce the config data in the same
         order given in the configids parameter.
 
-        :param configids: Iterable[str]
+        The returned iterable is empty if none of the given config IDs exist.
+
+        :param configids: Iterable[(str, str)]
         :rtype: Iterator[IJellyable]
         """
-        keys = (self.__keytemplate.format(cid) for cid in configids)
+        keys = (self._makekey(*cid) for cid in configids)
         raw = (
             self.__client.mget(batch)
-            for batch in _batched(keys, self._batchsize)
+            for batch in _batched(keys, self.__mget_count)
         )
-        return (_unjelly(data) for data in chain.from_iterable(raw))
+        return (
+            _unjelly(data)
+            for data in chain.from_iterable(raw)
+            if data is not None
+        )
 
-    def get(self, configid, default=None):
+    def get(self, monitorid, configid, default=None):
         """Return the config data for the given config ID.
 
         If the config ID is not found, the default argument is returned.
@@ -265,68 +185,143 @@ class ConfigurationStore(Container, Sized):
         :type default: Any
         :rtype: Union[IJellyable, default]
         """
-        key = self.__keytemplate.format(configid)
+        key = self._makekey(monitorid, configid)
         if not self.__client.exists(key):
             return default
         return _unjelly(self.__client.get(key))
 
-    def __getitem__(self, configid):
-        """Return the config object mapped by the given key.
-
-        If the configuration ID is not found, a KeyError exception is raised.
-
-        :type configid: str
-        :rtype: IJellyable
-        :raises: KeyError
-        """
-        key = self.__keytemplate.format(configid)
-        if not self.__client.exists(key):
-            raise KeyError("config not found: %s" % configid)
-        return _unjelly(self.__client.get(key))
-
-    def __setitem__(self, configid, data):
+    def set(self, monitorid, configid, data):
         """Insert or replace the config data for the given config ID.
 
+        If existing data for the configid exists under a different monitorid,
+        it will be deleted.
+
+        :param configid: The ID of the configuration
         :type configid: str
-        :param data: IJellyable
+        :param data: The configuration object
+        :type data: IJellyable
         :raises: ValueError
         """
-        key = self.__keytemplate.format(configid)
-        data = jelly(data)
-        self.__client.set(key, data)
+        key = self._makekey(monitorid, configid)
+        pattern = self._makekey("*", configid)
+        deadkeys = tuple(
+            key
+            for key in self.__client.scan_iter(
+                match=pattern, count=self.__scan_count
+            )
+            if key.split(":")[3] != monitorid
+        )
+        pipe = self.__client.pipeline()
+        if deadkeys:
+            pipe.delete(*deadkeys)
+        pipe.set(key, jelly(data))
+        pipe.execute()
+
+    def delete(self, monitorid, configid):
+        key = self._makekey(monitorid, configid)
+        self.__client.delete(key)
 
     def mdelete(self, *configids):
         """Delete the configs associated with each of the given config IDs.
 
-        :param configids: An iterable producing config IDs
-        :type configids: Iterable[str]
+        :param configids: An iterable producing monitor ID/config IDs pairs
+        :type configids: Iterable[(str, str)]
         """
         if not configids:
             return
-        keys = (self.__keytemplate.format(configid) for configid in configids)
+        keys = (self._makekey(*cid) for cid in configids)
         self.__client.delete(*keys)
 
-    def __delitem__(self, configid):
-        """Delete the job data associated with the given job ID.
 
-        If the job ID does not exist, a KeyError is raised.
-
-        :type jobid: str
-        """
-        key = self.__keytemplate.format(configid)
-        if not self.__client.exists(key):
-            raise KeyError("Job not found: %s" % configid)
-        self.__client.delete(key)
-
-
-def _iteritems(client, keypattern):
-    """Return an iterable of (redis key, config data) pairs.
-
-    Only (key, data) pairs where data is not None are returned.
+class MonitorDeviceMapStore(object):
     """
-    keys = client.scan_iter(match=keypattern)
-    raw = ((key, client.get(key)) for key in keys)
-    return ((key, data) for key, data in raw if data)
+    Manages the mapping of device configurations to monitors.
+
+    Configuration IDs are mapped to service ID/monitor ID pairs.
+
+    A Service ID/monitor ID pair are used as a key to retrieve the
+    Configuration IDs mapped to the pair.
+    """
+
+    # Implementation Note:
+    # Locating a configuration ID requires searching each of the
+    # service ID/monitor ID keys until the configuration ID is found.
+
+    @classmethod
+    def make(cls, service):
+        """
+        Create and return a MonitorDeviceMapStore to map configurations to
+        service ID/monitor ID pairs.
+        """
+        client = getRedisClient(url=getRedisUrl())
+        return cls(client, service)
+
+    def __init__(self, client, service):
+        """Initialize a MonitorDeviceMapStore instance.
+
+        :param client: A Redis client instance.
+        :type client: redis.StrictRedis
+        :param service: The name of the configuration service.
+        :type service: str
+        """
+        self.__client = client
+        self.__template = "{app}:device:age:{{monitor}}:{service}".format(
+            app=_app, service=service
+        )
+        self.__scan_count = 1000
+
+    def search(self, monitorid="*"):
+        """
+        Return an iterable of tuples of (configId, last-update-timestamp).
+        """
+        if monitorid != "*":  # and serviceid != "*":
+            key = self.__template.format(monitor=monitorid)
+            return self.__client.zscan_iter(key, count=self.__scan_count)
+        pattern = self.__template.format(monitor=monitorid)
+        return (
+            (cid, float(lastupdate) / 1000)
+            for cid, lastupdate in chain.from_iterable(
+                self.__client.zscan_iter(key, count=self.__scan_count)
+                for key in self.__client.scan_iter(
+                    match=pattern, count=self.__scan_count
+                )
+            )
+        )
+
+    def exists(self, monitorid, configid):
+        key = self.__template.format(monitor=monitorid)
+        return self.__client.zscore(key, configid) is not None
+
+    def add(self, monitorid, configid):
+        """
+        Add a configid -> (monitorid, serviceid) mapping.
+        This method will replace any existing mapping for configid.
+        """
+        pattern = self.__template.format(monitor="*")
+        newkey = self.__template.format(monitor=monitorid)
+        keys = self.__client.scan_iter(match=pattern, count=self.__scan_count)
+        for key in keys:
+            if self.__client.zscore(key, configid) is not None:
+                _, _, _, oldmonitor, oldservice = key.split(":")
+                tm = int(time.time() * 1000)
+                if monitorid == oldmonitor:
+                    self.__client.zadd(key, tm, configid)
+                else:
+                    pipe = self.__client.pipeline()
+                    pipe.zrem(key, configid)
+                    pipe.zadd(newkey, tm, configid)
+                    pipe.execute()
+                break
+        else:
+            tm = int(time.time() * 1000)
+            self.__client.zadd(newkey, tm, configid)
+
+    def remove(self, monitorid, configid):
+        """
+        Removes a configid from a (monitorid, serviceid) key.
+        """
+        key = self.__template.format(monitor=monitorid)
+        self.__client.zrem(key, configid)
 
 
 def _unjelly(data):
@@ -349,6 +344,6 @@ def _batched(iterable, n):
             break
         yield batch
     #
-    # Note: In Python 3.7+, the above loop would be
-    #     while (batch := tuple(islice(it, n))):
+    # Note: In Python 3.7+, the above loop would be written as
+    #     while (batch := tuple(islice(itr, n))):
     #         yield batch

@@ -19,10 +19,7 @@ import transaction
 from MySQLdb import OperationalError
 from zope.component import getAdapter
 
-from .configstore import (
-    makeDeviceConfigurationStore,
-    makeMonitorDeviceMappingStore,
-)
+from .configstore import DeviceConfigStore, MonitorDeviceMapStore
 from .interfaces import InvalidationPoller
 from .services import getConfigServices
 from .manager import InvalidationManager
@@ -50,8 +47,11 @@ def app(args):
 
 def work(dmd, poller):
     print("Creating configurations and writing them to Redis")
-    stores = create_and_load_configs(dmd)  # noqa F821
-
+    configClasses = getConfigServices()
+    monitorStore, configStores = create_stores(configClasses)
+    configServices = load_configs(  # noqa F821
+        dmd, configClasses, monitorStore, configStores
+    )
     print("Monitoring for changes")
     im = InvalidationManager(dmd, poller)
     while True:
@@ -61,27 +61,32 @@ def work(dmd, poller):
         sleep(1)
 
 
-def create_and_load_configs(dmd):
-    configStores = {}
-    monitorStores = {}
-    config_classes = getConfigServices()
+def create_stores(configClasses):
+    configStores = {
+        cls.__name__: DeviceConfigStore.make(cls)
+        for cls in configClasses
+    }
+    monitorStore = MonitorDeviceMapStore.make()
+    return monitorStore, configStores
+
+
+def load_configs(dmd, configClasses, monitorStore, configStores):
+    configServices = {}
     for monitorname in dmd.Monitors.getPerformanceMonitorNames():
-        for cls in config_classes:
+        for cls in configClasses:
             configsvc = cls(dmd, monitorname)
-            svcname = configsvc.__module__
-            mdms = makeMonitorDeviceMappingStore(monitorname, svcname)
-            dcs = makeDeviceConfigurationStore(svcname)
+            svcname = cls.__name__
+            configServices[(monitorname, svcname)] = configsvc
+            dcs = configStores[svcname]
             configs = configsvc.remote_getDeviceConfigs()
             for config in configs:
                 dcs[config.configId] = config
-                mdms.add(config.configId)
-            configStores[svcname] = dcs
+                monitorStore.add(monitorname, svcname, config.configId)
             print(
                 "Added %d configs for the %s config service"
                 % (len(dcs), svcname)
             )
-        monitorStores[monitorname] = mdms
-    return monitorStores, configStores
+    return configServices
 
 
 def _initialize_env():

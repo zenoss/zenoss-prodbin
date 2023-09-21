@@ -33,4 +33,4 @@ class ThresholdMixin:
     def remote_getCollectorThresholds(self):
         from Products.ZenModel.BuiltInDS import BuiltInDS
 
-        return self.config.getThresholdInstances(BuiltInDS.sourcetype)
+        return self.conf.getThresholdInstances(BuiltInDS.sourcetype)

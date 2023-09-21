@@ -20,6 +20,7 @@ from .misc import (  # noqa: F401
 from .purge_logs import purge_logs  # noqa F401
 from .roles import DeviceSetLocalRolesJob  # noqa: F401
 from .subprocess import SubprocessJob  # noqa: F401
+from .device_config import build_device_config  # noqa F401
 
 
 def _get_all():
