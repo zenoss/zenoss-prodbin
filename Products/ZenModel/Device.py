@@ -38,7 +38,7 @@ from zenoss.protocols.protobufs.zep_pb2 import (
 from ZODB.POSException import POSError
 from zope.component import subscribers
 from zope.event import notify
-from zope.interface import implements
+from zope.interface import implementer
 
 from Products.Jobber.jobs import FacadeMethodJob
 from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
@@ -263,6 +263,7 @@ class NoNetMask(Exception):
     pass
 
 
+@implementer(IEventView, IGloballyIdentifiable)
 class Device(
     ManagedEntity,
     Commandable,
@@ -277,8 +278,6 @@ class Device(
     that is made up of software running on hardware. It currently must be IP
     enabled but maybe this will change.
     """
-
-    implements(IEventView, IGloballyIdentifiable)
 
     event_key = portal_type = meta_type = "Device"
 
