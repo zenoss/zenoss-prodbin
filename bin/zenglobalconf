@@ -143,8 +143,9 @@ def main():
             print "--sync-zope-conf only valid with global.conf"
             sys.exit(1)
         # load zcml for the product
-        import Products.ZenossStartup
+        from Products.ZenUtils.zenpackload import load_zenpacks
         from Products.Five import zcml
+        load_zenpacks()
         zcml.load_site()
         # look up the utility
         from zope.component import getUtility
