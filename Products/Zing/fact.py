@@ -54,6 +54,8 @@ class MetadataKeys(object):
     SYSTEMS_KEY = "systems"
     PROD_STATE_KEY = "prod_state"
     PROD_STATE_VALUE_KEY = "prod_state_value"
+    PRIORITY_MAP_KEY = "priority_conversion_map"
+    PROD_STATE_MAP_KEY = "prod_state_map"
     DELETED_KEY = "_zen_deleted_entity"
     COMPONENT_GROUPS_KEY = "component_groups"
     IMPACT_DS_ORG_KEY = "impact_ds_organizer"
@@ -186,6 +188,8 @@ def device_info_fact(device):
     f.data[MetadataKeys.NAME_KEY] = device.titleOrId()
     f.data[MetadataKeys.PROD_STATE_KEY] = device.getProductionStateString()
     f.data[MetadataKeys.PROD_STATE_VALUE_KEY] = device.getProductionState()
+    f.data[MetadataKeys.PRIORITY_MAP_KEY] = str(device.getPriorityConversions())
+    f.data[MetadataKeys.PROD_STATE_MAP_KEY] = str(device.getProdStateConversions())
     valid_types = (str, int, long, float, bool, list, tuple, set,)
     for propdict in device._propertyMap():
         propId = propdict.get("id")
