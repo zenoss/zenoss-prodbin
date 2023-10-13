@@ -239,7 +239,7 @@ class CreateDeviceJob(Job):
 
             # Now set the custom properties
             if cProperties is not None:
-                for prop, value in cProperties:
+                for prop, value in cProperties.items():
                     self.setCustomProperty(device, prop, value)
 
             return '/'.join(device.getPhysicalPath())
