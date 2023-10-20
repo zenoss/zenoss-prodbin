@@ -26,6 +26,7 @@ from Products.ZenRelations.ZenPropertyManager import iszprop, iscustprop
 
 from .interfaces import IImpactRelationshipsFactProvider
 from .shortid import shortid
+from .entity_type import get_object_entity_type, get_object_entity_domain, get_object_entity_zenpack
 
 log = logging.getLogger("zen.zing.fact")
 
@@ -62,6 +63,9 @@ class MetadataKeys(object):
     TITLE_KEY = "title"
     DEVICE_UUID_KEY = "device_uuid"
     DEVICE_KEY = "device"
+    CZ_ENTITY_ZENPACK_KEY = "cz-entity-zenpack"
+    CZ_ENTITY_DOMAIN_KEY = "cz-entity-domain"
+    CZ_ENTITY_TYPE_KEY = "cz-entity-type"
 
 
 class Fact(object):
@@ -92,6 +96,16 @@ class Fact(object):
     def set_meta_type_from_object(self, obj):
         self.metadata[DimensionKeys.META_TYPE_KEY] = obj.meta_type
 
+    def set_cz_entity_types_from_object(self, obj):
+        entity_zenpack = get_object_entity_zenpack(obj)
+        entity_domain = get_object_entity_domain(obj)
+        entity_type = get_object_entity_type(obj)
+        if entity_zenpack is not None:
+            self.data[MetadataKeys.CZ_ENTITY_ZENPACK_KEY] = entity_zenpack
+        if entity_domain is not None:
+            self.data[MetadataKeys.CZ_ENTITY_DOMAIN_KEY] = entity_domain
+        if entity_type is not None:
+            self.data[MetadataKeys.CZ_ENTITY_TYPE_KEY] = entity_type
 
 def get_context_uuid(obj):
     uuid = ""
@@ -181,6 +195,7 @@ def device_info_fact(device):
     f = Fact()
     f.set_context_uuid_from_object(device)
     f.set_meta_type_from_object(device)
+    f.set_cz_entity_types_from_object(device)
     f.metadata[DimensionKeys.PLUGIN_KEY] = DEVICE_INFO_FACT_PLUGIN
     f.data[MetadataKeys.NAME_KEY] = device.titleOrId()
     f.data[MetadataKeys.PROD_STATE_KEY] = device.getProductionStateString()

@@ -28,6 +28,7 @@ from Products.DataCollector.plugins.DataMaps import (
 from . import fact as ZFact
 from .interfaces import IObjectMapContextProvider, IZingDatamapHandler
 from .tx_state import ZingTxStateManager
+from .entity_type import get_object_entity_type, get_object_entity_domain, get_object_entity_zenpack
 
 log = logging.getLogger("zen.zing.datamaps")
 
@@ -436,5 +437,15 @@ class ZingDatamapHandler(object):
         if om_context.metadata:
             f.data.update(om_context.metadata)
 
+        if om_context.is_device_component or om_context.is_device:
+            zenpack = get_object_entity_zenpack(om_context._obj)
+            domain = get_object_entity_domain(om_context._obj)
+            entity_type = get_object_entity_type(om_context._obj)
+            if zenpack is not None:
+                f.data[ZFact.MetadataKeys.CZ_ENTITY_ZENPACK_KEY] = entity_type
+            if domain is not None:
+                f.data[ZFact.MetadataKeys.CZ_ENTITY_DOMAIN_KEY] = entity_type
+            if entity_type is not None:
+                f.data[ZFact.MetadataKeys.CZ_ENTITY_TYPE_KEY] = entity_type
 
 DATAMAP_HANDLER_FACTORY = Factory(ZingDatamapHandler)
