@@ -1,0 +1,18 @@
+#!/bin/sh
+# Retrieve statistics from zenhubworker
+
+set -e
+
+FILE=/opt/zenoss/etc/global.conf
+
+getprop() {
+	grep "${1}" $FILE | cut -d' ' -f2
+}
+
+_PORT=$(getprop 'localport')
+PORT=${_PORT:-14682}
+URL=http://localhost:$PORT/stats
+curl -f $URL
+if [ $? -eq 0 ]; then
+    echo
+fi
