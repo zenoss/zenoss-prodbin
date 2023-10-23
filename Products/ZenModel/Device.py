@@ -758,11 +758,8 @@ class Device(
 
         return SnmpConnInfo(self)
 
-    @deprecated
     def getHWManufacturerName(self):
         """
-        DEPRECATED - Return the hardware manufacturer name of this device.
-
         @rtype: string
         @todo: Remove this method and remove the call from testDevice.py
         """
@@ -786,41 +783,29 @@ class Device(
         if cls:
             return cls.titleOrId()
 
-    @deprecated
     def getHWProductKey(self):
         """
-        DEPRECATED - Return the productKey of the device hardware.
-
         @rtype: string
         @todo: Remove this method and remove the call from testDevice.py
         """
         return self.hw.getProductKey()
 
-    @deprecated
     def getOSManufacturerName(self):
         """
-        DEPRECATED - Return the OS manufacturer name of this device.
-
         @rtype: string
         @todo: Remove this method and remove the call from testDevice.py
         """
         return self.os.getManufacturerName()
 
-    @deprecated
     def getOSProductName(self):
         """
-        DEPRECATED - Return the OS product name of this device.
-
         @rtype: string
         @todo: Remove this method and remove the call from testDevice.py
         """
         return self.os.getProductName()
 
-    @deprecated
     def getOSProductKey(self):
         """
-        DEPRECATED - Return the productKey of the device OS.
-
         @rtype: string
         @todo: Remove this method and remove the call from testDevice.py
         """
@@ -834,11 +819,8 @@ class Device(
         """
         self.os.setProductKey(prodKey, manufacturer)
 
-    @deprecated
     def getHWTag(self):
         """
-        DEPRECATED - Return the tag of the device HW.
-
         @rtype: string
         @todo: remove this method and remove the call from testDevice.py
         """
@@ -868,11 +850,8 @@ class Device(
         """
         self.hw.serialNumber = number
 
-    @deprecated
     def getHWSerialNumber(self):
         """
-        DEPRECATED - Return the hardware serial number.
-
         @rtype: string
         @todo: Remove this method and remove the call from testDevice.py
         """
@@ -1622,7 +1601,6 @@ class Device(
 
     security.declareProtected(ZEN_CHANGE_DEVICE, "addManufacturer")
 
-    @deprecated
     def addManufacturer(
         self,
         newHWManufacturerName=None,
@@ -1630,9 +1608,6 @@ class Device(
         REQUEST=None,
     ):
         """
-        DEPRECATED -
-        Add either a hardware or software manufacturer to the database.
-
         @permission: ZEN_CHANGE_DEVICE
         @todo: Doesn't really do work on a device object.
         Already exists on ZDeviceLoader
@@ -1654,14 +1629,10 @@ class Device(
 
     security.declareProtected(ZEN_CHANGE_DEVICE, "setHWProduct")
 
-    @deprecated
     def setHWProduct(
         self, newHWProductName=None, hwManufacturer=None, REQUEST=None
     ):
         """
-        DEPRECATED -
-        Adds a new hardware product
-
         @permission: ZEN_CHANGE_DEVICE
         @todo: Doesn't really do work on a device object.
         Already exists on ZDeviceLoader
@@ -1696,14 +1667,10 @@ class Device(
 
     security.declareProtected(ZEN_CHANGE_DEVICE, "setOSProduct")
 
-    @deprecated
     def setOSProduct(
         self, newOSProductName=None, osManufacturer=None, REQUEST=None
     ):
         """
-        DEPRECATED
-        Adds a new os product
-
         @permission: ZEN_CHANGE_DEVICE
         @todo: Doesn't really do work on a device object.
         Already exists on ZDeviceLoader
@@ -1755,12 +1722,8 @@ class Device(
 
     security.declareProtected(ZEN_CHANGE_DEVICE, "addLocation")
 
-    @deprecated
     def addLocation(self, newLocationPath, REQUEST=None):
         """
-        DEPRECATED
-        Add a new location and relate it to this device
-
         @todo: Doesn't really do work on a device object.
         Already exists on ZDeviceLoader
         """
