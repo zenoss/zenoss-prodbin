@@ -38,8 +38,6 @@
         <script src="/++resource++zenui/js/zenoss/theme.js"></script>
         <script type="text/javascript" src="https://cdn.auth0.com/js/auth0/9.13.2/auth0.min.js"></script>
         <script type="text/javascript" src="/zingstatic/ZC_CONFIG.js"></script>
-        <script src="/++resource++zenui/js/silent-auth/cookies.js"></script>
-        <script src="/++resource++zenui/js/silent-auth/silentAuth.js"></script>
         <script src="/++resource++zenui/js/codemirror/codemirror.js"></script>
         <script src="/++resource++zenui/js/codemirror/mode/python/python.js"></script>
         <tal:block tal:content="structure provider:js-security"/>

@@ -179,7 +179,7 @@ class MaintenanceWindow(ZenModelRM):
 
     def niceStartDateTime(self):
         "Return start time as a string with nice sort qualities"
-        return "%s %s" % (Time.convertTimestampToTimeZone(self.start, self.timezone), self.timezone)
+        return "%s %s" % (datetime.fromtimestamp(self.start, self.tzInstance).strftime("%Y/%m/%d %H:%M:%S"), self.timezone)
 
     def niceStartProductionState(self):
         "Return a string version of the startProductionState"
