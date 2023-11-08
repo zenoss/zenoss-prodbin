@@ -21,8 +21,6 @@ import servicemigration as sm
 from servicemigration.metrics import Metric
 from servicemigration.graphdatapoint import GraphDatapoint
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
-
 
 log = logging.getLogger("zen.migrate")
 svcNamesToUpdate = ['zensyslog']
@@ -34,7 +32,7 @@ class ZensyslogSvcDevForMsgParsing(Migrate.Step):
     add 'Parser Dropped Events' to zensyslog 'Events' graph
     '''
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 2, 0)
 
     def cutover(self, dmd):
         try:
