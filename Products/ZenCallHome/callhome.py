@@ -7,23 +7,28 @@
 #
 ##############################################################################
 
+from __future__ import print_function
 
 import json
+import logging
+
 from datetime import datetime
 
 from zope.interface import implements
 from zope.component import getUtilitiesFor
-from Products.ZenCallHome.transport import CallHome
 
-from Products.ZenCallHome import (IZenossData, IHostData, IZenossEnvData,
-                                  ICallHomeCollector,
-                                  IMasterCallHomeCollector,
-                                  IVersionHistoryCallHomeCollector)
+from Products.ZenCallHome import (
+    ICallHomeCollector,
+    IHostData,
+    IMasterCallHomeCollector,
+    IVersionHistoryCallHomeCollector,
+    IZenossData,
+    IZenossEnvData,
+)
+from Products.ZenCallHome.CallHomeStatus import CallHomeStatus
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 
-from Products.ZenCallHome.CallHomeStatus import CallHomeStatus
 
-import logging
 log = logging.getLogger("zen.callhome")
 
 ERROR_KEY = "_ERROR_"
@@ -32,9 +37,7 @@ REPORT_DATE_KEY = "Report Date"
 VERSION_HISTORIES_KEY = "Version History"
 
 
-
 class CallHomeCollector(object):
-
     def __init__(self, utilityClass):
         self._utilityClass = utilityClass
         self._needsDmd = False
@@ -47,8 +50,12 @@ class CallHomeCollector(object):
             args.append(dmd)
         for name, utilClass in getUtilitiesFor(self._utilityClass):
             try:
-                log.debug("Getting data from %s %s, args: %s",
-                          name, utilClass, str(args))
+                log.debug(
+                    "Getting data from %s %s, args: %s",
+                    name,
+                    utilClass,
+                    str(args),
+                )
                 util = utilClass()
                 for key, val in util.callHomeData(*args):
                     log.debug("Data: %s | %s", key, val)
@@ -62,14 +69,18 @@ class CallHomeCollector(object):
                         stats[key] = val
             except Exception as e:
                 errorObject = dict(
-                                source=utilClass.__name__,
-                                key=name,
-                                callhome_collector=self.__class__.__name__,
-                                exception=str(e))
-                log.warn("Continuing after catching exception while "
-                         "generating callhome data for collector "
-                         "%(callhome_collector)s (%(source)s:%(key)s : "
-                         "%(exception)s", errorObject)
+                    source=utilClass.__name__,
+                    key=name,
+                    callhome_collector=self.__class__.__name__,
+                    exception=str(e),
+                )
+                log.warn(
+                    "Continuing after catching exception while "
+                    "generating callhome data for collector "
+                    "%(callhome_collector)s (%(source)s:%(key)s : "
+                    "%(exception)s",
+                    errorObject,
+                )
                 errors.append(errorObject)
         returnValue = {self._key: stats}
         if errors:
@@ -81,6 +92,7 @@ class ZenossDataCallHomeCollector(CallHomeCollector):
     """
     Gathers data from all IZenossData utilities registered
     """
+
     implements(IMasterCallHomeCollector)
 
     def __init__(self):
@@ -93,6 +105,7 @@ class HostDataCallHomeCollector(CallHomeCollector):
     """
     Gathers data from all IHostData utilities registered
     """
+
     implements(ICallHomeCollector)
 
     def __init__(self):
@@ -104,6 +117,7 @@ class ZenossEnvDataCallHomeCollector(CallHomeCollector):
     """
     Gathers data from all IZenossEnvData utilities registered
     """
+
     implements(IMasterCallHomeCollector)
 
     def __init__(self):
@@ -123,8 +137,9 @@ class CallHomeData(object):
                 metricsString = self._dmd.callHome.metrics
                 if metricsString and metricsString.strip():
                     metricsObj = json.loads(metricsString)
-                    versionHistories = metricsObj.get(VERSION_HISTORIES_KEY,
-                                                      {})
+                    versionHistories = metricsObj.get(
+                        VERSION_HISTORIES_KEY, {}
+                    )
             except AttributeError:
                 pass
         return {VERSION_HISTORIES_KEY: versionHistories}
@@ -144,12 +159,15 @@ class CallHomeData(object):
                     data.update(chData)
             except Exception as e:
                 errorObject = dict(
-                                  callhome_collector=utilClass.__name__,
-                                  name=name,
-                                  exception=str(e))
-                log.warn("Caught exception while generating callhome data "
-                         "%(callhome_collector)s:%(name)s : %(exception)s",
-                         errorObject)
+                    callhome_collector=utilClass.__name__,
+                    name=name,
+                    exception=str(e),
+                )
+                log.warn(
+                    "Caught exception while generating callhome data "
+                    "%(callhome_collector)s:%(name)s : %(exception)s",
+                    errorObject,
+                )
                 errors.append(errorObject)
         if self._master:
             for name, utilClass in getUtilitiesFor(IMasterCallHomeCollector):
@@ -162,26 +180,35 @@ class CallHomeData(object):
                         data.update(chData)
                 except Exception as e:
                     errorObject = dict(
-                                      callhome_collector=utilClass.__name__,
-                                      name=name,
-                                      exception=str(e))
-                    log.warn("Caught exception while generating callhome "
-                             "data %(callhome_collector)s:%(name)s : "
-                             "%(exception)s", errorObject)
+                        callhome_collector=utilClass.__name__,
+                        name=name,
+                        exception=str(e),
+                    )
+                    log.warn(
+                        "Caught exception while generating callhome "
+                        "data %(callhome_collector)s:%(name)s : "
+                        "%(exception)s",
+                        errorObject,
+                    )
                     errors.append(errorObject)
         if self._dmd:
             for name, utilClass in getUtilitiesFor(
-                                       IVersionHistoryCallHomeCollector):
+                IVersionHistoryCallHomeCollector
+            ):
                 try:
                     utilClass().addVersionHistory(self._dmd, data)
                 except Exception as e:
                     errorObject = dict(
-                                      callhome_collector=utilClass.__name__,
-                                      name=name,
-                                      exception=str(e))
-                    log.warn("Caught exception while adding version "
-                             "history: %(callhome_collector)s:%(name)s : "
-                             "%(exception)s", errorObject)
+                        callhome_collector=utilClass.__name__,
+                        name=name,
+                        exception=str(e),
+                    )
+                    log.warn(
+                        "Caught exception while adding version "
+                        "history: %(callhome_collector)s:%(name)s : "
+                        "%(exception)s",
+                        errorObject,
+                    )
                     errors.append(errorObject)
         if errors:
             data[EXTERNAL_ERROR_KEY] = errors
@@ -189,13 +216,16 @@ class CallHomeData(object):
 
 
 class Main(ZenScriptBase):
-
     def run(self):
         if self.options.status:
             chs = CallHomeStatus()
-            print 'Status:\t Description:\t Error:\t'
+            print("Status:\t Description:\t Error:\t")
             for i in chs.status():
-                print '{0}\t {1}\t {2}'.format(i.get('status'), i.get('description'), i.get('error'))
+                print(
+                    "{0}\t {1}\t {2}".format(
+                        i.get("status"), i.get("description"), i.get("error")
+                    )
+                )
             return
 
         if self.options.master:
@@ -211,40 +241,55 @@ class Main(ZenScriptBase):
         data = chd.getData()
         if self.options.pretty:
             from pprint import pprint
+
             pprint(data)
         else:
             sort = False
             if self.options.jsonIndent:
                 sort = True
-            print(json.dumps(data, indent=self.options.jsonIndent,
-                             sort_keys=sort))
+            print(
+                json.dumps(
+                    data, indent=self.options.jsonIndent, sort_keys=sort
+                )
+            )
         chs.stage(chs.COLLECT_CALLHOME, "FINISHED")
 
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
         ZenScriptBase.buildOptions(self)
-        self.parser.add_option('-M', '--master',
-                               dest='master',
-                               default=False,
-                               action='store_true',
-                               help='Gather zenoss master data')
-        self.parser.add_option('-p',
-                               dest='pretty',
-                               default=False,
-                               action='store_true',
-                               help='pretty print the output')
-        self.parser.add_option('-i', '--json_indent',
-                               dest='jsonIndent',
-                               help='indent setting for json output',
-                               default=None,
-                               type='int')
-        self.parser.add_option('-s', '--status',
-                               action='store_true',
-                               dest='status',
-                               help='show detail status information',
-                               default=False)
+        self.parser.add_option(
+            "-M",
+            "--master",
+            dest="master",
+            default=False,
+            action="store_true",
+            help="Gather zenoss master data",
+        )
+        self.parser.add_option(
+            "-p",
+            dest="pretty",
+            default=False,
+            action="store_true",
+            help="pretty print the output",
+        )
+        self.parser.add_option(
+            "-i",
+            "--json_indent",
+            dest="jsonIndent",
+            help="indent setting for json output",
+            default=None,
+            type="int",
+        )
+        self.parser.add_option(
+            "-s",
+            "--status",
+            action="store_true",
+            dest="status",
+            help="show detail status information",
+            default=False,
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main = Main(connect=False)
     main.run()

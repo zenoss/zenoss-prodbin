@@ -9,7 +9,7 @@
 
 """PBDaemon
 
-Base for daemons that connect to zenhub
+Base for daemons that connect to zenhub.
 
 """
 
@@ -40,7 +40,7 @@ from twisted.python.failure import Failure
 from twisted.spread import pb
 from ZODB.POSException import ConflictError
 from zope.component import getUtilitiesFor
-from zope.interface import implements
+from zope.interface import implementer
 
 from Products.ZenEvents.ZenEventClasses import (
     App_Start,
@@ -182,12 +182,9 @@ class FakeRemote:
         return defer.fail(ex)
 
 
+@implementer(ICollectorEventFingerprintGenerator)
 class DefaultFingerprintGenerator(object):
-    """
-    Generates a fingerprint using a checksum of properties of the event.
-    """
-
-    implements(ICollectorEventFingerprintGenerator)
+    """Generates a fingerprint using a checksum of properties of the event."""
 
     weight = 100
 
@@ -1297,98 +1294,44 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def buildOptions(self):
         ZenDaemon.buildOptions(self)
-
         self.parser.add_option(
             "--hubhost",
             dest="hubhost",
             default=DEFAULT_HUB_HOST,
-            help="Host of zenhub daemon." " Default is %s." % DEFAULT_HUB_HOST,
+            help="Host of zenhub daemon; default %default",
         )
         self.parser.add_option(
             "--hubport",
             dest="hubport",
             type="int",
             default=DEFAULT_HUB_PORT,
-            help="Port zenhub listens on." "Default is %s." % DEFAULT_HUB_PORT,
+            help="Port zenhub listens on; default %default",
         )
         self.parser.add_option(
             "--hubusername",
             dest="hubusername",
             default=DEFAULT_HUB_USERNAME,
-            help="Username for zenhub login."
-            " Default is %s." % DEFAULT_HUB_USERNAME,
+            help="Username for zenhub login; default %default",
         )
         self.parser.add_option(
             "--hubpassword",
             dest="hubpassword",
             default=DEFAULT_HUB_PASSWORD,
-            help="Password for zenhub login."
-            " Default is %s." % DEFAULT_HUB_PASSWORD,
+            help="Password for zenhub login; default %default",
         )
         self.parser.add_option(
             "--monitor",
             dest="monitor",
             default=DEFAULT_HUB_MONITOR,
             help="Name of monitor instance to use for"
-            " configuration.  Default is %s." % DEFAULT_HUB_MONITOR,
+            " configuration; default %default",
         )
         self.parser.add_option(
             "--initialHubTimeout",
             dest="hubtimeout",
             type="int",
             default=30,
-            help="Initial time to wait for a ZenHub " "connection",
-        )
-        self.parser.add_option(
-            "--allowduplicateclears",
-            dest="allowduplicateclears",
-            default=False,
-            action="store_true",
-            help="Send clear events even when the most "
-            "recent event was also a clear event.",
-        )
-
-        self.parser.add_option(
-            "--duplicateclearinterval",
-            dest="duplicateclearinterval",
-            default=0,
-            type="int",
-            help=(
-                "Send a clear event every [DUPLICATECLEARINTEVAL] " "events."
-            ),
-        )
-
-        self.parser.add_option(
-            "--eventflushseconds",
-            dest="eventflushseconds",
-            default=5.0,
-            type="float",
-            help="Seconds between attempts to flush " "events to ZenHub.",
-        )
-
-        self.parser.add_option(
-            "--eventflushchunksize",
-            dest="eventflushchunksize",
-            default=50,
-            type="int",
-            help="Number of events to send to ZenHub" "at one time",
-        )
-
-        self.parser.add_option(
-            "--maxqueuelen",
-            dest="maxqueuelen",
-            default=5000,
-            type="int",
-            help="Maximum number of events to queue",
-        )
-
-        self.parser.add_option(
-            "--queuehighwatermark",
-            dest="queueHighWaterMark",
-            default=0.75,
-            type="float",
-            help="The size, in percent, of the event queue "
-            "when event pushback starts",
+            help="Initial time to wait for a ZenHub connection",
         )
         self.parser.add_option(
             "--zenhubpinginterval",
@@ -1398,6 +1341,50 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             help="How often to ping zenhub",
         )
 
+        self.parser.add_option(
+            "--allowduplicateclears",
+            dest="allowduplicateclears",
+            default=False,
+            action="store_true",
+            help="Send clear events even when the most "
+            "recent event was also a clear event.",
+        )
+        self.parser.add_option(
+            "--duplicateclearinterval",
+            dest="duplicateclearinterval",
+            default=0,
+            type="int",
+            help="Send a clear event every DUPLICATECLEARINTEVAL events.",
+        )
+        self.parser.add_option(
+            "--eventflushseconds",
+            dest="eventflushseconds",
+            default=5.0,
+            type="float",
+            help="Seconds between attempts to flush events to ZenHub.",
+        )
+        self.parser.add_option(
+            "--eventflushchunksize",
+            dest="eventflushchunksize",
+            default=50,
+            type="int",
+            help="Number of events to send to ZenHub at one time",
+        )
+        self.parser.add_option(
+            "--maxqueuelen",
+            dest="maxqueuelen",
+            default=5000,
+            type="int",
+            help="Maximum number of events to queue",
+        )
+        self.parser.add_option(
+            "--queuehighwatermark",
+            dest="queueHighWaterMark",
+            default=0.75,
+            type="float",
+            help="The size, in percent, of the event queue "
+            "when event pushback starts",
+        )
         self.parser.add_option(
             "--disable-event-deduplication",
             dest="deduplicate_events",
@@ -1414,9 +1401,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 default=publisher.defaultRedisPort
             ),
             help="redis connection string: "
-            "redis://[hostname]:[port]/[db], default: %default",
+            "redis://[hostname]:[port]/[db]; default: %default",
         )
-
         self.parser.add_option(
             "--metricBufferSize",
             dest="metricBufferSize",
@@ -1439,16 +1425,17 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             help="Max Number of metrics to allow in redis",
         )
         self.parser.add_option(
-            "--disable-ping-perspective",
-            dest="pingPerspective",
-            help="Enable or disable ping perspective",
-            default=True,
-            action="store_false",
-        )
-        self.parser.add_option(
             "--writeStatistics",
             dest="writeStatistics",
             type="int",
             default=30,
             help="How often to write internal statistics value in seconds",
+        )
+
+        self.parser.add_option(
+            "--disable-ping-perspective",
+            dest="pingPerspective",
+            default=True,
+            action="store_false",
+            help="Enable or disable ping perspective",
         )

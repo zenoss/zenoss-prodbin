@@ -7,16 +7,16 @@
 #
 ##############################################################################
 
-
 import zope.component
 import zope.interface
-from cryptography.fernet import Fernet
 
+from cryptography.fernet import Fernet
 from twisted.internet import defer
-from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 from Products.ZenCollector.config import ConfigurationProxy
 from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences
+
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 
 class MyCollector(object):
@@ -24,30 +24,30 @@ class MyCollector(object):
 
     class MyConfigServiceProxy(object):
         def remote_propertyItems(self):
-            return defer.succeed({"name":"foobar", "foobar":"abcxyz"})
+            return defer.succeed({"name": "foobar", "foobar": "abcxyz"})
 
         def remote_getThresholdClasses(self):
-            return defer.succeed(['Products.ZenModel.FooBarThreshold'])
+            return defer.succeed(["Products.ZenModel.FooBarThreshold"])
 
         def remote_getCollectorThresholds(self):
-            return defer.succeed(['yabba dabba do', 'ho ho hum'])
+            return defer.succeed(["yabba dabba do", "ho ho hum"])
 
         def remote_getDeviceConfigs(self, devices=[]):
-            return defer.succeed(['hmm', 'foo', 'bar'])
+            return defer.succeed(["hmm", "foo", "bar"])
 
         def remote_getEncryptionKey(self):
             return defer.succeed(Fernet.generate_key())
 
         def callRemote(self, methodName, *args, **kwargs):
-            if methodName is 'getConfigProperties':
+            if methodName == "getConfigProperties":
                 return self.remote_propertyItems()
-            elif methodName is 'getThresholdClasses':
+            elif methodName == "getThresholdClasses":
                 return self.remote_getThresholdClasses()
-            elif methodName is 'getCollectorThresholds':
+            elif methodName == "getCollectorThresholds":
                 return self.remote_getCollectorThresholds()
-            elif methodName is 'getDeviceConfigs':
+            elif methodName == "getDeviceConfigs":
                 return self.remote_getDeviceConfigs(args)
-            elif methodName is 'getEncryptionKey':
+            elif methodName == "getEncryptionKey":
                 return self.remote_getEncryptionKey()
 
     def getRemoteConfigServiceProxy(self):
@@ -56,8 +56,10 @@ class MyCollector(object):
     def configureRRD(self, rrdCreateCommand, thresholds):
         pass
 
+
 class Dummy(object):
     pass
+
 
 class MyPrefs(object):
     zope.interface.implements(ICollectorPreferences)
@@ -67,14 +69,15 @@ class MyPrefs(object):
         self.options = Dummy()
         self.options.monitor = "localhost"
 
+
 class TestConfig(BaseTestCase):
     def setUp(self):
         zope.component.provideUtility(MyCollector(), ICollector)
 
     def testPropertyItems(self):
         def validate(result):
-            self.assertEquals(result['name'], "foobar")
-            self.assertEquals(result['foobar'], "abcxyz")
+            self.assertEquals(result["name"], "foobar")
+            self.assertEquals(result["foobar"], "abcxyz")
             return result
 
         cfgService = ConfigurationProxy()
@@ -85,7 +88,7 @@ class TestConfig(BaseTestCase):
 
     def testThresholdClasses(self):
         def validate(result):
-            self.assertTrue('Products.ZenModel.FooBarThreshold' in result)
+            self.assertTrue("Products.ZenModel.FooBarThreshold" in result)
             return result
 
         cfgService = ConfigurationProxy()
@@ -97,8 +100,8 @@ class TestConfig(BaseTestCase):
 
     def testThresholds(self):
         def validate(result):
-            self.assertTrue('yabba dabba do' in result)
-            self.assertTrue('ho ho hum' in result)
+            self.assertTrue("yabba dabba do" in result)
+            self.assertTrue("ho ho hum" in result)
             return result
 
         cfgService = ConfigurationProxy()
@@ -110,8 +113,8 @@ class TestConfig(BaseTestCase):
 
     def testConfigProxies(self):
         def validate(result):
-            self.assertTrue('hmm' in result)
-            self.assertFalse('abcdef' in result)
+            self.assertTrue("hmm" in result)
+            self.assertFalse("abcdef" in result)
             return result
 
         cfgService = ConfigurationProxy()
@@ -142,6 +145,7 @@ class TestConfig(BaseTestCase):
 
 def test_suite():
     from unittest import TestSuite, makeSuite
+
     suite = TestSuite()
     suite.addTest(makeSuite(TestConfig))
     return suite

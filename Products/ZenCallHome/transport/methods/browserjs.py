@@ -7,7 +7,6 @@
 #
 ##############################################################################
 
-
 import base64
 import json
 import logging
@@ -18,32 +17,39 @@ import zlib
 from zope import interface
 from Products.Five.viewlet import viewlet
 
+from Products.ZenCallHome.transport import CallHome
 from Products.ZenUI3.browser.interfaces import IHeadExtraManager
 from Products.ZenUtils.Ext import DirectRouter
 
-from Products.ZenCallHome.transport import CallHome
-
-JS_CALLHOME_URL = 'https://callhome.zenoss.com/callhome/v2/js'
+JS_CALLHOME_URL = "https://callhome.zenoss.com/callhome/v2/js"
 MAX_GET_SIZE = 768
 
-logger = logging.getLogger('zen.callhome')
+logger = logging.getLogger("zen.callhome")
 
 
 def split_to_range(strToSplit, maxSize):
-    return ([strToSplit[i:i+maxSize]
-            for i in range(0, len(strToSplit), maxSize)])
+    return [
+        strToSplit[i : i + maxSize] for i in range(0, len(strToSplit), maxSize)
+    ]
 
 
 def encode_for_js(toEnc):
     base64ToEnc = base64.urlsafe_b64encode(toEnc)
-    randToken = (''.join(random.choice(string.ascii_letters + string.digits)
-                 for x in range(8)))
+    randToken = "".join(
+        random.choice(string.ascii_letters + string.digits) for x in range(8)
+    )
     encPackets = split_to_range(base64ToEnc, MAX_GET_SIZE)
-    encPackets = [json.dumps({
-                    'idx': x,
-                    'tot': len(encPackets),
-                    'rnd': randToken,
-                    'dat': encPackets[x]}) for x in range(len(encPackets))]
+    encPackets = [
+        json.dumps(
+            {
+                "idx": x,
+                "tot": len(encPackets),
+                "rnd": randToken,
+                "dat": encPackets[x],
+            }
+        )
+        for x in range(len(encPackets))
+    ]
     return [base64.urlsafe_b64encode(zlib.compress(x)) for x in encPackets]
 
 
@@ -51,6 +57,7 @@ class ScriptTag(viewlet.ViewletBase):
     """
     JS script tag injector for browser-based checkins
     """
+
     interface.implements(IHeadExtraManager)
 
     def render(self):
@@ -58,17 +65,17 @@ class ScriptTag(viewlet.ViewletBase):
 
         # if not logged in, inject nothing
         if not dmd.ZenUsers.getUserSettings():
-            return ''
+            return ""
 
         callhome = CallHome(dmd)
         # if we've checked in or attempted to check in recently, inject nothing
-        if not callhome.attempt('browserjs'):
-            return ''
+        if not callhome.attempt("browserjs"):
+            return ""
 
-        payload = callhome.get_payload(method='browserjs')
+        payload = callhome.get_payload(method="browserjs")
         if not payload:
-            logger.warning('Error getting or encrypting payload for browserjs')
-            return ''
+            logger.warning("Error getting or encrypting payload for browserjs")
+            return ""
 
         # Output the checkin data to a js snippet, wait a few seconds in the
         # browser, and inject script tags to the checkin url to the body tag.
@@ -89,8 +96,10 @@ class ScriptTag(viewlet.ViewletBase):
             };
             var task = new Ext.util.DelayedTask(Zenoss.Callhome_next);
             task.delay(5000);
-            </script>""" % (json.dumps(encode_for_js(payload)),
-                            JS_CALLHOME_URL)
+            </script>""" % (
+            json.dumps(encode_for_js(payload)),
+            JS_CALLHOME_URL,
+        )
 
 
 class CallhomeRouter(DirectRouter):
@@ -98,4 +107,4 @@ class CallhomeRouter(DirectRouter):
         # record successful check in
         callhome = CallHome(self.context.dmd)
         callhome.save_return_payload(returnPayload)
-        return ''
+        return ""

@@ -60,7 +60,11 @@ def setup_mock_environment(t):
     t.relationship = Mock(
         name="relationship",
         spec_set=[
-            t.target.id, "_getOb", "hasobject", "_setObject", "objectItemsAll"
+            t.target.id,
+            "_getOb",
+            "hasobject",
+            "_setObject",
+            "objectItemsAll",
         ],
     )
     setattr(t.relationship, t.target.id, t.target)

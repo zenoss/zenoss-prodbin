@@ -1,21 +1,20 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2011, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
 
 import logging
 
-from zope.component import getUtility
-
 from twisted.internet import defer, reactor
 from twisted.python.failure import Failure
-from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
 from zenoss.protocols.protobufs.zep_pb2 import DaemonHeartbeat
+from zope.component import getUtility
+
+from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
 
 log = logging.getLogger("zen.maintenance")
 
@@ -24,18 +23,21 @@ def maintenanceBuildOptions(parser, defaultCycle=60):
     """
     Adds option for maintence cycle interval
     """
-    parser.add_option('--maintenancecycle',
-                      dest='maintenancecycle',
-                      default=defaultCycle,
-                      type='int',
-                      help='Cycle, in seconds, for maintenance tasks.'
-                           ' Default is %s.' % defaultCycle)
+    parser.add_option(
+        "--maintenancecycle",
+        dest="maintenancecycle",
+        default=defaultCycle,
+        type="int",
+        help="Cycle, in seconds, for maintenance tasks."
+        " Default is %s." % defaultCycle,
+    )
 
 
 class QueueHeartbeatSender(object):
     """
     class for sending heartbeats over amqp
     """
+
     def __init__(self, monitor, daemon, timeout):
         self._monitor = monitor
         self._daemon = daemon
@@ -45,15 +47,22 @@ class QueueHeartbeatSender(object):
         """
         publish the heartbeat
         """
-        heartbeat = DaemonHeartbeat(monitor=self._monitor,
-                                    daemon=self._daemon,
-                                    timeout_seconds=self._timeout)
-        log.debug('sending heartbeat %s', heartbeat)
+        heartbeat = DaemonHeartbeat(
+            monitor=self._monitor,
+            daemon=self._daemon,
+            timeout_seconds=self._timeout,
+        )
+        log.debug("sending heartbeat %s", heartbeat)
         publisher = getUtility(IQueuePublisher)
-        publisher.publish('$Heartbeats', 'zenoss.heartbeat.%s' % heartbeat.monitor, heartbeat)
+        publisher.publish(
+            "$Heartbeats", "zenoss.heartbeat.%s" % heartbeat.monitor, heartbeat
+        )
+
 
 class MaintenanceCycle(object):
-    def __init__(self, cycleInterval, heartbeatSender=None, maintenanceCallback=None):
+    def __init__(
+        self, cycleInterval, heartbeatSender=None, maintenanceCallback=None
+    ):
         self._cycleInterval = cycleInterval
         self._heartbeatSender = heartbeatSender
         self._callback = maintenanceCallback
@@ -69,8 +78,8 @@ class MaintenanceCycle(object):
     def _doMaintenance(self):
         """
         Perform daemon maintenance processing on a periodic schedule. Initially
-        called after the daemon configuration loader task is added, but afterward
-        will self-schedule each run.
+        called after the daemon configuration loader task is added, but
+        afterward will self-schedule each run.
         """
         if self._stop:
             log.debug("Skipping, maintenance stopped")
@@ -93,8 +102,10 @@ class MaintenanceCycle(object):
             if isinstance(result, Failure):
                 # The full error message is actually the entire traceback, so
                 # just get the last line with the actual message.
-                log.error("Maintenance failed. Message from hub: %s",
-                          result.getErrorMessage())
+                log.error(
+                    "Maintenance failed. Message from hub: %s",
+                    result.getErrorMessage(),
+                )
 
             if interval > 0:
                 log.debug("Rescheduling maintenance in %ds", interval)

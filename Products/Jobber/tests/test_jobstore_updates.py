@@ -60,7 +60,6 @@ class _CommonFixture(object):
         rootLogger.handlers = []
 
     def tearDown(t):
-        t.layer.redis.flushall()
         getGlobalSiteManager().unregisterUtility(
             t.store, IJobStore, name="redis"
         )
@@ -350,7 +349,6 @@ class JobEndTest(TestCase):
         )
 
     def tearDown(t):
-        t.layer.redis.flushall()
         getGlobalSiteManager().unregisterUtility(
             t.store, IJobStore, name="redis"
         )

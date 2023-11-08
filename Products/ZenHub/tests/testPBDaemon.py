@@ -11,7 +11,7 @@ import logging
 import os
 
 from twisted.internet.defer import failure
-from zope.interface import implements
+from zope.interface import implementer
 from zope.component import getGlobalSiteManager
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
@@ -170,9 +170,8 @@ class TestEventQueueManager(BaseTestCase):
         return options
 
     def testAddEventDroppedTransform(self):
+        @implementer(ICollectorEventTransformer)
         class DroppingTransformer(object):
-            implements(ICollectorEventTransformer)
-
             def __init__(self):
                 self.num_dropped = 0
 
