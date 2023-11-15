@@ -161,7 +161,7 @@ class MySqlZodbFactory(object):
             dest="zodb_cachesize",
             default=1000,
             type="int",
-            help="in memory cachesize default: 1000",
+            help="in memory cachesize default: %default",
         )
         group.add_option(
             "--zodb-host",
@@ -223,7 +223,7 @@ class MySqlZodbFactory(object):
             help=(
                 "Specify the number of seconds a database connection will "
                 "wait to acquire a database 'commit' lock before failing "
-                "(defaults to 30 seconds if not specified)."
+                "(defaults to %default seconds if not specified)."
             ),
         )
         parser.add_option_group(group)

@@ -10,6 +10,7 @@
 import base64
 import hashlib
 import logging
+import traceback
 
 from Acquisition import aq_parent
 from cryptography.fernet import Fernet
@@ -18,6 +19,7 @@ from twisted.spread import pb
 from ZODB.transact import transact
 from zope import component
 
+from Products.ZenEvents.ZenEventClasses import Critical
 from Products.ZenHub.HubService import HubService
 from Products.ZenHub.interfaces import IBatchNotifier
 from Products.ZenHub.PBDaemon import translateError
@@ -38,25 +40,22 @@ from ..interfaces import IConfigurationDispatchingFilter
 
 
 class DeviceProxy(pb.Copyable, pb.RemoteCopy):
-    def __init__(self):
-        """
-        Do not use base classes initializers
-        """
+    """Used to proxy device objects to collection services."""
 
     @property
     def configId(self):
         """
-        This is the id used by the framework to keep track of configurations,
+        This is the ID used by the framework to keep track of configurations,
         what to run, delete etc...
-        Use this instead of id since certain daemons can use a
-        configuration id that is different than the underlying device id.
+
+        Use this instead of `id` since certain daemons can use a
+        configuration ID that is different than the underlying device ID.
         """
-        retval = getattr(self, "_config_id", None)
-        return retval if (retval is not None) else self.id
+        cfgId = getattr(self, "_config_id", None)
+        return cfgId if (cfgId is not None) else self.id
 
     @property
     def deviceGuid(self):
-        """ """
         return getattr(self, "_device_guid", None)
 
     def __str__(self):
@@ -69,7 +68,7 @@ class DeviceProxy(pb.Copyable, pb.RemoteCopy):
 pb.setUnjellyableForClass(DeviceProxy, DeviceProxy)
 
 
-# TODO: doc me!
+# Default attributes copied to every device proxy.
 BASE_ATTRIBUTES = (
     "id",
     "manageIp",
@@ -77,17 +76,16 @@ BASE_ATTRIBUTES = (
 
 
 class CollectorConfigService(HubService, ThresholdMixin):
+    """Base class for ZenHub configuration service classes."""
+
     def __init__(self, dmd, instance, deviceProxyAttributes=()):
         """
-        Constructs a new CollectorConfig instance.
-
-        Subclasses must call this __init__ method but cannot do so with
-        the super() since parents of this class are not new-style classes.
+        Initializes a CollectorConfigService instance.
 
         @param dmd: the Zenoss DMD reference
         @param instance: the collector instance name
         @param deviceProxyAttributes: a tuple of names for device attributes
-               that should be copied to every device proxy created
+            that should be copied to every device proxy created
         @type deviceProxyAttributes: tuple
         """
         HubService.__init__(self, dmd, instance)
@@ -96,7 +94,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
         # Get the collector information (eg the 'localhost' collector)
         self._prefs = self.dmd.Monitors.Performance._getOb(self.instance)
-        self.config = self._prefs  # TODO fix me, needed for ThresholdMixin
+        self.config = self._prefs  # Needed for ThresholdMixin
         self.configFilter = None
 
         # When about to notify daemons about device changes, wait for a little
@@ -125,35 +123,31 @@ class CollectorConfigService(HubService, ThresholdMixin):
         except Exception as ex:
             msg = "Unhandled exception in zenhub service %s: %s" % (
                 self.__class__,
-                str(ex),
+                ex,
             )
             self.log.exception(msg)
-
-            import traceback
-            from Products.ZenEvents.ZenEventClasses import Critical
-
-            evt = dict(
-                severity=Critical,
-                component=str(self.__class__),
-                traceback=traceback.format_exc(),
-                summary=msg,
-                device=self.instance,
-                methodCall="%s(%s, %s)" % (functor.__name__, args, kwargs),
+            self.sendEvent(
+                dict(
+                    severity=Critical,
+                    component=str(self.__class__),
+                    traceback=traceback.format_exc(),
+                    summary=msg,
+                    device=self.instance,
+                    methodCall="%s(%s, %s)" % (functor.__name__, args, kwargs),
+                )
             )
-            self.sendEvent(evt)
-        return None
 
     @onUpdate(PerformanceConf)
-    def perfConfUpdated(self, object, event):
+    def perfConfUpdated(self, conf, event):
         with gc_cache_every(1000, db=self.dmd._p_jar._db):
-            if object.id == self.instance:
+            if conf.id == self.instance:
                 for listener in self.listeners:
                     listener.callRemote(
-                        "setPropertyItems", object.propertyItems()
+                        "setPropertyItems", conf.propertyItems()
                     )
 
     @onUpdate(ZenPack)
-    def zenPackUpdated(self, object, event):
+    def zenPackUpdated(self, zenpack, event):
         with gc_cache_every(1000, db=self.dmd._p_jar._db):
             for listener in self.listeners:
                 try:
@@ -167,50 +161,48 @@ class CollectorConfigService(HubService, ThresholdMixin):
                     )
 
     @onUpdate(Device)
-    def deviceUpdated(self, object, event):
+    def deviceUpdated(self, device, event):
         with gc_cache_every(1000, db=self.dmd._p_jar._db):
-            self._notifyAll(object)
+            self._notifyAll(device)
 
     @onUpdate(None)  # Matches all
-    def notifyAffectedDevices(self, object, event):
+    def notifyAffectedDevices(self, entity, event):
         # FIXME: This is horrible
         with gc_cache_every(1000, db=self.dmd._p_jar._db):
-            if isinstance(object, self._getNotifiableClasses()):
-                self._reconfigureIfNotify(object)
+            if isinstance(entity, self._getNotifiableClasses()):
+                self._reconfigureIfNotify(entity)
             else:
-                if isinstance(object, Device):
+                if isinstance(entity, Device):
                     return
-                # something else... mark the devices as out-of-date
+                # Something else... mark the devices as out-of-date
                 template = None
-                while object:
+                while entity:
                     # Don't bother with privately managed objects; the ZenPack
                     # will handle them on its own
-                    if is_private(object):
+                    if is_private(entity):
                         return
-                    # walk up until you hit an organizer or a device
-                    if isinstance(object, RRDTemplate):
-                        template = object
-                    if isinstance(object, DeviceClass):
-                        uid = (self.__class__.__name__, self.instance)
+                    # Walk up until you hit an organizer or a device
+                    if isinstance(entity, RRDTemplate):
+                        template = entity
+                    if isinstance(entity, DeviceClass):
+                        uid = (self.name(), self.instance)
                         devfilter = None
                         if template:
                             devfilter = _HasTemplate(template, self.log)
                         self._notifier.notify_subdevices(
-                            object, uid, self._notifyAll, devfilter
+                            entity, uid, self._notifyAll, devfilter
                         )
                         break
-
-                    if isinstance(object, Device):
-                        self._notifyAll(object)
+                    if isinstance(entity, Device):
+                        self._notifyAll(entity)
                         break
-
-                    object = aq_parent(object)
+                    entity = aq_parent(entity)
 
     @onDelete(Device)
-    def deviceDeleted(self, object, event):
+    def deviceDeleted(self, device, event):
         with gc_cache_every(1000, db=self.dmd._p_jar._db):
-            devid = object.id
-            collector = object.getPerformanceServer().getId()
+            devid = device.id
+            collector = device.getPerformanceServer().getId()
             # The invalidation is only sent to the collector where the
             # deleted device was.
             if collector == self.instance:
@@ -293,7 +285,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         # per collector daemon.
         s = hashlib.sha256()
         s.update(key)
-        s.update(self.__class__.__name__)
+        s.update(self.name())
         return base64.urlsafe_b64encode(s.digest())
 
     def _postCreateDeviceProxy(self, deviceConfigs):
@@ -382,17 +374,14 @@ class CollectorConfigService(HubService, ThresholdMixin):
         @rtype: list
         """
         filteredDevices = []
-
-        for dev in filter(None, devices):
+        for dev in (d for d in devices if d is not None):
             try:
                 device = dev.primaryAq()
-
                 if self._perfIdFilter(device) and self._filterDevice(device):
                     filteredDevices.append(device)
                     self.log.debug("Device %s included by filter", device.id)
                 else:
-                    # don't use .id just in case there is something
-                    # crazy returned.
+                    # don't use .id just in case something crazy returned.
                     self.log.debug("Device %r excluded by filter", device)
             except Exception:
                 if self.log.isEnabledFor(logging.DEBUG):
@@ -412,17 +401,13 @@ class CollectorConfigService(HubService, ThresholdMixin):
             or obj.perfServer.getRelatedId() == self.instance
         )
 
-    def _notifyAll(self, object):
-        """
-        Notify all instances (daemons) of a change for the device
-        """
+    def _notifyAll(self, device):
+        """Notify all instances (daemons) of a change for the device."""
         # procrastinator schedules a call to _pushConfig
-        self._procrastinator.doLater(object)
+        self._procrastinator.doLater(device)
 
     def _pushConfig(self, device):
-        """
-        push device config and deletes to relevent collectors/instances
-        """
+        """Push device config and deletes to relevent collectors/instances."""
         deferreds = []
 
         if self._perfIdFilter(device) and self._filterDevice(device):
@@ -484,9 +469,6 @@ class CollectorConfigService(HubService, ThresholdMixin):
         return defer.DeferredList(deferreds)
 
     def _sendDeviceProxy(self, listener, proxy):
-        """
-        TODO
-        """
         return listener.callRemote("updateDeviceConfig", proxy)
 
     def sendDeviceConfigs(self, configs):
@@ -495,7 +477,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         def errback(failure):
             self.log.critical(
                 "Unable to update configs for service instance %s: %s",
-                self.__class__.__name__,
+                self.name(),
                 failure,
             )
 
@@ -513,18 +495,17 @@ class CollectorConfigService(HubService, ThresholdMixin):
     # FIXME: Don't use _getNotifiableClasses, use @onUpdate(myclasses)
     def _getNotifiableClasses(self):
         """
-        a tuple of classes. When any object of a type in the sequence is
-        modified the collector connected to the service will be notified to
-        update its configuration
+        Return a tuple of classes.
+
+        When any object of a type in the sequence is modified the collector
+        connected to the service will be notified to update its configuration.
 
         @rtype: tuple
         """
         return ()
 
     def _pushReconfigure(self, value):
-        """
-        notify the collector to reread the entire configuration
-        """
+        """Notify the collector to reread the entire configuration."""
         # value is unused but needed for the procrastinator framework
         for listener in self.listeners:
             listener.callRemote("notifyConfigChanged")
@@ -546,6 +527,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         """
         Called when an object of a type from _getNotifiableClasses is
         encountered
+
         @return: should a notify config changed be sent
         @rtype: boolean
         """
@@ -553,7 +535,8 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
 
 class _HasTemplate(object):
-    """Predicate class that checks whether a given device has a template
+    """
+    Predicate class that checks whether a given device has a template
     matching the given template.
     """
 

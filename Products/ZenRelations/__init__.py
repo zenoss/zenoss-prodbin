@@ -7,8 +7,6 @@
 #
 ##############################################################################
 
-import logging
-
 from .RelationshipManager import (
     addRelationshipManager,
     manage_addRelationshipManager,
@@ -30,8 +28,6 @@ from .ToOneRelationship import (
     ToOneRelationship,
 )
 from .ZenPropertyManager import setDescriptors
-
-log = logging.getLogger("zen.ZenRelations")
 
 
 class ZODBConnectionError(Exception):
@@ -65,8 +61,7 @@ def initialize(registrar):
 
 def registerDescriptors(event):
     """
-    Handler for IZopeApplicationOpenedEvent which registers property
-    descriptors.
+    IZopeApplicationOpenedEvent handler which registers property descriptors.
     """
     zport = getattr(event.app, "zport", None)
     # zport may not exist if we are using zenbuild to initialize the database
@@ -74,5 +69,7 @@ def registerDescriptors(event):
         try:
             setDescriptors(zport.dmd)
         except Exception as e:
+            import logging
+            log = logging.getLogger("zen.zenrelations")
             args = (e.__class__.__name__, e)
-            log.info("Unable to set property descriptors: %s: %s", *args)
+            log.info("unable to set property descriptors: %s: %s", *args)

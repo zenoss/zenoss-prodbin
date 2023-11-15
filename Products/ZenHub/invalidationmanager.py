@@ -36,7 +36,7 @@ from .interfaces import (
 )
 from .invalidations import INVALIDATIONS_PAUSED
 
-log = logging.getLogger("zen.ZenHub.invalidationmanager")
+log = logging.getLogger("zen.{}".format(__name__.split(".")[-1].lower()))
 
 
 class InvalidationManager(object):
@@ -76,7 +76,9 @@ class InvalidationManager(object):
         self.totalEvents = 0
         self.totalTime = 0
 
-        self.initialize_invalidation_filters()
+        self._invalidation_filters = self.initialize_invalidation_filters(
+            self.__dmd
+        )
         self.processor = getUtility(IInvalidationProcessor)
         log.debug("got InvalidationProcessor %s", self.processor)
         app = self.__dmd.getPhysicalRoot()
@@ -84,33 +86,39 @@ class InvalidationManager(object):
             app, self._invalidation_filters, self._queue
         )
 
-    def initialize_invalidation_filters(self):
-        """Get Invalidation Filters, initialize them,
-        store them in the _invalidation_filters list, and return the list
+    @staticmethod
+    def initialize_invalidation_filters(ctx):
+        """
+        Return initialized IInvalidationFilter objects in a list.
+
+        :param ctx: Used to initialize the IInvalidationFilter objects.
+        :type ctx: DataRoot
+        :return: Initialized IInvalidationFilter objects
+        :rtype: List[IInvalidationFilter]
         """
         try:
             filters = (f for n, f in getUtilitiesFor(IInvalidationFilter))
-            self._invalidation_filters = []
+            invalidation_filters = []
             for fltr in sorted(
                 filters, key=lambda f: getattr(f, "weight", 100)
             ):
-                fltr.initialize(self.__dmd)
-                self._invalidation_filters.append(fltr)
-            self.log.info(
+                fltr.initialize(ctx)
+                invalidation_filters.append(fltr)
+            log.info(
                 "Registered %s invalidation filters.",
-                len(self._invalidation_filters),
+                len(invalidation_filters),
             )
-            self.log.info(
-                "invalidation filters: %s", self._invalidation_filters
-            )
-            return self._invalidation_filters
+            log.info("invalidation filters: %s", invalidation_filters)
+            return invalidation_filters
         except Exception:
             log.exception("error in initialize_invalidation_filters")
 
     @inlineCallbacks
     def process_invalidations(self):
-        """Periodically process database changes.
-        synchronize with the database, and poll invalidated oids from it,
+        """
+        Periodically process database changes.
+
+        Synchronize with the database, and poll invalidated oids from it,
         filter the oids,  send them to the invalidation_processor
 
         @return: None
