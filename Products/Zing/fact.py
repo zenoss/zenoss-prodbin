@@ -186,10 +186,11 @@ def device_info_fact(device):
     f.set_meta_type_from_object(device)
     f.metadata[DimensionKeys.PLUGIN_KEY] = DEVICE_INFO_FACT_PLUGIN
     f.data[MetadataKeys.NAME_KEY] = device.titleOrId()
-    f.data[MetadataKeys.PROD_STATE_KEY] = device.getProductionStateString()
     f.data[MetadataKeys.PROD_STATE_VALUE_KEY] = device.getProductionState()
+    prod_state_value = f.data[MetadataKeys.PROD_STATE_VALUE_KEY]
     f.data[MetadataKeys.PRIORITY_MAP_KEY] = str(device.getPriorityConversions())
     f.data[MetadataKeys.PROD_STATE_MAP_KEY] = str(device.getProdStateConversions())
+    f.data[MetadataKeys.PROD_STATE_KEY] = device.convertProdState(prod_state_value)
     valid_types = (str, int, long, float, bool, list, tuple, set,)
     for propdict in device._propertyMap():
         propId = propdict.get("id")
