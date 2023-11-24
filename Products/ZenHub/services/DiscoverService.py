@@ -319,9 +319,9 @@ class DiscoverService(ModelerService):
 
         for d in self.dmd.Devices.getSubDevices():
             for interface in d.os.interfaces():
-                ip_obj = interface.getIpAddressObj()
-                if ip_obj:
-                    if net.netmask == ip_obj.netmask and ip_obj.getIp() in full_ip_list:
-                        full_ip_list.remove(ip_obj.getIp())
+                for addr in interface.ipaddresses():
+                    ip = addr.getIp()
+                    if net.netmask == addr.netmask and ip in full_ip_list:
+                        full_ip_list.remove(ip)
 
         return full_ip_list
