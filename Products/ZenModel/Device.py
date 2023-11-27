@@ -13,6 +13,7 @@ Base device (remote computer) class
 """
 
 import cgi
+import inspect
 import itertools
 import logging
 import socket
@@ -106,6 +107,12 @@ from .ZenossSecurity import (
 from .ZenStatus import ZenStatus
 
 DEFAULT_PRODSTATE = 1000
+
+_sourcetype_to_collector_map = {
+    "Python": "zenpython",
+    "SNMP": "zenperfsnmp",
+    "COMMAND": "zencommand",
+}
 
 log = logging.getLogger("zen.Device")
 
@@ -2106,14 +2113,7 @@ class Device(
         """
         Run monitoring daemon agains the device ones
         """
-        # Datasource source type and  collection daemon to run
-        data_collector = {
-            "Python": "zenpython",
-            "SNMP": "zenperfsnmp",
-            "COMMAND": "zencommand",
-        }
         # Daemons to run against the device
-        collection_daemons = []
         xmlrpc = isXmlRpc(REQUEST)
         perfConf = self.getPerformanceServer()
         if perfConf is None:
@@ -2132,20 +2132,24 @@ class Device(
         # device for determining which daemon to run
         templates = self.getRRDTemplates()
         datasources = itertools.chain.from_iterable(
-            [template.getRRDDataSources() for template in templates]
+            template.getRRDDataSources() for template in templates
         )
-        ds_src_types = set()
-        for datasource in datasources:
-            # BasicDataSource contain the info about the source type
-            if datasource.__class__.__name__ == "BasicDataSource":
-                ds_src_types.add(datasource.sourcetype)
-            else:
-                # We need parent class sourcetype since datasources inherited
-                # from PythonDatasource do not have "Python" as a sourcetype
-                ds_src_types.add(datasource.__class__.__base__.sourcetype)
-        for source in data_collector:
-            if source in ds_src_types:
-                collection_daemons.append(data_collector[source])
+        collection_daemons = set()
+        for ds in datasources:
+            # Use the first acceptable sourcetype value found in the
+            # datasource class's method resolution order (mro) list.
+            daemon = next(
+                (
+                    _sourcetype_to_collector_map[cls.sourcetype]
+                    for cls in inspect.getmro(ds.__class__)
+                    if hasattr(cls, "sourcetype")
+                       and cls.sourcetype in _sourcetype_to_collector_map
+                ),
+                None,
+            )
+            if daemon:
+                collection_daemons.add(daemon)
+
         # We support only core collection daemons
         # zenpython; zenperfsnmp; zencommand
         if not collection_daemons and write:
@@ -2156,8 +2160,10 @@ class Device(
             if xmlrpc:
                 return 1
             return
+        # Pass collection_daemons as a list because perfConf.runDeviceMonitor
+        # was written expecting that parameter to be a list.
         perfConf.runDeviceMonitor(
-            self, REQUEST, write, collection_daemons, debug=debug
+            self, REQUEST, write, list(collection_daemons), debug=debug,
         )
         if REQUEST:
             audit("UI.Device.Remodel", self)
