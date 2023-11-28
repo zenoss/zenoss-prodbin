@@ -15,10 +15,13 @@ if __name__ == '__main__':
 import time
 import logging
 from DateTime import DateTime
+from mock import Mock
 
 from Products.ZenModel.Exceptions import *
 from Products.ZenModel.Device import Device, manage_createDevice
 from Products.ZenModel.IpRouteEntry import IpRouteEntry
+from Products.ZenModel.RRDDataSource import RRDDataSource
+from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.ZDeviceLoader import BaseDeviceLoader
 
 from ZenModelBaseTest import ZenModelBaseTest
@@ -728,8 +731,100 @@ class TestDevice(ZenModelBaseTest):
         self.dev.productionState = 400
         self.assertEquals(self.dev.productionState, 400)
         self.assertEquals(self.dev.getProductionState(), 400)
-	
-	
+
+    def test_monitorPerDatasource_COMMAND(t):
+        try:
+            from Products.ZenModel.PerformanceConf import PerformanceConf
+            perfConf = Mock(spec=PerformanceConf)
+            orig_getPerformanceServer = t.dev.getPerformanceServer
+            t.dev.getPerformanceServer = Mock()
+            t.dev.getPerformanceServer.return_value = perfConf
+
+            tmpl = RRDTemplate("template")
+            ds = RRDDataSource("datasource")
+            ds.sourcetypes = ("COMMAND",)
+            ds.sourcetype = "COMMAND"
+            ds.rrdTemplate.addRelation(tmpl)
+
+            t.dev.monitorPerDatasource(ds)
+
+            value = "template/datasource"
+            parameter = "--datasource"
+            perfConf.runDeviceMonitorPerDatasource.assert_called_with(
+                t.dev, None, None, "zencommand", parameter, value,
+            )
+        finally:
+            t.dev.getPerformanceServer = orig_getPerformanceServer
+
+    def test_monitorPerDatasource_SNMP(t):
+        try:
+            from Products.ZenModel.PerformanceConf import PerformanceConf
+            perfConf = Mock(spec=PerformanceConf)
+            orig_getPerformanceServer = t.dev.getPerformanceServer
+            t.dev.getPerformanceServer = Mock()
+            t.dev.getPerformanceServer.return_value = perfConf
+
+            tmpl = RRDTemplate("template")
+            ds = RRDDataSource("datasource")
+            ds.sourcetypes = ("SNMP",)
+            ds.sourcetype = "SNMP"
+            ds.oid = "oid"
+            ds.rrdTemplate.addRelation(tmpl)
+
+            t.dev.monitorPerDatasource(ds)
+
+            value = "oid"
+            parameter = "--oid"
+            perfConf.runDeviceMonitorPerDatasource.assert_called_with(
+                t.dev, None, None, "zenperfsnmp", parameter, value,
+            )
+        finally:
+            t.dev.getPerformanceServer = orig_getPerformanceServer
+
+    def test_monitorPerDatasource_Python(t):
+        try:
+            from Products.ZenModel.PerformanceConf import PerformanceConf
+            perfConf = Mock(spec=PerformanceConf)
+            orig_getPerformanceServer = t.dev.getPerformanceServer
+            t.dev.getPerformanceServer = Mock()
+            t.dev.getPerformanceServer.return_value = perfConf
+
+            tmpl = RRDTemplate("template")
+            ds = RRDDataSource("datasource")
+            ds.sourcetypes = ("Python",)
+            ds.sourcetype = "Python"
+            ds.rrdTemplate.addRelation(tmpl)
+
+            t.dev.monitorPerDatasource(ds)
+
+            value = "template/datasource"
+            parameter = "--datasource"
+            perfConf.runDeviceMonitorPerDatasource.assert_called_with(
+                t.dev, None, None, "zenpython", parameter, value,
+            )
+        finally:
+            t.dev.getPerformanceServer = orig_getPerformanceServer
+
+    def test_monitorPerDatasource_other(t):
+        try:
+            from Products.ZenModel.PerformanceConf import PerformanceConf
+            perfConf = Mock(spec=PerformanceConf)
+            orig_getPerformanceServer = t.dev.getPerformanceServer
+            t.dev.getPerformanceServer = Mock()
+            t.dev.getPerformanceServer.return_value = perfConf
+
+            tmpl = RRDTemplate("template")
+            ds = RRDDataSource("datasource")
+            ds.sourcetypes = ("Other",)
+            ds.sourcetype = "Other"
+            ds.rrdTemplate.addRelation(tmpl)
+
+            t.dev.monitorPerDatasource(ds)
+
+            perfConf.runDeviceMonitorPerDatasource.assert_not_called()
+        finally:
+            t.dev.getPerformanceServer = orig_getPerformanceServer
+
 
 class GetSnmpConnInfoTest(ZenModelBaseTest):
 
