@@ -303,3 +303,25 @@ class DiscoverService(ModelerService):
     def remote_getDefaultNetworks(self):
         monitor = self.dmd.Monitors.Performance._getOb(self.instance)
         return [net for net in monitor.discoveryNetworks]
+
+    @translateError
+    def remote_removeInterfaces(self, net):
+        """
+        Remove IPs for particular network
+        already assigned to interfaces (device components)
+
+        @param net - network to discover
+        @return:  a list of IPs without addresses assigned for interfaces
+        @rtype: list
+        """
+
+        full_ip_list = net.fullIpList()
+
+        for d in self.dmd.Devices.getSubDevicesGen():
+            for interface in d.os.interfaces():
+                for addr in interface.ipaddresses():
+                    ip = addr.getIp()
+                    if net.netmask == addr.netmask and ip in full_ip_list:
+                        full_ip_list.remove(ip)
+
+        return full_ip_list
