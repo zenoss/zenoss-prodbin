@@ -460,8 +460,13 @@ class TrapFilter(object):
 
         if snmpVersion == "1":
             result = self._dropV1Event(event)
-        elif snmpVersion == "2":
+        elif snmpVersion == "2" or snmpVersion == "3":
             result = self._dropV2Event(event)
+        else:
+            log.error(
+                'Unknown snmp version %s, Dropping event:%r',
+                snmpVersion,
+                event)
 
         return result
 
