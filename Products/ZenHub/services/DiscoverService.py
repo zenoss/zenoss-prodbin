@@ -317,7 +317,7 @@ class DiscoverService(ModelerService):
 
         full_ip_list = net.fullIpList()
 
-        for d in self.dmd.Devices.getSubDevices():
+        for d in self.dmd.Devices.getSubDevicesGen():
             for interface in d.os.interfaces():
                 for addr in interface.ipaddresses():
                     ip = addr.getIp()
