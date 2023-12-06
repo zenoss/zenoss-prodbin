@@ -1254,6 +1254,22 @@ class TrapFilterTest(BaseTestCase):
         }
         self.assertEquals(TRANSFORM_CONTINUE, filter.transform(event))
 
+    def testTransformPassesV3Event(self):
+        filterDef = V2FilterDefinition(99, "include", "1.2.3")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        filter._v2Filters[3] = filtersByLevel
+        filter._filtersDefined = True
+
+        event = {
+            "snmpVersion": "3",
+            "oid": filterDef.oid,
+        }
+        self.assertEquals(TRANSFORM_CONTINUE, filter.transform(event))
+
     def testTransformDropsV2Event(self):
         filterDef = V2FilterDefinition(99, "exclude", "1.2.3")
         filtersByLevel = {filterDef.oid: filterDef}
@@ -1269,6 +1285,25 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "2",
+            "oid": filterDef.oid,
+        }
+        self.assertEquals(TRANSFORM_DROP, filter.transform(event))
+
+    def testTransformDropsV3Event(self):
+        filterDef = V2FilterDefinition(99, "exclude", "1.2.3")
+        filtersByLevel = {filterDef.oid: filterDef}
+        filter = TrapFilter()
+        filter._eventService = Mock()
+        filter._daemon = Mock()
+        filter._daemon.options.monitor = 'localhost'
+        filter._daemon.counters = {
+            'eventCount': 0,
+            'eventFilterDroppedCount': 0}
+        filter._v2Filters[3] = filtersByLevel
+        filter._filtersDefined = True
+
+        event = {
+            "snmpVersion": "3",
             "oid": filterDef.oid,
         }
         self.assertEquals(TRANSFORM_DROP, filter.transform(event))
