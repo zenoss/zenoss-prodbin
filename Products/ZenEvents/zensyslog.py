@@ -403,7 +403,7 @@ class SyslogDaemon(CollectorDaemon):
 
     def _displayStatistics(self, verbose=False):
         super(SyslogDaemon, self)._displayStatistics(verbose)
-        sendEventsOnCounters = ['eventFilterDroppedCount']
+        sendEventsOnCounters = ['eventFilterDroppedCount', 'eventParserDroppedCount']
         if not hasattr(self, 'lastCounterEventTime'):
             self.lastCounterEventTime = time.time()
         # Send an update event every hour
