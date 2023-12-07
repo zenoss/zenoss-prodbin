@@ -20,9 +20,9 @@ from twisted.spread import pb
 from zope.component import getUtility
 from zope.event import notify
 
-from Products.ZenHub.PBDaemon import RemoteBadMonitor, RemoteException
 from Products.Zuul.interfaces import IDataRootFactory
 
+from ..errors import RemoteBadMonitor, RemoteException
 from .events import ServiceAddedEvent
 from .utils import getLogger, import_service_class
 

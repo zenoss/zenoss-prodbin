@@ -16,7 +16,7 @@ from twisted.internet import defer
 from twisted.spread import pb
 from zope.component import adapter, provideHandler
 
-from Products.ZenHub.PBDaemon import RemoteException
+from Products.ZenHub.errors import RemoteException
 
 from .events import ReportWorkerStatus
 from .utils import getLogger
