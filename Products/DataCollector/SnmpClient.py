@@ -41,10 +41,16 @@ STATUS_EVENT = {'eventClass' : Status_Snmp, 'eventGroup' : 'SnmpTest'}
 from BaseClient import BaseClient
 
 class SnmpClient(BaseClient):
-
-    def __init__(self, hostname, ipaddr, options=None, device=None,
-                 datacollector=None, plugins=[]):
-        BaseClient.__init__(self, device, datacollector)
+    def __init__(
+        self,
+        hostname,
+        ipaddr,
+        options=None,
+        device=None,
+        datacollector=None,
+        plugins=[],
+    ):
+        super(SnmpClient, self).__init__(device, datacollector)
         global defaultTries, defaultTimeout
         self.hostname = hostname
         self.device = device
@@ -233,8 +239,11 @@ class SnmpClient(BaseClient):
         if isinstance(result, failure.Failure):
             from twisted.internet import error
             if isinstance(result.value, error.TimeoutError):
-                log.error("Device %s timed out: are "
-                            "your SNMP settings correct?", self.hostname)
+                log.error(
+                    "Device %s timed out: are "
+                    "your SNMP settings correct?",
+                    self.hostname,
+                )
                 summary = "SNMP agent down - no response received"
                 log.info("Sending event: %s", summary)
             elif isinstance(result.value, Snmpv3Error):
@@ -245,12 +254,15 @@ class SnmpClient(BaseClient):
                 summary = "Exception during SNMP collection"
             self._sendStatusEvent(summary, eventKey='agent_down')
         else:
-            self._sendStatusEvent('SNMP agent up', eventKey='agent_down', severity=Event.Clear)
+            self._sendStatusEvent(
+                "SNMP agent up",
+                eventKey="agent_down",
+                severity=Event.Clear,
+            )
         try:
             self.proxy.close()
         except AttributeError:
-            log.info("Caught AttributeError closing SNMP connection.")
-        """tell the datacollector that we are all done"""
+            log.info("caught AttributeError closing SNMP connection.")
         if self.datacollector:
             self.datacollector.clientFinished(self)
         else:

@@ -10,10 +10,11 @@
 
 import logging
 
-from zope.component import getUtility
-
 from twisted.internet import defer, reactor
 from twisted.python.failure import Failure
+from zope.component import getUtility
+
+from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
 from zenoss.protocols.protobufs.zep_pb2 import DaemonHeartbeat
 
@@ -24,12 +25,14 @@ def maintenanceBuildOptions(parser, defaultCycle=60):
     """
     Adds option for maintence cycle interval
     """
-    parser.add_option('--maintenancecycle',
-                      dest='maintenancecycle',
-                      default=defaultCycle,
-                      type='int',
-                      help='Cycle, in seconds, for maintenance tasks.'
-                           ' Default is %s.' % defaultCycle)
+    parser.add_option(
+        "--maintenancecycle",
+        dest="maintenancecycle",
+        default=defaultCycle,
+        type="int",
+        help="Cycle, in seconds, for maintenance tasks "
+        "[default %s]" % defaultCycle,
+    )
 
 
 class QueueHeartbeatSender(object):
@@ -52,6 +55,24 @@ class QueueHeartbeatSender(object):
         publisher = getUtility(IQueuePublisher)
         publisher.publish('$Heartbeats', 'zenoss.heartbeat.%s' % heartbeat.monitor, heartbeat)
 
+class ZenHubHeartbeatSender(object):
+    """
+    Default heartbeat sender for CollectorDaemon.
+    """
+
+    def __init__(self, monitor, daemon, timeout, queue):
+        self.__event = {
+            "eventClass": Heartbeat,
+            "device": monitor,
+            "component": daemon,
+            "timeout": timeout
+        }
+        self.__queue = queue
+
+    def heartbeat(self):
+        self.__queue.addHeartbeatEvent(self.__event)
+
+
 class MaintenanceCycle(object):
     def __init__(self, cycleInterval, heartbeatSender=None, maintenanceCallback=None):
         self._cycleInterval = cycleInterval
@@ -63,7 +84,7 @@ class MaintenanceCycle(object):
         reactor.callWhenRunning(self._doMaintenance)
 
     def stop(self):
-        log.debug("Maintenance stopped")
+        log.debug("maintenance stopped")
         self._stop = True
 
     def _doMaintenance(self):
@@ -73,31 +94,33 @@ class MaintenanceCycle(object):
         will self-schedule each run.
         """
         if self._stop:
-            log.debug("Skipping, maintenance stopped")
+            log.debug("skipping, maintenance stopped")
             return
 
-        log.info("Performing periodic maintenance")
+        log.info("performing periodic maintenance")
         interval = self._cycleInterval
 
         def _maintenance():
             if self._heartbeatSender is not None:
-                log.debug("Calling heartbeat sender")
+                log.debug("calling heartbeat sender")
                 d = defer.maybeDeferred(self._heartbeatSender.heartbeat)
                 d.addCallback(self._additionalMaintenance)
                 return d
             else:
-                log.debug("Skipping heartbeat: no sender configured")
+                log.debug("skipping heartbeat: no sender configured")
                 return defer.maybeDeferred(self._additionalMaintenance)
 
         def _reschedule(result):
             if isinstance(result, Failure):
                 # The full error message is actually the entire traceback, so
                 # just get the last line with the actual message.
-                log.error("Maintenance failed. Message from hub: %s",
-                          result.getErrorMessage())
+                log.error(
+                    "maintenance failed. message from hub: (%s) %s",
+                    result.type, result.getErrorMessage(),
+                )
 
             if interval > 0:
-                log.debug("Rescheduling maintenance in %ds", interval)
+                log.debug("rescheduling maintenance in %ds", interval)
                 reactor.callLater(interval, self._doMaintenance)
 
         d = _maintenance()

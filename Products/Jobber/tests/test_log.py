@@ -39,10 +39,8 @@ class ConfigureLoggingTest(TestCase):
     @patch("{src}.LoggingProxy".format(**PATH), autospec=True)
     @patch("{src}.apply_levels".format(**PATH), autospec=True)
     @patch("{src}.load_log_level_config".format(**PATH), autospec=True)
-    @patch("{src}.get_default_config".format(**PATH), autospec=True)
     def test_nominal(
         t,
-        _get_default_config,
         _load_log_level_config,
         _apply_levels,
         _LoggingProxy,
@@ -52,7 +50,6 @@ class ConfigureLoggingTest(TestCase):
         _sys,
         _os,
     ):
-        dictConfig = _logging.config.dictConfig
         exists = _os.path.exists
         getLogger = _logging.getLogger
         levelConfig = _load_log_level_config.return_value
@@ -78,7 +75,6 @@ class ConfigureLoggingTest(TestCase):
 
         configure_logging()
 
-        dictConfig.assert_called_once_with(_get_default_config.return_value)
         exists.assert_called_once_with(_loglevelconf_filepath)
         _load_log_level_config.assert_called_once_with(_loglevelconf_filepath)
         _apply_levels.assert_called_once_with(levelConfig)
@@ -99,10 +95,8 @@ class ConfigureLoggingTest(TestCase):
     @patch("{src}.LoggingProxy".format(**PATH), autospec=True)
     @patch("{src}.apply_levels".format(**PATH), autospec=True)
     @patch("{src}.load_log_level_config".format(**PATH), autospec=True)
-    @patch("{src}.get_default_config".format(**PATH), autospec=True)
     def test_missing_loglevel_file(
         t,
-        _get_default_config,
         _load_log_level_config,
         _apply_levels,
         _LoggingProxy,
@@ -112,7 +106,6 @@ class ConfigureLoggingTest(TestCase):
         _sys,
         _os,
     ):
-        dictConfig = _logging.config.dictConfig
         exists = _os.path.exists
         getLogger = _logging.getLogger
         logs = {
@@ -137,7 +130,6 @@ class ConfigureLoggingTest(TestCase):
 
         configure_logging()
 
-        dictConfig.assert_called_once_with(_get_default_config.return_value)
         exists.assert_called_once_with(_loglevelconf_filepath)
         _load_log_level_config.assert_has_calls([])
         _apply_levels.assert_has_calls([])

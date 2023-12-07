@@ -18,7 +18,6 @@ from twisted.python import failure
 
 from Products.ZenEvents import Event
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
-from Products.ZenUtils.Utils import unused
 
 from .Thresholds import Thresholds
 
@@ -52,8 +51,8 @@ class RRDDaemon(PBDaemon):
         @param noopts: process command-line arguments?
         @type noopts: boolean
         """
+        super(RRDDaemon, self).__init__(noopts, name=name)
         self.events = []
-        PBDaemon.__init__(self, noopts, name=name)
         self.thresholds = Thresholds()
 
     def getDevicePingIssues(self):
@@ -74,16 +73,6 @@ class RRDDaemon(PBDaemon):
         """
         self.log.debug("Async update of collection properties")
         self.setPropertyItems(items)
-
-    def remote_updateDeviceList(self, devices):
-        """
-        Callable from zenhub.
-
-        @param devices: list of devices (unused)
-        @type devices: list
-        """
-        unused(devices)
-        self.log.debug("Async update of device list")
 
     def setPropertyItems(self, items):
         """
@@ -113,7 +102,7 @@ class RRDDaemon(PBDaemon):
         """
         Command-line options to add
         """
-        PBDaemon.buildOptions(self)
+        super(RRDDaemon, self).buildOptions()
         self.parser.add_option(
             "-d",
             "--device",

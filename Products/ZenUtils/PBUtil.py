@@ -1,34 +1,42 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2017, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
+
 import logging
 
-log = logging.getLogger("zen.pbclientfactory")
-
-from twisted.spread.pb import PBClientFactory
 from twisted.internet import protocol, reactor, defer, task
 from twisted.internet.error import ConnectionClosed
-import socket
+from twisted.spread.pb import PBClientFactory
+
+log = logging.getLogger("zen.pbclientfactory")
 
 OPTION_STATE = 1
 CONNECT_TIMEOUT = 60
 
 
-class ReconnectingPBClientFactory(PBClientFactory,
-                                  protocol.ReconnectingClientFactory):
+class ReconnectingPBClientFactory(
+    PBClientFactory, protocol.ReconnectingClientFactory
+):
     maxDelay = 60
 
-    def __init__(self, connectTimeout=30, pingPerspective=True, pingInterval=30, pingtimeout=120):
+    def __init__(
+        self,
+        connectTimeout=30,
+        pingPerspective=True,
+        pingInterval=30,
+        pingtimeout=120,
+    ):
         PBClientFactory.__init__(self)
         self._creds = None
         self._scheduledConnectTimeout = None
         self._connectTimeout = connectTimeout
-        # should the perspective be pinged. Perspective must have a ping method. Deprecated => Always False.
+        # should the perspective be pinged. Perspective must have a ping
+        # method. Deprecated => Always False.
         self._shouldPingPerspective = pingPerspective
         # how often to ping
         self._pingInterval = pingInterval
@@ -61,14 +69,20 @@ class ReconnectingPBClientFactory(PBClientFactory,
         self._perspective = None
         self._cancelConnectTimeout()
         PBClientFactory.clientConnectionFailed(self, connector, reason)
-        protocol.ReconnectingClientFactory.clientConnectionFailed(self, connector, reason)
+        protocol.ReconnectingClientFactory.clientConnectionFailed(
+            self, connector, reason
+        )
 
     def clientConnectionLost(self, connector, reason):
         log.debug("clientConnectionLost %s", reason)
         self._perspective = None
         self._cancelConnectTimeout()
-        PBClientFactory.clientConnectionLost(self, connector, reason, reconnecting=1)
-        protocol.ReconnectingClientFactory.clientConnectionLost(self, connector, reason)
+        PBClientFactory.clientConnectionLost(
+            self, connector, reason, reconnecting=1
+        )
+        protocol.ReconnectingClientFactory.clientConnectionLost(
+            self, connector, reason
+        )
 
     def clientConnectionMade(self, broker):
         log.debug("clientConnectionMade")
@@ -96,11 +110,13 @@ class ReconnectingPBClientFactory(PBClientFactory,
 
     def gotPerspectiveFailed(self, reason):
         self._cancelConnectTimeout()
-        if reason.type == 'twisted.cred.error.UnauthorizedLogin':
+        if reason.type == "twisted.cred.error.UnauthorizedLogin":
             log.critical("zenhub username/password combination is incorrect!")
             # Don't exit as Enterprise caches info and can survive
         else:
-            log.critical("Unknown connection problem to zenhub %s", reason.type)
+            log.critical(
+                "Unknown connection problem to zenhub %s", reason.type
+            )
 
     def _gotPerspective(self, perspective):
         self._cancelConnectTimeout()
@@ -117,21 +133,26 @@ class ReconnectingPBClientFactory(PBClientFactory,
             try:
                 self.connector.disconnect()
             except Exception:
-                log.exception('Could not disconnect')
+                log.exception("Could not disconnect")
         else:
-            log.debug('No connector or broker to disconnect')
-                
+            log.debug("No connector or broker to disconnect")
+
     # methods for connecting and login timeout
     def _startConnectTimeout(self, msg):
         self._cancelConnectTimeout()
-        self._scheduledConnectTimeout = reactor.callLater(self._connectTimeout, self._timeoutConnect, msg)
+        self._scheduledConnectTimeout = reactor.callLater(
+            self._connectTimeout, self._timeoutConnect, msg
+        )
 
     def _timeoutConnect(self, msg):
         log.info("%s timed out after %s seconds", msg, self._connectTimeout)
         self._disconnect()
 
     def _cancelConnectTimeout(self):
-        self._scheduledConnectTimeout, timeout = None, self._scheduledConnectTimeout
+        self._scheduledConnectTimeout, timeout = (
+            None,
+            self._scheduledConnectTimeout,
+        )
         if timeout and timeout.active():
             log.debug("Cancelling connect timeout")
             timeout.cancel()
@@ -139,8 +160,9 @@ class ReconnectingPBClientFactory(PBClientFactory,
     # methods to check connection is active
     def _startPingTimeout(self):
         if not self._pingTimeout:
-            self._pingTimeout = reactor.callLater(self._pingTimeoutTime,
-                                                  self._doPingTimeout)
+            self._pingTimeout = reactor.callLater(
+                self._pingTimeoutTime, self._doPingTimeout
+            )
 
     def _cancelPingTimeout(self):
         self._pingTimeout, timeout = None, self._pingTimeout
@@ -150,7 +172,10 @@ class ReconnectingPBClientFactory(PBClientFactory,
 
     def _doPingTimeout(self):
         if self._perspective:
-            log.warn("Perspective ping timed out after %s seconds", self._pingTimeoutTime)
+            log.warn(
+                "Perspective ping timed out after %s seconds",
+                self._pingTimeoutTime,
+            )
             self._disconnect()
 
     @defer.inlineCallbacks
@@ -170,12 +195,12 @@ class ReconnectingPBClientFactory(PBClientFactory,
     def _pingPerspective(self):
         try:
             if self._perspective:
-                log.debug('pinging perspective')
+                log.debug("pinging perspective")
                 self._startPingTimeout()
-                response = yield self._perspective.callRemote('ping')
+                response = yield self._perspective.callRemote("ping")
                 log.debug("perspective %sed", response)
             else:
-                log.debug('skipping perspective ping')
+                log.debug("skipping perspective ping")
             self._cancelPingTimeout()
         except ConnectionClosed:
             log.info("Connection was closed")
@@ -187,6 +212,7 @@ class ReconnectingPBClientFactory(PBClientFactory,
 def setKeepAlive(sock):
     """Configure a socket for a longer keep-alive interval."""
     import socket
+
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, OPTION_STATE)
     sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, CONNECT_TIMEOUT)
     interval = max(CONNECT_TIMEOUT / 4, 10)

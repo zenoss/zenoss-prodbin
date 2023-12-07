@@ -73,10 +73,6 @@ class SnmpTrapConfig(CollectorConfigService):
     def _notifyAll(self, object):
         pass
 
-    @onUpdate(None)  # Matches all
-    def notifyAffectedDevices(self, object, event):
-        pass
-
     def _filterDevice(self, device):
         return device.id == FakeDevice.id
 
@@ -148,6 +144,10 @@ class SnmpTrapConfig(CollectorConfigService):
     def mibsChanged(self, device, event):
         for listener in self.listeners:
             listener.callRemote("notifyConfigChanged")
+
+    @onUpdate(None)  # Matches all
+    def notifyAffectedDevices(self, object, event):
+        pass
 
     @onDelete(MibBase)
     def mibsDeleted(self, device, event):
