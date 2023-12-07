@@ -1,11 +1,24 @@
+<?xml version="1.0"?>
+<!--
+Copyright (C) Zenoss, Inc. 2024 all rights reserved.
+
+This content is made available according to terms specified in
+License.zenoss under the directory where your Zenoss product is installed.
+-->
 <configure xmlns="http://namespaces.zope.org/zope">
 
-    <utility factory=".tasks.SingleWorkerTaskFactory"
-             provides=".interfaces.IWorkerTaskFactory"
-             />
+   <include package=".configcache" />
 
-    <utility factory=".tasks.NullWorkerExecutor"
-             provides=".interfaces.IWorkerExecutor"
-             />
+   <utility
+      name="default"
+      factory=".frameworkfactory.CoreCollectorFrameworkFactory"
+      provides=".interfaces.IFrameworkFactory"
+      />
+
+   <utility
+      name="nosip"
+      factory=".frameworkfactory.CoreCollectorFrameworkFactory"
+      provides=".interfaces.IFrameworkFactory"
+      />
 
 </configure>

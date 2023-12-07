@@ -17,7 +17,6 @@ import sys
 from time import time
 
 from twisted.internet import reactor, task
-from twisted.internet.defer import inlineCallbacks
 from zope.component import getUtility, adapts, provideUtility
 from zope.event import notify
 from zope.interface import implementer
@@ -63,7 +62,7 @@ from Products.ZenHub.server import (
 from Products.ZenHub.server.config import ServerConfig
 
 
-def _load_modules():
+def _import_modules():
     # Due to the manipulation of sys.path during the loading of plugins,
     # we can get ObjectMap imported both as DataMaps.ObjectMap and the
     # full-path from Products.  The following gets the class registered
@@ -76,7 +75,8 @@ def _load_modules():
     import DataMaps  # noqa: F401
 
 
-_load_modules()
+_import_modules()
+del _import_modules
 
 log = logging.getLogger("zen.zenhub")
 
@@ -107,8 +107,6 @@ class ZenHub(ZCmdBase):
     the work to a pool of zenhubworkers, running zenhubworker.py. zenhub
     manages these workers with 1 data structure:
     - workers - a list of remote PB instances
-
-    TODO: document invalidation workers
     """
 
     totalTime = 0.0
@@ -260,12 +258,6 @@ class ZenHub(ZCmdBase):
         return self._metric_manager.get_rrd_stats(
             self._getConf(), self.zem.sendEvent
         )
-
-    # Legacy API
-    @inlineCallbacks
-    def processQueue(self):
-        """Periodically process database changes."""
-        yield self._invalidation_manager.process_invalidations()
 
     def sendEvent(self, **kw):
         """Post events to the EventManager.

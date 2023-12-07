@@ -13,7 +13,7 @@ from Products.ZenCollector.daemon import (
 )
 
 
-class TestCollectorDaemon_maintenanceCycle(TestCase):
+class TestCollectorDaemon_maintenanceCallback(TestCase):
     def setUp(t):
         # Patch out the  __init__ method, due to excessive side-effects
         t.init_patcher = patch.object(
@@ -39,8 +39,8 @@ class TestCollectorDaemon_maintenanceCycle(TestCase):
         t.cd.getDevicePingIssues = create_autospec(t.cd.getDevicePingIssues)
         t.cd._unresponsiveDevices = set()
 
-    def test__maintenanceCycle(t):
-        ret = t.cd._maintenanceCycle()
+    def test__maintenanceCallback(t):
+        ret = t.cd._maintenanceCallback()
 
         t.cd.log.debug.assert_called_with(
             "deviceIssues=%r", t.cd.getDevicePingIssues.return_value
@@ -51,7 +51,7 @@ class TestCollectorDaemon_maintenanceCycle(TestCase):
         t.cd.log = Mock(name="log")
         t.cd._prefs.pauseUnreachableDevices = False
 
-        ret = t.cd._maintenanceCycle()
+        ret = t.cd._maintenanceCallback()
 
         t.assertEqual(ret.result, None)
 
@@ -60,7 +60,7 @@ class TestCollectorDaemon_maintenanceCycle(TestCase):
         t.cd._prefs.pauseUnreachableDevices = False
         t.cd.options.cycle = False
 
-        ret = t.cd._maintenanceCycle()
+        ret = t.cd._maintenanceCallback()
 
         t.assertEqual(ret.result, "No maintenance required")
 
@@ -68,7 +68,7 @@ class TestCollectorDaemon_maintenanceCycle(TestCase):
         t.cd.getDevicePingIssues.side_effect = Exception
 
         handler = _Capture()
-        ret = t.cd._maintenanceCycle()
+        ret = t.cd._maintenanceCallback()
         ret.addErrback(handler)
 
         t.assertIsInstance(handler.err, Failure)
@@ -81,7 +81,7 @@ class TestCollectorDaemon_maintenanceCycle(TestCase):
         t.cd._pauseUnreachableDevices.side_effect = Exception
 
         handler = _Capture()
-        ret = t.cd._maintenanceCycle()
+        ret = t.cd._maintenanceCallback()
         ret.addErrback(handler)
 
         t.assertIsInstance(handler.err, Failure)

@@ -88,7 +88,7 @@ class ZCmdBase(ZenDaemon):
     """Base class for daemons that need ZODB access."""
 
     def __init__(self, noopts=0, app=None, keeproot=False):
-        ZenDaemon.__init__(self, noopts, keeproot)
+        super(ZCmdBase, self).__init__(noopts=noopts, keeproot=keeproot)
         self.dataroot = None
         self.app = app
         self.db = None

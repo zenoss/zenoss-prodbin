@@ -883,7 +883,8 @@ class ZenDisc(ZenModeler):
             dest="removeInterfaceIps",
             action="store_true",
             default=False,
-            help="Skip discovery on IPs already assigned to interfaces (device components).",
+            help="Skip discovery on IPs already assigned to interfaces "
+            "(device components).",
         )
 
         # --job: a development-only option that jobs will use to communicate

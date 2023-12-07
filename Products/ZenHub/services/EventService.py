@@ -26,7 +26,7 @@ log = logging.getLogger("zen.EventService")
 class EventService(HubService, ThresholdMixin):
     def __init__(self, dmd, instance):
         HubService.__init__(self, dmd, instance)
-        self.config = self.dmd.Monitors.Performance._getOb(self.instance)
+        self.conf = self.dmd.Monitors.Performance._getOb(self.instance)
 
     @translateError
     def remote_sendEvent(self, evt):
