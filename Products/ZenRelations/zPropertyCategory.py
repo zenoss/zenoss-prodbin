@@ -9,145 +9,143 @@
 
 
 MAPPINGS = {
-# Modeler Controls
-# ----------
-'zCollectorClientTimeout': 'Modeler Controls',
-'zCollectorDecoding': 'Modeler Controls',
-'zCollectorPlugins': 'Modeler Controls',
-'zFileSystemMapIgnoreNames': 'Modeler Controls',
-'zFileSystemMapIgnoreTypes': 'Modeler Controls',
-'zInterfaceMapIgnoreNames': 'Modeler Controls',
-'zInterfaceMapIgnoreTypes': 'Modeler Controls',
-'zIpServiceMapMaxPort': 'Modeler Controls',
-'zLocalInterfaceNames': 'Modeler Controls',
-'zLocalIpAddresses': 'Modeler Controls',
-'zRouteMapCollectOnlyIndirect': 'Modeler Controls',
-'zRouteMapCollectOnlyLocal': 'Modeler Controls',
-'zRouteMapMaxRoutes': 'Modeler Controls',
-'zHardDiskMapMatch': 'Modeler Controls',
+    # Modeler Controls
+    # ----------
+    "zCollectorClientTimeout": "Modeler Controls",
+    "zCollectorDecoding": "Modeler Controls",
+    "zCollectorPlugins": "Modeler Controls",
+    "zFileSystemMapIgnoreNames": "Modeler Controls",
+    "zFileSystemMapIgnoreTypes": "Modeler Controls",
+    "zInterfaceMapIgnoreNames": "Modeler Controls",
+    "zInterfaceMapIgnoreTypes": "Modeler Controls",
+    "zIpServiceMapMaxPort": "Modeler Controls",
+    "zLocalInterfaceNames": "Modeler Controls",
+    "zLocalIpAddresses": "Modeler Controls",
+    "zRouteMapCollectOnlyIndirect": "Modeler Controls",
+    "zRouteMapCollectOnlyLocal": "Modeler Controls",
+    "zRouteMapMaxRoutes": "Modeler Controls",
+    "zHardDiskMapMatch": "Modeler Controls",
+    # zencommand
+    # ----------
+    "zCommandCollectionInterval": "zencommand",
+    "zCommandCommandTimeout": "zencommand",
+    "zCommandUserCommandTimeout": "zencommand",
+    "zCommandExistanceTest": "zencommand",
+    "zCommandLoginTimeout": "zencommand",
+    "zCommandLoginTries": "zencommand",
+    "zCommandPassword": "zencommand",
+    "zCommandPath": "zencommand",
+    "zCommandPort": "zencommand",
+    "zCommandProtocol": "zencommand",
+    "zCommandSearchPath": "zencommand",
+    "zCommandUsername": "zencommand",
+    "zKeyPath": "zencommand",
+    #
+    # Configuration Cache
+    # -------------------
+    "zDeviceConfigTTL": "Config Cache",
+    "zDeviceConfigBuildTimeout": "Config Cache",
+    "zDeviceConfigPendingTimeout": "Config Cache",
+    #
+    # Misc
+    # ---------
+    "zDeviceTemplates": "Misc",
+    "zFileSystemSizeOffset": "Misc",
+    "zIcon": "Misc",
+    "zIfDescription": "Misc",
+    "zLinks": "Misc",
+    "zPingMonitorIgnore": "Misc",
+    "zProdStateThreshold": "Misc",
+    "zPythonClass": "Misc",
+    "zStatusConnectTimeout": "Misc",
+    "zStatusEventClass": "Misc",
+    "zNoRelationshipCopy": "Misc",
 
-# zencommand
-# ----------
-'zCommandCollectionInterval': 'zencommand',
-'zCommandCommandTimeout': 'zencommand',
-'zCommandUserCommandTimeout': 'zencommand',
-'zCommandExistanceTest': 'zencommand',
-'zCommandLoginTimeout': 'zencommand',
-'zCommandLoginTries': 'zencommand',
-'zCommandPassword': 'zencommand',
-'zCommandPath': 'zencommand',
-'zCommandPort': 'zencommand',
-'zCommandProtocol': 'zencommand',
-'zCommandSearchPath': 'zencommand',
-'zCommandUsername': 'zencommand',
-'zKeyPath': 'zencommand',
-'zTelnetEnable': 'zencommand',
-'zTelnetEnableRegex': 'zencommand',
-'zTelnetLoginRegex': 'zencommand',
-'zTelnetPasswordRegex': 'zencommand',
-'zTelnetPromptTimeout': 'zencommand',
-'zTelnetSuccessRegexList': 'zencommand',
-'zTelnetTermLength': 'zencommand',
-
-# Misc
-# ---------
-'zDeviceTemplates': 'Misc',
-'zFileSystemSizeOffset': 'Misc',
-'zIcon': 'Misc',
-'zIfDescription': 'Misc',
-'zLinks': 'Misc',
-'zPingMonitorIgnore': 'Misc',
-'zProdStateThreshold': 'Misc',
-'zPythonClass': 'Misc',
-'zStatusConnectTimeout': 'Misc',
-'zStatusEventClass': 'Misc',
-'zNoRelationshipCopy': 'Misc',
-
-# SNMP
-# ----------
-'zMaxOIDPerRequest': 'SNMP',
-'zSnmpEngineId': 'SNMP',
-'zSnmpAuthPassword': 'SNMP',
-'zSnmpAuthType': 'SNMP',
-'zSnmpCollectionInterval': 'SNMP',
-'zSnmpCommunities': 'SNMP',
-'zSnmpCommunity': 'SNMP',
-'zSnmpMonitorIgnore': 'SNMP',
-'zSnmpPort': 'SNMP',
-'zSnmpPrivPassword': 'SNMP',
-'zSnmpPrivType': 'SNMP',
-'zSnmpSecurityName': 'SNMP',
-'zSnmpTimeout': 'SNMP',
-'zSnmpTries': 'SNMP',
-'zSnmpVer': 'SNMP',
-'zSnmpContext': 'SNMP',
+    # SNMP
+    # ----------
+    'zMaxOIDPerRequest': 'SNMP',
+    'zSnmpEngineId': 'SNMP',
+    'zSnmpAuthPassword': 'SNMP',
+    'zSnmpAuthType': 'SNMP',
+    'zSnmpCollectionInterval': 'SNMP',
+    'zSnmpCommunities': 'SNMP',
+    'zSnmpCommunity': 'SNMP',
+    'zSnmpMonitorIgnore': 'SNMP',
+    'zSnmpPort': 'SNMP',
+    'zSnmpPrivPassword': 'SNMP',
+    'zSnmpPrivType': 'SNMP',
+    'zSnmpSecurityName': 'SNMP',
+    'zSnmpTimeout': 'SNMP',
+    'zSnmpTries': 'SNMP',
+    'zSnmpVer': 'SNMP',
+    'zSnmpContext': 'SNMP',
 
 
-# ZenPacks
-# ========
+    # ZenPacks
+    # ========
 
-# CiscoMonitor
-# ----------
-'zIdiomPassword': 'CiscoMonitor',
-'zIdiomUsername': 'CiscoMonitor',
+    # CiscoMonitor
+    # ----------
+    'zIdiomPassword': 'CiscoMonitor',
+    'zIdiomUsername': 'CiscoMonitor',
 
-# RANCID
-# ----------
-'zRancidGroup': 'RANCID',
-'zRancidRoot': 'RANCID',
-'zRancidType': 'RANCID',
-'zRancidUrl': 'RANCID',
+    # RANCID
+    # ----------
+    'zRancidGroup': 'RANCID',
+    'zRancidRoot': 'RANCID',
+    'zRancidType': 'RANCID',
+    'zRancidUrl': 'RANCID',
 
-# CiscoUCS
-# ----------
-'zCiscoUCSManagerPassword': 'CiscoUCS',
-'zCiscoUCSManagerPort': 'CiscoUCS',
-'zCiscoUCSManagerUser': 'CiscoUCS',
-'zCiscoUCSManagerUseSSL': 'CiscoUCS',
+    # CiscoUCS
+    # ----------
+    'zCiscoUCSManagerPassword': 'CiscoUCS',
+    'zCiscoUCSManagerPort': 'CiscoUCS',
+    'zCiscoUCSManagerUser': 'CiscoUCS',
+    'zCiscoUCSManagerUseSSL': 'CiscoUCS',
 
-# Sugar
-# ----------
-'zSugarCRMBase': 'Sugar',
-'zSugarCRMPassword': 'Sugar',
-'zSugarCRMTestAccount': 'Sugar',
-'zSugarCRMUsername': 'Sugar',
+    # Sugar
+    # ----------
+    'zSugarCRMBase': 'Sugar',
+    'zSugarCRMPassword': 'Sugar',
+    'zSugarCRMTestAccount': 'Sugar',
+    'zSugarCRMUsername': 'Sugar',
 
-# Dell
-# ----------
-'zSysedgeDiskMapIgnoreNames': 'Dell',
+    # Dell
+    # ----------
+    'zSysedgeDiskMapIgnoreNames': 'Dell',
 
-# Telnet
-# ----------
-'zTelnetEnable': 'Telnet',
-'zTelnetEnableRegex': 'Telnet',
-'zTelnetLoginRegex': 'Telnet',
-'zTelnetPasswordRegex': 'Telnet',
-'zTelnetPromptTimeout': 'Telnet',
-'zTelnetSuccessRegexList': 'Telnet',
-'zTelnetTermLength': 'Telnet',
+    # Telnet
+    # ----------
+    'zTelnetEnable': 'Telnet',
+    'zTelnetEnableRegex': 'Telnet',
+    'zTelnetLoginRegex': 'Telnet',
+    'zTelnetPasswordRegex': 'Telnet',
+    'zTelnetPromptTimeout': 'Telnet',
+    'zTelnetSuccessRegexList': 'Telnet',
+    'zTelnetTermLength': 'Telnet',
 
-# vCloud
-# ----------
-'zVCloudPassword': 'vCloud',
-'zVCloudPort': 'vCloud',
-'zVCloudUsername': 'vCloud',
+    # vCloud
+    # ----------
+    'zVCloudPassword': 'vCloud',
+    'zVCloudPort': 'vCloud',
+    'zVCloudUsername': 'vCloud',
 
-# VMware
-# ----------
-'zVMwareViEndpointHost': 'VMware',
-'zVMwareViEndpointMonitor': 'VMware',
-'zVMwareViEndpointPassword': 'VMware',
-'zVMwareViEndpointUser': 'VMware',
-'zVMwareViEndpointUseSsl': 'VMware',
+    # VMware
+    # ----------
+    'zVMwareViEndpointHost': 'VMware',
+    'zVMwareViEndpointMonitor': 'VMware',
+    'zVMwareViEndpointPassword': 'VMware',
+    'zVMwareViEndpointUser': 'VMware',
+    'zVMwareViEndpointUseSsl': 'VMware',
 
-# WebSphere
-# ----------
-'zWebsphereAuthRealm': 'WebSphere',
-'zWebsphereNode': 'WebSphere',
-'zWebspherePassword': 'WebSphere',
-'zWebsphereServer': 'WebSphere',
-'zWebsphereURLPath': 'WebSphere',
-'zWebsphereUser': 'WebSphere',
+    # WebSphere
+    # ----------
+    'zWebsphereAuthRealm': 'WebSphere',
+    'zWebsphereNode': 'WebSphere',
+    'zWebspherePassword': 'WebSphere',
+    'zWebsphereServer': 'WebSphere',
+    'zWebsphereURLPath': 'WebSphere',
+    'zWebsphereUser': 'WebSphere',
 }
 
 def setzPropertyCategory(prop, category):

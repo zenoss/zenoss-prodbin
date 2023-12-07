@@ -321,8 +321,8 @@ class ZenDaemon(CmdBase):
         if self.pidfile and os.path.exists(self.pidfile):
             self.log.info("Deleting PID file %s ...", self.pidfile)
             os.remove(self.pidfile)
-        self.log.info('Daemon %s shutting down', type(self).__name__)
-        self.audit('Stop')
+        self.log.info("received signal to shut down")
+        self.audit("Stop")
 
     def watchdogCycleTime(self):
         """
@@ -404,44 +404,88 @@ class ZenDaemon(CmdBase):
             self.reporter.niceDoggie(timeout)
 
     def buildOptions(self):
-        """
-        Standard set of command-line options.
-        """
-        CmdBase.buildOptions(self)
-        self.parser.add_option('--uid', dest='uid', default="zenoss",
-                help='User to become when running default:zenoss')
-        self.parser.add_option('-c', '--cycle', dest='cycle',
-                action="store_true", default=False,
-                help="Cycle continuously on cycleInterval from Zope")
-        self.parser.add_option('-D', '--daemon', default=False,
-                dest='daemon', action="store_true",
-                help="Launch into the background")
-        self.parser.add_option('--duallog', default=False,
-                dest='duallog', action="store_true",
-                help="Log to console and log file")
-        self.parser.add_option('--logfileonly', default=False,
-                dest='logfileonly', action="store_true",
-                help="Log to log file and not console")
-        self.parser.add_option('--weblog', default=False,
-                dest='weblog', action="store_true",
-                help="output log info in HTML table format")
-        self.parser.add_option('--watchdog', default=False,
-                dest='watchdog', action="store_true",
-                help="Run under a supervisor which will restart it")
-        self.parser.add_option('--watchdogPath', default=None,
-                dest='watchdogPath',
-                help="The path to the watchdog reporting socket")
-        self.parser.add_option('--starttimeout',
-                dest='starttimeout', type="int",
-                help="Wait seconds for initial heartbeat")
-        self.parser.add_option('--socketOption',
-                dest='socketOption', default=[], action='append',
-                help="Set listener socket options. "
-                "For option details: man 7 socket")
-        self.parser.add_option('--heartbeattimeout',
-                dest='heartbeatTimeout',
-                type='int',
-                help="Set a heartbeat timeout in seconds for a daemon",
-                default=900)
-        self.parser.add_option('--pidfile', dest='pidfile', default="",
-                help='pidfile to save a pid number of a process')
+        super(ZenDaemon, self).buildOptions()
+        self.parser.add_option(
+            "--uid",
+            dest="uid",
+            default="zenoss",
+            help="User to become when running; default %default",
+        )
+        self.parser.add_option(
+            "-c",
+            "--cycle",
+            dest="cycle",
+            action="store_true",
+            default=False,
+            help="Cycle continuously on cycleInterval from Zope",
+        )
+        self.parser.add_option(
+            "-D",
+            "--daemon",
+            default=False,
+            dest="daemon",
+            action="store_true",
+            help="Launch into the background",
+        )
+        self.parser.add_option(
+            "--duallog",
+            default=False,
+            dest="duallog",
+            action="store_true",
+            help="Log to console and log file",
+        )
+        self.parser.add_option(
+            "--logfileonly",
+            default=False,
+            dest="logfileonly",
+            action="store_true",
+            help="Log to log file and not console",
+        )
+        self.parser.add_option(
+            "--weblog",
+            default=False,
+            dest="weblog",
+            action="store_true",
+            help="output log info in HTML table format",
+        )
+        self.parser.add_option(
+            "--watchdog",
+            default=False,
+            dest="watchdog",
+            action="store_true",
+            help="Run under a supervisor which will restart it",
+        )
+        self.parser.add_option(
+            "--watchdogPath",
+            default=None,
+            dest="watchdogPath",
+            help="The path to the watchdog reporting socket",
+        )
+        self.parser.add_option(
+            "--starttimeout",
+            dest="starttimeout",
+            type="int",
+            help="Wait seconds for initial heartbeat",
+        )
+        self.parser.add_option(
+            "--socketOption",
+            dest="socketOption",
+            default=[],
+            action="append",
+            help="Set listener socket options. "
+            "For option details: man 7 socket",
+        )
+        self.parser.add_option(
+            "--heartbeattimeout",
+            dest="heartbeatTimeout",
+            type="int",
+            default=getattr(self, "heartbeatTimeout", 900),
+            help="Set a heartbeat timeout in seconds for a daemon; "
+            "default %default",
+        )
+        self.parser.add_option(
+            "--pidfile",
+            dest="pidfile",
+            default="",
+            help="pidfile to save a pid number of a process",
+        )

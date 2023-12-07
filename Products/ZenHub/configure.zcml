@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <!--
 ##############################################################################
 #
@@ -9,13 +10,12 @@
 ##############################################################################
 -->
 
-
 <configure xmlns="http://namespaces.zope.org/zope">
 
-  <utility
-    component=".notify.BATCH_NOTIFIER"
-    provides=".interfaces.IBatchNotifier"
-    />
+    <utility
+        component=".notify.BATCH_NOTIFIER"
+        provides=".interfaces.IBatchNotifier"
+        />
 
     <adapter factory=".zenhub.DefaultConfProvider"/>
     <adapter factory=".zenhub.DefaultHubHeartBeatCheck"/>

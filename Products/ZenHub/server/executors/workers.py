@@ -17,7 +17,7 @@ from twisted.spread import pb, banana, jelly
 from zope.component import getUtility
 from zope.event import notify
 
-from Products.ZenHub.PBDaemon import RemoteException
+from Products.ZenHub.errors import RemoteException
 
 from ..events import (
     ServiceCallReceived,

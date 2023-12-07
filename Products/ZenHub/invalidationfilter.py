@@ -41,6 +41,7 @@ class IgnorableClassesFilter(object):
     implements(IInvalidationFilter)
 
     CLASSES_TO_IGNORE = (
+        DeviceClass,
         IpAddress,
         IpNetwork,
         GraphDefinition,

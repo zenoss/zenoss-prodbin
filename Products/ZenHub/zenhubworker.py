@@ -39,7 +39,7 @@ from Products.ZenHub.server import (
     UnknownServiceError,
     ZenPBClientFactory,
 )
-from Products.ZenHub.PBDaemon import RemoteBadMonitor
+from Products.ZenHub.errors import RemoteBadMonitor
 from Products.ZenUtils.debugtools import ContinuousProfiler
 from Products.ZenUtils.PBUtil import setKeepAlive
 from Products.ZenUtils.Time import isoDateTime
