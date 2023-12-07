@@ -197,18 +197,18 @@ class ZenDisc(ZenModeler):
         while routers:
             router = routers.pop(0)
             ips = yield self.config().callRemote("followNextHopIps", router.id)
-        unknownIps = (ip for ip in ips if ip not in observedIps)
-        for batch_of_ips in chunk(unknownIps, self.options.parallel):
-            results = yield defer.DeferredList(
-                self.discoverDevice(ip, devicepath="/Network/Router")
-                for ip in batch_of_ips
-            )
-            observedIps.update(batch_of_ips)
-            routers.extend(
-                foundRouter
-                for _, foundRouter in results
-                if foundRouter is not None
-            )
+            unknownIps = (ip for ip in ips if ip not in observedIps)
+            for batch_of_ips in chunk(unknownIps, self.options.parallel):
+                results = yield defer.DeferredList(
+                    self.discoverDevice(ip, devicepath="/Network/Router")
+                    for ip in batch_of_ips
+                )
+                observedIps.update(batch_of_ips)
+                routers.extend(
+                    foundRouter
+                    for _, foundRouter in results
+                    if foundRouter is not None
+                )
 
     def sendDiscoveredEvent(self, ip, dev=None, sev=2):
         """
