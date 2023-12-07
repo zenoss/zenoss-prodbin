@@ -77,7 +77,7 @@ def chunk(lst, n):
     """
     Break lst into n-sized chunks
     """
-    return (lst[i:i + n] for i in range(0, len(lst), n))
+    return (lst[i : i + n] for i in range(0, len(lst), n))
 
 
 class ZenDisc(ZenModeler):
@@ -196,9 +196,7 @@ class ZenDisc(ZenModeler):
         routers = [rootdev]
         while routers:
             router = routers.pop(0)
-            ips = yield self.config().callRemote(
-                "followNextHopIps", router.id
-            )
+            ips = yield self.config().callRemote("followNextHopIps", router.id)
         unknownIps = (ip for ip in ips if ip not in observedIps)
         for batch_of_ips in chunk(unknownIps, self.options.parallel):
             results = yield defer.DeferredList(
