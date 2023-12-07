@@ -145,7 +145,7 @@ class ZenHubInitTest(TestCase):
         # Event Handler shortcut
         t.assertEqual(zh.zem, zh.dmd.ZenEventManager)
 
-        # Messageing config, including work and invalidations
+        # Messaging config, including work and invalidations
         # Patched internal import of Products.ZenMessaging.queuemessaging
         load_config_override.assert_called_with(
             "twistedpublisher.zcml",
@@ -395,10 +395,6 @@ class ZenHubTest(TestCase):
             t.zh.zem.sendEvent,
         )
         t.assertEqual(ret, t.zh._metric_manager.get_rrd_stats.return_value)
-
-    def test_processQueue(t):
-        t.zh.processQueue()
-        t.zh._invalidation_manager.process_invalidations.assert_called_with()
 
     @patch("{src}.Event".format(**PATH), autospec=True)
     def test_sendEvent(t, Event):

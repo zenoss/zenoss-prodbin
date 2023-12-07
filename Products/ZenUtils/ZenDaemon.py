@@ -337,7 +337,7 @@ class ZenDaemon(CmdBase):
         if self.pidfile and os.path.exists(self.pidfile):
             self.log.info("Deleting PID file %s ...", self.pidfile)
             os.remove(self.pidfile)
-        self.log.info("Daemon %s shutting down", type(self).__name__)
+        self.log.info("received signal to shut down")
         self.audit("Stop")
 
     def watchdogCycleTime(self):
@@ -422,7 +422,7 @@ class ZenDaemon(CmdBase):
             self.reporter.niceDoggie(timeout)
 
     def buildOptions(self):
-        CmdBase.buildOptions(self)
+        super(ZenDaemon, self).buildOptions()
         self.parser.add_option(
             "--uid",
             dest="uid",
@@ -497,7 +497,7 @@ class ZenDaemon(CmdBase):
             "--heartbeattimeout",
             dest="heartbeatTimeout",
             type="int",
-            default=900,
+            default=getattr(self, "heartbeatTimeout", 900),
             help="Set a heartbeat timeout in seconds for a daemon; "
             "default %default",
         )

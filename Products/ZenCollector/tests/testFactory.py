@@ -7,10 +7,11 @@
 #
 ##############################################################################
 
-from Products.ZenCollector import CoreCollectorFrameworkFactory
-from Products.ZenCollector.config import ConfigurationProxy
-from Products.ZenCollector.scheduler import Scheduler
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
+
+from ..frameworkfactory import CoreCollectorFrameworkFactory
+from ..config import ConfigurationProxy
+from ..scheduler import Scheduler
 
 
 class TestFactory(BaseTestCase):

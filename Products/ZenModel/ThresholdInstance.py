@@ -7,19 +7,16 @@
 #
 ##############################################################################
 
-
-import os
-
-from Products.ZenModel.PerformanceConf import PerformanceConf
-from Products.ZenModel.MonitorClass import MonitorClass
-from Products.ZenUtils.Utils import unused, rrd_daemon_args, rrd_daemon_retry
+import logging
 
 from twisted.spread import pb
 
-import logging
+from Products.ZenModel.PerformanceConf import PerformanceConf
+from Products.ZenModel.MonitorClass import MonitorClass
 from Products.ZenUtils.deprecated import deprecated
+from Products.ZenUtils.Utils import unused
 
-log = logging.getLogger('zen.ThresholdInstance')
+log = logging.getLogger("zen.ThresholdInstance")
 
 
 class ThresholdContext(pb.Copyable, pb.RemoteCopy):
@@ -31,30 +28,34 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
     def __init__(self, context):
         self.metricMetaData = {}
         if isinstance(context, MonitorClass):
-            self.deviceName = "{context.id} hub".format(context=context)
-            self.componentName = ''
-            self.deviceUrl = 'zport/dmd/Monitors/Hub/{context.id}/viewHubPerformance'.format(context=context)
-            self.devicePath = 'Monitors/Hub/{context.id}'.format(context=context)
-            self._contextKey = '/'.join(('Daemons', context.id))
+            self.deviceName = "{ctx.id} hub".format(ctx=context)
+            self.componentName = ""
+            self.deviceUrl = (
+                "zport/dmd/Monitors/Hub/{ctx.id}/viewHubPerformance"
+            ).format(ctx=context)
+            self.devicePath = "Monitors/Hub/{ctx.id}".format(ctx=context)
+            self._contextKey = "/".join(("Daemons", context.id))
 
         elif isinstance(context, PerformanceConf):
-            self.deviceName = "{context.id} collector".format(context=context)
-            self.componentName = ''
-            self.deviceUrl = 'zport/dmd/Monitors/Performance/{context.id}/viewDaemonPerformance'.format(context=context)
-            self.devicePath = 'Monitors/Performance/{context.id}'.format(context=context)
-            self._contextKey = '/'.join(('Daemons', context.id))
+            self.deviceName = "{ctx.id} collector".format(ctx=context)
+            self.componentName = ""
+            self.deviceUrl = (
+                "zport/dmd/Monitors/Performance/{ctx.id}/viewDaemonPerformance"
+            ).format(ctx=context)
+            self.devicePath = "Monitors/Performance/{ctx.id}".format(
+                ctx=context
+            )
+            self._contextKey = "/".join(("Daemons", context.id))
 
         else:
             self.deviceName = context.device().id
             self.componentName = context.id
             if self.componentName == self.deviceName:
-                self.componentName = ''
+                self.componentName = ""
             self._contextKey = context.getUUID()
             self.metricMetaData = context.getMetricMetadata()
 
         self._contextUid = context.getPrimaryId()
-
-
 
     def key(self):
         "Unique data that refers this context"
@@ -83,8 +84,8 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
         # return os.path.join(self.rrdPath, dataPoint)
 
 
-
 pb.setUnjellyableForClass(ThresholdContext, ThresholdContext)
+
 
 class ThresholdInstance(pb.Copyable, pb.RemoteCopy):
     """A ThresholdInstance is a threshold to be evaluated in a
@@ -106,7 +107,6 @@ class ThresholdInstance(pb.Copyable, pb.RemoteCopy):
     def dataPoints(self):
         "Returns the names of the datapoints used to compute the threshold"
 
-
     def checkValue(self, dataPoint, timestamp, value):
         """
         Check if the value violates the threshold.
@@ -124,7 +124,6 @@ class ThresholdInstance(pb.Copyable, pb.RemoteCopy):
         returns events or an empty sequence"""
         raise NotImplementedError()
 
-
     @deprecated
     def checkRaw(self, dataPoint, timeOf, value):
         """A new datapoint has been collected, use the given _raw_
@@ -133,8 +132,9 @@ class ThresholdInstance(pb.Copyable, pb.RemoteCopy):
         """
         raise NotImplementedError()
 
-    def getGraphElements(self, template, context, gopts, namespace, color,
-                         legend, relatedGps):
+    def getGraphElements(
+        self, template, context, gopts, namespace, color, legend, relatedGps
+    ):
         """Produce a visual indication on the graph of where the
         threshold applies."""
         unused(template, context, gopts, namespace, color, legend, relatedGps)
@@ -143,16 +143,17 @@ class ThresholdInstance(pb.Copyable, pb.RemoteCopy):
 
 pb.setUnjellyableForClass(ThresholdInstance, ThresholdInstance)
 
+
 class RRDThresholdInstance(ThresholdInstance):
     """
     Deprecated
     """
 
+
 pb.setUnjellyableForClass(RRDThresholdInstance, RRDThresholdInstance)
 
 
 class MetricThresholdInstance(ThresholdInstance):
-
     def __init__(self, id, context, dpNames, eventClass, severity):
         self._context = context
         self.id = id
@@ -172,7 +173,6 @@ class MetricThresholdInstance(ThresholdInstance):
         "Returns the names of the datapoints used to compute the threshold"
         return self.dataPointNames
 
-
     def checkValue(self, dataPoint, timestamp, value):
         return self._checkImpl(dataPoint, value)
 
@@ -186,5 +186,6 @@ class MetricThresholdInstance(ThresholdInstance):
         @return:
         """
         raise NotImplementedError()
+
 
 pb.setUnjellyableForClass(MetricThresholdInstance, MetricThresholdInstance)
