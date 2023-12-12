@@ -2515,7 +2515,7 @@ class Device(
         from Products.ZenModel.RRDTemplate import manage_addRRDTemplate
 
         manage_addRRDTemplate(self, id)
-        if id not in self.zDeviceTemplates:
+        if id not in self.zDeviceTemplates and not id.endswith("-replacement") and not id.endswith("-addition"):
             self.bindTemplates(self.zDeviceTemplates + [id])
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
@@ -2543,11 +2543,8 @@ class Device(
         filteredTemplates = list(templates)
         for t in templates:
             tName = t.titleOrId()
-            if tName.endswith("-replacement"):
-                tReplacedName = tName.replace("-replacement", "")
-                tReplaced = self.getRRDTemplateByName(tReplacedName)
-                if tReplaced:
-                    filteredTemplates.remove(tReplaced)
+            if tName.endswith("-replacement") or tName.endswith("-addition"):
+                filteredTemplates.remove(t)
         # filter for python class before sorting
         templates = filter(
             lambda t: isinstance(self, t.getTargetPythonClass()),
