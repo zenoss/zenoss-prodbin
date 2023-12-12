@@ -752,10 +752,7 @@ class DeviceFacade(TreeFacade):
     def getTemplates(self, id):
         object = self._getObject(id)
 
-        if isinstance(object, Device):
-            rrdTemplates = object.getAvailableTemplates()
-        else:
-            rrdTemplates = object.getRRDTemplates()
+        rrdTemplates = object.getRRDTemplates()
 
         # used to sort the templates
         def byTitleOrId(left, right):
@@ -764,18 +761,17 @@ class DeviceFacade(TreeFacade):
         for rrdTemplate in sorted(rrdTemplates, byTitleOrId):
             uid = '/'.join(rrdTemplate.getPrimaryPath())
             # only show Bound Templates
-            if rrdTemplate.id in object.zDeviceTemplates:
-                path = rrdTemplate.getUIPath()
+            path = rrdTemplate.getUIPath()
 
-                # if defined directly on the device do not show the path
-                if isinstance(object, Device) and object.titleOrId() in path:
-                    path = _t('Locally Defined')
-                yield {'id': uid,
-                       'uid': uid,
-                       'path': path,
-                       'text': '%s (%s)' % (rrdTemplate.titleOrId(), path),
-                       'leaf': True
-                       }
+            # if defined directly on the device do not show the path
+            if isinstance(object, Device) and object.titleOrId() in path:
+                path = _t('Locally Defined')
+            yield {'id': uid,
+                   'uid': uid,
+                   'path': path,
+                   'text': '%s (%s)' % (rrdTemplate.titleOrId(), path),
+                   'leaf': True
+                   }
 
     def getLocalTemplates(self, uid):
         """
@@ -783,7 +779,15 @@ class DeviceFacade(TreeFacade):
         @param string uid: absolute path of a device
         @returns [Dict] All the templates defined on this device
         """
-        return [template for template in self.getTemplates(uid) if template['path'] == _t('Locally Defined')]
+        for template in self._getObject(uid).objectValues('RRDTemplate'):
+            uid = '/'.join(template.getPrimaryPath())
+            path = template.getUIPath()
+            yield {'id': uid,
+                   'uid': uid,
+                   'path': path,
+                   'text': '%s (%s)' % (template.titleOrId(), path),
+                   'leaf': True
+                   }
 
     def getUnboundTemplates(self, uid):
         return self._getBoundTemplates(uid, False)
