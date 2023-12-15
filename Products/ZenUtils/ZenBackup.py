@@ -153,7 +153,7 @@ class ZenBackup(ZenBackupBase):
                                             (index and '_%s' % index) or '')
         backupDir = zenPath('backups')
         if not os.path.exists(backupDir):
-            os.mkdir(backupDir, 0750)
+            os.mkdir(backupDir, 0o750)
         for i in range(MAX_UNIQUE_NAME_ATTEMPTS):
             name = os.path.join(backupDir, getName(i))
             if not os.path.exists(name):
@@ -455,7 +455,7 @@ class ZenBackup(ZenBackupBase):
         self.rootTempDir = self.getTempDir()
         self.tempDir = os.path.join(self.rootTempDir, BACKUP_DIR)
         self.log.debug("Use %s as a staging directory for the backup", self.tempDir)
-        os.mkdir(self.tempDir, 0750)
+        os.mkdir(self.tempDir, 0o750)
 
         if self.options.collector:
             self.options.noEventsDb = True

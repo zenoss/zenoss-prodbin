@@ -339,10 +339,10 @@ def bitsToDecimalMask(netbits):
     >>> bitsToDecimalMask(0)
     0L
     """
-    masknumb = 0L
+    masknumb = 0
     netbits=int(netbits)
     for i in range(32-netbits, 32):
-        masknumb += 2L ** i
+        masknumb += 2 ** i
     return masknumb
    
 

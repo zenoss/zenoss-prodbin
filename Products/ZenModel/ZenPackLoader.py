@@ -240,7 +240,7 @@ class ZPLDaemons(ZenPackLoader):
 
     def load(self, pack, unused):
         for fs in findFiles(pack, 'daemons', filter=self.filter):
-            os.chmod(fs, 0755)
+            os.chmod(fs, 0o755)
             path = self.binPath(fs)
             if os.path.lexists(path):
                 os.remove(path)
@@ -286,7 +286,7 @@ class ZPLBin(ZenPackLoader):
 
     def load(self, pack, unused):
         for fs in findFiles(pack, 'bin', filter=self.filter):
-            os.chmod(fs, 0755)
+            os.chmod(fs, 0o755)
             path = self.binPath(fs)
             if os.path.lexists(path):
                 os.remove(path)
@@ -314,7 +314,7 @@ class ZPLLibExec(ZenPackLoader):
 
     def load(self, pack, unused):
         for fs in findFiles(pack, 'libexec', filter=self.filter):
-            os.chmod(fs, 0755)
+            os.chmod(fs, 0o755)
 
     def upgrade(self, pack, app):
         self.unload(pack, app)

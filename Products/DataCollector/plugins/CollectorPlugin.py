@@ -128,13 +128,13 @@ class CollectorPlugin(object):
 
     def asdate(self, val):
         """Convert a byte string to the date string 'YYYY/MM/DD HH:MM:SS'"""
-        datear = (1968, 1, 8, 10, 15, 00)
+        datear = (1968, 1, 8, 10, 15, 0)
         try:
             datear = struct.unpack("!h5B", val[0:7])
         except Exception:
             pass
         if datear[0] == 0:
-            datear = (1968, 1, 8, 10, 15, 00)
+            datear = (1968, 1, 8, 10, 15, 0)
         return "%d/%02d/%02d %02d:%02d:%02d" % datear[:6]
 
 

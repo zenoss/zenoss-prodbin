@@ -77,7 +77,7 @@ class Version(VersionBase):
         VersionBase.__init__(self, 'Zenoss', *args, **kw)
 
 
-def needDir(path, perms=0750):
+def needDir(path, perms=0o750):
     if not os.path.isdir(path):
         os.mkdir(path, perms)
     return path
@@ -343,7 +343,7 @@ class ZenPack(ZenModelRM):
         """
         backupDir = zenPath(".ZenPacks")
         if not os.path.isdir(backupDir):
-            os.makedirs(backupDir, 0750)
+            os.makedirs(backupDir, 0o750)
 
         src = self.eggPath()
         filename = ""
