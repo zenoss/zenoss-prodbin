@@ -57,8 +57,8 @@ class FileSystem(OSComponent):
     storageDevice = ""
     type = ""
     blockSize = 0
-    totalBlocks = 0L
-    totalFiles = 0L
+    totalBlocks = 0
+    totalFiles = 0
     capacity = 0
     inodeCapacity = 0
     maxNameLen = 0

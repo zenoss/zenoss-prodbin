@@ -142,7 +142,13 @@ class ZenDisc(ZenModeler):
                 )
                 continue
             self.log.info("Discover network '%s'", net.getNetworkName())
-            results = yield self.pingMany(net.fullIpList())
+
+            full_ip_list = net.fullIpList()
+            if self.options.removeInterfaceIps:
+                full_ip_list = yield self.config().callRemote(
+                    "removeInterfaces", net)
+
+            results = yield self.pingMany(full_ip_list)
             goodips, badips = _partitionPingResults(results)
             self.log.debug(
                 "Found %d good IPs and %d bad IPs", len(goodips), len(badips)
@@ -876,6 +882,14 @@ class ZenDisc(ZenModeler):
             default=False,
             help="Prefer SNMP name to DNS name when modeling via SNMP.",
         )
+        self.parser.add_option(
+            "--remove-interface-ips",
+            dest="removeInterfaceIps",
+            action="store_true",
+            default=False,
+            help="Skip discovery on IPs already assigned to interfaces (device components).",
+        )
+
         # --job: a development-only option that jobs will use to communicate
         # their existence to zendisc. Not for users, so help is suppressed.
         self.parser.add_option("--job", dest="job", help=SUPPRESS_HELP)
