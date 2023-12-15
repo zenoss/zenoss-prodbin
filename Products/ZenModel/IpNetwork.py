@@ -624,7 +624,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
 
         >>> net = dmd.Networks.addSubNetwork('1.2.3.0', 24)
         >>> net.primarySortKey()
-        16909056L
+        16909056
         """
         return numbip(self.id)
 
