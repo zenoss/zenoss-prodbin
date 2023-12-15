@@ -278,7 +278,7 @@ class ZenPackCmd(ZenScriptBase):
             # by ZPLSkins loader.
             skinsSubdir = zenPath('Products', packName, 'skins', packName)
             if not os.path.exists(skinsSubdir):
-                os.makedirs(skinsSubdir, 0750)
+                os.makedirs(skinsSubdir, 0o750)
             self.install(packName)
 
         elif self.options.fetch:
@@ -761,11 +761,11 @@ class ZenPackCmd(ZenScriptBase):
             if name.endswith('~'): continue
             if name.endswith('/'):
                 if not os.path.exists(fullname):
-                    os.makedirs(fullname, 0750)
+                    os.makedirs(fullname, 0o750)
             else:
                 base = os.path.dirname(fullname)
                 if not os.path.isdir(base):
-                    os.makedirs(base, 0750)
+                    os.makedirs(base, 0o750)
                 file(fullname, 'wb').write(zf.read(name))
         return packName
 

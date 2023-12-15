@@ -34,7 +34,7 @@ from .Watchdog import Reporter
 
 # Daemon creation code below based on Recipe by Chad J. Schroeder
 # File mode creation mask of the daemon.
-UMASK = 0022
+UMASK = 0o022
 
 # Default working directory for the daemon.
 WORKDIR = "/"
