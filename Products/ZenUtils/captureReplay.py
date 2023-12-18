@@ -175,9 +175,12 @@ class CaptureReplay(object):
         """
         if self.replayed == self.loaded:
             self.log.info("Loaded and replayed %d packets", self.replayed)
-            reactor.stop()
+            reactor.callLater(35, self.reactorStop)
         else:
             reactor.callLater(1, self.replayStop)
+
+    def reactorStop(self):
+        reactor.stop()
 
     def buildCaptureReplayOptions(self, parser):
         """
