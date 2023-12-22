@@ -759,11 +759,25 @@ class DeviceFacade(TreeFacade):
     def getTemplates(self, id):
         object = self._getObject(id)
 
-        rrdTemplates = object.getRRDTemplates()
-        templateNames = [t.id for t in rrdTemplates]
+        isDeviceClass = isinstance(object, DeviceClass)
+        if isDeviceClass:
+            pythonDeviceClass = object.getPythonDeviceClass()
 
-        boundTemplates = [t for t in rrdTemplates if t.id in object.zDeviceTemplates]
-        unboundTemplates = [t for t in rrdTemplates if not (t.id in object.zDeviceTemplates)]
+        zDeviceTemplates = object.zDeviceTemplates
+
+        rrdTemplates = object.getRRDTemplates()
+
+        templateNames = []
+        boundTemplates = []
+        unboundTemplates = []
+        for rrdTemplate in rrdTemplates:
+            if isDeviceClass and not issubclass(pythonDeviceClass, rrdTemplate.getTargetPythonClass()):
+                continue
+            templateNames.append(rrdTemplate.id)
+            if rrdTemplate.id in object.zDeviceTemplates:
+                boundTemplates.append(rrdTemplate)
+            else:
+                unboundTemplates.append(rrdTemplate)
 
         # used to sort the templates
         def byTitleOrId(left, right):
@@ -771,21 +785,21 @@ class DeviceFacade(TreeFacade):
 
         for rrdTemplate in sorted(boundTemplates, byTitleOrId) + sorted(unboundTemplates, byTitleOrId):
             uid = '/'.join(rrdTemplate.getPrimaryPath())
-
             path = ''
 
             # for DeviceClasses show which are bound
             if isinstance(object, DeviceClass):
-                if rrdTemplate.id in object.zDeviceTemplates:
+                if rrdTemplate.id in zDeviceTemplates:
                     path = "%s (%s)" % (path, _t('Bound'))
                 if rrdTemplate.id + '-replacement' in templateNames:
                     path = "%s (%s)" % (path, _t('Replaced'))
 
             # if defined directly on the device do not show the path
-            if isinstance(object, Device) and object.titleOrId() in path:
+            uiPath = rrdTemplate.getUIPath()
+            if (not isDeviceClass) and object.titleOrId() in uiPath:
                 path = "%s (%s)" % (path, _t('Locally Defined'))
             else:
-                path = "%s (%s)" % (path, rrdTemplate.getUIPath())
+                path = "%s (%s)" % (path, uiPath)
             yield {'id': uid,
                    'uid': uid,
                    'path': path,
