@@ -760,23 +760,36 @@ class DeviceFacade(TreeFacade):
         object = self._getObject(id)
 
         rrdTemplates = object.getRRDTemplates()
+        templateNames = [t.id for t in rrdTemplates]
+
+        boundTemplates = [t for t in rrdTemplates if t.id in object.zDeviceTemplates]
+        unboundTemplates = [t for t in rrdTemplates if not (t.id in object.zDeviceTemplates)]
 
         # used to sort the templates
         def byTitleOrId(left, right):
             return cmp(left.titleOrId().lower(), right.titleOrId().lower())
 
-        for rrdTemplate in sorted(rrdTemplates, byTitleOrId):
+        for rrdTemplate in sorted(boundTemplates, byTitleOrId) + sorted(unboundTemplates, byTitleOrId):
             uid = '/'.join(rrdTemplate.getPrimaryPath())
-            # only show Bound Templates
-            path = rrdTemplate.getUIPath()
+
+            path = ''
+
+            # for DeviceClasses show which are bound
+            if isinstance(object, DeviceClass):
+                if rrdTemplate.id in object.zDeviceTemplates:
+                    path = "%s (%s)" % (path, _t('Bound'))
+                if rrdTemplate.id + '-replacement' in templateNames:
+                    path = "%s (%s)" % (path, _t('Replaced'))
 
             # if defined directly on the device do not show the path
             if isinstance(object, Device) and object.titleOrId() in path:
-                path = _t('Locally Defined')
+                path = "%s (%s)" % (path, _t('Locally Defined'))
+            else:
+                path = "%s (%s)" % (path, rrdTemplate.getUIPath())
             yield {'id': uid,
                    'uid': uid,
                    'path': path,
-                   'text': '%s (%s)' % (rrdTemplate.titleOrId(), path),
+                   'text': '%s %s' % (rrdTemplate.titleOrId(), path),
                    'leaf': True
                    }
 
