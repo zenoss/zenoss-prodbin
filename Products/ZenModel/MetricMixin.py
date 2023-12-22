@@ -148,8 +148,7 @@ class MetricMixin(object):
         if replacement:
             templates.append(replacement)
         else:
-            if default:
-                templates.append(default)
+            templates.append(default)
         addition = self.getRRDTemplateByName('{}-addition'.format(defaultName))
         if addition:
             templates.append(addition)
