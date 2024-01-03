@@ -14,6 +14,7 @@ import json
 import logging
 import signal
 import time
+import types
 
 from collections import defaultdict
 from contextlib import contextmanager
@@ -27,6 +28,7 @@ from twisted.internet.endpoints import clientFromString, serverFromString
 from twisted.spread import pb
 from twisted.web.resource import Resource
 from twisted.web.server import Site
+from twisted.web._responses import NOT_FOUND, INTERNAL_SERVER_ERROR
 from zope.component import getGlobalSiteManager
 
 import Products.ZenHub as ZENHUB_MODULE
@@ -53,8 +55,11 @@ IDLE = "None/None"
 
 def getLogger(obj):
     """Return a logger based on the name of the given class."""
-    cls = type(obj)
-    name = "zen.zenhubworker.%s" % (cls.__name__)
+    if isinstance(obj, types.InstanceType):
+        name = obj.__class__.__name__
+    else:
+        name = type(obj).__name__
+    name = "zen.zenhubworker.%s" % (name.lower())
     return logging.getLogger(name)
 
 
@@ -112,6 +117,8 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         server_endpoint_descriptor = "tcp:{port}:interface=127.0.0.1".format(
             port=self.options.localport
         )
+        # alternative using UNIX socket instead:
+        # _endpoint_descriptor = "unix:address=/tmp/collector.sock:lockfile=1"
         server_endpoint = serverFromString(reactor, server_endpoint_descriptor)
         self.__server = _LocalServer(reactor, server_endpoint, self)
 
@@ -581,36 +588,73 @@ class ZenHubClient(object):
         self.__log.error("Pinger failed: %s", ex)
 
 
-class _ZenHubStatus(Resource):
-    isLeaf = True
+class _ErrorResponse(Resource):
+    def __init__(self, code, detail):
+        Resource.__init__(self)
+        self.code = code
+        self.detail = detail
 
-    def __init__(self, server):
-        self.__server = server
+    def render(self, request):
+        request.setResponseCode(self.code)
+        request.setHeader(b"content-type", b"application/json; charset=utf-8")
+        return json.dumps({"error": self.code, "message": self.detail})
+
+
+class _NotFound(_ErrorResponse):
+    def __init__(self):
+        _ErrorResponse.__init__(self, NOT_FOUND, "resource not found")
+
+
+class _ZenResource(Resource):
+    def getChild(self, path, request):
+        return _NotFound()
+
+    def render(self, request):
+        try:
+            response = Resource.render(self, request)
+            if isinstance(response, Resource):
+                return response.render(request)
+            return response
+        except Exception:
+            return _ErrorResponse(
+                INTERNAL_SERVER_ERROR, "unexpected problem"
+            ).render(request)
+
+
+class _ZenHubStatus(_ZenResource):
+    def __init__(self, worker):
+        _ZenResource.__init__(self)
+        self._worker = worker
 
     def render_GET(self, request):
         try:
             request.responseHeaders.addRawHeader(
-                b"content-type", b"text/plain"
+                b"content-type", b"text/plain; charset=utf-8"
             )
-            return self.__server.getZenHubStatus()
+            return self._worker.getZenHubStatus()
         except Exception:
             getLogger(self).exception("failed to get ZenHub connection status")
+            return _ErrorResponse(
+                INTERNAL_SERVER_ERROR, "zenhub status unavailable"
+            )
 
 
-class _WorkerStats(Resource):
-    isLeaf = True
-
-    def __init__(self, server):
-        self.__server = server
+class _WorkerStats(_ZenResource):
+    def __init__(self, worker):
+        _ZenResource.__init__(self)
+        self._worker = worker
 
     def render_GET(self, request):
         try:
             request.responseHeaders.addRawHeader(
-                b"content-type", b"application/json"
+                b"content-type", b"application/json; charset=utf-8"
             )
-            return json.dumps(self.__server.getStats())
+            return json.dumps(self._worker.getStats())
         except Exception:
             getLogger(self).exception("failed to get zenhubworker stats")
+            return _ErrorResponse(
+                INTERNAL_SERVER_ERROR, "zenhubworker statistics unavailable"
+            )
 
 
 class _LocalServer(object):
@@ -618,14 +662,14 @@ class _LocalServer(object):
     Server class to listen to local connections.
     """
 
-    def __init__(self, reactor, endpoint, server):
+    def __init__(self, reactor, endpoint, worker):
         self.__reactor = reactor
         self.__endpoint = endpoint
-        self.__server = server
+        self.__worker = worker
 
-        root = Resource()
-        root.putChild("zenhub", _ZenHubStatus(self.__server))
-        root.putChild("stats", _WorkerStats(self.__server))
+        root = _ZenResource()
+        root.putChild("zenhub", _ZenHubStatus(self.__worker))
+        root.putChild("stats", _WorkerStats(self.__worker))
         self.__site = Site(root)
 
         self.__listener = None
