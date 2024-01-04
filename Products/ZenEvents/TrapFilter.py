@@ -438,7 +438,6 @@ class TrapFilter(object):
             if self._dropEvent(event):
                 log.debug("Dropping event %s", event)
                 self._daemon.counters['eventFilterDroppedCount'] += 1
-                self._daemon.counters["eventCount"] -= 1
                 result = TRANSFORM_DROP
         else:
             log.debug("Skipping filter for event=%s, filtersDefined=%s",
