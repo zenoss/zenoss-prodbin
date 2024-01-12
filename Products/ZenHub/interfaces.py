@@ -7,13 +7,23 @@
 #
 ##############################################################################
 
+from enum import IntEnum
 from zope.component.interfaces import Interface, IObjectEvent
 from zope.interface import Attribute
 
-# "Enum" for return values for IInvalidationFilters.
-FILTER_EXCLUDE = 0
-FILTER_INCLUDE = 1
-FILTER_CONTINUE = 2
+
+class InvalidationFilterResult(IntEnum):
+    """IInvalidationFilter implementations return one these values."""
+
+    Exclude = 0
+    Include = 1
+    Continue = 2
+
+
+# These names exist for backward compatibility.
+FILTER_EXCLUDE = InvalidationFilterResult.Exclude
+FILTER_INCLUDE = InvalidationFilterResult.Include
+FILTER_CONTINUE = InvalidationFilterResult.Continue
 
 
 class IInvalidationEvent(IObjectEvent):

@@ -50,7 +50,7 @@ class SnmpClient(BaseClient):
         datacollector=None,
         plugins=[],
     ):
-        BaseClient.__init__(self, device, datacollector)
+        super(SnmpClient, self).__init__(device, datacollector)
         global defaultTries, defaultTimeout
         self.hostname = hostname
         self.device = device
@@ -266,7 +266,8 @@ class SnmpClient(BaseClient):
 
             if isinstance(result.value, error.TimeoutError):
                 log.error(
-                    "Device %s timed out: are " "your SNMP settings correct?",
+                    "Device %s timed out: are "
+                    "your SNMP settings correct?",
                     self.hostname,
                 )
                 summary = "SNMP agent down - no response received"
@@ -286,13 +287,14 @@ class SnmpClient(BaseClient):
             self._sendStatusEvent(summary, eventKey="agent_down")
         else:
             self._sendStatusEvent(
-                "SNMP agent up", eventKey="agent_down", severity=Event.Clear
+                "SNMP agent up",
+                eventKey="agent_down",
+                severity=Event.Clear,
             )
         try:
             self.proxy.close()
         except AttributeError:
-            log.info("Caught AttributeError closing SNMP connection.")
-        # Tell the datacollector that we are all done
+            log.info("caught AttributeError closing SNMP connection.")
         if self.datacollector:
             self.datacollector.clientFinished(self)
         else:

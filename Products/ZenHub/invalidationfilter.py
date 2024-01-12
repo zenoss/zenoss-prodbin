@@ -37,6 +37,7 @@ class IgnorableClassesFilter(object):
     """Ignore invalidations on certain classes."""
 
     CLASSES_TO_IGNORE = (
+        DeviceClass,
         IpAddress,
         IpNetwork,
         GraphDefinition,

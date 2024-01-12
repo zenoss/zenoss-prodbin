@@ -13,7 +13,9 @@ from unittest import TestCase
 from mock import Mock, patch, call, MagicMock, sentinel
 from zope.interface.verify import verifyObject
 
-from Products.ZenHub.PBDaemon import RemoteException
+from Products.ZenHub.errors import RemoteException
+
+from ..events import IServiceAddedEvent
 from ..exceptions import UnknownServiceError
 from ..service import (
     ServiceManager,
@@ -28,7 +30,6 @@ from ..service import (
     pb,
     defer,
 )
-from ..events import IServiceAddedEvent
 
 PATH = {"src": "Products.ZenHub.server.service"}
 
