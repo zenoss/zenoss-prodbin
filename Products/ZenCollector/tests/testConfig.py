@@ -13,10 +13,10 @@ import zope.interface
 from cryptography.fernet import Fernet
 from twisted.internet import defer
 
-from Products.ZenCollector.config import ConfigurationProxy
-from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences
-
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
+
+from ..config import ConfigurationProxy
+from ..interfaces import ICollector, ICollectorPreferences
 
 
 @zope.interface.implementer(ICollector)
@@ -31,9 +31,6 @@ class MyCollector(object):
         def remote_getCollectorThresholds(self):
             return defer.succeed(["yabba dabba do", "ho ho hum"])
 
-        def remote_getDeviceConfigs(self, devices=[]):
-            return defer.succeed(["hmm", "foo", "bar"])
-
         def remote_getEncryptionKey(self):
             return defer.succeed(Fernet.generate_key())
 
@@ -44,10 +41,19 @@ class MyCollector(object):
                 return self.remote_getThresholdClasses()
             elif methodName == "getCollectorThresholds":
                 return self.remote_getCollectorThresholds()
-            elif methodName == "getDeviceConfigs":
-                return self.remote_getDeviceConfigs(args)
             elif methodName == "getEncryptionKey":
                 return self.remote_getEncryptionKey()
+
+    class MyConfigCacheProxy(object):
+        def remote_getDeviceConfigs(self, devices=[]):
+            return defer.succeed(["hmm", "foo", "bar"])
+
+        def callRemote(self, methodName, *args, **kwargs):
+            if methodName == "getDeviceConfigs":
+                return self.remote_getDeviceConfigs(args)
+
+    def getRemoteConfigCacheProxy(self):
+        return MyCollector.MyConfigCacheProxy()
 
     def getRemoteConfigServiceProxy(self):
         return MyCollector.MyConfigServiceProxy()
@@ -64,8 +70,10 @@ class Dummy(object):
 class MyPrefs(object):
     def __init__(self):
         self.collectorName = "testcollector"
+        self.configurationService = "MyConfigService"
         self.options = Dummy()
         self.options.monitor = "localhost"
+        self.options.workerid = 0
 
 
 class TestConfig(BaseTestCase):
@@ -78,9 +86,9 @@ class TestConfig(BaseTestCase):
             self.assertEquals(result["foobar"], "abcxyz")
             return result
 
-        cfgService = ConfigurationProxy()
         prefs = MyPrefs()
-        d = cfgService.getPropertyItems(prefs)
+        cfgService = ConfigurationProxy(prefs)
+        d = cfgService.getPropertyItems()
         d.addBoth(validate)
         return d
 
@@ -89,10 +97,10 @@ class TestConfig(BaseTestCase):
             self.assertTrue("Products.ZenModel.FooBarThreshold" in result)
             return result
 
-        cfgService = ConfigurationProxy()
         prefs = MyPrefs()
+        cfgService = ConfigurationProxy(prefs)
 
-        d = cfgService.getThresholdClasses(prefs)
+        d = cfgService.getThresholdClasses()
         d.addBoth(validate)
         return d
 
@@ -102,10 +110,10 @@ class TestConfig(BaseTestCase):
             self.assertTrue("ho ho hum" in result)
             return result
 
-        cfgService = ConfigurationProxy()
         prefs = MyPrefs()
+        cfgService = ConfigurationProxy(prefs)
 
-        d = cfgService.getThresholds(prefs)
+        d = cfgService.getThresholds()
         d.addBoth(validate)
         return d
 
@@ -115,15 +123,17 @@ class TestConfig(BaseTestCase):
             self.assertFalse("abcdef" in result)
             return result
 
-        cfgService = ConfigurationProxy()
         prefs = MyPrefs()
+        cfgService = ConfigurationProxy(prefs)
+        token = 10
+        deviceIds = []
 
-        d = cfgService.getConfigProxies(prefs)
+        d = cfgService.getConfigProxies(token, deviceIds)
         d.addBoth(validate)
-        return d
 
     def testCrypt(self):
-        cfgService = ConfigurationProxy()
+        prefs = MyPrefs()
+        cfgService = ConfigurationProxy(prefs)
 
         s = "this is a string I wish to encrypt"
 

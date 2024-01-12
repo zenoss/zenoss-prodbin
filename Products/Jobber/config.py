@@ -95,7 +95,15 @@ class Celery(object):
     CELERY_ACCEPT_CONTENT = ["without-unicode"]
 
     # List of modules to import when the Celery worker starts
-    CELERY_IMPORTS = ("Products.Jobber.jobs",)
+    CELERY_IMPORTS = (
+        "Products.Jobber.jobs",
+        "Products.ZenCollector.configcache.task",
+    )
+
+    # Job/Task routing
+    CELERY_ROUTES = {
+        "configcache.build_device_config": {"queue": "configcache"}
+    }
 
     # Result backend (redis)
     CELERY_RESULT_BACKEND = ZenJobs.get("redis-url")

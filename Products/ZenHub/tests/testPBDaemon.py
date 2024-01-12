@@ -19,12 +19,12 @@ from Products.ZenHub.interfaces import (
     ICollectorEventTransformer,
     TRANSFORM_DROP,
 )
-from Products.ZenHub.PBDaemon import (
-    DeDupingEventQueue,
-    DequeEventQueue,
-    EventQueueManager,
+from Products.ZenHub.PBDaemon import PBDaemon
+from Products.ZenHub.events.queue.manager import EventQueueManager
+from Products.ZenHub.events.queue.deduping import DeDupingEventQueue
+from Products.ZenHub.events.queue.deque import DequeEventQueue
+from Products.ZenHub.events.queue.fingerprint import (
     DefaultFingerprintGenerator,
-    PBDaemon,
 )
 
 _TEST_EVENT = dict(
@@ -431,22 +431,25 @@ class Publisher(object):
 class TestMetricWriter(BaseTestCase):
     def setUp(self):
         os.environ["CONTROLPLANE"] = "0"
-        self.daemon = PBDaemon()
-        self.daemon._publisher = Publisher()
+        self.publisher = Publisher()
+        self.daemon = PBDaemon(publisher=self.publisher)
         self.metric_writer = self.daemon.metricWriter()
 
     def testWriteMetric(self):
         metric = ["name", 0.0, "now", {}]
         self.metric_writer.write_metric(*metric)
-        self.assertEquals([tuple(metric)], self.daemon._publisher.queue)
+        self.assertEquals([tuple(metric)], self.publisher.queue)
 
 
 class TestInternalMetricWriter(BaseTestCase):
     def setUp(self):
         os.environ["CONTROLPLANE"] = "1"
-        self.daemon = PBDaemon()
-        self.daemon._publisher = Publisher()
-        self.daemon._internal_publisher = Publisher()
+        self.publisher = Publisher()
+        self.internal_publisher = Publisher()
+        self.daemon = PBDaemon(
+            publisher=self.publisher,
+            internal_publisher=self.internal_publisher,
+        )
         self.metric_writer = self.daemon.metricWriter()
 
     def testWriteInternalMetric(self):
@@ -455,20 +458,19 @@ class TestInternalMetricWriter(BaseTestCase):
         self.metric_writer.write_metric(*metric)
         self.metric_writer.write_metric(*internal_metric)
         self.assertEquals(
-            [tuple(internal_metric)], self.daemon._internal_publisher.queue
+            [tuple(internal_metric)], self.internal_publisher.queue
         )
         self.assertEquals(
-            [tuple(metric), tuple(internal_metric)],
-            self.daemon._publisher.queue,
+            [tuple(metric), tuple(internal_metric)], self.publisher.queue
         )
 
     def testInternalPublisherIsNone(self):
-        self.daemon._internal_publisher = None
+        self.daemon.setInternalPublisher(None)
         del os.environ["CONTROLPLANE_CONSUMER_URL"]
         self.assertIsNone(self.daemon.internalPublisher())
 
     def testInternalPublisherIsInstance(self):
-        self.daemon._internal_publisher = None
+        self.daemon.setInternalPublisher(None)
         os.environ["CONTROLPLANE_CONSUMER_URL"] = "http://localhost"
         publisher = self.daemon.internalPublisher()
         from Products.ZenHub.metricpublisher.publisher import HttpPostPublisher

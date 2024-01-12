@@ -44,6 +44,30 @@ Z_PROPERTY_META_DATA = {}
 # define all the zProperties.  The values are set on dmd.Devices in the
 # buildDeviceTreeProperties of DeviceClass
 Z_PROPERTIES = [
+    # Config Cache properties
+    (
+        "zDeviceConfigBuildTimeout",
+        7200,
+        "int",
+        "Device configuration build timeout",
+        "The number of seconds before timing out a device configuration build."
+    ),
+    (
+        "zDeviceConfigPendingTimeout",
+        7200,
+        "int",
+        "Device configuration build queued timeout",
+        "The number of seconds a device configuration build may be queued "
+        "before a timeout."
+    ),
+    (
+        "zDeviceConfigTTL",
+        43200,
+        "int",
+        "Device configuration expiration",
+        "The number of seconds to wait before rebuilding a "
+        "device configuration."
+    ),
     # zPythonClass maps device class to python classs (separate from device
     # class name)
     (
@@ -668,18 +692,18 @@ class ZenPropertyManager(object, PropertyManager):
     the actual value the popup will have.
 
     It also has management for zenProperties which are properties that can be
-    inherited long the acquision chain.  All properties are for a branch are
-    defined on a "root node" specified by the function which must be returned
-    by the function getZenRootNode that should be over ridden in a sub class.
-    Prperties can then be added further "down" the aq_chain by calling
-    setZenProperty on any contained node.
+    inherited along the acquisition chain.  All properties are for a branch
+    are defined on a "root node" specified by the function which must be
+    returned by the function getZenRootNode that should be over ridden in a
+    sub class. Properties can then be added further "down" the aq_chain by
+    calling setZenProperty on any contained node.
 
     ZenProperties all have the same prefix which is defined by iszprop
     this can be overridden in a subclass.
 
     ZenPropertyManager overrides getProperty and getPropertyType from
     PropertyManager to support acquisition. If you want to query an object
-    about a property, but do not want it to search the acquistion chain then
+    about a property, but do not want it to search the acquisition chain then
     use the super classes method or aq_base.  Example:
 
         # acquires property from dmd.Devices
@@ -692,7 +716,7 @@ class ZenPropertyManager(object, PropertyManager):
         aq_base(dmd.Devices.Server).getProperty('zSnmpCommunity')
 
     The properties are stored as attributes which is convenient, but can be
-    confusing.  Attribute access always uses acquistion.  Setting an
+    confusing.  Attribute access always uses acquisition.  Setting an
     attribute, will not add it to the list of properties, so subsquent calls
     to hasProperty or getProperty won't return it.
 
@@ -1077,7 +1101,7 @@ class ZenPropertyManager(object, PropertyManager):
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, "getPropertyType")
 
     def getPropertyType(self, id):
-        """Overrides methods from PropertyManager to support acquistion."""
+        """Overrides methods from PropertyManager to support acquisition."""
         ob = self._findParentWithProperty(id)
         if ob is not None:
             return PropertyManager.getPropertyType(ob, id)

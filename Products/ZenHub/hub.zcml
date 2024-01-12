@@ -9,21 +9,12 @@
 #
 ##############################################################################
 -->
-
-
-<configure xmlns="http://namespaces.zope.org/zope"
-           >
+<configure xmlns="http://namespaces.zope.org/zope">
 
   <!-- Only load this in a ZenHub process -->
   <utility
     factory=".invalidations.InvalidationProcessor"
     provides=".interfaces.IInvalidationProcessor"
-    />
-
-  <utility
-    factory=".invalidationfilter.DeviceClassInvalidationFilter"
-    provides=".interfaces.IInvalidationFilter"
-    name="DeviceClass"
     />
 
   <utility
@@ -43,21 +34,6 @@
     provides=".interfaces.IInvalidationFilter"
     name="IgnorableClasses"
     />
-
-    <subscriber provides=".interfaces.IInvalidationOid"
-             for="Products.ZenModel.DeviceComponent.DeviceComponent"
-             factory=".invalidationoid.DeviceOidTransform"
-            />
-
-    <subscriber provides=".interfaces.IInvalidationOid"
-             for="Products.ZenModel.DeviceHW.DeviceHW"
-             factory=".invalidationoid.DeviceOidTransform"
-            />
-
-    <subscriber provides=".interfaces.IInvalidationOid"
-             for="Products.ZenModel.OperatingSystem.OperatingSystem"
-             factory=".invalidationoid.DeviceOidTransform"
-            />
 
     <subscriber provides=".interfaces.IInvalidationOid"
              for="Products.ZenRelations.PrimaryPathObjectManager.PrimaryPathObjectManager"

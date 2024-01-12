@@ -15,7 +15,7 @@ import os
 from uuid import uuid4
 from twisted.spread import pb
 
-from ..PBDaemon import RemoteBadMonitor
+from ..errors import RemoteBadMonitor
 from .exceptions import UnknownServiceError
 from .utils import getLogger
 

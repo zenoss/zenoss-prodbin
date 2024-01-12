@@ -33,10 +33,6 @@ class ModelerService(PerformanceConfig):
 
     plugins = None
 
-    def __init__(self, dmd, instance):
-        PerformanceConfig.__init__(self, dmd, instance)
-        self.config = self.dmd.Monitors.Performance._getOb(self.instance)
-
     def createDeviceProxy(self, dev, skipModelMsg=""):
         if self.plugins is None:
             self.plugins = {}

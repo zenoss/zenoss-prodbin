@@ -1,9 +1,9 @@
-from unittest import TestCase
 from mock import Mock, patch, create_autospec
-
+from Products.ZCatalog.interfaces import ICatalogBrain
+from unittest import TestCase
 from zope.interface.verify import verifyObject
 
-from Products.ZenHub.invalidationfilter import (
+from ..invalidationfilter import (
     _getZorCProperties,
     _iszorcustprop,
     BaseOrganizerFilter,
@@ -19,9 +19,7 @@ from Products.ZenHub.invalidationfilter import (
     OSProcessOrganizer,
     OSProcessOrganizerFilter,
 )
-
-from Products.ZCatalog.interfaces import ICatalogBrain
-from mock_interface import create_interface_mock
+from .mock_interface import create_interface_mock
 
 PATH = {"invalidationfilter": "Products.ZenHub.invalidationfilter"}
 

@@ -23,7 +23,6 @@ try:
 except ImportError:
     USE_WMI = False
 
-import collections
 import cPickle as pickle
 import gzip
 import os
@@ -39,8 +38,8 @@ import DateTime
 import zope.component
 
 from metrology import Metrology
+from twisted.internet import reactor, defer
 from twisted.internet.defer import succeed
-from twisted.internet import reactor
 from twisted.python.failure import Failure
 
 from Products.DataCollector import Classifier
@@ -57,9 +56,7 @@ from Products.ZenCollector.daemon import parseWorkerOptions, addWorkerOptions
 from Products.ZenCollector.interfaces import IEventService
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon, HubDown
-from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive, driveLater
-from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.ZenUtils.Utils import unused, zenPath
 from Products.Zuul.utils import safe_hasattr as hasattr
 
@@ -89,7 +86,7 @@ class ZenModeler(PBDaemon):
     metrics.
     """
 
-    name = "zenmodeler"
+    mname = name = "zenmodeler"
     initialServices = PBDaemon.initialServices + ["ModelerService"]
 
     generateEvents = True
@@ -104,15 +101,12 @@ class ZenModeler(PBDaemon):
         @param single: collect from a single device?
         @type single: boolean
         """
-        PBDaemon.__init__(self)
+        super(ZenModeler, self).__init__()
         # FIXME: cleanup --force option #2660
         self.options.force = True
         self.start = None
         self.startat = None
-        self.rrdStats = DaemonStats()
-        self.single = single
-        if self.options.device:
-            self.single = True
+        self.single = single if not self.options.device else True
         self.modelerCycleInterval = self.options.cycletime
         # get the minutes and convert to fraction of a day
         self.collage = float(self.options.collage) / 1440.0
@@ -120,7 +114,6 @@ class ZenModeler(PBDaemon):
         self.clients = []
         self.finished = []
         self.devicegen = None
-        self.counters = collections.Counter()
         self.configFilter = None
         self.configLoaded = False
 
@@ -166,14 +159,15 @@ class ZenModeler(PBDaemon):
         """
         self.log.error("Error occured: %s", error)
 
+    @defer.inlineCallbacks
     def connected(self):
-        """
-        Called after connected to the zenhub service
-        """
+        """Invoked after connected to ZenHub."""
         reactor.callLater(_CONFIG_PULLING_TIMEOUT, self._checkConfigLoad)
-        d = self.configure()
-        d.addCallback(self.heartbeat)
-        d.addErrback(self.reportError)
+        try:
+            yield self.configure()
+            self.heartbeat()
+        except Exception:
+            self.log.exception("failed to configure")
 
     def _checkConfigLoad(self):
         """
@@ -187,6 +181,7 @@ class ZenModeler(PBDaemon):
             )
             reactor.callLater(_CONFIG_PULLING_TIMEOUT, self._checkConfigLoad)
 
+    @defer.inlineCallbacks
     def configure(self):
         """
         Get our configuration from zenhub
@@ -194,51 +189,36 @@ class ZenModeler(PBDaemon):
         # add in the code to fetch cycle time, etc.
         self.log.info("Getting configuration from ZenHub...")
 
-        def inner(driver):
-            """
-            Generator function to gather our configuration
+        svc = self.config()
 
-            @param driver: driver object
-            @type driver: driver object
-            """
-            self.log.debug("fetching monitor properties")
-            yield self.config().callRemote("propertyItems")
-            items = dict(driver.next())
-            # If the cycletime option is not specified or zero, then use the
-            # modelerCycleInterval value in the database.
-            if not self.options.cycletime:
-                self.modelerCycleInterval = items.get(
-                    "modelerCycleInterval", _DEFAULT_CYCLE_INTERVAL
-                )
-            self.configCycleInterval = items.get(
-                "configCycleInterval", self.configCycleInterval
+        self.log.debug("fetching monitor properties")
+        items = yield svc.callRemote("propertyItems")
+        items = dict(items)
+        # If the cycletime option is not specified or zero, then use the
+        # modelerCycleInterval value in the database.
+        if not self.options.cycletime:
+            self.modelerCycleInterval = items.get(
+                "modelerCycleInterval", _DEFAULT_CYCLE_INTERVAL
             )
-            reactor.callLater(self.configCycleInterval * 60, self.configure)
+        self.configCycleInterval = items.get(
+            "configCycleInterval", self.configCycleInterval
+        )
+        reactor.callLater(self.configCycleInterval * 60, self.configure)
 
-            self.log.debug("Getting threshold classes...")
-            yield self.config().callRemote("getThresholdClasses")
-            self.remote_updateThresholdClasses(driver.next())
+        self.log.debug("Getting threshold classes...")
+        classes = yield svc.callRemote("getThresholdClasses")
+        self.remote_updateThresholdClasses(classes)
 
-            self.log.debug("Getting collector thresholds...")
-            yield self.config().callRemote("getCollectorThresholds")
-            thresholds = driver.next()
-            threshold_notifier = ThresholdNotifier(self.sendEvent, thresholds)
+        self.log.debug("Getting collector thresholds...")
+        thresholds = yield svc.callRemote("getCollectorThresholds")
+        self.getThresholds().updateList(thresholds)
 
-            self.rrdStats.config(
-                self.name,
-                self.options.monitor,
-                self.metricWriter(),
-                threshold_notifier,
-                self.derivativeTracker(),
-            )
+        self.log.debug("Getting collector plugins for each DeviceClass")
+        self.classCollectorPlugins = yield svc.callRemote(
+            "getClassCollectorPlugins"
+        )
 
-            self.log.debug("Getting collector plugins for each DeviceClass")
-            yield self.config().callRemote("getClassCollectorPlugins")
-            self.classCollectorPlugins = driver.next()
-
-            self.configLoaded = True
-
-        return drive(inner)
+        self.configLoaded = True
 
     def config(self):
         """
@@ -601,13 +581,13 @@ class ZenModeler(PBDaemon):
     #
     #     return drive(inner)
 
-    def addClient(self, device, timeout, clientType, name):
+    def addClient(self, client, timeout, clientType, name):
         """
         If device is not None, schedule the device to be collected.
         Otherwise log an error.
 
-        @param device: device to collect against
-        @type device: string
+        @param client: modelling client
+        @type client: object
         @param timeout: timeout before failing the connection
         @type timeout: integer
         @param clientType: description of the plugin type
@@ -615,11 +595,11 @@ class ZenModeler(PBDaemon):
         @param name: plugin name
         @type name: string
         """
-        if device:
-            device.timeout = timeout
-            device.timedOut = False
-            self.clients.append(device)
-            device.run()
+        if client:
+            client.timeout = timeout
+            client.timedOut = False
+            self.clients.append(client)
+            client.run()
         else:
             self.log.warn(
                 "Unable to create a %s collector for %s", clientType, name
@@ -690,7 +670,7 @@ class ZenModeler(PBDaemon):
         @type: Twisted deferred object
         """
         device = collectorClient.device
-        self.log.debug("Client for %s finished collecting", device.id)
+        self.log.info("Client for %s finished collecting", device.id)
 
         def processClient(driver):
             try:
@@ -1265,7 +1245,7 @@ class ZenModeler(PBDaemon):
         if USE_WMI:
             setNTLMv2Auth(self.options)
 
-        configFilter = parseWorkerOptions(self.options.__dict__)
+        configFilter = parseWorkerOptions(self.options.__dict__, self.log)
         if configFilter:
             self.configFilter = configFilter
 
