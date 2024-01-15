@@ -1,7 +1,8 @@
 from unittest import TestCase
 from mock import Mock, patch, call, MagicMock, create_autospec
+from zope.component import adaptedBy
 
-from Products.ZenHub.invalidations import (
+from ..invalidations import (
     betterObjectEventNotify,
     defer,
     handle_oid,
@@ -15,10 +16,8 @@ from Products.ZenHub.invalidations import (
     IHubCreatedEvent,
     INVALIDATIONS_PAUSED,
 )
+from .mock_interface import create_interface_mock
 
-from mock_interface import create_interface_mock
-
-from zope.component import adaptedBy
 
 """
 These tests are currently excellent examples of tests with excessive patching

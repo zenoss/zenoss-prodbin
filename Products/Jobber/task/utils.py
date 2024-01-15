@@ -11,6 +11,8 @@ from __future__ import absolute_import
 
 import inspect
 
+from itertools import chain
+
 from zope.component import getUtility
 
 from ..interfaces import IJobStore
@@ -31,7 +33,12 @@ def requires(*features):
             if cls not in culled:
                 culled.insert(0, cls)
     name = "".join(t.__name__ for t in features) + "Task"
-    basetask = type(name, tuple(culled), {"abstract": True})
+    throws = set(
+        chain.from_iterable(getattr(cls, "throws", ()) for cls in culled)
+    )
+    basetask = type(
+        name, tuple(culled), {"abstract": True, "throws": tuple(throws)}
+    )
     return basetask
 
 

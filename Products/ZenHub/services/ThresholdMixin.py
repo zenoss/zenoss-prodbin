@@ -7,7 +7,13 @@
 #
 ##############################################################################
 
+import logging
+
 from Products.ZenHub.PBDaemon import translateError
+from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
+from Products.ZenModel.ValueChangeThreshold import ValueChangeThreshold
+
+log = logging.getLogger("zen.thresholdmixin")
 
 
 class ThresholdMixin:
@@ -15,22 +21,31 @@ class ThresholdMixin:
 
     @translateError
     def remote_getThresholdClasses(self):
-        if not self._cached_thresholdClasses:
-            from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
-            from Products.ZenModel.ValueChangeThreshold import (
-                ValueChangeThreshold,
+        log.info("retrieving threshold classes")
+        try:
+            if not self._cached_thresholdClasses:
+                classes = [MinMaxThreshold, ValueChangeThreshold]
+                for pack in self.dmd.ZenPackManager.packs():
+                    classes += pack.getThresholdClasses()
+                self._cached_thresholdClasses = map(
+                    lambda c: c.__module__, classes
+                )
+            return self._cached_thresholdClasses
+        finally:
+            log.info(
+                "retrieved threshold classes: %s",
+                self._cached_thresholdClasses,
             )
-
-            classes = [MinMaxThreshold, ValueChangeThreshold]
-            for pack in self.dmd.ZenPackManager.packs():
-                classes += pack.getThresholdClasses()
-            self._cached_thresholdClasses = map(
-                lambda c: c.__module__, classes
-            )
-        return self._cached_thresholdClasses
 
     @translateError
     def remote_getCollectorThresholds(self):
         from Products.ZenModel.BuiltInDS import BuiltInDS
 
-        return self.config.getThresholdInstances(BuiltInDS.sourcetype)
+        log.info("retrieving threshold instances")
+        instances = None
+        try:
+            instances = self.conf.getThresholdInstances(BuiltInDS.sourcetype)
+        finally:
+            log.info("retrieved threshold instances: %s", instances)
+
+        return instances

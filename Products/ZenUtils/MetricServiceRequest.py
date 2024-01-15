@@ -98,7 +98,7 @@ class MetricServiceRequest(object):
         """
         metricQueries = []
         for metric in metrics:
-            log.info("fetchMetrics metrics %s", metric)
+            log.debug("fetchMetrics metrics %s", metric)
             cf = metric.get('cf', 'average')
             rpn = metric.get('rpn', '')
             rate = metric.get('rate', False)
@@ -124,6 +124,6 @@ class MetricServiceRequest(object):
             queries=metricQueries
         )
         body = FileBodyProducer(StringIO(json.dumps(request)))
-        log.info("POST %s %s %s", self._metric_url_v2, self._headers, json.dumps(request))
+        log.debug("POST %s %s %s", self._metric_url_v2, self._headers, json.dumps(request))
         d = self.agent.request('POST', self._metric_url_v2, self._headers, body)
         return d
