@@ -27,7 +27,6 @@ from struct import unpack
 
 from pynetsnmp import netsnmp, twistedsnmp
 from twisted.internet import defer, reactor
-from twisted.python.failure import Failure
 from zope.component import queryUtility, getUtility, provideUtility
 from zope.interface import implementer
 
@@ -1012,22 +1011,23 @@ class TrapDaemon(CollectorDaemon):
             self.setExitCode(1)
             self.stop()
 
-    def runPostConfigTasks(self, result=None):
+    @defer.inlineCallbacks
+    def runPostConfigTasks(self):
         # 1) super sets self._prefs.task with the call to postStartupTasks
         # 2) call remote createAllUsers
         # 3) service in turn walks DeviceClass tree and returns users
-        CollectorDaemon.runPostConfigTasks(self, result)
-        if not isinstance(result, Failure) and self._prefs.task is not None:
-            service = self.getRemoteConfigServiceProxy()
-            log.debug('TrapDaemon.runPostConfigTasks callRemote createAllUsers')
-            d = service.callRemote("createAllUsers")
-            d.addCallback(self._createUsers)
+        super(TrapDaemon, self).runPostConfigTasks()
+        if self._prefs.task is not None:
+            service = yield self.getRemoteConfigServiceProxy()
+            log.debug('callRemote createAllUsers')
+            users = yield service.callRemote('createAllUsers')
+            self._createUsers(users)
 
     def remote_createUser(self, user):
         reactor.callInThread(self._createUsers, [user])
 
     def _createUsers(self, users):
-        log.debug('TrapDaemon._createUsers %s users', len(users))
+        log.debug('_createUsers %s users', len(users))
         if self._prefs.task.session is None:
             log.debug("No session created, so unable to create users")
         else:

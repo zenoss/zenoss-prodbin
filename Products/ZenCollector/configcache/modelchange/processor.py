@@ -21,6 +21,7 @@ from Products.ZenHub.interfaces import (
     FILTER_EXCLUDE,
     IInvalidationOid,
 )
+from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenRelations.PrimaryPathObjectManager import (
     PrimaryPathObjectManager,
@@ -78,7 +79,7 @@ class InvalidationProcessor(object):
 class OidToObject(Action):
     """Validates the OID to ensure it references a device."""
 
-    SINK = "sink"
+    SINK = "sink1"
 
     def __init__(self, app):
         """
@@ -142,7 +143,7 @@ class ApplyFilters(Action):
                     log.debug(
                         "invalidation excluded by filter  filter=%r device=%s",
                         fltr,
-                        invalidation.device
+                        invalidation.device,
                     )
                 break
         else:
@@ -160,7 +161,7 @@ class ApplyTransforms(Action):
     in its place.
     """
 
-    SINK = "sink"
+    SINK = "sink2"
 
     def __call__(self, invalidation):
         # First, get any subscription adapters registered as transforms
@@ -210,14 +211,18 @@ class CollectInvalidations(Action):
 
     def __call__(self, result):
         results = into_tuple(result)
+        devices = []
         for result in results:
+            if not isinstance(result.device, Device):
+                continue
+            devices.append(result)
             log.debug(
                 "collected an invalidation  reason=%s device=%s oid=%r",
                 result.reason,
                 result.device,
                 result.oid,
             )
-        self._output.update(results)
+        self._output.update(devices)
 
     def pop(self):
         """Return the collected data, removing it from the set."""

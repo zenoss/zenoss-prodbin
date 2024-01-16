@@ -16,7 +16,7 @@ from twisted.spread import pb
 from Products.ZenUtils.deprecated import deprecated
 
 
-class HubService(pb.Referenceable):
+class HubService(object, pb.Referenceable):
     """
     The base class for a ZenHub service class.
 
