@@ -7,22 +7,21 @@
 #
 ##############################################################################
 
-from __future__ import print_function
-
 """SnmpTrapConfig
 
 Provides configuration for an OID translation service.
 """
+
+from __future__ import print_function
 
 import logging
 
 from twisted.spread import pb
 
 from Products.ZenCollector.services.config import CollectorConfigService
-from Products.ZenHub.zodb import onUpdate, onDelete
+from Products.ZenHub.zodb import onUpdate
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.Device import Device
-from Products.ZenModel.MibBase import MibBase
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 log = logging.getLogger("zen.HubService.SnmpTrapConfig")
@@ -139,20 +138,6 @@ class SnmpTrapConfig(CollectorConfigService):
     @onUpdate(Device)
     def deviceUpdated(self, object, event):
         self._objectUpdated(object)
-
-    @onUpdate(MibBase)
-    def mibsChanged(self, device, event):
-        for listener in self.listeners:
-            listener.callRemote("notifyConfigChanged")
-
-    @onUpdate(None)  # Matches all
-    def notifyAffectedDevices(self, object, event):
-        pass
-
-    @onDelete(MibBase)
-    def mibsDeleted(self, device, event):
-        for listener in self.listeners:
-            listener.callRemote("notifyConfigChanged")
 
 
 if __name__ == "__main__":

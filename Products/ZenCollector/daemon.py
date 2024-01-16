@@ -18,7 +18,6 @@ from optparse import SUPPRESS_HELP
 from metrology import Metrology
 from metrology.instruments import Gauge
 from twisted.internet import defer, reactor, task
-from twisted.python.failure import Failure
 from zope.component import (
     getUtilitiesFor,
     provideUtility,
@@ -48,8 +47,6 @@ from .interfaces import (
     ITaskSplitter,
 )
 from .listeners import ConfigListenerNotifier
-
-# from .statistics import StatisticsService
 from .utils.maintenance import MaintenanceCycle, ZenHubHeartbeatSender
 
 CONFIG_LOADER_NAME = "configLoader"
@@ -284,7 +281,7 @@ class CollectorDaemon(RRDDaemon):
         try:
             yield defer.maybeDeferred(self._getInitializationCallback())
             framework = _getFramework(self.frameworkFactoryName)
-            self.log.info("Using framework -> %r", framework)
+            self.log.debug("using framework factory %s", type(framework))
             self._configProxy = framework.getConfigurationProxy()
             yield self._initEncryptionKey()
             yield self._startConfigCycle()
@@ -345,7 +342,6 @@ class CollectorDaemon(RRDDaemon):
             interval, heartbeatSender, self._maintenanceCallback
         )
         self._maintenanceCycle.start()
-        self.log.debug("started maintenance cycle  interval=%s", interval)
 
     def _startTaskStatsLogging(self):
         if not (self.options.cycle and self.options.logTaskStats):
@@ -372,7 +368,7 @@ class CollectorDaemon(RRDDaemon):
         self._deviceloader = DeviceConfigLoader(
             self.options,
             self._configProxy,
-            self._deviceConfgCallback,
+            self._deviceConfigCallback,
         )
         self._deviceloadertask = task.LoopingCall(self._deviceloader)
         self._deviceloadertaskd = self._deviceloadertask.start(
@@ -616,7 +612,7 @@ class CollectorDaemon(RRDDaemon):
                 self._displayStatistics()
                 self.stop()
 
-    def _deviceConfgCallback(self, new, updated, removed):
+    def _deviceConfigCallback(self, new, updated, removed):
         """
         Update the device configs for the devices this collector manages.
 
@@ -640,6 +636,7 @@ class CollectorDaemon(RRDDaemon):
         self.log.debug("deleted device  device-id=%s", deviceId)
         self._configListener.deleted(deviceId)
         self._scheduler.removeTasksForConfig(deviceId)
+        self._deviceGuids.pop(deviceId, None)
 
     def _updateConfig(self, cfg):
         """Update device configuration."""
@@ -659,6 +656,10 @@ class CollectorDaemon(RRDDaemon):
 
         configId = cfg.configId
         self.log.info("processing device config  config-id=%s", configId)
+
+        guid = getattr(cfg, "_device_guid", None)
+        if guid is not None:
+            self._deviceGuids[configId] = guid
 
         nextExpectedRuns = {}
         if configId in self._deviceloader.deviceIds:
@@ -747,18 +748,13 @@ class CollectorDaemon(RRDDaemon):
         but afterward will self-schedule each run.
         """
         try:
-            self.log.debug("performing periodic maintenance")
-            if not self.options.cycle:
-                ret = "No maintenance required"
-            elif getattr(self.preferences, "pauseUnreachableDevices", True):
+            if self.options.cycle and getattr(
+                self.preferences, "pauseUnreachableDevices", True
+            ):
                 # TODO: handle different types of device issues
-                ret = yield self._pauseUnreachableDevices()
-            else:
-                ret = None
-            defer.returnValue(ret)
+                yield self._pauseUnreachableDevices()
         except Exception:
             self.log.exception("failure while running maintenance callback")
-            raise
 
     @defer.inlineCallbacks
     def _pauseUnreachableDevices(self):
@@ -785,16 +781,13 @@ class CollectorDaemon(RRDDaemon):
 
         defer.returnValue(issues)
 
-    def runPostConfigTasks(self, result=None):
+    def runPostConfigTasks(self):
         """
         Add post-startup tasks from the preferences.
 
         This may be called with the failure code as well.
         """
-        if isinstance(result, Failure):
-            pass
-
-        elif not self.addedPostStartupTasks:
+        if not self.addedPostStartupTasks:
             postStartupTasks = getattr(
                 self.preferences, "postStartupTasks", lambda: []
             )
