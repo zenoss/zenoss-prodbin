@@ -16,7 +16,27 @@ from twisted.spread import pb
 from Products.ZenUtils.deprecated import deprecated
 
 
-class HubService(pb.Referenceable):
+class HubService(object, pb.Referenceable):
+    """
+    The base class for a ZenHub service class.
+
+    :attr log: The logger object for this service.
+    :type log: logging.Logger
+    :attr fqdn: This attribute is deprecated.
+    :type fqdn: str
+    :attr dmd: Root ZODB object
+    :type dmd: Products.ZenModel.DataRoot.DataRoot
+    :attr instance: The name of the Collection Hub.
+    :type instance: str
+    :attr callTime: The total time, in seconds, this service has spent processing remote requests.
+    :type callTime: float
+
+    :attr listeners: ZenHub clients for this service
+    :type listeners: List[twisted.spread.pb.RemoteReference]
+    :attr listenerOptions: Options associated with the client for this service.
+    :type listenerOptions: Mapping[twisted.spread.pb.RemoteReference, Mapping[Any, Any]]
+    """  # noqa E501
+
     def __init__(self, dmd, instance):
         self.log = logging.getLogger("zen.hub")
         self.fqdn = socket.getfqdn()
