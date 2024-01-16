@@ -301,6 +301,7 @@ class Scheduler(object):
         self._tasks = {}
         self._taskCallback = {}
         self._taskStats = {}
+        self._displaycounts = ()
         self._callableTaskFactory = callableTaskFactory
         self._shuttingDown = False
         # create a cleanup task that will periodically sweep the
@@ -669,10 +670,24 @@ class Scheduler(object):
                 totalStateStats.maxElapsedTime = max(
                     totalStateStats.maxElapsedTime, stats.maxElapsedTime)
 
-        log.info("Tasks: %d Successful_Runs: %d Failed_Runs: %d Missed_Runs: %d "
-                 "Queued_Tasks: %d Running_Tasks: %d ",
-                 totalTasks, totalRuns, totalFailedRuns, totalMissedRuns,
-                 self.executor.queued, self.executor.running)
+        counts = (
+            totalTasks,
+            totalRuns,
+            totalFailedRuns,
+            totalMissedRuns,
+            self.executor.queued,
+            self.executor.running,
+        )
+        if self._displaycounts != counts:
+            self._displaycounts = counts
+            logmethod = log.info
+        else:
+            logmethod = log.debug
+        logmethod(
+            "Tasks: %d Successful_Runs: %d Failed_Runs: %d "
+            "Missed_Runs: %d Queued_Tasks: %d Running_Tasks: %d ",
+            *counts
+        )
 
         if verbose:
             buffer = "Task States Summary:\n"
