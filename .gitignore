@@ -8,7 +8,6 @@ Products/ZenUI3/node_modules
 dist
 build
 Zenoss.egg-info
-install-zenoss.mk
 lib/python2.7/site-packages/Zenoss-nspkg.pth
 lib/python2.7/site-packages/Zenoss.egg-link
 

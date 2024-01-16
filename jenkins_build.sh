@@ -49,12 +49,9 @@ REPO_PATH=${ZENDEV_ROOT}/src/github.com/zenoss/${REPO_NAME}
 
 cleanup() {
     RC="$?"
-    if [[ $RC == 0 ]]; then
-        zendev drop ${ZENDEV_ENV}
-        docker image rm -f zendev/devimg:${ZENDEV_ENV} zendev/product-base:${ZENDEV_ENV} zendev/mariadb:${ZENDEV_ENV} zendev/mariadb-base:${ZENDEV_ENV}
-    fi
+    zendev drop ${ZENDEV_ENV}
+    docker image rm -f zendev/devimg:${ZENDEV_ENV} zendev/product-base:${ZENDEV_ENV} zendev/mariadb:${ZENDEV_ENV} zendev/mariadb-base:${ZENDEV_ENV}
 }
-
 trap cleanup INT TERM EXIT
 
 # Check if all other parameters are defined.
@@ -132,4 +129,12 @@ if [ "$1" != "--no-tests" ]; then
 fi
 
 echo Building the artifacts...
-cdz ${REPO_NAME};make clean build
+docker run --rm \
+    -v ${HOME}/.m2:/home/zenoss/.m2 \
+    -v ${ZENDEV_ROOT}/zenhome:/opt/zenoss \
+    -v ${ZENDEV_ROOT}/src/github.com/zenoss:/mnt/src \
+	 -w /mnt/src/zenoss-prodbin \
+    --env ZENHOME=/opt/zenoss \
+    --env SRCROOT=/mnt/src \
+    zendev/devimg:${ZENDEV_ENV} \
+    make clean build
