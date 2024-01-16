@@ -47,10 +47,10 @@ JSBUILD_COMMAND = java -jar $(JSBUILDER) -p $(JSB_FILE) -d $(JS_BASEDIR) -v
 JSB_SOURCES = $(shell python2 -c "import json, sys, os.path; d=sys.stdin.read(); p=json.loads(d)['pkgs'][0]['fileIncludes']; print ' '.join(os.path.join('$(JS_BASEDIR)', e['path'], e['text']) for e in p)" < $(JSB_FILE))
 JSB_TARGETS = $(JS_OUTPUT_DIR)/zenoss-compiled.js $(JS_OUTPUT_DIR)/zenoss-compiled-debug.js
 
-.PHONY: clean-javascript build-javascript
-
+.PHONY: build-javascript
 build-javascript: $(JSB_TARGETS)
 
+.PHONY: clean-javascript
 clean-javascript:
 	@-rm -vrf $(JS_OUTPUT_DIR)
 
