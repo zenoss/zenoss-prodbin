@@ -133,7 +133,8 @@ docker run --rm \
     -v ${HOME}/.m2:/home/zenoss/.m2 \
     -v ${ZENDEV_ROOT}/zenhome:/opt/zenoss \
     -v ${ZENDEV_ROOT}/src/github.com/zenoss:/mnt/src \
-	 -w /mnt/src/zenoss-prodbin \
+    -w /mnt/src/zenoss-prodbin \
+    --env BRANCH=${BRANCH} \
     --env ZENHOME=/opt/zenoss \
     --env SRCROOT=/mnt/src \
     zendev/devimg:${ZENDEV_ENV} \
