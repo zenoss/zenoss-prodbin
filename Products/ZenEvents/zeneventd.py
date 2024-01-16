@@ -21,22 +21,40 @@ from zenoss.protocols import hydrateQueueMessage
 from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
 from zenoss.protocols.jsonformat import from_dict, to_dict
 from zenoss.protocols.protobufs.zep_pb2 import (
-    STATUS_DROPPED, Event, ZepRawEvent
+    STATUS_DROPPED,
+    Event,
+    ZepRawEvent,
 )
 
 from Products.ZenCollector.utils.maintenance import (
-    MaintenanceCycle, QueueHeartbeatSender, maintenanceBuildOptions
+    MaintenanceCycle,
+    QueueHeartbeatSender,
+    maintenanceBuildOptions,
 )
 from Products.ZenEvents.daemonlifecycle import (
-    BuildOptionsEvent, DaemonCreatedEvent, DaemonStartRunEvent, SigTermEvent,
-    SigUsr1Event
+    BuildOptionsEvent,
+    DaemonCreatedEvent,
+    DaemonStartRunEvent,
+    SigTermEvent,
+    SigUsr1Event,
 )
 from Products.ZenEvents.events2.processing import (
-    AddDeviceContextAndTagsPipe, AssignDefaultEventClassAndTagPipe,
-    CheckHeartBeatPipe, CheckInputPipe, ClearClassRefreshPipe, DropEvent,
-    EventContext, EventPluginPipe, FingerprintPipe, IdentifierPipe, Manager,
-    ProcessingException, SerializeContextPipe, TransformAndReidentPipe,
-    TransformPipe, UpdateDeviceContextAndTagsPipe
+    AddDeviceContextAndTagsPipe,
+    AssignDefaultEventClassAndTagPipe,
+    CheckHeartBeatPipe,
+    CheckInputPipe,
+    ClearClassRefreshPipe,
+    DropEvent,
+    EventContext,
+    EventPluginPipe,
+    FingerprintPipe,
+    IdentifierPipe,
+    Manager,
+    ProcessingException,
+    SerializeContextPipe,
+    TransformAndReidentPipe,
+    TransformPipe,
+    UpdateDeviceContextAndTagsPipe,
 )
 from Products.ZenEvents.interfaces import IPostEventPlugin, IPreEventPlugin
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
@@ -51,9 +69,11 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 def monkey_patch_rotatingfilehandler():
     try:
         from cloghandler import ConcurrentRotatingFileHandler
+
         logging.handlers.RotatingFileHandler = ConcurrentRotatingFileHandler
     except ImportError:
         from warnings import warn
+
         warn(
             "ConcurrentLogHandler package not installed. Using"
             " RotatingFileLogHandler. While everything will still work fine,"
@@ -65,8 +85,8 @@ monkey_patch_rotatingfilehandler()
 
 log = logging.getLogger("zen.eventd")
 
-EXCHANGE_ZEP_ZEN_EVENTS = '$ZepZenEvents'
-QUEUE_RAW_ZEN_EVENTS = '$RawZenEvents'
+EXCHANGE_ZEP_ZEN_EVENTS = "$ZepZenEvents"
+QUEUE_RAW_ZEN_EVENTS = "$RawZenEvents"
 
 
 class EventPipelineProcessor(object):
@@ -79,7 +99,7 @@ class EventPipelineProcessor(object):
         self._manager = Manager(self.dmd)
         self._pipes = (
             EventPluginPipe(
-                self._manager, IPreEventPlugin, 'PreEventPluginPipe'
+                self._manager, IPreEventPlugin, "PreEventPluginPipe"
             ),
             CheckInputPipe(self._manager),
             IdentifierPipe(self._manager),
@@ -91,23 +111,23 @@ class EventPipelineProcessor(object):
                     UpdateDeviceContextAndTagsPipe(self._manager),
                     IdentifierPipe(self._manager),
                     AddDeviceContextAndTagsPipe(self._manager),
-                ]
+                ],
             ),
             AssignDefaultEventClassAndTagPipe(self._manager),
             FingerprintPipe(self._manager),
             SerializeContextPipe(self._manager),
             EventPluginPipe(
-                self._manager, IPostEventPlugin, 'PostEventPluginPipe'
+                self._manager, IPostEventPlugin, "PostEventPluginPipe"
             ),
             ClearClassRefreshPipe(self._manager),
-            CheckHeartBeatPipe(self._manager)
+            CheckHeartBeatPipe(self._manager),
         )
         self._pipe_timers = {}
         for pipe in self._pipes:
             timer_name = pipe.name
             self._pipe_timers[timer_name] = Metrology.timer(timer_name)
 
-        self.reporter = MetricReporter(prefix='zenoss.zeneventd.')
+        self.reporter = MetricReporter(prefix="zenoss.zeneventd.")
         self.reporter.start()
 
         if not self.SYNC_EVERY_EVENT:
@@ -133,8 +153,9 @@ class EventPipelineProcessor(object):
             eventContext = EventContext(log, zepevent)
 
             with Timeout(
-                zepevent, self.PROCESS_EVENT_TIMEOUT,
-                error_message='while processing event'
+                zepevent,
+                self.PROCESS_EVENT_TIMEOUT,
+                error_message="while processing event",
             ):
                 for pipe in self._pipes:
                     with self._pipe_timers[pipe.name]:
@@ -142,12 +163,13 @@ class EventPipelineProcessor(object):
                     if log.isEnabledFor(logging.DEBUG):
                         # assume to_dict() is expensive.
                         log.debug(
-                            'After pipe %s, event context is %s',
-                            pipe.name, to_dict(eventContext.zepRawEvent)
+                            "After pipe %s, event context is %s",
+                            pipe.name,
+                            to_dict(eventContext.zepRawEvent),
                         )
                     if eventContext.event.status == STATUS_DROPPED:
                         raise DropEvent(
-                            'Dropped by %s' % pipe, eventContext.event
+                            "Dropped by %s" % pipe, eventContext.event
                         )
 
         except AttributeError:
@@ -167,7 +189,7 @@ class EventPipelineProcessor(object):
         except Exception as error:
             log.info(
                 "Failed to process event, forward original raw event: %s",
-                to_dict(zepevent.event)
+                to_dict(zepevent.event),
             )
             # Pipes and plugins may raise ProcessingException's for their own
             # reasons. only log unexpected exceptions of other type
@@ -179,15 +201,17 @@ class EventPipelineProcessor(object):
 
         if log.isEnabledFor(logging.DEBUG):
             # assume to_dict() is expensive.
-            log.debug("Publishing event: %s", to_dict(eventContext.zepRawEvent))
+            log.debug(
+                "Publishing event: %s", to_dict(eventContext.zepRawEvent)
+            )
         return eventContext.zepRawEvent
 
     def _synchronize_with_database(self):
-        '''sync() db if it has been longer than
+        """sync() db if it has been longer than
         self.syncInterval seconds since the last time,
         and no _synchronize has not been called for self.syncInterval seconds
         KNOWN ISSUE: ZEN-29884
-        '''
+        """
         if self.SYNC_EVERY_EVENT:
             doSync = True
         else:
@@ -204,23 +228,23 @@ class EventPipelineProcessor(object):
         orig_zep_event = ZepRawEvent()
         orig_zep_event.event.CopyFrom(message)
         failure_event = {
-            'uuid': guid.generate(),
-            'created_time': int(time() * 1000),
-            'fingerprint':
-                '|'.join(['zeneventd', 'processMessage', repr(exception)]),
+            "uuid": guid.generate(),
+            "created_time": int(time() * 1000),
+            "fingerprint": "|".join(
+                ["zeneventd", "processMessage", repr(exception)]
+            ),
             # Don't send the *same* event class or we loop endlessly
-            'eventClass': '/',
-            'summary': 'Internal exception processing event: %r' % exception,
-            'message':
-                'Internal exception processing event: %r/%s' %
-                (exception, to_dict(orig_zep_event.event)),
-            'severity': 4,
+            "eventClass": "/",
+            "summary": "Internal exception processing event: %r" % exception,
+            "message": "Internal exception processing event: %r/%s"
+            % (exception, to_dict(orig_zep_event.event)),
+            "severity": 4,
         }
         zep_raw_event = ZepRawEvent()
         zep_raw_event.event.CopyFrom(from_dict(Event, failure_event))
         event_context = EventContext(log, zep_raw_event)
-        event_context.eventProxy.device = 'zeneventd'
-        event_context.eventProxy.component = 'processMessage'
+        event_context.eventProxy.device = "zeneventd"
+        event_context.eventProxy.component = "processMessage"
         return event_context
 
 
@@ -231,18 +255,19 @@ class BaseQueueConsumerTask(object):
     def __init__(self, processor):
         self.processor = processor
         self._queueSchema = getUtility(IQueueSchema)
-        self.dest_routing_key_prefix = 'zenoss.zenevent'
+        self.dest_routing_key_prefix = "zenoss.zenevent"
         self._dest_exchange = self._queueSchema.getExchange(
             EXCHANGE_ZEP_ZEN_EVENTS
         )
 
     def _routing_key(self, event):
-        return (self.dest_routing_key_prefix +
-                event.event.event_class.replace('/', '.').lower())
+        return (
+            self.dest_routing_key_prefix
+            + event.event.event_class.replace("/", ".").lower()
+        )
 
 
 class TwistedQueueConsumerTask(BaseQueueConsumerTask):
-
     def __init__(self, processor):
         BaseQueueConsumerTask.__init__(self, processor)
         self.queue = self._queueSchema.getQueue(QUEUE_RAW_ZEN_EVENTS)
@@ -264,16 +289,16 @@ class TwistedQueueConsumerTask(BaseQueueConsumerTask):
                     EXCHANGE_ZEP_ZEN_EVENTS,
                     self._routing_key(zepRawEvent),
                     zepRawEvent,
-                    declareExchange=False
+                    declareExchange=False,
                 )
                 yield self.queueConsumer.acknowledge(message)
             except DropEvent as e:
                 if log.isEnabledFor(logging.DEBUG):
                     # assume to_dict() is expensive.
-                    log.debug('%s - %s', e.message, to_dict(e.event))
+                    log.debug("%s - %s", e.message, to_dict(e.event))
                 yield self.queueConsumer.acknowledge(message)
             except ProcessingException as e:
-                log.error('%s - %s', e.message, to_dict(e.event))
+                log.error("%s - %s", e.message, to_dict(e.event))
                 log.exception(e)
                 yield self.queueConsumer.reject(message)
             except Exception as e:
@@ -296,7 +321,7 @@ class EventDTwistedWorker(object):
         reactor.run()
 
     def _start(self):
-        reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
+        reactor.addSystemEventTrigger("before", "shutdown", self._shutdown)
         self._consumer.run()
 
     @defer.inlineCallbacks
@@ -315,20 +340,21 @@ class ZenEventDConfig:
 
 
 class ZenEventD(ZCmdBase):
-
     def __init__(self, *args, **kwargs):
         super(ZenEventD, self).__init__(*args, **kwargs)
         EventPipelineProcessor.SYNC_EVERY_EVENT = self.options.syncEveryEvent
-        EventPipelineProcessor.PROCESS_EVENT_TIMEOUT = self.options.process_event_timeout
+        EventPipelineProcessor.PROCESS_EVENT_TIMEOUT = (
+            self.options.process_event_timeout
+        )
         self._heartbeatSender = QueueHeartbeatSender(
-            'localhost', 'zeneventd', self.options.heartbeatTimeout
+            "localhost", "zeneventd", self.options.heartbeatTimeout
         )
         self._maintenanceCycle = MaintenanceCycle(
             self.options.maintenancecycle, self._heartbeatSender
         )
         objectEventNotify(DaemonCreatedEvent(self))
         config = ZenEventDConfig(self.options)
-        provideUtility(config, IDaemonConfig, 'zeneventd_config')
+        provideUtility(config, IDaemonConfig, "zeneventd_config")
 
     def sigTerm(self, signum=None, frame=None):
         log.info("Shutting down...")
@@ -343,52 +369,69 @@ class ZenEventD(ZCmdBase):
 
     def sighandler_USR1(self, signum, frame):
         super(ZenEventD, self).sighandler_USR1(signum, frame)
-        log.debug('sighandler_USR1 called %s', signum)
+        log.debug("sighandler_USR1 called %s", signum)
         objectEventNotify(SigUsr1Event(self, signum))
 
     def buildOptions(self):
         super(ZenEventD, self).buildOptions()
         maintenanceBuildOptions(self.parser)
         self.parser.add_option(
-            '--synceveryevent', dest='syncEveryEvent',
-            action="store_true", default=False,
-            help=('Force sync() before processing every event; default is'
-                  ' to sync() no more often than once every 1/2 second.')
+            "--synceveryevent",
+            dest="syncEveryEvent",
+            action="store_true",
+            default=False,
+            help=(
+                "Force sync() before processing every event; default is"
+                " to sync() no more often than once every 1/2 second."
+            ),
         )
         self.parser.add_option(
-            '--process-event-timeout', dest='process_event_timeout',
-            type='int', default=0,
-            help=('Set the Timeout(in seconds) for processing each event.'
-                  ' The timeout may be extended for a transforms using,'
-                  'signal.alarm(<timeout seconds>) in the transform'
-                  'set to 0 to disable')
-        )
-        self.parser.add_option(
-            '--messagesperworker', dest='messagesPerWorker', default=1,
+            "--process-event-timeout",
+            dest="process_event_timeout",
             type="int",
-            help=('Sets the number of messages each worker gets from the queue'
-                  ' at any given time. Default is 1. Change this only if event'
-                  ' processing is deemed slow. Note that increasing the value'
-                  ' increases the probability that events will be processed'
-                  ' out of order.')
+            default=0,
+            help=(
+                "Set the Timeout(in seconds) for processing each event."
+                " The timeout may be extended for a transforms using,"
+                "signal.alarm(<timeout seconds>) in the transform"
+                "set to 0 to disable"
+            ),
         )
         self.parser.add_option(
-            '--maxpickle', dest='maxpickle', default=100, type="int",
-            help=('Sets the number of pickle files in'
-                  ' var/zeneventd/failed_transformed_events.')
+            "--messagesperworker",
+            dest="messagesPerWorker",
+            default=1,
+            type="int",
+            help=(
+                "Sets the number of messages each worker gets from the queue"
+                " at any given time. Default is 1. Change this only if event"
+                " processing is deemed slow. Note that increasing the value"
+                " increases the probability that events will be processed"
+                " out of order."
+            ),
         )
         self.parser.add_option(
-            '--pickledir', dest='pickledir',
-            default=zenPath('var/zeneventd/failed_transformed_events'),
+            "--maxpickle",
+            dest="maxpickle",
+            default=100,
+            type="int",
+            help=(
+                "Sets the number of pickle files in"
+                " var/zeneventd/failed_transformed_events."
+            ),
+        )
+        self.parser.add_option(
+            "--pickledir",
+            dest="pickledir",
+            default=zenPath("var/zeneventd/failed_transformed_events"),
             type="string",
-            help='Sets the path to save pickle files.'
+            help="Sets the path to save pickle files.",
         )
         objectEventNotify(BuildOptionsEvent(self))
 
 
 class Timeout:
-
-    def __init__(self, event, seconds=1, error_message='Timeout'):
+    def __init__(self, event, seconds=1, error_message="Timeout"):
         self.seconds = seconds
         self.error_message = error_message
         self.event = event
@@ -406,14 +449,14 @@ class Timeout:
 
 
 class TimeoutError(Exception):
-
     def __init__(self, message, event=None):
         super(TimeoutError, self).__init__(message)
         self.event = event
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # explicit import of ZenEventD to activate enterprise extensions
-    from Products.ZenEvents.zeneventd import ZenEventD
+    from Products.ZenEvents.zeneventd import ZenEventD  # noqa F811
+
     zed = ZenEventD()
     zed.run()

@@ -16,6 +16,7 @@ from zExceptions import NotFound
 from zope.interface import implementer
 
 from Products.ZenHub.interfaces import IInvalidationOid
+from Products.ZenRelations.RelationshipBase import IRelationship
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 log = logging.getLogger("zen.configcache.modelchange")
@@ -27,31 +28,58 @@ class BaseTransform(object):
 
 
 @implementer(IInvalidationOid)
-class DefaultOidTransform(BaseTransform):
-    """Default transformation returns the OID that was given."""
+class IdentityOidTransform(BaseTransform):
+    """Identity transformation returns the OID that was given."""
 
     def transformOid(self, oid):
+        log.debug(
+            "[IdentityOidTransform]   entity=%s oid=%r", self._entity, oid
+        )
         return oid
 
 
 @implementer(IInvalidationOid)
-class DeviceOidTransform(BaseTransform):
+class ComponentOidTransform(BaseTransform):
     """
     If the object has a relationship with a device, return the device's OID.
     """
 
     def transformOid(self, oid):
-        # get device oid
-        result = oid
-        device = getattr(self._entity, "device", lambda: None)()
-        if device:
-            result = device._p_oid
-            log.debug(
-                "oid for %s transformed to device oid for %s",
-                self._entity,
-                device,
-            )
-        return result
+        funcs = (
+            lambda: self._getdevice(self._entity),
+            self._from_os,
+            self._from_hw,
+        )
+        for fn in funcs:
+            device = fn()
+            if device:
+                log.debug(
+                    "[ComponentOidTransform] transformed oid to device  "
+                    "entity=%s oid=%r device=%s",
+                    self._entity,
+                    oid,
+                    device,
+                )
+                return device._p_oid
+        log.debug(
+            "[ComponentOidTransform] oid not transformed  entity=%s oid=%r",
+            self._entity,
+            oid,
+        )
+        return oid
+
+    def _from_os(self):
+        return self._getdevice(getattr(self._entity, "os", None))
+
+    def _from_hw(self):
+        return self._getdevice(getattr(self._entity, "hw", None))
+
+    def _getdevice(self, entity):
+        if entity is None:
+            return
+        if isinstance(entity, IRelationship):
+            entity = entity()
+        return getattr(entity, "device", lambda: None)()
 
 
 @implementer(IInvalidationOid)
@@ -62,6 +90,11 @@ class DataPointToDevice(BaseTransform):
         ds = self._entity.datasource().primaryAq()
         template = ds.rrdTemplate().primaryAq()
         dc = template.deviceClass().primaryAq()
+        log.debug(
+            "[DataPointToDevice] return OIDs of devices associated "
+            "with DataPoint  entity=%s ",
+            self._entity,
+        )
         return _getDevicesFromDeviceClass(dc)
 
 
@@ -72,6 +105,11 @@ class DataSourceToDevice(BaseTransform):
     def transformOid(self, oid):
         template = self._entity.rrdTemplate().primaryAq()
         dc = template.deviceClass().primaryAq()
+        log.debug(
+            "[DataSourceToDevice] return OIDs of devices associated "
+            "with DataSource  entity=%s ",
+            self._entity,
+        )
         return _getDevicesFromDeviceClass(dc)
 
 
@@ -81,6 +119,11 @@ class TemplateToDevice(BaseTransform):
 
     def transformOid(self, oid):
         dc = self._entity.deviceClass().primaryAq()
+        log.debug(
+            "[TemplateToDevice] return OIDs of devices associated "
+            "with RRDTemplate  entity=%s ",
+            self._entity,
+        )
         return _getDevicesFromDeviceClass(dc)
 
 
@@ -89,6 +132,11 @@ class DeviceClassToDevice(BaseTransform):
     """Return the device OIDs in the DeviceClass hierarchy."""
 
     def transformOid(self, oid):
+        log.debug(
+            "[DeviceClassToDevice] return OIDs of devices associated "
+            "with DeviceClass  entity=%s ",
+            self._entity,
+        )
         return _getDevicesFromDeviceClass(self._entity)
 
 

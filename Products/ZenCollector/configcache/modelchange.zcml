@@ -35,27 +35,27 @@ License.zenoss under the directory where your Zenoss product is installed.
       />
 
    <subscriber
-      factory=".modelchange.oids.DeviceOidTransform"
+      factory=".modelchange.oids.ComponentOidTransform"
       provides="Products.ZenHub.interfaces.IInvalidationOid"
       for="Products.ZenModel.DeviceComponent.DeviceComponent"
       />
 
    <subscriber
-      factory=".modelchange.oids.DeviceOidTransform"
+      factory=".modelchange.oids.ComponentOidTransform"
       provides="Products.ZenHub.interfaces.IInvalidationOid"
       for="Products.ZenModel.DeviceHW.DeviceHW"
       />
 
    <subscriber
-      factory=".modelchange.oids.DeviceOidTransform"
+      factory=".modelchange.oids.ComponentOidTransform"
       provides="Products.ZenHub.interfaces.IInvalidationOid"
       for="Products.ZenModel.OperatingSystem.OperatingSystem"
       />
 
    <subscriber
-      factory=".modelchange.oids.DefaultOidTransform"
+      factory=".modelchange.oids.IdentityOidTransform"
       provides="Products.ZenHub.interfaces.IInvalidationOid"
-      for="Products.ZenRelations.PrimaryPathObjectManager.PrimaryPathObjectManager"
+      for="Products.ZenModel.Device.Device"
       />
 
    <subscriber

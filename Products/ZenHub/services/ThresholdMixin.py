@@ -16,7 +16,7 @@ from Products.ZenModel.ValueChangeThreshold import ValueChangeThreshold
 log = logging.getLogger("zen.thresholdmixin")
 
 
-class ThresholdMixin:
+class ThresholdMixin(object):
     _cached_thresholdClasses = []
 
     @translateError
