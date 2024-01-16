@@ -11,16 +11,17 @@ SCHEMA_MAJOR    = $(call pick_version_part,1,$(SCHEMA_VERSION))
 SCHEMA_MINOR    = $(call pick_version_part,2,$(SCHEMA_VERSION))
 SCHEMA_REVISION = $(call pick_version_part,3,$(SCHEMA_VERSION))
 
-.PHONY: clean-migration generate-zversion generate-zmigrateversion replace-zmigrateversion verify-explicit-zmigrateversion
-
+.PHONY: clean-migration
 clean-migration:
 	rm -f $(MIGRATE_VERSION)
 
 # Exists for backward compatibility
+.PHONY: generate-zversion
 generate-zversion: generate-zmigrateversion
 
 # See the topic "Managing Migrate.Version" in Products/ZenModel/migrate/README.md
 # for more information about setting the SCHEMA_* values.
+.PHONY: generate-zmigrateversion
 generate-zmigrateversion: $(MIGRATE_VERSION)
 
 $(MIGRATE_VERSION): $(MIGRATE_VERSION).in SCHEMA_VERSION
@@ -33,6 +34,7 @@ $(MIGRATE_VERSION): $(MIGRATE_VERSION).in SCHEMA_VERSION
 
 # The target replace-zmigrationversion should be used just prior to release to lock
 # down the schema versions for a particular release
+.PHONY: replace-zmigrateversion
 replace-zmigrateversion:
 	@echo Replacing SCHEMA_MAJOR with $(SCHEMA_MAJOR)
 	@echo Replacing SCHEMA_MINOR with $(SCHEMA_MINOR)
@@ -52,6 +54,7 @@ SCHEMA_FOUND = $(shell grep Migrate.Version Products/ZenModel/migrate/*.py  | gr
 
 # The target verify-explicit-zmigrateversion should be invoked as a first step in all release
 # builds to verify that all of the SCHEMA_* variables were replaced with an actual numeric value.
+.PHONY: verify-explicit-zmigrateversion
 verify-explicit-zmigrateversion:
 ifeq ($(SCHEMA_FOUND),)
 	@echo "Good - no SCHEMA_* variables found: $(SCHEMA_FOUND)"
