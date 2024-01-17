@@ -3,23 +3,11 @@ BRANCH       ?= $(shell git rev-parse --abbrev-ref HEAD)
 ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
 ARTIFACT      = prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 
-IMAGE = zenoss/zenoss-centos-base:1.4.0.devtools
-
-USER_ID := $(shell id -u)
-GROUP_ID := $(shell id -g)
-
-DOCKER = $(shell which docker 2>/dev/null)
-ifneq ($(DOCKER),)
-_common_cmd = $(DOCKER) run --rm -v $(PWD):/mnt -w /mnt
-DOCKER_USER = $(_common_cmd) --user $(USER_ID):$(GROUP_ID) $(IMAGE)
-DOCKER_ROOT = $(_common_cmd) $(IMAGE)
-endif
+IMAGE = zenoss/zenpackbuild:ubuntu2204-5
 
 ZENHOME = $(shell echo $$ZENHOME)
 
-.PHONY: default test clean build javascript build-javascript
-
-default: $(ARTIFACT)
+.DEFAULT_GOAL := $(ARTIFACT)
 
 include javascript.mk
 include migration.mk
@@ -27,31 +15,23 @@ include migration.mk
 EXCLUSIONS = *.pyc $(MIGRATE_VERSION).in Products/ZenModel/migrate/tests Products/ZenUITests
 
 ARCHIVE_EXCLUSIONS = $(foreach item,$(EXCLUSIONS),--exclude=$(item))
-ARCHIVE_INCLUSIONS = Products bin lib etc share Zenoss.egg-info
+ARCHIVE_INCLUSIONS = Products bin etc share VERSION setup.py
 
+.PHONY: build
 build: $(ARTIFACT)
 
 # equivalent to python setup.py develop
+.PHONY: install
 install: setup.py $(JSB_TARGETS) $(MIGRATE_VERSION)
 ifeq ($(ZENHOME),/opt/zenoss)
-	@python setup.py develop
+	@pip install --prefix /opt/zenoss -e .
 else
 	@echo "Please execute this target in a devshell container (where ZENHOME=/opt/zenoss)."
 endif
 
+.PHONY: clean
 clean: clean-javascript clean-migration
-	rm -f $(ARTIFACT) install-zenoss.mk
-	rm -rf Zenoss.egg-info lib
+	rm -f $(ARTIFACT)
 
-$(ARTIFACT): $(JSB_TARGETS) $(MIGRATE_VERSION) Zenoss.egg-info
+$(ARTIFACT): $(JSB_TARGETS) $(MIGRATE_VERSION) VERSION setup.py
 	tar cvfz $@ $(ARCHIVE_EXCLUSIONS) $(ARCHIVE_INCLUSIONS)
-
-Zenoss.egg-info: install-zenoss.mk setup.py
-ifneq ($(DOCKER),)
-	$(DOCKER_ROOT) make -f install-zenoss.mk install
-else
-	$(error The $@ target requires Docker)
-endif
-
-install-zenoss.mk: install-zenoss.mk.in
-	sed -e "s/%GID%/$(GROUP_ID)/" -e "s/%UID%/$(USER_ID)/" $< > $@
