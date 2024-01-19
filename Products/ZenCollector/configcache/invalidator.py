@@ -43,9 +43,7 @@ class Invalidator(object):
         "device configurations"
     )
 
-    configs = (
-        ("modelchange.zcml", CONFIGCACHE_MODULE),
-    )
+    configs = (("modelchange.zcml", CONFIGCACHE_MODULE),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
@@ -102,14 +100,17 @@ class Invalidator(object):
             "polling for device changes every %s seconds", self.interval
         )
         while not self.ctx.controller.shutdown:
-            for invalidation in poller.poll():
+            result = poller.poll()
+            if result:
+                self.log.debug("found %d relevant invalidations", len(result))
+            for invalidation in result:
                 try:
                     self._process(invalidation)
                 except AttributeError:
                     self.log.info(
                         "invalidation  device=%s reason=%s",
                         invalidation.device,
-                        invalidation.reason
+                        invalidation.reason,
                     )
                     self.log.exception("failed while processing invalidation")
             self.ctx.controller.wait(self.interval)
@@ -128,7 +129,7 @@ class Invalidator(object):
             self.log, tool, timelimitmap, self.store, self.dispatcher
         )
         if len(new_devices) == 0:
-            self.log.info("no missing configurations")
+            self.log.info("no missing configurations found")
 
     def _process(self, invalidation):
         device = invalidation.device
@@ -137,7 +138,19 @@ class Invalidator(object):
         keys = list(
             self.store.search(ConfigQuery(monitor=monitor, device=device.id))
         )
-        if reason is InvalidationCause.Updated:
+        if not keys:
+            timelimitmap = DevicePropertyMap.from_organizer(
+                self.ctx.dmd.Devices, Constants.build_timeout_id
+            )
+            uid = device.getPrimaryId()
+            timeout = timelimitmap.get(uid)
+            self.dispatcher.dispatch_all(monitor, device.id, timeout)
+            self.log.info(
+                "submitted build jobs for new device  uid=%s monitor=%s",
+                uid,
+                monitor,
+            )
+        elif reason is InvalidationCause.Updated:
             self.store.set_expired(*keys)
             for key in keys:
                 self.log.info(
@@ -148,7 +161,7 @@ class Invalidator(object):
                     key.service,
                     invalidation.oid,
                 )
-        elif reason is InvalidationCause.Deleted:
+        elif reason is InvalidationCause.Removed:
             self.store.remove(*keys)
             for key in keys:
                 self.log.info(
@@ -195,7 +208,7 @@ def _removeDeleted(log, tool, store):
             "device=%s monitor=%s service=%s",
             key.device,
             key.monitor,
-            key.device,
+            key.service,
         )
     return len(devices_not_found)
 

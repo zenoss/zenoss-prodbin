@@ -221,27 +221,6 @@ class SimpleTaskFactory(object):
         self.config = None
 
 
-class RRDWriter(object):
-    def __init__(self, delegate):
-        self.delegate = delegate
-
-    def writeRRD(self, counter, countervalue, countertype, **kwargs):
-        """
-        write given data to RRD streaming files
-        """
-        self.delegate.writeRRD(counter, countervalue, countertype, **kwargs)
-
-
-class EventSender(object):
-    def __init__(self, delegate):
-        self.delegate = delegate
-
-    def sendEvent(self, event, **eventData):
-        evt = event.copy()
-        evt.update(eventData)
-        self.delegate.sendEvent(evt)
-
-
 class TaskStates(object):
     STATE_IDLE = "IDLE"
     STATE_CONNECTING = "CONNECTING"

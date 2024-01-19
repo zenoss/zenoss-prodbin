@@ -25,9 +25,11 @@ from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.GraphPoint import GraphPoint
 from Products.ZenModel.IpAddress import IpAddress
 from Products.ZenModel.IpNetwork import IpNetwork
+from Products.ZenModel.Monitor import Monitor
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 from Products.ZenModel.ProductClass import ProductClass
+from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.Software import Software
 from Products.ZenWidgets.Portlet import Portlet
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
@@ -46,8 +48,10 @@ class IgnorableClassesFilter(object):
         IpNetwork,
         GraphDefinition,
         GraphPoint,
+        Monitor,
         Portlet,
         ProductClass,
+        ServiceClass,
         Software,
     )
 
