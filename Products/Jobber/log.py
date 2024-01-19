@@ -97,8 +97,7 @@ _main_loggers = {
         "propagate": False,
     },
 }
-_configcache_loggers = {
-}
+_configcache_loggers = {}
 
 _main_handler = {
     "formatter": "main",
@@ -118,13 +117,19 @@ _beat_handler = {
     "mode": "a",
 }
 
-_main_filename = os.path.join(ZenJobs.get("logpath"), "zenjobs.log")
-_beat_filename = os.path.join(ZenJobs.get("logpath"), "zenjobs-scheduler.log")
-_configcache_filename = os.path.join(
-    ZenJobs.get("logpath"), "configcache_builder.log"
-)
-
-_loglevelconf_filepath = zenPath("etc", "zenjobs_log_levels.conf")
+_logpath = ZenJobs.get("logpath")
+_filenames = {
+    "zenjobs": os.path.join(_logpath, "zenjobs.log"),
+    "beat": os.path.join(_logpath, "zenjobs-scheduler.log"),
+    "configcache_builder": os.path.join(_logpath, "configcache-builder.log"),
+}
+_loglevel_confs = {
+    "zenjobs": zenPath("etc", "zenjobs_log_levels.conf"),
+    "beat": zenPath("etc", "zenjobs_log_levels.conf"),
+    "configcache_builder": zenPath(
+        "etc", "configcache_builder_log_levels.conf"
+    ),
+}
 
 
 def _get_logger(name=None):
@@ -135,27 +140,25 @@ def _get_logger(name=None):
     return get_logger(name)
 
 
-def configure_logging(logfile="main", **kw):
+def configure_logging(logfile, **kw):
     """Configure logging for zenjobs."""
-    # NOTE: Cleverly using the `-f` command line argument to specify
+    # NOTE: Cleverly used the `-f` command line argument to specify
     # which logging configuration to use.
-    if logfile in ("main", "configcache"):
+    if logfile in ("zenjobs", "configcache_builder"):
         _default_config["loggers"].update(**_main_loggers)
         _default_config["root"]["handlers"].append("main")
-        if logfile == "main":
-            _main_handler["filename"] = _main_filename
-        else:
-            _main_handler["filename"] = _configcache_filename
+        _main_handler["filename"] = _filenames[logfile]
         _default_config["handlers"]["main"] = _main_handler
     elif logfile == "beat":
         _default_config["root"]["handlers"].append("beat")
-        _beat_handler["filename"] = _beat_filename
+        _beat_handler["filename"] = _filenames[logfile]
         _default_config["handlers"]["beat"] = _beat_handler
 
     logging.config.dictConfig(_default_config)
 
-    if os.path.exists(_loglevelconf_filepath):
-        levelconfig = load_log_level_config(_loglevelconf_filepath)
+    loglevelconf_filename = _loglevel_confs[logfile]
+    if os.path.exists(loglevelconf_filename):
+        levelconfig = load_log_level_config(loglevelconf_filename)
         apply_levels(levelconfig)
 
     stdout_logger = logging.getLogger("STDOUT")
@@ -343,8 +346,12 @@ class LogLevelUpdater(object):
 
     @classmethod
     def start(cls):
+        logfilename = logging._handlers.get("main").baseFilename
+        name = (
+            logfilename.rsplit("/", 1)[-1].rsplit(".", 1)[0].replace("-", "_")
+        )
         if cls.instance is None:
-            cls.instance = _LogLevelUpdaterThread(_loglevelconf_filepath)
+            cls.instance = _LogLevelUpdaterThread(_loglevel_confs[name])
             cls.instance.start()
         elif not cls.instance.is_alive():
             cls.instance = None
