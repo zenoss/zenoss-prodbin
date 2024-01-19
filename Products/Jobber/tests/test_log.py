@@ -20,7 +20,7 @@ from ..log import (
     apply_levels,
     configure_logging,
     load_log_level_config,
-    _loglevelconf_filepath,
+    _loglevel_confs,
 )
 from .utils import LoggingLayer
 
@@ -73,10 +73,11 @@ class ConfigureLoggingTest(TestCase):
 
         exists.return_value = True
 
-        configure_logging()
+        configure_logging("zenjobs")
 
-        exists.assert_called_once_with(_loglevelconf_filepath)
-        _load_log_level_config.assert_called_once_with(_loglevelconf_filepath)
+        loglevel_confname = _loglevel_confs["zenjobs"]
+        exists.assert_called_once_with(loglevel_confname)
+        _load_log_level_config.assert_called_once_with(loglevel_confname)
         _apply_levels.assert_called_once_with(levelConfig)
 
         getLogger.assert_has_calls(getLogger_calls, any_order=True)
@@ -128,9 +129,9 @@ class ConfigureLoggingTest(TestCase):
 
         exists.return_value = False
 
-        configure_logging()
+        configure_logging("zenjobs")
 
-        exists.assert_called_once_with(_loglevelconf_filepath)
+        exists.assert_called_once_with(_loglevel_confs["zenjobs"])
         _load_log_level_config.assert_has_calls([])
         _apply_levels.assert_has_calls([])
 
