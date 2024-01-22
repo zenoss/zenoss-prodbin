@@ -131,7 +131,7 @@ class ConfigurationLoaderTask(ObservableMixin):
     def _processThresholdClasses(self, thresholdClasses):
         log.debug("processing received threshold classes")
         if thresholdClasses:
-            self._collector._loadThresholdClasses(thresholdClasses)
+            self._collector.loadThresholdClasses(thresholdClasses)
 
     def _processThresholds(self, thresholds):
         log.debug("processing received thresholds")

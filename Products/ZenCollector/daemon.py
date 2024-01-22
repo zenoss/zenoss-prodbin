@@ -32,7 +32,7 @@ from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenUtils import metrics
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.observable import ObservableProxy
-from Products.ZenUtils.Utils import importClass, load_config
+from Products.ZenUtils.Utils import load_config
 
 from .config import DeviceConfigLoader
 from .interfaces import (
@@ -170,6 +170,7 @@ class CollectorDaemon(RRDDaemon):
             self._device_config_update_interval = 300
 
         self._deviceGuids = {}
+        self._devices = set()  # deprecated; kept for vSphere ZP compatibility
         self._unresponsiveDevices = set()
         self._rrd = None
         self.reconfigureTimeout = None
@@ -273,6 +274,16 @@ class CollectorDaemon(RRDDaemon):
         """Overrides base class to process configuration options."""
         super(CollectorDaemon, self).parseOptions()
         self.preferences.options = self.options
+
+    # @deprecated
+    def getInitialServices(self):
+        # Retained for compatibility with ZenPacks fixing CollectorDaemon's old
+        # behavior regarding the `initialServices` attribute.  This new
+        # CollectorDaemon respects changes made to the `initialServices`
+        # attribute by subclasses, so the reason for overriding this method
+        # is no longer valid.  However, for this method must continue to exist
+        # to avoid AttributeError exceptions.
+        return self.initialServices
 
     def watchdogCycleTime(self):
         """
@@ -392,11 +403,9 @@ class CollectorDaemon(RRDDaemon):
         proxy = yield self.getService("ConfigCache")
         defer.returnValue(proxy)
 
-    @defer.inlineCallbacks
     def getRemoteConfigServiceProxy(self):
         """Return the remote configuration service proxy object."""
-        proxy = yield self.getService(self.preferences.configurationService)
-        defer.returnValue(proxy)
+        return self.getServiceNow(self.preferences.configurationService)
 
     def generateEvent(self, event, **kw):
         eventCopy = super(CollectorDaemon, self).generateEvent(event, **kw)
@@ -651,12 +660,18 @@ class CollectorDaemon(RRDDaemon):
         self._configListener.deleted(deviceId)
         self._scheduler.removeTasksForConfig(deviceId)
         self._deviceGuids.pop(deviceId, None)
+        self._devices.discard(deviceId)
 
     def _updateConfig(self, cfg):
-        """Update device configuration."""
+        """
+        Update device configuration.
+
+        Returns True if the configuration was processed, otherwise,
+        False is returned.
+        """
         # guard against parsing updates during a disconnect
         if cfg is None:
-            return
+            return False
 
         configFilter = getattr(self.preferences, "configFilter", _always_ok)
         if not (
@@ -666,7 +681,7 @@ class CollectorDaemon(RRDDaemon):
             self.log.info(
                 "filtered out device config  config-id=%s", cfg.configId
             )
-            return
+            return False
 
         configId = cfg.configId
         self.log.info("processing device config  config-id=%s", configId)
@@ -687,6 +702,7 @@ class CollectorDaemon(RRDDaemon):
             self._scheduler.removeTasks(task.name for task in tasksToRemove)
             self._configListener.updated(cfg)
         else:
+            self._devices.add(configId)
             self._configListener.added(cfg)
 
         newTasks = self._taskSplitter.splitConfiguration([cfg])
@@ -729,6 +745,8 @@ class CollectorDaemon(RRDDaemon):
             self.log.debug("pausing tasks for device %s", configId)
             self._scheduler.pauseTasksForConfig(configId)
 
+        return True
+
     def setPropertyItems(self, items):
         """Override so that preferences are updated."""
         super(CollectorDaemon, self).setPropertyItems(items)
@@ -741,14 +759,6 @@ class CollectorDaemon(RRDDaemon):
             elif getattr(self.preferences, name) != value:
                 self.log.debug("updated %s preference to %s", name, value)
                 setattr(self.preferences, name, value)
-
-    def _loadThresholdClasses(self, thresholdClasses):
-        for c in thresholdClasses:
-            try:
-                importClass(c)
-                self.log.info("imported threshold class  class=%r", c)
-            except ImportError:
-                self.log.exception("unable to import class %s", c)
 
     def _configureThresholds(self, thresholds):
         self.getThresholds().updateList(thresholds)
