@@ -23,7 +23,7 @@ from Products.DataCollector.DeviceProxy import DeviceProxy
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenCollector.interfaces import IConfigurationDispatchingFilter
 from Products.ZenEvents import Event
-from Products.ZenHub.PBDaemon import translateError
+from Products.ZenHub.errors import translateError
 
 from Products.ZenHub.services.PerformanceConfig import PerformanceConfig
 

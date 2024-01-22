@@ -36,6 +36,7 @@ from Products.ZenUtils.metricwriter import (
     MetricWriter,
     ThresholdNotifier,
 )
+from Products.ZenUtils.Utils import importClass, lookupClass
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 
 from .errors import HubDown, translateError
@@ -431,14 +432,21 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     @translateError
     def remote_updateThresholdClasses(self, classes):
-        from Products.ZenUtils.Utils import importClass
+        self.loadThresholdClasses(classes)
 
-        for c in classes:
+    def loadThresholdClasses(self, classnames):
+        for name in classnames:
             try:
-                importClass(c)
-                self.log.info("imported threshold class  class=%r", c)
+                cls = lookupClass(name)
+                if cls:
+                    self.log.debug(
+                        "already imported threshold class  class=%s", name
+                    )
+                    continue
+                importClass(name)
+                self.log.info("imported threshold class  class=%s", name)
             except ImportError:
-                self.log.error("unable to import class %s", c)
+                self.log.exception("unable to import threshold class %s", name)
 
     def buildOptions(self):
         super(PBDaemon, self).buildOptions()

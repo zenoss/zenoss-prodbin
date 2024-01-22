@@ -13,8 +13,8 @@ from twisted.spread import pb
 from zenoss.protocols.services import ServiceConnectionError
 
 from Products.ZenEvents.Event import Event
+from Products.ZenHub.errors import translateError
 from Products.ZenHub.HubService import HubService
-from Products.ZenHub.PBDaemon import translateError
 from Products.Zuul import getFacade
 
 from .ThresholdMixin import ThresholdMixin
