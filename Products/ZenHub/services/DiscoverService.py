@@ -18,13 +18,13 @@ from ZODB.transact import transact
 
 from Products.Jobber.exceptions import NoSuchJobException
 from Products.ZenEvents.ZenEventClasses import Status_Ping
-from Products.ZenHub.PBDaemon import translateError
 from Products.ZenModel.Device import manage_createDevice
 from Products.ZenModel.Exceptions import DeviceExistsError
 from Products.ZenRelations.ZenPropertyManager import iszprop
 from Products.ZenRelations.zPropertyCategory import getzPropertyCategory
 from Products.ZenUtils.IpUtil import strip, ipunwrap, isip
 
+from ..errors import translateError
 from .ModelerService import ModelerService
 
 DEFAULT_PING_THRESH = 168

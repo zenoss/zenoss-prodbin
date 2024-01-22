@@ -10,9 +10,9 @@
 from twisted.spread import pb
 from zope import component
 
+from Products.ZenHub.errors import translateError
 from Products.ZenHub.HubService import HubService
 from Products.ZenHub.interfaces import IBatchNotifier
-from Products.ZenHub.PBDaemon import translateError
 from Products.ZenHub.zodb import onUpdate
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.ZenPack import ZenPack
@@ -151,4 +151,6 @@ class PerformanceConfig(HubService, ThresholdMixin):
                     "updateThresholdClasses", self.remote_getThresholdClasses()
                 )
             except Exception:
-                self.log.warning("Error notifying a listener of new classes")
+                self.log.warning(
+                    "Error notifying a listener of new threshold classes"
+                )
