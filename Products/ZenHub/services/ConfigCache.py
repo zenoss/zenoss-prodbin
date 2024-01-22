@@ -13,8 +13,8 @@ from zope.component import createObject, getUtilitiesFor
 
 from Products.ZenCollector.configcache.cache import ConfigQuery
 from Products.ZenCollector.interfaces import IConfigurationDispatchingFilter
+from Products.ZenHub.errors import translateError
 from Products.ZenHub.HubService import HubService
-from Products.ZenHub.PBDaemon import translateError
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
 
