@@ -9,7 +9,7 @@
 
 import logging
 
-from Products.ZenHub.PBDaemon import translateError
+from Products.ZenHub.errors import translateError
 from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
 from Products.ZenModel.ValueChangeThreshold import ValueChangeThreshold
 

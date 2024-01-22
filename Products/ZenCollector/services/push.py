@@ -36,5 +36,5 @@ class UpdateCollectorMixin(object):
                     )
                 except Exception:
                     self.log.warning(
-                        "Error notifying a listener of new classes"
+                        "Error notifying a listener of new threshold classes"
                     )

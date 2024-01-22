@@ -15,8 +15,8 @@ from cryptography.fernet import Fernet
 from twisted.spread import pb
 from ZODB.transact import transact
 
+from Products.ZenHub.errors import translateError
 from Products.ZenHub.HubService import HubService
-from Products.ZenHub.PBDaemon import translateError
 from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
 from Products.ZenModel.Device import Device
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
