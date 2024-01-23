@@ -72,16 +72,11 @@ def initialize_invalidation_filters(ctx):
         for fltr in sorted(filters, key=lambda f: getattr(f, "weight", 100)):
             fltr.initialize(ctx)
             invalidation_filters.append(fltr)
-        log.info(
-            "registered %s invalidation filters.", len(invalidation_filters)
-        )
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug(
-                "invalidation filters: %s",
-                ", ".join(
-                    "{0.__module__}.{0.__class__.__name__}".format(flt)
-                    for flt in invalidation_filters
-                )
+        for fltr in invalidation_filters:
+            log.info(
+                "using invalidation filter %s.%s",
+                fltr.__module__,
+                fltr.__class__.__name__
             )
         return invalidation_filters
     except Exception:

@@ -37,11 +37,12 @@ def mod_from_path(path):
     :returns: The package path
     :rtype: pathlib.Path
     """
-    if "Products" in path.parts:
-        offset = path.parts.index("Products")
-    elif "ZenPacks" in path.parts:
-        offset = path.parts.index("ZenPacks")
-    return ".".join(itertools.chain(path.parts[offset:-1], [path.stem]))
+    rpath = path.parts[::-1]  # reverse the path
+    if "Products" in rpath:
+        offset = rpath.index("Products")
+    elif "ZenPacks" in rpath:
+        offset = rpath.index("ZenPacks")
+    return ".".join(itertools.chain(rpath[1:offset + 1][::-1], [path.stem]))
 
 
 def getConfigServicesFromModule(name):
@@ -86,11 +87,14 @@ def getConfigServices():
     :returns: Tuple of configuration service classes
     :rtype: tuple[CollectorConfigService]
     """
-    search_paths = itertools.chain(Products.__path__, ZenPacks.__path__)
+    search_paths = (
+        pathlib.Path(p)
+        for p in itertools.chain(Products.__path__, ZenPacks.__path__)
+    )
     service_paths = (
         svcpath
         for path in search_paths
-        for svcpath in pathlib.Path(path).rglob("**/services")
+        for svcpath in path.rglob("**/services")
     )
     module_names = (
         mod_from_path(codepath)
