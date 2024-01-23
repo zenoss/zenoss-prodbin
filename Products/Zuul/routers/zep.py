@@ -57,6 +57,7 @@ ZEN_MANAGER_EDIT_PERM = (
     'default_syslog_priority',
     'default_trap_filtering_definition',
     'syslog_parsers',
+    'syslog_summary_to_message',
     'default_syslog_message_filtering_rules',
     'default_availability_days',
     'event_time_purge_interval_days',
@@ -1164,7 +1165,7 @@ class EventsRouter(DirectRouter):
             self.context.dmd.ZenEventManager.syslogParsers = loads(syslogParsers)
 
         syslogSummaryToMessage = values.pop('syslog_summary_to_message', None)
-        if syslogParsers is not None:
+        if syslogSummaryToMessage is not None:
             self.context.dmd.ZenEventManager.syslogSummaryToMessage = syslogSummaryToMessage
         syslogMsgEvtFieldFilterRules = values.pop('default_syslog_message_filtering_rules', None)
         if syslogMsgEvtFieldFilterRules is not None:
