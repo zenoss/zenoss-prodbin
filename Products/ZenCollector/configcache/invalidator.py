@@ -79,16 +79,20 @@ class Invalidator(object):
         Application.add_genconf_command(subsubparsers, (subp_run, subp_debug))
 
     def __init__(self, config, context):
+        self.log = logging.getLogger("zen.configcache.invalidator")
         self.ctx = context
 
         configClasses = getConfigServices()
+        for cls in configClasses:
+            self.log.info(
+                "using service class %s.%s", cls.__module__, cls.__name__
+            )
         self.dispatcher = BuildConfigTaskDispatcher(configClasses)
 
         client = getRedisClient(url=getRedisUrl())
         self.store = createObject("configcache-store", client)
 
         self.interval = config["poll-interval"]
-        self.log = logging.getLogger("zen.configcache.invalidator")
 
     def run(self):
         self._synchronize()
