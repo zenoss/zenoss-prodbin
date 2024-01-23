@@ -11,6 +11,8 @@ from __future__ import absolute_import, print_function
 
 import argparse
 
+import pprint
+
 from datetime import datetime
 
 from zope.component import createObject
@@ -18,7 +20,7 @@ from zope.component import createObject
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
 from .app import initialize_environment
-from .cache import ConfigQuery, ConfigStatus
+from .cache import ConfigKey, ConfigQuery, ConfigStatus
 from .misc.args import get_subparser
 
 
@@ -147,11 +149,11 @@ def _format_date(ts):
 
 class Show(object):
 
-    description = "Show a configuration (JSON)"
+    description = "Show a configuration"
 
     @staticmethod
     def add_arguments(parser, subparsers):
-        subp = get_subparser(subparsers, "show", "Show a configuration (JSON)")
+        subp = get_subparser(subparsers, "show", "Show a configuration")
         subp.add_argument(
             "service", nargs=1, help="name of the configuration service"
         )
@@ -162,15 +164,24 @@ class Show(object):
         subp.set_defaults(factory=Show)
 
     def __init__(self, args):
-        pass
+        self._monitor = args.monitor[0]
+        self._service = args.service[0]
+        self._device = args.device[0]
 
     def run(self):
-        pass
+        initialize_environment()
+        client = getRedisClient(url=getRedisUrl())
+        store = createObject("configcache-store", client)
+        key = ConfigKey(
+            service=self._service, monitor=self._monitor, device=self._device
+        )
+        results = store.get(key)
+        pprint.pprint(results.config.__dict__)
 
 
 class Expire(object):
 
-    description = ""
+    description = "Mark configurations as expired"
 
     @staticmethod
     def add_arguments(parser, subparsers):
@@ -183,10 +194,98 @@ class Expire(object):
         subp.set_defaults(factory=Expire)
 
     def __init__(self, args):
-        pass
+        self._monitor = args.monitor
+        self._service = args.service
+        self._devices = getattr(args, "device", [])
 
     def run(self):
-        pass
+        if not self._confirm_inputs():
+            print("exit")
+            return
+        initialize_environment()
+        client = getRedisClient(url=getRedisUrl())
+        store = createObject("configcache-store", client)
+        query = ConfigQuery(service=self._service, monitor=self._monitor)
+        results = store.get_status(*store.search(query))
+        method = self._no_devices if not self._devices else self._with_devices
+        keys = method(results)
+        store.set_expired(*keys)
+        count = len(keys)
+        print(
+            "expired %d device configuration%s"
+            % (count, "" if count == 1 else "s")
+        )
+
+    def _no_devices(self, results):
+        return tuple(key for key, state in results)
+
+    def _with_devices(self, results):
+        return tuple(
+            key for key, state in results if key.device in self._devices
+        )
+
+    def _confirm_inputs(self):
+        if self._devices:
+            return True
+        if (self._monitor, self._service) == ("*", "*"):
+            mesg = "Recreate all device configurations"
+        elif "*" not in self._monitor and self._service == "*":
+            mesg = (
+                "Recreate all device configurations monitored by the "
+                "'%s' collector" % (self._monitor,)
+            )
+        elif "*" in self._monitor and self._service == "*":
+            mesg = (
+                "Recreate all device configurations monitored by all "
+                "collectors matching '%s'" % (self._monitor,)
+            )
+        elif self._monitor == "*" and "*" not in self._service:
+            mesg = (
+                "Recreate all device configurations created by the '%s' "
+                "configuration service" % (self._service.split(".")[-1],)
+            )
+        elif self._monitor == "*" and "*" in self._service:
+            mesg = (
+                "Recreate all device configurations created by all "
+                "configuration services matching '%s'" % (self._service,)
+            )
+        elif "*" in self._monitor and "*" not in self._service:
+            mesg = (
+                "Recreate all device configurations created by the "
+                "'%s' configuration service and monitored by all "
+                "collectors matching '%s'" % (self._service, self._monitor)
+            )
+        elif "*" not in self._monitor and "*" in self._service:
+            mesg = (
+                "Recreate all device configurations monitored by the '%s' "
+                "collector and created by all configuration services "
+                "matching '%s'" % (self._monitor, self._service)
+            )
+        elif "*" not in self._monitor and "*" not in self._service:
+            mesg = (
+                "Recreate all device configurations monitored by the '%s' "
+                "collector and created by the '%s' configuration service"
+                % (self._monitor, self._service)
+            )
+        elif "*" in self._monitor and "*" in self._service:
+            mesg = (
+                "Recreate all device configurations monitored by all "
+                "collectors matching '%s' and created by all configuration "
+                "services matching '%s'" % (self._monitor, self._service)
+            )
+        else:
+            mesg = "monitor '%s'  service '%s'" % (
+                self._monitor,
+                self._service,
+            )
+        return _confirm(mesg)
+
+
+def _confirm(mesg):
+    response = None
+    while response not in ["y", "n", ""]:
+        response = raw_input("%s. Are you sure (y/N)? " % (mesg,)).lower()
+    return response == "y"
 
 
 # list - list configs;
