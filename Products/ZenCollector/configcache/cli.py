@@ -10,8 +10,8 @@
 from __future__ import absolute_import, print_function
 
 import argparse
-
 import pprint
+import sys
 
 from datetime import datetime
 
@@ -176,7 +176,10 @@ class Show(object):
             service=self._service, monitor=self._monitor, device=self._device
         )
         results = store.get(key)
-        pprint.pprint(results.config.__dict__)
+        if results:
+            pprint.pprint(results.config.__dict__)
+        else:
+            print("configuration not found", file=sys.stderr)
 
 
 class Expire(object):
