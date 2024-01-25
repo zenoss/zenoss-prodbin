@@ -66,8 +66,8 @@ class CollectorDaemon(RRDDaemon):
     _frameworkFactoryName = "default"  # type: str
     """Identifies the IFrameworkFactory implementation to use."""
 
-    # CollectorDaemon has an additional service: ConfigCache
-    initialServices = RRDDaemon.initialServices + ["ConfigCache"]
+    _cacheServiceName = "Products.ZenCollector.services.ConfigCache"
+    initialServices = RRDDaemon.initialServices + [_cacheServiceName]
 
     # So users (subclasses) can check for metric tag support without inspect.
     metricExtraTags = True
@@ -402,7 +402,7 @@ class CollectorDaemon(RRDDaemon):
     @defer.inlineCallbacks
     def getRemoteConfigCacheProxy(self):
         """Return the remote configuration cache proxy."""
-        proxy = yield self.getService("ConfigCache")
+        proxy = yield self.getService(self._cacheServiceName)
         defer.returnValue(proxy)
 
     def getRemoteConfigServiceProxy(self):

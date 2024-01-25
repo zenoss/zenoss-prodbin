@@ -9,13 +9,14 @@
 
 import logging
 
-from zope.component import createObject, getUtilitiesFor
+from zope.component import createObject
 
 from Products.ZenCollector.configcache.cache import ConfigQuery
-from Products.ZenCollector.interfaces import IConfigurationDispatchingFilter
 from Products.ZenHub.errors import translateError
 from Products.ZenHub.HubService import HubService
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
+
+from .optionsfilter import getOptionsFilter
 
 
 class ConfigCache(HubService):
@@ -96,7 +97,8 @@ class ConfigCache(HubService):
             options,
         )
         previous = set(deviceids)
-        current_keys = tuple(self._filter(self._keys(servicename), options))
+        predicate = getOptionsFilter(options)
+        current_keys = tuple(self._filter(self._keys(servicename), predicate))
 
         # 'newest_keys' references devices not found in 'previous'
         newest_keys = (
@@ -138,22 +140,23 @@ class ConfigCache(HubService):
         self.log.info("[ConfigCache] using query %s", query)
         return self._store.search(query)
 
-    def _filter(self, keys, options):
+    def _filter(self, keys, predicate):
         """
         Returns a subset of device IDs in `names` based on the contents
         of the `options` parameter.
 
         @param keys: Cache config keys
         @type keys: Iterable[ConfigKey]
-        @param options: Arguments into filters
-        @type options: Mapping[str, Any]
+        @param predicate: Function that determines whether to keep the device
+        @type options: Function(Device) -> Boolean
         @rtype: Iterator[str]
         """
         # _filter is a generator function returning Device objects
-        predicate = self._getOptionsFilter(options)
+        proxy = _DeviceProxy()
         for key in keys:
             try:
-                if predicate(key.device):
+                proxy.id = key.device
+                if predicate(proxy):
                     yield key
             except Exception:
                 if self.log.isEnabledFor(logging.DEBUG):
@@ -162,21 +165,8 @@ class ConfigCache(HubService):
                     method = self.log.warn
                 method("error filtering device ID %s", key.device)
 
-    def _getOptionsFilter(self, options):
-        def _alwaysTrue(x):
-            return True
 
-        deviceFilter = _alwaysTrue
-        if options:
-            dispatchFilterName = (
-                options.get("configDispatch", "") if options else ""
-            )
-            filterFactories = dict(
-                getUtilitiesFor(IConfigurationDispatchingFilter)
-            )
-            filterFactory = filterFactories.get(
-                dispatchFilterName, None
-            ) or filterFactories.get("", None)
-            if filterFactory:
-                deviceFilter = filterFactory.getFilter(options) or deviceFilter
-        return deviceFilter
+class _DeviceProxy(object):
+    # The predicate returned by getOptionsFilter expects an object
+    # with an `id` attribute.  So make a simple class with one attribute.
+    id = None
