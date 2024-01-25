@@ -59,8 +59,8 @@ class CollectorDaemon(RRDDaemon):
     _frameworkFactoryName = "default"  # type: str
     """Identifies the IFrameworkFactory implementation to use."""
 
-    # CollectorDaemon has an additional service: ConfigCache
-    initialServices = RRDDaemon.initialServices + ["ConfigCache"]
+    _cacheServiceName = "Products.ZenCollector.services.ConfigCache"
+    initialServices = RRDDaemon.initialServices + [_cacheServiceName]
 
     @property
     def preferences(self):  # type: () -> ICollectorPreferences
@@ -392,7 +392,7 @@ class CollectorDaemon(RRDDaemon):
     @defer.inlineCallbacks
     def getRemoteConfigCacheProxy(self):
         """Return the remote configuration cache proxy."""
-        proxy = yield self.getService("ConfigCache")
+        proxy = yield self.getService(self._cacheServiceName)
         defer.returnValue(proxy)
 
     def getRemoteConfigServiceProxy(self):
