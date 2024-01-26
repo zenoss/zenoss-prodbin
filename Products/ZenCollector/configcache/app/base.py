@@ -18,8 +18,6 @@ import attr
 
 from MySQLdb import OperationalError
 
-# from ..misc import app_name
-
 from .config import add_config_arguments, getConfigFromArguments
 from .init import initialize_environment
 from .genconf import GenerateConfig
