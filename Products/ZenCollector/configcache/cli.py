@@ -17,6 +17,8 @@ from datetime import datetime
 
 from zope.component import createObject
 
+import Products.ZenCollector.configcache as CONFIGCACHE_MODULE
+
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
 from .app import initialize_environment
@@ -27,6 +29,8 @@ from .misc.args import get_subparser
 class List_(object):
 
     description = "List configurations"
+
+    configs = (("list.zcml", CONFIGCACHE_MODULE),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
@@ -68,7 +72,7 @@ class List_(object):
             self._states = ()
 
     def run(self):
-        initialize_environment()
+        initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
         store = createObject("configcache-store", client)
         query = ConfigQuery(service=self._service, monitor=self._monitor)
@@ -137,7 +141,7 @@ def _format_status(status):
             _format_date(status.submitted)
         )
     elif isinstance(status, ConfigStatus.Building):
-        return "building started {}".format(_format_date(status.started))
+        return "build started {}".format(_format_date(status.started))
     else:
         return "????"
 
@@ -150,6 +154,8 @@ def _format_date(ts):
 class Show(object):
 
     description = "Show a configuration"
+
+    configs = (("show.zcml", CONFIGCACHE_MODULE),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
@@ -169,7 +175,7 @@ class Show(object):
         self._device = args.device[0]
 
     def run(self):
-        initialize_environment()
+        initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
         store = createObject("configcache-store", client)
         key = ConfigKey(
@@ -185,6 +191,8 @@ class Show(object):
 class Expire(object):
 
     description = "Mark configurations as expired"
+
+    configs = (("expire.zcml", CONFIGCACHE_MODULE),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
@@ -205,7 +213,7 @@ class Expire(object):
         if not self._confirm_inputs():
             print("exit")
             return
-        initialize_environment()
+        initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
         store = createObject("configcache-store", client)
         query = ConfigQuery(service=self._service, monitor=self._monitor)
@@ -289,27 +297,6 @@ def _confirm(mesg):
     while response not in ["y", "n", ""]:
         response = raw_input("%s. Are you sure (y/N)? " % (mesg,)).lower()
     return response == "y"
-
-
-# list - list configs;
-#      ls [-m monitor] [-s service] [-u] [-f state] [device]
-#      where 'monitor', 'service' and 'device' can be globs.
-#      Output should look like:
-#      [device] [state] [monitor] [service]
-#      if '-u' is given, then
-#      [device-path] [state] [monitor] [service]
-#      where 'state' is:
-#          Current HH:MM:SS  - current with time remaining
-#          Expired           - expired configuration
-#          Pending HH:MM:SS  - pending with time remaining
-#      and 'device-path' is the dmd path (UID)
-#
-# show - show config in JSON format;
-#       cat [service] [monitor] [device]
-#       No wildcard support.
-#
-# expire - Mark one or more configurations expired;
-#          expire [-m monitor] [-s service] [device]
 
 
 class MultiChoice(argparse.Action):
