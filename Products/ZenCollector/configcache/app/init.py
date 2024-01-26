@@ -7,21 +7,44 @@
 #
 ##############################################################################
 
-from OFS.Application import import_products
-from Zope2.App import zcml
-
-import Products.ZenWidgets
-
-from Products.ZenUtils.Utils import load_config, load_config_override
-from Products.ZenUtils.zenpackload import load_zenpacks
+from zope.configuration import xmlconfig
 
 
-def initialize_environment(configs=(), overrides=()):
+def initialize_environment(configs=(), overrides=(), useZope=True):
+    if useZope:
+        _use_zope(configs=configs, overrides=overrides)
+    else:
+        _no_zope(configs=configs, overrides=overrides)
+
+
+def _use_zope(configs, overrides):
+    from Zope2.App import zcml
+    from OFS.Application import import_products
+    from Products.ZenUtils.zenpackload import load_zenpacks
+    import Products.ZenWidgets
+
     import_products()
     load_zenpacks()
     zcml.load_site()
-    load_config_override('scriptmessaging.zcml', Products.ZenWidgets)
-    for filepath, module in configs:
-        load_config(filepath, module)
+    _load_overrides(
+        zcml._context, [("scriptmessaging.zcml", Products.ZenWidgets)]
+    )
+    _load_configs(zcml._context, configs)
+    _load_overrides(zcml._context, overrides)
+
+
+def _no_zope(configs, overrides):
+    ctx = xmlconfig._getContext()
+    _load_configs(ctx, configs)
+    _load_overrides(ctx, overrides)
+
+
+def _load_configs(ctx, configs):
+    for filename, module in configs:
+        xmlconfig.file(filename, package=module, context=ctx)
+
+
+def _load_overrides(ctx, overrides):
     for filepath, module in overrides:
-        load_config_override(filepath, module)
+        xmlconfig.includeOverrides(ctx, filepath, package=module)
+        ctx.execute_actions()
