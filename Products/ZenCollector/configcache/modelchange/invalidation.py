@@ -43,9 +43,19 @@ class Invalidation(object):
         self.device = device
         self.reason = reason
 
+    def __eq__(self, other):
+        if isinstance(other, Invalidation):
+            return all(
+                getattr(self, attr) == getattr(other, attr)
+                for attr in self.__slots__
+            )
+        return False
+
+    def __hash__(self):
+        return hash(self.__repr__())
+
     def __repr__(self):
-        return "<%r: oid=%r device=%r reason=%r>" % (
-            self.__class__,
+        return "<Invalidation: oid=%r device=%s reason=%s>" % (
             self.oid,
             self.device,
             self.reason,

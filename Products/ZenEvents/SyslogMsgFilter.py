@@ -127,6 +127,5 @@ class SyslogMsgFilter(object):
                                 i,
                                 compiledRule.pattern)
                             self._daemon.counters["eventFilterDroppedCount"] += 1
-                            self._daemon.counters["eventCount"] -= 1
                             return TRANSFORM_DROP
         return result

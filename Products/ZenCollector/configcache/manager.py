@@ -105,7 +105,7 @@ class Manager(object):
             duration = pendinglimitmap.get(uid)
             if status.submitted < (now - duration):
                 self.store.set_expired(key)
-                self.log.debug(
+                self.log.info(
                     "pending configuration build has timed out  "
                     "submitted=%s service=%s monitor=%s device=%s",
                     datetime.fromtimestamp(status.submitted).strftime(
@@ -152,7 +152,7 @@ class Manager(object):
                     key.service, key.monitor, key.device, timeout
                 )
                 if isinstance(status, ConfigStatus.Expired):
-                    self.log.debug(
+                    self.log.info(
                         "submitted job to rebuild expired config  "
                         "service=%s monitor=%s device=%s",
                         key.service,
@@ -160,7 +160,7 @@ class Manager(object):
                         key.device,
                     )
                 else:
-                    self.log.debug(
+                    self.log.info(
                         "submitted job to rebuild old config  "
                         "updated=%s %s=%s service=%s monitor=%s device=%s",
                         datetime.fromtimestamp(status.updated).strftime(
