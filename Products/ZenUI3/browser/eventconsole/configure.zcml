@@ -64,7 +64,7 @@
         name="viewHistoryDetail"
         for="Products.ZenModel.EventView.IEventView"
         template="historydetail.pt"
-        permission="zenoss.View"
+        permission="zenoss.Common"
         />
 
     <browser:page
