@@ -7,6 +7,10 @@
 #
 ##############################################################################
 
+import logging
+
+log = logging.getLogger("zen.configcache.propertymap")
+
 
 class DevicePropertyMap(object):
     """
@@ -20,8 +24,8 @@ class DevicePropertyMap(object):
     """
 
     @classmethod
-    def from_organizer(cls, obj, propname, relName="devices"):
-        return cls(getPropertyValues(obj, propname, relName=relName))
+    def from_organizer(cls, obj, propname, default, relName="devices"):
+        return cls(getPropertyValues(obj, propname, default, relName=relName))
 
     def __init__(self, values):
         self.__values = tuple((p.split("/")[1:], v) for p, v in values.items())
@@ -46,22 +50,23 @@ class DevicePropertyMap(object):
             # the longest match with the request.
             return max(matches, key=lambda item: item[0])[1]
         except ValueError:
+            log.exception("failed looking for value")
             # No path parts matched the request.
             return None
 
 
-def getPropertyValues(obj, propname, relName="devices"):
+def getPropertyValues(obj, propname, default, relName="devices"):
     """
     Returns a mapping of UID -> property-value for the given z-property.
     """
-    values = {obj.getPrimaryId(): obj.getZ(propname)}
+    values = {obj.getPrimaryId(): _getValue(obj, propname, default)}
     values.update(
-        (inst.getPrimaryId(), inst.getZ(propname))
+        (inst.getPrimaryId(), _getValue(inst, propname, default))
         for inst in obj.getSubInstances(relName)
         if inst.isLocal(propname)
     )
     values.update(
-        (inst.getPrimaryId(), inst.getZ(propname))
+        (inst.getPrimaryId(), _getValue(inst, propname, default))
         for inst in obj.getOverriddenObjects(propname)
     )
     if not values or any(v is None for v in values.values()):
@@ -70,3 +75,10 @@ def getPropertyValues(obj, propname, relName="devices"):
             "z-property=%s" % (propname,)
         )
     return values
+
+
+def _getValue(obj, propname, default):
+    value = obj.getZ(propname)
+    if value is None:
+        return default
+    return value

@@ -21,6 +21,11 @@ class Constants(object):
     pending_timeout_id = "zDeviceConfigPendingTimeout"
     time_to_live_id = "zDeviceConfigTTL"
 
+    # Default values
+    build_timeout_value = 7200
+    pending_timeout_value = 7200
+    time_to_live_value = 43200
+
 
 __all__ = (
     "BuildConfigTaskDispatcher",
