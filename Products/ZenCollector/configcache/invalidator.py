@@ -127,7 +127,9 @@ class Invalidator(object):
         if count == 0:
             self.log.info("no dangling configurations found")
         timelimitmap = DevicePropertyMap.from_organizer(
-            self.ctx.dmd.Devices, Constants.build_timeout_id
+            self.ctx.dmd.Devices,
+            Constants.build_timeout_id,
+            Constants.build_timeout_value,
         )
         new_devices = _addNew(
             self.log, tool, timelimitmap, self.store, self.dispatcher
@@ -144,7 +146,9 @@ class Invalidator(object):
         )
         if not keys:
             timelimitmap = DevicePropertyMap.from_organizer(
-                self.ctx.dmd.Devices, Constants.build_timeout_id
+                self.ctx.dmd.Devices,
+                Constants.build_timeout_id,
+                Constants.build_timeout_value,
             )
             uid = device.getPrimaryId()
             timeout = timelimitmap.get(uid)
