@@ -18,7 +18,6 @@ from optparse import SUPPRESS_HELP
 from metrology import Metrology
 from metrology.instruments import Gauge
 from twisted.internet import defer, reactor, task
-from twisted.python.failure import Failure
 from zope.component import (
     getUtilitiesFor,
     provideUtility,
@@ -33,7 +32,7 @@ from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenUtils import metrics
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.observable import ObservableProxy
-from Products.ZenUtils.Utils import importClass, load_config
+from Products.ZenUtils.Utils import load_config
 
 from .config import DeviceConfigLoader
 from .interfaces import (
@@ -48,8 +47,6 @@ from .interfaces import (
     ITaskSplitter,
 )
 from .listeners import ConfigListenerNotifier
-
-# from .statistics import StatisticsService
 from .utils.maintenance import MaintenanceCycle, ZenHubHeartbeatSender
 
 CONFIG_LOADER_NAME = "configLoader"
@@ -62,8 +59,8 @@ class CollectorDaemon(RRDDaemon):
     _frameworkFactoryName = "default"  # type: str
     """Identifies the IFrameworkFactory implementation to use."""
 
-    # CollectorDaemon has an additional service: ConfigCache
-    initialServices = RRDDaemon.initialServices + ["ConfigCache"]
+    _cacheServiceName = "Products.ZenCollector.services.ConfigCache"
+    initialServices = RRDDaemon.initialServices + [_cacheServiceName]
 
     metricExtraTags = True
     """
@@ -173,6 +170,7 @@ class CollectorDaemon(RRDDaemon):
             self._device_config_update_interval = 300
 
         self._deviceGuids = {}
+        self._devices = set()  # deprecated; kept for vSphere ZP compatibility
         self._unresponsiveDevices = set()
         self._rrd = None
         self.reconfigureTimeout = None
@@ -277,6 +275,16 @@ class CollectorDaemon(RRDDaemon):
         super(CollectorDaemon, self).parseOptions()
         self.preferences.options = self.options
 
+    # @deprecated
+    def getInitialServices(self):
+        # Retained for compatibility with ZenPacks fixing CollectorDaemon's old
+        # behavior regarding the `initialServices` attribute.  This new
+        # CollectorDaemon respects changes made to the `initialServices`
+        # attribute by subclasses, so the reason for overriding this method
+        # is no longer valid.  However, for this method must continue to exist
+        # to avoid AttributeError exceptions.
+        return self.initialServices
+
     def watchdogCycleTime(self):
         """
         Return our cycle time (in minutes)
@@ -292,7 +300,7 @@ class CollectorDaemon(RRDDaemon):
         try:
             yield defer.maybeDeferred(self._getInitializationCallback())
             framework = _getFramework(self.frameworkFactoryName)
-            self.log.info("Using framework -> %r", framework)
+            self.log.debug("using framework factory %s", type(framework))
             self._configProxy = framework.getConfigurationProxy()
             yield self._initEncryptionKey()
             yield self._startConfigCycle()
@@ -353,7 +361,6 @@ class CollectorDaemon(RRDDaemon):
             interval, heartbeatSender, self._maintenanceCallback
         )
         self._maintenanceCycle.start()
-        self.log.debug("started maintenance cycle  interval=%s", interval)
 
     def _startTaskStatsLogging(self):
         if not (self.options.cycle and self.options.logTaskStats):
@@ -380,7 +387,7 @@ class CollectorDaemon(RRDDaemon):
         self._deviceloader = DeviceConfigLoader(
             self.options,
             self._configProxy,
-            self._deviceConfgCallback,
+            self._deviceConfigCallback,
         )
         self._deviceloadertask = task.LoopingCall(self._deviceloader)
         self._deviceloadertaskd = self._deviceloadertask.start(
@@ -393,14 +400,12 @@ class CollectorDaemon(RRDDaemon):
     @defer.inlineCallbacks
     def getRemoteConfigCacheProxy(self):
         """Return the remote configuration cache proxy."""
-        proxy = yield self.getService("ConfigCache")
+        proxy = yield self.getService(self._cacheServiceName)
         defer.returnValue(proxy)
 
-    @defer.inlineCallbacks
     def getRemoteConfigServiceProxy(self):
         """Return the remote configuration service proxy object."""
-        proxy = yield self.getService(self.preferences.configurationService)
-        defer.returnValue(proxy)
+        return self.getServiceNow(self.preferences.configurationService)
 
     def generateEvent(self, event, **kw):
         eventCopy = super(CollectorDaemon, self).generateEvent(event, **kw)
@@ -630,7 +635,7 @@ class CollectorDaemon(RRDDaemon):
                 self._displayStatistics()
                 self.stop()
 
-    def _deviceConfgCallback(self, new, updated, removed):
+    def _deviceConfigCallback(self, new, updated, removed):
         """
         Update the device configs for the devices this collector manages.
 
@@ -654,12 +659,19 @@ class CollectorDaemon(RRDDaemon):
         self.log.debug("deleted device  device-id=%s", deviceId)
         self._configListener.deleted(deviceId)
         self._scheduler.removeTasksForConfig(deviceId)
+        self._deviceGuids.pop(deviceId, None)
+        self._devices.discard(deviceId)
 
     def _updateConfig(self, cfg):
-        """Update device configuration."""
+        """
+        Update device configuration.
+
+        Returns True if the configuration was processed, otherwise,
+        False is returned.
+        """
         # guard against parsing updates during a disconnect
         if cfg is None:
-            return
+            return False
 
         configFilter = getattr(self.preferences, "configFilter", _always_ok)
         if not (
@@ -669,10 +681,14 @@ class CollectorDaemon(RRDDaemon):
             self.log.info(
                 "filtered out device config  config-id=%s", cfg.configId
             )
-            return
+            return False
 
         configId = cfg.configId
         self.log.info("processing device config  config-id=%s", configId)
+
+        guid = getattr(cfg, "_device_guid", None)
+        if guid is not None:
+            self._deviceGuids[configId] = guid
 
         nextExpectedRuns = {}
         if configId in self._deviceloader.deviceIds:
@@ -686,6 +702,7 @@ class CollectorDaemon(RRDDaemon):
             self._scheduler.removeTasks(task.name for task in tasksToRemove)
             self._configListener.updated(cfg)
         else:
+            self._devices.add(configId)
             self._configListener.added(cfg)
 
         newTasks = self._taskSplitter.splitConfiguration([cfg])
@@ -728,6 +745,8 @@ class CollectorDaemon(RRDDaemon):
             self.log.debug("pausing tasks for device %s", configId)
             self._scheduler.pauseTasksForConfig(configId)
 
+        return True
+
     def setPropertyItems(self, items):
         """Override so that preferences are updated."""
         super(CollectorDaemon, self).setPropertyItems(items)
@@ -741,14 +760,6 @@ class CollectorDaemon(RRDDaemon):
                 self.log.debug("updated %s preference to %s", name, value)
                 setattr(self.preferences, name, value)
 
-    def _loadThresholdClasses(self, thresholdClasses):
-        for c in thresholdClasses:
-            try:
-                importClass(c)
-                self.log.info("imported threshold class  class=%r", c)
-            except ImportError:
-                self.log.exception("unable to import class %s", c)
-
     def _configureThresholds(self, thresholds):
         self.getThresholds().updateList(thresholds)
 
@@ -761,18 +772,13 @@ class CollectorDaemon(RRDDaemon):
         but afterward will self-schedule each run.
         """
         try:
-            self.log.debug("performing periodic maintenance")
-            if not self.options.cycle:
-                ret = "No maintenance required"
-            elif getattr(self.preferences, "pauseUnreachableDevices", True):
+            if self.options.cycle and getattr(
+                self.preferences, "pauseUnreachableDevices", True
+            ):
                 # TODO: handle different types of device issues
-                ret = yield self._pauseUnreachableDevices()
-            else:
-                ret = None
-            defer.returnValue(ret)
+                yield self._pauseUnreachableDevices()
         except Exception:
             self.log.exception("failure while running maintenance callback")
-            raise
 
     @defer.inlineCallbacks
     def _pauseUnreachableDevices(self):
@@ -799,16 +805,13 @@ class CollectorDaemon(RRDDaemon):
 
         defer.returnValue(issues)
 
-    def runPostConfigTasks(self, result=None):
+    def runPostConfigTasks(self):
         """
         Add post-startup tasks from the preferences.
 
         This may be called with the failure code as well.
         """
-        if isinstance(result, Failure):
-            pass
-
-        elif not self.addedPostStartupTasks:
+        if not self.addedPostStartupTasks:
             postStartupTasks = getattr(
                 self.preferences, "postStartupTasks", lambda: []
             )

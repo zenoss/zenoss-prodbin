@@ -110,7 +110,7 @@ class ConfigurationLoaderTask(ObservableMixin):
             thresholds = yield proxy.getThresholds()
             self._processThresholds(thresholds)
 
-            self._collector.runPostConfigTasks()
+            yield self._collector.runPostConfigTasks()
         except Exception as ex:
             log.exception("task '%s' failed", self.name)
 
@@ -131,7 +131,7 @@ class ConfigurationLoaderTask(ObservableMixin):
     def _processThresholdClasses(self, thresholdClasses):
         log.debug("processing received threshold classes")
         if thresholdClasses:
-            self._collector._loadThresholdClasses(thresholdClasses)
+            self._collector.loadThresholdClasses(thresholdClasses)
 
     def _processThresholds(self, thresholds):
         log.debug("processing received thresholds")
@@ -195,11 +195,11 @@ class DeviceConfigLoader(object):
             yield self._callback(new, updated, removed)
         finally:
             self._update_local_cache(new, updated, removed)
-            log.info(
+            lengths = (len(new), len(updated), len(removed))
+            logmethod = log.debug if lengths == (0, 0, 0) else log.info
+            logmethod(
                 "processed %d new, %d updated, and %d removed device configs",
-                len(new),
-                len(updated),
-                len(removed),
+                *lengths
             )
 
     def _update_local_cache(self, new, updated, removed):
