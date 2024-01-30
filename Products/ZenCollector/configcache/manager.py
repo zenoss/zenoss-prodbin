@@ -96,7 +96,9 @@ class Manager(object):
 
     def _retry_pending_builds(self):
         pendinglimitmap = DevicePropertyMap.from_organizer(
-            self.ctx.dmd.Devices, Constants.pending_timeout_id
+            self.ctx.dmd.Devices,
+            Constants.pending_timeout_id,
+            Constants.pending_timeout_value,
         )
         now = time()
         count = 0
@@ -123,10 +125,14 @@ class Manager(object):
 
     def _rebuild_older_configs(self):
         buildlimitmap = DevicePropertyMap.from_organizer(
-            self.ctx.dmd.Devices, Constants.build_timeout_id
+            self.ctx.dmd.Devices,
+            Constants.build_timeout_id,
+            Constants.build_timeout_value,
         )
         agelimitmap = DevicePropertyMap.from_organizer(
-            self.ctx.dmd.Devices, Constants.time_to_live_id
+            self.ctx.dmd.Devices,
+            Constants.time_to_live_id,
+            Constants.time_to_live_value,
         )
         min_limit = agelimitmap.smallest_value()
         self.log.debug(
