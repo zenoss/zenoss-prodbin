@@ -1,0 +1,10 @@
+#!/bin/bash
+
+EXE=/bin/ping6
+
+if [[ -u $EXE && -x $EXE ]]; then
+    exec $EXE $@
+fi
+
+exec sudo -n $EXE $@
+
