@@ -395,3 +395,56 @@ class Writer(BaseApiView):
         # ZEN-30188 handle name change of the otsdb services in GCP
         writers += super(Writer, self)._getServices("writer-bigtable")
         return writers
+
+class ImpactDaemons(BaseApiView):
+    """
+    This view emits the Impact daemon services
+    """
+    @property
+    def _services(self):
+        return (
+            ('impacts', 'Impact'),
+            ('zenImpactStates', 'zenimpactstate'),
+        )
+
+class Memcached(BaseApiView):
+
+    @property
+    def _services(self):
+        return (
+            ('memcacheds', 'memcacheds'),
+        )
+
+    def _getServiceInstances(self, name):
+        idFormat = '{}'
+        titleFormat = '{}'
+        services = self._appfacade.query(name)
+        if not services:
+            return []
+        svc = services[0]
+        data = [dict(id=idFormat.format(name),
+                     title=titleFormat.format(name),
+                     controlplaneServiceId=svc.id,
+                     instanceCount=svc.instances,
+                     RAMCommitment=getattr(svc, 'RAMCommitment', None),
+                     lastModeledState=str(svc.state).lower()
+                     )
+                for i in range(svc.instances)]
+        return data
+
+    def _getServices(self, svcName):
+        memcacheds = self._getServiceInstances('memcached')
+        memcacheds += self._getServiceInstances('memcached-session')
+        return memcacheds
+
+class ConfigCacheDaemons(BaseApiView):
+    """
+    This view emits info for configcache services: invalidator, builders, and manager
+    """
+    @property
+    def _services(self):
+        return (
+            ('ConfigCache-Invalidators', 'invalidator'),
+            ('ConfigCache-Builders', 'builder'),
+            ('ConfigCache-Managers', 'manager'),
+        )
