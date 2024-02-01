@@ -129,4 +129,11 @@
         permission="zenoss.Common"
         />
 
+    <browser:view
+        class=".modelapi.ConfigCacheDaemons"
+        name="ConfigCacheDaemons"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
 </configure>
