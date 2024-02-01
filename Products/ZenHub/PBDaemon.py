@@ -14,6 +14,8 @@ import sys
 from itertools import chain
 from urlparse import urlparse
 
+import six
+
 from twisted.cred.credentials import UsernamePassword
 from twisted.internet.endpoints import clientFromString
 from twisted.internet import defer, reactor, task
@@ -150,7 +152,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """
         eventCopy = {}
         for k, v in chain(event.items(), kw.items()):
-            if isinstance(v, basestring):
+            if isinstance(v, six.string_types):
                 # default max size is 512k
                 size = LIMITS.get(k, DEFAULT_LIMIT)
                 eventCopy[k] = v[0:size] if len(v) > size else v
@@ -204,12 +206,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             if os.environ.get("CONTROLPLANE", "0") == "1":
                 internal_publisher = self.internalPublisher()
                 if internal_publisher:
-                    internal_metric_filter = (
-                        lambda metric, value, timestamp, tags: tags
-                        and tags.get("internal", False)
-                    )
+
+                    def _check_internal(metric, value, timestamp, tags):
+                        return tags and tags.get("internal", False)
+
                     internal_metric_writer = FilteredMetricWriter(
-                        internal_publisher, internal_metric_filter
+                        internal_publisher, _check_internal
                     )
                     self.__metric_writer = AggregateMetricWriter(
                         [metric_writer, internal_metric_writer]
@@ -323,7 +325,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             for svcname in self.initialServices:
                 try:
                     yield self.getService(svcname)
-                except Exception as ex:
+                except Exception:
                     if self.options.cycle:
                         self.log.exception(msg)
                     else:
