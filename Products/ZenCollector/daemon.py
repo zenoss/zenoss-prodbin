@@ -695,7 +695,7 @@ class CollectorDaemon(RRDDaemon):
         self.log.debug("tasks for config %s: %s", configId, newTasks)
 
         nowTime = time.time()
-        for (taskName, task_) in newTasks.iteritems():
+        for taskName, task_ in newTasks.iteritems():
             # if not cycling run the task immediately,
             # otherwise let the scheduler decide when to run the task
             now = not self.options.cycle
@@ -717,7 +717,16 @@ class CollectorDaemon(RRDDaemon):
 
             # TODO: another hack?
             if hasattr(cfg, "thresholds"):
-                self.getThresholds().updateForDevice(configId, cfg.thresholds)
+                try:
+                    self.getThresholds().updateForDevice(
+                        configId, cfg.thresholds
+                    )
+                except Exception:
+                    self.log.exception(
+                        "failed to update thresholds "
+                        "config-id=%s thresholds=%r",
+                        configId, cfg.thresholds,
+                    )
 
             # if we're not running a normal daemon cycle then keep track of the
             # tasks we just added for this device so that we can shutdown once
