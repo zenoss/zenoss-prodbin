@@ -391,3 +391,15 @@ class Memcached(BaseApiView):
         memcacheds = self._getServiceInstances('memcached')
         memcacheds += self._getServiceInstances('memcached-session')
         return memcacheds
+
+class ConfigCacheDaemons(BaseApiView):
+    """
+    This view emits info for configcache services: invalidator, builders, and manager
+    """
+    @property
+    def _services(self):
+        return (
+            ('ConfigCache-Invalidators', 'invalidator'),
+            ('ConfigCache-Builders', 'builder'),
+            ('ConfigCache-Managers', 'manager'),
+        )
