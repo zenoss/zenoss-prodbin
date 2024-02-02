@@ -591,13 +591,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             help="Max Number of metrics to allow in redis",
         )
         self.parser.add_option(
-            "--disable-ping-perspective",
-            dest="pingPerspective",
-            help="Enable or disable ping perspective",
-            default=True,
-            action="store_false",
-        )
-        self.parser.add_option(
             "--writeStatistics",
             dest="writeStatistics",
             type="int",
