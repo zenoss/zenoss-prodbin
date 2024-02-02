@@ -24,7 +24,7 @@ DEFAULT_PARALLELISM = 10
 MAX_NMAP_OVERHEAD = 0.5  # in seconds
 MIN_PING_TIMEOUT = 0.1  # in seconds
 
-_NMAP_BINARY = "/usr/bin/nmap"
+_NMAP_BINARY = "/opt/zenoss/bin/nmap"
 
 
 @defer.inlineCallbacks
