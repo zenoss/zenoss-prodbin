@@ -10,6 +10,7 @@
 import collections
 import logging
 import importlib
+import os
 import sys
 
 import six
@@ -19,6 +20,7 @@ from twisted.internet import defer, task
 from twisted.spread import pb
 
 from Products.ZenUtils.PBUtil import setKeepAlive
+from Products.ZenUtils.Utils import zenPath, atomicWrite
 
 from .errors import HubDown
 from .server import ZenPBClientFactory
@@ -78,6 +80,7 @@ class ZenHubClient(object):
         self.__pinger = None
         self.__zenhub = None
         self.__instanceId = None
+        self.__signalFile = ConnectedToZenHubSignalFile()
 
     @property
     def instance_id(self):
@@ -212,10 +215,12 @@ class ZenHubClient(object):
             # defer.returnValue(None)
         except Exception:
             log.exception("unexpected error while logging into ZenHub")
+            self.__signalFile.remove()
             self.__reactor.stop()
         else:
             log.debug("logged into ZenHub  instance-id=%s", self.__instanceId)
             try:
+                self.__signalFile.touch()
                 # Connection complete; install a listener to be notified if
                 # the connection is lost.
                 broker.notifyOnDisconnect(self._disconnected)
@@ -271,6 +276,7 @@ class ZenHubClient(object):
             self.__pinger.stop()
             self.__pinger = None
             log.debug("stopped and removed ZenHub pinger")
+        self.__signalFile.remove()
 
     def _pingFail(self, ex):
         log.error("pinger failed: %s", ex)
@@ -340,3 +346,26 @@ def _remoteErrorType(ex):
 
 def _fromRemoteError(ex):
     return _remoteErrorType(ex)(*ex.args)
+
+
+class ConnectedToZenHubSignalFile(object):
+    """Manages a file that indicates successful connection to ZenHub."""
+
+    def __init__(self):
+        """Initialize a ConnectedToZenHubSignalFile instance."""
+        filename = "zenhub_connected"
+        self.__signalFilePath = zenPath("var", filename)
+        self.__log = log.getChild("signalfile")
+
+    def touch(self):
+        """Create the file."""
+        atomicWrite(self.__signalFilePath, "")
+        self.__log.debug("Created file '%s'", self.__signalFilePath)
+
+    def remove(self):
+        """Delete the file."""
+        try:
+            os.remove(self.__signalFilePath)
+        except Exception:
+            pass
+        self.__log.debug("Removed file '%s'", self.__signalFilePath)
