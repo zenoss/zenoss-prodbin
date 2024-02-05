@@ -25,16 +25,28 @@ class DevicePropertyMap(object):
 
     @classmethod
     def from_organizer(cls, obj, propname, default, relName="devices"):
-        return cls(getPropertyValues(obj, propname, default, relName=relName))
+        return cls(
+            getPropertyValues(obj, propname, default, relName=relName),
+            default
+        )
 
-    def __init__(self, values):
-        self.__values = tuple((p.split("/")[1:], v) for p, v in values.items())
+    def __init__(self, values, default):
+        self.__values = tuple(
+            (p.split("/")[1:], v)
+            for p, v in values.items()
+            if v is not None
+        )
+        self.__default = default
 
     def smallest_value(self):
         try:
             return min(self.__values, key=lambda item: item[1])[1]
-        except ValueError:
-            return None
+        except ValueError as ex:
+            # Check whether the ValueError is about an empty sequence.
+            # If it's not, re-raise the exception.
+            if "arg is an empty sequence" not in str(ex):
+                raise
+            return self.__default
 
     def get(self, request_uid):
         # Split the request into its parts
@@ -49,10 +61,13 @@ class DevicePropertyMap(object):
             # Return the value associated with the path parts having
             # the longest match with the request.
             return max(matches, key=lambda item: item[0])[1]
-        except ValueError:
-            log.exception("failed looking for value")
+        except ValueError as ex:
+            # Check whether the ValueError is about an empty sequence.
+            # If it's not, re-raise the exception.
+            if "arg is an empty sequence" not in str(ex):
+                raise
             # No path parts matched the request.
-            return None
+            return self.__default
 
 
 def getPropertyValues(obj, propname, default, relName="devices"):
