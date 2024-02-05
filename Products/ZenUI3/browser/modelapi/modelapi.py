@@ -399,7 +399,7 @@ class ConfigCacheDaemons(BaseApiView):
     @property
     def _services(self):
         return (
-            ('ConfigCache-Invalidators', 'invalidator'),
-            ('ConfigCache-Builders', 'builder'),
-            ('ConfigCache-Managers', 'manager'),
+            ('configCacheInvalidators', 'invalidator'),
+            ('configCacheBuilders', 'builder'),
+            ('configCacheManagers', 'manager'),
         )
