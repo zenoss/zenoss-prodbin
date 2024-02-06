@@ -111,7 +111,7 @@ class Manager(object):
                     "pending configuration build has timed out  "
                     "submitted=%s service=%s monitor=%s device=%s",
                     datetime.fromtimestamp(status.submitted).strftime(
-                        "%Y-%M-%d %H:%m:%S"
+                        "%Y-%m-%d %H:%M:%S"
                     ),
                     Constants.build_timeout_id,
                     duration,
@@ -170,7 +170,7 @@ class Manager(object):
                         "submitted job to rebuild old config  "
                         "updated=%s %s=%s service=%s monitor=%s device=%s",
                         datetime.fromtimestamp(status.updated).strftime(
-                            "%Y-%M-%d %H:%m:%S"
+                            "%Y-%m-%d %H:%M:%S"
                         ),
                         Constants.time_to_live_id,
                         ttl_limit,
