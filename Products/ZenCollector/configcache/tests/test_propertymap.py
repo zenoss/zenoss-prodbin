@@ -18,7 +18,7 @@ class EmptyBestMatchMapTest(TestCase):
     """Test an empty BestMatchMap object."""
 
     def setUp(t):
-        t.bmm = DevicePropertyMap({})
+        t.bmm = DevicePropertyMap({}, None)
 
     def tearDown(t):
         del t.bmm
@@ -41,8 +41,10 @@ class BestMatchMapTest(TestCase):
         "/zport/dmd/Devices/Network": 14,
     }
 
+    _default = 15
+
     def setUp(t):
-        t.bmm = DevicePropertyMap(t.mapping)
+        t.bmm = DevicePropertyMap(t.mapping, t._default)
 
     def tearDown(t):
         del t.bmm
@@ -63,7 +65,7 @@ class BestMatchMapTest(TestCase):
 
     def test_get_too_short_request(t):
         value = t.bmm.get("/Devices")
-        t.assertIsNone(value)
+        t.assertEqual(t._default, value)
 
     def test_smallest_value(t):
         value = t.bmm.smallest_value()
