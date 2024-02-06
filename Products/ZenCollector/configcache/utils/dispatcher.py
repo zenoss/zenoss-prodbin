@@ -24,10 +24,8 @@ class BuildConfigTaskDispatcher(object):
 
         @type configClasses: Sequence[Class]
         """
-        self._sigs = {
-            cls.__module__: build_device_config.s(
-                ".".join((cls.__module__, cls.__name__))
-            )
+        self._classnames = {
+            cls.__module__: ".".join((cls.__module__, cls.__name__))
             for cls in configClasses
         }
 
@@ -37,9 +35,9 @@ class BuildConfigTaskDispatcher(object):
         configuration service.
         """
         soft_limit, hard_limit = _get_limits(timeout)
-        for sig in self._sigs.values():
-            sig.apply_async(
-                (monitorid, deviceid),
+        for name in self._classnames.values():
+            build_device_config.apply_async(
+                args=(monitorid, deviceid, name),
                 soft_time_limit=soft_limit,
                 time_limit=hard_limit,
             )
@@ -52,14 +50,15 @@ class BuildConfigTaskDispatcher(object):
         @type monitorid: str
         @type deviceId: str
         """
-        sig = self._sigs[servicename]
-        if sig:
-            soft_limit, hard_limit = _get_limits(timeout)
-            sig.apply_async(
-                (monitorid, deviceid),
-                soft_time_limit=soft_limit,
-                time_limit=hard_limit,
-            )
+        name = self._classnames.get(servicename)
+        if name is None:
+            raise ValueError("service name '%s' not found" % servicename)
+        soft_limit, hard_limit = _get_limits(timeout)
+        build_device_config.apply_async(
+            args=(monitorid, deviceid, name),
+            soft_time_limit=soft_limit,
+            time_limit=hard_limit,
+        )
 
 
 def _get_limits(timeout):
