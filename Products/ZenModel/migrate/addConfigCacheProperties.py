@@ -9,6 +9,7 @@
 
 from __future__ import absolute_import
 
+from Products.ZenCollector.configcache.utils import Constants
 from Products.ZenRelations.zPropertyCategory import setzPropertyCategory
 
 from . import Migrate
@@ -17,18 +18,32 @@ from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA
 
 _properties = (
     (
-        ("zDeviceConfigTTL", 43200),
+        (Constants.time_to_live_id, Constants.time_to_live_value),
         {
             "type": "int",
             "label": "Device configuration expiration",
             "description": (
-                "The number of seconds to wait before rebuilding a "
+                "The maximum number of seconds to wait before rebuilding a "
                 "device configuration."
             ),
-        }
+        },
     ),
     (
-        ("zDeviceConfigBuildTimeout", 7200),
+        (
+            Constants.minimum_time_to_live_id,
+            Constants.minimum_time_to_live_value,
+        ),
+        {
+            "type": "int",
+            "label": "Device configuration pre-expiration window",
+            "description": (
+                "The number of seconds the configuration is protected "
+                "from being rebuilt."
+            ),
+        },
+    ),
+    (
+        (Constants.build_timeout_id, Constants.build_timeout_value),
         {
             "type": "int",
             "label": "Device configuration build timeout",
@@ -36,10 +51,10 @@ _properties = (
                 "The number of seconds allowed for building a device "
                 "configuration."
             ),
-        }
+        },
     ),
     (
-        ("zDeviceConfigPendingTimeout", 7200),
+        (Constants.pending_timeout_id, Constants.pending_timeout_value),
         {
             "type": "int",
             "label": "Device configuration build queued timeout",
@@ -47,7 +62,7 @@ _properties = (
                 "The number of seconds a device configuration build may be "
                 "queued before a timeout."
             ),
-        }
+        },
     ),
 )
 

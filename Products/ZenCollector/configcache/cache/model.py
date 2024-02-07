@@ -95,6 +95,17 @@ class _ConfigStatus(object):
                 return NotImplemented
             return self.updated == other.updated
 
+    class Retired(object):
+        """The cofiguration is retired, but not yet expired."""
+
+        def __init__(self, ts):
+            self.updated = ts
+
+        def __eq__(self, other):
+            if not isinstance(other, _ConfigStatus.Retired):
+                return NotImplemented
+            return self.updated == other.updated
+
     class Expired(object):
         """The configuration has expired."""
 

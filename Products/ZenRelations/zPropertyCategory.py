@@ -44,6 +44,7 @@ MAPPINGS = {
     # Configuration Cache
     # -------------------
     "zDeviceConfigTTL": "Config Cache",
+    "zDeviceConfigMinimumTTL": "Config Cache",
     "zDeviceConfigBuildTimeout": "Config Cache",
     "zDeviceConfigPendingTimeout": "Config Cache",
     #
