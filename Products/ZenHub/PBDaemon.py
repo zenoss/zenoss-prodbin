@@ -17,7 +17,7 @@ from urlparse import urlparse
 import six
 
 from twisted.cred.credentials import UsernamePassword
-from twisted.internet.endpoints import clientFromString
+from twisted.internet.endpoints import clientFromString, serverFromString
 from twisted.internet import defer, reactor, task
 from twisted.internet.error import ReactorNotRunning
 from twisted.spread import pb
@@ -43,6 +43,7 @@ from Products.ZenUtils.ZenDaemon import ZenDaemon
 
 from .errors import HubDown, translateError
 from .events import EventClient, EventQueueManager
+from .localserver import LocalServer, ZenHubStatus
 from .metricpublisher import publisher
 from .zenhubclient import ZenHubClient
 
@@ -137,6 +138,33 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.__recordQueuedEventsCountLoop = task.LoopingCall(
             self.__record_queued_events_count
         )
+
+        self.__server = _getLocalServer(self.options)
+        self.__server.add_resource(
+            "zenhub",
+            ZenHubStatus(
+                lambda: "connected"
+                if self.__zenhub_connected
+                else "disconnected"
+            ),
+        )
+        self.__zhclient.notifyOnConnect(
+            lambda: self._set_zenhub_connected(True)
+        )
+        self.__zenhub_connected = False
+
+    def _set_zenhub_connected(self, state):
+        self.__zenhub_connected = state
+        if state:
+            # Re-add the disconnect callback because the ZenHub client
+            # removes all disconnect callbacks after a disconnect.
+            self.__zhclient.notifyOnDisconnect(
+                lambda: self._set_zenhub_connected(False)
+            )
+
+    @property
+    def local_server(self):
+        return self.__server
 
     @property
     def services(self):
@@ -287,6 +315,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self._threshold_notifier,
             self.derivativeTracker(),
         )
+
+        self.__server.start()
+        reactor.addSystemEventTrigger("before", "shutdown", self.__server.stop)
 
         reactor.addSystemEventTrigger(
             "after",
@@ -452,6 +483,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def buildOptions(self):
         super(PBDaemon, self).buildOptions()
+        LocalServer.buildOptions(self.parser)
         self.parser.add_option(
             "--hubhost",
             dest="hubhost",
@@ -613,3 +645,13 @@ def _getZenHubClient(app, options):
         options.hubtimeout,
         options.zhPingInterval,
     )
+
+
+def _getLocalServer(options):
+    # bind the server to the localhost interface so only local
+    # connections can be established.
+    server_endpoint_descriptor = "tcp:{port}:interface=127.0.0.1".format(
+        port=options.localport
+    )
+    server_endpoint = serverFromString(reactor, server_endpoint_descriptor)
+    return LocalServer(reactor, server_endpoint)
