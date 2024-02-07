@@ -71,6 +71,7 @@ class ZenHubWorkerTest(TestCase):
         t.options.hubpassword = sentinel.hubpassword
         t.options.workerid = sentinel.workerid
         t.options.monitor = sentinel.monitor
+        t.options.localport = 12345
 
         # Patch external dependencies
         needs_patching = [
@@ -88,6 +89,8 @@ class ZenHubWorkerTest(TestCase):
             "ServiceRegistry",
             "UsernamePassword",
             "ZenHubClient",
+            "serverFromString",
+            "LocalServer",
         ]
         t.patchers = {}
         for target in needs_patching:
@@ -160,6 +163,18 @@ class ZenHubWorkerTest(TestCase):
         )
         t.assertEqual(t.ZenHubClient.return_value, t.zhw._ZenHubWorker__client)
 
+        t.serverFromString.assert_called_once_with(
+            t.reactor,
+            "tcp:{}:interface=127.0.0.1".format(t.zhw.options.localport),
+        )
+        t.LocalServer.assert_called_once_with(
+            t.reactor, t.serverFromString.return_value
+        )
+        server = t.LocalServer.return_value
+        server.add_resource.assert_has_calls(
+            [call("zenhub", ANY), call("stats", ANY)]
+        )
+
         t.MetricManager.assert_called_with(
             daemon_tags={
                 "zenoss_daemon": "zenhub_worker_%s_%s"
@@ -180,6 +195,14 @@ class ZenHubWorkerTest(TestCase):
             name="zenhub_worker_metricmanager",
         )
 
+    def test_getZenHubStatus_disconnected(t):
+        t.zhw._ZenHubWorker__client.is_connected = False
+        t.assertEqual(t.zhw.getZenHubStatus(), "disconnected")
+
+    def test_getZenHubStatus_connected(t):
+        t.zhw._ZenHubWorker__client.is_connected = True
+        t.assertEqual(t.zhw.getZenHubStatus(), "connected")
+
     @patch("{src}.signal".format(**PATH), autospec=True)
     def test_start(t, signal):
         signal.SIGUSR1 = sentinel.SIGUSR1
@@ -195,11 +218,13 @@ class ZenHubWorkerTest(TestCase):
         )
 
         t.ZenHubClient.return_value.start.assert_called_once_with()
+        t.LocalServer.return_value.start.assert_called_once_with()
         t.MetricManager.return_value.start.assert_called_once_with()
 
         t.reactor.addSystemEventTrigger.assert_has_calls(
             [
                 call("before", "shutdown", t.ZenHubClient.return_value.stop),
+                call("before", "shutdown", t.LocalServer.return_value.stop),
                 call("before", "shutdown", t.MetricManager.return_value.stop),
             ]
         )
@@ -425,7 +450,6 @@ class ZenHubClientTest(TestCase):
             "ZenPBClientFactory",
             "clientFromString",
             "ClientService",
-            "ConnectedToZenHubSignalFile",
             "PingZenHub",
             "backoffPolicy",
             "getLogger",
@@ -464,10 +488,15 @@ class ZenHubClientTest(TestCase):
         t.assertIsNone(t.zhc._ZenHubClient__pinger)
         t.assertIsNone(t.zhc._ZenHubClient__service)
         t.assertEqual(t.zhc._ZenHubClient__log, t.getLogger.return_value)
-        t.assertEqual(
-            t.zhc._ZenHubClient__signalFile,
-            t.ConnectedToZenHubSignalFile.return_value,
-        )
+        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
+
+    def test_is_connected_false(t):
+        t.zhc._ZenHubClient__zenhub_connected = False
+        t.assertFalse(t.zhc.is_connected)
+
+    def test_is_connected_true(t):
+        t.zhc._ZenHubClient__zenhub_connected = True
+        t.assertTrue(t.zhc.is_connected)
 
     @patch.object(ZenHubClient, "_ZenHubClient__prepForConnection")
     def test_start(t, prepForConnection):
@@ -500,30 +529,28 @@ class ZenHubClientTest(TestCase):
         start.assert_called_once_with()
 
     def test___reset_not_started(t):
-        signalFile = t.ConnectedToZenHubSignalFile.return_value
         service = t.ClientService.return_value
         pinger = t.LoopingCall.return_value
 
         t.zhc._ZenHubClient__reset()
 
-        signalFile.remove.assert_called_once_with()
         service.stopService.assert_not_called()
         pinger.stop.assert_not_called()
 
     def test___reset_after_start(t):
-        signalFile = t.ConnectedToZenHubSignalFile.return_value
         service = t.ClientService.return_value
         t.zhc._ZenHubClient__service = service
         pinger = t.LoopingCall.return_value
         t.zhc._ZenHubClient__pinger = pinger
+        t.zhc._ZenHubClient__zenhub_connected = True
 
         t.zhc._ZenHubClient__reset()
 
-        signalFile.remove.assert_called_once_with()
         service.stopService.assert_called_once_with()
         pinger.stop.assert_called_once_with()
         t.assertIsNone(t.zhc._ZenHubClient__pinger)
         t.assertIsNone(t.zhc._ZenHubClient__service)
+        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
 
     @patch.object(ZenHubClient, "_ZenHubClient__connected")
     @patch.object(ZenHubClient, "_ZenHubClient__notConnected")
@@ -548,25 +575,24 @@ class ZenHubClientTest(TestCase):
 
     @patch.object(ZenHubClient, "_ZenHubClient__prepForConnection")
     def test___disconnected_not_connected(t, prepForConnection):
-        signalFile = t.ConnectedToZenHubSignalFile.return_value
 
         t.zhc._ZenHubClient__disconnected()
 
+        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
         prepForConnection.assert_called_once_with()
-        signalFile.remove.assert_called_once_with()
 
     @patch.object(ZenHubClient, "_ZenHubClient__prepForConnection")
     def test___disconnected_after_connection(t, prepForConnection):
-        signalFile = t.ConnectedToZenHubSignalFile.return_value
         pinger = t.LoopingCall.return_value
         t.zhc._ZenHubClient__pinger = pinger
+        t.zhc._ZenHubClient__zenhub_connected = True
 
         t.zhc._ZenHubClient__disconnected()
 
         prepForConnection.assert_called_once_with()
-        signalFile.remove.assert_called_once_with()
         pinger.stop.assert_called_once_with()
         t.assertIsNone(t.zhc._ZenHubClient__pinger)
+        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
 
     @patch.object(ZenHubClient, "restart")
     @patch.object(ZenHubClient, "_ZenHubClient__login")
@@ -577,6 +603,7 @@ class ZenHubClientTest(TestCase):
         t.zhc._ZenHubClient__connected(broker)
         restart.assert_called_once_with()
         login.assert_not_called()
+        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
 
     @patch.object(ZenHubClient, "_ZenHubClient__login")
     @patch.object(ZenHubClient, "_ZenHubClient__pingFail")
@@ -605,12 +632,11 @@ class ZenHubClientTest(TestCase):
             now=False,
         )
         pinger_deferred.addErrback.assert_called_once_with(pingFail)
-        t.zhc._ZenHubClient__signalFile.touch.assert_called_once_with()
         broker.notifyOnDisconnect.assert_called_once_with(
             t.zhc._ZenHubClient__disconnected,
         )
 
-        t.zhc._ZenHubClient__signalFile.remove.assert_not_called()
+        t.assertTrue(t.zhc._ZenHubClient__zenhub_connected)
         restart.assert_not_called()
         t.reactor.stop.assert_not_called()
 
@@ -629,7 +655,7 @@ class ZenHubClientTest(TestCase):
             type(ex).__name__,
             ex,
         )
-        t.zhc._ZenHubClient__signalFile.remove.assert_called_once_with()
+        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
         t.reactor.stop.assert_called_once_with()
 
     @patch.object(ZenHubClient, "_ZenHubClient__login")
@@ -646,8 +672,7 @@ class ZenHubClientTest(TestCase):
         t.zhc._ZenHubClient__log.error.assert_called_once_with(ANY)
         restart.assert_called_once_with()
 
-        t.zhc._ZenHubClient__signalFile.remove.assert_not_called()
-        t.zhc._ZenHubClient__signalFile.touch.assert_not_called()
+        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
         t.reactor.stop.assert_not_called()
 
     @patch.object(ZenHubClient, "_ZenHubClient__login")
@@ -673,7 +698,7 @@ class ZenHubClientTest(TestCase):
             type(ex).__name__,
             ex,
         )
-        t.zhc._ZenHubClient__signalFile.remove.assert_called_once_with()
+        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
         t.reactor.stop.assert_called_once_with()
 
     def test___login(t):

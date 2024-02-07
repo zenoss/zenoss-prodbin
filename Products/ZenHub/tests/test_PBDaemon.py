@@ -2,7 +2,7 @@ import logging
 import sys
 
 from unittest import TestCase
-from mock import Mock, patch, create_autospec, call
+from mock import ANY, Mock, patch, create_autospec, call
 
 # Breaks Test Isolation. Products/ZenHub/metricpublisher/utils.py:15
 # ImportError: No module named eventlet
@@ -34,6 +34,7 @@ class PBDaemonInitTest(TestCase):
     @patch("{src}.DaemonStats".format(**PATH), autospec=True)
     @patch("{src}.EventQueueManager".format(**PATH), autospec=True)
     @patch("{src}.ZenDaemon.__init__".format(**PATH), autospec=True)
+    @patch("{src}._getLocalServer".format(**PATH), autospec=True)
     @patch("{src}._getZenHubClient".format(**PATH), autospec=True)
     @patch("{src}.Thresholds".format(**PATH), autospec=True)
     @patch("{src}.ThresholdNotifier".format(**PATH), autospec=True)
@@ -42,6 +43,7 @@ class PBDaemonInitTest(TestCase):
         ThresholdNotifier,
         Thresholds,
         _getZenHubClient,
+        _getLocalServer,
         ZenDaemon_init,
         EventQueueManager,
         DaemonStats,
@@ -74,7 +76,12 @@ class PBDaemonInitTest(TestCase):
         t.assertEqual(pbd.mname, name)
 
         zhc = _getZenHubClient.return_value
-        zhc.notifyOnConnect.assert_called_with(pbd._load_initial_services)
+        zhc.notifyOnConnect.assert_has_calls(
+            [call(pbd._load_initial_services), call(ANY)]
+        )
+
+        ls = _getLocalServer.return_value
+        ls.add_resource.assert_called_once_with("zenhub", ANY)
 
         EventQueueManager.assert_called_with(PBDaemon.options, PBDaemon.log)
 
