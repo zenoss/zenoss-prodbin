@@ -9,23 +9,17 @@
 
 from __future__ import absolute_import
 
-from .propertymap import DevicePropertyMap
+from .constants import Constants
 from .dispatcher import BuildConfigTaskDispatcher
 from .pollers import RelStorageInvalidationPoller
+from .propertymap import DevicePropertyMap
 from .services import getConfigServices
-
-
-class Constants(object):
-
-    build_timeout_id = "zDeviceConfigBuildTimeout"
-    pending_timeout_id = "zDeviceConfigPendingTimeout"
-    time_to_live_id = "zDeviceConfigTTL"
 
 
 __all__ = (
     "BuildConfigTaskDispatcher",
     "Constants",
     "DevicePropertyMap",
-    "RelStorageInvalidationPoller",
     "getConfigServices",
+    "RelStorageInvalidationPoller",
 )
