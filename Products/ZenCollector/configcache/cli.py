@@ -51,7 +51,7 @@ class List_(object):
             "-f",
             dest="states",
             action=MultiChoice,
-            choices=("current", "expired", "pending", "building"),
+            choices=("current", "retired", "expired", "pending", "building"),
             default=argparse.SUPPRESS,
             help="Only list configurations having these states.  One or "
             "more states may be specified, separated by commas.",
@@ -125,6 +125,7 @@ class List_(object):
 
 _name_state_lookup = {
     "current": ConfigStatus.Current,
+    "retired": ConfigStatus.Retired,
     "expired": ConfigStatus.Expired,
     "pending": ConfigStatus.Pending,
     "building": ConfigStatus.Building,
@@ -134,6 +135,8 @@ _name_state_lookup = {
 def _format_status(status):
     if isinstance(status, ConfigStatus.Current):
         return "last updated {}".format(_format_date(status.updated))
+    elif isinstance(status, ConfigStatus.Retired):
+        return "retired"
     elif isinstance(status, ConfigStatus.Expired):
         return "expired"
     elif isinstance(status, ConfigStatus.Pending):
