@@ -60,8 +60,16 @@ Z_PROPERTIES = [
         43200,
         "int",
         "Device configuration expiration",
-        "The number of seconds to wait before rebuilding a "
+        "The maximum number of seconds to wait before rebuilding a "
         "device configuration."
+    ),
+    (
+        "zDeviceConfigMinimumTTL",
+        0,
+        "int",
+        "Device configuration pre-expiration window",
+        "The number of seconds the configuration is protected "
+        "from being rebuilt."
     ),
     # zPythonClass maps device class to python classs (separate from device
     # class name)

@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2019, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2024, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -14,8 +14,8 @@ from unittest import TestCase
 from ..utils.propertymap import DevicePropertyMap
 
 
-class EmptyBestMatchMapTest(TestCase):
-    """Test an empty BestMatchMap object."""
+class EmptyDevicePropertyMapTest(TestCase):
+    """Test an empty DevicePropertyMap object."""
 
     def setUp(t):
         t.bmm = DevicePropertyMap({}, None)
@@ -30,8 +30,8 @@ class EmptyBestMatchMapTest(TestCase):
         t.assertIsNone(t.bmm.smallest_value())
 
 
-class BestMatchMapTest(TestCase):
-    """Test a BestMatchMap object."""
+class DevicePropertyMapTest(TestCase):
+    """Test a DevicePropertyMap object."""
 
     mapping = {
         "/zport/dmd/Devices": 10,
@@ -49,7 +49,7 @@ class BestMatchMapTest(TestCase):
     def tearDown(t):
         del t.bmm
 
-    def test_get_root(t):
+    def test_minimal_match(t):
         value = t.bmm.get("/zport/dmd/Devices/Server-stuff/devices/dev2")
         t.assertEqual(10, value)
 
@@ -63,7 +63,7 @@ class BestMatchMapTest(TestCase):
         value = t.bmm.get("/zport/dmd/Devices/Server/Linux/devices/dev3")
         t.assertEqual(11, value)
 
-    def test_get_too_short_request(t):
+    def test_no_match(t):
         value = t.bmm.get("/Devices")
         t.assertEqual(t._default, value)
 
