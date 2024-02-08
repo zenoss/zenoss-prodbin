@@ -10,6 +10,7 @@
 from __future__ import print_function, absolute_import
 
 import logging
+import time
 
 from Products.AdvancedQuery import And, Eq
 from zenoss.modelindex import constants
@@ -21,13 +22,12 @@ from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from .app import Application
-from .cache import ConfigQuery
+from .cache import ConfigQuery, ConfigStatus
 from .debug import Debug as DebugCommand
 from .misc.args import get_subparser
 from .modelchange import InvalidationCause
 from .utils import (
     BuildConfigTaskDispatcher,
-    Constants,
     DevicePropertyMap,
     getConfigServices,
     RelStorageInvalidationPoller,
@@ -126,10 +126,8 @@ class Invalidator(object):
         count = _removeDeleted(self.log, tool, self.store)
         if count == 0:
             self.log.info("no dangling configurations found")
-        timelimitmap = DevicePropertyMap.from_organizer(
-            self.ctx.dmd.Devices,
-            Constants.build_timeout_id,
-            Constants.build_timeout_value,
+        timelimitmap = DevicePropertyMap.make_build_timeout_map(
+            self.ctx.dmd.Devices
         )
         new_devices = _addNew(
             self.log, tool, timelimitmap, self.store, self.dispatcher
@@ -145,41 +143,11 @@ class Invalidator(object):
             self.store.search(ConfigQuery(monitor=monitor, device=device.id))
         )
         if not keys:
-            timelimitmap = DevicePropertyMap.from_organizer(
-                self.ctx.dmd.Devices,
-                Constants.build_timeout_id,
-                Constants.build_timeout_value,
-            )
-            uid = device.getPrimaryId()
-            timeout = timelimitmap.get(uid)
-            self.dispatcher.dispatch_all(monitor, device.id, timeout)
-            self.log.info(
-                "submitted build jobs for new device  uid=%s monitor=%s",
-                uid,
-                monitor,
-            )
+            self._new_device(device, monitor)
         elif reason is InvalidationCause.Updated:
-            self.store.set_expired(*keys)
-            for key in keys:
-                self.log.info(
-                    "expired configuration of changed device  "
-                    "device=%s monitor=%s service=%s device-oid=%r",
-                    key.device,
-                    key.monitor,
-                    key.service,
-                    invalidation.oid,
-                )
+            self._updated_device(device, monitor, keys, invalidation)
         elif reason is InvalidationCause.Removed:
-            self.store.remove(*keys)
-            for key in keys:
-                self.log.info(
-                    "removed configuration of deleted device  "
-                    "device=%s monitor=%s service=%s device-oid=%r",
-                    key.device,
-                    key.monitor,
-                    key.service,
-                    invalidation.oid,
-                )
+            self._removed_device(keys, invalidation)
         else:
             self.log.warn(
                 "ignored unexpected reason  "
@@ -187,6 +155,69 @@ class Invalidator(object):
                 reason,
                 device,
                 monitor,
+                invalidation.oid,
+            )
+
+    def _new_device(self, device, monitor):
+        timelimitmap = DevicePropertyMap.make_build_timeout_map(
+            self.ctx.dmd.Devices
+        )
+        uid = device.getPrimaryId()
+        timeout = timelimitmap.get(uid)
+        self.dispatcher.dispatch_all(monitor, device.id, timeout)
+        self.log.info(
+            "submitted build jobs for new device  uid=%s monitor=%s",
+            uid,
+            monitor,
+        )
+
+    def _updated_device(self, device, monitor, keys, invalidation):
+        minagelimitmap = DevicePropertyMap.make_minimum_ttl_map(
+            self.ctx.dmd.Devices
+        )
+        statuses = tuple(
+            (key, status)
+            for key, status in self.store.get_status(*keys)
+            if isinstance(status, ConfigStatus.Current)
+        )
+        uid = device.getPrimaryId()
+        now = time.time()
+        retired = set(
+            key
+            for key, status in statuses
+            if status.updated >= now - minagelimitmap.get(uid)
+        )
+        expired = set(key for key, _ in statuses if key not in retired)
+        retired = self.store.set_retired(*retired)
+        expired = self.store.set_expired(*expired)
+        for key in retired:
+            self.log.info(
+                "retired configuration of changed device  "
+                "device=%s monitor=%s service=%s device-oid=%r",
+                key.device,
+                key.monitor,
+                key.service,
+                invalidation.oid,
+            )
+        for key in expired:
+            self.log.info(
+                "expired configuration of changed device  "
+                "device=%s monitor=%s service=%s device-oid=%r",
+                key.device,
+                key.monitor,
+                key.service,
+                invalidation.oid,
+            )
+
+    def _removed_device(self, keys, invalidation):
+        self.store.remove(*keys)
+        for key in keys:
+            self.log.info(
+                "removed configuration of deleted device  "
+                "device=%s monitor=%s service=%s device-oid=%r",
+                key.device,
+                key.monitor,
+                key.service,
                 invalidation.oid,
             )
 

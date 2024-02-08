@@ -89,16 +89,15 @@ class Manager(object):
             try:
                 self.ctx.session.sync()
                 self._retry_pending_builds()
+                self._expire_retired_configs()
                 self._rebuild_older_configs()
             except Exception as ex:
                 self.log.exception("unexpected error %s", ex)
             self.ctx.controller.wait(self.interval)
 
     def _retry_pending_builds(self):
-        pendinglimitmap = DevicePropertyMap.from_organizer(
-            self.ctx.dmd.Devices,
-            Constants.pending_timeout_id,
-            Constants.pending_timeout_value,
+        pendinglimitmap = DevicePropertyMap.make_pending_timeout_map(
+            self.ctx.dmd.Devices
         )
         now = time()
         count = 0
@@ -123,31 +122,41 @@ class Manager(object):
         if count == 0:
             self.log.debug("no pending configuration builds have timed out")
 
-    def _rebuild_older_configs(self):
-        buildlimitmap = DevicePropertyMap.from_organizer(
-            self.ctx.dmd.Devices,
-            Constants.build_timeout_id,
-            Constants.build_timeout_value,
+    def _expire_retired_configs(self):
+        retired = (
+            (key, status, self.store.get_uid(key.device))
+            for key, status in self.store.get_retired()
         )
-        agelimitmap = DevicePropertyMap.from_organizer(
-            self.ctx.dmd.Devices,
-            Constants.time_to_live_id,
-            Constants.time_to_live_value,
-        )
-        min_limit = agelimitmap.smallest_value()
-        self.log.debug(
-            "minimum age limit is %s", _formatted_interval(min_limit)
+        minttl_map = DevicePropertyMap.make_minimum_ttl_map(
+            self.ctx.dmd.Devices
         )
         now = time()
-        min_age = now - min_limit
+        expire = tuple(
+            key
+            for key, status, uid in retired
+            if status.updated < now - minttl_map.get(uid)
+        )
+        self.store.set_expired(*expire)
+
+    def _rebuild_older_configs(self):
+        buildlimitmap = DevicePropertyMap.make_build_timeout_map(
+            self.ctx.dmd.Devices
+        )
+        ttlmap = DevicePropertyMap.make_ttl_map(self.ctx.dmd.Devices)
+        min_ttl = ttlmap.smallest_value()
+        self.log.debug(
+            "minimum age limit is %s", _formatted_interval(min_ttl)
+        )
+        now = time()
+        min_age = now - min_ttl
         results = chain.from_iterable(
             (self.store.get_expired(), self.store.get_older(min_age))
         )
         count = 0
         for key, status in results:
             uid = self.store.get_uid(key.device)
-            ttl_limit = agelimitmap.get(uid)
-            expiration_threshold = now - ttl_limit
+            ttl = ttlmap.get(uid)
+            expiration_threshold = now - ttl
             if (
                 isinstance(status, ConfigStatus.Expired)
                 or status.updated <= expiration_threshold
@@ -173,7 +182,7 @@ class Manager(object):
                             "%Y-%m-%d %H:%M:%S"
                         ),
                         Constants.time_to_live_id,
-                        ttl_limit,
+                        ttl,
                         key.service,
                         key.monitor,
                         key.device,

@@ -15,7 +15,6 @@ import itertools
 import pathlib2 as pathlib
 
 import Products
-import ZenPacks
 
 from Products.ZenCollector.services.config import CollectorConfigService
 
@@ -87,6 +86,10 @@ def getConfigServices():
     :returns: Tuple of configuration service classes
     :rtype: tuple[CollectorConfigService]
     """
+    # defer import ZenPacks until here because it doesn't exist during
+    # an image build.
+    import ZenPacks
+
     search_paths = (
         pathlib.Path(p)
         for p in itertools.chain(Products.__path__, ZenPacks.__path__)
