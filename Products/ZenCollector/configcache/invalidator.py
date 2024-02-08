@@ -181,11 +181,11 @@ class Invalidator(object):
             if isinstance(status, ConfigStatus.Current)
         )
         uid = device.getPrimaryId()
+        minttl = minagelimitmap.get(uid)
         now = time.time()
+        limit = now - minttl
         retired = set(
-            key
-            for key, status in statuses
-            if status.updated >= now - minagelimitmap.get(uid)
+            key for key, status in statuses if status.updated >= limit
         )
         expired = set(key for key, _ in statuses if key not in retired)
         retired = self.store.set_retired(*retired)
