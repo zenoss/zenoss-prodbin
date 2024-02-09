@@ -61,6 +61,7 @@ MAPPINGS = {
 'zPythonClass': 'Misc',
 'zStatusConnectTimeout': 'Misc',
 'zStatusEventClass': 'Misc',
+'zNoRelationshipCopy': 'Misc',
 
 # SNMP
 # ----------
