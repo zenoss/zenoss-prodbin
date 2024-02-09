@@ -39,7 +39,8 @@ class ZenHubConnection(object):
         self.__service = service
         self.__stopping = False
         self.__pinger = None
-        self.__handlers = {"connected": set(), "disconnected": set()}
+        self.__connected_callbacks = set()
+        self.__disconnected_callbacks = set()
         self.__connected = None
         self.__disconnected = None
         self._init_handler_deferreds()
@@ -50,43 +51,41 @@ class ZenHubConnection(object):
         self.__stopping = True
         self._reset()
 
-    def notifyOnConnect(self, handler):
+    def notifyOnConnect(self, cb):
         """Register function to be called after connecting to zenhub.
 
-        The handler will be passed one argument which will be the
+        The callback will be passed one argument which will be the
         RemoteReference object to the ZenHub server.
 
         NOTE: The handler is invoked each time a zenhub connection is made.
         """
         if self.__stopping:
             return
-        handlers = self.__handlers["connected"]
-        if handler not in handlers:
-            handlers.add(handler)
-            self.__connected.addCallback(handler)
+        if cb not in self.__connected_callbacks:
+            self.__connected_callbacks.add(cb)
+            self.__connected.addCallback(cb)
 
-    def notifyOnDisconnect(self, handler):
+    def notifyOnDisconnect(self, cb):
         """Register function to be called after losing a zenhub connection.
 
-        The handler will be passed one argument which will be reason
+        The callback will be passed one argument which will be reason
         for the disconnection.
 
         NOTE: The handler is invoked each time a zenhub connection is lost.
         """
         if self.__stopping:
             return
-        handlers = self.__handlers["disconnected"]
-        if handler not in handlers:
-            handlers.add(handler)
-            self.__disconnected.addCallback(handler)
+        if cb not in self.__disconnected_callbacks:
+            self.__disconnected_callbacks.add(cb)
+            self.__disconnected.addCallback(cb)
 
     def _init_handler_deferreds(self):
         # one place for initializing the event handling deferreds.
         self.__connected = defer.Deferred(canceller=_canceller)
         self.__disconnected = defer.Deferred(canceller=_canceller)
-        for handler in self.__handlers["connected"]:
+        for handler in self.__connected_callbacks:
             self.__connected.addCallback(handler)
-        for handler in self.__handlers["disconnected"]:
+        for handler in self.__disconnected_callbacks:
             self.__disconnected.addCallback(handler)
 
     def _prepForConnection(self):
