@@ -12,7 +12,7 @@ getprop() {
 _PORT=$(getprop 'localport')
 PORT=${_PORT:-14682}
 URL=http://localhost:$PORT/stats
-curl -f $URL
+curl -fs $URL
 if [ $? -eq 0 ]; then
     echo
 fi
