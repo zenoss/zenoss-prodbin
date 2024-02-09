@@ -152,8 +152,15 @@
 resource does not exist.</p>
 <a href="/zport/dmd/">Please click here to return to the Zenoss dashboard</a>
 </tal:block>
+<tal:block tal:condition="view/isUnauthorized">
+<h2>Unauthorized</h2>
+<p>You attempted to access a resource that you do not have authorization to.
+If you believe you should have access to this resource, verify your role and
+contact your Zenoss Administrator.</p>
+<a href="/zport/dmd/">Please click here to return to the Zenoss dashboard</a>
+</tal:block>
 
-<tal:block tal:condition="not:view/isNotFound"
+<tal:block tal:condition="python: (not view.isNotFound and not view.isUnauthorized)"
            tal:content="structure view/error_message"/>
 </div>
 
