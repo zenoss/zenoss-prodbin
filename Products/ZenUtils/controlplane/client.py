@@ -10,10 +10,10 @@
 """
 ControlPlaneClient
 """
+
 import fnmatch
 import json
 import logging
-import os
 import urllib
 import urllib2
 
@@ -22,14 +22,18 @@ from socket import error as socket_error
 from errno import ECONNRESET
 from urlparse import urlunparse
 
-from .data import (ServiceJsonDecoder, ServiceJsonEncoder, HostJsonDecoder,
-                   ServiceStatusJsonDecoder, InstanceV2ToServiceStatusJsonDecoder)
+import six
 
+from .data import (
+    HostJsonDecoder,
+    InstanceV2ToServiceStatusJsonDecoder,
+    ServiceJsonDecoder,
+    ServiceJsonEncoder,
+    ServiceStatusJsonDecoder,
+)
+from .environment import configuration as cc_config
 
 LOG = logging.getLogger("zen.controlplane.client")
-
-
-SERVICED_VERSION_ENV = "SERVICED_VERSION"
 
 
 def getCCVersion():
@@ -37,15 +41,16 @@ def getCCVersion():
     Checks if the client is connecting to Hoth or newer. The cc version
     is injected in the containers by serviced
     """
-    cc_version = os.environ.get(SERVICED_VERSION_ENV)
-    if cc_version: # CC is >= 1.2.0
+    cc_version = cc_config.version
+    if cc_version:  # CC is >= 1.2.0
         LOG.debug("Detected CC version >= 1.2.0")
     else:
         cc_version = "1.1.X"
     return cc_version
 
 
-class ControlCenterError(Exception): pass
+class ControlCenterError(Exception):
+    pass
 
 
 class _Request(urllib2.Request):
@@ -59,22 +64,23 @@ class _Request(urllib2.Request):
         urllib2.Request.__init__(self, *args, **kwargs)
 
     def get_method(self):
-        return self.__method \
-            if self.__method else urllib2.Request.get_method(self)
+        return (
+            self.__method
+            if self.__method
+            else urllib2.Request.get_method(self)
+        )
 
 
 class ControlPlaneClient(object):
-    """
-    """
+    """ """
 
     def __init__(self, user, password, host=None, port=None):
-        """
-        """
+        """ """
         self._cj = CookieJar()
         self._opener = urllib2.build_opener(
             urllib2.HTTPHandler(),
             urllib2.HTTPSHandler(),
-            urllib2.HTTPCookieProcessor(self._cj)
+            urllib2.HTTPCookieProcessor(self._cj),
         )
         # Zproxy always provides a proxy to serviced on port 443
         self._server = {
@@ -95,7 +101,7 @@ class ControlPlaneClient(object):
         """
         use_https = True
         cc_master = self._server.get("host")
-        if self._hothOrNewer and cc_master in [ "localhost", "127.0.0.1" ]:
+        if self._hothOrNewer and cc_master in ["localhost", "127.0.0.1"]:
             use_https = False
         return use_https
 
@@ -111,13 +117,13 @@ class ControlPlaneClient(object):
             namepat = namepat.replace("\\Z", "\\z")
             query["name"] = namepat
         if tags:
-            if isinstance(tags, (str, unicode)):
+            if isinstance(tags, six.string_types):
                 tags = [tags]
-            query["tags"] = ','.join(tags)
+            query["tags"] = ",".join(tags)
         if tenantID:
             query["tenantID"] = tenantID
         response = self._dorequest(self._servicesEndpoint, query=query)
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         decoded = ServiceJsonDecoder().decode(body)
         if decoded is None:
@@ -129,7 +135,7 @@ class ControlPlaneClient(object):
         Returns the ServiceDefinition object for the given service.
         """
         response = self._dorequest("/services/%s" % serviceId)
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         return ServiceJsonDecoder().decode(body)
 
@@ -143,7 +149,7 @@ class ControlPlaneClient(object):
         """
         query = {"since": age}
         response = self._dorequest(self._servicesEndpoint, query=query)
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         decoded = ServiceJsonDecoder().decode(body)
         if decoded is None:
@@ -159,12 +165,16 @@ class ControlPlaneClient(object):
         oldService = self.getService(service.id)
         oldService._data[prop] = service._data[prop]
         body = ServiceJsonEncoder().encode(oldService)
-        LOG.info("Updating prop '%s' for service '%s':%s resourceId=%s", prop, service.name, service.id, service.resourceId)
-        LOG.debug("Updating service %s", body)
-        response = self._dorequest(
-            service.resourceId, method="PUT", data=body
+        LOG.info(
+            "Updating prop '%s' for service '%s':%s resourceId=%s",
+            prop,
+            service.name,
+            service.id,
+            service.resourceId,
         )
-        body = ''.join(response.readlines())
+        LOG.debug("Updating service %s", body)
+        response = self._dorequest(service.resourceId, method="PUT", data=body)
+        body = "".join(response.readlines())
         response.close()
 
     def updateService(self, service):
@@ -176,10 +186,8 @@ class ControlPlaneClient(object):
         body = ServiceJsonEncoder().encode(service)
         LOG.info("Updating service '%s':%s", service.name, service.id)
         LOG.debug("Updating service %s", body)
-        response = self._dorequest(
-            service.resourceId, method="PUT", data=body
-        )
-        body = ''.join(response.readlines())
+        response = self._dorequest(service.resourceId, method="PUT", data=body)
+        body = "".join(response.readlines())
         response.close()
 
     def startService(self, serviceId):
@@ -189,9 +197,10 @@ class ControlPlaneClient(object):
         :param string ServiceId: The service to start
         """
         LOG.info("Starting service '%s", serviceId)
-        response = self._dorequest("/services/%s/startService" % serviceId,
-                                   method='PUT')
-        body = ''.join(response.readlines())
+        response = self._dorequest(
+            "/services/%s/startService" % serviceId, method="PUT"
+        )
+        body = "".join(response.readlines())
         response.close()
         return ServiceJsonDecoder().decode(body)
 
@@ -202,9 +211,10 @@ class ControlPlaneClient(object):
         :param string ServiceId: The service to stop
         """
         LOG.info("Stopping service %s", serviceId)
-        response = self._dorequest("/services/%s/stopService" % serviceId,
-                                   method='PUT')
-        body = ''.join(response.readlines())
+        response = self._dorequest(
+            "/services/%s/stopService" % serviceId, method="PUT"
+        )
+        body = "".join(response.readlines())
         response.close()
         return ServiceJsonDecoder().decode(body)
 
@@ -220,7 +230,7 @@ class ControlPlaneClient(object):
         response = self._dorequest(
             "/services/add", method="POST", data=serviceDefinition
         )
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         return body
 
@@ -231,9 +241,7 @@ class ControlPlaneClient(object):
         :param string serviceId: Id of the service to delete
         """
         LOG.info("Removing service %s", serviceId)
-        response = self._dorequest(
-            "/services/%s" % serviceId, method="DELETE"
-        )
+        response = self._dorequest("/services/%s" % serviceId, method="DELETE")
         response.close()
 
     def deployService(self, parentId, service):
@@ -245,15 +253,12 @@ class ControlPlaneClient(object):
         :returns string: json encoded representation of new service's links
         """
         LOG.info("Deploying service")
-        data = {
-            'ParentID': parentId,
-            'Service': json.loads(service)
-        }
+        data = {"ParentID": parentId, "Service": json.loads(service)}
         LOG.debug(data)
         response = self._dorequest(
             "/services/deploy", method="POST", data=json.dumps(data)
         )
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         return body
 
@@ -262,10 +267,9 @@ class ControlPlaneClient(object):
         Returns a sequence of ServiceInstance objects.
         """
         response = self._dorequest("/services/%s/running" % serviceId)
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         return ServiceJsonDecoder().decode(body)
-
 
     def queryServiceStatus(self, serviceId):
         """
@@ -299,7 +303,7 @@ class ControlPlaneClient(object):
         :rtype: dict of ServiceStatus objects with ID as key
         """
         response = self._dorequest("/services/%s/status" % serviceId)
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         decoded = ServiceStatusJsonDecoder().decode(body)
         return decoded
@@ -314,9 +318,10 @@ class ControlPlaneClient(object):
         :returns: The raw result of the query
         :rtype: json formatted string
         """
-        response = self._dorequest("%s/services/%s/instances" % (self._v2loc,
-                                                                 serviceId))
-        body = ''.join(response.readlines())
+        response = self._dorequest(
+            "%s/services/%s/instances" % (self._v2loc, serviceId)
+        )
+        body = "".join(response.readlines())
         response.close()
         return body
 
@@ -336,13 +341,12 @@ class ControlPlaneClient(object):
         decoded = {instance.id: instance for instance in decoded}
         return decoded
 
-
     def queryHosts(self):
         """
         Returns a sequence of Host objects.
         """
         response = self._dorequest("/hosts")
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         return HostJsonDecoder().decode(body)
 
@@ -350,8 +354,8 @@ class ControlPlaneClient(object):
         """
         Returns a sequence of Host objects.
         """
-        response = self._dorequest("/hosts/%" % hostId)
-        body = ''.join(response.readlines())
+        response = self._dorequest("/hosts/%s" % hostId)
+        body = "".join(response.readlines())
         response.close()
         return HostJsonDecoder().decode(body)
 
@@ -362,54 +366,49 @@ class ControlPlaneClient(object):
         response = self._dorequest(
             "/services/%s/running/%s" % (serviceId, instanceId)
         )
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         return ServiceJsonDecoder().decode(body)
 
     def getServiceLog(self, serviceId, start=0, end=None):
-        """
-        """
+        """ """
         response = self._dorequest("/services/%s/logs" % serviceId)
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         log = json.loads(body)
         return log["Detail"]
 
     def getInstanceLog(self, serviceId, instanceId, start=0, end=None):
-        """
-        """
+        """ """
         response = self._dorequest(
             "/services/%s/%s/logs" % (serviceId, instanceId)
         )
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         log = json.loads(body)
         return str(log["Detail"])
 
     def killInstance(self, hostId, uuid):
-        """
-        """
+        """ """
         response = self._dorequest(
             "/hosts/%s/%s" % (hostId, uuid), method="DELETE"
         )
         response.close()
 
     def getServicesForMigration(self, serviceId):
-        """
-        """
+        """ """
         query = {"includeChildren": "true"}
         response = self._dorequest("/services/%s" % serviceId, query=query)
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         return json.loads(body)
 
     def postServicesForMigration(self, data, serviceId):
-        """
-        """
+        """ """
         response = self._dorequest(
             "/services/%s/migrate" % serviceId, method="POST", data=data
         )
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         return body
 
@@ -418,7 +417,7 @@ class ControlPlaneClient(object):
         Get all the pools and return raw json
         """
         response = self._dorequest("/pools")
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         return body
 
@@ -427,7 +426,7 @@ class ControlPlaneClient(object):
         Get all the pools and return raw json
         """
         response = self._dorequest("/hosts")
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         return body
 
@@ -435,16 +434,16 @@ class ControlPlaneClient(object):
         """
         Get all the running services and return raw json
         """
-        body = ''
+        body = ""
         if not self._hothOrNewer:
             response = self._dorequest("/running")
-            body = ''.join(response.readlines())
+            body = "".join(response.readlines())
             response.close()
         else:
             hostsData = self.queryHosts()
             for hostID in hostsData:
-                response = self._dorequest("/hosts/%s/running" %hostID)
-                body = body + ''.join(response.readlines())
+                response = self._dorequest("/hosts/%s/running" % hostID)
+                body = body + "".join(response.readlines())
                 response.close()
         return body
 
@@ -453,14 +452,22 @@ class ControlPlaneClient(object):
         Get the storage information and return raw json
         """
         response = self._dorequest("/storage")
-        body = ''.join(response.readlines())
+        body = "".join(response.readlines())
         response.close()
         return body
 
     def _makeRequest(self, uri, method=None, data=None, query=None):
         query = urllib.urlencode(query) if query else ""
-        url = urlunparse(("https" if self._useHttps else "http",
-                          self._netloc, uri, "", query, ""))
+        url = urlunparse(
+            (
+                "https" if self._useHttps else "http",
+                self._netloc,
+                uri,
+                "",
+                query,
+                "",
+            )
+        )
         args = {}
         if method:
             args["method"] = method
@@ -481,7 +488,9 @@ class ControlPlaneClient(object):
     def _dorequest(self, uri, method=None, data=None, query=None):
         # Try to perform the request up to five times
         for trycount in range(5):
-            request = self._makeRequest(uri, method=method, data=data, query=query)
+            request = self._makeRequest(
+                uri, method=method, data=data, query=query
+            )
             try:
                 return self._opener.open(request)
             except urllib2.HTTPError as ex:
@@ -494,34 +503,38 @@ class ControlPlaneClient(object):
                         msg = json.load(ex)
                     except ValueError:
                         raise ex  # This stinks because we lose the stack
-                    detail = msg.get('Detail')
+                    detail = msg.get("Detail")
                     if not detail:
                         raise
                     detail = detail.replace("Internal Server Error: ", "")
                     raise ControlCenterError(detail)
                 raise
-            #   The CC server resets the connection when an unauthenticated POST requesti is
-            # made.  Depending on when during the request lifecycle the connection is reset,
-            # we can get either an URLError with a socket.error as the reason, or  a naked
-            # socket.error.  In either case, the socket.error.errno indicates that the
-            # connection was reset with an errno of ECONNRESET (104).
-            #   When we get a connection reset exception, assume that the reset was caused
-            # by lack of authentication, login, and retry the request.
+            # The CC server resets the connection when an unauthenticated
+            # POST requesti is made.  Depending on when during the request
+            # lifecycle the connection is reset, we can get either an
+            # URLError with a socket.error as the reason, or  a naked
+            # socket.error.  In either case, the socket.error.errno
+            # indicates that the connection was reset with an errno of
+            # ECONNRESET (104). When we get a connection reset exception,
+            # assume that the reset was caused by lack of authentication,
+            # login, and retry the request.
             except urllib2.URLError as ex:
                 reason = ex.reason
-                if type(reason) == socket_error and reason.errno == ECONNRESET:
+                if (
+                    isinstance(reason, socket_error)
+                    and reason.errno == ECONNRESET
+                ):
                     self._login()
                     continue
                 raise
             except socket_error as ex:
                 if ex.errno == ECONNRESET:
-                   self._login()
-                   continue
+                    self._login()
+                    continue
                 raise
             else:
                 # break the loop so we skip the loop's else clause
                 break
-
 
         else:
             # raises the last exception that was raised (the 401 error)
@@ -550,19 +563,16 @@ class ControlPlaneClient(object):
         for cookie in self._get_cookie_jar():
             cookies.append(
                 {
-                    'name': cookie.name,
-                    'value': cookie.value,
-                    'domain': cookie.domain,
-                    'path': cookie.path,
-                    'expires': cookie.expires,
-                    'secure': cookie.discard
+                    "name": cookie.name,
+                    "value": cookie.value,
+                    "domain": cookie.domain,
+                    "path": cookie.path,
+                    "expires": cookie.expires,
+                    "secure": cookie.discard,
                 }
             )
         return cookies
 
 
 # Define the names to export via 'from client import *'.
-__all__ = (
-    "ControlPlaneClient",
-    "ControlCenterError"
-)
+__all__ = ("ControlPlaneClient", "ControlCenterError")

@@ -8,7 +8,8 @@
 ##############################################################################
 
 import time
-import os
+
+from .controlplane import configuration as cc_config
 
 
 class DaemonStats(object):
@@ -22,9 +23,18 @@ class DaemonStats(object):
         self.metric_writer = None
         self._threshold_notifier = None
         self._derivative_tracker = None
-        self._service_id = None
-        self._tenant_id = None
-        self._instance_id = None
+        self._ctx_id = None
+        self._ctx_key = None
+
+        tags = {"internal": True}
+        # Only capture the control center variables that have a value.
+        if cc_config.service_id:
+            tags["serviceId"] = cc_config.service_id
+        if cc_config.tenant_id:
+            tags["tenantId"] = cc_config.tenant_id
+        if cc_config.instance_id:
+            tags["instance"] = cc_config.instance_id
+        self._common_tags = tags
 
     def config(
         self,
@@ -48,35 +58,16 @@ class DaemonStats(object):
         self._threshold_notifier = threshold_notifier
         self._derivative_tracker = derivative_tracker
 
-        # when running inside control plane pull the service id from the
-        # environment.
-        if os.environ.get("CONTROLPLANE", "0") == "1":
-            self._tenant_id = os.environ.get("CONTROLPLANE_TENANT_ID")
-            self._service_id = os.environ.get("CONTROLPLANE_SERVICE_ID")
-            self._instance_id = os.environ.get("CONTROLPLANE_INSTANCE_ID")
+        # Update the common tags
+        self._common_tags.update({"daemon": name, "monitor": monitor})
 
-    def _context_id(self):
-        return self.name + "-" + self.monitor
-
-    def _contextKey(self):
-        return "/".join(("Daemons", self.monitor))
+        # evaluate identifiers once
+        self._ctx_id = name + "-" + monitor
+        self._ctx_key = "/".join(("Daemons", monitor))
 
     def _tags(self, metric_type):
-        tags = {
-            "daemon": self.name,
-            "monitor": self.monitor,
-            "metricType": metric_type,
-            "internal": True,
-        }
-        if self._service_id:
-            tags["serviceId"] = self._service_id
-
-        if self._tenant_id:
-            tags["tenantId"] = self._tenant_id
-
-        if self._instance_id:
-            tags["instance"] = self._instance_id
-
+        tags = self._common_tags.copy()
+        tags["metricType"] = metric_type
         return tags
 
     def derive(self, name, value):
@@ -95,7 +86,6 @@ class DaemonStats(object):
         tags = self._tags(metric_type)
         timestamp = time.time()
 
-        context_id = self._context_id()
         if metric_type in {"DERIVE", "COUNTER"}:
             # compute (and cache) a rate for COUNTER/DERIVE
             if metric_type == "COUNTER":
@@ -104,7 +94,7 @@ class DaemonStats(object):
                 metric_min = "U"
 
             value = self._derivative_tracker.derivative(
-                "%s:%s" % (context_id, name),
+                "%s:%s" % (self._ctx_id, name),
                 (float(value), timestamp),
                 min=metric_min,
             )
@@ -113,8 +103,8 @@ class DaemonStats(object):
             self._metric_writer.write_metric(name, value, timestamp, tags)
             # check for threshold breaches and send events when needed
             self._threshold_notifier.notify(
-                self._contextKey(),
-                context_id,
+                self._ctx_key,
+                self._ctx_id,
                 self.name + "_" + name,
                 timestamp,
                 value,
