@@ -310,7 +310,6 @@ class RegionServer(BaseApiView):
         return (("regionServers", "RegionServer"),)
 
     def _getServices(self, svcName):
-        # ZEN-30188 there is bigtable instead of RegionServers
         svc = next(iter(self._appfacade.query(svcName)), None)
         if not svc:
             return []
@@ -376,8 +375,6 @@ class Reader(BaseApiView):
 
     def _getServices(self, svcName):
         readers = super(Reader, self)._getServices("reader")
-        # ZEN-30188 handle name change of the otsdb services in GCP
-        readers += super(Reader, self)._getServices("reader-bigtable")
         return readers
 
 
@@ -392,8 +389,6 @@ class Writer(BaseApiView):
 
     def _getServices(self, svcName):
         writers = super(Writer, self)._getServices("writer")
-        # ZEN-30188 handle name change of the otsdb services in GCP
-        writers += super(Writer, self)._getServices("writer-bigtable")
         return writers
 
 class ImpactDaemons(BaseApiView):
