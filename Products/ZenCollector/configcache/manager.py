@@ -11,9 +11,14 @@ from __future__ import print_function
 
 import logging
 
+from collections import Counter, defaultdict
 from datetime import datetime
 from time import time
 
+import attr
+
+from metrology.instruments import Gauge, HistogramExponentiallyDecaying
+from metrology.utils.periodic import PeriodicTask
 from zope.component import createObject
 
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
@@ -35,6 +40,8 @@ class Manager(object):
     description = (
         "Determines whether device configs are old and regenerates them"
     )
+
+    metric_prefix = "configcache.status."
 
     @staticmethod
     def add_arguments(parser, subparsers):
@@ -78,12 +85,24 @@ class Manager(object):
         self.interval = config["check-interval"]
         self.log = logging.getLogger("zen.configcache.manager")
 
+        # metrics
+        self.ctx.metric_reporter.add_tags({"zenoss_daemon": "manager"})
+        self._metric_collector = _MetricCollector(self.ctx.metric_reporter)
+
     def run(self):
         self.log.info(
             "checking for expired configurations and configuration build "
             "timeouts every %s seconds",
             self.interval,
         )
+        try:
+            self._metric_collector.start()
+            self._main()
+        finally:
+            self._metric_collector.stop()
+            self._metric_collector.join(timeout=5)
+
+    def _main(self):
         while not self.ctx.controller.shutdown:
             try:
                 self.ctx.session.sync()
@@ -239,3 +258,95 @@ class Manager(object):
             count += 1
         if count == 0:
             self.log.debug("found no expired or old configurations to rebuild")
+
+
+class _MetricCollector(PeriodicTask):
+
+    def __init__(self, reporter):
+        super(_MetricCollector, self).__init__(interval=60)
+        self._reporter = reporter
+        self._metrics = _Metrics(reporter)
+        self._store = None
+
+    def task(self):
+        if self._store is None:
+            client = getRedisClient(url=getRedisUrl())
+            self._store = createObject("configcache-store", client)
+        self._collect()
+        self._reporter.save()
+
+    def _collect(self):
+        counts = Counter()
+        ages = defaultdict(list)
+        now = time()
+        for status in self._store.query_statuses():
+            key, uid, ts = attr.astuple(status)
+            ages[type(status)].append(int(now - ts))
+            counts.update([type(status)])
+
+        self._metrics.count.current.mark(counts.get(ConfigStatus.Current, 0))
+        self._metrics.count.retired.mark(counts.get(ConfigStatus.Retired, 0))
+        self._metrics.count.expired.mark(counts.get(ConfigStatus.Expired, 0))
+        self._metrics.count.pending.mark(counts.get(ConfigStatus.Pending, 0))
+        self._metrics.count.building.mark(counts.get(ConfigStatus.Building, 0))
+
+        for age in ages.get(ConfigStatus.Current, []):       
+            self._metrics.age.current.update(age)
+        for age in ages.get(ConfigStatus.Expired, []):       
+            self._metrics.age.retired.update(age)
+        for age in ages.get(ConfigStatus.Retired, []):       
+            self._metrics.age.expired.update(age)
+        for age in ages.get(ConfigStatus.Pending, []):       
+            self._metrics.age.pending.update(age)
+        for age in ages.get(ConfigStatus.Building, []):       
+            self._metrics.age.building.update(age)
+
+
+class StatusCountGauge(Gauge):
+
+    def __init__(self):
+        self._value = 0
+
+    @property
+    def value(self):
+        return self._value
+
+    def mark(self, value):
+        self._value = value
+
+
+class _Metrics(object):
+
+    def __init__(self, reporter):
+        self.count = type(
+            "Count",
+            (object,),
+            {
+                "current": StatusCountGauge(),
+                "retired": StatusCountGauge(),
+                "expired": StatusCountGauge(),
+                "pending": StatusCountGauge(),
+                "building": StatusCountGauge(),
+            },
+        )()
+        reporter.register("count.current", self.count.current)
+        reporter.register("count.retired", self.count.retired)
+        reporter.register("count.expired", self.count.expired)
+        reporter.register("count.pending", self.count.pending)
+        reporter.register("count.building", self.count.building)
+        self.age = type(
+            "Age",
+            (object,),
+            {
+                "current": HistogramExponentiallyDecaying(),
+                "retired": HistogramExponentiallyDecaying(),
+                "expired": HistogramExponentiallyDecaying(),
+                "pending": HistogramExponentiallyDecaying(),
+                "building": HistogramExponentiallyDecaying(),
+            },
+        )()
+        reporter.register("age.current", self.age.current)
+        reporter.register("age.retired", self.age.retired)
+        reporter.register("age.expired", self.age.expired)
+        reporter.register("age.pending", self.age.pending)
+        reporter.register("age.building", self.age.building)

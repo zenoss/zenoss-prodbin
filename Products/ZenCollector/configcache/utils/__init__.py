@@ -9,6 +9,7 @@
 
 from __future__ import absolute_import
 
+from .metrics import MetricReporter
 from .pollers import RelStorageInvalidationPoller
 from .services import getConfigServices
 from .zprops import (
@@ -25,5 +26,6 @@ __all__ = (
     "get_minimum_ttl",
     "get_pending_timeout",
     "get_ttl",
+    "MetricReporter",
     "RelStorageInvalidationPoller",
 )
