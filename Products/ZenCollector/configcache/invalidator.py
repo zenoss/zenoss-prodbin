@@ -139,6 +139,14 @@ class Invalidator(object):
         device = invalidation.device
         reason = invalidation.reason
         monitor = device.getPerformanceServerName()
+        if monitor is None:
+            self.log.warn(
+                "ignoring invalidated device having undefined monitor  "
+                "device=%s  reason=%s",
+                device,
+                reason,
+            )
+            return
         keys = list(
             self.store.search(ConfigQuery(monitor=monitor, device=device.id))
         )
@@ -262,6 +270,13 @@ def _addNew(log, tool, timelimitmap, store, dispatcher):
     ).results
     new_devices = []
     for brain in catalog_results:
+        if brain.collector is None:
+            log.warn(
+                "ignoring device having undefined monitor  device=%s uid=%s",
+                brain.id,
+                brain.uid,
+            )
+            continue
         keys = tuple(
             store.search(ConfigQuery(monitor=brain.collector, device=brain.id))
         )
