@@ -71,6 +71,7 @@ _excluded_properties = (
     Constants.build_timeout_id,
     Constants.pending_timeout_id,
     Constants.time_to_live_id,
+    Constants.minimum_time_to_live_id,
 )
 
 
