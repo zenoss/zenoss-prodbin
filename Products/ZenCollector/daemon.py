@@ -305,8 +305,8 @@ class CollectorDaemon(RRDDaemon):
             yield self._initEncryptionKey()
             yield self._startConfigCycle()
             yield self._startMaintenance()
-            yield self._startTaskStatsLogging()
             yield self._startDeviceConfigLoader()
+            yield self._startTaskStatsLogging()
         except Exception as ex:
             self.log.critical("unrecoverable error: %s", ex)
             self.log.exception("failed during startup")
@@ -362,23 +362,6 @@ class CollectorDaemon(RRDDaemon):
         )
         self._maintenanceCycle.start()
 
-    def _startTaskStatsLogging(self):
-        if not (self.options.cycle and self.options.logTaskStats):
-            return
-        self._taskstatslogger = task.LoopingCall(
-            self._displayStatistics, verbose=True
-        )
-        self._taskstatsloggerd = self._taskstatslogger.start(
-            self.options.logTaskStats, now=False
-        )
-        self.log.debug(
-            "started logging task statistics  interval=%d",
-            self.options.logTaskStats,
-        )
-        reactor.addSystemEventTrigger(
-            "before", "shutdown", self._taskstatslogger.stop, "before"
-        )
-
     def _startDeviceConfigLoader(self):
         self.log.info(
             "running the device config loader every %d seconds",
@@ -395,6 +378,23 @@ class CollectorDaemon(RRDDaemon):
         )
         reactor.addSystemEventTrigger(
             "before", "shutdown", self._deviceloadertask.stop, "before"
+        )
+
+    def _startTaskStatsLogging(self):
+        if not (self.options.cycle and self.options.logTaskStats):
+            return
+        self._taskstatslogger = task.LoopingCall(
+            self._displayStatistics, verbose=True
+        )
+        self._taskstatsloggerd = self._taskstatslogger.start(
+            self.options.logTaskStats, now=False
+        )
+        self.log.debug(
+            "started logging task statistics  interval=%d",
+            self.options.logTaskStats,
+        )
+        reactor.addSystemEventTrigger(
+            "before", "shutdown", self._taskstatslogger.stop, "before"
         )
 
     @defer.inlineCallbacks
