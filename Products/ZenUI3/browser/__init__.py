@@ -91,7 +91,11 @@ class ErrorMessage(BrowserView):
 
     @property
     def isNotFound(self):
-        return self.context.__class__.__name__=='NotFound'
+        return self.context.__class__.__name__ == 'NotFound'
+
+    @property
+    def isUnauthorized(self):
+        return self.context.__class__.__name__ == 'Unauthorized'
 
     @property
     def error_message(self):
