@@ -480,6 +480,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 self.log.info("imported threshold class  class=%s", name)
             except ImportError:
                 self.log.exception("unable to import threshold class %s", name)
+            except AttributeError:
+                self.log.exception("unable to import threshold class %s", name)
 
     def buildOptions(self):
         super(PBDaemon, self).buildOptions()

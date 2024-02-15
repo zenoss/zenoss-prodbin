@@ -174,33 +174,42 @@ class DeviceConfigLoader(object):
         updated = config_data.get("updated", [])
         removed = config_data.get("removed", [])
         try:
-            if self._options.device:
-                configs = [
-                    cfg
-                    for cfg in itertools.chain(new, updated)
-                    if self._options.device in (cfg.id, cfg.configId)
-                ]
-                if not configs:
-                    log.error(
-                        "configuration for %s unavailable -- "
-                        "is that the correct name?",
-                        self._options.device,
-                    )
-                    defer.returnValue(None)
+            try:
+                if self._options.device:
+                    config = self._get_specified_config(new, updated)
+                    if not config:
+                        log.error(
+                            "configuration for %s unavailable -- "
+                            "is that the correct name?",
+                            self._options.device,
+                        )
+                        defer.returnValue(None)
+                    new = [config]
+                    updated = []
+                    removed = []
 
-            if not new and not updated:
-                defer.returnValue(None)
+                yield self._callback(new, updated, removed)
+            finally:
+                self._update_local_cache(new, updated, removed)
+                lengths = (len(new), len(updated), len(removed))
+                logmethod = log.debug if lengths == (0, 0, 0) else log.info
+                logmethod(
+                    "processed %d new, %d updated, and %d removed "
+                    "device configs",
+                    *lengths
+                )
+        except Exception:
+            log.exception("failed to process device configs")
 
-            # self.state = self.STATE_PROCESS_DEVICE_CONFIG
-            yield self._callback(new, updated, removed)
-        finally:
-            self._update_local_cache(new, updated, removed)
-            lengths = (len(new), len(updated), len(removed))
-            logmethod = log.debug if lengths == (0, 0, 0) else log.info
-            logmethod(
-                "processed %d new, %d updated, and %d removed device configs",
-                *lengths
-            )
+    def _get_specified_config(self, new, updated):
+        return next(
+            (
+                cfg
+                for cfg in itertools.chain(new, updated)
+                if self._options.device == cfg.configId
+            ),
+            None
+        )
 
     def _update_local_cache(self, new, updated, removed):
         self._deviceIds.difference_update(removed)
