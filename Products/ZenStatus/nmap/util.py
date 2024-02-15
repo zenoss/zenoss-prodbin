@@ -135,7 +135,7 @@ def executeNmapCmd(
     if log.isEnabledFor(logging.DEBUG):
         log.debug("executing nmap %s", " ".join(args))
     args = ["-n", _NMAP_BINARY] + args
-    log.info("Executing /bin/sudo %s", " ".join(args))
+    log.debug("Executing /bin/sudo %s", " ".join(args))
     out, err, exitCode = yield utils.getProcessOutputAndValue(
         "/bin/sudo", args
     )
