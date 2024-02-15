@@ -11,7 +11,7 @@ from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 from ..frameworkfactory import CoreCollectorFrameworkFactory
 from ..config import ConfigurationProxy
-from ..scheduler import Scheduler
+from ..scheduler import TaskScheduler
 
 
 class TestFactory(BaseTestCase):
@@ -25,7 +25,7 @@ class TestFactory(BaseTestCase):
         self.assertTrue(isinstance(configProxy, ConfigurationProxy))
 
         scheduler = factory.getScheduler()
-        self.assertTrue(isinstance(scheduler, Scheduler))
+        self.assertTrue(isinstance(scheduler, TaskScheduler))
 
 
 def test_suite():
