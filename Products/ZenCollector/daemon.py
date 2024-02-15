@@ -62,15 +62,6 @@ class CollectorDaemon(RRDDaemon):
     _cacheServiceName = "Products.ZenCollector.services.ConfigCache"
     initialServices = RRDDaemon.initialServices + [_cacheServiceName]
 
-    @property
-    def preferences(self):  # type: () -> ICollectorPreferences
-        """The preferences object of this daemon."""
-        return self._prefs
-
-    @property
-    def frameworkFactoryName(self):
-        return self._frameworkFactoryName
-
     def __init__(
         self,
         preferences,
@@ -202,12 +193,19 @@ class CollectorDaemon(RRDDaemon):
         # Flag that indicates the daemon has received the encryption key
         # from zenhub
         self.encryptionKeyInitialized = False
-        # Flag that indicates the daemon is loading the cached configs
-        self.loadingCachedConfigs = False
 
         self._deviceloader = None
         self._deviceloadertask = None
         self._deviceloadertaskd = None
+
+    @property
+    def preferences(self):  # type: () -> ICollectorPreferences
+        """The preferences object of this daemon."""
+        return self._prefs
+
+    @property
+    def frameworkFactoryName(self):
+        return self._frameworkFactoryName
 
     def buildOptions(self):
         super(CollectorDaemon, self).buildOptions()
@@ -331,9 +329,17 @@ class CollectorDaemon(RRDDaemon):
             # TODO: should we not run maintenance if running in
             # non-cycle mode?
             self._scheduler.addTask(configLoader)
-            self.log.info("scheduled task  task=%s", configLoader.name)
+            self.log.info(
+                "scheduled task  name=%s config-id=%s",
+                configLoader.name,
+                configLoader.configId,
+            )
         else:
-            self.log.info("task already scheduled  task=%s", configLoader.name)
+            self.log.info(
+                "task already scheduled  name=%s config-id=%s",
+                configLoader.name,
+                configLoader.configId,
+            )
 
     def _startMaintenance(self):
         if not self.options.cycle:
@@ -642,11 +648,11 @@ class CollectorDaemon(RRDDaemon):
         )
 
     def _deleteDevice(self, deviceId):
-        self.log.debug("deleted device  device-id=%s", deviceId)
         self._configListener.deleted(deviceId)
         self._scheduler.removeTasksForConfig(deviceId)
         self._deviceGuids.pop(deviceId, None)
         self._devices.discard(deviceId)
+        self.log.info("removed device config  device-id=%s", deviceId)
 
     def _updateConfig(self, cfg):
         """
@@ -670,7 +676,7 @@ class CollectorDaemon(RRDDaemon):
             return False
 
         configId = cfg.configId
-        self.log.info("processing device config  config-id=%s", configId)
+        self.log.debug("processing device config  config-id=%s", configId)
 
         guid = getattr(cfg, "_device_guid", None)
         if guid is not None:
@@ -712,7 +718,11 @@ class CollectorDaemon(RRDDaemon):
             try:
                 self._scheduler.addTask(task_, self._taskCompleteCallback, now)
             except ValueError:
-                self.log.exception("failed to schedule task  task=%r", task_)
+                self.log.exception(
+                    "failed to schedule task  name=%s config-id=%s",
+                    task_.name,
+                    task_.configId,
+                )
                 continue
 
             # TODO: another hack?
@@ -725,7 +735,8 @@ class CollectorDaemon(RRDDaemon):
                     self.log.exception(
                         "failed to update thresholds "
                         "config-id=%s thresholds=%r",
-                        configId, cfg.thresholds,
+                        configId,
+                        cfg.thresholds,
                     )
 
             # if we're not running a normal daemon cycle then keep track of the
@@ -739,6 +750,10 @@ class CollectorDaemon(RRDDaemon):
         if configId in self._unresponsiveDevices:
             self.log.debug("pausing tasks for device %s", configId)
             self._scheduler.pauseTasksForConfig(configId)
+
+        self.log.debug(
+            "processed new/updated device config  config-id=%s", configId
+        )
 
         return True
 
