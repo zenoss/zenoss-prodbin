@@ -15,16 +15,25 @@ import json
 import jwt
 from jwt.algorithms import RSAAlgorithm
 import time
+import mock
 
 import unittest
-from Products.ZenUtils.Auth0 import Auth0, getAuth0Conf
-
+from Products.ZenUtils.Auth0 import Auth0
 import logging
-log = logging.getLogger("ZenUtils.tests.txns")
+log = logging.getLogger("ZenUtils.tests.Auth0")
 log.setLevel(logging.DEBUG)
 
+test_conf ={
+    'audience': 'https://dev.zing.ninja',
+    'tenantkey': 'https://dev.zing.ninja/tenant',
+    'whitelist': ['test'],
+    'tenant': 'https://zenoss-cloud-preview.auth0.com/',
+    'emailkey': 'https://dev.zing.ninja/email'
+}
 
-conf = getAuth0Conf()
+
+with mock.patch('Products.ZenUtils.Auth0.getAuth0Conf', return_value=test_conf) as mock_getAuth0Conf:
+    conf = mock_getAuth0Conf()
 
 now = int(time.time())
 kid = "bilbo.baggins@hobbiton.example"
@@ -35,7 +44,7 @@ jwt_claims = {
      u'https://dev.zing.ninja/connection': u'zenoss-com',
      u'https://dev.zing.ninja/email': u'testuser@zenoss.com',
      u'https://dev.zing.ninja/restrictionfilters': base64.b64encode('{"filters":[]}'),
-     u'https://dev.zing.ninja/tenant': u'qapreview',
+     u'https://dev.zing.ninja/tenant': u'test',
      u'https://zenoss.com/groups': [u'Group 1', u'Group 2'],
      u'https://zenoss.com/roles': [u'CZ0:ZenManager', u'ZC:Manager'],
      u'iat': now,
@@ -116,7 +125,8 @@ class TestAuth0(unittest.TestCase):
         self.assertEqual(sessionInfo.userid, jwt_claims[u'https://dev.zing.ninja/email'])
         self.assertEqual(sessionInfo.roles, self.auth0.getRoleAssignments(jwt_claims[u'https://zenoss.com/roles']))
 
-    def test_challenge(self):
+    @mock.patch('Products.ZenUtils.Auth0.getAuth0Conf', return_value=test_conf)
+    def  test_challenge(self, mock_getGlobalConfiguration):
         # User with no valid access token must be redirected back to auth0 to obtain one.
         self.request.attrs = {"RESPONSE": self.response}
         result = self.auth0.challenge(self.request, self.response)
