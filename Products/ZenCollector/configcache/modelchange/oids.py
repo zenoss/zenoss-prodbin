@@ -87,9 +87,15 @@ class DataPointToDevice(BaseTransform):
     """Return the device OIDs associated with an RRDDataPoint."""
 
     def transformOid(self, oid):
-        ds = self._entity.datasource().primaryAq()
-        template = ds.rrdTemplate().primaryAq()
-        dc = template.deviceClass().primaryAq()
+        ds = _getDataSource(self._entity)
+        if not ds:
+            return ()
+        template = _getTemplate(ds.primaryAq())
+        if not template:
+            return ()
+        dc = _getDeviceClass(template)
+        if not dc:
+            return ()
         log.debug(
             "[DataPointToDevice] return OIDs of devices associated "
             "with DataPoint  entity=%s ",
@@ -103,11 +109,15 @@ class DataSourceToDevice(BaseTransform):
     """Return the device OIDs associated with an RRDDataSource."""
 
     def transformOid(self, oid):
-        template = self._entity.rrdTemplate().primaryAq()
-        dc = template.deviceClass().primaryAq()
+        template = _getTemplate(self._entity)
+        if not template:
+            return ()
+        dc = _getDeviceClass(template)
+        if not dc:
+            return ()
         log.debug(
             "[DataSourceToDevice] return OIDs of devices associated "
-            "with DataSource  entity=%s ",
+            "with DataSource  entity=%s",
             self._entity,
         )
         return _getDevicesFromDeviceClass(dc)
@@ -118,7 +128,9 @@ class TemplateToDevice(BaseTransform):
     """Return the device OIDs associated with an RRDTemplate."""
 
     def transformOid(self, oid):
-        dc = self._entity.deviceClass().primaryAq()
+        dc = _getDeviceClass(self._entity)
+        if not dc:
+            return ()
         log.debug(
             "[TemplateToDevice] return OIDs of devices associated "
             "with RRDTemplate  entity=%s ",
@@ -138,6 +150,33 @@ class DeviceClassToDevice(BaseTransform):
             self._entity,
         )
         return _getDevicesFromDeviceClass(self._entity)
+
+
+def _getDataSource(dp):
+    ds = dp.datasource()
+    if ds is None:
+        if log.isEnabledFor(logging.DEBUG):
+            log.warn("no datasource relationship  datapoint=%s", dp)
+        return None
+    return ds.primaryAq()
+
+
+def _getTemplate(ds):
+    template = ds.rrdTemplate()
+    if template is None:
+        if log.isEnabledFor(logging.DEBUG):
+            log.warn("no template relationship  datasource=%s", ds)
+        return None
+    return template.primaryAq()
+
+
+def _getDeviceClass(template):
+    dc = template.deviceClass()
+    if dc is None:
+        if log.isEnabledFor(logging.DEBUG):
+            log.warn("no device class relationship  template=%s", template)
+        return None
+    return dc.primaryAq()
 
 
 def _getDevicesFromDeviceClass(dc):
