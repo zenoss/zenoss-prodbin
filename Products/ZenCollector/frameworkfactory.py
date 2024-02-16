@@ -12,7 +12,7 @@ from zope.interface import implementer
 
 from .config import ConfigurationLoaderTask, ConfigurationProxy
 from .interfaces import IFrameworkFactory, ICollectorPreferences
-from .scheduler import Scheduler
+from .scheduler import TaskScheduler
 
 
 @implementer(IFrameworkFactory)
@@ -29,7 +29,7 @@ class CoreCollectorFrameworkFactory(object):
 
     def getScheduler(self):
         if self.__scheduler is None:
-            self.__scheduler = Scheduler()
+            self.__scheduler = TaskScheduler.make()
         return self.__scheduler
 
     def getConfigurationLoaderTask(self):
