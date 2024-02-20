@@ -19,11 +19,14 @@ import mock
 
 import unittest
 from Products.ZenUtils.Auth0 import Auth0
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Products.ZenUtils.virtual_root import register_cse_virtual_root
+
 import logging
 log = logging.getLogger("ZenUtils.tests.Auth0")
 log.setLevel(logging.DEBUG)
 
-test_conf ={
+test_conf = {
     'audience': 'https://dev.zing.ninja',
     'tenantkey': 'https://dev.zing.ninja/tenant',
     'whitelist': ['test'],
@@ -110,11 +113,13 @@ class MockResponse:
         self.status = status_code
 
 
-class TestAuth0(unittest.TestCase):
+class TestAuth0(BaseTestCase):
 
     def setUp(self):
+        register_cse_virtual_root()
         self.request = MockRequest()
         self.response = MockResponse()
+        self.request.attrs = {"RESPONSE": self.response}
         self.auth0 = Auth0("test", "test")
         self.auth0.cache["keys"] = {kid: jwk_public_key_rsa}
         self.accessToken = jwt.encode(jwt_claims, jwk_private_key_rsa, headers=jwt_headers, algorithm="RS256")
@@ -125,14 +130,24 @@ class TestAuth0(unittest.TestCase):
         self.assertEqual(sessionInfo.userid, jwt_claims[u'https://dev.zing.ninja/email'])
         self.assertEqual(sessionInfo.roles, self.auth0.getRoleAssignments(jwt_claims[u'https://zenoss.com/roles']))
 
+    @mock.patch('Products.ZenUtils.Auth0.getRoleAssignments', return_value=["ZenManager"])
     @mock.patch('Products.ZenUtils.Auth0.getAuth0Conf', return_value=test_conf)
-    def  test_challenge(self, mock_getGlobalConfiguration):
+    def test_challenge(self, mock_getRoleAssignments, mock_getGlobalConfiguration):
         # User with no valid access token must be redirected back to auth0 to obtain one.
-        self.request.attrs = {"RESPONSE": self.response}
         result = self.auth0.challenge(self.request, self.response)
         self.assertTrue(result)
         self.assertEqual(self.response.redirect_url, "/czlogin.html?redirect=aHR0cHM6Ly90ZXN0Lnplbm9zcy5pby9jejAvenBvcnQvZG1kL2l0aW5mcmFzdHJ1Y3R1cmU=")
 
+        # User has a valid access token, and has access to this CZ,
+        # but apparently didn't have access to this specific
+        # resource must see Unauthorized error handled by Zope
+        self.request.cookies = {"accessToken": self.accessToken}
+        result = self.auth0.challenge(self.request, self.response)
+        self.assertTrue(result)
+        self.assertEqual(self.request.response.status, 401)
+
+    @mock.patch('Products.ZenUtils.Auth0.getAuth0Conf', return_value=test_conf)
+    def test_challenge_no_role(self, mock_getGlobalConfiguration):
         # User with no CZ role must be redirected to the Zenoss Cloud UI
         no_role_jwt_claims = copy.deepcopy(jwt_claims)
         no_role_jwt_claims[u'https://zenoss.com/roles'] = []
@@ -141,17 +156,6 @@ class TestAuth0(unittest.TestCase):
         result = self.auth0.challenge(self.request, self.response)
         self.assertTrue(result)
         self.assertEqual(self.response.redirect_url, "/#/?errcode=1")
-
-        # User has a valid access token, and has access to this CZ,
-        # but apparently didn't have access to this specific
-        # resource must see Unauthorized error handled by Zope
-        self.request = MockRequest()
-        self.request.attrs = {"RESPONSE": self.response}
-
-        self.request.cookies = {"accessToken": self.accessToken}
-        result = self.auth0.challenge(self.request, self.response)
-        self.assertTrue(result)
-        self.assertEqual(self.request.response.status, 401)
 
 
 def test_suite():
