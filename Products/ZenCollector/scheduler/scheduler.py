@@ -332,7 +332,7 @@ class TaskScheduler(object):
         Remove tasks
         """
         if not isinstance(taskNames, Sequence):
-            raise ValueError("argument is not a sequence")
+            taskNames = tuple(taskNames)
 
         doomedTasks = []
         # child ids are any task that are children of the current task being

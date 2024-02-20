@@ -691,7 +691,9 @@ class CollectorDaemon(RRDDaemon):
                 )
                 for taskToRemove in tasksToRemove
             }
-            self._scheduler.removeTasks(task.name for task in tasksToRemove)
+            self._scheduler.removeTasks(
+                tuple(task.name for task in tasksToRemove)
+            )
             self._configListener.updated(cfg)
         else:
             self._devices.add(configId)
