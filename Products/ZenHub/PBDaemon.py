@@ -414,7 +414,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.__eventclient.start()
         self.__recordQueuedEventsCountLoop.start(2.0, now=False)
         self.__eventclient.sendEvent(self.startEvent)
-        self.log.debug("started event client")
+        self.log.info("started event client")
 
     def _setup_stats_recording(self):
         loop = task.LoopingCall(self.postStatistics)
@@ -433,7 +433,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         reactor.addSystemEventTrigger(
             "before", "shutdown", self._metrologyReporter.stop
         )
-        self.log.debug("started statistics recording task")
+        self.log.info("started statistics recording task")
 
     def postStatisticsImpl(self):
         pass
