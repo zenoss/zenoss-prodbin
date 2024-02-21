@@ -10,19 +10,25 @@
 from __future__ import absolute_import, print_function
 
 import argparse
-import pprint
+import os
 import sys
 
 from datetime import datetime
 
+import six
+
+from IPython.lib import pretty
+from twisted.spread.jelly import unjellyableRegistry
 from zope.component import createObject
 
 import Products.ZenCollector.configcache as CONFIGCACHE_MODULE
 
+from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
+from Products.ZenUtils.terminal_size import get_terminal_size
 
 from .app import initialize_environment
-from .cache import ConfigKey, ConfigQuery, ConfigStatus
+from .cache import ConfigQuery, ConfigStatus
 from .misc.args import get_subparser
 
 
@@ -59,9 +65,10 @@ class List_(object):
         subp.set_defaults(factory=List_)
 
     def __init__(self, args):
-        self._monitor = args.monitor
-        self._service = args.service
+        self._monitor = "*{}*".format(args.monitor).replace("***", "*")
+        self._service = "*{}*".format(args.service).replace("***", "*")
         self._showuid = args.show_uid
+        self._devices = getattr(args, "device", [])
         state_names = getattr(args, "states", ())
         if state_names:
             states = set()
@@ -72,10 +79,24 @@ class List_(object):
             self._states = ()
 
     def run(self):
+        haswildcard = any("*" in d for d in self._devices)
+        if haswildcard and len(self._devices) > 1:
+            print(
+                "Only one DEVICE argument supported when a wildcard is used.",
+                file=sys.stderr,
+            )
+            return
         initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
         store = createObject("configcache-store", client)
-        query = ConfigQuery(service=self._service, monitor=self._monitor)
+        if haswildcard:
+            query = ConfigQuery(
+                service=self._service,
+                monitor=self._monitor,
+                device=self._devices[0],
+            )
+        else:
+            query = ConfigQuery(service=self._service, monitor=self._monitor)
         results = store.get_status(*store.search(query))
         if self._states:
             results = (
@@ -85,8 +106,12 @@ class List_(object):
             )
         rows = []
         maxd, maxs, maxm = 0, 0, 0
+        if len(self._devices) > 0:
+            data = (key for key in results if key[0].device in self._devices)
+        else:
+            data = results
         for key, status in sorted(
-            results, key=lambda x: (x[0].device, x[0].service)
+            data, key=lambda x: (x[0].device, x[0].service)
         ):
             if self._showuid:
                 uid = store.get_uid(key.device)
@@ -162,7 +187,15 @@ class Show(object):
 
     @staticmethod
     def add_arguments(parser, subparsers):
-        subp = get_subparser(subparsers, "show", "Show a configuration")
+        subp = get_subparser(subparsers, "show", Show.description)
+        termsize = get_terminal_size()
+        subp.add_argument(
+            "--width",
+            type=int,
+            default=termsize.columns,
+            help="Maxiumum number of columns to use in the output. "
+            "By default, this is the width of the terminal",
+        )
         subp.add_argument(
             "service", nargs=1, help="name of the configuration service"
         )
@@ -176,19 +209,82 @@ class Show(object):
         self._monitor = args.monitor[0]
         self._service = args.service[0]
         self._device = args.device[0]
+        if _is_output_redirected():
+            # when stdout is redirected, default to 79 columns unless
+            # the --width option has a non-default value.
+            termsize = get_terminal_size()
+            if args.width != termsize.columns:
+                self._columns = args.width
+            else:
+                self._columns = 79
+        else:
+            self._columns = args.width
+
+
 
     def run(self):
         initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
         store = createObject("configcache-store", client)
-        key = ConfigKey(
-            service=self._service, monitor=self._monitor, device=self._device
+        results, err = _query_cache(
+            store,
+            service="*{}*".format(self._service),
+            monitor="*{}*".format(self._monitor),
+            device="*{}*".format(self._device),
         )
-        results = store.get(key)
         if results:
-            pprint.pprint(results.config.__dict__)
+            for cls in set(unjellyableRegistry.values()):
+                if cls is DeviceProxy:
+                    pretty.for_type(cls, _pp_DeviceProxy)
+                else:
+                    pretty.for_type(cls, _pp_default)
+            pretty.pprint(results.config, max_width=self._columns)
         else:
-            print("configuration not found", file=sys.stderr)
+            print(err, file=sys.stderr)
+
+
+def _query_cache(store, service, monitor, device):
+    query = ConfigQuery(service=service, monitor=monitor, device=device)
+    results = store.search(query)
+    first_key = next(results, None)
+    if first_key is None:
+        return (None, "configuration not found")
+    second_key = next(results, None)
+    if second_key is not None:
+        return (None, "more than one configuration matched arguments")
+    return (store.get(first_key), None)
+
+
+def _pp_DeviceProxy(obj, p, cycle):
+    _printer(
+        obj,
+        p,
+        cycle,
+        lambda k, v: v if "password" not in k.lower() else "******",
+    )
+
+
+def _pp_default(obj, p, cycle):
+    _printer(obj, p, cycle, lambda k, v: v)
+
+
+def _printer(obj, p, cycle, vprint):
+    clsname = obj.__class__.__name__
+    if cycle:
+        p.text("<{}: ...>".format(clsname))
+    else:
+        with p.group(2, "<{}: ".format(clsname), ">"):
+            attrs = (
+                (k, v)
+                for k, v in sorted(obj.__dict__.items(), key=lambda x: x[0])
+                if v not in (None, "", {}, [])
+            )
+            for idx, (k, v) in enumerate(attrs):
+                if idx:
+                    p.text(",")
+                    p.breakable()
+                p.text("{}=".format(k))
+                p.pretty(vprint(k, v))
 
 
 class Expire(object):
@@ -208,8 +304,8 @@ class Expire(object):
         subp.set_defaults(factory=Expire)
 
     def __init__(self, args):
-        self._monitor = args.monitor
-        self._service = args.service
+        self._monitor = "*{}*".format(args.monitor).replace("***", "*")
+        self._service = "*{}*".format(args.service).replace("***", "*")
         self._devices = getattr(args, "device", [])
 
     def run(self):
@@ -298,7 +394,9 @@ class Expire(object):
 def _confirm(mesg):
     response = None
     while response not in ["y", "n", ""]:
-        response = raw_input("%s. Are you sure (y/N)? " % (mesg,)).lower()
+        response = six.moves.input(
+            "%s. Are you sure (y/N)? " % (mesg,)
+        ).lower()
     return response == "y"
 
 
@@ -323,7 +421,7 @@ class MultiChoice(argparse.Action):
         return value
 
     def __call__(self, parser, namespace, values=None, option_string=None):
-        if isinstance(values, basestring):
+        if isinstance(values, six.string_types):
             values = (values,)
         setattr(namespace, self.dest, values)
 
@@ -340,6 +438,10 @@ class _ChoicesChecker(object):
 
     def __iter__(self):
         return iter(self._choices)
+
+
+def _is_output_redirected():
+    return os.fstat(0) != os.fstat(1)
 
 
 _common_parser = None
