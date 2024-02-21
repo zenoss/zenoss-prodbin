@@ -82,4 +82,10 @@ License.zenoss under the directory where your Zenoss product is installed.
       for="Products.ZenModel.DeviceClass.DeviceClass"
       />
 
+   <subscriber
+      factory=".modelchange.oids.ThresholdToDevice"
+      provides="Products.ZenHub.interfaces.IInvalidationOid"
+      for="Products.ZenModel.ThresholdClass.ThresholdClass"
+      />
+
 </configure>
