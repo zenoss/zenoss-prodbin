@@ -172,9 +172,9 @@ class CollectorDaemon(RRDDaemon):
             self._completedTasks = 0
             self._pendingTasks = []
 
-        self._configProxy = None
-        self._ConfigurationLoaderTask = None
         framework = _getFramework(self.frameworkFactoryName)
+        self._configProxy = framework.getConfigurationProxy()
+
         self._scheduler = framework.getScheduler()
         self._scheduler.maxTasks = self.options.maxTasks
 
@@ -304,8 +304,7 @@ class CollectorDaemon(RRDDaemon):
         try:
             yield defer.maybeDeferred(self._getInitializationCallback())
             framework = _getFramework(self.frameworkFactoryName)
-            self.log.debug("using framework factory %s", type(framework))
-            self._configProxy = framework.getConfigurationProxy()
+            self.log.debug("using framework factory %r", framework)
             yield self._initEncryptionKey()
             yield self._startConfigCycle()
             yield self._startMaintenance()
@@ -344,9 +343,12 @@ class CollectorDaemon(RRDDaemon):
             # non-cycle mode?
             self._scheduler.addTask(configLoader)
             self.log.info(
-                "scheduled task  name=%s config-id=%s",
+                "scheduled task  "
+                "name=%s config-id=%s interval=%s start-delay=%s",
                 configLoader.name,
                 configLoader.configId,
+                getattr(configLoader, "interval", "n/a"),
+                configLoader.startDelay,
             )
         else:
             self.log.info(

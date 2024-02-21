@@ -126,11 +126,12 @@ class TaskScheduler(object):
         # just in case someone does not implement scheduled, lets be careful
         scheduled = getattr(newTask, "scheduled", lambda x: None)
         scheduled(self)
-        log.info(
-            "added new task  name=%s config-id=%s interval=%s",
+        log.debug(
+            "added new task  name=%s config-id=%s interval=%s start-delay=%s",
             newTask.name,
             newTask.configId,
             newTask.interval,
+            startDelay,
         )
 
     def shutdown(self, phase):
@@ -201,14 +202,14 @@ class TaskScheduler(object):
             delayed = delayed + delay
             if attempts > TaskScheduler.ATTEMPTS:
                 del self._tasksToCleanup[task.name]
-                log.info(
+                log.warn(
                     "exceeded max start attempts  name=%s config-id=%s",
                     task.name,
                     task.configId,
                 )
                 attempts = 0
             attempts += 1
-            log.info(
+            log.debug(
                 "waiting for cleanup  name=%s config-id=%s "
                 "current-delay=%s delayed-so-far=%s attempts=%s",
                 task.name,
@@ -221,7 +222,7 @@ class TaskScheduler(object):
         else:
             d = loopingCall.start(task.interval)
             d.addBoth(self._ltCallback, task.name)
-            log.info(
+            log.debug(
                 "started task  name=%s config-id=%s interval=%s "
                 "delayed=%s attempts=%s",
                 task.name,
@@ -236,8 +237,7 @@ class TaskScheduler(object):
         the looping will stop - shouldn't be called since CallableTask
         doesn't return a deferred, here for sanity and debug"""
         if task_name in self._loopingCalls:
-            loopingCall = self._loopingCalls[task_name]
-            log.debug("call finished %s : %s", loopingCall, result)
+            log.debug("task finished  name=%s result=%s", task_name, result)
         if isinstance(result, Failure):
             log.warn(
                 "Failure in looping call, will not reschedule %s", task_name
@@ -349,7 +349,6 @@ class TaskScheduler(object):
                 log.debug(
                     "stopped task  name=%s config-id=%s", name, task.configId
                 )
-
             doomedTasks.append(name)
             self.taskRemoved(taskWrapper)
 
@@ -360,7 +359,7 @@ class TaskScheduler(object):
             del self._tasks[taskName]
             self._displayTaskStatistics(task)
             del self._taskStats[taskName]
-            log.info(
+            log.debug(
                 "removed task  name=%s config-id=%s", task.name, task.configId
             )
 
