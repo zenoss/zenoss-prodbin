@@ -172,9 +172,9 @@ class CollectorDaemon(RRDDaemon):
             self._completedTasks = 0
             self._pendingTasks = []
 
-        self._configProxy = None
-        self._ConfigurationLoaderTask = None
         framework = _getFramework(self.frameworkFactoryName)
+        self._configProxy = framework.getConfigurationProxy()
+
         self._scheduler = framework.getScheduler()
         self._scheduler.maxTasks = self.options.maxTasks
 
@@ -202,7 +202,13 @@ class CollectorDaemon(RRDDaemon):
         # from zenhub
         self.encryptionKeyInitialized = False
 
-        self._deviceloader = None
+        # Define _deviceloader to avoid race condition
+        # with task stats recording.
+        self._deviceloader = DeviceConfigLoader(
+            self.options,
+            self._configProxy,
+            self._deviceConfigCallback,
+        )
         self._deviceloadertask = None
         self._deviceloadertaskd = None
 
@@ -298,8 +304,7 @@ class CollectorDaemon(RRDDaemon):
         try:
             yield defer.maybeDeferred(self._getInitializationCallback())
             framework = _getFramework(self.frameworkFactoryName)
-            self.log.debug("using framework factory %s", type(framework))
-            self._configProxy = framework.getConfigurationProxy()
+            self.log.debug("using framework factory %r", framework)
             yield self._initEncryptionKey()
             yield self._startConfigCycle()
             yield self._startMaintenance()
@@ -338,9 +343,12 @@ class CollectorDaemon(RRDDaemon):
             # non-cycle mode?
             self._scheduler.addTask(configLoader)
             self.log.info(
-                "scheduled task  name=%s config-id=%s",
+                "scheduled task  "
+                "name=%s config-id=%s interval=%s start-delay=%s",
                 configLoader.name,
                 configLoader.configId,
+                getattr(configLoader, "interval", "n/a"),
+                configLoader.startDelay,
             )
         else:
             self.log.info(
@@ -369,21 +377,16 @@ class CollectorDaemon(RRDDaemon):
         self._maintenanceCycle.start()
 
     def _startDeviceConfigLoader(self):
-        self.log.info(
-            "running the device config loader every %d seconds",
-            self._device_config_update_interval,
-        )
-        self._deviceloader = DeviceConfigLoader(
-            self.options,
-            self._configProxy,
-            self._deviceConfigCallback,
-        )
         self._deviceloadertask = task.LoopingCall(self._deviceloader)
         self._deviceloadertaskd = self._deviceloadertask.start(
             self._device_config_update_interval
         )
         reactor.addSystemEventTrigger(
             "before", "shutdown", self._deviceloadertask.stop, "before"
+        )
+        self.log.info(
+            "started receiving device config changes  interval=%d",
+            self._device_config_update_interval,
         )
 
     def _startTaskStatsLogging(self):
@@ -395,12 +398,12 @@ class CollectorDaemon(RRDDaemon):
         self._taskstatsloggerd = self._taskstatslogger.start(
             self.options.logTaskStats, now=False
         )
-        self.log.debug(
-            "started logging task statistics  interval=%d",
-            self.options.logTaskStats,
-        )
         reactor.addSystemEventTrigger(
             "before", "shutdown", self._taskstatslogger.stop, "before"
+        )
+        self.log.info(
+            "started logging task statistics  interval=%d",
+            self.options.logTaskStats,
         )
 
     @defer.inlineCallbacks
@@ -705,7 +708,9 @@ class CollectorDaemon(RRDDaemon):
                 )
                 for taskToRemove in tasksToRemove
             }
-            self._scheduler.removeTasks(task.name for task in tasksToRemove)
+            self._scheduler.removeTasks(
+                tuple(task.name for task in tasksToRemove)
+            )
             self._configListener.updated(cfg)
         else:
             self._devices.add(configId)
