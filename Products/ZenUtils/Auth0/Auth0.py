@@ -55,32 +55,6 @@ _AUTH0_CONFIG = {
 }
 
 
-def getAuth0Conf():
-    """Return a dictionary containing Auth0 configuration or None"""
-    global _AUTH0_CONFIG
-    if _AUTH0_CONFIG is not None and not all(_AUTH0_CONFIG.values()):
-        d = {}
-        config = getGlobalConfiguration()
-        for k in _AUTH0_CONFIG:
-            d[k] = config.get("auth0-" + k)
-        if not all(d.values()) and any(d.values()):
-            raise Exception(
-                "Auth0 config is missing values. Expecting: %s"
-                % ", ".join(
-                    ["auth0-%s" % value for value in _AUTH0_CONFIG.keys()]
-                )
-            )
-        _AUTH0_CONFIG = d if all(d.values()) else None
-        # Whitelist is a comma separated array of strings
-        if _AUTH0_CONFIG and _AUTH0_CONFIG["whitelist"]:
-            _AUTH0_CONFIG["whitelist"] = [
-                s.strip()
-                for s in _AUTH0_CONFIG["whitelist"].split(",")
-                if s.strip() != ""
-            ]
-    return _AUTH0_CONFIG or None
-
-
 def get_ip(request):
     if "HTTP_X_FORWARDED_FOR" in request.environ:
         # Virtual host
@@ -144,6 +118,33 @@ class Auth0(BasePlugin):
         self._id = self.id = id
         self.title = title
         self.version = PLUGIN_VERSION
+
+    @staticmethod
+    def getAuth0Conf():
+        """Return a dictionary containing Auth0 configuration or None"""
+        global _AUTH0_CONFIG
+        if _AUTH0_CONFIG is not None and not all(_AUTH0_CONFIG.values()):
+
+            d = {}
+            config = getGlobalConfiguration()
+            for k in _AUTH0_CONFIG:
+                d[k] = config.get("auth0-" + k)
+            if not all(d.values()) and any(d.values()):
+                raise Exception(
+                    "Auth0 config is missing values. Expecting: %s"
+                    % ", ".join(
+                        ["auth0-%s" % value for value in _AUTH0_CONFIG.keys()]
+                    )
+                )
+            _AUTH0_CONFIG = d if all(d.values()) else None
+            # Whitelist is a comma separated array of strings
+            if _AUTH0_CONFIG and _AUTH0_CONFIG["whitelist"]:
+                _AUTH0_CONFIG["whitelist"] = [
+                    s.strip()
+                    for s in _AUTH0_CONFIG["whitelist"].split(",")
+                    if s.strip() != ""
+                ]
+        return _AUTH0_CONFIG or None
 
     @staticmethod
     def _getKey(key_id, conf):
@@ -231,7 +232,7 @@ class Auth0(BasePlugin):
             )
 
             # Make sure we have an auth0 conf
-            conf = conf or getAuth0Conf()
+            conf = conf or Auth0.getAuth0Conf()
             if not conf:
                 log.warn(
                     "Incomplete Auth0 config in GlobalConfig - "
@@ -309,7 +310,7 @@ class Auth0(BasePlugin):
         request.SESSION.clear()
         response.expireCookie(Auth0.zc_token_key)
         response.expireCookie(Auth0.zc_token_exp_key)
-        conf = getAuth0Conf()
+        conf = Auth0.getAuth0Conf()
         if conf:
             log.info("Redirecting user to Auth0 logout: %s", conf)
             response.redirect("/logout.html")
@@ -321,7 +322,7 @@ class Auth0(BasePlugin):
         A successful extraction will return a dict with the 'auth0_userid'
         field containing the userid.
         """
-        conf = getAuth0Conf()
+        conf = Auth0.getAuth0Conf()
         if not conf:
             log.debug(
                 "Incomplete Auth0 config in GlobalConfig - "
@@ -406,7 +407,7 @@ class Auth0(BasePlugin):
         """challenge satisfies the PluggableAuthService
         IChallengePlugin interface.
         """
-        conf = getAuth0Conf()
+        conf = Auth0.getAuth0Conf()
         if not conf or not all(conf.values()):
             log.debug(
                 "Incomplete Auth0 config in GlobalConfig - "
@@ -491,6 +492,10 @@ class Auth0(BasePlugin):
         if email_pattern.match(userid):
             return {"email": userid}
         return {}
+
+
+def getAuth0Conf():
+    Auth0.getAuth0Conf()
 
 
 classImplements(
