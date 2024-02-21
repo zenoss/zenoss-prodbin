@@ -10,6 +10,11 @@
 from __future__ import absolute_import
 
 from .scheduler import Scheduler, TaskScheduler
+from .task import CallableTaskFactory, CallableTask
 
-
-__all__ = ("Scheduler", "TaskScheduler")
+__all__ = (
+    "Scheduler",
+    "TaskScheduler",
+    "CallableTaskFactory",
+    "CallableTask"
+)
