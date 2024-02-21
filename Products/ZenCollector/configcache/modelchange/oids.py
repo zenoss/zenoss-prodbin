@@ -16,6 +16,7 @@ from zExceptions import NotFound
 from zope.interface import implementer
 
 from Products.ZenHub.interfaces import IInvalidationOid
+from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenRelations.RelationshipBase import IRelationship
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
@@ -150,6 +151,22 @@ class DeviceClassToDevice(BaseTransform):
             self._entity,
         )
         return _getDevicesFromDeviceClass(self._entity)
+
+
+@implementer(IInvalidationOid)
+class ThresholdToDevice(BaseTransform):
+    """Return the device OIDs in the DeviceClass hierarchy."""
+
+    def transformOid(self, oid):
+        log.debug(
+            "[ThresholdToDevice] return OIDs of devices associated "
+            "with Threshold  entity=%s ",
+            self._entity,
+        )
+        obj = self._entity
+        while not isinstance(obj, DeviceClass):
+            obj = obj.getParentNode()
+        return _getDevicesFromDeviceClass(obj)
 
 
 def _getDataSource(dp):
