@@ -191,6 +191,7 @@ class PBDaemonTest(TestCase):
             "_getZenHubClient",
             "EventClient",
             "EventQueueManager",
+            "LocalServer",
             "MetricWriter",
             "publisher",
             "reactor",
@@ -378,6 +379,7 @@ class PBDaemonTest(TestCase):
         t.pbd.connect = create_autospec(t.pbd.connect)
         t.pbd._customexitcode = 99
         t.pbd.options = Mock(name="options", cycle=True)
+        t.pbd._PBDaemon__server = Mock()
         host = "localhost"
         port = 9999
         t.pbd.options.redisUrl = "http://{}:{}".format(host, port)
