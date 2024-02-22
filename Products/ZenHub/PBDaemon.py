@@ -139,19 +139,25 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.__record_queued_events_count
         )
 
-        self.__server = _getLocalServer(self.options)
-        self.__server.add_resource(
-            "zenhub",
-            ZenHubStatus(
-                lambda: "connected"
-                if self.__zenhub_connected
-                else "disconnected"
-            ),
-        )
+        if self.options.cycle:
+            self.__server = _getLocalServer(self.options)
+            self.__server.add_resource(
+                "zenhub",
+                ZenHubStatus(
+                    lambda: (
+                        "connected"
+                        if self.__zenhub_connected
+                        else "disconnected"
+                    )
+                ),
+            )
+        else:
+            self.__server = None
+
+        self.__zenhub_connected = False
         self.__zhclient.notifyOnConnect(
             lambda: self._set_zenhub_connected(True)
         )
-        self.__zenhub_connected = False
 
     def _set_zenhub_connected(self, state):
         self.__zenhub_connected = state
@@ -316,8 +322,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.derivativeTracker(),
         )
 
-        self.__server.start()
-        reactor.addSystemEventTrigger("before", "shutdown", self.__server.stop)
+        if self.options.cycle:
+            self.__server.start()
+            reactor.addSystemEventTrigger(
+                "before", "shutdown", self.__server.stop
+            )
 
         reactor.addSystemEventTrigger(
             "after",
