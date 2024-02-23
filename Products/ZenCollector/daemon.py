@@ -153,7 +153,6 @@ class CollectorDaemon(RRDDaemon):
             self._device_config_update_interval = 300
 
         self._deviceGuids = {}
-        self._devices = set()  # deprecated; kept for vSphere ZP compatibility
         self._unresponsiveDevices = set()
         self._rrd = None
         self.reconfigureTimeout = None
@@ -183,7 +182,10 @@ class CollectorDaemon(RRDDaemon):
 
         # Let the configuration do any additional startup it might need
         self.preferences.postStartup()
-        self.addedPostStartupTasks = False
+
+        # Set flag to limit what actions are run after the first run
+        # of the config loader task.
+        self.__first_config_task_run = True
 
         # Variables used by enterprise collector in resmgr
         #
@@ -196,24 +198,27 @@ class CollectorDaemon(RRDDaemon):
 
         # Define _deviceloader to avoid race condition
         # with task stats recording.
-        self._deviceloader = DeviceConfigLoader(
-            self.options,
-            self._configProxy,
-            self._deviceConfigCallback,
-        )
+        if self.options.device:
+            callback = self._singleDeviceConfigCallback
+        else:
+            callback = self._manyDeviceConfigCallback
+        self._deviceloader = DeviceConfigLoader(self._configProxy, callback)
         self._deviceloadertask = None
         self._deviceloadertaskd = None
 
+        # deprecated; kept for vSphere ZP compatibility
+        self._devices = _DeviceIdProxy(self._deviceloader)
+
     @property
-    def preferences(self):  # type: () -> ICollectorPreferences
+    def preferences(self):  # type: (Self) -> ICollectorPreferences
         """The preferences object of this daemon."""
         return self._prefs
 
     @property
-    def frameworkFactoryName(self):
+    def frameworkFactoryName(self):  # type: (Self) -> str
         return self._frameworkFactoryName
 
-    def buildOptions(self):
+    def buildOptions(self):  # type: (Self) -> None
         super(CollectorDaemon, self).buildOptions()
 
         maxTasks = getattr(self.preferences, "maxTasks", None)
@@ -266,13 +271,13 @@ class CollectorDaemon(RRDDaemon):
         # give the collector configuration a chance to add options, too
         self.preferences.buildOptions(self.parser)
 
-    def parseOptions(self):
+    def parseOptions(self):  # type: (Self) -> None
         """Overrides base class to process configuration options."""
         super(CollectorDaemon, self).parseOptions()
         self.preferences.options = self.options
 
     # @deprecated
-    def getInitialServices(self):
+    def getInitialServices(self):  # type: (Self) -> Sequence[str]
         # Retained for compatibility with ZenPacks fixing CollectorDaemon's old
         # behavior regarding the `initialServices` attribute.  This new
         # CollectorDaemon respects changes made to the `initialServices`
@@ -281,7 +286,7 @@ class CollectorDaemon(RRDDaemon):
         # to avoid AttributeError exceptions.
         return self.initialServices
 
-    def watchdogCycleTime(self):
+    def watchdogCycleTime(self):  # type: (Self) -> float
         """
         Return our cycle time (in minutes)
 
@@ -291,7 +296,7 @@ class CollectorDaemon(RRDDaemon):
         return self.preferences.cycleInterval * 2
 
     @defer.inlineCallbacks
-    def connected(self):
+    def connected(self):  # type: (Self) -> Deferred
         """Invoked after a connection to ZenHub is established."""
         try:
             yield defer.maybeDeferred(self._getInitializationCallback())
@@ -300,7 +305,6 @@ class CollectorDaemon(RRDDaemon):
             yield self._initEncryptionKey()
             yield self._startConfigCycle()
             yield self._startMaintenance()
-            yield self._startDeviceConfigLoader()
             yield self._startTaskStatsLogging()
         except Exception as ex:
             self.log.critical("unrecoverable error: %s", ex)
@@ -313,7 +317,7 @@ class CollectorDaemon(RRDDaemon):
         return lambda: None
 
     @defer.inlineCallbacks
-    def _initEncryptionKey(self):
+    def _initEncryptionKey(self):  # type: (Self) -> Deferred
         # Encrypt dummy msg in order to initialize the encryption key.
         # The 'yield' does not return until the key is initialized.
         data = yield self._configProxy.encrypt("Hello")
@@ -321,7 +325,7 @@ class CollectorDaemon(RRDDaemon):
             self.encryptionKeyInitialized = True
             self.log.debug("initialized encryption key")
 
-    def _startConfigCycle(self, startDelay=0):
+    def _startConfigCycle(self, startDelay=0):  # type: (Self, float) -> None
         framework = _getFramework(self.frameworkFactoryName)
         configLoader = framework.getConfigurationLoaderTask()(
             CONFIG_LOADER_NAME, taskConfig=self.preferences
@@ -349,7 +353,7 @@ class CollectorDaemon(RRDDaemon):
                 configLoader.configId,
             )
 
-    def _startMaintenance(self):
+    def _startMaintenance(self):  # type: (Self) -> None
         if not self.options.cycle:
             return
         interval = self.preferences.cycleInterval
@@ -630,31 +634,90 @@ class CollectorDaemon(RRDDaemon):
                 self._displayStatistics()
                 self.stop()
 
-    def _deviceConfigCallback(self, new, updated, removed):
+    def _singleDeviceConfigCallback(self, new, updated, removed):
+        # type: (
+        #    Self,
+        #    Sequence[DeviceProxy],
+        #    Sequence[DeviceProxy],
+        #    Sequence[str]
+        # ) -> None
         """
-        Update the device configs for the devices this collector manages.
+        Update the device configs for the devices this collector manages
+        when a device is specified on the command line.
 
-        :param deviceConfigs: a list of device configurations
-        :type deviceConfigs: list of name,value tuples
+        :param new: a list of new device configurations
+        :type new: Sequence[DeviceProxy]
+        :param updated: a list of updated device configurations
+        :type updated: Sequence[DeviceProxy]
+        :param removed: ignored
+        :type removed: Sequence[str]
+        """
+        config = next(
+            (
+                cfg
+                for cfg in itertools.chain(new, updated)
+                if self.options.device == cfg.configId
+            ),
+            None,
+        )
+        if not config:
+            self.log.error(
+                "configuration for %s unavailable -- "
+                "is that the correct name?",
+                self.options.device,
+            )
+            self.stop()
+            return
+
+        guid = config.deviceGuid
+        if guid is not None:
+            self._deviceGuids[config.configId] = guid
+
+        self._updateConfig(config)
+
+    def _manyDeviceConfigCallback(self, new, updated, removed):
+        # type: (
+        #    Self,
+        #    Sequence[DeviceProxy],
+        #    Sequence[DeviceProxy],
+        #    Sequence[str]
+        # ) -> None
+        """
+        Update the device configs for the devices this collector manages
+        when no device is specified on the command line.
+
+        :param new: a list of new device configurations
+        :type new: Sequence[DeviceProxy]
+        :param updated: a list of updated device configurations
+        :type updated: Sequence[DeviceProxy]
+        :param removed: a list of devices removed from this collector
+        :type removed: Sequence[str]
         """
         for deviceId in removed:
             self._deleteDevice(deviceId)
 
         for cfg in itertools.chain(new, updated):
+            # guard against parsing updates during a disconnect
+            if cfg is None:
+                continue
+
+            guid = cfg.deviceGuid
+            if guid is not None:
+                self._deviceGuids[cfg.configId] = guid
+
             self._updateConfig(cfg)
 
-        self.log.debug(
-            "processed %d new, %d updated, %d removed device configs",
-            len(new),
-            len(updated),
-            len(removed),
+        lengths = (len(new), len(updated), len(removed))
+        logmethod = self.log.debug if lengths == (0, 0, 0) else self.log.info
+        logmethod(
+            "processed %d new, %d updated, and %d removed device configs",
+            *lengths
         )
 
     def _deleteDevice(self, deviceId):
         self._configListener.deleted(deviceId)
         self._scheduler.removeTasksForConfig(deviceId)
         self._deviceGuids.pop(deviceId, None)
-        self._devices.discard(deviceId)
         self.log.info("removed device config  device-id=%s", deviceId)
 
     def _updateConfig(self, cfg):
@@ -664,26 +727,11 @@ class CollectorDaemon(RRDDaemon):
         Returns True if the configuration was processed, otherwise,
         False is returned.
         """
-        # guard against parsing updates during a disconnect
-        if cfg is None:
-            return False
-
-        configFilter = getattr(self.preferences, "configFilter", _always_ok)
-        if not (
-            (not self.options.device and configFilter(cfg))
-            or self.options.device in (cfg.id, cfg.configId)
-        ):
-            self.log.info(
-                "filtered out device config  config-id=%s", cfg.configId
-            )
+        if self._is_config_excluded(cfg):
             return False
 
         configId = cfg.configId
         self.log.debug("processing device config  config-id=%s", configId)
-
-        guid = getattr(cfg, "_device_guid", None)
-        if guid is not None:
-            self._deviceGuids[configId] = guid
 
         nextExpectedRuns = {}
         if configId in self._deviceloader.deviceIds:
@@ -699,8 +747,9 @@ class CollectorDaemon(RRDDaemon):
             )
             self._configListener.updated(cfg)
         else:
-            self._devices.add(configId)
             self._configListener.added(cfg)
+
+        self._update_thresholds(configId, cfg)
 
         newTasks = self._taskSplitter.splitConfiguration([cfg])
         self.log.debug("tasks for config %s: %s", configId, newTasks)
@@ -730,20 +779,6 @@ class CollectorDaemon(RRDDaemon):
                 )
                 continue
 
-            # TODO: another hack?
-            if hasattr(cfg, "thresholds"):
-                try:
-                    self.getThresholds().updateForDevice(
-                        configId, cfg.thresholds
-                    )
-                except Exception:
-                    self.log.exception(
-                        "failed to update thresholds "
-                        "config-id=%s thresholds=%r",
-                        configId,
-                        cfg.thresholds,
-                    )
-
             # if we're not running a normal daemon cycle then keep track of the
             # tasks we just added for this device so that we can shutdown once
             # all pending tasks have completed
@@ -756,11 +791,32 @@ class CollectorDaemon(RRDDaemon):
             self.log.debug("pausing tasks for device %s", configId)
             self._scheduler.pauseTasksForConfig(configId)
 
-        self.log.debug(
-            "processed new/updated device config  config-id=%s", configId
-        )
-
+        self.log.info("processed device config  config-id=%s", configId)
         return True
+
+    def _update_thresholds(self, configId, cfg):
+        thresholds = getattr(cfg, "thresholds", None)
+        if thresholds:
+            try:
+                self.getThresholds().updateForDevice(configId, thresholds)
+            except Exception:
+                self.log.exception(
+                    "failed to update thresholds  config-id=%s thresholds=%r",
+                    configId,
+                    thresholds,
+                )
+
+    def _is_config_excluded(self, cfg):
+        configFilter = getattr(self.preferences, "configFilter", _always_ok)
+        if not (
+            (not self.options.device and configFilter(cfg))
+            or self.options.device in (cfg.id, cfg.configId)
+        ):
+            self.log.info(
+                "filtered out device config  config-id=%s", cfg.configId
+            )
+            return True
+        return False
 
     def setPropertyItems(self, items):
         """Override so that preferences are updated."""
@@ -823,16 +879,15 @@ class CollectorDaemon(RRDDaemon):
     def runPostConfigTasks(self):
         """
         Add post-startup tasks from the preferences.
-
-        This may be called with the failure code as well.
         """
-        if not self.addedPostStartupTasks:
+        if self.__first_config_task_run:
             postStartupTasks = getattr(
                 self.preferences, "postStartupTasks", lambda: []
             )
             for _task in postStartupTasks():
                 self._scheduler.addTask(_task, now=True)
-            self.addedPostStartupTasks = True
+            self._startDeviceConfigLoader()
+            self.__first_config_task_run = False
 
     def postStatisticsImpl(self):
         self._displayStatistics()
@@ -895,6 +950,25 @@ class CollectorDaemon(RRDDaemon):
     def worker_id(self):
         """The ID of this particular service instance."""
         return getattr(self.options, "workerid", 0)
+
+
+class _DeviceIdProxy(object):
+    """
+    Exists to maintain an API for ZenPacks that accessed CollectorDaemon's
+    _devices attribute.
+    """
+
+    def __init__(self, loader):
+        self.__loader = loader
+
+    def __contains__(self, deviceId):
+        return deviceId in self.__loader.deviceIds
+
+    def add(self, deviceId):
+        pass
+
+    def discard(self, deviceId):
+        pass
 
 
 def _always_ok(*args):
