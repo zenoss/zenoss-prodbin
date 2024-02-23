@@ -46,11 +46,19 @@ class DeviceProxy(pb.Copyable, pb.RemoteCopy):
     def deviceGuid(self):
         return getattr(self, "_device_guid", None)
 
+    def __eq__(self, other):
+        if isinstance(other, DeviceProxy):
+            return self.configId == other.configId
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(self.configId)
+
     def __str__(self):
-        return self.id
+        return self.configId
 
     def __repr__(self):
-        return "%s:%s" % (self.__class__.__name__, self.id)
+        return "%s:%s" % (self.__class__.__name__, self.configId)
 
 
 pb.setUnjellyableForClass(DeviceProxy, DeviceProxy)

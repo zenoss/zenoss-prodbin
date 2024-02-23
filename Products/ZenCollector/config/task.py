@@ -145,11 +145,10 @@ class ConfigurationLoaderTask(ObservableMixin):
 class DeviceConfigLoader(object):
     """Handles retrieving devices from the ConfigCache service."""
 
-    def __init__(self, options, proxy, callback):
-        self._options = options
+    def __init__(self, proxy, callback):
         self._proxy = proxy
         self._callback = callback
-        self._deviceIds = set([options.device] if options.device else [])
+        self._deviceIds = set()
         self._changes_since = 0
 
     @property
@@ -170,34 +169,14 @@ class DeviceConfigLoader(object):
 
     @defer.inlineCallbacks
     def _processConfigs(self, config_data):
-        new = config_data.get("new", [])
-        updated = config_data.get("updated", [])
-        removed = config_data.get("removed", [])
+        new = config_data.get("new", ())
+        updated = config_data.get("updated", ())
+        removed = config_data.get("removed", ())
         try:
             try:
-                if self._options.device:
-                    config = self._get_specified_config(new, updated)
-                    if not config:
-                        log.error(
-                            "configuration for %s unavailable -- "
-                            "is that the correct name?",
-                            self._options.device,
-                        )
-                        defer.returnValue(None)
-                    new = [config]
-                    updated = []
-                    removed = []
-
                 yield self._callback(new, updated, removed)
             finally:
                 self._update_local_cache(new, updated, removed)
-                lengths = (len(new), len(updated), len(removed))
-                logmethod = log.debug if lengths == (0, 0, 0) else log.info
-                logmethod(
-                    "processed %d new, %d updated, and %d removed "
-                    "device configs",
-                    *lengths
-                )
         except Exception:
             log.exception("failed to process device configs")
 
