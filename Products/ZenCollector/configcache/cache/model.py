@@ -109,6 +109,9 @@ class _ConfigStatus(object):
     class Expired(object):
         """The configuration has expired."""
 
+        def __init__(self, ts):
+            self.expired = ts
+
         def __eq__(self, other):
             if not isinstance(other, _ConfigStatus.Expired):
                 return NotImplemented

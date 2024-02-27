@@ -88,14 +88,48 @@ class Manager(object):
         while not self.ctx.controller.shutdown:
             try:
                 self.ctx.session.sync()
-                self._retry_pending_builds()
+                self._retry_build()
+                self._retry_pending()
                 self._expire_retired_configs()
                 self._rebuild_older_configs()
             except Exception as ex:
                 self.log.exception("unexpected error %s", ex)
             self.ctx.controller.wait(self.interval)
 
-    def _retry_pending_builds(self):
+    def _retry_build(self):
+        buildlimitmap = DevicePropertyMap.make_build_timeout_map(
+            self.ctx.dmd.Devices
+        )
+        # Test against a time 10 minutes earlier to minimize interfering
+        # with builder working on the same config.
+        now = time() - 600
+        count = 0
+        for key, status in self.store.get_building():
+            uid = self.store.get_uid(key.device)
+            if uid is None:
+                self.log.warn(
+                    "No UID found for device  device=%s", key.device
+                )
+                continue
+            duration = buildlimitmap.get(uid)
+            if status.started < (now - duration):
+                self.store.set_expired(key)
+                self.log.info(
+                    "expired configuration due to build timeout  "
+                    "started=%s timeout=%s service=%s monitor=%s device=%s",
+                    datetime.fromtimestamp(status.started).strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    ),
+                    duration,
+                    key.service,
+                    key.monitor,
+                    key.device,
+                )
+                count += 1
+        if count == 0:
+            self.log.debug("no configuration builds have timed out")
+
+    def _retry_pending(self):
         pendinglimitmap = DevicePropertyMap.make_pending_timeout_map(
             self.ctx.dmd.Devices
         )
@@ -103,16 +137,20 @@ class Manager(object):
         count = 0
         for key, status in self.store.get_pending():
             uid = self.store.get_uid(key.device)
+            if uid is None:
+                self.log.warn(
+                    "No UID found for device  device=%s", key.device
+                )
+                continue
             duration = pendinglimitmap.get(uid)
             if status.submitted < (now - duration):
                 self.store.set_expired(key)
                 self.log.info(
-                    "pending configuration build has timed out  "
-                    "submitted=%s service=%s monitor=%s device=%s",
+                    "expired pending configuration build due to timeout  "
+                    "submitted=%s timeout=%s service=%s monitor=%s device=%s",
                     datetime.fromtimestamp(status.submitted).strftime(
                         "%Y-%m-%d %H:%M:%S"
                     ),
-                    Constants.build_timeout_id,
                     duration,
                     key.service,
                     key.monitor,
@@ -155,6 +193,11 @@ class Manager(object):
         count = 0
         for key, status in results:
             uid = self.store.get_uid(key.device)
+            if uid is None:
+                self.log.warn(
+                    "No UID found for device  device=%s", key.device
+                )
+                continue
             ttl = ttlmap.get(uid)
             expiration_threshold = now - ttl
             if (
