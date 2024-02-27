@@ -28,7 +28,7 @@ class RelStorageInvalidationPoller(object):
     API to return the latest database invalidations.
     """
 
-    def __init__(self, storage, session, dmd):
+    def __init__(self, storage, dmd):
         """
         Initialize a RelStorageInvalidationPoller instance.
 
@@ -36,7 +36,6 @@ class RelStorageInvalidationPoller(object):
         :type storage: :class:`relstorage.storage.RelStorage`
         """
         self.__storage = storage
-        self.__session = session
         app = dmd.getPhysicalRoot()
         filters = initialize_invalidation_filters(dmd)
         self.__processor = InvalidationProcessor(app, filters)
@@ -48,7 +47,6 @@ class RelStorageInvalidationPoller(object):
 
         :rtype: Iterable[ZODB object]
         """
-        self.__session.sync()
         oids = self.__storage.poll_invalidations()
         if not oids:
             return ()
