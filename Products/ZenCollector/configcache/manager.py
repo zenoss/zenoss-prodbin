@@ -9,6 +9,7 @@
 
 from __future__ import print_function
 
+import gc
 import logging
 
 from datetime import datetime
@@ -88,6 +89,7 @@ class Manager(object):
         while not self.ctx.controller.shutdown:
             try:
                 self.ctx.session.sync()
+                gc.collect()
                 self._retry_build()
                 self._retry_pending()
                 self._expire_retired_configs()
