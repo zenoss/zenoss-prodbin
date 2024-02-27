@@ -447,22 +447,26 @@ class TestExpiredStatus(_BaseTest):
 
     def test_set_expired(t):
         t.store.add(t.record1)
-        expected = (t.record1.key,)
+        ts = t.record1.updated + 500
 
-        actual = t.store.set_expired(t.record1.key)
+        expected = (t.record1.key,)
+        actual = t.store.set_expired((t.record1.key, ts))
         t.assertTupleEqual(expected, actual)
 
     def test_set_expired_twice(t):
         t.store.add(t.record1)
+        ts = t.record1.updated + 500
+
         expected = ()
 
-        t.store.set_expired(t.record1.key)
-        actual = t.store.set_expired(t.record1.key)
+        t.store.set_expired((t.record1.key, ts))
+        actual = t.store.set_expired((t.record1.key, ts))
         t.assertTupleEqual(expected, actual)
 
     def test_expired_status(t):
         t.store.add(t.record1)
-        t.store.set_expired(t.record1.key)
+        ts = t.record1.updated + 500
+        t.store.set_expired((t.record1.key, ts))
 
         result = tuple(t.store.get_status(t.record1.key))
 
@@ -473,7 +477,8 @@ class TestExpiredStatus(_BaseTest):
 
     def test_get_expired(t):
         t.store.add(t.record1)
-        t.store.set_expired(t.record1.key)
+        ts = t.record1.updated + 500
+        t.store.set_expired((t.record1.key, ts))
 
         result = tuple(t.store.get_expired())
         t.assertEqual(1, len(result))
@@ -483,7 +488,8 @@ class TestExpiredStatus(_BaseTest):
 
     def test_expired_is_not_older(t):
         t.store.add(t.record1)
-        t.store.set_expired(t.record1.key)
+        ts = t.record1.updated + 500
+        t.store.set_expired((t.record1.key, ts))
 
         result = tuple(t.store.get_older(t.record1.updated))
         t.assertEqual(0, len(result))
@@ -499,7 +505,6 @@ class TestPendingStatus(_BaseTest):
         submitted = t.record1.updated + 500
         expected = (t.record1.key,)
 
-        t.store.set_expired(t.record1.key)
         actual = t.store.set_pending((t.record1.key, submitted))
         t.assertTupleEqual(expected, actual)
 
@@ -521,7 +526,6 @@ class TestPendingStatus(_BaseTest):
     def test_pending_status(t):
         t.store.add(t.record1)
         submitted = t.record1.updated + 500
-        t.store.set_expired(t.record1.key)
         t.store.set_pending((t.record1.key, submitted))
 
         result = tuple(t.store.get_status(t.record1.key))
@@ -533,7 +537,6 @@ class TestPendingStatus(_BaseTest):
 
     def test_get_pending(t):
         t.store.add(t.record1)
-        t.store.set_expired(t.record1.key)
         submitted = t.record1.updated + 500
         t.store.set_pending((t.record1.key, submitted))
 
@@ -546,9 +549,7 @@ class TestPendingStatus(_BaseTest):
 
     def test_pending_is_not_older(t):
         t.store.add(t.record1)
-        t.store.set_expired(t.record1.key)
         submitted = t.record1.updated + 500
-        t.store.set_expired(t.record1.key)
         t.store.set_pending((t.record1.key, submitted))
 
         result = tuple(t.store.get_older(t.record1.updated))
@@ -565,7 +566,6 @@ class TestBuildingStatus(_BaseTest):
         started = t.record1.updated + 500
         expected = (t.record1.key,)
 
-        t.store.set_expired(t.record1.key)
         t.store.set_pending((t.record1.key, started - 100))
         actual = t.store.set_building((t.record1.key, started))
         t.assertTupleEqual(expected, actual)
@@ -584,8 +584,6 @@ class TestBuildingStatus(_BaseTest):
         started = t.record1.updated + 500
         expected = ()
 
-        t.store.set_expired(t.record1.key)
-        t.store.set_pending((t.record1.key, started - 100))
         t.store.set_building((t.record1.key, started))
         actual = t.store.set_building((t.record1.key, started))
         t.assertTupleEqual(expected, actual)
@@ -593,8 +591,6 @@ class TestBuildingStatus(_BaseTest):
     def test_building_status(t):
         t.store.add(t.record1)
         started = t.record1.updated + 500
-        t.store.set_expired(t.record1.key)
-        t.store.set_pending((t.record1.key, started - 100))
         t.store.set_building((t.record1.key, started))
 
         result = tuple(t.store.get_status(t.record1.key))
@@ -606,9 +602,7 @@ class TestBuildingStatus(_BaseTest):
 
     def test_get_building(t):
         t.store.add(t.record1)
-        t.store.set_expired(t.record1.key)
         started = t.record1.updated + 500
-        t.store.set_pending((t.record1.key, started - 100))
         t.store.set_building((t.record1.key, started))
 
         result = tuple(t.store.get_building())
@@ -620,7 +614,6 @@ class TestBuildingStatus(_BaseTest):
 
     def test_building_is_not_older(t):
         t.store.add(t.record1)
-        t.store.set_expired(t.record1.key)
         started = t.record1.updated + 500
         t.store.set_building((t.record1.key, started))
 
@@ -636,8 +629,9 @@ class TestExpiredTransitions(_BaseTest):
     def test_retired_to_expired(t):
         t.store.add(t.record1)
         t.store.set_retired(t.record1.key)
+        ts = t.record1.updated + 300
 
-        expired_keys = t.store.set_expired(t.record1.key)
+        expired_keys = t.store.set_expired((t.record1.key, ts))
         t.assertTupleEqual((t.record1.key,), expired_keys)
 
         result = tuple(t.store.get_status(t.record1.key))
@@ -651,15 +645,17 @@ class TestExpiredTransitions(_BaseTest):
 
     def test_expired_to_retired(t):
         t.store.add(t.record1)
-        t.store.set_expired(t.record1.key)
+        ts = t.record1.updated + 300
+        t.store.set_expired((t.record1.key, ts))
         retired_keys = t.store.set_retired(t.record1.key)
-        t.assertTupleEqual((), retired_keys)
+        t.assertTupleEqual((t.record1.key,), retired_keys)
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
         key, status = result[0]
         t.assertEqual(t.record1.key, key)
-        t.assertIsInstance(status, ConfigStatus.Expired)
+        t.assertIsInstance(status, ConfigStatus.Retired)
+        t.assertEqual(t.record1.updated, status.updated)
 
 
 class TestPendingTransitions(_BaseTest):
@@ -672,14 +668,14 @@ class TestPendingTransitions(_BaseTest):
         submitted = t.record1.updated + 500
 
         pending_keys = t.store.set_pending((t.record1.key, submitted))
-        t.assertTupleEqual((), pending_keys)
+        t.assertTupleEqual((t.record1.key,), pending_keys)
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
         key, status = result[0]
         t.assertEqual(t.record1.key, key)
-        t.assertIsInstance(status, ConfigStatus.Current)
-        t.assertEqual(t.record1.updated, status.updated)
+        t.assertIsInstance(status, ConfigStatus.Pending)
+        t.assertEqual(submitted, status.submitted)
 
     def test_retired_to_pending(t):
         t.store.add(t.record1)
@@ -687,19 +683,20 @@ class TestPendingTransitions(_BaseTest):
         submitted = t.record1.updated + 500
 
         pending_keys = t.store.set_pending((t.record1.key, submitted))
-        t.assertTupleEqual((), pending_keys)
+        t.assertTupleEqual((t.record1.key,), pending_keys)
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
         key, status = result[0]
         t.assertEqual(t.record1.key, key)
-        t.assertIsInstance(status, ConfigStatus.Retired)
-        t.assertEqual(t.record1.updated, status.updated)
+        t.assertIsInstance(status, ConfigStatus.Pending)
+        t.assertEqual(submitted, status.submitted)
 
     def test_expired_to_pending(t):
         t.store.add(t.record1)
+        ts = t.record1.updated + 300
         submitted = t.record1.updated + 500
-        t.store.set_expired(t.record1.key)
+        t.store.set_expired((t.record1.key, ts))
         pending_keys = t.store.set_pending((t.record1.key, submitted))
         t.assertTupleEqual((t.record1.key,), pending_keys)
 
@@ -715,35 +712,39 @@ class TestPendingTransitions(_BaseTest):
         retired_keys = tuple(t.store.get_retired())
         t.assertTupleEqual((), retired_keys)
 
+        building_keys = tuple(t.store.get_building())
+        t.assertTupleEqual((), building_keys)
+
     def test_pending_to_expired(t):
         t.store.add(t.record1)
+        ts = t.record1.updated + 300
         submitted = t.record1.updated + 500
-        t.store.set_expired(t.record1.key)
         t.store.set_pending((t.record1.key, submitted))
 
-        expired_keys = t.store.set_expired(t.record1.key)
-        t.assertTupleEqual((), expired_keys)
+        expired_keys = t.store.set_expired((t.record1.key, ts))
+        t.assertTupleEqual((t.record1.key,), expired_keys)
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
         key, status = result[0]
         t.assertEqual(t.record1.key, key)
-        t.assertIsInstance(status, ConfigStatus.Pending)
+        t.assertIsInstance(status, ConfigStatus.Expired)
+        t.assertEqual(ts, status.expired)
 
     def test_pending_to_retired(t):
         t.store.add(t.record1)
         submitted = t.record1.updated + 500
-        t.store.set_expired(t.record1.key)
         t.store.set_pending((t.record1.key, submitted))
 
         retired_keys = t.store.set_retired(t.record1.key)
-        t.assertTupleEqual((), retired_keys)
+        t.assertTupleEqual((t.record1.key,), retired_keys)
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
         key, status = result[0]
         t.assertEqual(t.record1.key, key)
-        t.assertIsInstance(status, ConfigStatus.Pending)
+        t.assertIsInstance(status, ConfigStatus.Retired)
+        t.assertEqual(t.record1.updated, status.updated)
 
 
 class TestBuildingTransitions(_BaseTest):
@@ -756,14 +757,23 @@ class TestBuildingTransitions(_BaseTest):
         started = t.record1.updated + 500
 
         building_keys = t.store.set_building((t.record1.key, started))
-        t.assertTupleEqual((), building_keys)
+        t.assertTupleEqual((t.record1.key,), building_keys)
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
         key, status = result[0]
         t.assertEqual(t.record1.key, key)
-        t.assertIsInstance(status, ConfigStatus.Current)
-        t.assertEqual(t.record1.updated, status.updated)
+        t.assertIsInstance(status, ConfigStatus.Building)
+        t.assertEqual(started, status.started)
+
+        pending_keys = tuple(t.store.get_pending())
+        t.assertTupleEqual((), pending_keys)
+
+        expired_keys = tuple(t.store.get_expired())
+        t.assertTupleEqual((), expired_keys)
+
+        retired_keys = tuple(t.store.get_retired())
+        t.assertTupleEqual((), retired_keys)
 
     def test_retired_to_building(t):
         t.store.add(t.record1)
@@ -771,33 +781,54 @@ class TestBuildingTransitions(_BaseTest):
         started = t.record1.updated + 500
 
         building_keys = t.store.set_building((t.record1.key, started))
-        t.assertTupleEqual((), building_keys)
+        t.assertTupleEqual((t.record1.key,), building_keys)
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
         key, status = result[0]
         t.assertEqual(t.record1.key, key)
-        t.assertIsInstance(status, ConfigStatus.Retired)
-        t.assertEqual(t.record1.updated, status.updated)
+        t.assertIsInstance(status, ConfigStatus.Building)
+        t.assertEqual(started, status.started)
+
+        pending_keys = tuple(t.store.get_pending())
+        t.assertTupleEqual((), pending_keys)
+
+        expired_keys = tuple(t.store.get_expired())
+        t.assertTupleEqual((), expired_keys)
+
+        retired_keys = tuple(t.store.get_retired())
+        t.assertTupleEqual((), retired_keys)
 
     def test_expired_to_building(t):
         t.store.add(t.record1)
+        ts = t.record1.updated + 300
         started = t.record1.updated + 500
-        t.store.set_expired(t.record1.key)
+        t.store.set_expired((t.record1.key, ts))
 
         building_keys = t.store.set_building((t.record1.key, started))
-        t.assertTupleEqual((), building_keys)
+        t.assertTupleEqual((t.record1.key,), building_keys)
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
         key, status = result[0]
         t.assertEqual(t.record1.key, key)
-        t.assertIsInstance(status, ConfigStatus.Expired)
+        t.assertIsInstance(status, ConfigStatus.Building)
+        t.assertEqual(started, status.started)
+
+        pending_keys = tuple(t.store.get_pending())
+        t.assertTupleEqual((), pending_keys)
+
+        expired_keys = tuple(t.store.get_expired())
+        t.assertTupleEqual((), expired_keys)
+
+        retired_keys = tuple(t.store.get_retired())
+        t.assertTupleEqual((), retired_keys)
 
     def test_pending_to_building(t):
         t.store.add(t.record1)
+        ts = t.record1.updated + 300
         started = t.record1.updated + 500
-        t.store.set_expired(t.record1.key)
+        t.store.set_expired((t.record1.key, ts))
         t.store.set_pending((t.record1.key, started - 100))
 
         building_keys = t.store.set_building((t.record1.key, started))
@@ -821,54 +852,50 @@ class TestBuildingTransitions(_BaseTest):
 
     def test_building_to_pending(t):
         t.store.add(t.record1)
+        submitted = t.record1.updated + 300
         started = t.record1.updated + 500
-        t.store.set_expired(t.record1.key)
-        t.store.set_pending((t.record1.key, started - 100))
         t.store.set_building((t.record1.key, started))
 
-        pending_keys = t.store.set_pending((t.record1.key, started))
-        t.assertTupleEqual((), pending_keys)
+        pending_keys = t.store.set_pending((t.record1.key, submitted))
+        t.assertTupleEqual((t.record1.key,), pending_keys)
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
         key, status = result[0]
         t.assertEqual(t.record1.key, key)
-        t.assertIsInstance(status, ConfigStatus.Building)
-        t.assertEqual(started, status.started)
+        t.assertIsInstance(status, ConfigStatus.Pending)
+        t.assertEqual(submitted, status.submitted)
 
     def test_building_to_expired(t):
         t.store.add(t.record1)
+        expired = t.record1.updated + 300
         started = t.record1.updated + 500
-        t.store.set_expired(t.record1.key)
-        t.store.set_pending((t.record1.key, started - 100))
         t.store.set_building((t.record1.key, started))
 
-        expired_keys = t.store.set_expired(t.record1.key)
-        t.assertTupleEqual((), expired_keys)
+        expired_keys = t.store.set_expired((t.record1.key, expired))
+        t.assertTupleEqual((t.record1.key,), expired_keys)
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
         key, status = result[0]
         t.assertEqual(t.record1.key, key)
-        t.assertIsInstance(status, ConfigStatus.Building)
-        t.assertEqual(started, status.started)
+        t.assertIsInstance(status, ConfigStatus.Expired)
+        t.assertEqual(expired, status.expired)
 
     def test_building_to_retired(t):
         t.store.add(t.record1)
         started = t.record1.updated + 500
-        t.store.set_expired(t.record1.key)
-        t.store.set_pending((t.record1.key, started - 100))
         t.store.set_building((t.record1.key, started))
 
         retired_keys = t.store.set_retired(t.record1.key)
-        t.assertTupleEqual((), retired_keys)
+        t.assertTupleEqual((t.record1.key,), retired_keys)
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
         key, status = result[0]
         t.assertEqual(t.record1.key, key)
-        t.assertIsInstance(status, ConfigStatus.Building)
-        t.assertEqual(started, status.started)
+        t.assertIsInstance(status, ConfigStatus.Retired)
+        t.assertEqual(t.record1.updated, status.updated)
 
 
 class TestAddTransitions(_BaseTest):
@@ -893,7 +920,8 @@ class TestAddTransitions(_BaseTest):
 
     def test_add_overwrites_expired(t):
         t.store.add(t.record1)
-        t.store.set_expired(t.record1.key)
+        ts = t.record1.updated + 300
+        t.store.set_expired((t.record1.key, ts))
         t.store.add(t.record1)
 
         expired_keys = tuple(t.store.get_expired())
@@ -908,8 +936,9 @@ class TestAddTransitions(_BaseTest):
 
     def test_add_overwrites_pending(t):
         t.store.add(t.record1)
+        ts = t.record1.updated + 300
         submitted = t.record1.updated + 500
-        t.store.set_expired(t.record1.key)
+        t.store.set_expired((t.record1.key, ts))
         t.store.set_pending((t.record1.key, submitted))
         t.store.add(t.record1)
 
@@ -928,8 +957,9 @@ class TestAddTransitions(_BaseTest):
 
     def test_add_overwrites_building(t):
         t.store.add(t.record1)
+        ts = t.record1.updated + 300
         started = t.record1.updated + 500
-        t.store.set_expired(t.record1.key)
+        t.store.set_expired((t.record1.key, ts))
         t.store.set_pending((t.record1.key, started - 100))
         t.store.set_building((t.record1.key, started))
         t.store.add(t.record1)
