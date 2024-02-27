@@ -9,6 +9,7 @@
 
 from __future__ import print_function, absolute_import
 
+import gc
 import logging
 import time
 
@@ -98,12 +99,14 @@ class Invalidator(object):
         self._synchronize()
 
         poller = RelStorageInvalidationPoller(
-            self.ctx.db.storage, self.ctx.session, self.ctx.dmd
+            self.ctx.db.storage, self.ctx.dmd
         )
         self.log.info(
             "polling for device changes every %s seconds", self.interval
         )
         while not self.ctx.controller.shutdown:
+            self.ctx.session.sync()
+            gc.collect()
             result = poller.poll()
             if result:
                 self.log.debug("found %d relevant invalidations", len(result))
