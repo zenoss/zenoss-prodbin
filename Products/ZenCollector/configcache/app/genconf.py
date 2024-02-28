@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import textwrap
 
-from ..misc.args import get_subparser
+from .args import get_subparser
 
 # List of options to not include when generating a config file.
 _ARGS_TO_IGNORE = (

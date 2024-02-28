@@ -11,8 +11,8 @@ from __future__ import absolute_import, print_function
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
-from ..utils.constants import Constants
-from ..utils.propertymap import DevicePropertyMap
+from ..propertymap import DevicePropertyMap
+from ..constants import Constants
 
 
 class TestDevicePropertyMapTTLMakers(BaseTestCase):

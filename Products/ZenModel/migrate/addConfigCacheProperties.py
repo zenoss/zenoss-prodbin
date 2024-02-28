@@ -9,7 +9,7 @@
 
 from __future__ import absolute_import
 
-from Products.ZenCollector.configcache.utils import Constants
+from Products.ZenCollector.configcache.constants import Constants
 from Products.ZenRelations.zPropertyCategory import setzPropertyCategory
 
 from . import Migrate

@@ -21,15 +21,13 @@ from zope.component import createObject
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
 from .app import Application
+from .app.args import get_subparser
 from .cache import ConfigStatus
+from .constants import Constants
 from .debug import Debug as DebugCommand
-from .misc.args import get_subparser
-from .utils import (
-    BuildConfigTaskDispatcher,
-    Constants,
-    DevicePropertyMap,
-    getConfigServices,
-)
+from .propertymap import DevicePropertyMap
+from .task import BuildConfigTaskDispatcher
+from .utils import getConfigServices
 
 _default_interval = 30.0  # seconds
 
@@ -109,13 +107,11 @@ class Manager(object):
         for key, status in self.store.get_building():
             uid = self.store.get_uid(key.device)
             if uid is None:
-                self.log.warn(
-                    "No UID found for device  device=%s", key.device
-                )
+                self.log.warn("No UID found for device  device=%s", key.device)
                 continue
             duration = buildlimitmap.get(uid)
             if status.started < (now - duration):
-                self.store.set_expired(key)
+                self.store.set_expired((key, now))
                 self.log.info(
                     "expired configuration due to build timeout  "
                     "started=%s timeout=%s service=%s monitor=%s device=%s",
@@ -140,13 +136,11 @@ class Manager(object):
         for key, status in self.store.get_pending():
             uid = self.store.get_uid(key.device)
             if uid is None:
-                self.log.warn(
-                    "No UID found for device  device=%s", key.device
-                )
+                self.log.warn("No UID found for device  device=%s", key.device)
                 continue
             duration = pendinglimitmap.get(uid)
             if status.submitted < (now - duration):
-                self.store.set_expired(key)
+                self.store.set_expired((key, now))
                 self.log.info(
                     "expired pending configuration build due to timeout  "
                     "submitted=%s timeout=%s service=%s monitor=%s device=%s",
@@ -176,7 +170,7 @@ class Manager(object):
             for key, status, uid in retired
             if status.updated < now - minttl_map.get(uid)
         )
-        self.store.set_expired(*expire)
+        self.store.set_expired(*((key, now) for key in expire))
 
     def _rebuild_older_configs(self):
         buildlimitmap = DevicePropertyMap.make_build_timeout_map(
@@ -184,9 +178,7 @@ class Manager(object):
         )
         ttlmap = DevicePropertyMap.make_ttl_map(self.ctx.dmd.Devices)
         min_ttl = ttlmap.smallest_value()
-        self.log.debug(
-            "minimum age limit is %s", _formatted_interval(min_ttl)
-        )
+        self.log.debug("minimum age limit is %s", _formatted_interval(min_ttl))
         now = time()
         min_age = now - min_ttl
         results = chain.from_iterable(
@@ -196,9 +188,7 @@ class Manager(object):
         for key, status in results:
             uid = self.store.get_uid(key.device)
             if uid is None:
-                self.log.warn(
-                    "No UID found for device  device=%s", key.device
-                )
+                self.log.warn("No UID found for device  device=%s", key.device)
                 continue
             ttl = ttlmap.get(uid)
             expiration_threshold = now - ttl
