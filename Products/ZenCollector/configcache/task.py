@@ -21,6 +21,7 @@ from Products.Jobber.task import requires, DMD, Abortable
 from Products.Jobber.zenjobs import app
 
 from .cache import ConfigKey, ConfigQuery, ConfigRecord, ConfigStatus
+from .constants import Constants
 from .propertymap import DevicePropertyMap
 
 
@@ -32,7 +33,9 @@ from .propertymap import DevicePropertyMap
     description_template="Create the configuration for device {2}.",
     ignore_result=True,
 )
-def build_device_config(self, monitorname, deviceid, configclassname):
+def build_device_config(
+    self, monitorname, deviceid, configclassname, submitted=None
+):
     """
     Create a configuration for the given device.
 
@@ -44,6 +47,8 @@ def build_device_config(self, monitorname, deviceid, configclassname):
     @param configclassname: The fully qualified name of the class that
         will create the device configuration.
     @type configclassname: str
+    @param submitted: timestamp of when the job was submitted
+    @type submitted: float
     """
     svcconfigclass = resolve(configclassname)
     svcname = configclassname.rsplit(".", 1)[0]
@@ -52,17 +57,25 @@ def build_device_config(self, monitorname, deviceid, configclassname):
 
     # Check whether this is an old job, i.e. job pending timeout.
     # If it is an old job, skip it, manager already sent another one.
-    statuses = tuple(store.get_status(key))
-    if statuses:
-        key, status = statuses[0]
+    ident, status = next((store.get_status(key)), (None, None))
+    if status is not None and submitted is not None:
         if isinstance(status, ConfigStatus.Pending):
             pendinglimitmap = DevicePropertyMap.make_pending_timeout_map(
                 self.dmd.Devices
             )
             now = time()
-            uid = store.get_uid(key.device)
-            duration = pendinglimitmap.get(uid)
-            if status.submitted < (now - duration):
+            duration = pendinglimitmap.get(ident.uid)
+            if submitted < (now - duration):
+                self.log.warn(
+                    "dropped this job in favor of newer job  "
+                    "device=%s monitor=%s service=%s submitted=%f %s=%s",
+                    deviceid,
+                    monitorname,
+                    svcname,
+                    submitted,
+                    Constants.pending_timeout_id,
+                    duration,
+                )
                 return
 
     # Change the configuration's status from 'pending' to 'building' so
@@ -142,9 +155,11 @@ class BuildConfigTaskDispatcher(object):
         configuration service.
         """
         soft_limit, hard_limit = _get_limits(timeout)
+        now = time()
         for name in self._classnames.values():
             build_device_config.apply_async(
                 args=(monitorid, deviceid, name),
+                kwargs={"submitted": now},
                 soft_time_limit=soft_limit,
                 time_limit=hard_limit,
             )
@@ -163,6 +178,7 @@ class BuildConfigTaskDispatcher(object):
         soft_limit, hard_limit = _get_limits(timeout)
         build_device_config.apply_async(
             args=(monitorid, deviceid, name),
+            kwargs={"submitted": time()},
             soft_time_limit=soft_limit,
             time_limit=hard_limit,
         )

@@ -184,8 +184,8 @@ class Invalidator(object):
             self.ctx.dmd.Devices
         )
         statuses = tuple(
-            (key, status)
-            for key, status in self.store.get_status(*keys)
+            (ident.key, status)
+            for ident, status in self.store.get_status(*keys)
             if isinstance(status, ConfigStatus.Current)
         )
         uid = device.getPrimaryId()

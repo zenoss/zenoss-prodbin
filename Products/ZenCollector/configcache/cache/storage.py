@@ -73,7 +73,7 @@ from zope.component.factory import Factory
 
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
-from .model import ConfigKey, ConfigQuery, ConfigRecord, ConfigStatus
+from .model import ConfigId, ConfigKey, ConfigQuery, ConfigRecord, ConfigStatus
 from .table import DeviceUIDTable, DeviceConfigTable, ConfigMetadataTable
 
 _app = "configcache"
@@ -194,16 +194,14 @@ class ConfigStore(object):
         @type key: ConfigKey
         @rtype: ConfigRecord
         """
-        conf = self.__config.get(
-            self.__client, key.service, key.monitor, key.device
-        )
+        with self.__client.pipeline() as pipe:
+            self.__config.get(pipe, key.service, key.monitor, key.device)
+            self.__age.score(pipe, key.service, key.monitor, key.device)
+            self.__uids.get(pipe, key.device)
+            conf, score, uid = pipe.execute()
         if conf is None:
             return default
-        score = self.__age.score(
-            self.__client, key.service, key.monitor, key.device
-        )
         score = 0 if score < 0 else score
-        uid = self.__uids.get(self.__client, key.device)
         return _to_record(
             key.service, key.monitor, key.device, uid, score, conf
         )
@@ -236,8 +234,11 @@ class ConfigStore(object):
         """
         Marks the indicated configuration as retired.
 
-        A configuration is retired when its `updated` field is less than the
-        difference between the current time and zDeviceConfigMinimumTTL.
+        The keys that were retired are returned to the caller.  The returned
+        keys may match or be a subset of the keys that were passed in.
+
+        If a config is already retired, it will not be among the keys
+        that are returned.
 
         @type keys: Sequence[ConfigKey]
         @rtype: Sequence[ConfigKey]
@@ -281,8 +282,11 @@ class ConfigStore(object):
         """
         Marks the indicated configuration as expired.
 
-        Attempts to mark configurations that are not 'current' or
-        'retired' are ignored.
+        The keys that were expired are returned to the caller.  The returned
+        keys may match or be a subset of the keys that were passed in.
+
+        If a config is already expired, it will not be among the keys
+        that are returned.
 
         @type keys: Sequence[(ConfigKey, float)]
         @rtype: Sequence[ConfigKey]
@@ -316,7 +320,14 @@ class ConfigStore(object):
 
     def set_pending(self, *pairs):
         """
-        Marks an expired configuration as waiting for a new configuration.
+        Marks a configuration as waiting for a new configuration.
+
+        The keys that were marked pending are returned to the caller.
+        The returned keys may match or be a subset of the keys that
+        were passed in.
+
+        If a config is already marked pending, it will not be among the
+        keys that are returned.
 
         @type pending: Sequence[(ConfigKey, float)]
         @rtype: Sequence[ConfigKey]
@@ -350,7 +361,14 @@ class ConfigStore(object):
 
     def set_building(self, *pairs):
         """
-        Marks a pending configuration as building a new configuration.
+        Marks a configuration as building a new configuration.
+
+        The keys that were marked building are returned to the caller.
+        The returned keys may match or be a subset of the keys that
+        were passed in.
+
+        If a config is already marked building, it will not be among the
+        keys that are returned.
 
         @type pairs: Sequence[(ConfigKey, float)]
         @rtype: Sequence[ConfigKey]
@@ -394,22 +412,26 @@ class ConfigStore(object):
         """
         Returns an interable of (ConfigKey, ConfigStatus) tuples.
 
-        @rtype: Iterable[Tuple[ConfigKey, ConfigStatus]]
+        @rtype: Iterable[Tuple[ConfigId, ConfigStatus]]
         """
         for key in keys:
             scores = self._get_scores(key)
             status = self._get_status(scores)
+            uid = self.__uids.get(self.__client, key.device)
             if status is not None:
-                yield (key, status)
+                yield (ConfigId(key, uid), status)
 
     def get_building(self, service="*", monitor="*"):
         """
         Return an iterator producing (ConfigKey, ConfigStatus.Building) tuples.
 
-        @rtype: Iterable[Tuple[ConfigKey, ConfigStatus.Building]]
+        @rtype: Iterable[Tuple[ConfigId, ConfigStatus.Building]]
         """
         return (
-            (key, ConfigStatus.Building(ts))
+            (
+                ConfigId(key, self.__uids.get(self.__client, key.device)),
+                ConfigStatus.Building(ts)
+            )
             for key, ts in self.__range.building(service, monitor)
         )
 
@@ -417,10 +439,13 @@ class ConfigStore(object):
         """
         Return an iterator producing (ConfigKey, ConfigStatus.Pending) tuples.
 
-        @rtype: Iterable[Tuple[ConfigKey, ConfigStatus.Pending]]
+        @rtype: Iterable[Tuple[ConfigId, ConfigStatus.Pending]]
         """
         return (
-            (key, ConfigStatus.Pending(ts))
+            (
+                ConfigId(key, self.__uids.get(self.__client, key.device)),
+                ConfigStatus.Pending(ts)
+            )
             for key, ts in self.__range.pending(service, monitor)
         )
 
@@ -428,10 +453,13 @@ class ConfigStore(object):
         """
         Return an iterator producing (ConfigKey, ConfigStatus.Expired) tuples.
 
-        @rtype: Iterable[Tuple[ConfigKey, ConfigStatus.Expired]]
+        @rtype: Iterable[Tuple[ConfigId, ConfigStatus.Expired]]
         """
         return (
-            (key, ConfigStatus.Expired(ts))
+            (
+                ConfigId(key, self.__uids.get(self.__client, key.device)),
+                ConfigStatus.Expired(ts)
+            )
             for key, ts in self.__range.expired(service, monitor)
         )
 
@@ -439,10 +467,13 @@ class ConfigStore(object):
         """
         Return an iterator producing (ConfigKey, ConfigStatus.Retired) tuples.
 
-        @rtype: Iterable[Tuple[ConfigKey, ConfigStatus.Expired]]
+        @rtype: Iterable[Tuple[ConfigId, ConfigStatus.Expired]]
         """
         return (
-            (key, ConfigStatus.Retired(ts))
+            (
+                ConfigId(key, self.__uids.get(self.__client, key.device)),
+                ConfigStatus.Retired(ts)
+            )
             for key, ts in self.__range.retired(service, monitor)
         )
 
@@ -451,7 +482,7 @@ class ConfigStore(object):
         Returns an iterator producing (ConfigKey, ConfigStatus.Current)
         tuples where current timestamp <= `maxtimestamp`.
 
-        @rtype: Iterable[Tuple[ConfigKey, ConfigStatus.Current]]
+        @rtype: Iterable[Tuple[ConfigId, ConfigStatus.Current]]
         """
         # NOTE: 'older' means timestamps > 0 and <= `maxtimestamp`.
         selection = tuple(
@@ -464,7 +495,8 @@ class ConfigStore(object):
             scores = self._get_scores(key)[1:]
             if any(score is not None for score in scores):
                 continue
-            yield (key, ConfigStatus.Current(age))
+            uid = self.__uids.get(self.__client, key.device)
+            yield (ConfigId(key, uid), ConfigStatus.Current(age))
 
     def get_newer(self, mintimestamp, service="*", monitor="*"):
         """
@@ -484,7 +516,8 @@ class ConfigStore(object):
             scores = self._get_scores(key)[1:]
             if any(score is not None for score in scores):
                 continue
-            yield (key, ConfigStatus.Current(age))
+            uid = self.__uids.get(self.__client, key.device)
+            yield (ConfigId(key, uid), ConfigStatus.Current(age))
 
     def _get_scores(self, key):
         service, monitor, device = attr.astuple(key)

@@ -221,8 +221,6 @@ class Show(object):
         else:
             self._columns = args.width
 
-
-
     def run(self):
         initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
@@ -329,11 +327,13 @@ class Expire(object):
         )
 
     def _no_devices(self, results):
-        return tuple(key for key, state in results)
+        return tuple(ident.key for ident, state in results)
 
     def _with_devices(self, results):
         return tuple(
-            key for key, state in results if key.device in self._devices
+            ident.key
+            for ident, state in results
+            if ident.key.device in self._devices
         )
 
     def _confirm_inputs(self):

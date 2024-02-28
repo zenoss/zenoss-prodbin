@@ -34,11 +34,14 @@ class BuildConfigTaskDispatcherTest(TestCase):
 
         t.bctd = BuildConfigTaskDispatcher((t.class_a, t.class_b))
 
+    @patch("{src}.time".format(**PATH), autospec=True)
     @patch.object(build_device_config, "apply_async")
-    def test_dispatch_all(t, _apply_async):
+    def test_dispatch_all(t, _apply_async, _time):
         timeout = 100.0
         soft = 100.0
         hard = 110.0
+        submitted = 111.0
+        _time.return_value = submitted
         monitor = "local"
         device = "linux"
         t.bctd.dispatch_all(monitor, device, timeout)
@@ -47,22 +50,27 @@ class BuildConfigTaskDispatcherTest(TestCase):
             (
                 call(
                     args=(monitor, device, t.class_a_name),
+                    kwargs={"submitted": submitted},
                     soft_time_limit=soft,
                     time_limit=hard,
                 ),
                 call(
                     args=(monitor, device, t.class_b_name),
+                    kwargs={"submitted": submitted},
                     soft_time_limit=soft,
                     time_limit=hard,
                 ),
             )
         )
 
+    @patch("{src}.time".format(**PATH), autospec=True)
     @patch.object(build_device_config, "apply_async")
-    def test_dispatch(t, _apply_async):
+    def test_dispatch(t, _apply_async, _time):
         timeout = 100.0
         soft = 100.0
         hard = 110.0
+        submitted = 111.0
+        _time.return_value = submitted
         monitor = "local"
         device = "linux"
         svcname = t.class_a.__module__
@@ -70,6 +78,7 @@ class BuildConfigTaskDispatcherTest(TestCase):
 
         _apply_async.assert_called_once_with(
             args=(monitor, device, t.class_a_name),
+            kwargs={"submitted": submitted},
             soft_time_limit=soft,
             time_limit=hard,
         )

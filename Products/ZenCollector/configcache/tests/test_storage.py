@@ -18,6 +18,7 @@ from Products.Jobber.tests.utils import subTest, RedisLayer
 
 from ..cache.storage import ConfigStore
 from ..cache import (
+    ConfigId,
     ConfigKey,
     ConfigQuery,
     ConfigRecord,
@@ -111,6 +112,7 @@ class _BaseTest(TestCase):
             t.fields[0].updated,
             t.config1,
         )
+        t.cid1 = ConfigId(t.record1.key, t.record1.uid)
         t.record2 = ConfigRecord.make(
             t.fields[1].service,
             t.fields[1].monitor,
@@ -119,6 +121,7 @@ class _BaseTest(TestCase):
             t.fields[1].updated,
             t.config2,
         )
+        t.cid2 = ConfigId(t.record2.key, t.record2.uid)
 
     def tearDown(t):
         del t.store
@@ -231,15 +234,15 @@ class ConfigStoreGetStatusTest(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.fields[0].updated, status.updated)
 
         result = tuple(t.store.get_status(t.record2.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record2.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid2, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.fields[1].updated, status.updated)
 
@@ -260,17 +263,17 @@ class ConfigStoreGetOlderTest(_BaseTest):
         t.assertEqual(0, len(result))
 
         result = tuple(t.store.get_older(t.record2.updated - 1))
-        key, status = result[0]
         t.assertEqual(1, len(result))
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertEqual(t.record1.updated, status.updated)
 
     def test_get_older_equal_single(t):
         t.store.add(t.record1)
         result = tuple(t.store.get_older(t.record1.updated))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
 
@@ -280,8 +283,8 @@ class ConfigStoreGetOlderTest(_BaseTest):
 
         result = tuple(t.store.get_older(t.record1.updated))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
 
@@ -289,13 +292,13 @@ class ConfigStoreGetOlderTest(_BaseTest):
             t.store.get_older(t.record2.updated), key=lambda x: x[1].updated
         )
         t.assertEqual(2, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
 
-        key, status = result[1]
-        t.assertEqual(t.record2.key, key)
+        cid, status = result[1]
+        t.assertEqual(t.cid2, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record2.updated, status.updated)
 
@@ -303,8 +306,8 @@ class ConfigStoreGetOlderTest(_BaseTest):
         t.store.add(t.record1)
         result = tuple(t.store.get_older(t.record1.updated + 1))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
 
@@ -314,8 +317,8 @@ class ConfigStoreGetOlderTest(_BaseTest):
 
         result = tuple(t.store.get_older(t.record1.updated + 1))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
 
@@ -324,13 +327,13 @@ class ConfigStoreGetOlderTest(_BaseTest):
             key=lambda x: x[1].updated,
         )
         t.assertEqual(2, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
 
-        key, status = result[1]
-        t.assertEqual(t.record2.key, key)
+        cid, status = result[1]
+        t.assertEqual(t.cid2, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record2.updated, status.updated)
 
@@ -342,8 +345,8 @@ class ConfigStoreGetNewerTest(_BaseTest):
         t.store.add(t.record1)
         result = tuple(t.store.get_newer(t.record1.updated - 1))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
 
@@ -356,12 +359,12 @@ class ConfigStoreGetNewerTest(_BaseTest):
             key=lambda x: x[1].updated,
         )
         t.assertEqual(2, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
-        key, status = result[1]
-        t.assertEqual(t.record2.key, key)
+        cid, status = result[1]
+        t.assertEqual(t.cid2, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record2.updated, status.updated)
 
@@ -376,8 +379,8 @@ class ConfigStoreGetNewerTest(_BaseTest):
 
         result = tuple(t.store.get_newer(t.record1.updated))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record2.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid2, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record2.updated, status.updated)
 
@@ -391,8 +394,8 @@ class ConfigStoreGetNewerTest(_BaseTest):
         t.store.add(t.record2)
         result = tuple(t.store.get_newer(t.record1.updated + 1))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record2.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid2, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record2.updated, status.updated)
 
@@ -423,8 +426,8 @@ class TestRetiredStatus(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Retired)
         t.assertEqual(status.updated, t.record1.updated)
 
@@ -434,8 +437,8 @@ class TestRetiredStatus(_BaseTest):
 
         result = tuple(t.store.get_retired())
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Retired)
         t.assertEqual(status.updated, t.record1.updated)
 
@@ -471,8 +474,8 @@ class TestExpiredStatus(_BaseTest):
         result = tuple(t.store.get_status(t.record1.key))
 
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Expired)
 
     def test_get_expired(t):
@@ -482,8 +485,8 @@ class TestExpiredStatus(_BaseTest):
 
         result = tuple(t.store.get_expired())
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Expired)
 
     def test_expired_is_not_older(t):
@@ -530,8 +533,8 @@ class TestPendingStatus(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Pending)
         t.assertEqual(submitted, status.submitted)
 
@@ -542,8 +545,8 @@ class TestPendingStatus(_BaseTest):
 
         result = tuple(t.store.get_pending())
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Pending)
         t.assertEqual(submitted, status.submitted)
 
@@ -595,8 +598,8 @@ class TestBuildingStatus(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Building)
         t.assertEqual(started, status.started)
 
@@ -607,8 +610,8 @@ class TestBuildingStatus(_BaseTest):
 
         result = tuple(t.store.get_building())
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Building)
         t.assertEqual(started, status.started)
 
@@ -636,8 +639,8 @@ class TestExpiredTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Expired)
 
         retired_keys = tuple(t.store.get_retired())
@@ -652,8 +655,8 @@ class TestExpiredTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Retired)
         t.assertEqual(t.record1.updated, status.updated)
 
@@ -672,8 +675,8 @@ class TestPendingTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Pending)
         t.assertEqual(submitted, status.submitted)
 
@@ -687,8 +690,8 @@ class TestPendingTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Pending)
         t.assertEqual(submitted, status.submitted)
 
@@ -702,8 +705,8 @@ class TestPendingTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Pending)
 
         expired_keys = tuple(t.store.get_expired())
@@ -726,8 +729,8 @@ class TestPendingTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Expired)
         t.assertEqual(ts, status.expired)
 
@@ -741,8 +744,8 @@ class TestPendingTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Retired)
         t.assertEqual(t.record1.updated, status.updated)
 
@@ -761,8 +764,8 @@ class TestBuildingTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Building)
         t.assertEqual(started, status.started)
 
@@ -785,8 +788,8 @@ class TestBuildingTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Building)
         t.assertEqual(started, status.started)
 
@@ -810,8 +813,8 @@ class TestBuildingTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Building)
         t.assertEqual(started, status.started)
 
@@ -836,8 +839,8 @@ class TestBuildingTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Building)
         t.assertEqual(started, status.started)
 
@@ -861,8 +864,8 @@ class TestBuildingTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Pending)
         t.assertEqual(submitted, status.submitted)
 
@@ -877,8 +880,8 @@ class TestBuildingTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Expired)
         t.assertEqual(expired, status.expired)
 
@@ -892,8 +895,8 @@ class TestBuildingTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Retired)
         t.assertEqual(t.record1.updated, status.updated)
 
@@ -913,8 +916,8 @@ class TestAddTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
 
@@ -929,8 +932,8 @@ class TestAddTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
 
@@ -950,8 +953,8 @@ class TestAddTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
 
@@ -975,8 +978,8 @@ class TestAddTransitions(_BaseTest):
 
         result = tuple(t.store.get_status(t.record1.key))
         t.assertEqual(1, len(result))
-        key, status = result[0]
-        t.assertEqual(t.record1.key, key)
+        cid, status = result[0]
+        t.assertEqual(t.cid1, cid)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
 
