@@ -13,7 +13,6 @@ import gc
 import logging
 
 from datetime import datetime
-from itertools import chain
 from time import time
 
 from zope.component import createObject
@@ -88,148 +87,149 @@ class Manager(object):
             try:
                 self.ctx.session.sync()
                 gc.collect()
-                self._retry_build()
-                self._retry_pending()
-                self._expire_retired_configs()
-                self._rebuild_older_configs()
+                timedout = tuple(self._get_build_timeouts())
+                if not timedout:
+                    self.log.debug("no configuration builds have timed out")
+                else:
+                    self._expire_configs(timedout, "build")
+                timedout = tuple(self._get_pending_timeouts())
+                if not timedout:
+                    self.log.debug(
+                        "no pending configuration builds have timed out"
+                    )
+                else:
+                    self._expire_configs(timedout, "pending")
+                statuses = self._get_configs_to_rebuild()
+                if statuses:
+                    self._rebuild_configs(statuses)
             except Exception as ex:
                 self.log.exception("unexpected error %s", ex)
             self.ctx.controller.wait(self.interval)
 
-    def _retry_build(self):
+    def _get_build_timeouts(self):
         buildlimitmap = DevicePropertyMap.make_build_timeout_map(
             self.ctx.dmd.Devices
         )
         # Test against a time 10 minutes earlier to minimize interfering
         # with builder working on the same config.
         now = time() - 600
-        count = 0
         for status in self.store.get_building():
-            duration = buildlimitmap.get(status.uid)
-            if status.started < (now - duration):
-                self.store.set_expired((status.key, now))
-                self.log.info(
-                    "expired configuration due to build timeout  "
-                    "started=%s timeout=%s service=%s monitor=%s device=%s",
-                    datetime.fromtimestamp(status.started).strftime(
-                        "%Y-%m-%d %H:%M:%S"
-                    ),
-                    duration,
-                    status.key.service,
-                    status.key.monitor,
-                    status.key.device,
+            limit = buildlimitmap.get(status.uid)
+            if status.started < (now - limit):
+                yield (
+                    status,
+                    "started",
+                    status.started,
+                    Constants.build_timeout_id,
+                    limit,
                 )
-                count += 1
-        if count == 0:
-            self.log.debug("no configuration builds have timed out")
 
-    def _retry_pending(self):
+    def _get_pending_timeouts(self):
         pendinglimitmap = DevicePropertyMap.make_pending_timeout_map(
             self.ctx.dmd.Devices
         )
         now = time()
-        count = 0
         for status in self.store.get_pending():
-            duration = pendinglimitmap.get(status.uid)
-            if status.submitted < (now - duration):
-                self.store.set_expired((status.key, now))
-                self.log.info(
-                    "expired pending configuration build due to timeout  "
-                    "submitted=%s timeout=%s service=%s monitor=%s device=%s",
-                    datetime.fromtimestamp(status.submitted).strftime(
-                        "%Y-%m-%d %H:%M:%S"
-                    ),
-                    duration,
-                    status.key.service,
-                    status.key.monitor,
-                    status.key.device,
+            limit = pendinglimitmap.get(status.uid)
+            if status.submitted < (now - limit):
+                yield (
+                    status,
+                    "submitted",
+                    status.submitted,
+                    Constants.pending_timeout_id,
+                    limit,
                 )
-                count += 1
-        if count == 0:
-            self.log.debug("no pending configuration builds have timed out")
 
-    def _expire_retired_configs(self):
+    def _expire_configs(self, data, kind):
+        now = time()
+        self.store.set_expired(
+            *((status.key, now) for status, _, _, _, _ in data)
+        )
+        for status, valId, val, limitId, limitValue in data:
+            self.log.info(
+                "expired configuration due to %s timeout  "
+                "%s=%s %s=%s service=%s monitor=%s device=%s",
+                kind,
+                valId,
+                datetime.fromtimestamp(val).strftime("%Y-%m-%d %H:%M:%S"),
+                limitId,
+                limitValue,
+                status.key.service,
+                status.key.monitor,
+                status.key.device,
+            )
+
+    def _get_configs_to_rebuild(self):
         minttl_map = DevicePropertyMap.make_minimum_ttl_map(
             self.ctx.dmd.Devices
         )
+        ttl_map = DevicePropertyMap.make_ttl_map(self.ctx.dmd.Devices)
         now = time()
-        expire = tuple(
-            status.key
+
+        # Retrieve the 'retired' configs
+        ready_to_rebuild = list(
+            status
             for status in self.store.get_retired()
             if status.updated < now - minttl_map.get(status.uid)
         )
-        self.store.set_expired(*((key, now) for key in expire))
 
-    def _rebuild_older_configs(self):
+        # Append the 'expired' configs
+        ready_to_rebuild.extend(self.store.get_expired())
+
+        # Append the 'older' configs.
+        min_age = now - ttl_map.smallest_value()
+        for status in self.store.get_older(min_age):
+            # Select the min ttl if the ttl is a smaller value
+            limit = max(minttl_map.get(status.uid), ttl_map.get(status.uid))
+            expiration_threshold = now - limit
+            if status.updated <= expiration_threshold:
+                ready_to_rebuild.append(status)
+
+        return ready_to_rebuild
+
+    def _rebuild_configs(self, statuses):
         buildlimitmap = DevicePropertyMap.make_build_timeout_map(
             self.ctx.dmd.Devices
         )
-        ttlmap = DevicePropertyMap.make_ttl_map(self.ctx.dmd.Devices)
-        min_ttl = ttlmap.smallest_value()
-        self.log.debug("minimum age limit is %s", _formatted_interval(min_ttl))
-        now = time()
-        min_age = now - min_ttl
-        results = chain.from_iterable(
-            (self.store.get_expired(), self.store.get_older(min_age))
-        )
         count = 0
-        for status in results:
-            if status.uid is None:
-                self.log.warn(
-                    "No UID found for device  device=%s", status.key.device
-                )
-                continue
-            ttl = ttlmap.get(status.uid)
-            expiration_threshold = now - ttl
-            if (
-                isinstance(status, ConfigStatus.Expired)
-                or status.updated <= expiration_threshold
-            ):
-                timeout = buildlimitmap.get(status.uid)
-                self.store.set_pending((status.key, time()))
-                self.dispatcher.dispatch(
+        for status in statuses:
+            timeout = buildlimitmap.get(status.uid)
+            self.store.set_pending((status.key, time()))
+            self.dispatcher.dispatch(
+                status.key.service,
+                status.key.monitor,
+                status.key.device,
+                timeout,
+            )
+            if isinstance(status, ConfigStatus.Expired):
+                self.log.info(
+                    "submitted job to rebuild expired config  "
+                    "service=%s monitor=%s device=%s",
                     status.key.service,
                     status.key.monitor,
                     status.key.device,
-                    timeout,
                 )
-                if isinstance(status, ConfigStatus.Expired):
-                    self.log.info(
-                        "submitted job to rebuild expired config  "
-                        "service=%s monitor=%s device=%s",
-                        status.key.service,
-                        status.key.monitor,
-                        status.key.device,
-                    )
-                else:
-                    self.log.info(
-                        "submitted job to rebuild old config  "
-                        "updated=%s %s=%s service=%s monitor=%s device=%s",
-                        datetime.fromtimestamp(status.updated).strftime(
-                            "%Y-%m-%d %H:%M:%S"
-                        ),
-                        Constants.time_to_live_id,
-                        ttl,
-                        status.key.service,
-                        status.key.monitor,
-                        status.key.device,
-                    )
-                count += 1
+            elif isinstance(status, ConfigStatus.Retired):
+                self.log.info(
+                    "submitted job to rebuild retired config  "
+                    "service=%s monitor=%s device=%s",
+                    status.key.service,
+                    status.key.monitor,
+                    status.key.device,
+                )
+            else:
+                self.log.info(
+                    "submitted job to rebuild old config  "
+                    "updated=%s %s=%s service=%s monitor=%s device=%s",
+                    datetime.fromtimestamp(status.updated).strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    ),
+                    Constants.time_to_live_id,
+                    timeout,
+                    status.key.service,
+                    status.key.monitor,
+                    status.key.device,
+                )
+            count += 1
         if count == 0:
             self.log.debug("found no expired or old configurations to rebuild")
-
-
-def _formatted_interval(total_seconds):
-    minutes, seconds = divmod(total_seconds, 60)
-    hours, minutes = divmod(minutes, 60)
-    days, hours = divmod(hours, 24)
-    text = ""
-    if seconds:
-        text = "{:02} seconds".format(seconds)
-    if minutes:
-        text = "{:02} minutes {}".format(minutes, text).strip()
-    if hours:
-        text = "{:02} hours {}".format(hours, text).strip()
-    if days:
-        text = "{} days {}".format(days, text).strip()
-    return text
