@@ -23,16 +23,13 @@ from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from .app import Application
+from .app.args import get_subparser
 from .cache import ConfigQuery, ConfigStatus
 from .debug import Debug as DebugCommand
-from .misc.args import get_subparser
 from .modelchange import InvalidationCause
-from .utils import (
-    BuildConfigTaskDispatcher,
-    DevicePropertyMap,
-    getConfigServices,
-    RelStorageInvalidationPoller,
-)
+from .propertymap import DevicePropertyMap
+from .task import BuildConfigTaskDispatcher
+from .utils import getConfigServices, RelStorageInvalidationPoller
 
 _default_interval = 30.0
 
@@ -200,7 +197,8 @@ class Invalidator(object):
         )
         expired = set(key for key, _ in statuses if key not in retired)
         retired = self.store.set_retired(*retired)
-        expired = self.store.set_expired(*expired)
+        now = time.time()
+        expired = self.store.set_expired(*((key, now) for key in expired))
         for key in retired:
             self.log.info(
                 "retired configuration of changed device  "

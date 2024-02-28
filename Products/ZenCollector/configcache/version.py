@@ -7,8 +7,9 @@
 #
 ##############################################################################
 
-from .misc import app_name
-from .misc.args import get_subparser
+import sys as _sys
+
+from .app.args import get_subparser
 
 
 class Version(object):
@@ -30,4 +31,9 @@ class Version(object):
 
         zinfo = ZenossInfo("")
         version = zinfo.getZenossVersion().short()
-        print("{} {}".format(app_name(), version))
+        print("{} {}".format(_app_name(), version))
+
+
+def _app_name():
+    fn = _sys.argv[0].rsplit("/", 1)[-1]
+    return fn.rsplit(".", 1)[0] if fn.endswith(".py") else fn

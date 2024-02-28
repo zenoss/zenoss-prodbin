@@ -27,10 +27,9 @@ from Products.ZenRelations.PrimaryPathObjectManager import (
     PrimaryPathObjectManager,
 )
 
-from ..misc import into_tuple
-
 from .invalidation import Invalidation, InvalidationCause
 from .pipeline import Pipe, IterablePipe, Action
+from .utils import into_tuple
 
 log = logging.getLogger("zen.configcache.modelchange")
 
