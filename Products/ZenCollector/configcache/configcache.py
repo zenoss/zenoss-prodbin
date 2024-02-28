@@ -9,10 +9,10 @@
 
 from __future__ import absolute_import, print_function
 
+from .app.args import get_arg_parser
 from .cli import List_, Show, Expire
 from .invalidator import Invalidator
 from .manager import Manager
-from .misc.args import get_arg_parser
 from .version import Version
 
 

@@ -11,7 +11,7 @@ from __future__ import absolute_import, print_function
 
 from unittest import TestCase
 
-from ..utils.propertymap import DevicePropertyMap
+from ..propertymap import DevicePropertyMap
 
 
 class EmptyDevicePropertyMapTest(TestCase):

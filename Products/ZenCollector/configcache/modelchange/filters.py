@@ -34,7 +34,7 @@ from Products.ZenModel.Software import Software
 from Products.ZenWidgets.Portlet import Portlet
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
-from ..utils import Constants
+from ..constants import Constants
 
 log = logging.getLogger("zen.{}".format(__name__.split(".")[-1].lower()))
 
