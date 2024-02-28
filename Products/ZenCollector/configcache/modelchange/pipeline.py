@@ -11,7 +11,7 @@ from __future__ import absolute_import
 
 import logging
 
-from ..misc import coroutine, into_tuple
+from .utils import coroutine, into_tuple
 
 log = logging.getLogger("zen.configcache.modelchange.pipeline")
 

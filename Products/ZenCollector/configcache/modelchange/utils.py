@@ -1,15 +1,17 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2023, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2024, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
 
-import sys as _sys
+from __future__ import absolute_import
 
 from functools import wraps as _wraps
+
+import six as _six
 
 
 def coroutine(func):
@@ -25,13 +27,8 @@ def coroutine(func):
 
 
 def into_tuple(args):
-    if isinstance(args, basestring):
+    if isinstance(args, _six.string_types):
         return (args,)
     elif not hasattr(args, "__iter__"):
         return (args,)
     return args
-
-
-def app_name():
-    fn = _sys.argv[0].rsplit("/", 1)[-1]
-    return fn.rsplit(".", 1)[0] if fn.endswith(".py") else fn

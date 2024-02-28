@@ -12,6 +12,7 @@ from __future__ import absolute_import, print_function
 import argparse
 import os
 import sys
+import time
 
 from datetime import datetime
 
@@ -28,8 +29,8 @@ from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 from Products.ZenUtils.terminal_size import get_terminal_size
 
 from .app import initialize_environment
+from .app.args import get_subparser
 from .cache import ConfigQuery, ConfigStatus
-from .misc.args import get_subparser
 
 
 class List_(object):
@@ -319,7 +320,8 @@ class Expire(object):
         results = store.get_status(*store.search(query))
         method = self._no_devices if not self._devices else self._with_devices
         keys = method(results)
-        store.set_expired(*keys)
+        now = time.time()
+        store.set_expired(*((key, now) for key in keys))
         count = len(keys)
         print(
             "expired %d device configuration%s"
