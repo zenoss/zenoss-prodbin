@@ -9,8 +9,6 @@
 
 from __future__ import absolute_import, print_function
 
-import time
-
 import attr
 
 from attr.validators import instance_of
@@ -33,24 +31,9 @@ class ConfigKey(object):
 
 
 @attr.s(frozen=True, slots=True)
-class ConfigPending(object):
+class ConfigId(object):
     key = attr.ib(validator=[instance_of(ConfigKey)])
-    started = attr.ib(validator=[instance_of(float)])
-
-    @classmethod
-    def make(cls, svc, mon, dev, started=None):
-        if started is None:
-            started = time.time()
-        return cls(ConfigKey(svc, mon, dev), started)
-
-    @classmethod
-    def from_key(cls, key, started=None):
-        if started is None:
-            started = time.time()
-        return cls(key, started)
-
-    def astuple(self):
-        return attr.astuple(self, recurse=False)
+    uid = attr.ib(validator=[instance_of(str)])
 
 
 @attr.s(slots=True)

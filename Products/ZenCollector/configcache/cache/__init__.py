@@ -10,6 +10,7 @@
 from __future__ import absolute_import
 
 from .model import (
+    ConfigId,
     ConfigKey,
     ConfigQuery,
     ConfigRecord,
@@ -17,6 +18,7 @@ from .model import (
 )
 
 __all__ = (
+    "ConfigId",
     "ConfigKey",
     "ConfigQuery",
     "ConfigRecord",
