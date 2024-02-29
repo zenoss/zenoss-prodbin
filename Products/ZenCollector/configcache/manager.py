@@ -148,7 +148,7 @@ class Manager(object):
         for status, valId, val, limitId, limitValue in data:
             self.log.info(
                 "expired configuration due to %s timeout  "
-                "%s=%s %s=%s service=%s monitor=%s device=%s",
+                "%s=%s %s=%s service=%s collector=%s device=%s",
                 kind,
                 valId,
                 datetime.fromtimestamp(val).strftime("%Y-%m-%d %H:%M:%S"),
@@ -204,7 +204,7 @@ class Manager(object):
             if isinstance(status, ConfigStatus.Expired):
                 self.log.info(
                     "submitted job to rebuild expired config  "
-                    "service=%s monitor=%s device=%s",
+                    "service=%s collector=%s device=%s",
                     status.key.service,
                     status.key.monitor,
                     status.key.device,
@@ -212,7 +212,7 @@ class Manager(object):
             elif isinstance(status, ConfigStatus.Retired):
                 self.log.info(
                     "submitted job to rebuild retired config  "
-                    "service=%s monitor=%s device=%s",
+                    "service=%s collector=%s device=%s",
                     status.key.service,
                     status.key.monitor,
                     status.key.device,
@@ -220,7 +220,7 @@ class Manager(object):
             else:
                 self.log.info(
                     "submitted job to rebuild old config  "
-                    "updated=%s %s=%s service=%s monitor=%s device=%s",
+                    "updated=%s %s=%s service=%s collector=%s device=%s",
                     datetime.fromtimestamp(status.updated).strftime(
                         "%Y-%m-%d %H:%M:%S"
                     ),
