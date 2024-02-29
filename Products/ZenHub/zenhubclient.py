@@ -175,7 +175,7 @@ class ZenHubClient(object):
             self.__services[name] = service_ref
             log.debug(
                 "retrieved remote reference to ZenHub service  "
-                "name=%s monitor=%s service=%r",
+                "name=%s collector=%s service=%r",
                 name,
                 monitor,
                 service_ref,

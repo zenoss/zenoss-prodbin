@@ -68,7 +68,7 @@ def build_device_config(
             if submitted < (now - duration):
                 self.log.warn(
                     "dropped this job in favor of newer job  "
-                    "device=%s monitor=%s service=%s submitted=%f %s=%s",
+                    "device=%s collector=%s service=%s submitted=%f %s=%s",
                     deviceid,
                     monitorname,
                     svcname,
@@ -82,7 +82,7 @@ def build_device_config(
     # that configcache-manager doesn't prematurely timeout the build.
     store.set_building((CacheKey(svcname, monitorname, deviceid), time()))
     self.log.info(
-        "building device configuration  device=%s monitor=%s service=%s",
+        "building device configuration  device=%s collector=%s service=%s",
         deviceid,
         monitorname,
         svcname,
@@ -92,7 +92,7 @@ def build_device_config(
     configs = service.remote_getDeviceConfigs((deviceid,))
     if not configs:
         self.log.info(
-            "no configuration built  device=%s monitor=%s service=%s",
+            "no configuration built  device=%s collector=%s service=%s",
             deviceid,
             monitorname,
             svcname,
@@ -110,7 +110,7 @@ def build_device_config(
             store.remove(key)
             self.log.info(
                 "removed previously built configuration  "
-                "device=%s monitor=%s service=%s",
+                "device=%s collector=%s service=%s",
                 key.device,
                 key.monitor,
                 key.service,
@@ -124,7 +124,7 @@ def build_device_config(
         store.add(record)
         self.log.info(
             "added/replaced config  "
-            "updated=%s device=%s monitor=%s service=%s",
+            "updated=%s device=%s collector=%s service=%s",
             datetime.fromtimestamp(record.updated).isoformat(),
             deviceid,
             monitorname,

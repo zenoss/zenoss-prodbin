@@ -141,7 +141,7 @@ class Invalidator(object):
         monitor = device.getPerformanceServerName()
         if monitor is None:
             self.log.warn(
-                "ignoring invalidated device having undefined monitor  "
+                "ignoring invalidated device having undefined collector  "
                 "device=%s  reason=%s",
                 device,
                 reason,
@@ -159,7 +159,7 @@ class Invalidator(object):
         else:
             self.log.warn(
                 "ignored unexpected reason  "
-                "reason=%s device=%s monitor=%s device-oid=%r",
+                "reason=%s device=%s collector=%s device-oid=%r",
                 reason,
                 device,
                 monitor,
@@ -174,7 +174,7 @@ class Invalidator(object):
         timeout = timelimitmap.get(uid)
         self.dispatcher.dispatch_all(monitor, device.id, timeout)
         self.log.info(
-            "submitted build jobs for new device  uid=%s monitor=%s",
+            "submitted build jobs for new device  uid=%s collector=%s",
             uid,
             monitor,
         )
@@ -204,7 +204,7 @@ class Invalidator(object):
         for key in retired:
             self.log.info(
                 "retired configuration of changed device  "
-                "device=%s monitor=%s service=%s device-oid=%r",
+                "device=%s collector=%s service=%s device-oid=%r",
                 key.device,
                 key.monitor,
                 key.service,
@@ -213,7 +213,7 @@ class Invalidator(object):
         for key in expired:
             self.log.info(
                 "expired configuration of changed device  "
-                "device=%s monitor=%s service=%s device-oid=%r",
+                "device=%s collector=%s service=%s device-oid=%r",
                 key.device,
                 key.monitor,
                 key.service,
@@ -225,7 +225,7 @@ class Invalidator(object):
         for key in keys:
             self.log.info(
                 "removed configuration of deleted device  "
-                "device=%s monitor=%s service=%s device-oid=%r",
+                "device=%s collector=%s service=%s device-oid=%r",
                 key.device,
                 key.monitor,
                 key.service,
@@ -255,7 +255,7 @@ def _removeDeleted(log, tool, store):
     for key in devices_not_found:
         log.info(
             "removed configuration for deleted device  "
-            "device=%s monitor=%s service=%s",
+            "device=%s collector=%s service=%s",
             key.device,
             key.monitor,
             key.service,
@@ -275,7 +275,7 @@ def _addNew(log, tool, timelimitmap, store, dispatcher):
     for brain in catalog_results:
         if brain.collector is None:
             log.warn(
-                "ignoring device having undefined monitor  device=%s uid=%s",
+                "ignoring device having undefined collector  device=%s uid=%s",
                 brain.id,
                 brain.uid,
             )
@@ -288,7 +288,7 @@ def _addNew(log, tool, timelimitmap, store, dispatcher):
             dispatcher.dispatch_all(brain.collector, brain.id, timeout)
             log.info(
                 "submitted build jobs for device without any configurations  "
-                "uid=%s monitor=%s",
+                "uid=%s collector=%s",
                 brain.uid,
                 brain.collector,
             )
