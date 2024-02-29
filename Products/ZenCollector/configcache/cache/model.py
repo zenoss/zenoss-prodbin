@@ -17,29 +17,23 @@ from Products.ZenCollector.services.config import DeviceProxy
 
 
 @attr.s(frozen=True, slots=True)
-class ConfigQuery(object):
+class CacheQuery(object):
     service = attr.ib(validator=[instance_of(str)], default="*")
     monitor = attr.ib(validator=[instance_of(str)], default="*")
     device = attr.ib(validator=[instance_of(str)], default="*")
 
 
 @attr.s(frozen=True, slots=True)
-class ConfigKey(object):
+class CacheKey(object):
     service = attr.ib(validator=[instance_of(str)])
     monitor = attr.ib(validator=[instance_of(str)])
     device = attr.ib(validator=[instance_of(str)])
 
 
-@attr.s(frozen=True, slots=True)
-class ConfigId(object):
-    key = attr.ib(validator=[instance_of(ConfigKey)])
-    uid = attr.ib(validator=[instance_of(str)])
-
-
 @attr.s(slots=True)
-class ConfigRecord(object):
+class CacheRecord(object):
     key = attr.ib(
-        validator=[instance_of(ConfigKey)], on_setattr=attr.setters.NO_OP
+        validator=[instance_of(CacheKey)], on_setattr=attr.setters.NO_OP
     )
     uid = attr.ib(validator=[instance_of(str)], on_setattr=attr.setters.NO_OP)
     updated = attr.ib(validator=[instance_of(float)])
@@ -47,7 +41,7 @@ class ConfigRecord(object):
 
     @classmethod
     def make(cls, svc, mon, dev, uid, updated, config):
-        return cls(ConfigKey(svc, mon, dev), uid, updated, config)
+        return cls(CacheKey(svc, mon, dev), uid, updated, config)
 
     @property
     def service(self):
@@ -62,74 +56,58 @@ class ConfigRecord(object):
         return self.key.device
 
 
+@attr.s(slots=True)
+class _Status(object):
+    """Base class for status classes."""
+
+    key = attr.ib(validator=[instance_of(CacheKey)])
+    uid = attr.ib(validator=[instance_of(str)])
+
+
 class _ConfigStatus(object):
     """
-    Namespace class for Current, Building, Expired, and Pending types.
+    Namespace class for Current, Retired, Expired, Pending, and Building types.
     """
 
-    class Current(object):
+    @attr.s(slots=True, frozen=True, repr_ns="ConfigStatus")
+    class Current(_Status):
         """The configuration is current."""
 
-        def __init__(self, ts):
-            self.updated = ts
+        updated = attr.ib(validator=[instance_of(float)])
 
-        def __eq__(self, other):
-            if not isinstance(other, _ConfigStatus.Current):
-                return NotImplemented
-            return self.updated == other.updated
-
-    class Retired(object):
+    @attr.s(slots=True, frozen=True, repr_ns="ConfigStatus")
+    class Retired(_Status):
         """The cofiguration is retired, but not yet expired."""
 
-        def __init__(self, ts):
-            self.updated = ts
+        updated = attr.ib(validator=[instance_of(float)])
 
-        def __eq__(self, other):
-            if not isinstance(other, _ConfigStatus.Retired):
-                return NotImplemented
-            return self.updated == other.updated
-
-    class Expired(object):
+    @attr.s(slots=True, frozen=True, repr_ns="ConfigStatus")
+    class Expired(_Status):
         """The configuration has expired."""
 
-        def __init__(self, ts):
-            self.expired = ts
+        expired = attr.ib(validator=[instance_of(float)])
 
-        def __eq__(self, other):
-            if not isinstance(other, _ConfigStatus.Expired):
-                return NotImplemented
-            return True
-
-    class Pending(object):
+    @attr.s(slots=True, frozen=True, repr_ns="ConfigStatus")
+    class Pending(_Status):
         """The configuration is waiting for a rebuild."""
 
-        def __init__(self, ts):
-            self.submitted = ts
+        submitted = attr.ib(validator=[instance_of(float)])
 
-        def __eq__(self, other):
-            if not isinstance(other, _ConfigStatus.Pending):
-                return NotImplemented
-            return self.submitted == other.submitted
-
-    class Building(object):
+    @attr.s(slots=True, frozen=True, repr_ns="ConfigStatus")
+    class Building(_Status):
         """The configuration is rebuilding."""
 
-        def __init__(self, ts):
-            self.started = ts
-
-        def __eq__(self, other):
-            if not isinstance(other, _ConfigStatus.Building):
-                return NotImplemented
-            return self.started == other.started
+        started = attr.ib(validator=[instance_of(float)])
 
     def __contains__(self, value):
         return isinstance(
             value,
             (
-                _ConfigStatus.Building,
                 _ConfigStatus.Current,
+                _ConfigStatus.Retired,
                 _ConfigStatus.Expired,
                 _ConfigStatus.Pending,
+                _ConfigStatus.Building,
             ),
         )
 
@@ -137,8 +115,8 @@ class _ConfigStatus(object):
 ConfigStatus = _ConfigStatus()
 
 __all__ = (
-    "ConfigKey",
-    "ConfigQuery",
-    "ConfigRecord",
+    "CacheKey",
+    "CacheQuery",
+    "CacheRecord",
     "ConfigStatus",
 )

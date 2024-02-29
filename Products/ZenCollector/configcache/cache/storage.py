@@ -73,7 +73,7 @@ from zope.component.factory import Factory
 
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
-from .model import ConfigId, ConfigKey, ConfigQuery, ConfigRecord, ConfigStatus
+from .model import CacheKey, CacheQuery, CacheRecord, ConfigStatus
 from .table import DeviceUIDTable, DeviceConfigTable, ConfigMetadataTable
 
 _app = "configcache"
@@ -124,19 +124,19 @@ class ConfigStore(object):
             },
         )()
 
-    def search(self, query=ConfigQuery()):
+    def search(self, query=CacheQuery()):
         """
         Returns the configuration keys matching the search criteria.
 
-        @type query: ConfigQuery
-        @rtype: Iterator[ConfigKey]
+        @type query: CacheQuery
+        @rtype: Iterator[CacheKey]
         @raises TypeError: Unsupported value given for a field
         @raises AttributeError: Unknown field
         """
-        if not isinstance(query, ConfigQuery):
-            raise TypeError("'{!r} is not a ConfigQuery".format(query))
+        if not isinstance(query, CacheQuery):
+            raise TypeError("'{!r} is not a CacheQuery".format(query))
         return (
-            ConfigKey(svc, mon, dvc)
+            CacheKey(svc, mon, dvc)
             for svc, mon, dvc in self.__config.scan(
                 self.__client, **attr.asdict(query)
             )
@@ -144,13 +144,13 @@ class ConfigStore(object):
 
     def add(self, record):
         """
-        @type record: ConfigRecord
+        @type record: CacheRecord
         """
         svc, mon, dvc, uid, updated, config = _from_record(record)
 
         orphaned_keys = tuple(
             key
-            for key in self.search(ConfigQuery(service=svc, device=dvc))
+            for key in self.search(CacheQuery(service=svc, device=dvc))
             if key.monitor != mon
         )
         watch_keys = self._get_watch_keys(orphaned_keys + (record.key,))
@@ -191,8 +191,8 @@ class ConfigStore(object):
 
     def get(self, key, default=None):
         """
-        @type key: ConfigKey
-        @rtype: ConfigRecord
+        @type key: CacheKey
+        @rtype: CacheRecord
         """
         with self.__client.pipeline() as pipe:
             self.__config.get(pipe, key.service, key.monitor, key.device)
@@ -210,7 +210,7 @@ class ConfigStore(object):
         """
         Delete the configurations identified by `keys`.
 
-        @type keys: Sequence[ConfigKey]
+        @type keys: Sequence[CacheKey]
         """
         with self.__client.pipeline() as pipe:
             for key in keys:
@@ -240,8 +240,8 @@ class ConfigStore(object):
         If a config is already retired, it will not be among the keys
         that are returned.
 
-        @type keys: Sequence[ConfigKey]
-        @rtype: Sequence[ConfigKey]
+        @type keys: Sequence[CacheKey]
+        @rtype: Sequence[CacheKey]
         """
         if len(keys) == 0:
             return ()
@@ -288,8 +288,8 @@ class ConfigStore(object):
         If a config is already expired, it will not be among the keys
         that are returned.
 
-        @type keys: Sequence[(ConfigKey, float)]
-        @rtype: Sequence[ConfigKey]
+        @type keys: Sequence[(CacheKey, float)]
+        @rtype: Sequence[CacheKey]
         """
         if len(pairs) == 0:
             return ()
@@ -329,8 +329,8 @@ class ConfigStore(object):
         If a config is already marked pending, it will not be among the
         keys that are returned.
 
-        @type pending: Sequence[(ConfigKey, float)]
-        @rtype: Sequence[ConfigKey]
+        @type pending: Sequence[(CacheKey, float)]
+        @rtype: Sequence[CacheKey]
         """
         if len(pairs) == 0:
             return ()
@@ -370,8 +370,8 @@ class ConfigStore(object):
         If a config is already marked building, it will not be among the
         keys that are returned.
 
-        @type pairs: Sequence[(ConfigKey, float)]
-        @rtype: Sequence[ConfigKey]
+        @type pairs: Sequence[(CacheKey, float)]
+        @rtype: Sequence[CacheKey]
         """
         if len(pairs) == 0:
             return ()
@@ -410,79 +410,75 @@ class ConfigStore(object):
 
     def get_status(self, *keys):
         """
-        Returns an interable of (ConfigKey, ConfigStatus) tuples.
+        Returns an interable of ConfigStatus objects.
 
-        @rtype: Iterable[Tuple[ConfigId, ConfigStatus]]
+        @rtype: Iterable[ConfigStatus]
         """
         for key in keys:
             scores = self._get_scores(key)
-            status = self._get_status(scores)
             uid = self.__uids.get(self.__client, key.device)
+            status = self._get_status(scores, key, uid)
             if status is not None:
-                yield (ConfigId(key, uid), status)
+                yield status
 
     def get_building(self, service="*", monitor="*"):
         """
-        Return an iterator producing (ConfigKey, ConfigStatus.Building) tuples.
+        Return an iterator producing ConfigStatus.Building objects.
 
-        @rtype: Iterable[Tuple[ConfigId, ConfigStatus.Building]]
+        @rtype: Iterable[ConfigStatus.Building]
         """
         return (
-            (
-                ConfigId(key, self.__uids.get(self.__client, key.device)),
-                ConfigStatus.Building(ts)
+            ConfigStatus.Building(
+                key, self.__uids.get(self.__client, key.device), ts
             )
             for key, ts in self.__range.building(service, monitor)
         )
 
     def get_pending(self, service="*", monitor="*"):
         """
-        Return an iterator producing (ConfigKey, ConfigStatus.Pending) tuples.
+        Return an iterator producing ConfigStatus.Pending objects.
 
-        @rtype: Iterable[Tuple[ConfigId, ConfigStatus.Pending]]
+        @rtype: Iterable[ConfigStatus.Pending]
         """
         return (
-            (
-                ConfigId(key, self.__uids.get(self.__client, key.device)),
-                ConfigStatus.Pending(ts)
+            ConfigStatus.Pending(
+                key, self.__uids.get(self.__client, key.device), ts
             )
             for key, ts in self.__range.pending(service, monitor)
         )
 
     def get_expired(self, service="*", monitor="*"):
         """
-        Return an iterator producing (ConfigKey, ConfigStatus.Expired) tuples.
+        Return an iterator producing ConfigStatus.Expired objects.
 
-        @rtype: Iterable[Tuple[ConfigId, ConfigStatus.Expired]]
+        @rtype: Iterable[ConfigStatus.Expired]
         """
         return (
-            (
-                ConfigId(key, self.__uids.get(self.__client, key.device)),
-                ConfigStatus.Expired(ts)
+            ConfigStatus.Expired(
+                key, self.__uids.get(self.__client, key.device), ts
             )
             for key, ts in self.__range.expired(service, monitor)
         )
 
     def get_retired(self, service="*", monitor="*"):
         """
-        Return an iterator producing (ConfigKey, ConfigStatus.Retired) tuples.
+        Return an iterator producing ConfigStatus.Retired objects.
 
-        @rtype: Iterable[Tuple[ConfigId, ConfigStatus.Expired]]
+        @rtype: Iterable[ConfigStatus.Retired]
         """
         return (
-            (
-                ConfigId(key, self.__uids.get(self.__client, key.device)),
-                ConfigStatus.Retired(ts)
+            ConfigStatus.Retired(
+                key, self.__uids.get(self.__client, key.device), ts
             )
             for key, ts in self.__range.retired(service, monitor)
         )
 
     def get_older(self, maxtimestamp, service="*", monitor="*"):
         """
-        Returns an iterator producing (ConfigKey, ConfigStatus.Current)
-        tuples where current timestamp <= `maxtimestamp`.
+        Returns an iterator producing ConfigStatus.Current objects
+        where current timestamp <= `maxtimestamp`.
 
-        @rtype: Iterable[Tuple[ConfigId, ConfigStatus.Current]]
+        @rtype: Iterable[ConfigStatus.Current]
         """
         # NOTE: 'older' means timestamps > 0 and <= `maxtimestamp`.
         selection = tuple(
@@ -496,14 +492,14 @@ class ConfigStore(object):
             if any(score is not None for score in scores):
                 continue
             uid = self.__uids.get(self.__client, key.device)
-            yield (ConfigId(key, uid), ConfigStatus.Current(age))
+            yield ConfigStatus.Current(key, uid, age)
 
     def get_newer(self, mintimestamp, service="*", monitor="*"):
         """
-        Returns an iterator producing (ConfigKey, ConfigStatus.Current)
-        tuples where current timestamp > `mintimestamp`.
+        Returns an iterator producing ConfigStatus.Current objects
+        where current timestamp > `mintimestamp`.
 
-        @rtype: Iterable[Tuple[ConfigKey, ConfigStatus.Current]]
+        @rtype: Iterable[ConfigStatus.Current]
         """
         # NOTE: 'newer' means timestamps  to `maxtimestamp`.
         selection = tuple(
@@ -517,7 +513,7 @@ class ConfigStore(object):
             if any(score is not None for score in scores):
                 continue
             uid = self.__uids.get(self.__client, key.device)
-            yield (ConfigId(key, uid), ConfigStatus.Current(age))
+            yield ConfigStatus.Current(key, uid, age)
 
     def _get_scores(self, key):
         service, monitor, device = attr.astuple(key)
@@ -529,18 +525,18 @@ class ConfigStore(object):
             self.__building.score(pipe, service, monitor, device),
             return pipe.execute()
 
-    def _get_status(self, scores):
+    def _get_status(self, scores, key, uid):
         age, retired, expired, pending, building = scores
         if building is not None:
-            return ConfigStatus.Building(_to_ts(building))
+            return ConfigStatus.Building(key, uid, _to_ts(building))
         elif pending is not None:
-            return ConfigStatus.Pending(_to_ts(pending))
+            return ConfigStatus.Pending(key, uid, _to_ts(pending))
         elif expired is not None:
-            return ConfigStatus.Expired(_to_ts(expired))
+            return ConfigStatus.Expired(key, uid, _to_ts(expired))
         elif retired is not None:
-            return ConfigStatus.Retired(_to_ts(retired))
+            return ConfigStatus.Retired(key, uid, _to_ts(retired))
         elif age is not None:
-            return ConfigStatus.Current(_to_ts(age))
+            return ConfigStatus.Current(key, uid, _to_ts(age))
 
     def _get_watch_keys(self, keys):
         return set(
@@ -560,7 +556,7 @@ class ConfigStore(object):
 def _range(client, metadata, svc, mon, minv=None, maxv=None):
     pairs = metadata.get_pairs(client, svc, mon)
     return (
-        (ConfigKey(svcId, monId, devId), _to_ts(score))
+        (CacheKey(svcId, monId, devId), _to_ts(score))
         for svcId, monId, devId, score in metadata.range(
             client, pairs, minscore=minv, maxscore=maxv
         )
@@ -580,10 +576,10 @@ def _to_ts(score):
 
 
 def _to_record(svc, mon, dvc, uid, updated, config):
-    key = ConfigKey(svc, mon, dvc)
+    key = CacheKey(svc, mon, dvc)
     updated = _to_ts(updated)
     config = _unjelly(config)
-    return ConfigRecord(key, uid, updated, config)
+    return CacheRecord(key, uid, updated, config)
 
 
 def _from_record(record):

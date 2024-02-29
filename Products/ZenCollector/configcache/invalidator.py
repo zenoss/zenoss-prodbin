@@ -24,7 +24,7 @@ from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from .app import Application
 from .app.args import get_subparser
-from .cache import ConfigQuery, ConfigStatus
+from .cache import CacheQuery, ConfigStatus
 from .debug import Debug as DebugCommand
 from .modelchange import InvalidationCause
 from .propertymap import DevicePropertyMap
@@ -148,7 +148,7 @@ class Invalidator(object):
             )
             return
         keys = list(
-            self.store.search(ConfigQuery(monitor=monitor, device=device.id))
+            self.store.search(CacheQuery(monitor=monitor, device=device.id))
         )
         if not keys:
             self._new_device(device, monitor)
@@ -184,8 +184,8 @@ class Invalidator(object):
             self.ctx.dmd.Devices
         )
         statuses = tuple(
-            (ident.key, status)
-            for ident, status in self.store.get_status(*keys)
+            status
+            for status in self.store.get_status(*keys)
             if isinstance(status, ConfigStatus.Current)
         )
         uid = device.getPrimaryId()
@@ -193,9 +193,11 @@ class Invalidator(object):
         now = time.time()
         limit = now - minttl
         retired = set(
-            key for key, status in statuses if status.updated >= limit
+            status.key for status in statuses if status.updated >= limit
         )
-        expired = set(key for key, _ in statuses if key not in retired)
+        expired = set(
+            status.key for status in statuses if status.key not in retired
+        )
         retired = self.store.set_retired(*retired)
         now = time.time()
         expired = self.store.set_expired(*((key, now) for key in expired))
@@ -279,7 +281,7 @@ def _addNew(log, tool, timelimitmap, store, dispatcher):
             )
             continue
         keys = tuple(
-            store.search(ConfigQuery(monitor=brain.collector, device=brain.id))
+            store.search(CacheQuery(monitor=brain.collector, device=brain.id))
         )
         if not keys:
             timeout = timelimitmap.get(brain.uid)

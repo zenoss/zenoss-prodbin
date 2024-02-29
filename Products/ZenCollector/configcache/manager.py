@@ -104,15 +104,10 @@ class Manager(object):
         # with builder working on the same config.
         now = time() - 600
         count = 0
-        for ident, status in self.store.get_building():
-            if ident.uid is None:
-                self.log.warn(
-                    "No UID found for device  device=%s", ident.key.device
-                )
-                continue
-            duration = buildlimitmap.get(ident.uid)
+        for status in self.store.get_building():
+            duration = buildlimitmap.get(status.uid)
             if status.started < (now - duration):
-                self.store.set_expired((ident.key, now))
+                self.store.set_expired((status.key, now))
                 self.log.info(
                     "expired configuration due to build timeout  "
                     "started=%s timeout=%s service=%s monitor=%s device=%s",
@@ -120,9 +115,9 @@ class Manager(object):
                         "%Y-%m-%d %H:%M:%S"
                     ),
                     duration,
-                    ident.key.service,
-                    ident.key.monitor,
-                    ident.key.device,
+                    status.key.service,
+                    status.key.monitor,
+                    status.key.device,
                 )
                 count += 1
         if count == 0:
@@ -134,15 +129,10 @@ class Manager(object):
         )
         now = time()
         count = 0
-        for ident, status in self.store.get_pending():
-            if ident.uid is None:
-                self.log.warn(
-                    "No UID found for device  device=%s", ident.key.device
-                )
-                continue
-            duration = pendinglimitmap.get(ident.uid)
+        for status in self.store.get_pending():
+            duration = pendinglimitmap.get(status.uid)
             if status.submitted < (now - duration):
-                self.store.set_expired((ident.key, now))
+                self.store.set_expired((status.key, now))
                 self.log.info(
                     "expired pending configuration build due to timeout  "
                     "submitted=%s timeout=%s service=%s monitor=%s device=%s",
@@ -150,27 +140,23 @@ class Manager(object):
                         "%Y-%m-%d %H:%M:%S"
                     ),
                     duration,
-                    ident.key.service,
-                    ident.key.monitor,
-                    ident.key.device,
+                    status.key.service,
+                    status.key.monitor,
+                    status.key.device,
                 )
                 count += 1
         if count == 0:
             self.log.debug("no pending configuration builds have timed out")
 
     def _expire_retired_configs(self):
-        retired = (
-            (ident.key, status, ident.uid)
-            for ident, status in self.store.get_retired()
-        )
         minttl_map = DevicePropertyMap.make_minimum_ttl_map(
             self.ctx.dmd.Devices
         )
         now = time()
         expire = tuple(
-            key
-            for key, status, uid in retired
-            if status.updated < now - minttl_map.get(uid)
+            status.key
+            for status in self.store.get_retired()
+            if status.updated < now - minttl_map.get(status.uid)
         )
         self.store.set_expired(*((key, now) for key in expire))
 
@@ -187,33 +173,33 @@ class Manager(object):
             (self.store.get_expired(), self.store.get_older(min_age))
         )
         count = 0
-        for ident, status in results:
-            if ident.uid is None:
+        for status in results:
+            if status.uid is None:
                 self.log.warn(
-                    "No UID found for device  device=%s", ident.key.device
+                    "No UID found for device  device=%s", status.key.device
                 )
                 continue
-            ttl = ttlmap.get(ident.uid)
+            ttl = ttlmap.get(status.uid)
             expiration_threshold = now - ttl
             if (
                 isinstance(status, ConfigStatus.Expired)
                 or status.updated <= expiration_threshold
             ):
-                timeout = buildlimitmap.get(ident.uid)
-                self.store.set_pending((ident.key, time()))
+                timeout = buildlimitmap.get(status.uid)
+                self.store.set_pending((status.key, time()))
                 self.dispatcher.dispatch(
-                    ident.key.service,
-                    ident.key.monitor,
-                    ident.key.device,
+                    status.key.service,
+                    status.key.monitor,
+                    status.key.device,
                     timeout,
                 )
                 if isinstance(status, ConfigStatus.Expired):
                     self.log.info(
                         "submitted job to rebuild expired config  "
                         "service=%s monitor=%s device=%s",
-                        ident.key.service,
-                        ident.key.monitor,
-                        ident.key.device,
+                        status.key.service,
+                        status.key.monitor,
+                        status.key.device,
                     )
                 else:
                     self.log.info(
@@ -224,9 +210,9 @@ class Manager(object):
                         ),
                         Constants.time_to_live_id,
                         ttl,
-                        ident.key.service,
-                        ident.key.monitor,
-                        ident.key.device,
+                        status.key.service,
+                        status.key.monitor,
+                        status.key.device,
                     )
                 count += 1
         if count == 0:
