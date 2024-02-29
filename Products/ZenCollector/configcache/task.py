@@ -20,7 +20,7 @@ from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 from Products.Jobber.task import requires, DMD, Abortable
 from Products.Jobber.zenjobs import app
 
-from .cache import ConfigKey, ConfigQuery, ConfigRecord, ConfigStatus
+from .cache import CacheKey, CacheQuery, CacheRecord, ConfigStatus
 from .constants import Constants
 from .propertymap import DevicePropertyMap
 
@@ -53,18 +53,18 @@ def build_device_config(
     svcconfigclass = resolve(configclassname)
     svcname = configclassname.rsplit(".", 1)[0]
     store = _getStore()
-    key = ConfigKey(svcname, monitorname, deviceid)
+    key = CacheKey(svcname, monitorname, deviceid)
 
     # Check whether this is an old job, i.e. job pending timeout.
     # If it is an old job, skip it, manager already sent another one.
-    ident, status = next((store.get_status(key)), (None, None))
+    status = next(store.get_status(key), None)
     if status is not None and submitted is not None:
         if isinstance(status, ConfigStatus.Pending):
             pendinglimitmap = DevicePropertyMap.make_pending_timeout_map(
                 self.dmd.Devices
             )
             now = time()
-            duration = pendinglimitmap.get(ident.uid)
+            duration = pendinglimitmap.get(status.uid)
             if submitted < (now - duration):
                 self.log.warn(
                     "dropped this job in favor of newer job  "
@@ -80,7 +80,7 @@ def build_device_config(
 
     # Change the configuration's status from 'pending' to 'building' so
     # that configcache-manager doesn't prematurely timeout the build.
-    store.set_building((ConfigKey(svcname, monitorname, deviceid), time()))
+    store.set_building((CacheKey(svcname, monitorname, deviceid), time()))
     self.log.info(
         "building device configuration  device=%s monitor=%s service=%s",
         deviceid,
@@ -99,7 +99,7 @@ def build_device_config(
         )
         key = next(
             store.search(
-                ConfigQuery(
+                CacheQuery(
                     service=svcname, monitor=monitorname, device=deviceid
                 )
             ),
@@ -118,7 +118,7 @@ def build_device_config(
     else:
         config = configs[0]
         uid = self.dmd.Devices.findDeviceByIdExact(deviceid).getPrimaryId()
-        record = ConfigRecord.make(
+        record = CacheRecord.make(
             svcname, monitorname, deviceid, uid, time(), config
         )
         store.add(record)

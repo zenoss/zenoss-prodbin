@@ -30,7 +30,7 @@ from Products.ZenUtils.terminal_size import get_terminal_size
 
 from .app import initialize_environment
 from .app.args import get_subparser
-from .cache import ConfigQuery, ConfigStatus
+from .cache import CacheQuery, ConfigStatus
 
 
 class List_(object):
@@ -91,38 +91,44 @@ class List_(object):
         client = getRedisClient(url=getRedisUrl())
         store = createObject("configcache-store", client)
         if haswildcard:
-            query = ConfigQuery(
+            query = CacheQuery(
                 service=self._service,
                 monitor=self._monitor,
                 device=self._devices[0],
             )
         else:
-            query = ConfigQuery(service=self._service, monitor=self._monitor)
+            query = CacheQuery(service=self._service, monitor=self._monitor)
         results = store.get_status(*store.search(query))
         if self._states:
             results = (
-                (key, status)
-                for key, status in results
+                status
+                for status in results
                 if isinstance(status, self._states)
             )
         rows = []
         maxd, maxs, maxm = 0, 0, 0
         if len(self._devices) > 0:
-            data = (key for key in results if key[0].device in self._devices)
+            data = (
+                status
+                for status in results
+                if status.key.device in self._devices
+            )
         else:
             data = results
-        for key, status in sorted(
-            data, key=lambda x: (x[0].device, x[0].service)
+        for status in sorted(
+            data, key=lambda x: (x.key.device, x.key.service)
         ):
             if self._showuid:
-                uid = store.get_uid(key.device)
+                devid = status.uid
             else:
-                uid = key.device
+                devid = status.key.device
             status_text = _format_status(status)
-            maxd = max(maxd, len(uid))
+            maxd = max(maxd, len(devid))
             maxs = max(maxs, len(status_text))
-            maxm = max(maxm, len(key.monitor))
-            rows.append((uid, status_text, key.monitor, key.service))
+            maxm = max(maxm, len(status.key.monitor))
+            rows.append(
+                (devid, status_text, status.key.monitor, status.key.service)
+            )
         if rows:
             print(
                 "{0:{maxd}} {1:{maxs}} {2:{maxm}} {3}".format(
@@ -160,7 +166,7 @@ _name_state_lookup = {
 
 def _format_status(status):
     if isinstance(status, ConfigStatus.Current):
-        return "last updated {}".format(_format_date(status.updated))
+        return "current since {}".format(_format_date(status.updated))
     elif isinstance(status, ConfigStatus.Retired):
         return "retired"
     elif isinstance(status, ConfigStatus.Expired):
@@ -243,7 +249,7 @@ class Show(object):
 
 
 def _query_cache(store, service, monitor, device):
-    query = ConfigQuery(service=service, monitor=monitor, device=device)
+    query = CacheQuery(service=service, monitor=monitor, device=device)
     results = store.search(query)
     first_key = next(results, None)
     if first_key is None:
@@ -314,7 +320,7 @@ class Expire(object):
         initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
         store = createObject("configcache-store", client)
-        query = ConfigQuery(service=self._service, monitor=self._monitor)
+        query = CacheQuery(service=self._service, monitor=self._monitor)
         results = store.get_status(*store.search(query))
         method = self._no_devices if not self._devices else self._with_devices
         keys = method(results)
@@ -327,13 +333,13 @@ class Expire(object):
         )
 
     def _no_devices(self, results):
-        return tuple(ident.key for ident, state in results)
+        return tuple(status.key for status in results)
 
     def _with_devices(self, results):
         return tuple(
-            ident.key
-            for ident, state in results
-            if ident.key.device in self._devices
+            status.key
+            for status in results
+            if status.key.device in self._devices
         )
 
     def _confirm_inputs(self):
