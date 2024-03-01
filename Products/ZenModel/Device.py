@@ -1520,6 +1520,14 @@ class Device(
             and not self.zSnmpMonitorIgnore
         )
 
+    def getProdStateThreshold(self):
+        """
+        Return the numeric device production state threshold.
+
+        @rtype: int
+        """
+        return self.zProdStateThreshold
+
     def getPriority(self):
         """
         Return the numeric device priority.

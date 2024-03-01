@@ -66,7 +66,7 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         """Overridden in lower classes if a device relationship exists.
         """
         return None
-    
+
     def getProductionState(self):
         return self.privateattr_productionState
         
