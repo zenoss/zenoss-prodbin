@@ -113,17 +113,16 @@ class TestDevicePropertyMapTTLMakers(BaseTestCase):
         actual = minttlmap.get(pathid)
         t.assertEqual(expected, actual)
 
-    def test_bad_min_ttl_value(t):
-        bad_minttl_value = Constants.time_to_live_value + 100
+    def test_large_min_ttl_value(t):
+        minttl_value = Constants.time_to_live_value + 100
         t.cmd_dev.setZenProperty(
-            Constants.minimum_time_to_live_id,
-            bad_minttl_value,
+            Constants.minimum_time_to_live_id, minttl_value
         )
 
         minttlmap = DevicePropertyMap.make_minimum_ttl_map(t.dmd.Devices)
 
         pathid = t.cmd_dev.getPrimaryId()
-        expected = Constants.time_to_live_value
+        expected = Constants.time_to_live_value + 100
         actual = minttlmap.get(pathid)
         t.assertEqual(expected, actual)
 
