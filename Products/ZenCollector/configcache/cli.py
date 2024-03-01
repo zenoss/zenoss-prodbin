@@ -30,7 +30,7 @@ from Products.ZenUtils.terminal_size import get_terminal_size
 
 from .app import initialize_environment
 from .app.args import get_subparser
-from .cache import ConfigQuery, ConfigStatus
+from .cache import CacheQuery, ConfigStatus
 
 
 class List_(object):
@@ -66,7 +66,7 @@ class List_(object):
         subp.set_defaults(factory=List_)
 
     def __init__(self, args):
-        self._monitor = "*{}*".format(args.monitor).replace("***", "*")
+        self._monitor = "*{}*".format(args.collector).replace("***", "*")
         self._service = "*{}*".format(args.service).replace("***", "*")
         self._showuid = args.show_uid
         self._devices = getattr(args, "device", [])
@@ -91,44 +91,50 @@ class List_(object):
         client = getRedisClient(url=getRedisUrl())
         store = createObject("configcache-store", client)
         if haswildcard:
-            query = ConfigQuery(
+            query = CacheQuery(
                 service=self._service,
                 monitor=self._monitor,
                 device=self._devices[0],
             )
         else:
-            query = ConfigQuery(service=self._service, monitor=self._monitor)
+            query = CacheQuery(service=self._service, monitor=self._monitor)
         results = store.get_status(*store.search(query))
         if self._states:
             results = (
-                (key, status)
-                for key, status in results
+                status
+                for status in results
                 if isinstance(status, self._states)
             )
         rows = []
         maxd, maxs, maxm = 0, 0, 0
         if len(self._devices) > 0:
-            data = (key for key in results if key[0].device in self._devices)
+            data = (
+                status
+                for status in results
+                if status.key.device in self._devices
+            )
         else:
             data = results
-        for key, status in sorted(
-            data, key=lambda x: (x[0].device, x[0].service)
+        for status in sorted(
+            data, key=lambda x: (x.key.device, x.key.service)
         ):
             if self._showuid:
-                uid = store.get_uid(key.device)
+                devid = status.uid
             else:
-                uid = key.device
+                devid = status.key.device
             status_text = _format_status(status)
-            maxd = max(maxd, len(uid))
+            maxd = max(maxd, len(devid))
             maxs = max(maxs, len(status_text))
-            maxm = max(maxm, len(key.monitor))
-            rows.append((uid, status_text, key.monitor, key.service))
+            maxm = max(maxm, len(status.key.monitor))
+            rows.append(
+                (devid, status_text, status.key.monitor, status.key.service)
+            )
         if rows:
             print(
                 "{0:{maxd}} {1:{maxs}} {2:{maxm}} {3}".format(
                     "DEVICE",
                     "STATUS",
-                    "MONITOR",
+                    "COLLECTOR",
                     "SERVICE",
                     maxd=maxd,
                     maxs=maxs,
@@ -160,7 +166,7 @@ _name_state_lookup = {
 
 def _format_status(status):
     if isinstance(status, ConfigStatus.Current):
-        return "last updated {}".format(_format_date(status.updated))
+        return "current since {}".format(_format_date(status.updated))
     elif isinstance(status, ConfigStatus.Retired):
         return "retired"
     elif isinstance(status, ConfigStatus.Expired):
@@ -201,13 +207,13 @@ class Show(object):
             "service", nargs=1, help="name of the configuration service"
         )
         subp.add_argument(
-            "monitor", nargs=1, help="name of the performance monitor"
+            "collector", nargs=1, help="name of the performance collector"
         )
         subp.add_argument("device", nargs=1, help="name of the device")
         subp.set_defaults(factory=Show)
 
     def __init__(self, args):
-        self._monitor = args.monitor[0]
+        self._monitor = args.collector[0]
         self._service = args.service[0]
         self._device = args.device[0]
         if _is_output_redirected():
@@ -243,7 +249,7 @@ class Show(object):
 
 
 def _query_cache(store, service, monitor, device):
-    query = ConfigQuery(service=service, monitor=monitor, device=device)
+    query = CacheQuery(service=service, monitor=monitor, device=device)
     results = store.search(query)
     first_key = next(results, None)
     if first_key is None:
@@ -303,21 +309,32 @@ class Expire(object):
         subp.set_defaults(factory=Expire)
 
     def __init__(self, args):
-        self._monitor = "*{}*".format(args.monitor).replace("***", "*")
-        self._service = "*{}*".format(args.service).replace("***", "*")
+        self._monitor = args.collector
+        self._service = args.service
         self._devices = getattr(args, "device", [])
 
     def run(self):
+        haswildcard = any("*" in d for d in self._devices)
+        if haswildcard:
+            if len(self._devices) > 1:
+                print(
+                    "Only one DEVICE argument supported when a "
+                    "wildcard is used.",
+                    file=sys.stderr,
+                )
+                return
+            else:
+                self._devices = self._devices[0].replace("*", "")
         if not self._confirm_inputs():
             print("exit")
             return
         initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
         store = createObject("configcache-store", client)
-        query = ConfigQuery(service=self._service, monitor=self._monitor)
+        query = CacheQuery(service=self._service, monitor=self._monitor)
         results = store.get_status(*store.search(query))
         method = self._no_devices if not self._devices else self._with_devices
-        keys = method(results)
+        keys = method(results, wildcard=haswildcard)
         now = time.time()
         store.set_expired(*((key, now) for key in keys))
         count = len(keys)
@@ -326,15 +343,24 @@ class Expire(object):
             % (count, "" if count == 1 else "s")
         )
 
-    def _no_devices(self, results):
-        return tuple(ident.key for ident, state in results)
+    def _no_devices(self, results, wildcard=False):
+        return tuple(status.key for status in results)
 
-    def _with_devices(self, results):
+    def _with_devices(self, results, wildcard=False):
+        if wildcard:
+            predicate = self._check_wildcard
+        else:
+            predicate = self._check_list
+
         return tuple(
-            ident.key
-            for ident, state in results
-            if ident.key.device in self._devices
+            status.key for status in results if predicate(status.key.device)
         )
+
+    def _check_wildcard(self, device):
+        return self._devices in device
+
+    def _check_list(self, device):
+        return device in self._devices
 
     def _confirm_inputs(self):
         if self._devices:
@@ -343,50 +369,50 @@ class Expire(object):
             mesg = "Recreate all device configurations"
         elif "*" not in self._monitor and self._service == "*":
             mesg = (
-                "Recreate all device configurations monitored by the "
+                "Recreate all configurations for devices monitored by the "
                 "'%s' collector" % (self._monitor,)
             )
         elif "*" in self._monitor and self._service == "*":
             mesg = (
-                "Recreate all device configurations monitored by all "
+                "Recreate all configurations for devices monitored by all "
                 "collectors matching '%s'" % (self._monitor,)
             )
         elif self._monitor == "*" and "*" not in self._service:
             mesg = (
                 "Recreate all device configurations created by the '%s' "
-                "configuration service" % (self._service.split(".")[-1],)
+                "service" % (self._service.split(".")[-1],)
             )
         elif self._monitor == "*" and "*" in self._service:
             mesg = (
                 "Recreate all device configurations created by all "
-                "configuration services matching '%s'" % (self._service,)
+                "services matching '%s'" % (self._service,)
             )
         elif "*" in self._monitor and "*" not in self._service:
             mesg = (
-                "Recreate all device configurations created by the "
-                "'%s' configuration service and monitored by all "
-                "collectors matching '%s'" % (self._service, self._monitor)
+                "Recreate all configurations created by the '%s' "
+                "service for devices monitored by all collectors "
+                "matching '%s'" % (self._service, self._monitor)
             )
         elif "*" not in self._monitor and "*" in self._service:
             mesg = (
-                "Recreate all device configurations monitored by the '%s' "
-                "collector and created by all configuration services "
-                "matching '%s'" % (self._monitor, self._service)
+                "Recreate all configurations for devices monitored by the "
+                "'%s' collector and created by all services matching '%s'"
+                % (self._monitor, self._service)
             )
         elif "*" not in self._monitor and "*" not in self._service:
             mesg = (
-                "Recreate all device configurations monitored by the '%s' "
-                "collector and created by the '%s' configuration service"
+                "Recreate all configurations for devices monitored by the "
+                "'%s' collector and created by the '%s' service"
                 % (self._monitor, self._service)
             )
         elif "*" in self._monitor and "*" in self._service:
             mesg = (
-                "Recreate all device configurations monitored by all "
-                "collectors matching '%s' and created by all configuration "
-                "services matching '%s'" % (self._monitor, self._service)
+                "Recreate all configurations device monitored by all "
+                "collectors matching '%s' and created by all services "
+                "matching '%s'" % (self._monitor, self._service)
             )
         else:
-            mesg = "monitor '%s'  service '%s'" % (
+            mesg = "collector '%s'  service '%s'" % (
                 self._monitor,
                 self._service,
             )
@@ -455,11 +481,11 @@ def _get_common_parser():
         _common_parser = argparse.ArgumentParser(add_help=False)
         _common_parser.add_argument(
             "-m",
-            "--monitor",
+            "--collector",
             type=str,
             default="*",
-            help="Name of the performance monitor.  Supports simple '*' "
-            "wildcard comparisons.  A lone '*' selects all monitors.",
+            help="Name of the performance collector.  Supports simple '*' "
+            "wildcard comparisons.  A lone '*' selects all collectors.",
         )
         _common_parser.add_argument(
             "-s",

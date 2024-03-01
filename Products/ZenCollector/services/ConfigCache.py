@@ -11,7 +11,7 @@ import logging
 
 from zope.component import createObject
 
-from Products.ZenCollector.configcache.cache import ConfigQuery
+from Products.ZenCollector.configcache.cache import CacheQuery
 from Products.ZenHub.errors import translateError
 from Products.ZenHub.HubService import HubService
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
@@ -107,11 +107,11 @@ class ConfigCache(HubService):
 
         # 'updated_keys' references newer configs found in 'previous'
         updated_keys = (
-            key
-            for key, _ in self._store.get_newer(
+            status.key
+            for status in self._store.get_newer(
                 when, service=servicename, monitor=self.instance
             )
-            if key.device in previous
+            if status.key.device in previous
         )
 
         # 'removed' references devices found in 'previous'
@@ -136,7 +136,7 @@ class ConfigCache(HubService):
         @type servicename: str
         @rtype: Iterator[str]
         """
-        query = ConfigQuery(monitor=self.instance, service=servicename)
+        query = CacheQuery(monitor=self.instance, service=servicename)
         self.log.info("[ConfigCache] using query %s", query)
         return self._store.search(query)
 
@@ -146,7 +146,7 @@ class ConfigCache(HubService):
         of the `options` parameter.
 
         @param keys: Cache config keys
-        @type keys: Iterable[ConfigKey]
+        @type keys: Iterable[CacheKey]
         @param predicate: Function that determines whether to keep the device
         @type options: Function(Device) -> Boolean
         @rtype: Iterator[str]

@@ -24,7 +24,7 @@ from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from .app import Application
 from .app.args import get_subparser
-from .cache import ConfigQuery, ConfigStatus
+from .cache import CacheQuery, ConfigStatus
 from .debug import Debug as DebugCommand
 from .modelchange import InvalidationCause
 from .propertymap import DevicePropertyMap
@@ -141,14 +141,14 @@ class Invalidator(object):
         monitor = device.getPerformanceServerName()
         if monitor is None:
             self.log.warn(
-                "ignoring invalidated device having undefined monitor  "
+                "ignoring invalidated device having undefined collector  "
                 "device=%s  reason=%s",
                 device,
                 reason,
             )
             return
         keys = list(
-            self.store.search(ConfigQuery(monitor=monitor, device=device.id))
+            self.store.search(CacheQuery(monitor=monitor, device=device.id))
         )
         if not keys:
             self._new_device(device, monitor)
@@ -159,7 +159,7 @@ class Invalidator(object):
         else:
             self.log.warn(
                 "ignored unexpected reason  "
-                "reason=%s device=%s monitor=%s device-oid=%r",
+                "reason=%s device=%s collector=%s device-oid=%r",
                 reason,
                 device,
                 monitor,
@@ -174,7 +174,7 @@ class Invalidator(object):
         timeout = timelimitmap.get(uid)
         self.dispatcher.dispatch_all(monitor, device.id, timeout)
         self.log.info(
-            "submitted build jobs for new device  uid=%s monitor=%s",
+            "submitted build jobs for new device  uid=%s collector=%s",
             uid,
             monitor,
         )
@@ -184,8 +184,8 @@ class Invalidator(object):
             self.ctx.dmd.Devices
         )
         statuses = tuple(
-            (ident.key, status)
-            for ident, status in self.store.get_status(*keys)
+            status
+            for status in self.store.get_status(*keys)
             if isinstance(status, ConfigStatus.Current)
         )
         uid = device.getPrimaryId()
@@ -193,16 +193,18 @@ class Invalidator(object):
         now = time.time()
         limit = now - minttl
         retired = set(
-            key for key, status in statuses if status.updated >= limit
+            status.key for status in statuses if status.updated >= limit
         )
-        expired = set(key for key, _ in statuses if key not in retired)
+        expired = set(
+            status.key for status in statuses if status.key not in retired
+        )
         retired = self.store.set_retired(*retired)
         now = time.time()
         expired = self.store.set_expired(*((key, now) for key in expired))
         for key in retired:
             self.log.info(
                 "retired configuration of changed device  "
-                "device=%s monitor=%s service=%s device-oid=%r",
+                "device=%s collector=%s service=%s device-oid=%r",
                 key.device,
                 key.monitor,
                 key.service,
@@ -211,7 +213,7 @@ class Invalidator(object):
         for key in expired:
             self.log.info(
                 "expired configuration of changed device  "
-                "device=%s monitor=%s service=%s device-oid=%r",
+                "device=%s collector=%s service=%s device-oid=%r",
                 key.device,
                 key.monitor,
                 key.service,
@@ -223,7 +225,7 @@ class Invalidator(object):
         for key in keys:
             self.log.info(
                 "removed configuration of deleted device  "
-                "device=%s monitor=%s service=%s device-oid=%r",
+                "device=%s collector=%s service=%s device-oid=%r",
                 key.device,
                 key.monitor,
                 key.service,
@@ -253,7 +255,7 @@ def _removeDeleted(log, tool, store):
     for key in devices_not_found:
         log.info(
             "removed configuration for deleted device  "
-            "device=%s monitor=%s service=%s",
+            "device=%s collector=%s service=%s",
             key.device,
             key.monitor,
             key.service,
@@ -273,20 +275,20 @@ def _addNew(log, tool, timelimitmap, store, dispatcher):
     for brain in catalog_results:
         if brain.collector is None:
             log.warn(
-                "ignoring device having undefined monitor  device=%s uid=%s",
+                "ignoring device having undefined collector  device=%s uid=%s",
                 brain.id,
                 brain.uid,
             )
             continue
         keys = tuple(
-            store.search(ConfigQuery(monitor=brain.collector, device=brain.id))
+            store.search(CacheQuery(monitor=brain.collector, device=brain.id))
         )
         if not keys:
             timeout = timelimitmap.get(brain.uid)
             dispatcher.dispatch_all(brain.collector, brain.id, timeout)
             log.info(
                 "submitted build jobs for device without any configurations  "
-                "uid=%s monitor=%s",
+                "uid=%s collector=%s",
                 brain.uid,
                 brain.collector,
             )
