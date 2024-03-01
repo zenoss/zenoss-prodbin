@@ -24,7 +24,7 @@ from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from .app import Application
 from .app.args import get_subparser
-from .cache import CacheQuery, ConfigStatus
+from .cache import CacheKey, CacheQuery, ConfigStatus
 from .debug import Debug as DebugCommand
 from .modelchange import InvalidationCause
 from .propertymap import DevicePropertyMap
@@ -107,16 +107,7 @@ class Invalidator(object):
             result = poller.poll()
             if result:
                 self.log.debug("found %d relevant invalidations", len(result))
-            for invalidation in result:
-                try:
-                    self._process(invalidation)
-                except AttributeError:
-                    self.log.info(
-                        "invalidation  device=%s reason=%s",
-                        invalidation.device,
-                        invalidation.reason,
-                    )
-                    self.log.exception("failed while processing invalidation")
+                self._process_all(result)
             self.ctx.controller.wait(self.interval)
 
     def _synchronize(self):
@@ -135,27 +126,48 @@ class Invalidator(object):
         if len(new_devices) == 0:
             self.log.info("no missing configurations found")
 
-    def _process(self, invalidation):
+    def _process_all(self, invalidations):
+        buildlimit_map = DevicePropertyMap.make_build_timeout_map(
+            self.ctx.dmd.Devices
+        )
+        minttl_map = DevicePropertyMap.make_minimum_ttl_map(
+            self.ctx.dmd.Devices
+        )
+        for invalidation in invalidations:
+            uid = invalidation.device.getPrimaryId()
+            buildlimit = buildlimit_map.get(uid)
+            minttl = minttl_map.get(uid)
+            try:
+                self._process(invalidation, buildlimit, minttl)
+            except AttributeError:
+                self.log.info(
+                    "invalidation  device=%s reason=%s",
+                    invalidation.device,
+                    invalidation.reason,
+                )
+                self.log.exception("failed while processing invalidation")
+
+    def _process(self, invalidation, buildlimit, minttl):
         device = invalidation.device
         reason = invalidation.reason
         monitor = device.getPerformanceServerName()
         if monitor is None:
             self.log.warn(
                 "ignoring invalidated device having undefined collector  "
-                "device=%s  reason=%s",
+                "device=%s reason=%s",
                 device,
                 reason,
             )
             return
-        keys = list(
+        keys = tuple(
             self.store.search(CacheQuery(monitor=monitor, device=device.id))
         )
         if not keys:
-            self._new_device(device, monitor)
+            self._new_device(device, monitor, buildlimit)
         elif reason is InvalidationCause.Updated:
-            self._updated_device(device, monitor, keys, invalidation)
+            self._updated_device(device, monitor, keys, minttl)
         elif reason is InvalidationCause.Removed:
-            self._removed_device(keys, invalidation)
+            self._removed_device(keys)
         else:
             self.log.warn(
                 "ignored unexpected reason  "
@@ -166,30 +178,38 @@ class Invalidator(object):
                 invalidation.oid,
             )
 
-    def _new_device(self, device, monitor):
-        timelimitmap = DevicePropertyMap.make_build_timeout_map(
-            self.ctx.dmd.Devices
+    def _new_device(self, device, monitor, buildlimit):
+        # Don't dispatch jobs if there're any statuses.
+        keys = tuple(
+            CacheKey(svcname, monitor, device.id)
+            for svcname in self.dispatcher.service_names
         )
-        uid = device.getPrimaryId()
-        timeout = timelimitmap.get(uid)
-        self.dispatcher.dispatch_all(monitor, device.id, timeout)
+        for key in keys:
+            status = self.store.get_status(key)
+            if status is not None:
+                self.log.debug(
+                    "build jobs already submitted for new device  "
+                    "device=%s collector=%s",
+                    device,
+                    monitor,
+                )
+                return
+        now = time.time()
+        for key in keys:
+            self.store.set_pending((key, now))
+        self.dispatcher.dispatch_all(monitor, device.id, buildlimit)
         self.log.info(
-            "submitted build jobs for new device  uid=%s collector=%s",
-            uid,
+            "submitted build jobs for new device  device=%s collector=%s",
+            device,
             monitor,
         )
 
-    def _updated_device(self, device, monitor, keys, invalidation):
-        minagelimitmap = DevicePropertyMap.make_minimum_ttl_map(
-            self.ctx.dmd.Devices
-        )
+    def _updated_device(self, device, monitor, keys, minttl):
         statuses = tuple(
             status
             for status in self.store.get_status(*keys)
             if isinstance(status, ConfigStatus.Current)
         )
-        uid = device.getPrimaryId()
-        minttl = minagelimitmap.get(uid)
         now = time.time()
         limit = now - minttl
         retired = set(
@@ -198,38 +218,35 @@ class Invalidator(object):
         expired = set(
             status.key for status in statuses if status.key not in retired
         )
-        retired = self.store.set_retired(*retired)
         now = time.time()
-        expired = self.store.set_expired(*((key, now) for key in expired))
+        self.store.set_retired(*((key, now) for key in retired))
+        self.store.set_expired(*((key, now) for key in expired))
         for key in retired:
             self.log.info(
                 "retired configuration of changed device  "
-                "device=%s collector=%s service=%s device-oid=%r",
+                "device=%s collector=%s service=%s",
                 key.device,
                 key.monitor,
                 key.service,
-                invalidation.oid,
             )
         for key in expired:
             self.log.info(
                 "expired configuration of changed device  "
-                "device=%s collector=%s service=%s device-oid=%r",
+                "device=%s collector=%s service=%s",
                 key.device,
                 key.monitor,
                 key.service,
-                invalidation.oid,
             )
 
-    def _removed_device(self, keys, invalidation):
+    def _removed_device(self, keys):
         self.store.remove(*keys)
         for key in keys:
             self.log.info(
                 "removed configuration of deleted device  "
-                "device=%s collector=%s service=%s device-oid=%r",
+                "device=%s collector=%s service=%s",
                 key.device,
                 key.monitor,
                 key.service,
-                invalidation.oid,
             )
 
 
