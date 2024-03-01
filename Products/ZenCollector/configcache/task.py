@@ -80,7 +80,7 @@ def build_device_config(
 
     # Change the configuration's status from 'pending' to 'building' so
     # that configcache-manager doesn't prematurely timeout the build.
-    store.set_building((CacheKey(svcname, monitorname, deviceid), time()))
+    store.set_building((key, time()))
     self.log.info(
         "building device configuration  device=%s collector=%s service=%s",
         deviceid,
@@ -89,15 +89,16 @@ def build_device_config(
     )
 
     service = svcconfigclass(self.dmd, monitorname)
-    configs = service.remote_getDeviceConfigs((deviceid,))
-    if not configs:
+    result = service.remote_getDeviceConfigs((deviceid,))
+    config = result[0] if result else None
+    if config is None:
         self.log.info(
             "no configuration built  device=%s collector=%s service=%s",
             deviceid,
             monitorname,
             svcname,
         )
-        key = next(
+        oldkey = next(
             store.search(
                 CacheQuery(
                     service=svcname, monitor=monitorname, device=deviceid
@@ -105,9 +106,9 @@ def build_device_config(
             ),
             None,
         )
-        if key is not None:
+        if oldkey is not None:
             # No result means device was deleted or moved to another monitor.
-            store.remove(key)
+            store.remove(oldkey)
             self.log.info(
                 "removed previously built configuration  "
                 "device=%s collector=%s service=%s",
@@ -115,8 +116,9 @@ def build_device_config(
                 key.monitor,
                 key.service,
             )
+        # Ensure any status on this key is removed
+        store.clear_status(key)
     else:
-        config = configs[0]
         uid = self.dmd.Devices.findDeviceByIdExact(deviceid).getPrimaryId()
         record = CacheRecord.make(
             svcname, monitorname, deviceid, uid, time(), config
@@ -148,6 +150,10 @@ class BuildConfigTaskDispatcher(object):
             cls.__module__: ".".join((cls.__module__, cls.__name__))
             for cls in configClasses
         }
+
+    @property
+    def service_names(self):
+        return self._classnames.keys()
 
     def dispatch_all(self, monitorid, deviceid, timeout):
         """

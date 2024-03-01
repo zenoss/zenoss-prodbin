@@ -61,10 +61,9 @@ from __future__ import absolute_import, print_function, division
 
 import ast
 import logging
-import itertools
 
 from functools import partial
-from itertools import islice
+from itertools import chain, islice
 
 import attr
 
@@ -77,7 +76,7 @@ from .model import CacheKey, CacheQuery, CacheRecord, ConfigStatus
 from .table import DeviceUIDTable, DeviceConfigTable, ConfigMetadataTable
 
 _app = "configcache"
-log = logging.getLogger("zen.modelchange.stores")
+log = logging.getLogger("zen.configcache.storage")
 
 
 class ConfigStoreFactory(Factory):
@@ -135,19 +134,13 @@ class ConfigStore(object):
         """
         if not isinstance(query, CacheQuery):
             raise TypeError("'{!r} is not a CacheQuery".format(query))
-        return (
-            CacheKey(svc, mon, dvc)
-            for svc, mon, dvc in self.__config.scan(
-                self.__client, **attr.asdict(query)
-            )
-        )
+        return self._query(**attr.asdict(query))
 
     def add(self, record):
         """
         @type record: CacheRecord
         """
         svc, mon, dvc, uid, updated, config = _from_record(record)
-
         orphaned_keys = tuple(
             key
             for key in self.search(CacheQuery(service=svc, device=dvc))
@@ -189,6 +182,18 @@ class ConfigStore(object):
         """
         return self.__uids.get(self.__client, device)
 
+    def get_updated(self, key):
+        """
+        Return the timestamp of when the config was built.
+
+        @type key: CacheKey
+        """
+        return _to_ts(
+            self.__age.score(
+                self.__client, key.service, key.monitor, key.device
+            )
+        )
+
     def get(self, key, default=None):
         """
         @type key: CacheKey
@@ -222,191 +227,141 @@ class ConfigStore(object):
                 self.__pending.delete(pipe, svc, mon, dvc)
                 self.__building.delete(pipe, svc, mon, dvc)
             pipe.execute()
-        devices = []
-        for dvc in set(k.device for k in keys):
-            configs = tuple(self.__config.scan(self.__client, device=dvc))
-            if not configs:
-                devices.append(dvc)
-        if devices:
-            self.__uids.delete(self.__client, *devices)
 
-    def set_retired(self, *keys):
+        devices = set(key.device for key in keys)
+        remaining = set(
+            key.device
+            for key in chain.from_iterable(
+                self._query(device=dvc) for dvc in devices
+            )
+        )
+        deleted = devices - remaining
+        if deleted:
+            self.__uids.delete(self.__client, *deleted)
+
+    def _query(self, service="*", monitor="*", device="*"):
+        return (
+            CacheKey(svc, mon, dvc)
+            for svc, mon, dvc in self.__config.scan(
+                self.__client, service=service, monitor=monitor, device=device
+            )
+        )
+
+    def clear_status(self, *keys):
         """
-        Marks the indicated configuration as retired.
+        Removes retired, expired, pending, and building statuses.
 
-        The keys that were retired are returned to the caller.  The returned
-        keys may match or be a subset of the keys that were passed in.
-
-        If a config is already retired, it will not be among the keys
-        that are returned.
+        If a config is present, the status becomes current.  If no config
+        is present, then there is no status.
 
         @type keys: Sequence[CacheKey]
-        @rtype: Sequence[CacheKey]
         """
-        if len(keys) == 0:
-            return ()
+        with self.__client.pipeline() as pipe:
+            for key in keys:
+                svc, mon, dvc = key.service, key.monitor, key.device
+                self.__retired.delete(pipe, svc, mon, dvc)
+                self.__expired.delete(pipe, svc, mon, dvc)
+                self.__pending.delete(pipe, svc, mon, dvc)
+                self.__building.delete(pipe, svc, mon, dvc)
+            pipe.execute()
 
-        not_retired = tuple(
-            self._filter_existing(self.__retired, keys, lambda x: x)
-        )
-        if len(not_retired) == 0:
-            return ()
+    def set_retired(self, *pairs):
+        """
+        Marks the indicated configuration(s) as retired.
 
-        watch_keys = self._get_watch_keys(not_retired)
-        scores = (
-            (
-                key,
-                self.__age.score(
-                    self.__client, key.service, key.monitor, key.device
-                ),
-            )
-            for key in not_retired
-        )
-        targets = (
-            (key.service, key.monitor, key.device, score)
-            for key, score in scores
-        )
+        @type keys: Sequence[(CacheKey, float)]
+        """
 
-        def _impl(pipe):
+        def _impl(rows, pipe):
             pipe.multi()
-            for svc, mon, dvc, score in targets:
+            for svc, mon, dvc, ts in rows:
+                score = _to_score(ts)
                 self.__retired.add(pipe, svc, mon, dvc, score)
                 self.__expired.delete(pipe, svc, mon, dvc)
                 self.__pending.delete(pipe, svc, mon, dvc)
                 self.__building.delete(pipe, svc, mon, dvc)
 
-        self.__client.transaction(_impl, *watch_keys)
-        return not_retired
+        self._set_status(pairs, self.__retired, _impl)
 
     def set_expired(self, *pairs):
         """
-        Marks the indicated configuration as expired.
-
-        The keys that were expired are returned to the caller.  The returned
-        keys may match or be a subset of the keys that were passed in.
-
-        If a config is already expired, it will not be among the keys
-        that are returned.
+        Marks the indicated configuration(s) as expired.
 
         @type keys: Sequence[(CacheKey, float)]
-        @rtype: Sequence[CacheKey]
         """
-        if len(pairs) == 0:
-            return ()
 
-        not_expired = tuple(
-            self._filter_existing(self.__expired, pairs, lambda x: x[0])
-        )
-        if len(not_expired) == 0:
-            return ()
-
-        watch_keys = self._get_watch_keys(key for key, _ in not_expired)
-        targets = (
-            (key.service, key.monitor, key.device, ts)
-            for key, ts in not_expired
-        )
-
-        def _impl(pipe):
+        def _impl(rows, pipe):
             pipe.multi()
-            for svc, mon, dvc, ts in targets:
+            for svc, mon, dvc, ts in rows:
                 score = _to_score(ts)
                 self.__retired.delete(pipe, svc, mon, dvc)
                 self.__expired.add(pipe, svc, mon, dvc, score)
                 self.__pending.delete(pipe, svc, mon, dvc)
                 self.__building.delete(pipe, svc, mon, dvc)
 
-        self.__client.transaction(_impl, *watch_keys)
-        return tuple(key for key, _ in not_expired)
+        self._set_status(pairs, self.__expired, _impl)
 
     def set_pending(self, *pairs):
         """
-        Marks a configuration as waiting for a new configuration.
-
-        The keys that were marked pending are returned to the caller.
-        The returned keys may match or be a subset of the keys that
-        were passed in.
-
-        If a config is already marked pending, it will not be among the
-        keys that are returned.
+        Marks configuration(s) as waiting for a new configuration.
 
         @type pending: Sequence[(CacheKey, float)]
-        @rtype: Sequence[CacheKey]
         """
-        if len(pairs) == 0:
-            return ()
 
-        not_pending = tuple(
-            self._filter_existing(self.__pending, pairs, lambda x: x[0])
-        )
-        if len(not_pending) == 0:
-            return ()
-
-        watch_keys = self._get_watch_keys(key for key, _ in not_pending)
-        targets = (
-            (key.service, key.monitor, key.device, ts)
-            for key, ts in not_pending
-        )
-
-        def _impl(pipe):
+        def _impl(rows, pipe):
             pipe.multi()
-            for svc, mon, dvc, ts in targets:
+            for svc, mon, dvc, ts in rows:
                 score = _to_score(ts)
                 self.__retired.delete(pipe, svc, mon, dvc)
                 self.__expired.delete(pipe, svc, mon, dvc)
                 self.__pending.add(pipe, svc, mon, dvc, score)
                 self.__building.delete(pipe, svc, mon, dvc)
 
-        self.__client.transaction(_impl, *watch_keys)
-        return tuple(key for key, _ in not_pending)
+        self._set_status(pairs, self.__pending, _impl)
 
     def set_building(self, *pairs):
         """
-        Marks a configuration as building a new configuration.
-
-        The keys that were marked building are returned to the caller.
-        The returned keys may match or be a subset of the keys that
-        were passed in.
-
-        If a config is already marked building, it will not be among the
-        keys that are returned.
+        Marks configuration(s) as building a new configuration.
 
         @type pairs: Sequence[(CacheKey, float)]
-        @rtype: Sequence[CacheKey]
         """
-        if len(pairs) == 0:
-            return ()
 
-        not_building = tuple(
-            self._filter_existing(self.__building, pairs, lambda x: x[0])
-        )
-        if len(not_building) == 0:
-            return ()
-
-        watch_keys = self._get_watch_keys(key for key, _ in not_building)
-        targets = (
-            (key.service, key.monitor, key.device, ts)
-            for key, ts in not_building
-        )
-
-        def _impl(pipe):
+        def _impl(rows, pipe):
             pipe.multi()
-            for svc, mon, dvc, ts in targets:
+            for svc, mon, dvc, ts in rows:
                 score = _to_score(ts)
                 self.__retired.delete(pipe, svc, mon, dvc)
                 self.__expired.delete(pipe, svc, mon, dvc)
                 self.__pending.delete(pipe, svc, mon, dvc)
                 self.__building.add(pipe, svc, mon, dvc, score)
 
-        self.__client.transaction(_impl, *watch_keys)
-        return tuple(key for key, _ in not_building)
+        self._set_status(pairs, self.__building, _impl)
 
-    def _filter_existing(self, table, items, getkey):
-        for item in items:
-            key = getkey(item)
-            if not table.exists(
-                self.__client, key.service, key.monitor, key.device
-            ):
-                yield item
+    def _set_status(self, pairs, table, fn):
+        if len(pairs) == 0:
+            return
+
+        watch_keys = self._get_watch_keys(key for key, _ in pairs)
+        rows = (
+            (key.service, key.monitor, key.device, ts) for key, ts in pairs
+        )
+
+        callback = partial(fn, rows)
+        self.__client.transaction(callback, *watch_keys)
+
+    def _get_watch_keys(self, keys):
+        return set(
+            chain.from_iterable(
+                (
+                    self.__age.make_key(key.service, key.monitor),
+                    self.__retired.make_key(key.service, key.monitor),
+                    self.__expired.make_key(key.service, key.monitor),
+                    self.__pending.make_key(key.service, key.monitor),
+                    self.__building.make_key(key.service, key.monitor),
+                )
+                for key in keys
+            )
+        )
 
     def get_status(self, *keys):
         """
@@ -417,9 +372,22 @@ class ConfigStore(object):
         for key in keys:
             scores = self._get_scores(key)
             uid = self.__uids.get(self.__client, key.device)
-            status = self._get_status(scores, key, uid)
+            status = self._get_status_from_scores(scores, key, uid)
             if status is not None:
                 yield status
+
+    def _get_status_from_scores(self, scores, key, uid):
+        age, retired, expired, pending, building = scores
+        if building is not None:
+            return ConfigStatus.Building(key, uid, _to_ts(building))
+        elif pending is not None:
+            return ConfigStatus.Pending(key, uid, _to_ts(pending))
+        elif expired is not None:
+            return ConfigStatus.Expired(key, uid, _to_ts(expired))
+        elif retired is not None:
+            return ConfigStatus.Retired(key, uid, _to_ts(retired))
+        elif age is not None:
+            return ConfigStatus.Current(key, uid, _to_ts(age))
 
     def get_building(self, service="*", monitor="*"):
         """
@@ -524,33 +492,6 @@ class ConfigStore(object):
             self.__pending.score(pipe, service, monitor, device),
             self.__building.score(pipe, service, monitor, device),
             return pipe.execute()
-
-    def _get_status(self, scores, key, uid):
-        age, retired, expired, pending, building = scores
-        if building is not None:
-            return ConfigStatus.Building(key, uid, _to_ts(building))
-        elif pending is not None:
-            return ConfigStatus.Pending(key, uid, _to_ts(pending))
-        elif expired is not None:
-            return ConfigStatus.Expired(key, uid, _to_ts(expired))
-        elif retired is not None:
-            return ConfigStatus.Retired(key, uid, _to_ts(retired))
-        elif age is not None:
-            return ConfigStatus.Current(key, uid, _to_ts(age))
-
-    def _get_watch_keys(self, keys):
-        return set(
-            itertools.chain.from_iterable(
-                (
-                    self.__age.make_key(key.service, key.monitor),
-                    self.__retired.make_key(key.service, key.monitor),
-                    self.__expired.make_key(key.service, key.monitor),
-                    self.__pending.make_key(key.service, key.monitor),
-                    self.__building.make_key(key.service, key.monitor),
-                )
-                for key in keys
-            )
-        )
 
 
 def _range(client, metadata, svc, mon, minv=None, maxv=None):
