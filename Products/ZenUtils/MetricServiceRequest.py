@@ -67,7 +67,6 @@ class MetricServiceRequest(object):
             metrics.append(dict(
                 metric=name,
                 aggregator=self._aggMapping.get(cf.lower(), cf.lower()),
-                rpn='',
                 rate=rate,
                 format='%.2lf',
                 tags=dict(contextUUID=[uuid]),
@@ -110,8 +109,7 @@ class MetricServiceRequest(object):
                 aggregator=self._aggMapping.get(cf.lower(), cf.lower()),
                 rate=rate,
                 format='%.2lf',
-                tags=tags,
-                name=metricName
+                tags=tags
             ))
 
         request = dict(
