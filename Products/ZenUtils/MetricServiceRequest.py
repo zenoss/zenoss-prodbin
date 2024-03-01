@@ -100,7 +100,6 @@ class MetricServiceRequest(object):
         for metric in metrics:
             log.debug("fetchMetrics metrics %s", metric)
             cf = metric.get('cf', 'average')
-            rpn = metric.get('rpn', '')
             rate = metric.get('rate', False)
             tags = metric['tags']
             downsample = metric.get('downsample', '5m-avg')
@@ -109,7 +108,6 @@ class MetricServiceRequest(object):
                 metric=metricName,
                 downsample=downsample,
                 aggregator=self._aggMapping.get(cf.lower(), cf.lower()),
-                rpn=rpn,
                 rate=rate,
                 format='%.2lf',
                 tags=tags,
