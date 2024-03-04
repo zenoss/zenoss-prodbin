@@ -44,7 +44,7 @@ class DevicePropertyMap(object):
                 obj,
                 Constants.minimum_time_to_live_id,
                 Constants.minimum_time_to_live_value,
-                _getZDeviceConfigMinimumTTL,
+                _getZProperty,
             ),
             Constants.minimum_time_to_live_value,
         )
@@ -138,19 +138,3 @@ def _getZProperty(obj, propname, default):
     if value is None:
         return default
     return value
-
-
-def _getZDeviceConfigMinimumTTL(obj, propname, default):
-    """
-    Compares zDeviceConfigTTL and zDeviceConfigMinimumTTL and
-    returns the lesser of the two.
-    """
-    ttl = _getZProperty(
-        obj, Constants.time_to_live_id, Constants.time_to_live_value
-    )
-    minttl = _getZProperty(
-        obj,
-        Constants.minimum_time_to_live_id,
-        Constants.minimum_time_to_live_value,
-    )
-    return minttl if minttl < ttl else ttl

@@ -168,11 +168,11 @@ def _format_status(status):
     if isinstance(status, ConfigStatus.Current):
         return "current since {}".format(_format_date(status.updated))
     elif isinstance(status, ConfigStatus.Retired):
-        return "retired"
+        return "retired since {}".format(_format_date(status.retired))
     elif isinstance(status, ConfigStatus.Expired):
-        return "expired"
+        return "expired since {}".format(_format_date(status.expired))
     elif isinstance(status, ConfigStatus.Pending):
-        return "build request submitted {}".format(
+        return "waiting to build since {}".format(
             _format_date(status.submitted)
         )
     elif isinstance(status, ConfigStatus.Building):

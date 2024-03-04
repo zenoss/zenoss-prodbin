@@ -166,12 +166,13 @@ class Manager(object):
         ttl_map = DevicePropertyMap.make_ttl_map(self.ctx.dmd.Devices)
         now = time()
 
+        ready_to_rebuild = []
+
         # Retrieve the 'retired' configs
-        ready_to_rebuild = list(
-            status
-            for status in self.store.get_retired()
-            if status.updated < now - minttl_map.get(status.uid)
-        )
+        for status in self.store.get_retired():
+            built = self.store.get_updated(status.key)
+            if built is None or built < now - minttl_map.get(status.uid):
+                ready_to_rebuild.append(status)
 
         # Append the 'expired' configs
         ready_to_rebuild.extend(self.store.get_expired())
@@ -224,7 +225,7 @@ class Manager(object):
                     datetime.fromtimestamp(status.updated).strftime(
                         "%Y-%m-%d %H:%M:%S"
                     ),
-                    Constants.time_to_live_id,
+                    Constants.build_timeout_id,
                     timeout,
                     status.key.service,
                     status.key.monitor,

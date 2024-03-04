@@ -635,7 +635,6 @@ class MetricFacade(ZuulFacade):
             format=format,
             tags={"contextUUID": ["*"]},
             rate=isRate,
-            name=device.getResourceKey() + metricName,
         )
         return metric
 
