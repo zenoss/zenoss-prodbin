@@ -18,16 +18,16 @@ class EmptyDevicePropertyMapTest(TestCase):
     """Test an empty DevicePropertyMap object."""
 
     def setUp(t):
-        t.bmm = DevicePropertyMap({}, None)
+        t.dpm = DevicePropertyMap({}, None)
 
     def tearDown(t):
-        del t.bmm
+        del t.dpm
 
     def test_get(t):
-        t.assertIsNone(t.bmm.get("/zport/dmd/Devices"))
+        t.assertIsNone(t.dpm.get("/zport/dmd/Devices"))
 
     def test_smallest_value(t):
-        t.assertIsNone(t.bmm.smallest_value())
+        t.assertIsNone(t.dpm.smallest_value())
 
 
 class DevicePropertyMapTest(TestCase):
@@ -44,29 +44,37 @@ class DevicePropertyMapTest(TestCase):
     _default = 15
 
     def setUp(t):
-        t.bmm = DevicePropertyMap(t.mapping, t._default)
+        t.dpm = DevicePropertyMap(t.mapping, t._default)
 
     def tearDown(t):
-        del t.bmm
+        del t.dpm
 
     def test_minimal_match(t):
-        value = t.bmm.get("/zport/dmd/Devices/Server-stuff/devices/dev2")
+        value = t.dpm.get("/zport/dmd/Devices/Server-stuff/devices/dev2")
         t.assertEqual(10, value)
 
     def test_get_exact_match(t):
-        value = t.bmm.get(
+        value = t.dpm.get(
             "/zport/dmd/Devices/Server/SSH/Linux/devices/my-device"
         )
         t.assertEqual(12, value)
 
     def test_get_best_match(t):
-        value = t.bmm.get("/zport/dmd/Devices/Server/Linux/devices/dev3")
+        value = t.dpm.get("/zport/dmd/Devices/Server/Linux/devices/dev3")
         t.assertEqual(11, value)
 
     def test_no_match(t):
-        value = t.bmm.get("/Devices")
+        value = t.dpm.get("/Devices")
+        t.assertEqual(t._default, value)
+
+    def test_empty_string(t):
+        value = t.dpm.get("")
         t.assertEqual(t._default, value)
 
     def test_smallest_value(t):
-        value = t.bmm.smallest_value()
+        value = t.dpm.smallest_value()
         t.assertEqual(10, value)
+
+    def test_uid_is_None(t):
+        value = t.dpm.get(None)
+        t.assertEqual(t._default, value)
