@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <configure xmlns:celery="http://namespaces.zope.org/celery">
 
+    <include file="meta.zcml"/>
+
    <!-- worker configuration -->
 
    <celery:signal
@@ -16,6 +18,11 @@
    <celery:signal
       name="setup_logging"
       handler=".log.configure_logging"
+      />
+
+   <celery:signal
+      name="worker_process_init"
+      handler=".worker.initialize_zenoss_env"
       />
 
    <celery:signal

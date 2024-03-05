@@ -16,23 +16,6 @@ import sys
 from celery.__main__ import main
 
 
-def _initialize_zenoss_env():
-    from Zope2.App import zcml
-    import Products.Jobber
-    import Products.ZenWidgets
-    from OFS.Application import import_products
-    from Products.ZenUtils.Utils import load_config, load_config_override
-    from Products.ZenUtils.zenpackload import load_zenpacks
-
-    import_products()
-    load_zenpacks()
-    zcml.load_site()
-    load_config("signals.zcml", Products.Jobber)
-    load_config_override('scriptmessaging.zcml', Products.ZenWidgets)
-
-
-_initialize_zenoss_env()
-
 sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
 
 # All calls to celery need to the application so include it here.

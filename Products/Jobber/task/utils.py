@@ -16,7 +16,6 @@ from itertools import chain
 from zope.component import getUtility
 
 from ..interfaces import IJobStore
-from ..zenjobs import app
 
 
 def requires(*features):
@@ -26,6 +25,8 @@ def requires(*features):
     (*features, ZenTask, celery.app.task.Task, object) where 'features'
     are the classes given to this function.
     """
+    from ..zenjobs import app
+
     bases = tuple(features) + (app.Task, object)
     culled = []
     for feature in reversed(bases):
