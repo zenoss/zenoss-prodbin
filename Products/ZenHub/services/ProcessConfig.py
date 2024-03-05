@@ -87,7 +87,7 @@ class ProcessConfig(CollectorConfigService):
             self, device, proxy=proxy
         )
 
-        proxy.configCycleInterval = self._prefs.processCycleInterval
+        proxy.configCycleInterval = self.conf.processCycleInterval
 
         proxy.name = device.id
         proxy.lastmodeltime = device.getLastChangeString()
