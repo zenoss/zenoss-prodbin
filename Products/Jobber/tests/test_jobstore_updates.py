@@ -19,7 +19,6 @@ from mock import patch, Mock
 from zope.component import getGlobalSiteManager
 
 from ..model import (
-    app,
     IJobStore,
     job_start,
     job_end,
@@ -29,6 +28,7 @@ from ..model import (
 )
 from ..storage import JobStore
 from .utils import subTest, RedisLayer
+from ..zenjobs import app
 
 UNEXPECTED = type("UNEXPECTED", (object,), {})()
 PATH = {"src": "Products.Jobber.model"}
@@ -126,7 +126,7 @@ class JobSuccessTest(_CommonFixture, TestCase):
         job_start("1")
 
     @patch("{src}.time".format(**PATH), autospec=True)
-    @patch("{src}.app.backend".format(**PATH), autospec=True)
+    @patch("Products.Jobber.zenjobs.app.backend", autospec=True)
     def test_success(t, _backend, _time):
         tm = 1597059131.762538
 
@@ -165,7 +165,7 @@ class JobFailureTest(_CommonFixture, TestCase):
         job_start("1")
 
     @patch("{src}.time".format(**PATH), autospec=True)
-    @patch("{src}.app.backend".format(**PATH), autospec=True)
+    @patch("Products.Jobber.zenjobs.app.backend", autospec=True)
     def test_aborted(t, _backend, _time):
         tm = 1597059131.762538
 
@@ -187,7 +187,7 @@ class JobFailureTest(_CommonFixture, TestCase):
         t.assertEqual(expected_finished, finished)
 
     @patch("{src}.time".format(**PATH), autospec=True)
-    @patch("{src}.app.backend".format(**PATH), autospec=True)
+    @patch("Products.Jobber.zenjobs.app.backend", autospec=True)
     def test_failure(t, _backend, _time):
         tm = 1597059131.762538
 
@@ -209,7 +209,7 @@ class JobFailureTest(_CommonFixture, TestCase):
         t.assertEqual(expected_finished, finished)
 
     @patch("{src}.time".format(**PATH), autospec=True)
-    @patch("{src}.app.backend".format(**PATH), autospec=True)
+    @patch("Products.Jobber.zenjobs.app.backend", autospec=True)
     def test_callbacks_are_aborted(t, _backend, _time):
         next_jobid = "456"
         next_job = dict(t.initial)
@@ -257,7 +257,7 @@ class JobRetryTest(_CommonFixture, TestCase):
         req = type("request", (object,), {"id": "1"})()
         job_retry(req)
 
-    @patch("{src}.app.backend".format(**PATH), autospec=True)
+    @patch("Products.Jobber.zenjobs.app.backend", autospec=True)
     def test_nominal(t, _backend):
         tm = 1597059131.762538
         req = type("request", (object,), {"id": t.jobid})()
