@@ -185,12 +185,12 @@ class Invalidator(object):
             for svcname in self.dispatcher.service_names
         )
         for key in keys:
-            status = self.store.get_status(key)
+            status = next(self.store.get_status(key), None)
             if status is not None:
                 self.log.debug(
                     "build jobs already submitted for new device  "
                     "device=%s collector=%s",
-                    device,
+                    device.id,
                     monitor,
                 )
                 return
@@ -200,7 +200,7 @@ class Invalidator(object):
         self.dispatcher.dispatch_all(monitor, device.id, buildlimit)
         self.log.info(
             "submitted build jobs for new device  device=%s collector=%s",
-            device,
+            device.id,
             monitor,
         )
 
