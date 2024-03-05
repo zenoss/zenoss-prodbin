@@ -90,6 +90,10 @@ class DevicePropertyMap(object):
             return self.__default
 
     def get(self, request_uid):
+        # Be graceful on accepted input values.  None is equivalent
+        # to no match so return the default value.
+        if request_uid is None:
+            return self.__default
         # Split the request into its parts
         req_parts = request_uid.split("/")[1:]
         # Find all the path parts that match the request
