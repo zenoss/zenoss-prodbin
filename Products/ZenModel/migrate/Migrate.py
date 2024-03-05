@@ -18,7 +18,7 @@ import transaction
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenReports.ReportLoader import ReportLoader
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.path import zenPath
 from Products.ZenModel.ZVersion import VERSION
 
 import sys
