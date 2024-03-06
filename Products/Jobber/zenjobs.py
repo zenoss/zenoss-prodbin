@@ -35,3 +35,14 @@ app = Celery(
     config_source="Products.Jobber.config:Celery",
     task_cls="Products.Jobber.task:ZenTask",
 )
+
+# Allow considerably more time for the worker_process_init signal
+# to complete (rather than the default of 4 seconds).   This is required
+# because loading the zenoss environment / zenpacks can take a while.
+
+# celery 3.1.26  (remove once we update celery)
+from celery.concurrency import asynpool
+asynpool.PROC_ALIVE_TIMEOUT = 300
+
+# celery 4.4.0+
+# app.conf.worker_proc_alive_timeout = 300
