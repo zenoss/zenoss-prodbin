@@ -12,14 +12,8 @@ from __future__ import absolute_import
 from celery import Celery
 from kombu.serialization import register
 
-import Products.Jobber
-
-from Products.ZenUtils.Utils import load_config
-
 from .serialization import without_unicode
 
-
-load_config("signals.zcml", Products.Jobber)
 
 # Register custom serializer
 register(
