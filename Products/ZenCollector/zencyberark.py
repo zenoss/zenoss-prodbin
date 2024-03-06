@@ -13,6 +13,7 @@ import argparse
 import httplib
 import json
 import logging
+import sys
 
 from twisted.internet.defer import inlineCallbacks, maybeDeferred
 from twisted.internet.task import react
@@ -20,14 +21,20 @@ from twisted.internet.task import react
 from .cyberark import get_cyberark
 
 
-def configure_logging(debug=False):
-    log = logging.getLogger()
-    log.setLevel(logging.INFO if not debug else logging.DEBUG)
+def configure_logging(verbose=False):
+    logging._handlers.clear()
+    formatter = logging.Formatter("%(levelname)s: %(message)s")
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(formatter)
+
+    root = logging.getLogger()
+    root.setLevel(logging.INFO if not verbose else logging.DEBUG)
+    root.addHandler(handler)
     return logging.getLogger("zencyberark")
 
 
 def check(args):
-    log = configure_logging(args.debug)
+    log = configure_logging(args.verbose)
     log.info("Checking config")
     get_cyberark()
     return 0
@@ -35,7 +42,7 @@ def check(args):
 
 @inlineCallbacks
 def get(args):
-    log = configure_logging(args.debug)
+    log = configure_logging(args.verbose)
     cyberark = get_cyberark()
     client = cyberark._manager._client
 
@@ -92,7 +99,13 @@ def parse_args():
         description="Model Catalog hacking tool",
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    parser.add_argument("-d", "--debug", action="store_true", default=False)
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        default=False,
+        help="display more information",
+    )
     subparsers = parser.add_subparsers(help="sub-command help")
 
     check_cmd = subparsers.add_parser(
