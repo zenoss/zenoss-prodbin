@@ -109,11 +109,8 @@ def addLogsFromConfigFile(fname, configDefaults=None):
         log.exception('Problem loading log configuration file: %s', fname)
         return False
 
-    # critical section
-    logging._acquireLock()
     try:
-        logging._handlers.clear()
-        del logging._handlerList[:]
+        logging._acquireLock()
         # Handlers add themselves to logging._handlers
         handlers = logging.config._install_handlers(cp, formatters)
         _zen_install_loggers(cp, handlers)
