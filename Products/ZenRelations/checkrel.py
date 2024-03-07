@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import print_function
+
 import logging
 import sys
 
@@ -100,7 +102,11 @@ def checkRelationshipSchema(cls, baseModule):
 
 baseModule = None
 if len(sys.argv) > 1:
-    baseModule = sys.argv[1]
+    baseModule = sys.argv[1].strip()
+
+if not baseModule:
+    print("An argument is required", file=sys.stderr)
+    sys.exit(1)
 
 classList = importClasses(
     basemodule=baseModule, skipnames=("ZentinelPortal", "ZDeviceLoader")
