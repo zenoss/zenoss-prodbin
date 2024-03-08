@@ -147,7 +147,7 @@ class ConfigStore(object):
             if key.monitor != mon
         )
         watch_keys = self._get_watch_keys(orphaned_keys + (record.key,))
-        add_uid = not self.__uids.exists(self.__client, dvc)
+        stored_uid = self.__uids.get(self.__client, dvc)
 
         def _add_impl(pipe):
             pipe.multi()
@@ -163,7 +163,7 @@ class ConfigStore(object):
                 self.__expired.delete(pipe, *parts)
                 self.__pending.delete(pipe, *parts)
                 self.__building.delete(pipe, *parts)
-            if add_uid:
+            if stored_uid != uid:
                 self.__uids.set(pipe, dvc, uid)
             self.__config.set(pipe, svc, mon, dvc, config)
             self.__age.add(pipe, svc, mon, dvc, updated)

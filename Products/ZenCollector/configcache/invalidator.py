@@ -120,11 +120,13 @@ class Invalidator(object):
         timelimitmap = DevicePropertyMap.make_build_timeout_map(
             self.ctx.dmd.Devices
         )
-        new_devices = _addNew(
+        new_devices, changed_devices = _addNewOrChangedDevices(
             self.log, tool, timelimitmap, self.store, self.dispatcher
         )
         if len(new_devices) == 0:
             self.log.info("no missing configurations found")
+        if len(changed_devices) == 0:
+            self.log.info("no devices with a different device class found")
 
     def _process_all(self, invalidations):
         buildlimit_map = DevicePropertyMap.make_build_timeout_map(
@@ -138,7 +140,7 @@ class Invalidator(object):
             buildlimit = buildlimit_map.get(uid)
             minttl = minttl_map.get(uid)
             try:
-                self._process(invalidation, buildlimit, minttl)
+                self._process(invalidation, uid, buildlimit, minttl)
             except AttributeError:
                 self.log.info(
                     "invalidation  device=%s reason=%s",
@@ -147,7 +149,7 @@ class Invalidator(object):
                 )
                 self.log.exception("failed while processing invalidation")
 
-    def _process(self, invalidation, buildlimit, minttl):
+    def _process(self, invalidation, uid, buildlimit, minttl):
         device = invalidation.device
         reason = invalidation.reason
         monitor = device.getPerformanceServerName()
@@ -165,7 +167,12 @@ class Invalidator(object):
         if not keys:
             self._new_device(device, monitor, buildlimit)
         elif reason is InvalidationCause.Updated:
-            self._updated_device(device, monitor, keys, minttl)
+            # Check for device class change
+            stored_uid = self.store.get_uid(device.id)
+            if uid != stored_uid:
+                self._changed_device_class(device, monitor, buildlimit)
+            else:
+                self._updated_device(device, monitor, keys, minttl)
         elif reason is InvalidationCause.Removed:
             self._removed_device(keys)
         else:
@@ -200,6 +207,23 @@ class Invalidator(object):
         self.dispatcher.dispatch_all(monitor, device.id, buildlimit)
         self.log.info(
             "submitted build jobs for new device  device=%s collector=%s",
+            device.id,
+            monitor,
+        )
+
+    def _changed_device_class(self, device, monitor, keys, buildlimit):
+        # Don't dispatch jobs if there're any statuses.
+        keys = tuple(
+            CacheKey(svcname, monitor, device.id)
+            for svcname in self.dispatcher.service_names
+        )
+        now = time.time()
+        for key in keys:
+            self.store.set_pending((key, now))
+        self.dispatcher.dispatch_all(monitor, device.id, buildlimit)
+        self.log.info(
+            "submitted build jobs for device with new device class  "
+            "device=%s collector=%s",
             device.id,
             monitor,
         )
@@ -280,8 +304,9 @@ def _removeDeleted(log, tool, store):
     return len(devices_not_found)
 
 
-def _addNew(log, tool, timelimitmap, store, dispatcher):
+def _addNewOrChangedDevices(log, tool, timelimitmap, store, dispatcher):
     # Add new devices to the config and metadata store.
+    # Also look for device that have changed their device class.
     # Query the catalog for all devices
     catalog_results = tool.cursor_search(
         types=("Products.ZenModel.Device.Device",),
@@ -289,6 +314,8 @@ def _addNew(log, tool, timelimitmap, store, dispatcher):
         fields=_solr_fields,
     ).results
     new_devices = []
+    changed_devices = []
+    jobs_args = []
     for brain in catalog_results:
         if brain.collector is None:
             log.warn(
@@ -302,12 +329,33 @@ def _addNew(log, tool, timelimitmap, store, dispatcher):
         )
         if not keys:
             timeout = timelimitmap.get(brain.uid)
-            dispatcher.dispatch_all(brain.collector, brain.id, timeout)
-            log.info(
-                "submitted build jobs for device without any configurations  "
-                "uid=%s collector=%s",
-                brain.uid,
-                brain.collector,
-            )
+            jobs_args.append((brain, timeout))
             new_devices.append(brain.id)
-    return new_devices
+        else:
+            current_uid = store.get_uid(brain.id)
+            if current_uid != brain.uid:
+                timeout = timelimitmap.get(brain.uid)
+                jobs_args.append((brain, timeout))
+                changed_devices.append(brain.id)
+
+    now = time.time()
+    for brain, timeout in jobs_args:
+        keys = tuple(
+            CacheKey(svcname, brain.collector, brain.id)
+            for svcname in dispatcher.service_names
+        )
+        for key in keys:
+            store.set_pending((key, now))
+        dispatcher.dispatch_all(brain.collector, brain.id, timeout)
+        log.info(
+            "submitted build jobs for device %s  "
+            "uid=%s collector=%s",
+            (
+                "without any configurations"
+                if brain.id in new_devices
+                else "with a new device class"
+            ),
+            brain.uid,
+            brain.collector,
+        )
+    return (new_devices, changed_devices)
