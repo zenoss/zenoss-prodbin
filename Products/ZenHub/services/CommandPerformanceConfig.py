@@ -7,12 +7,12 @@
 #
 ##############################################################################
 
-from __future__ import print_function
-
 """CommandPerformanceConfig
 
 Provides configuration to zencommand clients.
 """
+
+from __future__ import print_function
 
 import logging
 import traceback
@@ -250,10 +250,8 @@ class CommandPerformanceConfig(CollectorConfigService):
                 comp, device, perfServer, commands, proxy.thresholds
             )
 
-        if commands:
-            proxy.datasources = list(commands)
-            return proxy
-        return None
+        proxy.datasources = list(commands)
+        return proxy
 
     def _sendCmdEvent(
         self,

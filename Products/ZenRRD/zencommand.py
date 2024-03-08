@@ -686,7 +686,8 @@ class SshPerformanceCollectionTask(BaseTask):
         for success, (command, result) in resultList:
             parse = self._parse_result if success else self._parse_error
             datasources = self._commandMap.get(command)
-            parsed_results.extend(parse(datasources, result))
+            if datasources:
+                parsed_results.extend(parse(datasources, result))
         return parsed_results
 
     def _timeout_error_result(self, datasource):
