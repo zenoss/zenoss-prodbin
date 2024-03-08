@@ -19,7 +19,7 @@ class Version(object):
     @staticmethod
     def add_arguments(parser, subparsers):
         subp_version = get_subparser(
-            subparsers, "version", Version.description
+            subparsers, "version", description=Version.description
         )
         subp_version.set_defaults(factory=Version)
 
