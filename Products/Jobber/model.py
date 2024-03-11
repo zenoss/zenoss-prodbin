@@ -26,9 +26,10 @@ from .config import ZenJobs
 from .interfaces import IJobStore, IJobRecord
 from .storage import Fields
 from .task.utils import job_log_has_errors
+from .utils.app import get_app
 from .utils.log import inject_logger
 
-mlog = logging.getLogger("zen.zenjobs.model")
+_mlog = logging.getLogger("zen.zenjobs.model")
 
 sortable_keys = list(set(Fields) - {"details"})
 
@@ -120,9 +121,7 @@ class JobRecord(object):
 
     @property
     def job_type(self):
-        from .zenjobs import app
-
-        task = app.tasks.get(self.name)
+        task = get_app().tasks.get(self.name)
         if task is None:
             return self.name if self.name else ""
         try:
@@ -154,9 +153,7 @@ class JobRecord(object):
 
     @property
     def result(self):
-        from .zenjobs import app
-
-        return app.tasks[self.name].AsyncResult(self.jobid)
+        return get_app().tasks[self.name].AsyncResult(self.jobid)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -291,9 +288,7 @@ class RedisRecord(dict):
 
     @classmethod
     def _build(cls, jobid, taskname, args, kwargs, headers, properties):
-        from .zenjobs import app
-
-        task = app.tasks[taskname]
+        task = get_app().tasks[taskname]
         fields = {}
         description = properties.pop("description", None)
         if description:
@@ -306,7 +301,7 @@ class RedisRecord(dict):
         return cls.from_task(task, jobid, args, kwargs, **fields)
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
     """Save the Zenoss specific job metadata to redis.
 
@@ -318,8 +313,6 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
     :param dict headers: Headers to accompany message sent to Celery worker
     :param dict properties: Additional task and custom key/value pairs
     """
-    from .zenjobs import app
-
     if not body:
         # If body is empty (or None), no job to save.
         log.info("no body, so no job")
@@ -330,7 +323,7 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
         log.info("no headers, bad signal?")
         return
 
-    task = app.tasks.get(body.get("task"))
+    task = get_app().tasks.get(body.get("task"))
     if task is None:
         log.warn("Ignoring unknown task: %s", body.get("task"))
         return
@@ -387,16 +380,14 @@ def _save_record(log, storage, record):
         return False
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 def stage_jobrecord(log, storage, sig):
     """Save Zenoss job data to redis with status "STAGED".
 
     :param sig: The job data
     :type sig: celery.canvas.Signature
     """
-    from .zenjobs import app
-
-    task = app.tasks.get(sig.task)
+    task = get_app().tasks.get(sig.task)
 
     # Tasks with ignored results cannot be tracked,
     # so don't insert a record into Redis.
@@ -414,16 +405,14 @@ def stage_jobrecord(log, storage, sig):
     _save_record(log, storage, record)
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 def commit_jobrecord(log, storage, sig):
     """Update STAGED job records to PENDING.
 
     :param sig: The job data
     :type sig: celery.canvas.Signature
     """
-    from .zenjobs import app
-
-    task = app.tasks.get(sig.task)
+    task = get_app().tasks.get(sig.task)
 
     # Tasks with ignored results cannot be tracked,
     # so there won't be a record to update.
@@ -452,7 +441,7 @@ def _catch_exception(f):
     return wrapper
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 @_catch_exception
 def job_start(log, task_id, task=None, **ignored):
     if task is not None and task.ignore_result:
@@ -476,7 +465,7 @@ def job_start(log, task_id, task=None, **ignored):
     log.info("status=%s started=%s", status, tm)
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 @_catch_exception
 def job_end(log, task_id, task=None, **ignored):
     if task is not None and task.ignore_result:
@@ -501,16 +490,14 @@ def job_end(log, task_id, task=None, **ignored):
     log.info("Job total duration is %0.3f seconds", finished - started)
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 @_catch_exception
 def job_success(log, result, sender=None, **ignored):
-    from .zenjobs import app
-
     if sender is not None and sender.ignore_result:
         return
     task_id = sender.request.id
     jobstore = getUtility(IJobStore, "redis")
-    status = app.backend.get_status(task_id)
+    status = get_app().backend.get_status(task_id)
     if job_log_has_errors(task_id):
         log.warn("Error messages detected in job log.")
         status = states.FAILURE
@@ -519,14 +506,12 @@ def job_success(log, result, sender=None, **ignored):
     log.info("status=%s finished=%s", status, tm)
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 @_catch_exception
 def job_failure(log, task_id, exception=None, sender=None, **ignored):
-    from .zenjobs import app
-
     if sender is not None and sender.ignore_result:
         return
-    status = app.backend.get_status(task_id)
+    status = get_app().backend.get_status(task_id)
 
     jobstore = getUtility(IJobStore, "redis")
     if task_id not in jobstore:
@@ -551,15 +536,13 @@ def job_failure(log, task_id, exception=None, sender=None, **ignored):
         jobstore.update(cbid, status=ABORTED, finished=tm)
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 @_catch_exception
 def job_retry(log, request, reason=None, sender=None, **ignored):
-    from .zenjobs import app
-
     if sender is not None and sender.ignore_result:
         return
     jobstore = getUtility(IJobStore, "redis")
     task_id = request.id
-    status = app.backend.get_status(task_id)
+    status = get_app().backend.get_status(task_id)
     jobstore.update(task_id, status=status)
     log.info("status=%s", status)
