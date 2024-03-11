@@ -7,6 +7,11 @@
 
    <celery:signal
       name="worker_ready"
+      handler=".worker.report_tasks"
+      />
+
+   <celery:signal
+      name="worker_ready"
       handler=".log.setup_loglevel_monitor"
       />
 
