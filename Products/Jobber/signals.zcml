@@ -6,6 +6,11 @@
    <!-- worker configuration -->
 
    <celery:signal
+      name="worker_init"
+      handler=".worker.register_tasks"
+      />
+
+   <celery:signal
       name="worker_ready"
       handler=".worker.report_tasks"
       />
