@@ -9,9 +9,16 @@
 
 from __future__ import absolute_import
 
+import importlib
+import itertools
 import logging
 import time
+
+import pathlib2 as pathlib
+import Products
 import ZODB.config
+
+from Zope2.App import zcml
 
 from .config import ZenJobs
 from .utils.app import get_app
@@ -37,6 +44,35 @@ def initialize_zenoss_env(**kw):
         "Zenoss environment initialized (%.2f sec elapsed)"
         % (time.time() - start)
     )
+
+
+def register_tasks(**kw):
+    # defer import ZenPacks until here because it doesn't exist during
+    # an image build.
+    import ZenPacks
+
+    search_paths = tuple(
+        pathlib.Path(p)
+        for p in itertools.chain(Products.__path__, ZenPacks.__path__)
+    )
+    zcml_files = (
+        fn for path in search_paths for fn in path.rglob("**/jobs.zcml")
+    )
+    for fn in zcml_files:
+        root = next(
+            (
+                p
+                for p in search_paths
+                if fn.as_posix().startswith(p.as_posix())
+            ),
+            None,
+        )
+        if root is None:
+            continue
+        modroot = len(root.parts) - 1
+        modname = ".".join(fn.parent.parts[modroot:])
+        module = importlib.import_module(modname)
+        zcml.load_config(fn.name, module)
 
 
 def report_tasks(**kw):
