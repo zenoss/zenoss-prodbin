@@ -74,6 +74,7 @@ setup(
     entry_points={
         "console_scripts": [
             "configcache=Products.ZenCollector.configcache.__main__:main",
+            "zenjobs=Products.Jobber.bin:main",
         ],
         "celery.commands": [
             "monitor=Products.Jobber.monitor:ZenJobsMonitor",

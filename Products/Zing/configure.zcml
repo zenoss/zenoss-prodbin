@@ -6,17 +6,7 @@
    xmlns:celery="http://namespaces.zope.org/celery"
    xmlns:meta="http://namespaces.zope.org/meta">
 
-   <include package="Products.Jobber" file="meta.zcml"/>
-
-   <job
-      name="send_organizers"
-      class=".send_organizers.send_organizers"
-      />
-
-   <job
-      name="send_component_groups"
-      class=".send_component_groups.send_component_groups"
-      />
+   <include file="jobs.zcml"/>
 
    <subscriber
       handler=".datamaps.zing_add_datamap"

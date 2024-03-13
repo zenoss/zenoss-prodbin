@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<configure xmlns="http://namespaces.zope.org/zope">
+
+   <include package="Products.Jobber" file="meta.zcml"/>
+
+   <job task=".send_organizers.send_organizers"/>
+   <job task=".send_component_groups.send_component_groups"/>
+
+</configure>
