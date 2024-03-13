@@ -12,14 +12,7 @@ from __future__ import absolute_import
 from celery import Celery
 from kombu.serialization import register
 
-import Products.Jobber
-
-from Products.ZenUtils.Utils import load_config
-
 from .serialization import without_unicode
-
-
-load_config("signals.zcml", Products.Jobber)
 
 # Register custom serializer
 register(
@@ -41,8 +34,8 @@ app = Celery(
 # because loading the zenoss environment / zenpacks can take a while.
 
 # celery 3.1.26  (remove once we update celery)
-from celery.concurrency import asynpool
+from celery.concurrency import asynpool  # noqa E402
 asynpool.PROC_ALIVE_TIMEOUT = 300
 
 # celery 4.4.0+
-# app.conf.worker_proc_alive_timeout = 300
+# Set Products.Jobber.config.Celery.worker_proc_alive_timeout = 300

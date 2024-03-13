@@ -126,9 +126,6 @@ class Celery(object):
 
     # Beat (scheduler) configuration
     CELERYBEAT_MAX_LOOP_INTERVAL = ZenJobs.get("scheduler-max-loop-interval")
-    CELERYBEAT_LOG_FILE = os.path.join(
-        ZenJobs.get("logpath"), "zenjobs-scheduler.log"
-    )
     CELERYBEAT_REDIRECT_STDOUTS = True
     CELERYBEAT_REDIRECT_STDOUTS_LEVEL = "INFO"
 
