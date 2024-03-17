@@ -211,7 +211,7 @@ class Invalidator(object):
             monitor,
         )
 
-    def _changed_device_class(self, device, monitor, keys, buildlimit):
+    def _changed_device_class(self, device, monitor, buildlimit):
         # Don't dispatch jobs if there're any statuses.
         keys = tuple(
             CacheKey(svcname, monitor, device.id)
