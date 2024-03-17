@@ -211,8 +211,8 @@ class SshRunner(object):
         self.manageIp = self.proxy.manageIp
         self.port = self.proxy.zCommandPort
 
-        _username = self.proxy.zCommandUsername
-        _password = self.proxy.zCommandPassword
+        _username = self.proxy.zCommandUsername or ""
+        _password = self.proxy.zCommandPassword or ""
         _loginTimeout = self.proxy.zCommandLoginTimeout
         _commandTimeout = self.proxy.zCommandCommandTimeout
         _keyPath = self.proxy.zKeyPath

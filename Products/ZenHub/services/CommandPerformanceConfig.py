@@ -134,14 +134,13 @@ class CommandPerformanceConfig(CollectorConfigService):
                 if not ds.enabled:
                     continue
 
-                # Ignore SSH datasources if no username set
                 useSsh = getattr(ds, "usessh", False)
                 if useSsh and not device.zCommandUsername:
+                    # Send an event about no username set
                     self._warnUsernameNotSet(device)
-                    continue
-
-                # clear any lingering no-username events
-                self._clearUsernameNotSet(device)
+                else:
+                    # clear any lingering no-username events
+                    self._clearUsernameNotSet(device)
 
                 parserName = getattr(ds, "parser", "Auto")
                 ploader = getParserLoader(self.dmd, parserName)
@@ -250,8 +249,9 @@ class CommandPerformanceConfig(CollectorConfigService):
                 comp, device, perfServer, commands, proxy.thresholds
             )
 
-        proxy.datasources = list(commands)
-        return proxy
+        if commands:
+            proxy.datasources = list(commands)
+            return proxy
 
     def _sendCmdEvent(
         self,
