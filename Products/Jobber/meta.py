@@ -19,6 +19,8 @@ from zope.schema import TextLine
 class IJob(Interface):
     """Registers a ZenJobs task."""
 
+    name = TextLine(title="Name", description="Unused", required=False)
+
     task = GlobalObject(
         title="ZenJobs Task",
         description="Path to a task class or function",
