@@ -46,12 +46,12 @@ class Invalidator(object):
     @staticmethod
     def add_arguments(parser, subparsers):
         subp = get_subparser(
-            subparsers, "invalidator", Invalidator.description
+            subparsers, "invalidator", description=Invalidator.description
         )
         subsubparsers = subp.add_subparsers(title="Invalidator Commands")
 
         subp_run = get_subparser(
-            subsubparsers, "run", "Run the invalidator service"
+            subsubparsers, "run", description="Run the invalidator service"
         )
         Application.add_all_arguments(subp_run)
         subp_run.add_argument(
@@ -69,7 +69,9 @@ class Invalidator(object):
         subp_debug = get_subparser(
             subsubparsers,
             "debug",
-            "Signal the invalidator service to toggle debug logging",
+            description=(
+                "Signal the invalidator service to toggle debug logging"
+            ),
         )
         Application.add_pidfile_arguments(subp_debug)
         subp_debug.set_defaults(factory=DebugCommand.from_args)
@@ -348,8 +350,7 @@ def _addNewOrChangedDevices(log, tool, timelimitmap, store, dispatcher):
             store.set_pending((key, now))
         dispatcher.dispatch_all(brain.collector, brain.id, timeout)
         log.info(
-            "submitted build jobs for device %s  "
-            "uid=%s collector=%s",
+            "submitted build jobs for device %s  " "uid=%s collector=%s",
             (
                 "without any configurations"
                 if brain.id in new_devices
