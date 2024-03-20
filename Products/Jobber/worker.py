@@ -35,8 +35,16 @@ def initialize_zenoss_env(**kw):
     import Products.ZenWidgets
 
     from Products.ZenUtils.Utils import load_config_override
+    from Products.ZenUtils.zenpackload import load_zenpacks
 
     import_products()
+
+    # The Zenoss environment requires that the 'zenoss.zenpacks' entrypoints
+    # be explicitely loaded because celery doesn't know to do that.
+    # Not loading those entrypoints means that celery will be unaware of
+    # any celery 'task' definitions in the ZenPacks.
+    load_zenpacks()
+
     zcml.load_site()
     load_config_override("scriptmessaging.zcml", Products.ZenWidgets)
 
