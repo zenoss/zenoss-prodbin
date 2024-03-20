@@ -24,15 +24,15 @@ def get_arg_parser(description, epilog=None):
     return parser
 
 
-def get_subparser(subparsers, title, description=None, parent=None):
+def get_subparser(subparsers, name, description=None, parent=None):
     subparser = subparsers.add_parser(
-        title,
+        name,
         description=description + ".",
         help=description,
         parents=[parent] if parent else [],
         formatter_class=ZenHelpFormatter,
     )
-    _fix_optional_args_title(subparser, title.capitalize())
+    _fix_optional_args_title(subparser, name.capitalize())
     return subparser
 
 

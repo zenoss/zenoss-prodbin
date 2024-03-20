@@ -39,11 +39,13 @@ class Manager(object):
 
     @staticmethod
     def add_arguments(parser, subparsers):
-        subp = get_subparser(subparsers, "manager", Manager.description)
+        subp = get_subparser(
+            subparsers, "manager", description=Manager.description
+        )
         subsubparsers = subp.add_subparsers(title="Manager Commands")
 
         subp_run = get_subparser(
-            subsubparsers, "run", "Run the manager service"
+            subsubparsers, "run", description="Run the manager service"
         )
         Application.add_all_arguments(subp_run)
         subp_run.add_argument(
@@ -61,7 +63,7 @@ class Manager(object):
         subp_debug = get_subparser(
             subsubparsers,
             "debug",
-            "Signal the manager service to toggle debug logging",
+            description="Signal the manager service to toggle debug logging",
         )
         Application.add_pidfile_arguments(subp_debug)
         subp_debug.set_defaults(factory=DebugCommand.from_args)
