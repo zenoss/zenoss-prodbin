@@ -18,7 +18,7 @@ import sys
 
 from functools import wraps
 
-from celery.app import current_task
+from celery._state import current_task
 from celery.utils.log import (
     LoggingProxy as _LoggingProxy,
     logger_isa as _logger_isa,

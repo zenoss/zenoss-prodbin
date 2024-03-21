@@ -91,53 +91,53 @@ def _buildBrokerUrl():
 class Celery(object):
     """Celery configuration."""
 
-    BROKER_URL = _buildBrokerUrl()
-    CELERY_ACCEPT_CONTENT = ["without-unicode"]
+    broker_url = _buildBrokerUrl()
+    accept_content = ["without-unicode"]
 
     # List of modules to import when the Celery worker starts
-    CELERY_IMPORTS = (
+    imports = (
         "Products.Jobber.jobs",
         "Products.ZenCollector.configcache.task",
     )
 
     # Job/Task routing
-    CELERY_ROUTES = {
+    task_routes = {
         "configcache.build_device_config": {"queue": "configcache"}
     }
 
     # Result backend (redis)
-    CELERY_RESULT_BACKEND = ZenJobs.get("redis-url")
-    CELERY_RESULT_SERIALIZER = "without-unicode"
-    CELERY_TASK_RESULT_EXPIRES = ZenJobs.get("zenjobs-job-expires")
+    result_backend = ZenJobs.get("redis-url")
+    result_serializer = "without-unicode"
+    result_expires = ZenJobs.get("zenjobs-job-expires")
 
     # Worker configuration
-    CELERYD_CONCURRENCY = ZenJobs.get("concurrent-jobs")
-    CELERYD_PREFETCH_MULTIPLIER = 1
-    CELERYD_MAX_TASKS_PER_CHILD = ZenJobs.get("max-jobs-per-worker")
-    CELERYD_TASK_TIME_LIMIT = ZenJobs.get("job-hard-time-limit")
-    CELERYD_TASK_SOFT_TIME_LIMIT = ZenJobs.get("job-soft-time-limit")
+    worker_concurrency = ZenJobs.get("concurrent-jobs")
+    worker_prefetch_multiplier = 1
+    worker_max_tasks_per_child = ZenJobs.get("max-jobs-per-worker")
+    task_time_limit = ZenJobs.get("job-hard-time-limit")
+    task_soft_time_limit = ZenJobs.get("job-soft-time-limit")
 
     # Task settings
-    CELERY_ACKS_LATE = True
-    CELERY_IGNORE_RESULT = False
-    CELERY_STORE_ERRORS_EVEN_IF_IGNORED = True
-    CELERY_TASK_SERIALIZER = "without-unicode"
-    CELERY_TRACK_STARTED = True
+    task_acks_late = True
+    task_ignore_result = False
+    task_store_errors_even_if_ignored = True
+    task_serializer = "without-unicode"
+    task_track_started = True
 
     # Beat (scheduler) configuration
-    CELERYBEAT_MAX_LOOP_INTERVAL = ZenJobs.get("scheduler-max-loop-interval")
+    beat_max_loop_interval = ZenJobs.get("scheduler-max-loop-interval")
     CELERYBEAT_REDIRECT_STDOUTS = True
     CELERYBEAT_REDIRECT_STDOUTS_LEVEL = "INFO"
 
     # Event settings
-    CELERY_SEND_EVENTS = True
-    CELERY_SEND_TASK_SENT_EVENT = True
+    worker_send_task_events = True
+    task_send_sent_event = True
 
     # Log settings
-    CELERYD_LOG_COLOR = False
+    worker_log_color = False
 
 
 # Timezone
 _tz = os.environ.get("TZ")
 if _tz:
-    Celery.CELERY_TIMEZONE = _tz
+    Celery.timezone = _tz
