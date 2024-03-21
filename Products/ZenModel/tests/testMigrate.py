@@ -13,14 +13,17 @@ from ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenModel.migrate.Migrate import Migration, Version, Step
 
 class MyTestStep(Step):
-    def __init__(self, major, minor, micro):
+    def __init__(self, major, minor, micro, name=None):
         self.version = Version(major, minor, micro)
+        self._name = name or "MyTestStep"
     def __cutover__(self):
         pass
     def __cleanup__(self):
         pass
     def name(self):
-        return 'MyTestStep_%s' % self.version.short()
+        return '%s_%s' % (self._name, self.version.short())
+    def __repr__(self):
+        return self.name()
 
 step300 = MyTestStep(3, 0, 0)
 step30_70 = MyTestStep(3, 0, 70)
@@ -152,6 +155,24 @@ class TestMigrate(ZenModelBaseTest):
         m.options.level = None
         m.options.steps = ['MyTestStep_1.1.0']
         self.assertEquals(m.determineSteps(), m.allSteps[1:2])
+
+    def testDependencies(t):
+        m = Migration(noopts=True)
+        s1 = MyTestStep(1, 0, 0, name="StepA")
+        s2 = MyTestStep(1, 0, 0, name="StepB")
+        s3 = MyTestStep(1, 1, 0, name="StepC")
+        s4 = MyTestStep(1, 1, 0, name="StepD")
+        s5 = MyTestStep(1, 2, 0, name="StepE")
+        s6 = MyTestStep(1, 2, 0, name="StepCe")
+        s5.dependencies = [s3]
+        s3.dependencies = [s2, s4]
+        s1.dependencies = [s2]
+        m.allSteps = [s1, s2, s3, s4, s5, s6]
+        m.allSteps.sort()
+        m.options.level = "1.0.0"
+        t.assertEquals(m.determineSteps(), [s2, s1, s4, s3, s6, s5])
+        m.options.level = "1.1.0"
+        t.assertEquals(m.determineSteps(), [s4, s3, s6, s5])
 
 
 def test_suite():

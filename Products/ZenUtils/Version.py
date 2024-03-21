@@ -7,12 +7,17 @@
 # 
 ##############################################################################
 
-
 """
 Zenoss versioning module.
 
 """
+
+from __future__ import print_function
+
 import re
+
+import six
+
 
 def getVersionTupleFromString(versionString):
     """
@@ -197,25 +202,37 @@ class Version(object):
     def setComment(self, comment):
         self.comment = comment
 
-    def __cmp__(self, other):
-        """
-        Comparse one verion to another. If the other version supplied is not a
-        Version instance, attempt coercion.
+    def __eq__(self, other):
+        if self is other:
+            return True
+        other = self._common_compare(other)
+        if not isinstance(other, Version):
+            return NotImplemented
+        return self.tuple() == other.tuple()
 
-        The assumption here is that any non-Version object being compared to a
-        Version object represents a verion of the same product with the same
-        name but a different version number.
-        """
+    def __lt__(self, other):
+        if self is other:
+            return False
+        other = self._common_compare(other)
+        if not isinstance(other, Version):
+            return NotImplemented
+        return self.tuple() < other.tuple()
+
+    def __le__(self, other):
+        if self is other:
+            return True
+        other = self._common_compare(other)
+        if not isinstance(other, Version):
+            return NotImplemented
+        return self.tuple() <= other.tuple()
+
+    def _common_compare(self, other):
+        other = Version.make(self.name, other)
         if other is None:
-            return 1
-        if isinstance(other, tuple):
-            version = '.'.join(str(x) for x in other)
-            other = Version.parse("%s %s" % (self.name, version))
-        elif any(isinstance(other, x) for x in (str, int, float, long)):
-            other = Version.parse("%s %s" % (self.name, str(other)))
+            return NotImplemented
         if self.name != other.name:
             raise IncomparableVersions()
-        return cmp(self.tuple(), other.tuple())
+        return other
 
     def _formatSVNRevision(self):
         svnrev = self.revision
@@ -242,6 +259,20 @@ class Version(object):
             self.micro,
             self._formatSVNRevision())
 
+    @classmethod
+    def make(cls, name, obj):
+        if isinstance(obj, cls):
+            return obj
+        if isinstance(obj, (tuple, list)):
+            version = '.'.join(str(x) for x in obj)
+            return cls.parse("%s %s" % (name, version))
+        if any(
+            isinstance(obj, x)
+            for x in six.string_types + six.integer_types + (float,)
+        ):
+            return cls.parse("%s %s" % (name, obj))
+
+    @classmethod
     def parse(cls, versionString):
         """
         Parse the version info from a string. This method is usable without
@@ -263,26 +294,34 @@ class Version(object):
         >>> v = Version.parse('Zenoss')
         >>> repr(v)
         'Version(Zenoss, 0, 0, 0,)'
-        >>> print v
+        >>> print(v)
         [Zenoss, version 0.0.0]
 
         >>> v = Version.parse('Zenoss 1')
         >>> repr(v)
         'Version(Zenoss, 1, 0, 0,)'
-        >>> print v
+        >>> print(v)
         [Zenoss, version 1.0.0]
 
         >>> v = Version.parse('Zenoss 0.26.4')
         >>> repr(v)
         'Version(Zenoss, 0, 26, 4,)'
-        >>> print v
+        >>> print(v)
         [Zenoss, version 0.26.4]
 
+        >>> Version.parse('Zenoss 1.1.0') <= Version('Zenoss', 1, 0, 0)
+        False
+        >>> Version.parse('Zenoss 1.1.0') >= Version('Zenoss', 1, 0, 0)
+        True
+        >>> Version.parse('Zenoss 1.1.0') <= Version('Zenoss', 1, 1, 0)
+        True
+        >>> Version.parse('Zenoss 1.1.0') >= Version('Zenoss', 1, 1, 0)
+        True
 
         >>> v = Version.parse('Zenoss 0.32.1 r13667')
         >>> repr(v)
         'Version(Zenoss, 0, 32, 1, r13667)'
-        >>> print v
+        >>> print(v)
         [Zenoss, version 0.32.1 r13667]
         """
         versionParts = versionString.strip().split()
@@ -302,7 +341,6 @@ class Version(object):
             revision = ''
         self = Version(name, major, minor, micro, revision)
         return self
-    parse = classmethod(parse)
 
 
 def _test():
