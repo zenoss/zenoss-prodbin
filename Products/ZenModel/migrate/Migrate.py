@@ -7,12 +7,15 @@
 #
 ##############################################################################
 
-
-__doc__='''Migrate
+'''Migrate
 
 A small framework for data migration.
 
 '''
+
+from __future__ import print_function
+
+import re
 
 import transaction
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
@@ -20,6 +23,7 @@ from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenReports.ReportLoader import ReportLoader
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenModel.ZVersion import VERSION
+from Products.ZenUtils.terminal_size import get_terminal_size
 
 import sys
 from textwrap import wrap
@@ -60,17 +64,42 @@ class Step(object):
         "self insert ourselves in the list of all steps"
         allSteps.append(self)
 
-    def __cmp__(self, other):
-        result = cmp(self.version, other.version)
-        if result:
-            return result
-        # if we're in the other dependency list, we are "less"
-        if self in other.getDependencies():
-            return -1
-        # if other is in the out dependency list, we are "greater"
-        if other in self.getDependencies():
-            return 1
-        return 0
+    def __eq__(self, other):
+        if not isinstance(other, Step):
+            return False
+        if self is other:
+            return True
+        return (
+            self.version == other.version
+            and self.dependencies == other.dependencies
+        )
+
+    def __lt__(self, other):
+        if not isinstance(other, Step):
+            return NotImplemented
+        if self is other:
+            return False
+        if self.version > other.version:
+            return False
+        return self._equivalency(other)
+
+    def __le__(self, other):
+        if not isinstance(other, Step):
+            return NotImplemented
+        if self is other:
+            return True
+        return self._equivalency(other)
+
+    def _equivalency(self, other):
+        if self.version > other.version:
+            return False
+        if self.version == other.version:
+            if self in other.getDependencies():
+                return True
+            if other in self.getDependencies():
+                return False
+            return self.name() < other.name()
+        return True
 
     def getDependencies(self):
         if not self.dependencies:
@@ -121,11 +150,7 @@ class Migration(ZenScriptBase):
         ZenScriptBase.__init__(self, noopts=noopts, connect=False)
         self.connect()
         self.allSteps = allSteps[:]
-        # 2 phase sorting
-        # 1. sort by name
-        self.allSteps.sort(lambda x,y: cmp(x.name(), y.name()))
-        # 2. sort by dependencies
-        self.allSteps.sort()
+        self.allSteps.sort() # _must_ sort the dependencies
 
         # Log output to a file
         # self.setupLogging() does *NOT* do what we want.
@@ -426,34 +451,39 @@ class Migration(ZenScriptBase):
     def list(self, inputSteps=None, execSteps=None):
         steps = inputSteps or self.allSteps
         nameWidth = max(list(len(x.name()) for x in steps))
+        maxwidth = min(get_terminal_size().columns, 200)
+        indentSize = 8 + 3 + nameWidth
 
         def switch(inp):
             switcher = {
                 1: ((" Ver     Name" + " "*(nameWidth-3) + "Status\n"
                        "--------+" + "-"*nameWidth +"+-------"),
                     "%-8s %-{}s %-8s".format(nameWidth+1)),
-                0: ((" Ver     Name" + " "*(nameWidth-3) + "Description\n"
-                       "--------+" + "-"*nameWidth +"+-----------" + "-"*30),
+                0: ((" Ver     Name" + " "*(nameWidth-2) + "Description\n"
+                        "--------+" + "-"*(nameWidth+1) +"+-----------"
+                        + "-"*(maxwidth - indentSize - 3)),
                     "%-8s %-{}s %s".format(nameWidth+1))
             }
             return switcher.get(inp)
         header, outputTemplate = switch(1 if inputSteps else 0)
-        print header
+        print(header)
 
         def printState(tpl, version, name, doc=None, status=None):
             if status:
-                print tpl%(version, name, status)
+                print(tpl%(version, name, status))
             else:
-                print tpl%(version, name, doc)
+                print(tpl%(version, name, doc))
 
+        indent = ' ' * indentSize
+        docWidth = maxwidth
         for s in steps:
             doc = s.__doc__
             if not doc:
                 doc = sys.modules[s.__class__.__module__].__doc__ \
                                                         or 'Not Documented'
-                doc.strip()
-            indent = ' '*22
-            doc = '\n'.join(wrap(doc, width=80,
+            doc.strip()
+            doc = re.sub("\s+", " ", doc)
+            doc = '\n'.join(wrap(doc, width=docWidth,
                                  initial_indent=indent,
                                  subsequent_indent=indent))
             doc = doc.lstrip()

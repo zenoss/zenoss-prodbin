@@ -113,9 +113,19 @@ class Availability(object):
     def __int__(self):
         return int(self.availability * 100)
 
-    def __cmp__(self, other):
-        return cmp((self.availability, self.device, self.component()),
-                   (other.availability, other.device, other.component()))
+    def __eq__(self, other):
+        if not isinstance(other, Availability):
+            return False
+        this = (self.availability, self.device, self.component())
+        that = (other.availability, other.device, other.component())
+        return this == that
+
+    def __lt__(self, other):
+        if not isinstance(other, Availability):
+            return NotImplemented
+        this = (self.availability, self.device, self.component())
+        that = (other.availability, other.device, other.component())
+        return this < that
 
     def getDevice(self, dmd):
         return dmd.Devices.findDevice(self.device)
@@ -183,9 +193,26 @@ class Report(object):
     def __hash__(self):
         return hash(self.tuple())
 
-    def __cmp__(self, other):
-        return cmp(self.tuple(), other.tuple())
+    def __eq__(self, other):
+        if not isinstance(other, Report):
+            return False
+        if self is other:
+            return True
+        return self.tuple() == other.tuple()
 
+    def __lt__(self, other):
+        if not isinstance(other, Report):
+            return NotImplemented
+        if self is other:
+            return False
+        return self.tuple() < other.tuple()
+
+    def __le__(self, other):
+        if not isinstance(other, Report):
+            return NotImplemented
+        if self is other:
+            return True
+        return self.tuple() <= other.tuple()
 
     def run(self, dmd):
         """Run the report, returning an Availability object for each device"""
