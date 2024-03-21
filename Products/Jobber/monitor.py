@@ -87,7 +87,7 @@ def _getTimeoutSummary(app, ex):
     return "Job killed after {}.".format(
         humanize_timedelta(
             timedelta(
-                seconds=app.conf.get("CELERYD_TASK_SOFT_TIME_LIMIT"),
+                seconds=app.conf.get("task_soft_time_limit"),
             ),
         ),
     )

@@ -70,7 +70,7 @@ def _send_event(task, exc, task_id, args, kwargs):
 def _getTimeoutSummary(task, ex):
     _, soft_limit = task.request.timelimit or (None, None)
     if soft_limit is None:
-        soft_limit = task.app.conf.get("CELERYD_TASK_SOFT_TIME_LIMIT")
+        soft_limit = task.app.conf.get("task_soft_time_limit")
     return "Job timed out after {}.".format(
         humanize_timedelta(timedelta(seconds=soft_limit))
     )

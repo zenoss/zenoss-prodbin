@@ -274,7 +274,8 @@ class CreateDeviceJob(Job):
             return
         return dev.setZenProperty(cProperty, value)
 
-
+from Products.Jobber.zenjobs import app
+app.tasks.register(CreateDeviceJob())
 # alias the DeviceCreationJob so zenpacks don't break
 DeviceCreationJob = CreateDeviceJob
 

@@ -11,7 +11,7 @@ from __future__ import absolute_import
 
 import inspect
 
-from celery.utils import fun_takes_kwargs
+from ..utils.utils import fun_takes_kwargs
 from zope.dottedname.resolve import resolve
 
 from ..exceptions import FacadeMethodJobFailed

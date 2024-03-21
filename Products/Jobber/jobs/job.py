@@ -19,6 +19,15 @@ _MARKER = object()
 
 class Job(Abortable, DMD, ZenTask):
     """Base class for legacy jobs."""
+    def __new__(cls, *args, **kwargs):
+        obj = super(Job, cls).__new__(cls, *args, **kwargs)
+        obj.set_name()
+        return obj
+
+    def set_name(self):
+        # Default name for the task
+        if self.name is None:
+            self.name = self.__class__.__name__
 
     abstract = True  # Job class itself is not registered.
 
