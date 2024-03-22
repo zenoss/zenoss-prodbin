@@ -56,12 +56,26 @@ class ZenMenuItem(ZenModelRM, ZenPackable):
             parent = aq_parent(parent)
         return parent
 
-    def __cmp__(self, other):
-        if isinstance(other, ZenMenuItem):
-            if other and other.ordering:
-                return cmp(other.ordering, self.ordering)
-            else:
-                return cmp(0.0, self.ordering)
-        return cmp(id(self), id(other))
-    
+    def __eq__(self, other):
+        if not isinstance(other, ZenMenuItem):
+            return False
+        if self is other:
+            return True
+        return self.ordering == other.ordering
+
+    def __lt__(self, other):
+        if not isinstance(other, ZenMenuItem):
+            return NotImplemented
+        if self is other:
+            return False
+        return self.ordering < other.ordering
+
+    def __le__(self, other):
+        if not isinstance(other, ZenMenuItem):
+            return NotImplemented
+        if self is other:
+            return True
+        return self.ordering <= other.ordering
+
+
 InitializeClass(ZenMenuItem)
