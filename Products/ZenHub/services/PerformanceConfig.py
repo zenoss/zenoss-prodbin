@@ -53,12 +53,32 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
             setattr(self, propertyName, getattr(device, propertyName, None))
             self.id = device.id
 
-    def __cmp__(self, other):
-        for propertyName in ATTRIBUTES:
-            c = cmp(getattr(self, propertyName), getattr(other, propertyName))
-            if c != 0:
-                return c
-        return 0
+    def __eq__(self, other):
+        if not isinstance(other, SnmpConnInfo):
+            return False
+        if self is other:
+            return True
+        return all(
+            getattr(self, name) == getattr(other, name) for name in ATTRIBUTES
+        )
+
+    def __lt__(self, other):
+        if not isinstance(other, SnmpConnInfo):
+            return NotImplemented
+        if self is other:
+            return False
+        return any(
+            getattr(self, name) < getattr(other, name) for name in ATTRIBUTES
+        )
+
+    def __le__(self, other):
+        if not isinstance(other, SnmpConnInfo):
+            return NotImplemented
+        if self is other:
+            return True
+        return not any(
+            getattr(self, name) > getattr(other, name) for name in ATTRIBUTES
+        )
 
     def summary(self):
         result = "SNMP info for %s at %s:%s" % (
