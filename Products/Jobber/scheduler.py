@@ -21,7 +21,7 @@ import yaml
 from celery.beat import Scheduler
 from celery.schedules import crontab
 
-from .config import ZenJobs, Celery
+from .config import getConfig, CeleryConfig
 
 
 class ZenJobsScheduler(Scheduler):
@@ -120,7 +120,7 @@ class ZenJobsScheduler(Scheduler):
     @property
     def info(self):
         return "    . schedule-file -> {}".format(
-            ZenJobs.get("scheduler-config-file"),
+            getConfig().get("scheduler-config-file"),
         )
 
     def sync(self):
@@ -142,7 +142,7 @@ _valid_fields = set(("task", "args", "kwargs", "options", "schedule"))
 
 
 def load_schedule():
-    configfile = ZenJobs.get("scheduler-config-file")
+    configfile = getConfig().get("scheduler-config-file")
     with open(configfile, "r") as f:
         raw = yaml.load(f, Loader=yaml.loader.SafeLoader)
     parsed_schedule = {}
@@ -222,7 +222,9 @@ def _key(name):
 
 def _getClient():
     """Create and return the ZenJobs JobStore client."""
-    return redis.StrictRedis.from_url(Celery.CELERY_RESULT_BACKEND)
+    return redis.StrictRedis.from_url(
+        CeleryConfig.from_config().CELERY_RESULT_BACKEND
+    )
 
 
 def handle_beat_init(*args, **kw):

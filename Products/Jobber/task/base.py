@@ -17,8 +17,10 @@ from AccessControl.SecurityManagement import getSecurityManager
 from celery import Task
 from celery.exceptions import Ignore, SoftTimeLimitExceeded
 
-from .event import SendZenossEventMixin
+from ..config import getConfig
 from ..utils.log import get_task_logger, get_logger
+
+from .event import SendZenossEventMixin
 
 _default_summary = "Task {0.__class__.__name__}"
 
@@ -41,9 +43,7 @@ class ZenTask(SendZenossEventMixin, Task):
             summary = _default_summary.format(task)
         setattr(cls, "summary", summary)
 
-        from Products.Jobber.config import ZenJobs
-
-        task.max_retries = ZenJobs.get("zodb-max-retries", 5)
+        task.max_retries = getConfig().get("zodb-max-retries", 5)
 
         return task
 
