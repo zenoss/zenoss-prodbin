@@ -24,7 +24,7 @@ from zope.component import getUtility
 
 from Products.ZenUtils.Utils import zenPath
 
-from .config import ZenJobs
+from .config import getConfig
 from .interfaces import IJobStore
 from .utils.algorithms import partition
 from .utils.log import (
@@ -36,8 +36,6 @@ from .utils.log import (
     LoggingProxy,
     TaskLogFileHandler,
 )
-
-_default_log_level = logging.getLevelName(ZenJobs.get("logseverity"))
 
 _default_config = {
     "version": 1,
@@ -71,15 +69,9 @@ _default_config = {
     },
     "handlers": {},
     "loggers": {
-        "STDOUT": {
-            "level": _default_log_level,
-        },
-        "zen": {
-            "level": _default_log_level,
-        },
-        "celery": {
-            "level": _default_log_level,
-        },
+        "STDOUT": {},
+        "zen": {},
+        "celery": {},
     },
     "root": {
         "handlers": [],
@@ -88,12 +80,10 @@ _default_config = {
 
 _main_loggers = {
     "zen.zenjobs": {
-        "level": _default_log_level,
         "propagate": False,
         "handlers": ["main"],
     },
     "zen.zenjobs.job": {
-        "level": _default_log_level,
         "propagate": False,
     },
 }
@@ -103,26 +93,40 @@ _main_handler = {
     "formatter": "main",
     "class": "cloghandler.ConcurrentRotatingFileHandler",
     "filename": None,
-    "maxBytes": ZenJobs.get("maxlogsize") * 1024,
-    "backupCount": ZenJobs.get("maxbackuplogs"),
     "mode": "a",
     "filters": ["main"],
 }
+
 _beat_handler = {
     "formatter": "beat",
     "class": "cloghandler.ConcurrentRotatingFileHandler",
     "filename": None,
-    "maxBytes": ZenJobs.get("maxlogsize") * 1024,
-    "backupCount": ZenJobs.get("maxbackuplogs"),
     "mode": "a",
 }
 
-_logpath = ZenJobs.get("logpath")
-_filenames = {
-    "zenjobs": os.path.join(_logpath, "zenjobs.log"),
-    "beat": os.path.join(_logpath, "zenjobs-scheduler.log"),
-    "configcache_builder": os.path.join(_logpath, "configcache-builder.log"),
-}
+
+def _get_handler(handler):
+    cfg = dict(handler)
+    cfg.update(
+        {
+            "maxBytes": getConfig().get("maxlogsize") * 1024,
+            "backupCount": getConfig().get("maxbackuplogs"),
+        }
+    )
+    return cfg
+
+
+def _get_filenames(cfg):
+    logpath = cfg.get("logpath")
+    return {
+        "zenjobs": os.path.join(logpath, "zenjobs.log"),
+        "beat": os.path.join(logpath, "zenjobs-scheduler.log"),
+        "configcache_builder": os.path.join(
+            logpath, "configcache-builder.log"
+        ),
+    }
+
+
 _loglevel_confs = {
     "zenjobs": zenPath("etc", "zenjobs_log_levels.conf"),
     "beat": zenPath("etc", "zenjobs_log_levels.conf"),
@@ -142,17 +146,29 @@ def _get_logger(name=None):
 
 def configure_logging(logfile, **kw):
     """Configure logging for zenjobs."""
+    cfg = getConfig()
+    default_log_level = logging.getLevelName(cfg.get("logseverity"))
+    filenames = _get_filenames(cfg)
+
+    _default_config["loggers"]["STDOUT"]["level"] = default_log_level
+    _default_config["loggers"]["zen"]["level"] = default_log_level
+    _default_config["loggers"]["celery"]["level"] = default_log_level
+
     # NOTE: Cleverly used the `-f` command line argument to specify
     # which logging configuration to use.
     if logfile in ("zenjobs", "configcache_builder"):
+        _main_loggers["zen.zenjobs"]["level"] = default_log_level
+        _main_loggers["zen.zenjobs.job"]["level"] = default_log_level
         _default_config["loggers"].update(**_main_loggers)
         _default_config["root"]["handlers"].append("main")
-        _main_handler["filename"] = _filenames[logfile]
-        _default_config["handlers"]["main"] = _main_handler
+        handler = _get_handler(_main_handler)
+        handler["filename"] = filenames[logfile]
+        _default_config["handlers"]["main"] = handler
     elif logfile == "beat":
         _default_config["root"]["handlers"].append("beat")
-        _beat_handler["filename"] = _filenames[logfile]
-        _default_config["handlers"]["beat"] = _beat_handler
+        handler = _get_handler(_beat_handler)
+        handler["filename"] = filenames[logfile]
+        _default_config["handlers"]["beat"] = handler
 
     logging.config.dictConfig(_default_config)
 

@@ -10,6 +10,7 @@
 from __future__ import absolute_import
 
 from celery import Celery
+from celery.bin import Option
 from kombu.serialization import register
 
 from .serialization import without_unicode
@@ -23,10 +24,11 @@ register(
     content_encoding="utf-8",
 )
 
-app = Celery(
-    "zenjobs",
-    config_source="Products.Jobber.config:Celery",
-    task_cls="Products.Jobber.task:ZenTask",
+app = Celery("zenjobs", task_cls="Products.Jobber.task:ZenTask")
+app.user_options["preload"].add(
+    Option(
+        "--config-file", default=None, help="Name of the configuration file"
+    )
 )
 
 # Allow considerably more time for the worker_process_init signal
@@ -35,6 +37,7 @@ app = Celery(
 
 # celery 3.1.26  (remove once we update celery)
 from celery.concurrency import asynpool  # noqa E402
+
 asynpool.PROC_ALIVE_TIMEOUT = 300
 
 # celery 4.4.0+

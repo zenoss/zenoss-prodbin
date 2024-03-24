@@ -9,12 +9,12 @@
 
 import os
 
+import attr
+
 from Products.ZenUtils.config import Config, ConfigLoader
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.RedisUtils import DEFAULT_REDIS_URL
 from Products.ZenUtils.Utils import zenPath
-
-__all__ = ("Celery", "ZenJobs")
 
 
 _default_configs = {
@@ -52,13 +52,23 @@ _xform = {
 }
 
 
-def _getConfig():
+_configuration = None
+
+
+def getConfig(filename=None):
     """Return a dict containing the configuration for zenjobs."""
+    global _configuration
+
+    if filename is None or _configuration is not None:
+        return _configuration
+
+    if not os.path.exists(filename):
+        filename = zenPath("etc", filename)
+
     conf = _default_configs.copy()
     conf.update(getGlobalConfiguration())
 
-    app_conf_file = zenPath("etc", "zenjobs.conf")
-    app_config_loader = ConfigLoader(app_conf_file, Config)
+    app_config_loader = ConfigLoader(filename, Config)
     try:
         conf.update(app_config_loader())
     except IOError as ex:
@@ -72,72 +82,82 @@ def _getConfig():
             continue
         conf[key] = cast(conf[key])
 
+    _configuration = conf
     return conf
 
 
-ZenJobs = _getConfig()
-
-
 # Broker settings
-def _buildBrokerUrl():
-    usr = ZenJobs.get("amqpuser")
-    pwd = ZenJobs.get("amqppassword")
-    host = ZenJobs.get("amqphost")
-    port = ZenJobs.get("amqpport")
-    vhost = ZenJobs.get("amqpvhost")
+def buildBrokerUrl(cfg):
+    usr = cfg.get("amqpuser")
+    pwd = cfg.get("amqppassword")
+    host = cfg.get("amqphost")
+    port = cfg.get("amqpport")
+    vhost = cfg.get("amqpvhost")
     return "amqp://{usr}:{pwd}@{host}:{port}/{vhost}".format(**locals())
 
 
-class Celery(object):
+_celery_config = None
+
+
+@attr.s(slots=True)
+class CeleryConfig(object):
     """Celery configuration."""
 
-    BROKER_URL = _buildBrokerUrl()
-    CELERY_ACCEPT_CONTENT = ["without-unicode"]
+    BROKER_URL = attr.ib()
+    CELERY_TIMEZONE = attr.ib()
+    CELERY_RESULT_BACKEND = attr.ib()
+    CELERY_TASK_RESULT_EXPIRES = attr.ib()
+    CELERYD_CONCURRENCY = attr.ib()
+    CELERYD_MAX_TASKS_PER_CHILD = attr.ib()
+    CELERYD_TASK_TIME_LIMIT = attr.ib()
+    CELERYD_TASK_SOFT_TIME_LIMIT = attr.ib()
+    CELERYBEAT_MAX_LOOP_INTERVAL = attr.ib()
 
-    # List of modules to import when the Celery worker starts
-    CELERY_IMPORTS = (
-        "Products.Jobber.jobs",
-        "Products.ZenCollector.configcache.task",
+    CELERY_ACCEPT_CONTENT = attr.ib(default=["without-unicode"])
+    CELERY_IMPORTS = attr.ib(
+        default=[
+            "Products.Jobber.jobs",
+            "Products.ZenCollector.configcache.task",
+        ]
     )
+    CELERY_ROUTES = attr.ib(
+        default={"configcache.build_device_config": {"queue": "configcache"}}
+    )
+    CELERY_RESULT_SERIALIZER = attr.ib(default="without-unicode")
+    CELERYD_PREFETCH_MULTIPLIER = attr.ib(default=1)
+    CELERY_ACKS_LATE = attr.ib(default=True)
+    CELERY_IGNORE_RESULT = attr.ib(default=False)
+    CELERY_STORE_ERRORS_EVEN_IF_IGNORED = attr.ib(default=True)
+    CELERY_TASK_SERIALIZER = attr.ib(default="without-unicode")
+    CELERY_TRACK_STARTED = attr.ib(default=True)
+    CELERYBEAT_REDIRECT_STDOUTS = attr.ib(default=True)
+    CELERYBEAT_REDIRECT_STDOUTS_LEVEL = attr.ib(default="INFO")
+    CELERY_SEND_EVENTS = attr.ib(default=True)
+    CELERY_SEND_TASK_SENT_EVENT = attr.ib(default=True)
+    CELERYD_LOG_COLOR = attr.ib(default=False)
 
-    # Job/Task routing
-    CELERY_ROUTES = {
-        "configcache.build_device_config": {"queue": "configcache"}
-    }
+    @classmethod
+    def from_config(cls, cfg=None):
+        global _celery_config
 
-    # Result backend (redis)
-    CELERY_RESULT_BACKEND = ZenJobs.get("redis-url")
-    CELERY_RESULT_SERIALIZER = "without-unicode"
-    CELERY_TASK_RESULT_EXPIRES = ZenJobs.get("zenjobs-job-expires")
+        if cfg is None or _celery_config is not None:
+            return _celery_config
 
-    # Worker configuration
-    CELERYD_CONCURRENCY = ZenJobs.get("concurrent-jobs")
-    CELERYD_PREFETCH_MULTIPLIER = 1
-    CELERYD_MAX_TASKS_PER_CHILD = ZenJobs.get("max-jobs-per-worker")
-    CELERYD_TASK_TIME_LIMIT = ZenJobs.get("job-hard-time-limit")
-    CELERYD_TASK_SOFT_TIME_LIMIT = ZenJobs.get("job-soft-time-limit")
+        args = {
+            "BROKER_URL": buildBrokerUrl(_configuration),
+            "CELERY_RESULT_BACKEND": cfg.get("redis-url"),
+            "CELERY_TASK_RESULT_EXPIRES": cfg.get("zenjobs-job-expires"),
+            "CELERYD_CONCURRENCY": cfg.get("concurrent-jobs"),
+            "CELERYD_MAX_TASKS_PER_CHILD": cfg.get("max-jobs-per-worker"),
+            "CELERYD_TASK_TIME_LIMIT": cfg.get("job-hard-time-limit"),
+            "CELERYD_TASK_SOFT_TIME_LIMIT": cfg.get("job-soft-time-limit"),
+            "CELERYBEAT_MAX_LOOP_INTERVAL": cfg.get(
+                "scheduler-max-loop-interval"
+            ),
+        }
+        tz = os.environ.get("TZ")
+        if tz:
+            args["CELERY_TIMEZONE"] = tz
 
-    # Task settings
-    CELERY_ACKS_LATE = True
-    CELERY_IGNORE_RESULT = False
-    CELERY_STORE_ERRORS_EVEN_IF_IGNORED = True
-    CELERY_TASK_SERIALIZER = "without-unicode"
-    CELERY_TRACK_STARTED = True
-
-    # Beat (scheduler) configuration
-    CELERYBEAT_MAX_LOOP_INTERVAL = ZenJobs.get("scheduler-max-loop-interval")
-    CELERYBEAT_REDIRECT_STDOUTS = True
-    CELERYBEAT_REDIRECT_STDOUTS_LEVEL = "INFO"
-
-    # Event settings
-    CELERY_SEND_EVENTS = True
-    CELERY_SEND_TASK_SENT_EVENT = True
-
-    # Log settings
-    CELERYD_LOG_COLOR = False
-
-
-# Timezone
-_tz = os.environ.get("TZ")
-if _tz:
-    Celery.CELERY_TIMEZONE = _tz
+        _celery_config = cls(**args)
+        return _celery_config
