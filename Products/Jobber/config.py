@@ -52,15 +52,18 @@ _xform = {
 }
 
 
-_configuration = None
+_configuration = {}
 
 
 def getConfig(filename=None):
     """Return a dict containing the configuration for zenjobs."""
     global _configuration
 
-    if filename is None or _configuration is not None:
+    if _configuration:
         return _configuration
+
+    if filename is None:
+        filename = "zenjobs.conf"
 
     if not os.path.exists(filename):
         filename = zenPath("etc", filename)
@@ -137,10 +140,10 @@ class CeleryConfig(object):
     CELERYD_LOG_COLOR = attr.ib(default=False)
 
     @classmethod
-    def from_config(cls, cfg=None):
+    def from_config(cls, cfg={}):
         global _celery_config
 
-        if cfg is None or _celery_config is not None:
+        if _celery_config:
             return _celery_config
 
         args = {
