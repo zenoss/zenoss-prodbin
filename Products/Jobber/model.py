@@ -22,7 +22,7 @@ from zope.interface import implementer
 
 from Products.Zuul.interfaces import IMarshaller, IInfo
 
-from .config import ZenJobs
+from .config import getConfig
 from .interfaces import IJobStore, IJobRecord
 from .storage import Fields
 from .task.utils import job_log_has_errors
@@ -249,7 +249,7 @@ class RedisRecord(dict):
             summary=task.summary,
             description=description,
             logfile=os.path.join(
-                ZenJobs.get("job-log-path"), "%s.log" % jobid
+                getConfig().get("job-log-path"), "%s.log" % jobid
             ),
         )
         if "status" in fields:

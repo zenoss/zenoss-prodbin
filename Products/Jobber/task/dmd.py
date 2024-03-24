@@ -29,7 +29,7 @@ from ZPublisher.BaseRequest import RequestContainer
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Products.ZenUtils.Utils import getObjByPath
 
-from ..config import ZenJobs
+from ..config import getConfig
 from ..utils.log import get_logger, get_task_logger, inject_logger
 
 mlog = get_logger("zen.zenjobs.task.dmd")
@@ -71,7 +71,7 @@ class DMD(object):
         except (ReadConflictError, ConflictError) as ex:
             transaction.abort()
             self.log.warn("Transaction aborted  reason=%s", ex)
-            limit = ZenJobs.get("zodb-retry-interval-limit", 30)
+            limit = getConfig().get("zodb-retry-interval-limit", 30)
             duration = int(SystemRandom().uniform(1, limit))
             self.log.info(
                 "Reschedule task to execute after %s seconds.",

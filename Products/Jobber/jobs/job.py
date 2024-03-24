@@ -9,7 +9,7 @@
 
 from __future__ import absolute_import
 
-from ..config import ZenJobs
+from ..config import getConfig
 from ..exceptions import NoSuchJobException
 from ..task import Abortable, DMD, ZenTask
 from ..zenjobs import app
@@ -81,7 +81,7 @@ class Job(Abortable, DMD, ZenTask):
         self.dmd.JobManager.update(jobid, **details)
 
     def _get_config(self, key, default=_MARKER):
-        value = ZenJobs.get(key, default)
+        value = getConfig().get(key, default)
         if value is _MARKER:
             raise KeyError("Config option '{}' is not defined".format(key))
         return value
