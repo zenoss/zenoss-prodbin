@@ -102,12 +102,11 @@ def buildBrokerUrl(cfg):
 _celery_config = None
 
 
-@attr.s(slots=True)
+@attr.s(slots=True, kw_only=True)
 class CeleryConfig(object):
     """Celery configuration."""
 
     BROKER_URL = attr.ib()
-    CELERY_TIMEZONE = attr.ib()
     CELERY_RESULT_BACKEND = attr.ib()
     CELERY_TASK_RESULT_EXPIRES = attr.ib()
     CELERYD_CONCURRENCY = attr.ib()
@@ -116,6 +115,7 @@ class CeleryConfig(object):
     CELERYD_TASK_SOFT_TIME_LIMIT = attr.ib()
     CELERYBEAT_MAX_LOOP_INTERVAL = attr.ib()
 
+    CELERY_TIMEZONE = attr.ib(default=None)
     CELERY_ACCEPT_CONTENT = attr.ib(default=["without-unicode"])
     CELERY_IMPORTS = attr.ib(
         default=[
