@@ -62,22 +62,20 @@ def getConfig(filename=None):
     if _configuration:
         return _configuration
 
-    if filename is None:
-        filename = "zenjobs.conf"
-
-    if not os.path.exists(filename):
-        filename = zenPath("etc", filename)
-
     conf = _default_configs.copy()
     conf.update(getGlobalConfiguration())
 
-    app_config_loader = ConfigLoader(filename, Config)
-    try:
-        conf.update(app_config_loader())
-    except IOError as ex:
-        # Re-raise exception if the error is not "File not found"
-        if ex.errno != 2:
-            raise
+    if filename is not None:
+        if not os.path.exists(filename):
+            filename = zenPath("etc", filename)
+
+        app_config_loader = ConfigLoader([filename], Config)
+        try:
+            conf.update(app_config_loader())
+        except IOError as ex:
+            # Re-raise exception if the error is not "File not found"
+            if ex.errno != 2:
+                raise
 
     # Convert the configuration value types to useable types.
     for key, cast in _xform.items():
@@ -85,7 +83,10 @@ def getConfig(filename=None):
             continue
         conf[key] = cast(conf[key])
 
-    _configuration = conf
+    # only save it if a filename was specified
+    if filename is not None:
+        _configuration = conf
+
     return conf
 
 
@@ -97,9 +98,6 @@ def buildBrokerUrl(cfg):
     port = cfg.get("amqpport")
     vhost = cfg.get("amqpvhost")
     return "amqp://{usr}:{pwd}@{host}:{port}/{vhost}".format(**locals())
-
-
-_celery_config = None
 
 
 @attr.s(slots=True, kw_only=True)
@@ -141,13 +139,8 @@ class CeleryConfig(object):
 
     @classmethod
     def from_config(cls, cfg={}):
-        global _celery_config
-
-        if _celery_config:
-            return _celery_config
-
         args = {
-            "BROKER_URL": buildBrokerUrl(_configuration),
+            "BROKER_URL": buildBrokerUrl(cfg),
             "CELERY_RESULT_BACKEND": cfg.get("redis-url"),
             "CELERY_TASK_RESULT_EXPIRES": cfg.get("zenjobs-job-expires"),
             "CELERYD_CONCURRENCY": cfg.get("concurrent-jobs"),
@@ -162,5 +155,4 @@ class CeleryConfig(object):
         if tz:
             args["CELERY_TIMEZONE"] = tz
 
-        _celery_config = cls(**args)
-        return _celery_config
+        return cls(**args)
