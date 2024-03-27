@@ -118,13 +118,16 @@ if [ "$1" != "--no-tests" ]; then
     export MARIADB_IMAGE_ID=zendev/mariadb:${ZENDEV_ENV}
     export REDIS_IMAGE_ID=zenoss/redis:latest
     export RABBITMQ_IMAGE_ID=zenoss/rabbitmq:latest
+    docker image pull ${REDIS_IMAGE_ID}
+    docker image pull ${RABBITMQ_IMAGE_ID}
     ./test_image.sh \
-    	--no-zenpacks \
-    	--mount ${HOME}/.m2:/home/zenoss/.m2 \
-    	--mount ${ZENDEV_ROOT}/zenhome:/opt/zenoss \
-    	--mount ${ZENDEV_ROOT}/var_zenoss:/var/zenoss \
-    	--mount ${ZENDEV_ROOT}/src/github.com/zenoss:/mnt/src \
-    	--env SRCROOT=/mnt/src
+        --no-pull-images \
+        --no-zenpacks \
+        --mount ${HOME}/.m2:/home/zenoss/.m2 \
+        --mount ${ZENDEV_ROOT}/zenhome:/opt/zenoss \
+        --mount ${ZENDEV_ROOT}/var_zenoss:/var/zenoss \
+        --mount ${ZENDEV_ROOT}/src/github.com/zenoss:/mnt/src \
+        --env SRCROOT=/mnt/src
     popd
 fi
 
