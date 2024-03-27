@@ -24,12 +24,24 @@ register(
     content_encoding="utf-8",
 )
 
-app = Celery("zenjobs", task_cls="Products.Jobber.task:ZenTask")
-app.user_options["preload"].add(
-    Option(
-        "--config-file", default=None, help="Name of the configuration file"
+
+def _buildapp():
+    from .config import CeleryConfig, getConfig
+    app = Celery(
+        "zenjobs",
+        task_cls="Products.Jobber.task:ZenTask",
     )
-)
+    default = CeleryConfig.from_config(getConfig())
+    app.config_from_object(default)
+    app.user_options["preload"].add(
+        Option(
+            "--config-file", default=None, help="Name of the configuration file"
+        )
+    )
+    return app
+
+
+app = _buildapp()
 
 # Allow considerably more time for the worker_process_init signal
 # to complete (rather than the default of 4 seconds).   This is required
