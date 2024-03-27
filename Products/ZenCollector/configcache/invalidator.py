@@ -174,7 +174,7 @@ class Invalidator(object):
             if uid != stored_uid:
                 self._changed_device_class(device, monitor, buildlimit)
             else:
-                self._updated_device(device, monitor, keys, minttl)
+                self._updated_device(device, monitor, keys, minttl, buildlimit)
         elif reason is InvalidationCause.Removed:
             self._removed_device(keys)
         else:
@@ -230,7 +230,7 @@ class Invalidator(object):
             monitor,
         )
 
-    def _updated_device(self, device, monitor, keys, minttl):
+    def _updated_device(self, device, monitor, keys, minttl, buildlimit):
         statuses = tuple(
             status
             for status in self.store.get_status(*keys)
@@ -262,6 +262,27 @@ class Invalidator(object):
                 key.device,
                 key.monitor,
                 key.service,
+            )
+
+        # Send a job for for all config services that don't currently have
+        # an associated configuration.  Some ZenPacks, i.e. vSphere, defer
+        # their modeling to a later time, so jobs for configuration services
+        # must be sent to pick up any new configs.
+        hasconfigs = tuple(key.service for key in keys)
+        noconfigkeys = tuple(
+            CacheKey(svcname, monitor, device.id)
+            for svcname in self.dispatcher.service_names
+            if svcname not in hasconfigs
+        )
+        # Identify all no-config keys that already have a status.
+        skipkeys = tuple(
+            status.key for status in self.store.get_status(*noconfigkeys)
+        )
+        now = time.time()
+        for key in (k for k in noconfigkeys if k not in skipkeys):
+            self.store.set_pending((key, now))
+            self.dispatcher.dispatch(
+                key.service, key.monitor, key.device, buildlimit
             )
 
     def _removed_device(self, keys):
