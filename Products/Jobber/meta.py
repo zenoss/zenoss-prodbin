@@ -41,6 +41,7 @@ def job(_context, **kw):
             raise ConfigurationError(
                 ("Missing parameter:", "'task' or 'class'")
             )
+
     task.name = kw.get("name")
     if not task.name:
         task.name = kw.get("class_")
