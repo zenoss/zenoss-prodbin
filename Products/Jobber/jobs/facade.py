@@ -103,3 +103,6 @@ class FacadeMethodJob(Job):
                     result,
                 )
                 return result
+
+from Products.Jobber.zenjobs import app
+app.register_task(FacadeMethodJob)

@@ -41,10 +41,15 @@ def job(_context, **kw):
             raise ConfigurationError(
                 ("Missing parameter:", "'task' or 'class'")
             )
-    task.name = kw.get("name") or kw.get("class_") or kw.get("task")
+    task.name = kw.get("name")
+    if not task.name:
+        task.name = kw.get("class_")
+
+    if not task.name:
+        task.name = kw.get("task")
 
     if task.name not in app.tasks:
-        app.tasks.register(task)
+        app.register_task(task)
 
 
 class ICelerySignal(Interface):

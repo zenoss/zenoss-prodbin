@@ -138,7 +138,9 @@ class JobManagerTest(TestCase):
 
     def test_getUnfinishedJobs_all_types(t):
         expected = []
-        for idx, st in enumerate(states.ALL_STATES):
+        # in celery 4.4.7 REJECTED was added to UNREADY_STATES (only used in events)
+        # but it wasn't included to ALL_STATES
+        for idx, st in enumerate(states.ALL_STATES | states.UNREADY_STATES):
             rec = dict(t.full, status=st, jobid="abc-{}".format(idx))
             t.store[rec["jobid"]] = rec
             if st in states.UNREADY_STATES:

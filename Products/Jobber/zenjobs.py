@@ -11,12 +11,12 @@ from __future__ import absolute_import
 
 from celery import Celery
 from celery.bin import Option
-from kombu.serialization import register
+from kombu import serialization
 
 from .serialization import without_unicode
 
 # Register custom serializer
-register(
+serialization.register(
     "without-unicode",
     without_unicode.dump,
     without_unicode.load,

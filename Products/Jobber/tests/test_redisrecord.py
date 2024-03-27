@@ -177,6 +177,9 @@ class BuildRedisRecordFromJobTest(BaseBuildRedisRecord, TestCase):
         def getJobDescription(cls, *args, **kw):
             return "TestJob %s %s" % (args, kw)
 
+    from Products.Jobber.zenjobs import app
+    app.register_task(TestJob)
+
     def setUp(t):
         t.task = t.TestJob()
         BaseBuildRedisRecord.setUp(t)

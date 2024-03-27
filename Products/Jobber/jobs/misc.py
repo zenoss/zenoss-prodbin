@@ -73,6 +73,11 @@ class DelayedFailure(Job):
         raise DelayedFailureError("slept for %s seconds" % seconds)
 
 
+app.register_task(DeviceListJob)
+app.register_task(PausingJob)
+app.register_task(DelayedFailure)
+
+
 @app.task(
     bind=True,
     base=requires(DMD, Abortable),

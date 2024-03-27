@@ -128,8 +128,11 @@ class SubprocessJob(Job):
             return exitcode, output
         finally:
             reader.join(timeout=1.0)
+
+
 from Products.Jobber.zenjobs import app
-app.tasks.register(SubprocessJob())
+app.register_task(SubprocessJob)
+
 
 @contextmanager
 def null_context():
