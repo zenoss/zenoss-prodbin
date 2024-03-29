@@ -206,7 +206,7 @@ class Invalidator(object):
         now = time.time()
         for key in keys:
             self.store.set_pending((key, now))
-        self.dispatcher.dispatch_all(monitor, device.id, buildlimit)
+        self.dispatcher.dispatch_all(monitor, device.id, buildlimit, now)
         self.log.info(
             "submitted build jobs for new device  device=%s collector=%s",
             device.id,
@@ -222,7 +222,7 @@ class Invalidator(object):
         now = time.time()
         for key in keys:
             self.store.set_pending((key, now))
-        self.dispatcher.dispatch_all(monitor, device.id, buildlimit)
+        self.dispatcher.dispatch_all(monitor, device.id, buildlimit, now)
         self.log.info(
             "submitted build jobs for device with new device class  "
             "device=%s collector=%s",
@@ -282,7 +282,7 @@ class Invalidator(object):
         for key in (k for k in noconfigkeys if k not in skipkeys):
             self.store.set_pending((key, now))
             self.dispatcher.dispatch(
-                key.service, key.monitor, key.device, buildlimit
+                key.service, key.monitor, key.device, buildlimit, now
             )
 
     def _removed_device(self, keys):
@@ -369,7 +369,7 @@ def _addNewOrChangedDevices(log, tool, timelimitmap, store, dispatcher):
         )
         for key in keys:
             store.set_pending((key, now))
-        dispatcher.dispatch_all(brain.collector, brain.id, timeout)
+        dispatcher.dispatch_all(brain.collector, brain.id, timeout, now)
         log.info(
             "submitted build jobs for device %s  " "uid=%s collector=%s",
             (
