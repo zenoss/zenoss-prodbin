@@ -58,28 +58,39 @@ def build_device_config(
     # Check whether this is an old job, i.e. job pending timeout.
     # If it is an old job, skip it, manager already sent another one.
     status = next(store.get_status(key), None)
-    if status is not None and submitted is not None:
-        if isinstance(status, ConfigStatus.Pending):
-            pendinglimitmap = DevicePropertyMap.make_pending_timeout_map(
-                self.dmd.Devices
-            )
-            now = time()
-            duration = pendinglimitmap.get(status.uid)
-            if submitted < (now - duration):
-                self.log.warn(
-                    "dropped this job in favor of newer job  "
-                    "device=%s collector=%s service=%s submitted=%f %s=%s",
-                    deviceid,
-                    monitorname,
-                    svcname,
-                    submitted,
-                    Constants.pending_timeout_id,
-                    duration,
-                )
-                return
+    if _job_is_old(status, submitted, self.dmd.Devices, self.log):
+        return
 
-    # Change the configuration's status from 'pending' to 'building' so
-    # that configcache-manager doesn't prematurely timeout the build.
+    # If the status is Expired, another job is coming, so skip this job.
+    if isinstance(status, ConfigStatus.Expired):
+        self.log.warn(
+            "skipped this job because another job is coming  "
+            "device=%s collector=%s service=%s submitted=%f",
+            key.device,
+            key.monitor,
+            key.service,
+            submitted,
+        )
+        return
+
+    # If the status is Pending, verify whether it's for this job, and if not,
+    # skip this job.
+    if isinstance(status, ConfigStatus.Pending):
+        s1 = int(submitted * 1000)
+        s2 = int(status.submitted * 1000)
+        if s1 != s2:
+            self.log.warn(
+                "skipped this job in favor of newer job  "
+                "device=%s collector=%s service=%s submitted=%f",
+                key.device,
+                key.monitor,
+                key.service,
+                submitted,
+            )
+            return
+
+    # Change the configuration's status to 'building' to indicate that
+    # a config is now building.
     store.set_building((key, time()))
     self.log.info(
         "building device configuration  device=%s collector=%s service=%s",
@@ -92,46 +103,87 @@ def build_device_config(
     result = service.remote_getDeviceConfigs((deviceid,))
     config = result[0] if result else None
     if config is None:
-        self.log.info(
-            "no configuration built  device=%s collector=%s service=%s",
-            deviceid,
-            monitorname,
-            svcname,
-        )
-        oldkey = next(
-            store.search(
-                CacheQuery(
-                    service=svcname, monitor=monitorname, device=deviceid
-                )
-            ),
-            None,
-        )
-        if oldkey is not None:
-            # No result means device was deleted or moved to another monitor.
-            store.remove(oldkey)
-            self.log.info(
-                "removed previously built configuration  "
-                "device=%s collector=%s service=%s",
-                key.device,
-                key.monitor,
-                key.service,
-            )
-        # Ensure any status on this key is removed
-        store.clear_status(key)
+        _delete_config(key, store, self.log)
     else:
         uid = self.dmd.Devices.findDeviceByIdExact(deviceid).getPrimaryId()
         record = CacheRecord.make(
             svcname, monitorname, deviceid, uid, time(), config
         )
-        store.add(record)
-        self.log.info(
-            "added/replaced config  "
-            "updated=%s device=%s collector=%s service=%s",
-            datetime.fromtimestamp(record.updated).isoformat(),
-            deviceid,
-            monitorname,
-            svcname,
+        # Get the current status of the configuration.
+        status = next(store.get_status(key), None)
+        if isinstance(status, (ConfigStatus.Expired, ConfigStatus.Pending)):
+            # status is not ConfigStatus.Building, so another job will be
+            # submitted or has already been submitted.
+            store.put_config(record)
+            self.log.info(
+                "saved config without changing status  "
+                "updated=%s device=%s collector=%s service=%s",
+                datetime.fromtimestamp(record.updated).isoformat(),
+                deviceid,
+                monitorname,
+                svcname,
+            )
+        else:
+            verb = "replaced" if status is not None else "added"
+            store.add(record)
+            self.log.info(
+                "%s config  updated=%s device=%s collector=%s service=%s",
+                verb,
+                datetime.fromtimestamp(record.updated).isoformat(),
+                deviceid,
+                monitorname,
+                svcname,
+            )
+
+
+def _delete_config(key, store, log):
+    log.info(
+        "no configuration built  device=%s collector=%s service=%s",
+        key.device,
+        key.monitor,
+        key.service,
+    )
+    oldkey = next(
+        store.search(
+            CacheQuery(
+                service=key.service, monitor=key.monitor, device=key.device
+            )
+        ),
+        None,
+    )
+    if oldkey is not None:
+        store.remove(oldkey)
+        log.info(
+            "removed previously built configuration  "
+            "device=%s collector=%s service=%s",
+            oldkey.device,
+            oldkey.monitor,
+            oldkey.service,
         )
+        # Ensure any status on this key is removed
+        store.clear_status(oldkey)
+
+
+def _job_is_old(status, submitted, ctx, log):
+    if (submitted is None or status is None):
+        # job is not old (default state)
+        return False
+    pendinglimitmap = DevicePropertyMap.make_pending_timeout_map(ctx)
+    duration = pendinglimitmap.get(status.uid)
+    now = time()
+    if submitted < (now - duration):
+        log.warn(
+            "skipped this job because it's too old  "
+            "device=%s collector=%s service=%s submitted=%f %s=%s",
+            status.key.device,
+            status.key.monitor,
+            status.key.service,
+            submitted,
+            Constants.pending_timeout_id,
+            duration,
+        )
+        return True
+    return False
 
 
 class BuildConfigTaskDispatcher(object):
@@ -155,22 +207,21 @@ class BuildConfigTaskDispatcher(object):
     def service_names(self):
         return self._classnames.keys()
 
-    def dispatch_all(self, monitorid, deviceid, timeout):
+    def dispatch_all(self, monitorid, deviceid, timeout, submitted):
         """
         Submit a task to build a device configuration from each
         configuration service.
         """
         soft_limit, hard_limit = _get_limits(timeout)
-        now = time()
         for name in self._classnames.values():
             build_device_config.apply_async(
                 args=(monitorid, deviceid, name),
-                kwargs={"submitted": now},
+                kwargs={"submitted": submitted},
                 soft_time_limit=soft_limit,
                 time_limit=hard_limit,
             )
 
-    def dispatch(self, servicename, monitorid, deviceid, timeout):
+    def dispatch(self, servicename, monitorid, deviceid, timeout, submitted):
         """
         Submit a task to build device configurations for the specified device.
 
@@ -184,7 +235,7 @@ class BuildConfigTaskDispatcher(object):
         soft_limit, hard_limit = _get_limits(timeout)
         build_device_config.apply_async(
             args=(monitorid, deviceid, name),
-            kwargs={"submitted": time()},
+            kwargs={"submitted": submitted},
             soft_time_limit=soft_limit,
             time_limit=hard_limit,
         )

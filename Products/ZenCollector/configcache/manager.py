@@ -197,12 +197,14 @@ class Manager(object):
         count = 0
         for status in statuses:
             timeout = buildlimitmap.get(status.uid)
-            self.store.set_pending((status.key, time()))
+            now = time()
+            self.store.set_pending((status.key, now))
             self.dispatcher.dispatch(
                 status.key.service,
                 status.key.monitor,
                 status.key.device,
                 timeout,
+                now,
             )
             if isinstance(status, ConfigStatus.Expired):
                 self.log.info(
