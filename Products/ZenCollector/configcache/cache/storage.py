@@ -140,6 +140,17 @@ class ConfigStore(object):
         """
         @type record: CacheRecord
         """
+        self._add(record, self._delete_statuses)
+
+    def put_config(self, record):
+        """
+        Updates the config without changing its status.
+
+        @type record: CacheRecord
+        """
+        self._add(record)
+
+    def _add(self, record, statushandler=lambda *args: None):
         svc, mon, dvc, uid, updated, config = _from_record(record)
         orphaned_keys = tuple(
             key
@@ -159,18 +170,12 @@ class ConfigStore(object):
                 parts = (key.service, key.monitor, key.device)
                 self.__config.delete(pipe, *parts)
                 self.__age.delete(pipe, *parts)
-                self.__retired.delete(pipe, *parts)
-                self.__expired.delete(pipe, *parts)
-                self.__pending.delete(pipe, *parts)
-                self.__building.delete(pipe, *parts)
+                self._delete_statuses(pipe, *parts)
             if stored_uid != uid:
                 self.__uids.set(pipe, dvc, uid)
             self.__config.set(pipe, svc, mon, dvc, config)
             self.__age.add(pipe, svc, mon, dvc, updated)
-            self.__retired.delete(pipe, svc, mon, dvc)
-            self.__expired.delete(pipe, svc, mon, dvc)
-            self.__pending.delete(pipe, svc, mon, dvc)
-            self.__building.delete(pipe, svc, mon, dvc)
+            statushandler(pipe, svc, mon, dvc)
 
         self.__client.transaction(_add_impl, *watch_keys)
 
@@ -222,10 +227,7 @@ class ConfigStore(object):
                 svc, mon, dvc = key.service, key.monitor, key.device
                 self.__config.delete(pipe, svc, mon, dvc)
                 self.__age.delete(pipe, svc, mon, dvc)
-                self.__retired.delete(pipe, svc, mon, dvc)
-                self.__expired.delete(pipe, svc, mon, dvc)
-                self.__pending.delete(pipe, svc, mon, dvc)
-                self.__building.delete(pipe, svc, mon, dvc)
+                self._delete_statuses(pipe, svc, mon, dvc)
             pipe.execute()
 
         devices = set(key.device for key in keys)
@@ -259,11 +261,14 @@ class ConfigStore(object):
         with self.__client.pipeline() as pipe:
             for key in keys:
                 svc, mon, dvc = key.service, key.monitor, key.device
-                self.__retired.delete(pipe, svc, mon, dvc)
-                self.__expired.delete(pipe, svc, mon, dvc)
-                self.__pending.delete(pipe, svc, mon, dvc)
-                self.__building.delete(pipe, svc, mon, dvc)
+                self._delete_statuses(pipe, svc, mon, dvc)
             pipe.execute()
+
+    def _delete_statuses(self, pipe, svc, mon, dvc):
+        self.__retired.delete(pipe, svc, mon, dvc)
+        self.__expired.delete(pipe, svc, mon, dvc)
+        self.__pending.delete(pipe, svc, mon, dvc)
+        self.__building.delete(pipe, svc, mon, dvc)
 
     def set_retired(self, *pairs):
         """
