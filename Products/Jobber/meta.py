@@ -42,14 +42,13 @@ def job(_context, **kw):
                 ("Missing parameter:", "'task' or 'class'")
             )
 
-    # if not task.name or task.name not in app.tasks:
-    #     try:
-    #         registered_task = app.register_task(task)
-    #         setattr(registered_task.__class__, 'name', registered_task.name)
-    #     except Exception as e:
-    #         raise Exception("Task registration failed: %s" % e)
-    if task.name not in app.tasks:
-        app.register_task(task)
+    if not task.name or task.name not in app.tasks:
+        try:
+            registered_task = app.register_task(task)
+            setattr(registered_task.__class__, 'name', registered_task.name)
+        except Exception as e:
+            raise Exception("Task registration failed: %s" % e)
+
 
 class ICelerySignal(Interface):
     """Registers a Celery signal handler."""

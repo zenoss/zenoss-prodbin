@@ -10,13 +10,12 @@
 from __future__ import absolute_import
 
 from .abortable import Abortable
-from .base import ZenTask, BaseJob
+from .base import ZenTask
 from .dmd import DMD
 from .utils import requires
 
 __all__ = (
     "Abortable",
-    "BaseJob",
     "DMD",
     "requires",
     "ZenTask",

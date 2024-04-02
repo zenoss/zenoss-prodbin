@@ -11,20 +11,20 @@ from __future__ import absolute_import
 
 from ..config import getConfig
 from ..exceptions import NoSuchJobException
-from ..task import Abortable, BaseJob, DMD
+from ..task import Abortable, DMD, ZenTask
 from ..zenjobs import app
 
 _MARKER = object()
 
 
-class Job(Abortable, DMD, BaseJob):
+class Job(Abortable, DMD, ZenTask):
     """Base class for legacy jobs."""
 
     abstract = True  # Job class itself is not registered.
 
     # Specifying the exceptions a job can raise will avoid the
     # "Unexpected exception" traceback message in zenjobs' log.
-    throws = Abortable.throws + BaseJob.throws
+    throws = Abortable.throws + ZenTask.throws
 
     @classmethod
     def getJobType(cls):
