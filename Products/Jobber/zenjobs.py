@@ -33,6 +33,7 @@ def _buildapp():
     )
     default = CeleryConfig.from_config(getConfig())
     app.config_from_object(default)
+    app.conf.task_protocol = 1
     app.user_options["preload"].add(
         Option(
             "--config-file", default=None, help="Name of the configuration file"

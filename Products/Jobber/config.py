@@ -34,6 +34,7 @@ _default_configs = {
     "job-hard-time-limit": 21600,  # 6 hours
     "job-soft-time-limit": 18000,  # 5 hours
     "redis-url": DEFAULT_REDIS_URL,
+    "task-protocol": 1,
 }
 
 
@@ -136,6 +137,7 @@ class CeleryConfig(object):
     worker_send_task_events = attr.ib(default=True)
     task_send_sent_event = attr.ib(default=True)
     worker_log_color = attr.ib(default=False)
+    task_protocol = attr.ib(default=1)
 
     @classmethod
     def from_config(cls, cfg={}):
@@ -150,6 +152,7 @@ class CeleryConfig(object):
             "beat_max_loop_interval": cfg.get(
                 "scheduler-max-loop-interval"
             ),
+            "task_protocol": cfg.get("task-protocol", 1),
         }
         tz = os.environ.get("TZ")
         if tz:

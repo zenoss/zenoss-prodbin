@@ -936,6 +936,7 @@ class AutoDiscoveryJob(SubprocessJob):
     specifying IP ranges, not both. Also accepts a set of zProperties to be
     set on devices that are discovered.
     """
+    name = 'AutoDiscoveryJob'
     def _run(self, nets=(), ranges=(), zProperties={}, collector='localhost'):
         # Store the nets and ranges
         self.nets = nets
@@ -969,6 +970,9 @@ class AutoDiscoveryJob(SubprocessJob):
                     cmd.extend(['--range', iprange])
             SubprocessJob._run(self, cmd)
 
+
+from Products.Jobber.zenjobs import app
+app.register_task(AutoDiscoveryJob)
 
 class IpNetworkPrinter(object):
 

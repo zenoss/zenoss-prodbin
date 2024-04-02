@@ -15,6 +15,7 @@ import uuid
 
 from AccessControl.SecurityManagement import getSecurityManager
 from celery import Task
+from celery.task import Task as OldTask
 from celery.exceptions import Ignore, SoftTimeLimitExceeded
 
 from ..config import getConfig
@@ -27,7 +28,7 @@ _default_summary = "Task {0.__class__.__name__}"
 mlog = get_logger("zen.zenjobs.task.base")
 
 
-class ZenTask(SendZenossEventMixin, Task):
+class ZenBaseTask(SendZenossEventMixin):
     """Base class for tasks."""
 
     abstract = True
@@ -37,7 +38,7 @@ class ZenTask(SendZenossEventMixin, Task):
     throws = (SoftTimeLimitExceeded,)
 
     def __new__(cls, *args, **kwargs):
-        task = super(ZenTask, cls).__new__(cls, *args, **kwargs)
+        task = super(ZenBaseTask, cls).__new__(cls, *args, **kwargs)
         summary = getattr(task, "summary", None)
         if not summary:
             summary = _default_summary.format(task)
@@ -88,10 +89,10 @@ class ZenTask(SendZenossEventMixin, Task):
             headers["userid"] = userid
         if self.request.id is None:
             kw["task_id"] = str(uuid.uuid4())
-        return super(ZenTask, self).signature(*args, **kw)
+        return super(ZenBaseTask, self).signature(*args, **kw)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
-        result = super(ZenTask, self).on_failure(
+        result = super(ZenBaseTask, self).on_failure(
             exc, task_id, args, kwargs, einfo
         )
         if einfo.type in getattr(
@@ -112,7 +113,7 @@ class ZenTask(SendZenossEventMixin, Task):
         """Execute the task."""
         self.__run, self.run = self.run, self.__exec
         try:
-            return super(ZenTask, self).__call__(*args, **kwargs)
+            return super(ZenBaseTask, self).__call__(*args, **kwargs)
         finally:
             self.run = self.__run
             del self.__run
@@ -130,3 +131,11 @@ class ZenTask(SendZenossEventMixin, Task):
         mlog.debug(*mesg)
         self.log.info(*mesg)
         return result
+
+
+class ZenTask(ZenBaseTask, Task):
+    pass
+
+
+class BaseJob(ZenBaseTask, OldTask):
+    pass

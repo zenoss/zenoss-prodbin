@@ -183,7 +183,6 @@ class CreateDeviceJob(Job):
     Create a new device object.
     """
 
-    name = 'CreateDeviceJob'
     # Declare DeviceExistsError as an expected exception so that a traceback
     # is not written to zenjobs' log.
     throws = Job.throws + (DeviceExistsError,)
