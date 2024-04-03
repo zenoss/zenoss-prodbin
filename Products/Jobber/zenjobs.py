@@ -33,7 +33,6 @@ def _buildapp():
     )
     default = CeleryConfig.from_config(getConfig())
     app.config_from_object(default)
-    app.conf.task_protocol = 1
     app.user_options["preload"].add(
         Option(
             "--config-file", default=None, help="Name of the configuration file"
@@ -43,15 +42,3 @@ def _buildapp():
 
 
 app = _buildapp()
-
-# Allow considerably more time for the worker_process_init signal
-# to complete (rather than the default of 4 seconds).   This is required
-# because loading the zenoss environment / zenpacks can take a while.
-
-# celery 3.1.26  (remove once we update celery)
-from celery.concurrency import asynpool  # noqa E402
-
-asynpool.PROC_ALIVE_TIMEOUT = 300
-
-# celery 4.4.0+
-# Set Products.Jobber.config.Celery.worker_proc_alive_timeout = 300

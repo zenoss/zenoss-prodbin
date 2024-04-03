@@ -8,6 +8,7 @@
 ##############################################################################
 from inspect import getargspec
 
+
 def fun_takes_kwargs(fun, kwlist=[]):
     """With a function, and a list of keyword arguments, returns arguments
     in the list which the function takes.

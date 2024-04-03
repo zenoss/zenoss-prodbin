@@ -129,6 +129,7 @@ class SubprocessJob(Job):
         finally:
             reader.join(timeout=1.0)
 
+
 from Products.Jobber.zenjobs import app
 app.register_task(SubprocessJob)
 

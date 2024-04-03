@@ -169,6 +169,7 @@ class BuildRedisRecordFromJobTest(BaseBuildRedisRecord, TestCase):
     """Test the RedisRecord class with a Job."""
 
     class TestJob(Job):
+        name = "TestJob"
         @classmethod
         def getJobType(cls):
             return "Test Job"

@@ -33,6 +33,7 @@ _default_configs = {
     "concurrent-jobs": 1,
     "job-hard-time-limit": 21600,  # 6 hours
     "job-soft-time-limit": 18000,  # 5 hours
+    "zenjobs-worker-alive-timeout": 300.0,  # 5 minutes
     "redis-url": DEFAULT_REDIS_URL,
     "task-protocol": 1,
 }
@@ -50,6 +51,7 @@ _xform = {
     "zenjobs-job-expires": int,
     "zodb-max-retries": int,
     "zodb-retry-interval-limit": int,
+    "zenjobs-worker-alive-timeout": float,
 }
 
 
@@ -137,6 +139,7 @@ class CeleryConfig(object):
     worker_send_task_events = attr.ib(default=True)
     task_send_sent_event = attr.ib(default=True)
     worker_log_color = attr.ib(default=False)
+    worker_proc_alive_timeout = attr.ib(default=300.0)
     task_protocol = attr.ib(default=1)
 
     @classmethod
@@ -152,6 +155,7 @@ class CeleryConfig(object):
             "beat_max_loop_interval": cfg.get(
                 "scheduler-max-loop-interval"
             ),
+            "worker_proc_alive_timeout": cfg.get("zenjobs-worker-alive-timeout"),
             "task_protocol": cfg.get("task-protocol", 1),
         }
         tz = os.environ.get("TZ")
