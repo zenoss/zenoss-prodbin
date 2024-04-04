@@ -68,7 +68,7 @@ class ZenTask(SendZenossEventMixin, Task):
         kw = req.kwargs if req.kwargs else {}
         return type(self).description_from(*args, **kw)
 
-    def subtask(self, *args, **kw):
+    def signature(self, *args, **kw):
         """Return celery.signature object for this task.
 
         This overridden version adds the currently logged in user's ID
@@ -88,7 +88,7 @@ class ZenTask(SendZenossEventMixin, Task):
             headers["userid"] = userid
         if self.request.id is None:
             kw["task_id"] = str(uuid.uuid4())
-        return super(ZenTask, self).subtask(*args, **kw)
+        return super(ZenTask, self).signature(*args, **kw)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         result = super(ZenTask, self).on_failure(

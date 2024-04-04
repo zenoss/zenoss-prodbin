@@ -103,6 +103,6 @@ class ZenTaskTest(TestCase):
             "headers": {"userid": None},
             "task_id": task_id,
         }
-        task = t.simple_task.subtask()
+        task = t.simple_task.signature()
         t.assertIsInstance(task, Signature)
         t.assertDictEqual(expected, task.options)

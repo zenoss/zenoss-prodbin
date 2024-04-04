@@ -60,6 +60,7 @@
 from __future__ import absolute_import, print_function, division
 
 import ast
+import json
 import logging
 
 from functools import partial
@@ -510,7 +511,7 @@ def _range(client, metadata, svc, mon, minv=None, maxv=None):
 
 
 def _unjelly(data):
-    return unjelly(ast.literal_eval(data))
+    return unjelly(json.loads(data))
 
 
 def _to_score(ts):
@@ -535,7 +536,7 @@ def _from_record(record):
         record.device,
         record.uid,
         _to_score(record.updated),
-        jelly(record.config),
+        json.dumps(jelly(record.config)),
     )
 
 

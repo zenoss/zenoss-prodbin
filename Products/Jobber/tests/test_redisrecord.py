@@ -169,6 +169,7 @@ class BuildRedisRecordFromJobTest(BaseBuildRedisRecord, TestCase):
     """Test the RedisRecord class with a Job."""
 
     class TestJob(Job):
+        name = "TestJob"
         @classmethod
         def getJobType(cls):
             return "Test Job"
@@ -176,6 +177,9 @@ class BuildRedisRecordFromJobTest(BaseBuildRedisRecord, TestCase):
         @classmethod
         def getJobDescription(cls, *args, **kw):
             return "TestJob %s %s" % (args, kw)
+
+    from Products.Jobber.zenjobs import app
+    app.register_task(TestJob)
 
     def setUp(t):
         t.task = t.TestJob()
