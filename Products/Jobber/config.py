@@ -33,7 +33,9 @@ _default_configs = {
     "concurrent-jobs": 1,
     "job-hard-time-limit": 21600,  # 6 hours
     "job-soft-time-limit": 18000,  # 5 hours
+    "zenjobs-worker-alive-timeout": 300.0,  # 5 minutes
     "redis-url": DEFAULT_REDIS_URL,
+    "task-protocol": 1,
 }
 
 
@@ -49,6 +51,7 @@ _xform = {
     "zenjobs-job-expires": int,
     "zodb-max-retries": int,
     "zodb-retry-interval-limit": int,
+    "zenjobs-worker-alive-timeout": float,
 }
 
 
@@ -104,55 +107,59 @@ def buildBrokerUrl(cfg):
 class CeleryConfig(object):
     """Celery configuration."""
 
-    BROKER_URL = attr.ib()
-    CELERY_RESULT_BACKEND = attr.ib()
-    CELERY_TASK_RESULT_EXPIRES = attr.ib()
-    CELERYD_CONCURRENCY = attr.ib()
-    CELERYD_MAX_TASKS_PER_CHILD = attr.ib()
-    CELERYD_TASK_TIME_LIMIT = attr.ib()
-    CELERYD_TASK_SOFT_TIME_LIMIT = attr.ib()
-    CELERYBEAT_MAX_LOOP_INTERVAL = attr.ib()
+    broker_url = attr.ib()
+    result_backend = attr.ib()
+    result_expires = attr.ib()
+    worker_concurrency = attr.ib()
+    worker_max_tasks_per_child = attr.ib()
+    task_time_limit = attr.ib()
+    task_soft_time_limit = attr.ib()
+    beat_max_loop_interval = attr.ib()
 
-    CELERY_TIMEZONE = attr.ib(default=None)
-    CELERY_ACCEPT_CONTENT = attr.ib(default=["without-unicode"])
-    CELERY_IMPORTS = attr.ib(
+    timezone = attr.ib(default=None)
+    accept_content = attr.ib(default=["without-unicode"])
+    imports = attr.ib(
         default=[
             "Products.Jobber.jobs",
             "Products.ZenCollector.configcache.task",
         ]
     )
-    CELERY_ROUTES = attr.ib(
+    task_routes = attr.ib(
         default={"configcache.build_device_config": {"queue": "configcache"}}
     )
-    CELERY_RESULT_SERIALIZER = attr.ib(default="without-unicode")
-    CELERYD_PREFETCH_MULTIPLIER = attr.ib(default=1)
-    CELERY_ACKS_LATE = attr.ib(default=True)
-    CELERY_IGNORE_RESULT = attr.ib(default=False)
-    CELERY_STORE_ERRORS_EVEN_IF_IGNORED = attr.ib(default=True)
-    CELERY_TASK_SERIALIZER = attr.ib(default="without-unicode")
-    CELERY_TRACK_STARTED = attr.ib(default=True)
+    result_serializer = attr.ib(default="without-unicode")
+    worker_prefetch_multiplier = attr.ib(default=1)
+    task_acks_late = attr.ib(default=True)
+    task_ignore_result = attr.ib(default=False)
+    task_store_errors_even_if_ignored = attr.ib(default=True)
+    task_serializer = attr.ib(default="without-unicode")
+    task_track_started = attr.ib(default=True)
     CELERYBEAT_REDIRECT_STDOUTS = attr.ib(default=True)
     CELERYBEAT_REDIRECT_STDOUTS_LEVEL = attr.ib(default="INFO")
-    CELERY_SEND_EVENTS = attr.ib(default=True)
-    CELERY_SEND_TASK_SENT_EVENT = attr.ib(default=True)
-    CELERYD_LOG_COLOR = attr.ib(default=False)
+    worker_send_task_events = attr.ib(default=True)
+    task_send_sent_event = attr.ib(default=True)
+    worker_log_color = attr.ib(default=False)
+    worker_proc_alive_timeout = attr.ib(default=300.0)
+    task_protocol = attr.ib(default=1)
 
     @classmethod
     def from_config(cls, cfg={}):
         args = {
-            "BROKER_URL": buildBrokerUrl(cfg),
-            "CELERY_RESULT_BACKEND": cfg.get("redis-url"),
-            "CELERY_TASK_RESULT_EXPIRES": cfg.get("zenjobs-job-expires"),
-            "CELERYD_CONCURRENCY": cfg.get("concurrent-jobs"),
-            "CELERYD_MAX_TASKS_PER_CHILD": cfg.get("max-jobs-per-worker"),
-            "CELERYD_TASK_TIME_LIMIT": cfg.get("job-hard-time-limit"),
-            "CELERYD_TASK_SOFT_TIME_LIMIT": cfg.get("job-soft-time-limit"),
-            "CELERYBEAT_MAX_LOOP_INTERVAL": cfg.get(
+            "broker_url": buildBrokerUrl(cfg),
+            "result_backend": cfg.get("redis-url"),
+            "result_expires": cfg.get("zenjobs-job-expires"),
+            "worker_concurrency": cfg.get("concurrent-jobs"),
+            "worker_max_tasks_per_child": cfg.get("max-jobs-per-worker"),
+            "task_time_limit": cfg.get("job-hard-time-limit"),
+            "task_soft_time_limit": cfg.get("job-soft-time-limit"),
+            "beat_max_loop_interval": cfg.get(
                 "scheduler-max-loop-interval"
             ),
+            "worker_proc_alive_timeout": cfg.get("zenjobs-worker-alive-timeout"),
+            "task_protocol": cfg.get("task-protocol", 1),
         }
         tz = os.environ.get("TZ")
         if tz:
-            args["CELERY_TIMEZONE"] = tz
+            args["timezone"] = tz
 
         return cls(**args)

@@ -32,8 +32,8 @@ log = logging.getLogger("zen.zenjobs")
 def makeJobStore():
     """Create and return the ZenJobs JobStore client."""
     cfg = CeleryConfig.from_config()
-    client = getRedisClient(url=cfg.CELERY_RESULT_BACKEND)
-    return JobStore(client, expires=cfg.CELERY_TASK_RESULT_EXPIRES)
+    client = getRedisClient(url=cfg.result_backend)
+    return JobStore(client, expires=cfg.result_expires)
 
 
 class _Converter(object):

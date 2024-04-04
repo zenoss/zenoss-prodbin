@@ -18,7 +18,7 @@ import sys
 
 from functools import wraps
 
-from celery.app import current_task
+from celery._state import get_current_task
 from celery.utils.log import (
     LoggingProxy as _LoggingProxy,
     logger_isa as _logger_isa,
@@ -152,7 +152,7 @@ class TaskFormatter(logging.Formatter):
         super(TaskFormatter, self).__init__(datefmt=datefmt)
 
     def format(self, record):  # noqa: A003
-        task = current_task()
+        task = get_current_task()
         if task and task.request:
             self._fmt = self._task
             record.__dict__.update(

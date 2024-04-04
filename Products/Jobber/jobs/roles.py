@@ -37,3 +37,7 @@ class DeviceSetLocalRolesJob(Job):
         self.log.info("About to set local roles for uid: %s ", organizerUid)
         organizer = self.dmd.unrestrictedTraverse(organizerUid)
         organizer._setDeviceLocalRoles()
+
+
+from Products.Jobber.zenjobs import app
+app.register_task(DeviceSetLocalRolesJob)

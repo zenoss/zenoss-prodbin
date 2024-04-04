@@ -223,8 +223,9 @@ def _key(name):
 def _getClient():
     """Create and return the ZenJobs JobStore client."""
     return redis.StrictRedis.from_url(
-        CeleryConfig.from_config().CELERY_RESULT_BACKEND
+        CeleryConfig.from_config().result_backend
     )
+
 
 
 def handle_beat_init(*args, **kw):

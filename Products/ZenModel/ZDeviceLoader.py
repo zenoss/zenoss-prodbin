@@ -182,7 +182,7 @@ class CreateDeviceJob(Job):
     """
     Create a new device object.
     """
-
+    name = 'CreateDeviceJob'
     # Declare DeviceExistsError as an expected exception so that a traceback
     # is not written to zenjobs' log.
     throws = Job.throws + (DeviceExistsError,)
@@ -275,6 +275,8 @@ class CreateDeviceJob(Job):
         return dev.setZenProperty(cProperty, value)
 
 
+from Products.Jobber.zenjobs import app
+app.register_task(CreateDeviceJob)
 # alias the DeviceCreationJob so zenpacks don't break
 DeviceCreationJob = CreateDeviceJob
 
