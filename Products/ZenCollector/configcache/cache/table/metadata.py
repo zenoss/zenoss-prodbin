@@ -96,7 +96,7 @@ class ConfigMetadataTable(object):
         @type score: float
         """
         key = self.make_key(service, monitor)
-        client.zadd(key, score, device)
+        client.zadd(key, {device: score})
 
     def score(self, client, service, monitor, device):
         """
