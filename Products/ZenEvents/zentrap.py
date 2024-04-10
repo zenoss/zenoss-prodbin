@@ -50,6 +50,7 @@ from Products.ZenHub.services.SnmpTrapConfig import User
 from Products.ZenUtils.captureReplay import CaptureReplay
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenUtils.Utils import unused
+from Products.ZenHub.PBDaemon import HubDown
 
 unused(DeviceProxy, User)
 
@@ -126,10 +127,13 @@ class SnmpTrapPreferences(CaptureReplay):
 
         self.configCycleInterval = 20 * 60
         self.task = None
+        self.dynamicConfTask = None
 
     def postStartupTasks(self):
         self.task = TrapTask('zentrap', configId='zentrap')
         yield self.task
+        self.dynamicConfTask = DynamicConfigLoader(taskName="zentrapDynamicConf", configId="zentrap")
+        yield self.dynamicConfTask
 
     def buildOptions(self, parser):
         """
@@ -263,6 +267,47 @@ class _MixedVarbindProcessor(object):
                 if suffix:
                     result[base_name + ".sequence"].append(suffix) 
         return {name: ','.join(vals) for name, vals in result.iteritems()}
+
+
+@implementer(IScheduledTask)
+class DynamicConfigLoader(BaseTask):
+    """Handles retrieving additional dynamic configs for daemon from ZODB"""
+
+    def __init__(self, taskName, configId, scheduleIntervalSeconds=5*60, taskConfig=None):
+        BaseTask.__init__(self, taskName, configId, scheduleIntervalSeconds, taskConfig)
+        self.log = log
+        # Needed for interface
+        self.name = taskName
+        self.configId = configId
+        self.state = TaskStates.STATE_IDLE
+        self.interval = scheduleIntervalSeconds
+        self._daemon = getUtility(ICollector)
+        self._preferences = self._daemon
+
+    @defer.inlineCallbacks
+    def doTask(self):
+        """
+        Contact zenhub and gather configuration data.
+        """
+        log.debug("%s gathering dynamic config changes", self.name)
+        try:
+            remoteProxy = self._daemon.getRemoteConfigServiceProxy()
+            trapFilters = yield remoteProxy.callRemote('getTrapFilters')
+            self._daemon._trapFilter._resetFilters()
+            self._daemon._trapFilter.updateFilter(trapFilters)
+            log.debug("%s trap filters changes applied to %s", trapFilters, self.name)
+            oidMap = yield remoteProxy.callRemote('getOidMap')
+            self._daemon.oidMap = oidMap
+            log.debug("Oid map changes applied to %s", self.name)
+        except Exception as ex:
+            log.exception("task '%s' failed", self.name)
+
+            if isinstance(ex, HubDown):
+                # Allow the loader to be reaped and re-added
+                self.state = TaskStates.STATE_COMPLETED
+
+    def cleanup(self):
+        pass  # Required by interface
 
 
 @implementer(IScheduledTask)

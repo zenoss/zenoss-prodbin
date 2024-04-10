@@ -131,6 +131,11 @@ class TrapFilter(object):
 
         self._genericTraps = frozenset([0, 1, 2, 3, 4, 5])
 
+        self._initialized = False
+        self.prevFiltersConf = None
+        self._resetFilters()
+
+    def _resetFilters(self):
         # Map of SNMP V1 Generic Trap filters where key is the generic trap number and
         # value is a GenericTrapFilterDefinition
         self._v1Traps = dict()
@@ -354,6 +359,11 @@ class TrapFilter(object):
         self._eventService = zope.component.queryUtility(IEventService)
         self._readFilters()
         self._initialized = True
+
+    def updateFilter(self, trapFilters):
+        if trapFilters != None and trapFilters != self.prevFiltersConf:
+            self._readFilters(trapFilters)
+            self.prevFiltersConf = trapFilters
 
     def transform(self, event):
         """

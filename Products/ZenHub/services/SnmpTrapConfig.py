@@ -125,6 +125,14 @@ class SnmpTrapConfig(CollectorConfigService):
         log.debug("SnmpTrapConfig.remote_createAllUsers %s users", len(users))
         return users
 
+    def remote_getTrapFilters(self):
+        return self.zem.trapFilters
+
+    def remote_getOidMap(self):
+        return dict(
+            (b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid
+        )
+
     def _objectUpdated(self, object):
         user = self._create_user(object)
         if user:
