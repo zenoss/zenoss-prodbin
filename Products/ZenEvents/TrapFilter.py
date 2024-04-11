@@ -132,7 +132,6 @@ class TrapFilter(object):
         self._genericTraps = frozenset([0, 1, 2, 3, 4, 5])
 
         self._initialized = False
-        self.prevFiltersConf = None
         self._resetFilters()
 
     def _resetFilters(self):
@@ -361,9 +360,8 @@ class TrapFilter(object):
         self._initialized = True
 
     def updateFilter(self, trapFilters):
-        if trapFilters != None and trapFilters != self.prevFiltersConf:
+        if trapFilters != None:
             self._readFilters(trapFilters)
-            self.prevFiltersConf = trapFilters
 
     def transform(self, event):
         """

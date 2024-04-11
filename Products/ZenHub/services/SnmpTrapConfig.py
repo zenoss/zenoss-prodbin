@@ -15,6 +15,8 @@ Provides configuration for an OID translation service.
 from __future__ import print_function
 
 import logging
+import json
+from hashlib import md5
 
 from twisted.spread import pb
 
@@ -125,13 +127,14 @@ class SnmpTrapConfig(CollectorConfigService):
         log.debug("SnmpTrapConfig.remote_createAllUsers %s users", len(users))
         return users
 
-    def remote_getTrapFilters(self):
-        return self.zem.trapFilters
+    def remote_getTrapFilters(self, remoteCheckSum):
+        currentCheckSum = md5(self.zem.trapFilters).hexdigest()
+        return (None, None) if currentCheckSum == remoteCheckSum else (currentCheckSum, self.zem.trapFilters)
 
-    def remote_getOidMap(self):
-        return dict(
-            (b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid
-        )
+    def remote_getOidMap(self, remoteCheckSum):
+        oidMap = dict((b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid)
+        currentCheckSum = md5(json.dumps(oidMap, sort_keys=True).encode('utf-8')).hexdigest()
+        return (None, None) if currentCheckSum == remoteCheckSum else (currentCheckSum, oidMap)
 
     def _objectUpdated(self, object):
         user = self._create_user(object)
