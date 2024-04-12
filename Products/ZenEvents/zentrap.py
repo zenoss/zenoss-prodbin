@@ -50,6 +50,7 @@ from Products.ZenHub.services.SnmpTrapConfig import User
 from Products.ZenUtils.captureReplay import CaptureReplay
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenUtils.Utils import unused
+from Products.ZenHub.PBDaemon import HubDown
 
 unused(DeviceProxy, User)
 
@@ -126,9 +127,13 @@ class SnmpTrapPreferences(CaptureReplay):
 
         self.configCycleInterval = 20 * 60
         self.task = None
+        self.dynamicConfTask = None
 
     def postStartupTasks(self):
+        self.dynamicConfTask = DynamicConfigLoader(taskName="zentrapDynamicConf", configId="zentrap")
         self.task = TrapTask('zentrap', configId='zentrap')
+        self.dynamicConfTask.attachAttributeObserver("oidMap", self.task.oidMapChangeListener)
+        yield self.dynamicConfTask
         yield self.task
 
     def buildOptions(self, parser):
@@ -263,6 +268,54 @@ class _MixedVarbindProcessor(object):
                 if suffix:
                     result[base_name + ".sequence"].append(suffix) 
         return {name: ','.join(vals) for name, vals in result.iteritems()}
+
+
+@implementer(IScheduledTask)
+class DynamicConfigLoader(BaseTask):
+    """Handles retrieving additional dynamic configs for daemon from ZODB"""
+
+    def __init__(self, taskName, configId, scheduleIntervalSeconds=1*60, taskConfig=None):
+        BaseTask.__init__(self, taskName, configId, scheduleIntervalSeconds, taskConfig)
+        self.log = log
+        # Needed for interface
+        self.name = taskName
+        self.configId = configId
+        self.state = TaskStates.STATE_IDLE
+        self.interval = scheduleIntervalSeconds
+        self._daemon = getUtility(ICollector)
+        self.oidMap = {}
+        self.trapFilterCheckSum = None
+        self.oidMapCheckSum = None
+        self._preferences = self._daemon
+
+    @defer.inlineCallbacks
+    def doTask(self):
+        """
+        Contact zenhub and gather configuration data.
+        """
+        log.debug("%s gathering dynamic config changes", self.name)
+        try:
+            remoteProxy = self._daemon.getRemoteConfigServiceProxy()
+            checkSum, trapFilters = yield remoteProxy.callRemote('getTrapFilters', self.trapFilterCheckSum)
+            if checkSum and trapFilters:
+                self.trapFilterCheckSum = checkSum
+                self._daemon._trapFilter._resetFilters()
+                self._daemon._trapFilter.updateFilter(trapFilters)
+                log.debug("%s new trap filters changes applied to %s", trapFilters, self.name)
+            checkSum, oidMap = yield remoteProxy.callRemote('getOidMap', self.oidMapCheckSum)
+            if checkSum and oidMap:
+                self.oidMapCheckSum = checkSum
+                self.oidMap = oidMap
+                log.debug("New oid map changes applied to %s", self.name)
+        except Exception as ex:
+            log.exception("task '%s' failed", self.name)
+
+            if isinstance(ex, HubDown):
+                # Allow the loader to be reaped and re-added
+                self.state = TaskStates.STATE_COMPLETED
+
+    def cleanup(self):
+        pass  # Required by interface
 
 
 @implementer(IScheduledTask)
@@ -566,6 +619,10 @@ class TrapTask(BaseTask, CaptureReplay):
         totalTime, totalEvents, maxTime = self.stats.report()
         stat = self._statService.getStatistic("events")
         stat.value = totalEvents
+
+    def oidMapChangeListener(self, observable, attrName, oldValue, newValue):
+        self.log.debug("Task %s changed %s. Updating it for task %s",observable.name, attrName, self.name)
+        self.oidMap = newValue
 
     def getPacketIp(self, addr):
         """
