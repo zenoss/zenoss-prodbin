@@ -124,6 +124,17 @@ class ConfigStore(object):
             },
         )()
 
+    def __contains__(self, key):
+        """
+        Returns True if a config for the given key exists.
+
+        @type key: CacheKey
+        @rtype: Boolean
+        """
+        return self.__config.exists(
+            self.__client, key.service, key.monitor, key.device
+        )
+
     def search(self, query=CacheQuery()):
         """
         Returns the configuration keys matching the search criteria.

@@ -20,7 +20,7 @@ from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 from Products.Jobber.task import requires, DMD, Abortable
 from Products.Jobber.zenjobs import app
 
-from .cache import CacheKey, CacheQuery, CacheRecord, ConfigStatus
+from .cache import CacheKey, CacheRecord, ConfigStatus
 from .constants import Constants
 from .propertymap import DevicePropertyMap
 
@@ -50,6 +50,14 @@ def build_device_config(
     @param submitted: timestamp of when the job was submitted
     @type submitted: float
     """
+    buildDeviceConfig(
+        self.dmd, self.log, monitorname, deviceid, configclassname, submitted
+    )
+
+
+def buildDeviceConfig(
+    dmd, log, monitorname, deviceid, configclassname, submitted
+):
     svcconfigclass = resolve(configclassname)
     svcname = configclassname.rsplit(".", 1)[0]
     store = _getStore()
@@ -58,12 +66,12 @@ def build_device_config(
     # Check whether this is an old job, i.e. job pending timeout.
     # If it is an old job, skip it, manager already sent another one.
     status = next(store.get_status(key), None)
-    if _job_is_old(status, submitted, self.dmd.Devices, self.log):
+    if _job_is_old(status, submitted, dmd.Devices, log):
         return
 
     # If the status is Expired, another job is coming, so skip this job.
     if isinstance(status, ConfigStatus.Expired):
-        self.log.warn(
+        log.warn(
             "skipped this job because another job is coming  "
             "device=%s collector=%s service=%s submitted=%f",
             key.device,
@@ -79,7 +87,7 @@ def build_device_config(
         s1 = int(submitted * 1000)
         s2 = int(status.submitted * 1000)
         if s1 != s2:
-            self.log.warn(
+            log.warn(
                 "skipped this job in favor of newer job  "
                 "device=%s collector=%s service=%s submitted=%f",
                 key.device,
@@ -92,20 +100,20 @@ def build_device_config(
     # Change the configuration's status to 'building' to indicate that
     # a config is now building.
     store.set_building((key, time()))
-    self.log.info(
+    log.info(
         "building device configuration  device=%s collector=%s service=%s",
         deviceid,
         monitorname,
         svcname,
     )
 
-    service = svcconfigclass(self.dmd, monitorname)
+    service = svcconfigclass(dmd, monitorname)
     result = service.remote_getDeviceConfigs((deviceid,))
     config = result[0] if result else None
     if config is None:
-        _delete_config(key, store, self.log)
+        _delete_config(key, store, log)
     else:
-        uid = self.dmd.Devices.findDeviceByIdExact(deviceid).getPrimaryId()
+        uid = dmd.Devices.findDeviceByIdExact(deviceid).getPrimaryId()
         record = CacheRecord.make(
             svcname, monitorname, deviceid, uid, time(), config
         )
@@ -115,7 +123,7 @@ def build_device_config(
             # status is not ConfigStatus.Building, so another job will be
             # submitted or has already been submitted.
             store.put_config(record)
-            self.log.info(
+            log.info(
                 "saved config without changing status  "
                 "updated=%s device=%s collector=%s service=%s",
                 datetime.fromtimestamp(record.updated).isoformat(),
@@ -126,7 +134,7 @@ def build_device_config(
         else:
             verb = "replaced" if status is not None else "added"
             store.add(record)
-            self.log.info(
+            log.info(
                 "%s config  updated=%s device=%s collector=%s service=%s",
                 verb,
                 datetime.fromtimestamp(record.updated).isoformat(),
@@ -143,29 +151,21 @@ def _delete_config(key, store, log):
         key.monitor,
         key.service,
     )
-    oldkey = next(
-        store.search(
-            CacheQuery(
-                service=key.service, monitor=key.monitor, device=key.device
-            )
-        ),
-        None,
-    )
-    if oldkey is not None:
-        store.remove(oldkey)
+    if key in store:
+        store.remove(key)
         log.info(
             "removed previously built configuration  "
             "device=%s collector=%s service=%s",
-            oldkey.device,
-            oldkey.monitor,
-            oldkey.service,
+            key.device,
+            key.monitor,
+            key.service,
         )
-        # Ensure any status on this key is removed
-        store.clear_status(oldkey)
+    # Ensure all statuses for this key are deleted.
+    store.clear_status(key)
 
 
 def _job_is_old(status, submitted, ctx, log):
-    if (submitted is None or status is None):
+    if submitted is None or status is None:
         # job is not old (default state)
         return False
     pendinglimitmap = DevicePropertyMap.make_pending_timeout_map(ctx)
