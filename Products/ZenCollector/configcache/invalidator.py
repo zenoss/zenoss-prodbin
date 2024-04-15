@@ -204,8 +204,7 @@ class Invalidator(object):
                 )
                 return
         now = time.time()
-        for key in keys:
-            self.store.set_pending((key, now))
+        self.store.set_pending(*((key, now) for key in keys))
         self.dispatcher.dispatch_all(monitor, device.id, buildlimit, now)
         self.log.info(
             "submitted build jobs for new device  device=%s collector=%s",
@@ -214,14 +213,12 @@ class Invalidator(object):
         )
 
     def _changed_device_class(self, device, monitor, buildlimit):
-        # Don't dispatch jobs if there're any statuses.
         keys = tuple(
             CacheKey(svcname, monitor, device.id)
             for svcname in self.dispatcher.service_names
         )
         now = time.time()
-        for key in keys:
-            self.store.set_pending((key, now))
+        self.store.set_pending(*((key, now) for key in keys))
         self.dispatcher.dispatch_all(monitor, device.id, buildlimit, now)
         self.log.info(
             "submitted build jobs for device with new device class  "
