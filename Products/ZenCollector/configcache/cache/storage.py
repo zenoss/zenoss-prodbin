@@ -522,7 +522,7 @@ def _range(client, metadata, svc, mon, minv=None, maxv=None):
 
 
 def _unjelly(data):
-    return unjelly(json.loads(data))
+    return unjelly(ast.literal_eval(data))
 
 
 def _to_score(ts):
