@@ -133,6 +133,8 @@ class SyslogPreferences(object):
     def postStartup(self):
         daemon = zope.component.getUtility(ICollector)
         daemon.defaultPriority = 1
+        daemon.syslogParsers = []
+        daemon.syslogSummaryToMessage = None
 
         # add our collector's custom statistics
         statService = zope.component.queryUtility(IStatisticsService)
@@ -168,7 +170,7 @@ class DynamicConfigLoader(BaseTask):
             remoteProxy = self._daemon.getRemoteConfigServiceProxy()
 
             for confName in DYNAMIC_CONFIGS:
-                remoteMethod = "get" + confName.capitalize()
+                remoteMethod = "get" + confName[0].upper() + confName[1:]
                 checkSum, retConf = yield remoteProxy.callRemote(remoteMethod, getattr(self, confName + "CheckSum"))
                 if checkSum and retConf:
                     setattr(self, confName + "CheckSum", checkSum)
@@ -215,6 +217,11 @@ class SyslogTask(BaseTask, DatagramProtocol):
         self.options = self._daemon.options
 
         self.stats = Stats()
+
+        self._daemon.processor = SyslogProcessor(self._eventService.sendEvent,
+                                                 self._daemon.options.minpriority, self._daemon.options.parsehost,
+                                                 self._daemon.options.monitor, self._preferences.defaultPriority,
+                                                 self._preferences.syslogParsers, self._preferences.syslogSummaryToMessage)
 
         if not self.options.useFileDescriptor\
              and self.options.syslogport < 1024:
@@ -402,13 +409,6 @@ class SyslogConfigTask(ObservableMixin):
         self.interval = scheduleIntervalSeconds
         self._preferences = taskConfig
         self._daemon = zope.component.getUtility(ICollector)
-
-        eventService = zope.component.queryUtility(IEventService)
-
-        self._daemon.processor = SyslogProcessor(eventService.sendEvent,
-                    self._daemon.options.minpriority, self._daemon.options.parsehost,
-                    self._daemon.options.monitor, self._preferences.defaultPriority,
-                    self._preferences.syslogParsers, self._preferences.syslogSummaryToMessage)
 
     def doTask(self):
         return defer.succeed("Already updated default syslog priority...")

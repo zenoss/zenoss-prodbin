@@ -48,7 +48,7 @@ class SyslogConfig(CollectorConfigService):
         return proxy
 
     def __checkSumRetConf(self, remoteCheckSum, confName):
-        currentCheckSum = md5(getattr(self.zem, confName)).hexdigest()
+        currentCheckSum = md5(str(getattr(self.zem, confName))).hexdigest()
         return (None, None) if currentCheckSum == remoteCheckSum else (currentCheckSum, getattr(self.zem, confName))
 
     def remote_getDefaultPriority(self, remoteCheckSum):
