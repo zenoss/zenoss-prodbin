@@ -503,11 +503,11 @@ class ConfigStore(object):
     def _get_scores(self, key):
         service, monitor, device = attr.astuple(key)
         with self.__client.pipeline() as pipe:
-            self.__age.score(pipe, service, monitor, device),
-            self.__retired.score(pipe, service, monitor, device),
-            self.__expired.score(pipe, service, monitor, device),
-            self.__pending.score(pipe, service, monitor, device),
-            self.__building.score(pipe, service, monitor, device),
+            self.__age.score(pipe, service, monitor, device)
+            self.__retired.score(pipe, service, monitor, device)
+            self.__expired.score(pipe, service, monitor, device)
+            self.__pending.score(pipe, service, monitor, device)
+            self.__building.score(pipe, service, monitor, device)
             return pipe.execute()
 
 
@@ -522,7 +522,7 @@ def _range(client, metadata, svc, mon, minv=None, maxv=None):
 
 
 def _unjelly(data):
-    return unjelly(json.loads(data))
+    return unjelly(ast.literal_eval(data))
 
 
 def _to_score(ts):
