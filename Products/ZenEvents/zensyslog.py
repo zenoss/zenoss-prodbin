@@ -322,6 +322,8 @@ class SyslogTask(BaseTask, DatagramProtocol):
         self.log.debug("Task %s changed %s. Updating it for task %s", observable.name, attrName, self.name)
         if attrName == "syslogParsers":
             self._daemon.processor.updateParsers(newValue)
+        elif attrName == "syslogMsgEvtFieldFilterRules":
+            self._daemon._syslogMsgFilter.updateRuleSet(newValue)
         else:
             setattr(self._daemon.processor, attrName, newValue)
 
