@@ -181,9 +181,14 @@ class DeviceClassInvalidationFilter(BaseOrganizerFilter):
         for tpl in organizer.rrdTemplates():
             s.seek(0)
             s.truncate()
-            # TODO: exportXml is a bit of a hack. Sorted, etc. would be better.
-            tpl.exportXml(s)
-            md5_checksum.update(s.getvalue())
+            try:
+                tpl.exportXml(s)
+            except Exception:
+                log.exception(
+                    "unable to export XML of template  template=%r", tpl
+                )
+            else:
+                md5_checksum.update(s.getvalue())
         # Include z/c properties from base class
         super(DeviceClassInvalidationFilter, self).generateChecksum(
             organizer, md5_checksum
