@@ -200,10 +200,18 @@ class ToOneRelationship(RelationshipBase):
 
         if not self.obj or self.remoteType() == ToManyCont:
             return
-        ofile.write(
-            "<toone id='%s' objid='%s'/>\n"
-            % (self.id, self.obj.getPrimaryId())
-        )
+        try:
+            ofile.write(
+                "<toone id='%s' objid='%s'/>\n"
+                % (self.id, self.obj.getPrimaryId())
+            )
+        except Exception:
+            log.exception(
+                "skipping %s  object-type=%s object-id=%s",
+                self.id,
+                self.obj.__class__.__module__,
+                getattr(self.obj, "id", "<no-id-attribute>"),
+            )
 
     def checkRelation(self, repair=False):
         """Check to make sure that relationship bidirectionality is ok."""
