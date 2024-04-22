@@ -1217,6 +1217,7 @@ def _make_config(_id, configId, guid):
     config.id = _id
     config._config_id = configId
     config._device_guid = guid
+    config.data = u"fancy"
     return config
 
 
