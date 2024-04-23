@@ -386,30 +386,33 @@ def save_scheduled_jobrecord(log, task_id=None, task=None, *args, **kwargs):
     This function is registered as a handler for the task_prerun
     signal.
     """
-    task = get_app().tasks.get(task.name)
-    if task is None:
-        log.warn("Ignoring unknown task: %s", task.name)
-        return
 
-    if task.ignore_result:
-        log.debug("skipping; task result is ignored")
-        return
+    is_scheduled = kwargs.get('kwargs', {}).pop('is_scheduled', None)
 
-    storage = getUtility(IJobStore, "redis")
+    if is_scheduled:
+        task = get_app().tasks.get(task.name)
+        if task is None:
+            log.warn("Ignoring unknown task: %s", task.name)
+            return
 
-    record = RedisRecord.from_task(task, task_id,  args, kwargs)
-    record.update(
-        {
-            "status": states.PENDING,
-            "created": time.time(),
-        }
-    )
+        if task.ignore_result:
+            log.debug("skipping; task result is ignored")
+            return
 
-    saved = _save_record(log, storage, record)
+        storage = getUtility(IJobStore, "redis")
 
-    if not saved:
-        return
+        record = RedisRecord.from_task(task, task_id,  args, kwargs)
+        record.update(
+            {
+                "status": states.PENDING,
+                "created": time.time(),
+            }
+        )
 
+        if task_id not in storage:
+            _save_record(log, storage, record)
+        else:
+            log.debug("Record already exists for job %s", task_id)
 
 @inject_logger(log=_mlog)
 def stage_jobrecord(log, storage, sig):
