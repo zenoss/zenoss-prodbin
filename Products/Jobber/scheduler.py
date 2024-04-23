@@ -168,6 +168,9 @@ def load_schedule():
         if "args" in fields:
             fields["args"] = tuple(fields["args"])
 
+        #add flag to identify scheduled job
+        fields["kwargs"] = {"is_scheduled": True}
+
         # Transform the value of the 'schedule' field into its
         # specified object.
         schedule = entry["schedule"]

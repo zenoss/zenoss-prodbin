@@ -60,6 +60,13 @@
       handler=".log.teardown_loglevel_monitor"
       />
 
+   <!-- scheduled job record log handling -->
+
+   <celery:signal
+      name="task_prerun"
+      handler=".model.save_scheduled_jobrecord"
+      />
+
    <!-- task log handling -->
 
    <celery:signal
