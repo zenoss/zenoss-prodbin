@@ -9,7 +9,6 @@
 
 from __future__ import print_function, absolute_import
 
-import gc
 import logging
 import time
 
@@ -29,7 +28,12 @@ from .debug import Debug as DebugCommand
 from .modelchange import InvalidationCause
 from .propertymap import DevicePropertyMap
 from .task import BuildConfigTaskDispatcher
-from .utils import getConfigServices, RelStorageInvalidationPoller
+from .utils import (
+    get_build_timeout,
+    get_minimum_ttl,
+    getConfigServices,
+    RelStorageInvalidationPoller,
+)
 
 _default_interval = 30.0
 
@@ -104,13 +108,19 @@ class Invalidator(object):
             "polling for device changes every %s seconds", self.interval
         )
         while not self.ctx.controller.shutdown:
-            self.ctx.session.sync()
-            gc.collect()
-            result = poller.poll()
-            if result:
-                self.log.debug("found %d relevant invalidations", len(result))
-                self._process_all(result)
-            self.ctx.controller.wait(self.interval)
+            try:
+                self.ctx.session.sync()
+                invalidations = poller.poll()
+                if not invalidations:
+                    continue
+                self.log.debug(
+                    "found %d relevant invalidations", len(invalidations)
+                )
+                self._process_all(invalidations)
+            finally:
+                # Call cacheGC to aggressively trim the ZODB cache
+                self.ctx.session.cacheGC()
+                self.ctx.controller.wait(self.interval)
 
     def _synchronize(self):
         tool = IModelCatalogTool(self.ctx.dmd)
@@ -131,16 +141,10 @@ class Invalidator(object):
             self.log.info("no devices with a different device class found")
 
     def _process_all(self, invalidations):
-        buildlimit_map = DevicePropertyMap.make_build_timeout_map(
-            self.ctx.dmd.Devices
-        )
-        minttl_map = DevicePropertyMap.make_minimum_ttl_map(
-            self.ctx.dmd.Devices
-        )
         for invalidation in invalidations:
             uid = invalidation.device.getPrimaryId()
-            buildlimit = buildlimit_map.get(uid)
-            minttl = minttl_map.get(uid)
+            buildlimit = get_build_timeout(invalidation.device)
+            minttl = get_minimum_ttl(invalidation.device)
             try:
                 self._process(invalidation, uid, buildlimit, minttl)
             except AttributeError:
