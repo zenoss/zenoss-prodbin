@@ -9,7 +9,6 @@
 
 from __future__ import print_function
 
-import gc
 import logging
 
 from datetime import datetime
@@ -88,7 +87,6 @@ class Manager(object):
         while not self.ctx.controller.shutdown:
             try:
                 self.ctx.session.sync()
-                gc.collect()
                 timedout = tuple(self._get_build_timeouts())
                 if not timedout:
                     self.log.debug("no configuration builds have timed out")
@@ -106,6 +104,9 @@ class Manager(object):
                     self._rebuild_configs(statuses)
             except Exception as ex:
                 self.log.exception("unexpected error %s", ex)
+            finally:
+                # Call cacheGC to aggressively trim the ZODB cache
+                self.ctx.session.cacheGC()
             self.ctx.controller.wait(self.interval)
 
     def _get_build_timeouts(self):
