@@ -13,10 +13,10 @@ from unittest import TestCase
 
 from mock import call, patch
 
-from ..task import BuildConfigTaskDispatcher, build_device_config
+from ..dispatcher import BuildConfigTaskDispatcher, build_device_config
 
 
-PATH = {"src": "Products.ZenCollector.configcache.task"}
+PATH = {"src": "Products.ZenCollector.configcache.dispatcher"}
 
 
 class BuildConfigTaskDispatcherTest(TestCase):
