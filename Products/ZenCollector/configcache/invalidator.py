@@ -12,7 +12,8 @@ from __future__ import print_function, absolute_import
 import logging
 import time
 
-from Products.AdvancedQuery import And, Eq
+from multiprocessing import Process
+
 from zenoss.modelindex import constants
 from zope.component import createObject
 
@@ -25,9 +26,8 @@ from .app import Application
 from .app.args import get_subparser
 from .cache import CacheKey, CacheQuery, ConfigStatus
 from .debug import Debug as DebugCommand
+from .dispatcher import BuildConfigTaskDispatcher
 from .modelchange import InvalidationCause
-from .propertymap import DevicePropertyMap
-from .task import BuildConfigTaskDispatcher
 from .utils import (
     get_build_timeout,
     get_minimum_ttl,
@@ -96,9 +96,14 @@ class Invalidator(object):
         client = getRedisClient(url=getRedisUrl())
         self.store = createObject("configcache-store", client)
 
+        self._process = _InvalidationProcessor(
+            self.log, self.store, self.dispatcher
+        )
+
         self.interval = config["poll-interval"]
 
     def run(self):
+        # Handle changes that occurred when Invalidator wasn't running.
         self._synchronize()
 
         poller = RelStorageInvalidationPoller(
@@ -113,51 +118,125 @@ class Invalidator(object):
                 invalidations = poller.poll()
                 if not invalidations:
                     continue
-                self.log.debug(
-                    "found %d relevant invalidations", len(invalidations)
-                )
-                self._process_all(invalidations)
+                self._process_invalidations(invalidations)
             finally:
                 # Call cacheGC to aggressively trim the ZODB cache
                 self.ctx.session.cacheGC()
                 self.ctx.controller.wait(self.interval)
 
     def _synchronize(self):
-        tool = IModelCatalogTool(self.ctx.dmd)
-        # TODO: if device changed monitors, the config should be same (?)
-        #       so just rekey the config?
-        count = _removeDeleted(self.log, tool, self.store)
-        if count == 0:
-            self.log.info("no dangling configurations found")
-        timelimitmap = DevicePropertyMap.make_build_timeout_map(
-            self.ctx.dmd.Devices
+        sync_process = Process(
+            target=_synchronize_cache,
+            args=(self.log, self.ctx.dmd, self.dispatcher),
         )
-        new_devices, changed_devices = _addNewOrChangedDevices(
-            self.log, tool, timelimitmap, self.store, self.dispatcher
-        )
-        if len(new_devices) == 0:
-            self.log.info("no missing configurations found")
-        if len(changed_devices) == 0:
-            self.log.info("no devices with a different device class found")
+        sync_process.start()
+        sync_process.join()  # blocks until subprocess has exited
 
-    def _process_all(self, invalidations):
-        for invalidation in invalidations:
-            uid = invalidation.device.getPrimaryId()
-            buildlimit = get_build_timeout(invalidation.device)
-            minttl = get_minimum_ttl(invalidation.device)
+    def _process_invalidations(self, invalidations):
+        self.log.debug("found %d relevant invalidations", len(invalidations))
+        for inv in invalidations:
             try:
-                self._process(invalidation, uid, buildlimit, minttl)
-            except AttributeError:
-                self.log.info(
-                    "invalidation  device=%s reason=%s",
-                    invalidation.device,
-                    invalidation.reason,
+                self._process(inv.device, inv.oid, inv.reason)
+            except Exception:
+                self.log.exception(
+                    "failed to process invalidation  device=%s",
+                    inv.device,
                 )
-                self.log.exception("failed while processing invalidation")
 
-    def _process(self, invalidation, uid, buildlimit, minttl):
-        device = invalidation.device
-        reason = invalidation.reason
+
+_solr_fields = ("id", "collector", "uid")
+
+
+def _synchronize_cache(log, dmd, dispatcher):
+    store = createObject(
+        "configcache-store", getRedisClient(url=getRedisUrl())
+    )
+    tool = IModelCatalogTool(dmd)
+    catalog_results = tool.cursor_search(
+        types=("Products.ZenModel.Device.Device",),
+        limit=constants.DEFAULT_SEARCH_LIMIT,
+        fields=_solr_fields,
+    ).results
+    devices = {
+        (brain.id, brain.collector): brain.uid
+        for brain in catalog_results
+        if brain.collector is not None
+    }
+    _removeDeleted(log, store, devices)
+    _addNewOrChangedDevices(log, store, dispatcher, dmd, devices)
+
+
+def _removeDeleted(log, store, devices):
+    """
+    Remove deleted devices from the cache.
+
+    @param devices: devices that currently exist
+    @type devices: Mapping[Sequence[str, str], str]
+    """
+    devices_not_found = tuple(
+        key
+        for key in store.search()
+        if (key.device, key.monitor) not in devices
+    )
+    if devices_not_found:
+        _RemoveConfigsHandler(log, store)(devices_not_found)
+    else:
+        log.info("no dangling configurations found")
+
+
+def _addNewOrChangedDevices(log, store, dispatcher, dmd, devices):
+    # Add new devices to the config and metadata store.
+    # Also look for device that have changed their device class.
+    # Query the catalog for all devices
+    new_devices = 0
+    changed_devices = 0
+    handle = _NewDeviceHandler(log, store, dispatcher)
+    for (deviceId, monitorId), uid in devices.iteritems():
+        try:
+            device = dmd.unrestrictedTraverse(uid)
+        except Exception as ex:
+            log.warning(
+                "failed to get device  error-type=%s error=%s uid=%s",
+                type(ex),
+                ex,
+                uid,
+            )
+            continue
+        timeout = get_build_timeout(device)
+        keys_with_configs = tuple(
+            store.search(CacheQuery(monitor=monitorId, device=deviceId))
+        )
+        uid = device.getPrimaryId()
+        if not keys_with_configs:
+            handle(deviceId, monitorId, timeout)
+            new_devices += 1
+        else:
+            current_uid = store.get_uid(deviceId)
+            # A device with a changed device class will have a different uid.
+            if current_uid != uid:
+                handle(deviceId, monitorId, timeout, False)
+                changed_devices += 1
+    if new_devices == 0:
+        log.info("no missing configurations found")
+    if changed_devices == 0:
+        log.info("no devices with a different device class found")
+
+
+class _InvalidationProcessor(object):
+
+    def __init__(self, log, store, dispatcher):
+        self.log = log
+        self.store = store
+        self._remove = _RemoveConfigsHandler(log, store)
+        self._update = _DeviceUpdateHandler(log, store, dispatcher)
+        self._missing = _MissingConfigsHandler(log, store, dispatcher)
+        self._new = _NewDeviceHandler(log, store, dispatcher)
+
+    def __call__(self, device, oid, reason):
+        uid = device.getPrimaryId()
+        self.log.info("handling device %s", uid)
+        buildlimit = get_build_timeout(device)
+        minttl = get_minimum_ttl(device)
         monitor = device.getPerformanceServerName()
         if monitor is None:
             self.log.warn(
@@ -167,20 +246,23 @@ class Invalidator(object):
                 reason,
             )
             return
-        keys = tuple(
+        keys_with_config = tuple(
             self.store.search(CacheQuery(monitor=monitor, device=device.id))
         )
-        if not keys:
-            self._new_device(device, monitor, buildlimit)
+        if not keys_with_config:
+            self._new(device.id, monitor, buildlimit)
         elif reason is InvalidationCause.Updated:
             # Check for device class change
             stored_uid = self.store.get_uid(device.id)
             if uid != stored_uid:
-                self._changed_device_class(device, monitor, buildlimit)
+                self._new(device.id, monitor, buildlimit, False)
             else:
-                self._updated_device(device, monitor, keys, minttl, buildlimit)
+                self._update(keys_with_config, minttl)
+                self._missing(
+                    device.id, monitor, keys_with_config, buildlimit
+                )
         elif reason is InvalidationCause.Removed:
-            self._removed_device(keys)
+            self._remove(keys_with_config)
         else:
             self.log.warn(
                 "ignored unexpected reason  "
@@ -188,66 +270,85 @@ class Invalidator(object):
                 reason,
                 device,
                 monitor,
-                invalidation.oid,
+                oid,
             )
 
-    def _new_device(self, device, monitor, buildlimit):
-        # Don't dispatch jobs if there're any statuses.
+
+class _NewDeviceHandler(object):
+
+    def __init__(self, log, store, dispatcher):
+        self.log = log
+        self.store = store
+        self.dispatcher = dispatcher
+
+    def __call__(self, deviceId, monitor, buildlimit, newDevice=True):
         keys = tuple(
-            CacheKey(svcname, monitor, device.id)
+            CacheKey(svcname, monitor, deviceId)
             for svcname in self.dispatcher.service_names
         )
-        for key in keys:
-            status = next(self.store.get_status(key), None)
-            if status is not None:
-                self.log.debug(
-                    "build jobs already submitted for new device  "
-                    "device=%s collector=%s",
-                    device.id,
-                    monitor,
-                )
-                return
+        keys_with_pending_status = set(
+            status.key
+            for status in self.store.get_status(*keys)
+            if isinstance(status, ConfigStatus.Pending)
+        )
+        for key in keys_with_pending_status:
+            self.log.debug(
+                "build job already submitted for this config  "
+                "device=%s collector=%s service=%s",
+                key.device,
+                key.monitor,
+                key.service,
+            )
+        keys_without_pending_status = set(keys) - keys_with_pending_status
         now = time.time()
-        self.store.set_pending(*((key, now) for key in keys))
-        self.dispatcher.dispatch_all(monitor, device.id, buildlimit, now)
-        self.log.info(
-            "submitted build jobs for new device  device=%s collector=%s",
-            device.id,
-            monitor,
+        self.store.set_pending(
+            *((key, now) for key in keys_without_pending_status)
         )
+        for key in keys_without_pending_status:
+            self.dispatcher.dispatch(
+                key.service, key.monitor, key.device, buildlimit, now
+            )
+            self.log.info(
+                "submitted build job for %s  "
+                "device=%s collector=%s service=%s",
+                "new device" if newDevice else "device with new device class",
+                key.device,
+                key.monitor,
+                key.service,
+            )
 
-    def _changed_device_class(self, device, monitor, buildlimit):
-        keys = tuple(
-            CacheKey(svcname, monitor, device.id)
-            for svcname in self.dispatcher.service_names
-        )
-        now = time.time()
-        self.store.set_pending(*((key, now) for key in keys))
-        self.dispatcher.dispatch_all(monitor, device.id, buildlimit, now)
-        self.log.info(
-            "submitted build jobs for device with new device class  "
-            "device=%s collector=%s",
-            device.id,
-            monitor,
-        )
 
-    def _updated_device(self, device, monitor, keys, minttl, buildlimit):
-        statuses = tuple(
+class _DeviceUpdateHandler(object):
+
+    def __init__(self, log, store, dispatcher):
+        self.log = log
+        self.store = store
+        self.dispatcher = dispatcher
+
+    def __call__(self, keys, minttl):
+        current_statuses = tuple(
             status
             for status in self.store.get_status(*keys)
             if isinstance(status, ConfigStatus.Current)
         )
+
         now = time.time()
-        limit = now - minttl
+        retirement = now - minttl
+
         retired = set(
-            status.key for status in statuses if status.updated >= limit
+            status.key
+            for status in current_statuses
+            if status.updated >= retirement
         )
         expired = set(
-            status.key for status in statuses if status.key not in retired
+            status.key
+            for status in current_statuses
+            if status.key not in retired
         )
-        now = time.time()
+
         self.store.set_retired(*((key, now) for key in retired))
         self.store.set_expired(*((key, now) for key in expired))
+
         for key in retired:
             self.log.info(
                 "retired configuration of changed device  "
@@ -265,13 +366,26 @@ class Invalidator(object):
                 key.service,
             )
 
+
+class _MissingConfigsHandler(object):
+
+    def __init__(self, log, store, dispatcher):
+        self.log = log
+        self.store = store
+        self.dispatcher = dispatcher
+
+    def __call__(self, deviceId, monitor, keys, buildlimit):
+        """
+        @param keys: These keys are associated with a config
+        @type keys: Sequence[CacheKey]
+        """
         # Send a job for for all config services that don't currently have
         # an associated configuration.  Some ZenPacks, i.e. vSphere, defer
         # their modeling to a later time, so jobs for configuration services
         # must be sent to pick up any new configs.
         hasconfigs = tuple(key.service for key in keys)
         noconfigkeys = tuple(
-            CacheKey(svcname, monitor, device.id)
+            CacheKey(svcname, monitor, deviceId)
             for svcname in self.dispatcher.service_names
             if svcname not in hasconfigs
         )
@@ -285,8 +399,22 @@ class Invalidator(object):
             self.dispatcher.dispatch(
                 key.service, key.monitor, key.device, buildlimit, now
             )
+            self.log.debug(
+                "submitted build job for possibly missing config  "
+                "device=%s collector=%s service=%s",
+                key.device,
+                key.monitor,
+                key.service,
+            )
 
-    def _removed_device(self, keys):
+
+class _RemoveConfigsHandler(object):
+
+    def __init__(self, log, store):
+        self.log = log
+        self.store = store
+
+    def __call__(self, keys):
         self.store.remove(*keys)
         for key in keys:
             self.log.info(
@@ -296,89 +424,3 @@ class Invalidator(object):
                 key.monitor,
                 key.service,
             )
-
-
-_solr_fields = ("id", "collector", "uid")
-
-
-def _deviceExistsInCatalog(tool, monitorId, deviceId):
-    query = And(Eq("id", deviceId), Eq("collector", monitorId))
-    brain = next(
-        iter(tool.search_model_catalog(query, fields=_solr_fields)), None
-    )
-    return brain is not None
-
-
-def _removeDeleted(log, tool, store):
-    # Remove deleted devices from the config and metadata store.
-    devices_not_found = tuple(
-        key
-        for key in store.search()
-        if not _deviceExistsInCatalog(tool, key.monitor, key.device)
-    )
-    store.remove(*devices_not_found)
-    for key in devices_not_found:
-        log.info(
-            "removed configuration for deleted device  "
-            "device=%s collector=%s service=%s",
-            key.device,
-            key.monitor,
-            key.service,
-        )
-    return len(devices_not_found)
-
-
-def _addNewOrChangedDevices(log, tool, timelimitmap, store, dispatcher):
-    # Add new devices to the config and metadata store.
-    # Also look for device that have changed their device class.
-    # Query the catalog for all devices
-    catalog_results = tool.cursor_search(
-        types=("Products.ZenModel.Device.Device",),
-        limit=constants.DEFAULT_SEARCH_LIMIT,
-        fields=_solr_fields,
-    ).results
-    new_devices = []
-    changed_devices = []
-    jobs_args = []
-    for brain in catalog_results:
-        if brain.collector is None:
-            log.warn(
-                "ignoring device having undefined collector  device=%s uid=%s",
-                brain.id,
-                brain.uid,
-            )
-            continue
-        keys = tuple(
-            store.search(CacheQuery(monitor=brain.collector, device=brain.id))
-        )
-        if not keys:
-            timeout = timelimitmap.get(brain.uid)
-            jobs_args.append((brain, timeout))
-            new_devices.append(brain.id)
-        else:
-            current_uid = store.get_uid(brain.id)
-            if current_uid != brain.uid:
-                timeout = timelimitmap.get(brain.uid)
-                jobs_args.append((brain, timeout))
-                changed_devices.append(brain.id)
-
-    now = time.time()
-    for brain, timeout in jobs_args:
-        keys = tuple(
-            CacheKey(svcname, brain.collector, brain.id)
-            for svcname in dispatcher.service_names
-        )
-        for key in keys:
-            store.set_pending((key, now))
-        dispatcher.dispatch_all(brain.collector, brain.id, timeout, now)
-        log.info(
-            "submitted build jobs for device %s  " "uid=%s collector=%s",
-            (
-                "without any configurations"
-                if brain.id in new_devices
-                else "with a new device class"
-            ),
-            brain.uid,
-            brain.collector,
-        )
-    return (new_devices, changed_devices)

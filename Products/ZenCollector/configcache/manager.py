@@ -23,8 +23,8 @@ from .app.args import get_subparser
 from .cache import ConfigStatus
 from .constants import Constants
 from .debug import Debug as DebugCommand
+from .dispatcher import BuildConfigTaskDispatcher
 from .propertymap import DevicePropertyMap
-from .task import BuildConfigTaskDispatcher
 from .utils import getConfigServices
 
 _default_interval = 30.0  # seconds
