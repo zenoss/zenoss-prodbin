@@ -88,30 +88,32 @@ class List_(object):
                 monitor=self._monitor,
                 device=self._devices[0],
             )
+        elif len(self._devices) == 1:
+            query = CacheQuery(
+                service=self._service,
+                monitor=self._monitor,
+                device=self._devices[0],
+            )
         else:
             query = CacheQuery(service=self._service, monitor=self._monitor)
-        results = store.get_status(*store.search(query))
+        data = store.get_statuses(query)
         if self._states:
-            results = (
-                status
-                for status in results
-                if isinstance(status, self._states)
+            data = (
+                status for status in data if isinstance(status, self._states)
             )
-        rows = []
-        maxd, maxs, maxm = 0, 0, 0
-        if len(self._devices) > 0:
+        if len(self._devices) > 1:
             data = (
                 status
-                for status in results
+                for status in data
                 if status.key.device in self._devices
             )
-        else:
-            data = results
+        rows = []
+        maxd, maxs, maxm = 1, 1, 1
         for status in sorted(
             data, key=lambda x: (x.key.device, x.key.service)
         ):
             if self._showuid:
-                devid = status.uid
+                devid = status.uid or status.key.device
             else:
                 devid = status.key.device
             status_text = _format_status(status)
