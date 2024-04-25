@@ -22,7 +22,7 @@ from Products.Jobber.zenjobs import app
 
 from .cache import CacheKey, CacheRecord, ConfigStatus
 from .constants import Constants
-from .propertymap import DevicePropertyMap
+from .utils import get_pending_timeout
 
 
 @app.task(
@@ -66,7 +66,8 @@ def buildDeviceConfig(
     # Check whether this is an old job, i.e. job pending timeout.
     # If it is an old job, skip it, manager already sent another one.
     status = next(store.get_status(key), None)
-    if _job_is_old(status, submitted, dmd.Devices, log):
+    device = dmd.Devices.findDeviceByIdExact(deviceid)
+    if _job_is_old(status, submitted, device, log):
         return
 
     # If the status is Expired, another job is coming, so skip this job.
@@ -113,7 +114,7 @@ def buildDeviceConfig(
     if config is None:
         _delete_config(key, store, log)
     else:
-        uid = dmd.Devices.findDeviceByIdExact(deviceid).getPrimaryId()
+        uid = device.getPrimaryId()
         record = CacheRecord.make(
             svcname, monitorname, deviceid, uid, time(), config
         )
@@ -164,14 +165,13 @@ def _delete_config(key, store, log):
     store.clear_status(key)
 
 
-def _job_is_old(status, submitted, ctx, log):
+def _job_is_old(status, submitted, device, log):
     if submitted is None or status is None:
         # job is not old (default state)
         return False
-    pendinglimitmap = DevicePropertyMap.make_pending_timeout_map(ctx)
-    duration = pendinglimitmap.get(status.uid)
+    limit = get_pending_timeout(device)
     now = time()
-    if submitted < (now - duration):
+    if submitted < (now - limit):
         log.warn(
             "skipped this job because it's too old  "
             "device=%s collector=%s service=%s submitted=%f %s=%s",
@@ -180,7 +180,7 @@ def _job_is_old(status, submitted, ctx, log):
             status.key.service,
             submitted,
             Constants.pending_timeout_id,
-            duration,
+            limit,
         )
         return True
     return False
