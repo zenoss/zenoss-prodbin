@@ -37,13 +37,10 @@ class TestBuildDeviceConfig(TestCase):
     def tearDown(t):
         del t.store
 
-    @mock.patch("{task}.DevicePropertyMap".format(**PATH), autospec=True)
     @mock.patch("{task}.time".format(**PATH), autospec=True)
     @mock.patch("{task}.createObject".format(**PATH), autospec=True)
     @mock.patch("{task}.resolve".format(**PATH), autospec=True)
-    def test_no_config_built(
-        t, _resolve, _createObject, _time, _DevicePropertyMap
-    ):
+    def test_no_config_built(t, _resolve, _createObject, _time):
         monitor = "localhost"
         clsname = "Products.ZenHub.services.PingService.PingService"
         svcname = clsname.rsplit(".", 1)[0]
@@ -62,9 +59,7 @@ class TestBuildDeviceConfig(TestCase):
         dmd.Devices.findDeviceByIdExact.return_value = dvc
         dvc.getPrimaryId.return_value = t.device_uid
         _time.return_value = submitted + 10
-        limitmap = mock.Mock()
-        _DevicePropertyMap.make_pending_timeout_map.return_value = limitmap
-        limitmap.get.return_value = 1000
+        dvc.getZ.return_value = 1000
 
         t.store.set_pending((key, submitted))
 
