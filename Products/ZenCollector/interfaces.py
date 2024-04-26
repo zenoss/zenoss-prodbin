@@ -420,7 +420,7 @@ class IDataService(zope.interface.Interface):
         timestamp="N",
         min="U",
         max="U",
-        threshEventData={},
+        threshEventData=None,
         deviceId=None,
         contextUUID=None,
         deviceUUID=None,
@@ -449,7 +449,7 @@ class IDataService(zope.interface.Interface):
         @param max: used in the derive the max value for the metric.
         @type max: float
         @param threshEventData: extra data put into threshold events.
-        @type threshEventData: dict
+        @type threshEventData: dict | None
         @param deviceId: the id of the device for this metric.
         @type deviceId: str
         @param contextUUID: The device/component UUID value
@@ -465,7 +465,7 @@ class IDataService(zope.interface.Interface):
         timestamp="N",
         min="U",
         max="U",
-        threshEventData={},
+        threshEventData=None,
         metadata=None,
     ):
         """
@@ -536,9 +536,9 @@ class IDataService(zope.interface.Interface):
         @type min: number
         @param max: maximum value acceptable for this metric
         @type max: number
-        @param threshEventData: on threshold violation, update the event
-            with this data.
-        @type threshEventData: dictionary
+        @param threshEventData: on threshold violation,
+            update the event with this data.
+        @type threshEventData: dictionary | None
         @param allowStaleDatapoint: attempt to write datapoint even if a
             newer datapoint has already been written.
         @type allowStaleDatapoint: boolean

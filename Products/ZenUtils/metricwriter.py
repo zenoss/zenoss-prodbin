@@ -248,7 +248,7 @@ class ThresholdNotifier(object):
         metric,
         timestamp,
         value,
-        thresh_event_data={},
+        thresh_event_data=None,
     ):
         """
         Check the specified value against thresholds and send any generated
@@ -263,6 +263,7 @@ class ThresholdNotifier(object):
         @return:
         """
         if self._thresholds and value is not None:
+            thresh_event_data = thresh_event_data or {}
             if "eventKey" in thresh_event_data:
                 eventKeyPrefix = [thresh_event_data["eventKey"]]
             else:

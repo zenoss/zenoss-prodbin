@@ -458,7 +458,7 @@ class CollectorDaemon(RRDDaemon):
         timestamp="N",
         min="U",
         max="U",
-        threshEventData={},
+        threshEventData=None,
         deviceId=None,
         contextUUID=None,
         deviceUUID=None,
@@ -538,7 +538,7 @@ class CollectorDaemon(RRDDaemon):
         timestamp="N",
         min="U",
         max="U",
-        threshEventData={},
+        threshEventData=None,
         metadata=None,
         extraTags=None,
     ):
@@ -581,7 +581,7 @@ class CollectorDaemon(RRDDaemon):
         cycleTime=None,
         min="U",
         max="U",
-        threshEventData={},
+        threshEventData=None,
         timestamp="N",
         allowStaleDatapoint=True,
     ):
