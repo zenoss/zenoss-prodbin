@@ -30,6 +30,7 @@ from Products.Zuul.interfaces import IDeviceFacade, IInfo, ITemplateNode, IMetri
 from Products.Jobber.jobs import FacadeMethodJob
 from Products.Zuul.tree import SearchResults
 from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
+from Products.ZenCollector.configcache.api import ConfigCache
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.ComponentGroup import ComponentGroup
 from Products.ZenModel.DeviceGroup import DeviceGroup
@@ -529,8 +530,11 @@ class DeviceFacade(TreeFacade):
 
     def pushChanges(self, uids):
         devs = imap(self._getObject, uids)
+        if not devs:
+            return
+        configcache = ConfigCache.new()
         for dev in devs:
-            dev.pushConfig()
+            configcache.update(dev)
 
     def modelDevices(self, uids):
         devs = imap(self._getObject, uids)
