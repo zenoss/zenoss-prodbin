@@ -10,7 +10,6 @@
 from __future__ import absolute_import
 
 from celery import Celery
-from celery.bin import Option
 from kombu import serialization
 
 from .serialization import without_unicode
@@ -26,17 +25,10 @@ serialization.register(
 
 
 def _buildapp():
-    from .config import CeleryConfig, getConfig
     app = Celery(
         "zenjobs",
         task_cls="Products.Jobber.task:ZenTask",
-    )
-    default = CeleryConfig.from_config(getConfig())
-    app.config_from_object(default)
-    app.user_options["preload"].add(
-        Option(
-            "--config-file", default=None, help="Name of the configuration file"
-        )
+        config_source="Products.Jobber.config:ZenCeleryConfig",
     )
     return app
 
