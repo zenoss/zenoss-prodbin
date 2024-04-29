@@ -16,9 +16,30 @@ def main():
     from celery.bin.celery import main
     from Products.ZenUtils.Utils import load_config
 
+    # Dynamic configuration shenanigans because Celery can't be re-configured
+    # after its initial configuration has been set.
+    _configure_celery()
+
     load_config("signals.zcml", Products.Jobber)
 
     # All calls to celery need the 'app instance' for zenjobs.
     sys.argv[1:] = ["-A", "Products.Jobber.zenjobs"] + sys.argv[1:]
 
     sys.exit(main())
+
+
+def _configure_celery():
+    import argparse
+    import sys
+    from Products.Jobber import config
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config-file")
+
+    args, remainder = parser.parse_known_args()
+    if not args.config_file:
+        return
+
+    cfg = config.getConfig(args.config_file)
+    config.ZenCeleryConfig = config.CeleryConfig.from_config(cfg)
+    sys.argv[1:] = remainder

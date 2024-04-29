@@ -20,20 +20,10 @@ import ZODB.config
 
 from Zope2.App import zcml
 
-from .config import getConfig, CeleryConfig
+from .config import getConfig
 from .utils.app import get_app
 
 _mlog = logging.getLogger("zen.zenjobs.worker")
-
-
-def apply_config_file(options, app, **kw):
-    # Note: **kw has 'signal' and 'sender'
-    cfgfile = options.get("config_file")
-    if not cfgfile:
-        cfgfile = "zenjobs.conf"
-    cfg = getConfig(cfgfile)
-    celerycfg = CeleryConfig.from_config(cfg)
-    app.config_from_object(celerycfg)
 
 
 def initialize_zenoss_env(**kw):
