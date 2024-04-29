@@ -3,11 +3,6 @@
 
    <include file="meta.zcml"/>
 
-   <celery:signal
-      name="user_preload_options"
-      handler=".worker.apply_config_file"
-      />
-
    <!-- worker configuration -->
 
    <celery:signal
