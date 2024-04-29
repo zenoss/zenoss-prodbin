@@ -35,7 +35,6 @@ _default_configs = {
     "job-soft-time-limit": 18000,  # 5 hours
     "zenjobs-worker-alive-timeout": 300.0,  # 5 minutes
     "redis-url": DEFAULT_REDIS_URL,
-    "task-protocol": 1,
 }
 
 
@@ -62,33 +61,30 @@ def getConfig(filename=None):
     """Return a dict containing the configuration for zenjobs."""
     global _configuration
 
-    if _configuration:
-        return _configuration
-
-    conf = _default_configs.copy()
-    conf.update(getGlobalConfiguration())
-
+    configfile_contents = {}
     if filename is not None:
         if not os.path.exists(filename):
             filename = zenPath("etc", filename)
+            try:
+                configfile_contents = ConfigLoader([filename], Config)()
+            except IOError as ex:
+                # Re-raise exception if the error is not "File not found"
+                if ex.errno != 2:
+                    raise
 
-        app_config_loader = ConfigLoader([filename], Config)
-        try:
-            conf.update(app_config_loader())
-        except IOError as ex:
-            # Re-raise exception if the error is not "File not found"
-            if ex.errno != 2:
-                raise
+    conf = _configuration.setdefault(filename, {})
+    if conf:
+        return conf
+
+    conf.update(_default_configs)
+    conf.update(getGlobalConfiguration())
+    conf.update(configfile_contents)
 
     # Convert the configuration value types to useable types.
     for key, cast in _xform.items():
         if key not in conf:
             continue
         conf[key] = cast(conf[key])
-
-    # only save it if a filename was specified
-    if filename is not None:
-        _configuration = conf
 
     return conf
 
@@ -115,6 +111,7 @@ class CeleryConfig(object):
     task_time_limit = attr.ib()
     task_soft_time_limit = attr.ib()
     beat_max_loop_interval = attr.ib()
+    worker_proc_alive_timeout = attr.ib()
 
     timezone = attr.ib(default=None)
     accept_content = attr.ib(default=["without-unicode"])
@@ -127,6 +124,7 @@ class CeleryConfig(object):
     task_routes = attr.ib(
         default={"configcache.build_device_config": {"queue": "configcache"}}
     )
+    result_extended = attr.ib(default=True)
     result_serializer = attr.ib(default="without-unicode")
     worker_prefetch_multiplier = attr.ib(default=1)
     task_acks_late = attr.ib(default=True)
@@ -134,13 +132,13 @@ class CeleryConfig(object):
     task_store_errors_even_if_ignored = attr.ib(default=True)
     task_serializer = attr.ib(default="without-unicode")
     task_track_started = attr.ib(default=True)
-    CELERYBEAT_REDIRECT_STDOUTS = attr.ib(default=True)
-    CELERYBEAT_REDIRECT_STDOUTS_LEVEL = attr.ib(default="INFO")
     worker_send_task_events = attr.ib(default=True)
     task_send_sent_event = attr.ib(default=True)
     worker_log_color = attr.ib(default=False)
-    worker_proc_alive_timeout = attr.ib(default=300.0)
-    task_protocol = attr.ib(default=1)
+
+    # Are these still used?
+    CELERYBEAT_REDIRECT_STDOUTS = attr.ib(default=True)
+    CELERYBEAT_REDIRECT_STDOUTS_LEVEL = attr.ib(default="INFO")
 
     @classmethod
     def from_config(cls, cfg={}):
@@ -156,10 +154,13 @@ class CeleryConfig(object):
                 "scheduler-max-loop-interval"
             ),
             "worker_proc_alive_timeout": cfg.get("zenjobs-worker-alive-timeout"),
-            "task_protocol": cfg.get("task-protocol", 1),
         }
         tz = os.environ.get("TZ")
         if tz:
             args["timezone"] = tz
 
         return cls(**args)
+
+
+# Initialized with default values (for when --config-file is not specified)
+ZenCeleryConfig = CeleryConfig.from_config(getConfig())
