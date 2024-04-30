@@ -21,7 +21,7 @@ import yaml
 from celery.beat import Scheduler
 from celery.schedules import crontab
 
-from .config import getConfig, CeleryConfig
+from .config import getConfig, ZenCeleryConfig
 
 
 class ZenJobsScheduler(Scheduler):
@@ -225,9 +225,7 @@ def _key(name):
 
 def _getClient():
     """Create and return the ZenJobs JobStore client."""
-    return redis.StrictRedis.from_url(
-        CeleryConfig.from_config(getConfig()).result_backend
-    )
+    return redis.StrictRedis.from_url(ZenCeleryConfig.result_backend)
 
 
 def handle_beat_init(*args, **kw):
