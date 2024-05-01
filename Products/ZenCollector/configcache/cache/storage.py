@@ -62,6 +62,8 @@ from __future__ import absolute_import, print_function, division
 import ast
 import json
 import logging
+import operator
+import re
 
 from functools import partial
 from itertools import chain, islice
@@ -382,7 +384,7 @@ class ConfigStore(object):
 
     def get_status(self, *keys):
         """
-        Returns an interable of ConfigStatus objects.
+        Returns an iterable of ConfigStatus objects.
 
         @rtype: Iterable[ConfigStatus]
         """
@@ -392,6 +394,76 @@ class ConfigStore(object):
             status = self._get_status_from_scores(scores, key, uid)
             if status is not None:
                 yield status
+
+    def get_statuses(self, query=CacheQuery()):
+        """
+        Return all status objects matching the query.
+
+        @type query: CacheQuery
+        @rtype: Iterable[ConfigStatus]
+        """
+        statuses = []
+        keys = set()
+        uids = {}
+        tables = (
+            (self.__expired, ConfigStatus.Expired),
+            (self.__retired, ConfigStatus.Retired),
+            (self.__pending, ConfigStatus.Pending),
+            (self.__building, ConfigStatus.Building),
+        )
+
+        def accept_all(_):
+            return True
+
+        def filter_regex(regex, value):
+            m = regex.match(value)
+            return m is not None
+
+        if query.device == "*":
+            predicate = accept_all
+        elif "*" in query.device:
+            expr = query.device.replace("*", ".*")
+            regex = re.compile(expr)
+            predicate = partial(filter_regex, regex)
+        else:
+            predicate = partial(operator.eq, query.device)
+
+        for table, cls in tables:
+            for key, ts in self._get_metadata(
+                table, query.service, query.monitor
+            ):
+                if predicate(key.device):
+                    keys.add(key)
+                    uid = self._get_uid(uids, key.device)
+                    statuses.append(cls(key, uid, ts))
+        for key, ts in self._get_metadata(
+            self.__age, query.service, query.monitor
+        ):
+            # Skip age (aka 'current') data for keys that already have
+            # some other status.
+            if key in keys:
+                continue
+            if predicate(key.device):
+                uid = self._get_uid(uids, key.device)
+                statuses.append(ConfigStatus.Current(key, uid, ts))
+        return statuses
+
+    def _get_uid(self, uids, device):
+        uid = uids.get(device)
+        if uid is None:
+            uid = self.__uids.get(self.__client, device)
+            if uid:
+                uids[device] = uid
+        return uid
+
+    def _get_metadata(self, table, service, monitor):
+        pairs = table.get_pairs(
+            self.__client, service=service, monitor=monitor
+        )
+        return (
+            (CacheKey(svcId, monId, devId), _to_ts(score))
+            for svcId, monId, devId, score in table.scan(self.__client, pairs)
+        )
 
     def _get_status_from_scores(self, scores, key, uid):
         age, retired, expired, pending, building = scores
