@@ -165,7 +165,11 @@ class ThresholdToDevice(BaseTransform):
         )
         obj = self._entity
         while not isinstance(obj, DeviceClass):
-            obj = obj.getParentNode()
+            try:
+                obj = obj.getParentNode()
+            except Exception:
+                log.exception("unable to find device class  entity=%r", obj)
+                return None
         return _getDevicesFromDeviceClass(obj)
 
 
