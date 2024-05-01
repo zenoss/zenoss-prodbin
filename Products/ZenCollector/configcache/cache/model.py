@@ -18,16 +18,16 @@ from Products.ZenCollector.services.config import DeviceProxy
 
 @attr.s(frozen=True, slots=True)
 class CacheQuery(object):
-    service = attr.ib(validator=instance_of(str), default="*")
-    monitor = attr.ib(validator=instance_of(str), default="*")
-    device = attr.ib(validator=instance_of(str), default="*")
+    service = attr.ib(converter=str, validator=instance_of(str), default="*")
+    monitor = attr.ib(converter=str, validator=instance_of(str), default="*")
+    device = attr.ib(converter=str, validator=instance_of(str), default="*")
 
 
 @attr.s(frozen=True, slots=True)
 class CacheKey(object):
-    service = attr.ib(validator=instance_of(str))
-    monitor = attr.ib(validator=instance_of(str))
-    device = attr.ib(validator=instance_of(str))
+    service = attr.ib(converter=str, validator=instance_of(str))
+    monitor = attr.ib(converter=str, validator=instance_of(str))
+    device = attr.ib(converter=str, validator=instance_of(str))
 
 
 @attr.s(slots=True)
