@@ -48,9 +48,12 @@ class DMD(object):
 
     def __call__(self, *args, **kwargs):
         """Override to attach a zodb root object to the task."""
-        # NOTE: work-around for Celery >= 4.0
-        # userid = getattr(self.request, "userid", None)
-        userid = self.request.headers.get("userid")
+        # Celery < 4.0 had a 'headers' attribute
+        headers = getattr(self.request, "headers", None)
+        if headers is not None:
+            userid = headers.get("userid")
+        else:
+            userid = getattr(self.request, "userid", None)
         with zodb(self.app.db, userid, self.log) as dmd:
             self.__dmd = dmd
             try:
