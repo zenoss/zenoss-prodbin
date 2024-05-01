@@ -9,6 +9,8 @@
 
 from __future__ import absolute_import, print_function
 
+import six
+
 from json import (
     loads as json_loads,
     dumps as json_dumps,
@@ -25,7 +27,7 @@ def _process_list(seq):
     while stack:
         lst = stack.pop()
         for idx, item in enumerate(lst):
-            if isinstance(item, unicode):
+            if isinstance(item, six.text_type):
                 lst[idx] = str(item)
             if isinstance(item, list):
                 stack.append(item)
@@ -37,7 +39,7 @@ def _decode_hook(*args, **kw):
     for n, i in enumerate(args):
         for pair in i:
             k, v = pair
-            if isinstance(v, unicode):
+            if isinstance(v, six.text_type):
                 v = str(v)
             elif isinstance(v, list):
                 v = _process_list(v)
