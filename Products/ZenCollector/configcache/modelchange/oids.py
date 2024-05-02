@@ -16,7 +16,7 @@ from zExceptions import NotFound
 from zope.interface import implementer
 
 from Products.ZenHub.interfaces import IInvalidationOid
-from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.Device import Device
 from Products.ZenRelations.RelationshipBase import IRelationship
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
@@ -95,14 +95,20 @@ class DataPointToDevice(BaseTransform):
         if not template:
             return ()
         dc = _getDeviceClass(template)
-        if not dc:
-            return ()
+        if dc:
+            log.debug(
+                "[DataPointToDevice] return OIDs of devices associated "
+                "with DataPoint  entity=%s",
+                self._entity,
+            )
+            return _getDevicesFromDeviceClass(dc)
+
         log.debug(
-            "[DataPointToDevice] return OIDs of devices associated "
-            "with DataPoint  entity=%s ",
+            "[DataPointToDevice] return OID of device associated "
+            "with DataPoint of local RRDTemplate  entity=%s",
             self._entity,
         )
-        return _getDevicesFromDeviceClass(dc)
+        return _getDeviceFromLocalTemplate(template)
 
 
 @implementer(IInvalidationOid)
@@ -114,14 +120,20 @@ class DataSourceToDevice(BaseTransform):
         if not template:
             return ()
         dc = _getDeviceClass(template)
-        if not dc:
-            return ()
+        if dc:
+            log.debug(
+                "[DataSourceToDevice] return OIDs of devices associated "
+                "with DataSource  entity=%s",
+                self._entity,
+            )
+            return _getDevicesFromDeviceClass(dc)
+
         log.debug(
-            "[DataSourceToDevice] return OIDs of devices associated "
-            "with DataSource  entity=%s",
+            "[DataSourceToDevice] return OID of device associated "
+            "with DataSource of local RRDTemplate  entity=%s",
             self._entity,
         )
-        return _getDevicesFromDeviceClass(dc)
+        return _getDeviceFromLocalTemplate(template)
 
 
 @implementer(IInvalidationOid)
@@ -130,14 +142,20 @@ class TemplateToDevice(BaseTransform):
 
     def transformOid(self, oid):
         dc = _getDeviceClass(self._entity)
-        if not dc:
-            return ()
+        if dc:
+            log.debug(
+                "[TemplateToDevice] return OIDs of devices associated "
+                "with RRDTemplate  entity=%s",
+                self._entity,
+            )
+            return _getDevicesFromDeviceClass(dc)
+
         log.debug(
-            "[TemplateToDevice] return OIDs of devices associated "
-            "with RRDTemplate  entity=%s ",
+            "[TemplateToDevice] return OID of device associated "
+            "with local RRDTemplate  entity=%s",
             self._entity,
         )
-        return _getDevicesFromDeviceClass(dc)
+        return _getDeviceFromLocalTemplate(self._entity)
 
 
 @implementer(IInvalidationOid)
@@ -147,7 +165,7 @@ class DeviceClassToDevice(BaseTransform):
     def transformOid(self, oid):
         log.debug(
             "[DeviceClassToDevice] return OIDs of devices associated "
-            "with DeviceClass  entity=%s ",
+            "with DeviceClass  entity=%s",
             self._entity,
         )
         return _getDevicesFromDeviceClass(self._entity)
@@ -158,19 +176,24 @@ class ThresholdToDevice(BaseTransform):
     """Return the device OIDs in the DeviceClass hierarchy."""
 
     def transformOid(self, oid):
+        template = _getTemplate(self._entity)
+        if not template:
+            return ()
+        dc = _getDeviceClass(template)
+        if dc:
+            log.debug(
+                "[ThresholdToDevice] return OIDs of devices associated "
+                "with threshold  entity=%s",
+                self._entity,
+            )
+            return _getDevicesFromDeviceClass(dc)
+
         log.debug(
-            "[ThresholdToDevice] return OIDs of devices associated "
-            "with Threshold  entity=%s ",
+            "[ThresholdToDevice] return OID of device associated "
+            "with Threshold of local RRDTemplate  entity=%s",
             self._entity,
         )
-        obj = self._entity
-        while not isinstance(obj, DeviceClass):
-            try:
-                obj = obj.getParentNode()
-            except Exception:
-                log.exception("unable to find device class  entity=%r", obj)
-                return None
-        return _getDevicesFromDeviceClass(obj)
+        return _getDeviceFromLocalTemplate(template)
 
 
 def _getDataSource(dp):
@@ -198,6 +221,18 @@ def _getDeviceClass(template):
             log.warn("no device class relationship  template=%s", template)
         return None
     return dc.primaryAq()
+
+
+def _getDeviceFromLocalTemplate(template):
+    obj = template
+    while not isinstance(obj, Device):
+        try:
+            obj = obj.getParentNode()
+        except Exception:
+            if log.isEnabledFor(logging.DEBUG):
+                log.warn("unable to find device  template=%r", template)
+            return None
+    return obj._p_oid
 
 
 def _getDevicesFromDeviceClass(dc):
