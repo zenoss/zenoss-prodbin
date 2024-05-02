@@ -280,10 +280,9 @@ class RedisRecord(dict):
         """Return a RedisRecord object built from the arguments passed to
         a before_task_publish signal handler.
         """
-        jobid = body.get("id")
-        taskname = body.get("task")
-        args = body.get("args", ())
-        kwargs = body.get("kwargs", {})
+        jobid = headers.get("id")
+        taskname = headers.get("task")
+        args, kwargs, _ = body
         return cls._build(jobid, taskname, args, kwargs, headers, properties)
 
     @classmethod
@@ -313,19 +312,26 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
     :param dict headers: Headers to accompany message sent to Celery worker
     :param dict properties: Additional task and custom key/value pairs
     """
-    if not body:
-        # If body is empty (or None), no job to save.
-        log.info("no body, so no job")
-        return
-
     if headers is None:
         # If headers is None, bad signal so ignore.
         log.info("no headers, bad signal?")
         return
 
-    task = get_app().tasks.get(body.get("task"))
+    if not body:
+        # If body is empty (or None), no job to save.
+        log.info("no body, so no job")
+        return
+
+    if not isinstance(body, tuple):
+        # body is not in protocol V2 format
+        log.warning("task data not in protocol V2 format")
+        return
+
+    taskname = headers.get("task")
+    task = get_app().tasks.get(taskname)
+
     if task is None:
-        log.warn("Ignoring unknown task: %s", body.get("task"))
+        log.warn("Ignoring unknown task: %s", taskname)
         return
 
     # If the result of tasks is ignored, don't create a job record.
@@ -350,8 +356,10 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
     if not saved:
         return
 
+    _, _, canvas = body
+
     # Iterate over the callbacks.
-    callbacks = body.get("callbacks") or []
+    callbacks = canvas.get("callbacks") or []
     links = []
     for cb in callbacks:
         links.extend(cb.flatten_links())
