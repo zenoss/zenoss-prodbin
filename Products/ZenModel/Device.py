@@ -459,11 +459,6 @@ class Device(
         Returns all the templates bound to this Device
 
         @rtype: list
-
-        >>> from Products.ZenModel.Device import manage_addDevice
-        >>> manage_addDevice(devices, 'test')
-        >>> devices.test.getRRDTemplates()
-        [<RRDTemplate at /zport/dmd/Devices/rrdTemplates/Device>]
         """
         if not hasattr(self, "zDeviceTemplates"):
             return ManagedEntity.getRRDTemplates(self)
