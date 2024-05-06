@@ -45,6 +45,12 @@ class DMD(object):
     """
 
     abstract = True
+    dmd_read_only = False
+
+    def __new__(cls, *args, **kwargs):
+        task = super(DMD, cls).__new__(cls, *args, **kwargs)
+        task.__dmd = None
+        return task
 
     def __call__(self, *args, **kwargs):
         """Override to attach a zodb root object to the task."""
@@ -68,8 +74,12 @@ class DMD(object):
     def __retry_on_conflict(self, *args, **kw):
         try:
             result = self.__run(*args, **kw)
-            transaction.commit()
-            self.log.debug("Transaction committed")
+            if not self.dmd_read_only:
+                transaction.commit()
+                self.log.debug("Transaction committed")
+            else:
+                transaction.abort()
+                self.log.debug("Transaction aborted  reason=read-only-task")
             return result
         except (ReadConflictError, ConflictError) as ex:
             transaction.abort()
@@ -98,7 +108,7 @@ def zodb(db, userid, log):
     :param db: ZODB database connection.
     :param str userid: The ID of the user to authenticate with.
     """
-    session = db.open()
+    session = db.open()  # type: ZODB.Connection
     try:
         mlog.debug("Started ZODB session")
         root = session.root()
