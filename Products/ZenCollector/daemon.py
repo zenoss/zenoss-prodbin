@@ -656,7 +656,7 @@ class CollectorDaemon(RRDDaemon):
             (
                 cfg
                 for cfg in itertools.chain(new, updated)
-                if self.options.device == cfg.configId
+                if self.options.device == cfg.id
             ),
             None,
         )
