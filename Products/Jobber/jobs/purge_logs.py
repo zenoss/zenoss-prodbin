@@ -23,7 +23,7 @@ from ..zenjobs import app
     summary="Delete the logs of deleted jobs",
     ignore_result=True,
 )
-def purge_logs(self):
+def purge_logs(self, *args, **kwargs):
     backend = app.backend
     saved_keys = set(
         key.replace(backend.task_keyprefix, "")
