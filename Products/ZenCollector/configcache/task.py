@@ -32,6 +32,7 @@ from .utils import get_pending_timeout
     summary="Create Device Configuration Task",
     description_template="Create the configuration for device {2}.",
     ignore_result=True,
+    dmd_read_only=True,
 )
 def build_device_config(
     self, monitorname, deviceid, configclassname, submitted=None

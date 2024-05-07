@@ -15,7 +15,7 @@ import uuid
 
 from AccessControl.SecurityManagement import getSecurityManager
 from celery import Task
-from celery.exceptions import Ignore, SoftTimeLimitExceeded
+from celery.exceptions import SoftTimeLimitExceeded
 
 from ..config import getConfig
 from ..utils.log import get_task_logger, get_logger
@@ -118,9 +118,6 @@ class ZenTask(SendZenossEventMixin, Task):
             del self.__run
 
     def __exec(self, *args, **kwargs):
-        if self.request.id is None:
-            self.log.error("Bad task: No ID found  request=%s", self.request)
-            raise Ignore()
         self.log.info("Job started")
         mlog.debug("Job started  request=%s", self.request)
         start = time.time()
