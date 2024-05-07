@@ -119,6 +119,8 @@ class CeleryConfig(object):
         default=[
             "Products.Jobber.jobs",
             "Products.ZenCollector.configcache.task",
+            "Products.ZenModel.IpNetwork",  # ensure task is registered
+            "Products.ZenModel.ZDeviceLoader",  # ensure task is registered
         ]
     )
     task_routes = attr.ib(

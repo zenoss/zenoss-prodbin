@@ -33,6 +33,7 @@ from AccessControl import Permissions as permissions
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenModel.interfaces import IObjectEventsSubscriber
 
+from Products.Jobber.zenjobs import app
 from Products.ZenUtils.IpUtil import *
 from Products.ZenRelations.RelSchema import *
 from IpAddress import IpAddress
@@ -968,7 +969,6 @@ class AutoDiscoveryJob(SubprocessJob):
             SubprocessJob._run(self, cmd)
 
 
-from Products.Jobber.zenjobs import app
 app.register_task(AutoDiscoveryJob)
 
 class IpNetworkPrinter(object):

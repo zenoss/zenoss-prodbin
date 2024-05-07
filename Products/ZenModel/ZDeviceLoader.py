@@ -29,6 +29,7 @@ from AccessControl import Permissions as permissions
 from DateTime import DateTime
 from OFS.SimpleItem import SimpleItem
 
+from Products.Jobber.zenjobs import app
 from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader
 from Products.ZenUtils.Utils import clearWebLoggingStream
 from Products.ZenUtils.IpUtil import getHostByName, ipwrap
@@ -275,7 +276,6 @@ class CreateDeviceJob(Job):
         return dev.setZenProperty(cProperty, value)
 
 
-from Products.Jobber.zenjobs import app
 app.register_task(CreateDeviceJob)
 # alias the DeviceCreationJob so zenpacks don't break
 DeviceCreationJob = CreateDeviceJob
