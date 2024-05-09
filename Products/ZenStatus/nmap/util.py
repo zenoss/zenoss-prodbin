@@ -24,7 +24,7 @@ DEFAULT_PARALLELISM = 10
 MAX_NMAP_OVERHEAD = 0.5  # in seconds
 MIN_PING_TIMEOUT = 0.1  # in seconds
 
-_NMAP_BINARY = "/usr/bin/nmap"
+_NMAP_BINARY = "/opt/zenoss/bin/nmap"
 
 
 @defer.inlineCallbacks
@@ -135,7 +135,7 @@ def executeNmapCmd(
     if log.isEnabledFor(logging.DEBUG):
         log.debug("executing nmap %s", " ".join(args))
     args = ["-n", _NMAP_BINARY] + args
-    log.info("Executing /bin/sudo %s", " ".join(args))
+    log.debug("Executing /bin/sudo %s", " ".join(args))
     out, err, exitCode = yield utils.getProcessOutputAndValue(
         "/bin/sudo", args
     )

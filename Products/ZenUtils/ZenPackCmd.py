@@ -77,7 +77,7 @@ def CreateZenPack(zpId, prevZenPackName='', devDir=None):
     if not devDir:
         devDir = zenPath('ZenPacks')
     if not os.path.exists(devDir):
-        os.mkdir(devDir, 0750)
+        os.mkdir(devDir, 0o750)
     destDir = os.path.join(devDir, zpId)
     shutil.copytree(srcDir, destDir, symlinks=False)
     os.system('find %s -name .svn | xargs rm -rf' % destDir)
@@ -695,7 +695,7 @@ def CreateZenPacksDir():
     """
     zpDir = zenPath('ZenPacks')
     if not os.path.isdir(zpDir):
-        os.mkdir(zpDir, 0750)
+        os.mkdir(zpDir, 0o750)
 
 
 def DoEasyInstall(eggPath):

@@ -23,7 +23,7 @@ from Products.DataCollector.DeviceProxy import DeviceProxy
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenCollector.interfaces import IConfigurationDispatchingFilter
 from Products.ZenEvents import Event
-from Products.ZenHub.PBDaemon import translateError
+from Products.ZenHub.errors import translateError
 
 from Products.ZenHub.services.PerformanceConfig import PerformanceConfig
 
@@ -33,10 +33,6 @@ log = logging.getLogger("zen.ModelerService")
 class ModelerService(PerformanceConfig):
 
     plugins = None
-
-    def __init__(self, dmd, instance):
-        PerformanceConfig.__init__(self, dmd, instance)
-        self.config = self.dmd.Monitors.Performance._getOb(self.instance)
 
     def createDeviceProxy(self, dev, skipModelMsg=""):
         if self.plugins is None:

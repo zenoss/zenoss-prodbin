@@ -113,66 +113,40 @@ class IConfigurationProxy(zope.interface.Interface):
     the configuration for a collector.
     """
 
-    def getPropertyItems(self, prefs):
+    def getPropertyItems():
         """
         Retrieve the collector's property items.
 
-        @param prefs: the collector preferences object
-        @type prefs: an object providing ICollectorPreferences
         @return: properties for this collector
         @rtype: either a dict or a Deferred
         """
 
-    def getThresholdClasses(self, prefs):
+    def getThresholdClasses():
         """
         Retrieve the collector's required threshold classes.
 
-        @param prefs: the collector preferences object
-        @type prefs: an object providing ICollectorPreferences
         @return: the names of all the collector threshold classes to loaded
         @rtype: an iterable set of strings containing Python class names
         """
 
-    def getThresholds(self, prefs):
+    def getThresholds():
         """
         Retrieve the collector's threshold definitions.
 
-        @param prefs: the collector preferences object
-        @type prefs: an object providing ICollectorPreferences
         @return: the threshold definitions
         @rtype: an iterable set of threshold definitions
         """
 
-    def getConfigProxies(self, prefs, ids=[]):
+    def getConfigProxies(configIds=[]):
         """
         Called by the framework whenever the configuration for this collector
         should be retrieved.
 
-        @param prefs: the collector preferences object
-        @type prefs: an object providing ICollectorPreferences
         @param configIds: specific config Ids to be configured
         @type configIds: an iterable
         @return: a twisted Deferred, optional in case the configure operation
                 takes a considerable amount of time
         @rtype: twisted.internet.defer.Deferred
-        """
-
-    def deleteConfigProxy(self, prefs, configId):
-        """
-        Called by the framework whenever a configuration should be removed.
-        @param prefs: the collector preferences object
-        @type prefs: an object providing ICollectorPreferences
-        @param configId: the identifier to remove
-        @type: string
-        """
-
-    def updateConfigProxy(self, prefs, config):
-        """
-        Called by the framework whenever the configuration has been updated by
-        an external event.
-        @param prefs: the collector preferences object
-        @type prefs: an object providing ICollectorPreferences
-        @param config: the updated configuration
         """
 
 
@@ -438,34 +412,93 @@ class IDataService(zope.interface.Interface):
     """
 
     def writeMetric(
-        self,
-        path,
+        contextKey,
         metric,
         value,
-        timestamp,
         metricType,
-        metricId,
-        min,
-        max,
-        hasThresholds,
-        threshEventData,
-        allowStaleDatapoint,
+        contextId,
+        timestamp="N",
+        min="U",
+        max="U",
+        threshEventData=None,
+        deviceId=None,
+        contextUUID=None,
+        deviceUUID=None,
     ):
         """
         Write the value provided for the specified metric to Redis
 
-        @param path: metric path
-        @param metric: name of the incoming metric
-        @param value: value to be writen to Redis
-        @param metricType: COUNTER, DERIVE, GAUGE, etc.
-        @param timestamp: when the value was received
-        @param metricId: unique identifier for the metric
-        @param min: metric minimum
-        @param max: metric maximum
-        @param hasThresholds: boolean indicating presence of thresholds for
-            this metricId.
-        @param allowStaleDatapoint: boolean indicating whether stale values
-            are OK.
+        @param contextKey: The device or component the metric applies to.
+            This is typically in the form a path.
+        @type contextKey: str
+        @param metric: The name of the metric, we expect it to be of the form
+            datasource_datapoint.
+        @type metric: str
+        @param value: the value of the metric.
+        @type value: float
+        @param metricType: type of the metric (e.g. 'COUNTER', 'GAUGE',
+            'DERIVE' etc)
+        @type metricType: str
+        @param contextId: used for the threshold events, the ID of the device.
+        @type contextId: str
+        @param timestamp: defaults to time.time() if not specified,
+            the time the metric occurred.
+        @type timestamp: float
+        @param min: used in the derive the min value for the metric.
+        @type min: float
+        @param max: used in the derive the max value for the metric.
+        @type max: float
+        @param threshEventData: extra data put into threshold events.
+        @type threshEventData: dict | None
+        @param deviceId: the id of the device for this metric.
+        @type deviceId: str
+        @param contextUUID: The device/component UUID value
+        @type contextUUID: str
+        @param deviceUUID: The device UUID value
+        @type deviceUUID: str
+        """
+
+    def writeMetricWithMetadata(
+        metric,
+        value,
+        metricType,
+        timestamp="N",
+        min="U",
+        max="U",
+        threshEventData=None,
+        metadata=None,
+    ):
+        """
+        Basically wraps the `writeMetric` method.  The `metadata` parameter
+        must contain the following fields:
+
+            contextKey : str
+            contextId : str
+            deviceId : str
+            contextUUID : str
+            deviceUUID : str
+
+        These fields have the same meaning as in the `writeMetric` method.
+
+        @param metric: The name of the metric, we expect it to be of the form
+            datasource_datapoint.
+        @type metric: str
+        @param value: the value of the metric.
+        @type value: float
+        @param metricType: type of the metric (e.g. 'COUNTER', 'GAUGE',
+            'DERIVE' etc)
+        @type metricType: str
+        @param timestamp: defaults to time.time() if not specified,
+            the time the metric occurred.
+        @type timestamp: float
+        @param min: used in the derive the min value for the metric.
+        @type min: float
+        @param max: used in the derive the max value for the metric.
+        @type max: float
+        @param threshEventData: extra data put into threshold events.
+        @type threshEventData: dict
+        @param metadata: Contains contextual data about the metric.
+        @type metadata: dict
         """
 
     def writeRRD(
@@ -503,9 +536,9 @@ class IDataService(zope.interface.Interface):
         @type min: number
         @param max: maximum value acceptable for this metric
         @type max: number
-        @param threshEventData: on threshold violation, update the event
-            with this data.
-        @type threshEventData: dictionary
+        @param threshEventData: on threshold violation,
+            update the event with this data.
+        @type threshEventData: dictionary | None
         @param allowStaleDatapoint: attempt to write datapoint even if a
             newer datapoint has already been written.
         @type allowStaleDatapoint: boolean
@@ -540,15 +573,15 @@ class IFrameworkFactory(zope.interface.Interface):
         Retrieve the framework's implementation of the IScheduler interface.
         """
 
-    def getConfigurationLoaderTask(self):
+    def getConfigurationLoaderTask(*args, **kw):
         """
-        Retrieve the class definition used by the framework to load
-        configuration information from zenhub.
+        Return an instance of the configuration loader task constructed
+        from the provided arguments.
         """
 
-    def getFrameworkBuildOptions(self):
+    def getBuildOptions(parser):
         """
-        Retrieve the framework's buildOptions method.
+        Apply the framework's build options to the given parser object.
         """
 
 

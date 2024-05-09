@@ -13,8 +13,6 @@ import logging
 import re
 import time
 
-import memcache
-
 from AccessControl.class_init import InitializeClass
 from Products.CMFCore.utils import getToolByName
 from Products.PluggableAuthService.interfaces.plugins import (
@@ -44,7 +42,6 @@ TOOL = "Auth0"
 PLUGIN_ID = "auth0_plugin"
 PLUGIN_TITLE = "Provide auth via Auth0 service"
 PLUGIN_VERSION = 4
-MEMCACHED_IMPORT = ("localhost", "11211")
 
 rbac_pattern = re.compile(r"^(internal:)?(CZ[0-9]+):(.+)")
 email_pattern = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
@@ -56,32 +53,6 @@ _AUTH0_CONFIG = {
     "tenantkey": None,
     "emailkey": None,
 }
-
-
-def getAuth0Conf():
-    """Return a dictionary containing Auth0 configuration or None"""
-    global _AUTH0_CONFIG
-    if _AUTH0_CONFIG is not None and not all(_AUTH0_CONFIG.values()):
-        d = {}
-        config = getGlobalConfiguration()
-        for k in _AUTH0_CONFIG:
-            d[k] = config.get("auth0-" + k)
-        if not all(d.values()) and any(d.values()):
-            raise Exception(
-                "Auth0 config is missing values. Expecting: %s"
-                % ", ".join(
-                    ["auth0-%s" % value for value in _AUTH0_CONFIG.keys()]
-                )
-            )
-        _AUTH0_CONFIG = d if all(d.values()) else None
-        # Whitelist is a comma separated array of strings
-        if _AUTH0_CONFIG and _AUTH0_CONFIG["whitelist"]:
-            _AUTH0_CONFIG["whitelist"] = [
-                s.strip()
-                for s in _AUTH0_CONFIG["whitelist"].split(",")
-                if s.strip() != ""
-            ]
-    return _AUTH0_CONFIG or None
 
 
 def get_ip(request):
@@ -147,6 +118,33 @@ class Auth0(BasePlugin):
         self._id = self.id = id
         self.title = title
         self.version = PLUGIN_VERSION
+
+    @staticmethod
+    def getAuth0Conf():
+        """Return a dictionary containing Auth0 configuration or None"""
+        global _AUTH0_CONFIG
+        if _AUTH0_CONFIG is not None and not all(_AUTH0_CONFIG.values()):
+
+            d = {}
+            config = getGlobalConfiguration()
+            for k in _AUTH0_CONFIG:
+                d[k] = config.get("auth0-" + k)
+            if not all(d.values()) and any(d.values()):
+                raise Exception(
+                    "Auth0 config is missing values. Expecting: %s"
+                    % ", ".join(
+                        ["auth0-%s" % value for value in _AUTH0_CONFIG.keys()]
+                    )
+                )
+            _AUTH0_CONFIG = d if all(d.values()) else None
+            # Whitelist is a comma separated array of strings
+            if _AUTH0_CONFIG and _AUTH0_CONFIG["whitelist"]:
+                _AUTH0_CONFIG["whitelist"] = [
+                    s.strip()
+                    for s in _AUTH0_CONFIG["whitelist"].split(",")
+                    if s.strip() != ""
+                ]
+        return _AUTH0_CONFIG or None
 
     @staticmethod
     def _getKey(key_id, conf):
@@ -234,7 +232,7 @@ class Auth0(BasePlugin):
             )
 
             # Make sure we have an auth0 conf
-            conf = conf or getAuth0Conf()
+            conf = conf or Auth0.getAuth0Conf()
             if not conf:
                 log.warn(
                     "Incomplete Auth0 config in GlobalConfig - "
@@ -312,7 +310,7 @@ class Auth0(BasePlugin):
         request.SESSION.clear()
         response.expireCookie(Auth0.zc_token_key)
         response.expireCookie(Auth0.zc_token_exp_key)
-        conf = getAuth0Conf()
+        conf = Auth0.getAuth0Conf()
         if conf:
             log.info("Redirecting user to Auth0 logout: %s", conf)
             response.redirect("/logout.html")
@@ -324,7 +322,7 @@ class Auth0(BasePlugin):
         A successful extraction will return a dict with the 'auth0_userid'
         field containing the userid.
         """
-        conf = getAuth0Conf()
+        conf = Auth0.getAuth0Conf()
         if not conf:
             log.debug(
                 "Incomplete Auth0 config in GlobalConfig - "
@@ -409,7 +407,7 @@ class Auth0(BasePlugin):
         """challenge satisfies the PluggableAuthService
         IChallengePlugin interface.
         """
-        conf = getAuth0Conf()
+        conf = Auth0.getAuth0Conf()
         if not conf or not all(conf.values()):
             log.debug(
                 "Incomplete Auth0 config in GlobalConfig - "
@@ -425,39 +423,23 @@ class Auth0(BasePlugin):
             token = request.cookies.get(Auth0.zc_token_key, None)
             if token:
                 sessionInfo = self.storeToken(token, request, conf)
-                if sessionInfo:
-                    return True
 
-        # ZING-805: Unauthorized access to a page results in an infinite loop
-        # as Zope issues a challenge (which redirects to ZING), then ZING says
-        # you're already logged in and sends you back. This uses memcache (so
-        # each zope gets the same data) to store the token expiration for each
-        # user, to detect a redirect loop between RM<->ZING. If a redirect
-        # loop is detected, the user is sent to the ZING home page.  Note that
-        # sessionInfo doesn't persist the auth_expiration property when
-        # modified outside of the initial storage, and a local dictionary
-        # isn't available to all zopes.
-        if sessionInfo:
-            mc = memcache.Client(MEMCACHED_IMPORT, debug=0)
-            EXPIRATION_KEY = "auth0_{}_expiration_key".format(
-                sessionInfo.userid
+        if not sessionInfo:
+            # There is no valid access token, so we must redirect back to auth0 to obtain one.
+            path = (
+                request.PATH_INFO
+                if not request.QUERY_STRING
+                else "{}?{}".format(request.PATH_INFO, request.QUERY_STRING)
             )
-            auth_exp = mc.get(EXPIRATION_KEY)
-            if auth_exp == sessionInfo.expiration:
-                log.warn(
-                    "Unauthorized access (user %s): %s",
-                    sessionInfo.userid,
-                    request.PATH_INFO,
-                )
-                # This is a redirect loop. send them to the Zing UI
-                mc.delete(EXPIRATION_KEY)
-                request["RESPONSE"].redirect("/", lock=1)
-                return True
-            # Store the token expiration and send them to the login.  If zing
-            # sends them back without logging them in again (the same
-            # expiration), then that's a redirect loop.
-            mc.set(EXPIRATION_KEY, sessionInfo.expiration)
+            currentLocation = getUtility(IVirtualRoot).ensure_virtual_root(path)
+            # python base64 url safe encoding conflict with js atob decoding
+            redirect = base64.standard_b64encode(currentLocation)
+            request["RESPONSE"].redirect(
+                "/czlogin.html?redirect={}".format(redirect), lock=1
+            )
+            return True
 
+        if sessionInfo and len(sessionInfo.roles) < 1:
             # ZING-1627: If a user has no CZ roles on this instance, then
             # redirect them to the Zenoss Cloud UI with `errcode=1`, which
             # means "Missing required permissions"
@@ -465,22 +447,12 @@ class Auth0(BasePlugin):
             # Concurrent, with this change, the ZC UI is being updated to use
             # a modal component that is activated when the query parameter,
             # `errcode` is passed.
-            if len(sessionInfo.roles) < 1:
-                mc.delete(EXPIRATION_KEY)
-                request["RESPONSE"].redirect("/#/?errcode=1", lock=1)
-                return True
+            request["RESPONSE"].redirect("/#/?errcode=1", lock=1)
+            return True
 
-        path = (
-            request.PATH_INFO
-            if not request.QUERY_STRING
-            else "{}?{}".format(request.PATH_INFO, request.QUERY_STRING)
-        )
-        currentLocation = getUtility(IVirtualRoot).ensure_virtual_root(path)
-        # python base64 url safe encoding conflict with js atob decoding
-        redirect = base64.standard_b64encode(currentLocation)
-        request["RESPONSE"].redirect(
-            "/czlogin.html?redirect={}".format(redirect), lock=1
-        )
+        # The user has a valid access token, and has access to this CZ, but apparently didn't have
+        # access to this specific resource. Return 401, which would be handled by Zope.
+        request.response.setStatus(401)
         return True
 
     def getRolesForPrincipal(self, principal, request=None):
@@ -520,6 +492,10 @@ class Auth0(BasePlugin):
         if email_pattern.match(userid):
             return {"email": userid}
         return {}
+
+
+def getAuth0Conf():
+    Auth0.getAuth0Conf()
 
 
 classImplements(

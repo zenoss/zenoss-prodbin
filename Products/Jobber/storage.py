@@ -19,7 +19,7 @@ from celery import states as celery_states
 
 from Products.ZenUtils.RedisUtils import getRedisClient
 
-from .config import Celery
+from .config import ZenCeleryConfig
 
 _keybase = "zenjobs:job:"
 _keypattern = _keybase + "*"
@@ -31,8 +31,8 @@ log = logging.getLogger("zen.zenjobs")
 
 def makeJobStore():
     """Create and return the ZenJobs JobStore client."""
-    client = getRedisClient(url=Celery.CELERY_RESULT_BACKEND)
-    return JobStore(client, expires=Celery.CELERY_TASK_RESULT_EXPIRES)
+    client = getRedisClient(url=ZenCeleryConfig.result_backend)
+    return JobStore(client, expires=ZenCeleryConfig.result_expires)
 
 
 class _Converter(object):

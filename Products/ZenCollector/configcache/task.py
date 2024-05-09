@@ -1,0 +1,192 @@
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2023 all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
+from __future__ import absolute_import
+
+from datetime import datetime
+from time import time
+
+from zope.component import createObject
+from zope.dottedname.resolve import resolve
+
+from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
+
+from Products.Jobber.task import requires, DMD, Abortable
+from Products.Jobber.zenjobs import app
+
+from .cache import CacheKey, CacheRecord, ConfigStatus
+from .constants import Constants
+from .utils import get_pending_timeout
+
+
+@app.task(
+    bind=True,
+    base=requires(DMD, Abortable),
+    name="configcache.build_device_config",
+    summary="Create Device Configuration Task",
+    description_template="Create the configuration for device {2}.",
+    ignore_result=True,
+    dmd_read_only=True,
+)
+def build_device_config(
+    self, monitorname, deviceid, configclassname, submitted=None
+):
+    """
+    Create a configuration for the given device.
+
+    @param monitorname: The name of the monitor/collector the device
+        is a member of.
+    @type monitorname: str
+    @param deviceid: The ID of the device
+    @type deviceid: str
+    @param configclassname: The fully qualified name of the class that
+        will create the device configuration.
+    @type configclassname: str
+    @param submitted: timestamp of when the job was submitted
+    @type submitted: float
+    """
+    buildDeviceConfig(
+        self.dmd, self.log, monitorname, deviceid, configclassname, submitted
+    )
+
+
+def buildDeviceConfig(
+    dmd, log, monitorname, deviceid, configclassname, submitted
+):
+    svcconfigclass = resolve(configclassname)
+    svcname = configclassname.rsplit(".", 1)[0]
+    store = _getStore()
+    key = CacheKey(svcname, monitorname, deviceid)
+
+    # Check whether this is an old job, i.e. job pending timeout.
+    # If it is an old job, skip it, manager already sent another one.
+    status = next(store.get_status(key), None)
+    device = dmd.Devices.findDeviceByIdExact(deviceid)
+    if _job_is_old(status, submitted, device, log):
+        return
+
+    # If the status is Expired, another job is coming, so skip this job.
+    if isinstance(status, ConfigStatus.Expired):
+        log.warn(
+            "skipped this job because another job is coming  "
+            "device=%s collector=%s service=%s submitted=%f",
+            key.device,
+            key.monitor,
+            key.service,
+            submitted,
+        )
+        return
+
+    # If the status is Pending, verify whether it's for this job, and if not,
+    # skip this job.
+    if isinstance(status, ConfigStatus.Pending):
+        s1 = int(submitted * 1000)
+        s2 = int(status.submitted * 1000)
+        if s1 != s2:
+            log.warn(
+                "skipped this job in favor of newer job  "
+                "device=%s collector=%s service=%s submitted=%f",
+                key.device,
+                key.monitor,
+                key.service,
+                submitted,
+            )
+            return
+
+    # Change the configuration's status to 'building' to indicate that
+    # a config is now building.
+    store.set_building((key, time()))
+    log.info(
+        "building device configuration  device=%s collector=%s service=%s",
+        deviceid,
+        monitorname,
+        svcname,
+    )
+
+    service = svcconfigclass(dmd, monitorname)
+    result = service.remote_getDeviceConfigs((deviceid,))
+    config = result[0] if result else None
+    if config is None:
+        _delete_config(key, store, log)
+    else:
+        uid = device.getPrimaryId()
+        record = CacheRecord.make(
+            svcname, monitorname, deviceid, uid, time(), config
+        )
+        # Get the current status of the configuration.
+        status = next(store.get_status(key), None)
+        if isinstance(status, (ConfigStatus.Expired, ConfigStatus.Pending)):
+            # status is not ConfigStatus.Building, so another job will be
+            # submitted or has already been submitted.
+            store.put_config(record)
+            log.info(
+                "saved config without changing status  "
+                "updated=%s device=%s collector=%s service=%s",
+                datetime.fromtimestamp(record.updated).isoformat(),
+                deviceid,
+                monitorname,
+                svcname,
+            )
+        else:
+            verb = "replaced" if status is not None else "added"
+            store.add(record)
+            log.info(
+                "%s config  updated=%s device=%s collector=%s service=%s",
+                verb,
+                datetime.fromtimestamp(record.updated).isoformat(),
+                deviceid,
+                monitorname,
+                svcname,
+            )
+
+
+def _delete_config(key, store, log):
+    log.info(
+        "no configuration built  device=%s collector=%s service=%s",
+        key.device,
+        key.monitor,
+        key.service,
+    )
+    if key in store:
+        store.remove(key)
+        log.info(
+            "removed previously built configuration  "
+            "device=%s collector=%s service=%s",
+            key.device,
+            key.monitor,
+            key.service,
+        )
+    # Ensure all statuses for this key are deleted.
+    store.clear_status(key)
+
+
+def _job_is_old(status, submitted, device, log):
+    if submitted is None or status is None:
+        # job is not old (default state)
+        return False
+    limit = get_pending_timeout(device)
+    now = time()
+    if submitted < (now - limit):
+        log.warn(
+            "skipped this job because it's too old  "
+            "device=%s collector=%s service=%s submitted=%f %s=%s",
+            status.key.device,
+            status.key.monitor,
+            status.key.service,
+            submitted,
+            Constants.pending_timeout_id,
+            limit,
+        )
+        return True
+    return False
+
+
+def _getStore():
+    client = getRedisClient(url=getRedisUrl())
+    return createObject("configcache-store", client)

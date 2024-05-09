@@ -30,13 +30,20 @@ class MetricWriter(object):
         @return deferred: metric was published or queued
         """
         try:
-            if tags and 'mtrace' in tags.keys():
-                log.info("mtrace: publishing metric %s %s %s %s",
-                         metric, value, timestamp, tags)
-            log.debug("publishing metric %s %s %s %s", metric, value,
-                      timestamp, tags)
-            val = defer.maybeDeferred(self._publisher.put, metric, value,
-                                      timestamp, tags)
+            if tags and "mtrace" in tags.keys():
+                log.info(
+                    "mtrace: publishing metric %s %s %s %s",
+                    metric,
+                    value,
+                    timestamp,
+                    tags,
+                )
+            log.debug(
+                "publishing metric %s %s %s %s", metric, value, timestamp, tags
+            )
+            val = defer.maybeDeferred(
+                self._publisher.put, metric, value, timestamp, tags
+            )
             self._datapoints += 1
             return val
         except Exception as x:
@@ -69,13 +76,24 @@ class FilteredMetricWriter(object):
         """
         try:
             if self._test_filter(metric, value, timestamp, tags):
-                if tags and 'mtrace' in tags.keys():
-                    log.info("mtrace: publishing metric %s %s %s %s",
-                             metric, value, timestamp, tags)
-                log.debug("publishing metric %s %s %s %s", metric, value,
-                          timestamp, tags)
-                val = defer.maybeDeferred(self._publisher.put, metric, value,
-                                          timestamp, tags)
+                if tags and "mtrace" in tags.keys():
+                    log.info(
+                        "mtrace: publishing metric %s %s %s %s",
+                        metric,
+                        value,
+                        timestamp,
+                        tags,
+                    )
+                log.debug(
+                    "publishing metric %s %s %s %s",
+                    metric,
+                    value,
+                    timestamp,
+                    tags,
+                )
+                val = defer.maybeDeferred(
+                    self._publisher.put, metric, value, timestamp, tags
+                )
                 self._datapoints += 1
                 return val
         except Exception as x:
@@ -108,7 +126,11 @@ class AggregateMetricWriter(object):
         dList = []
         for writer in self._writers:
             try:
-                dList.append(defer.maybeDeferred(writer.write_metric, metric, value, timestamp, tags))
+                dList.append(
+                    defer.maybeDeferred(
+                        writer.write_metric, metric, value, timestamp, tags
+                    )
+                )
             except Exception as x:
                 log.exception(x)
         self._datapoints += 1
@@ -127,7 +149,7 @@ class DerivativeTracker(object):
     def __init__(self):
         self._timed_metric_cache = {}
 
-    def derivative(self, name, timed_metric, min='U', max='U'):
+    def derivative(self, name, timed_metric, min="U", max="U"):
         """
         Tracks a metric value over time and returns deltas
 
@@ -147,8 +169,9 @@ class DerivativeTracker(object):
                 # in an infinity/nan rate.
                 return None
             else:
-                delta = float(timed_metric[0] - last_timed_metric[0]) / \
-                        float(timed_metric[1] - last_timed_metric[1])
+                delta = float(timed_metric[0] - last_timed_metric[0]) / float(
+                    timed_metric[1] - last_timed_metric[1]
+                )
 
                 # Get min/max into a usable float or None state.
                 min, max = map(constraint_value, (min, max))
@@ -188,7 +211,7 @@ def constraint_value(value):
     elif isinstance(value, int):
         return float(value)
     elif isinstance(value, types.StringTypes):
-        if value in ('U', ''):
+        if value in ("U", ""):
             return None
 
         try:
@@ -218,7 +241,15 @@ class ThresholdNotifier(object):
         self._thresholds.updateList(thresholds)
 
     @defer.inlineCallbacks
-    def notify(self, context_uuid, context_id, metric, timestamp, value, thresh_event_data=None):
+    def notify(
+        self,
+        context_uuid,
+        context_id,
+        metric,
+        timestamp,
+        value,
+        thresh_event_data=None,
+    ):
         """
         Check the specified value against thresholds and send any generated
         events
@@ -233,21 +264,23 @@ class ThresholdNotifier(object):
         """
         if self._thresholds and value is not None:
             thresh_event_data = thresh_event_data or {}
-            if 'eventKey' in thresh_event_data:
-                eventKeyPrefix = [thresh_event_data['eventKey']]
+            if "eventKey" in thresh_event_data:
+                eventKeyPrefix = [thresh_event_data["eventKey"]]
             else:
                 eventKeyPrefix = [metric]
-            for ev in self._thresholds.check(context_uuid, metric, timestamp, value):
+            for ev in self._thresholds.check(
+                context_uuid, metric, timestamp, value
+            ):
                 parts = eventKeyPrefix[:]
-                if 'eventKey' in ev:
-                    parts.append(ev['eventKey'])
-                ev['eventKey'] = '|'.join(parts)
+                if "eventKey" in ev:
+                    parts.append(ev["eventKey"])
+                ev["eventKey"] = "|".join(parts)
                 # add any additional values for this threshold
                 # (only update if key is not in event, or if
                 # the event's value is blank or None)
                 for key, value in thresh_event_data.items():
-                    if ev.get(key, None) in ('', None):
+                    if ev.get(key, None) in ("", None):
                         ev[key] = value
                 if ev.get("component", None):
-                    ev['component_guid'] = context_uuid
+                    ev["component_guid"] = context_uuid
                 yield defer.maybeDeferred(self._send_callback, ev)

@@ -438,7 +438,6 @@ class TrapFilter(object):
             if self._dropEvent(event):
                 log.debug("Dropping event %s", event)
                 self._daemon.counters['eventFilterDroppedCount'] += 1
-                self._daemon.counters["eventCount"] -= 1
                 result = TRANSFORM_DROP
         else:
             log.debug("Skipping filter for event=%s, filtersDefined=%s",
@@ -460,8 +459,13 @@ class TrapFilter(object):
 
         if snmpVersion == "1":
             result = self._dropV1Event(event)
-        elif snmpVersion == "2":
+        elif snmpVersion == "2" or snmpVersion == "3":
             result = self._dropV2Event(event)
+        else:
+            log.error(
+                'Unknown snmp version %s, Dropping event:%r',
+                snmpVersion,
+                event)
 
         return result
 

@@ -11,7 +11,7 @@ from __future__ import absolute_import
 
 import inspect
 
-from celery.utils import fun_takes_kwargs
+from ..utils.utils import fun_takes_kwargs
 from zope.dottedname.resolve import resolve
 
 from ..exceptions import FacadeMethodJobFailed
@@ -103,3 +103,7 @@ class FacadeMethodJob(Job):
                     result,
                 )
                 return result
+
+
+from Products.Jobber.zenjobs import app
+app.register_task(FacadeMethodJob)

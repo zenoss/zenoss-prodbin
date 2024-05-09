@@ -257,7 +257,8 @@ class SyslogProcessor(object):
             slog.debug("No matching parser: %r", msg)
             evt['summary'] = msg
         if self.syslogSummaryToMessage:
-            evt['message'] = evt['summary']
+            # In case the parsed event doesn't have a summary we set an empty string to the message key
+            evt['message'] = evt.get("summary", "")
             evt['unparsedMessage'] = msg
         return evt
 

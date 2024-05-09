@@ -16,10 +16,6 @@ from twisted.spread import pb
 
 from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenEvents import Event
-from Products.ZenHub.zodb import onUpdate
-from Products.ZenModel.OSProcessClass import OSProcessClass
-from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
-from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 # DeviceProxy must be present for twisted PB serialization to work.
 from Products.ZenCollector.services.config import DeviceProxy  # noqa F401
@@ -91,7 +87,7 @@ class ProcessConfig(CollectorConfigService):
             self, device, proxy=proxy
         )
 
-        proxy.configCycleInterval = self._prefs.processCycleInterval
+        proxy.configCycleInterval = self.conf.processCycleInterval
 
         proxy.name = device.id
         proxy.lastmodeltime = device.getLastChangeString()
@@ -180,39 +176,6 @@ class ProcessConfig(CollectorConfigService):
 
         if proxy.processes:
             return proxy
-
-    @onUpdate(OSProcessClass)
-    def processClassUpdated(self, object, event):
-        devices = set()
-        for process in object.instances():
-            device = process.device()
-            if not device:
-                continue
-            device = device.primaryAq()
-            device_path = device.getPrimaryUrlPath()
-            if device_path not in devices:
-                self._notifyAll(device)
-                devices.add(device_path)
-
-    @onUpdate(OSProcessOrganizer)
-    def processOrganizerUpdated(self, object, event):
-        catalog = IModelCatalogTool(object.primaryAq())
-        results = catalog.search(OSProcessClass)
-        if not results.total:
-            return
-        devices = set()
-        for organizer in results:
-            if results.areBrains:
-                organizer = organizer.getObject()
-            for process in organizer.instances():
-                device = process.device()
-                if not device:
-                    continue
-                device = device.primaryAq()
-                device_path = device.getPrimaryUrlPath()
-                if device_path not in devices:
-                    self._notifyAll(device)
-                    devices.add(device_path)
 
 
 if __name__ == "__main__":

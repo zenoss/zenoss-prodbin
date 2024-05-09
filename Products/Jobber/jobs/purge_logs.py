@@ -11,7 +11,7 @@ from __future__ import absolute_import
 
 import os
 
-from ..config import ZenJobs
+from ..config import getConfig
 from ..task import requires, Abortable
 from ..zenjobs import app
 
@@ -23,13 +23,13 @@ from ..zenjobs import app
     summary="Delete the logs of deleted jobs",
     ignore_result=True,
 )
-def purge_logs(self):
+def purge_logs(self, *args, **kwargs):
     backend = app.backend
     saved_keys = set(
         key.replace(backend.task_keyprefix, "")
         for key in backend.client.keys("%s*" % backend.task_keyprefix)
     )
-    logpath = ZenJobs.get("job-log-path")
+    logpath = getConfig().get("job-log-path")
     logfiles = os.listdir(logpath)
     if not logfiles:
         self.log.info("No log files to remove")

@@ -91,6 +91,7 @@ from .Lockable import Lockable
 from .MaintenanceWindowable import MaintenanceWindowable
 from .ManagedEntity import ManagedEntity
 from .OperatingSystem import OperatingSystem
+from .RRDDataSource import isPythonDataSource
 from .ZenMenuable import ZenMenuable
 from .ZenossSecurity import (
     ZEN_ADMIN_DEVICE,
@@ -106,6 +107,12 @@ from .ZenossSecurity import (
 from .ZenStatus import ZenStatus
 
 DEFAULT_PRODSTATE = 1000
+
+_sourcetype_to_collector_map = {
+    "Python": "zenpython",
+    "SNMP": "zenperfsnmp",
+    "COMMAND": "zencommand",
+}
 
 log = logging.getLogger("zen.Device")
 
@@ -463,11 +470,6 @@ class Device(
         Returns all the templates bound to this Device
 
         @rtype: list
-
-        >>> from Products.ZenModel.Device import manage_addDevice
-        >>> manage_addDevice(devices, 'test')
-        >>> devices.test.getRRDTemplates()
-        [<RRDTemplate at /zport/dmd/Devices/rrdTemplates/Device>]
         """
         if not hasattr(self, "zDeviceTemplates"):
             return ManagedEntity.getRRDTemplates(self)
@@ -1513,6 +1515,14 @@ class Device(
             and not self.zSnmpMonitorIgnore
         )
 
+    def getProdStateThreshold(self):
+        """
+        Return the numeric device production state threshold.
+
+        @rtype: int
+        """
+        return self.zProdStateThreshold
+
     def getPriority(self):
         """
         Return the numeric device priority.
@@ -2106,14 +2116,7 @@ class Device(
         """
         Run monitoring daemon agains the device ones
         """
-        # Datasource source type and  collection daemon to run
-        data_collector = {
-            "Python": "zenpython",
-            "SNMP": "zenperfsnmp",
-            "COMMAND": "zencommand",
-        }
         # Daemons to run against the device
-        collection_daemons = []
         xmlrpc = isXmlRpc(REQUEST)
         perfConf = self.getPerformanceServer()
         if perfConf is None:
@@ -2132,32 +2135,30 @@ class Device(
         # device for determining which daemon to run
         templates = self.getRRDTemplates()
         datasources = itertools.chain.from_iterable(
-            [template.getRRDDataSources() for template in templates]
+            template.getRRDDataSources() for template in templates
         )
-        ds_src_types = set()
-        for datasource in datasources:
-            # BasicDataSource contain the info about the source type
-            if datasource.__class__.__name__ == "BasicDataSource":
-                ds_src_types.add(datasource.sourcetype)
+        collection_daemons = set()
+        for ds in datasources:
+            if isPythonDataSource(ds):
+                daemon = _sourcetype_to_collector_map['Python']
             else:
-                # We need parent class sourcetype since datasources inherited
-                # from PythonDatasource do not have "Python" as a sourcetype
-                ds_src_types.add(datasource.__class__.__base__.sourcetype)
-        for source in data_collector:
-            if source in ds_src_types:
-                collection_daemons.append(data_collector[source])
+                daemon = _sourcetype_to_collector_map.get(ds.sourcetype)
+            if daemon:
+                collection_daemons.add(daemon)
+
         # We support only core collection daemons
         # zenpython; zenperfsnmp; zencommand
-        if not collection_daemons and write:
-            write(
-                "Modeling through UI only support COMMAND, "
-                "SNMP and ZenPython type of datasources"
-            )
+        if not collection_daemons:
+            if write:
+                write('Monitoring through UI only support COMMAND, '
+                      'SNMP and ZenPython type of datasources')
             if xmlrpc:
                 return 1
             return
+        # Pass collection_daemons as a list because perfConf.runDeviceMonitor
+        # was written expecting that parameter to be a list.
         perfConf.runDeviceMonitor(
-            self, REQUEST, write, collection_daemons, debug=debug
+            self, REQUEST, write, list(collection_daemons), debug=debug,
         )
         if REQUEST:
             audit("UI.Device.Remodel", self)
@@ -2172,23 +2173,23 @@ class Device(
         """
         parameter = "--datasource"
         value = "%s/%s" % (dsObj.rrdTemplate.obj.id, dsObj.id)
-        collection_daemon = ""
-        if dsObj.sourcetype == "COMMAND":
-            collection_daemon = "zencommand"
-        elif dsObj.__class__.__base__.sourcetype == "Python":
-            collection_daemon = "zenpython"
+        if isPythonDataSource(dsObj):
+            collection_daemon = _sourcetype_to_collector_map['Python']
+        elif dsObj.sourcetype == 'COMMAND':
+            collection_daemon = _sourcetype_to_collector_map['COMMAND']
         elif dsObj.sourcetype == "SNMP":
-            collection_daemon = "zenperfsnmp"
+            collection_daemon = _sourcetype_to_collector_map['SNMP']
             parameter = "--oid"
             value = dsObj.oid
+        else:
+            collection_daemon = ''
 
         xmlrpc = isXmlRpc(REQUEST)
         perfConf = self.getPerformanceServer()
-        if not collection_daemon and write:
-            write(
-                "Modeling through UI only support COMMAND, "
-                "SNMP and ZenPython type of datasources"
-            )
+        if not collection_daemon:
+            if write:
+                write('Modeling through UI only support COMMAND, '
+                      'SNMP and ZenPython type of datasources')
             if xmlrpc:
                 return 1
             return
@@ -2517,7 +2518,7 @@ class Device(
         from Products.ZenModel.RRDTemplate import manage_addRRDTemplate
 
         manage_addRRDTemplate(self, id)
-        if id not in self.zDeviceTemplates:
+        if id not in self.zDeviceTemplates and not id.endswith("-replacement") and not id.endswith("-addition"):
             self.bindTemplates(self.zDeviceTemplates + [id])
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
@@ -2545,11 +2546,8 @@ class Device(
         filteredTemplates = list(templates)
         for t in templates:
             tName = t.titleOrId()
-            if tName.endswith("-replacement"):
-                tReplacedName = tName.replace("-replacement", "")
-                tReplaced = self.getRRDTemplateByName(tReplacedName)
-                if tReplaced:
-                    filteredTemplates.remove(tReplaced)
+            if tName.endswith("-replacement") or tName.endswith("-addition"):
+                filteredTemplates.remove(t)
         # filter for python class before sorting
         templates = filter(
             lambda t: isinstance(self, t.getTargetPythonClass()),

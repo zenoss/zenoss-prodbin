@@ -337,7 +337,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         multiWin.dev.setGroups(multiWin.grp.id)
 
         multiWin.startDateTime = '1138531500'
-        startDate_time = [ 2006, 1, 31, 10, 00, 12, 0, 0, 0 ]
+        startDate_time = [ 2006, 1, 31, 10, 0, 12, 0, 0, 0 ]
         multiWin.tn = range(1,maxWindows)
         multiWin.time_tn = []
         multiWin.mwIds = []

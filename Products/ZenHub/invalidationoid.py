@@ -32,7 +32,7 @@ class DefaultOidTransform(object):
         return oid
 
 
-@implementer(IInvalidationOid)
+# DeviceOidTransform kept for backward compability with vSphere ZenPack.
 class DeviceOidTransform(object):
 
     def __init__(self, obj):

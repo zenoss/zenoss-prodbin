@@ -140,25 +140,15 @@ class BaseBuildRedisRecord(object):
     def test_from_signal(t):
         userid = "blink"
         t.expected["userid"] = userid
-        body = {
-            "id": t.jobid,
-            "task": t.task.name,
-            "args": t.args,
-            "kwargs": t.kw,
-        }
-        headers = {"userid": userid}
+        body = (t.args, t.kw, {})
+        headers = {"userid": userid, "task": t.task.name, "id": t.jobid}
         properties = {}
         actual = RedisRecord.from_signal(body, headers, properties)
         t.assertDictEqual(t.expected, actual)
 
     def test_from_signal_with_details(t):
-        body = {
-            "id": t.jobid,
-            "task": t.task.name,
-            "args": t.args,
-            "kwargs": t.kw,
-        }
-        headers = {}
+        body = (t.args, t.kw, {})
+        headers = {"id": t.jobid, "task": t.task.name}
         properties = {"a": 1, "b": 2}
         t.expected["details"] = properties
         actual = RedisRecord.from_signal(body, headers, properties)
@@ -169,6 +159,7 @@ class BuildRedisRecordFromJobTest(BaseBuildRedisRecord, TestCase):
     """Test the RedisRecord class with a Job."""
 
     class TestJob(Job):
+        name = "TestJob"
         @classmethod
         def getJobType(cls):
             return "Test Job"
@@ -176,6 +167,9 @@ class BuildRedisRecordFromJobTest(BaseBuildRedisRecord, TestCase):
         @classmethod
         def getJobDescription(cls, *args, **kw):
             return "TestJob %s %s" % (args, kw)
+
+    from Products.Jobber.zenjobs import app
+    app.register_task(TestJob)
 
     def setUp(t):
         t.task = t.TestJob()

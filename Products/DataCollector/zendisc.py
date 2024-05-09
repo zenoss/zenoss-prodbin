@@ -72,6 +72,14 @@ def _partitionPingResults(results):
     return (good, bad)
 
 
+# From ZenRRD/zenprocess.py; should move into ZenUtils somewhere
+def chunk(lst, n):
+    """
+    Break lst into n-sized chunks
+    """
+    return (lst[i : i + n] for i in range(0, len(lst), n))
+
+
 class ZenDisc(ZenModeler):
     """
     Scan networks and routes looking for devices to add to the ZODB
@@ -134,7 +142,13 @@ class ZenDisc(ZenModeler):
                 )
                 continue
             self.log.info("Discover network '%s'", net.getNetworkName())
-            results = yield self.pingMany(net.fullIpList())
+
+            full_ip_list = net.fullIpList()
+            if self.options.removeInterfaceIps:
+                full_ip_list = yield self.config().callRemote(
+                    "removeInterfaces", net)
+
+            results = yield self.pingMany(full_ip_list)
             goodips, badips = _partitionPingResults(results)
             self.log.debug(
                 "Found %d good IPs and %d bad IPs", len(goodips), len(badips)
@@ -178,27 +192,29 @@ class ZenDisc(ZenModeler):
         defer.returnValue(devices)
 
     @defer.inlineCallbacks
-    def discoverRouters(self, rootdev, seenips=None):
+    def discoverRouters(self, rootdev):
         """
         Discover all default routers based on DMD configuration.
 
         @param rootdev {device class} device root in DMD
-        @param seenips {list} list of IP addresses
         """
-        if not seenips:
-            seenips = []
-        ips = yield self.config().callRemote("followNextHopIps", rootdev.id)
-        for ip in ips:
-            if ip in seenips:
-                continue
-            self.log.info("Device '%s' next hop '%s'", rootdev.id, ip)
-            seenips.append(ip)
-            router = yield self.discoverDevice(
-                ip, devicepath="/Network/Router"
-            )
-            if not router:
-                continue
-            yield self.discoverRouters(router, seenips)
+        observedIps = set()
+        routers = [rootdev]
+        while routers:
+            router = routers.pop(0)
+            ips = yield self.config().callRemote("followNextHopIps", router.id)
+            unknownIps = (ip for ip in ips if ip not in observedIps)
+            for batch_of_ips in chunk(unknownIps, self.options.parallel):
+                results = yield defer.DeferredList(
+                    self.discoverDevice(ip, devicepath="/Network/Router")
+                    for ip in batch_of_ips
+                )
+                observedIps.update(batch_of_ips)
+                routers.extend(
+                    foundRouter
+                    for _, foundRouter in results
+                    if foundRouter is not None
+                )
 
     def sendDiscoveredEvent(self, ip, dev=None, sev=2):
         """
@@ -245,12 +261,21 @@ class ZenDisc(ZenModeler):
             devicepath = self.options.deviceclass
         if prodState is None:
             prodState = self.options.productionState
-        devices = []
-        for ip in ips:
-            device = yield self.discoverDevice(ip, devicepath, prodState)
-            if device is not None:
-                devices.append(device)
-        defer.returnValue(devices)
+        foundDevices = []
+        for batch_of_ips in chunk(ips, self.options.parallel):
+            results = yield defer.DeferredList(
+                self.discoverDevice(ip, devicepath, prodState)
+                for ip in batch_of_ips
+            )
+            discovered = [dev for _, dev in results if dev is not None]
+            if self.log.isEnabledFor(logging.DEBUG):
+                self.log.debug(
+                    "Discovered %s devices: %s",
+                    len(discovered),
+                    ", ".join(dev.getId() for dev in discovered)
+                )
+            foundDevices.extend(discovered)
+        defer.returnValue(foundDevices)
 
     @defer.inlineCallbacks
     def findRemoteDeviceInfo(self, ip, devicePath, deviceSnmpCommunities=None):
@@ -561,15 +586,13 @@ class ZenDisc(ZenModeler):
         # --net 10.0.0.0 --net 192.168.0.1
         if isinstance(network, (list, tuple)) and "," in network[0]:
             network = [n.strip() for n in network[0].split(",")]
-        count = 0
-        devices = []
         if not network:
             network = yield self.config().callRemote("getDefaultNetworks")
-
         if not network:
             self.log.warning("No networks configured")
-            defer.returnValue(None)
+            defer.returnValue([])
 
+        foundIps = []
         for net in network:
             try:
                 nets = yield self.config().callRemote(
@@ -578,22 +601,18 @@ class ZenDisc(ZenModeler):
                 if not nets:
                     self.log.warning("No networks found for %s", net)
                     continue
-                ips = yield self.discoverIps(nets)
-                devices += ips
-                count += len(ips)
+                foundIps += yield self.discoverIps(nets)
             except Exception as ex:
                 self.log.exception(
                     "Error performing net discovery on %s: %s", net, ex
                 )
-        self.log.info("Working on devices: %s", devices)
+        self.log.info("Working on devices: %s", foundIps)
 
-        foundDevices = []
-        for device in devices:
-            result = yield self.discoverDevice(
-                device, self.options.deviceclass, self.options.productionState
-            )
-            if result is not None:
-                foundDevices.append(result)
+        foundDevices = yield self.discoverDevices(
+            foundIps,
+            devicepath=self.options.deviceclass,
+            prodState=self.options.productionState
+        )
         defer.returnValue(foundDevices)
 
     @defer.inlineCallbacks
@@ -641,7 +660,7 @@ class ZenDisc(ZenModeler):
         self.log.debug("My hostname = %s", myname)
         myip = None
         try:
-            myip = getHostByName(myname)
+            myip = getHostByName(myname)  # not async; blocks reactor!
             self.log.debug("My IP address = %s", myip)
         except (socket.error, DNSNameError):
             raise SystemExit("Failed lookup of my IP for name %s" % myname)
@@ -863,6 +882,15 @@ class ZenDisc(ZenModeler):
             default=False,
             help="Prefer SNMP name to DNS name when modeling via SNMP.",
         )
+        self.parser.add_option(
+            "--remove-interface-ips",
+            dest="removeInterfaceIps",
+            action="store_true",
+            default=False,
+            help="Skip discovery on IPs already assigned to interfaces "
+            "(device components).",
+        )
+
         # --job: a development-only option that jobs will use to communicate
         # their existence to zendisc. Not for users, so help is suppressed.
         self.parser.add_option("--job", dest="job", help=SUPPRESS_HELP)

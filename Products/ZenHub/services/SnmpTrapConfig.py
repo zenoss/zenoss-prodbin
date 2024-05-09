@@ -7,22 +7,23 @@
 #
 ##############################################################################
 
-from __future__ import print_function
-
 """SnmpTrapConfig
 
 Provides configuration for an OID translation service.
 """
 
+from __future__ import print_function
+
 import logging
+import json
+from hashlib import md5
 
 from twisted.spread import pb
 
 from Products.ZenCollector.services.config import CollectorConfigService
-from Products.ZenHub.zodb import onUpdate, onDelete
+from Products.ZenHub.zodb import onUpdate
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.Device import Device
-from Products.ZenModel.MibBase import MibBase
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 log = logging.getLogger("zen.HubService.SnmpTrapConfig")
@@ -71,10 +72,6 @@ class SnmpTrapConfig(CollectorConfigService):
     # sent down to zentrap.
 
     def _notifyAll(self, object):
-        pass
-
-    @onUpdate(None)  # Matches all
-    def notifyAffectedDevices(self, object, event):
         pass
 
     def _filterDevice(self, device):
@@ -132,6 +129,15 @@ class SnmpTrapConfig(CollectorConfigService):
         log.debug("SnmpTrapConfig.remote_createAllUsers %s users", len(users))
         return users
 
+    def remote_getTrapFilters(self, remoteCheckSum):
+        currentCheckSum = md5(self.zem.trapFilters).hexdigest()
+        return (None, None) if currentCheckSum == remoteCheckSum else (currentCheckSum, self.zem.trapFilters)
+
+    def remote_getOidMap(self, remoteCheckSum):
+        oidMap = dict((b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid)
+        currentCheckSum = md5(json.dumps(oidMap, sort_keys=True).encode('utf-8')).hexdigest()
+        return (None, None) if currentCheckSum == remoteCheckSum else (currentCheckSum, oidMap)
+
     def _objectUpdated(self, object):
         user = self._create_user(object)
         if user:
@@ -145,16 +151,6 @@ class SnmpTrapConfig(CollectorConfigService):
     @onUpdate(Device)
     def deviceUpdated(self, object, event):
         self._objectUpdated(object)
-
-    @onUpdate(MibBase)
-    def mibsChanged(self, device, event):
-        for listener in self.listeners:
-            listener.callRemote("notifyConfigChanged")
-
-    @onDelete(MibBase)
-    def mibsDeleted(self, device, event):
-        for listener in self.listeners:
-            listener.callRemote("notifyConfigChanged")
 
 
 if __name__ == "__main__":

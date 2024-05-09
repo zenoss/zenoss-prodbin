@@ -27,7 +27,6 @@ from struct import unpack
 
 from pynetsnmp import netsnmp, twistedsnmp
 from twisted.internet import defer, reactor
-from twisted.python.failure import Failure
 from zope.component import queryUtility, getUtility, provideUtility
 from zope.interface import implementer
 
@@ -51,6 +50,7 @@ from Products.ZenHub.services.SnmpTrapConfig import User
 from Products.ZenUtils.captureReplay import CaptureReplay
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenUtils.Utils import unused
+from Products.ZenHub.PBDaemon import HubDown
 
 unused(DeviceProxy, User)
 
@@ -127,9 +127,13 @@ class SnmpTrapPreferences(CaptureReplay):
 
         self.configCycleInterval = 20 * 60
         self.task = None
+        self.dynamicConfTask = None
 
     def postStartupTasks(self):
+        self.dynamicConfTask = DynamicConfigLoader(taskName="zentrapDynamicConf", configId="zentrap")
         self.task = TrapTask('zentrap', configId='zentrap')
+        self.dynamicConfTask.attachAttributeObserver("oidMap", self.task.oidMapChangeListener)
+        yield self.dynamicConfTask
         yield self.task
 
     def buildOptions(self, parser):
@@ -264,6 +268,54 @@ class _MixedVarbindProcessor(object):
                 if suffix:
                     result[base_name + ".sequence"].append(suffix) 
         return {name: ','.join(vals) for name, vals in result.iteritems()}
+
+
+@implementer(IScheduledTask)
+class DynamicConfigLoader(BaseTask):
+    """Handles retrieving additional dynamic configs for daemon from ZODB"""
+
+    def __init__(self, taskName, configId, scheduleIntervalSeconds=3*60, taskConfig=None):
+        BaseTask.__init__(self, taskName, configId, scheduleIntervalSeconds, taskConfig)
+        self.log = log
+        # Needed for interface
+        self.name = taskName
+        self.configId = configId
+        self.state = TaskStates.STATE_IDLE
+        self.interval = scheduleIntervalSeconds
+        self._daemon = getUtility(ICollector)
+        self.oidMap = {}
+        self.trapFilterCheckSum = None
+        self.oidMapCheckSum = None
+        self._preferences = self._daemon
+
+    @defer.inlineCallbacks
+    def doTask(self):
+        """
+        Contact zenhub and gather configuration data.
+        """
+        log.debug("%s gathering dynamic config changes", self.name)
+        try:
+            remoteProxy = self._daemon.getRemoteConfigServiceProxy()
+            checkSum, trapFilters = yield remoteProxy.callRemote('getTrapFilters', self.trapFilterCheckSum)
+            if checkSum and trapFilters:
+                self.trapFilterCheckSum = checkSum
+                self._daemon._trapFilter._resetFilters()
+                self._daemon._trapFilter.updateFilter(trapFilters)
+                log.debug("%s new trap filters changes applied to %s", trapFilters, self.name)
+            checkSum, oidMap = yield remoteProxy.callRemote('getOidMap', self.oidMapCheckSum)
+            if checkSum and oidMap:
+                self.oidMapCheckSum = checkSum
+                self.oidMap = oidMap
+                log.debug("New oid map changes applied to %s", self.name)
+        except Exception as ex:
+            log.exception("task '%s' failed", self.name)
+
+            if isinstance(ex, HubDown):
+                # Allow the loader to be reaped and re-added
+                self.state = TaskStates.STATE_COMPLETED
+
+    def cleanup(self):
+        pass  # Required by interface
 
 
 @implementer(IScheduledTask)
@@ -567,6 +619,10 @@ class TrapTask(BaseTask, CaptureReplay):
         totalTime, totalEvents, maxTime = self.stats.report()
         stat = self._statService.getStatistic("events")
         stat.value = totalEvents
+
+    def oidMapChangeListener(self, observable, attrName, oldValue, newValue):
+        self.log.debug("Task %s changed %s. Updating it for task %s",observable.name, attrName, self.name)
+        self.oidMap = newValue
 
     def getPacketIp(self, addr):
         """
@@ -1012,22 +1068,23 @@ class TrapDaemon(CollectorDaemon):
             self.setExitCode(1)
             self.stop()
 
-    def runPostConfigTasks(self, result=None):
+    @defer.inlineCallbacks
+    def runPostConfigTasks(self):
         # 1) super sets self._prefs.task with the call to postStartupTasks
         # 2) call remote createAllUsers
         # 3) service in turn walks DeviceClass tree and returns users
-        CollectorDaemon.runPostConfigTasks(self, result)
-        if not isinstance(result, Failure) and self._prefs.task is not None:
-            service = self.getRemoteConfigServiceProxy()
-            log.debug('TrapDaemon.runPostConfigTasks callRemote createAllUsers')
-            d = service.callRemote("createAllUsers")
-            d.addCallback(self._createUsers)
+        super(TrapDaemon, self).runPostConfigTasks()
+        if self._prefs.task is not None:
+            service = yield self.getRemoteConfigServiceProxy()
+            log.debug('callRemote createAllUsers')
+            users = yield service.callRemote('createAllUsers')
+            self._createUsers(users)
 
     def remote_createUser(self, user):
         reactor.callInThread(self._createUsers, [user])
 
     def _createUsers(self, users):
-        log.debug('TrapDaemon._createUsers %s users', len(users))
+        log.debug('_createUsers %s users', len(users))
         if self._prefs.task.session is None:
             log.debug("No session created, so unable to create users")
         else:

@@ -12,10 +12,9 @@ import logging
 from unittest import TestCase
 from mock import patch, Mock, create_autospec, MagicMock, sentinel, ANY
 
-from mock_interface import create_interface_mock
-
 from Products.ZenHub.zenhub import ZenHub
-from Products.ZenHub.invalidationmanager import (
+
+from ..invalidationmanager import (
     coroutine,
     DeviceComponent,
     FILTER_EXCLUDE,
@@ -31,6 +30,7 @@ from Products.ZenHub.invalidationmanager import (
     set_sink,
     transform_obj,
 )
+from .mock_interface import create_interface_mock
 
 
 PATH = {"src": "Products.ZenHub.invalidationmanager"}

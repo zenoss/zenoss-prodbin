@@ -10,13 +10,12 @@
 from __future__ import absolute_import
 
 from celery import Celery
-from kombu.serialization import register
+from kombu import serialization
 
 from .serialization import without_unicode
 
-
 # Register custom serializer
-register(
+serialization.register(
     "without-unicode",
     without_unicode.dump,
     without_unicode.load,
@@ -24,8 +23,14 @@ register(
     content_encoding="utf-8",
 )
 
-app = Celery(
-    "zenjobs",
-    config_source="Products.Jobber.config:Celery",
-    task_cls="Products.Jobber.task:ZenTask",
-)
+
+def _buildapp():
+    app = Celery(
+        "zenjobs",
+        task_cls="Products.Jobber.task:ZenTask",
+        config_source="Products.Jobber.config:ZenCeleryConfig",
+    )
+    return app
+
+
+app = _buildapp()

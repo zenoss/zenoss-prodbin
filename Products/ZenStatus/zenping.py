@@ -45,8 +45,8 @@ log = logging.getLogger("zen.zenping")
 
 
 class PingDaemon(CollectorDaemon):
-    def runPostConfigTasks(self, result=None):
-        CollectorDaemon.runPostConfigTasks(self, result=result)
+    def runPostConfigTasks(self):
+        super(PingDaemon, self).runPostConfigTasks()
         self.preferences.runPostConfigTasks()
 
 

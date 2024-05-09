@@ -39,6 +39,14 @@ MAPPINGS = {
     "zCommandSearchPath": "zencommand",
     "zCommandUsername": "zencommand",
     "zKeyPath": "zencommand",
+    #
+    # Configuration Cache
+    # -------------------
+    "zDeviceConfigTTL": "Config Cache",
+    "zDeviceConfigMinimumTTL": "Config Cache",
+    "zDeviceConfigBuildTimeout": "Config Cache",
+    "zDeviceConfigPendingTimeout": "Config Cache",
+    #
     # Misc
     # ---------
     "zDeviceTemplates": "Misc",

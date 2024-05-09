@@ -27,6 +27,7 @@ from Products.Zuul.interfaces import IDeviceFacade, IInfo, ITemplateNode, IMetri
 from Products.Jobber.jobs import FacadeMethodJob
 from Products.Zuul.tree import SearchResults
 from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
+from Products.ZenCollector.configcache.api import ConfigCache
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.ComponentGroup import ComponentGroup
 from Products.ZenModel.DeviceGroup import DeviceGroup
@@ -526,8 +527,11 @@ class DeviceFacade(TreeFacade):
 
     def pushChanges(self, uids):
         devs = imap(self._getObject, uids)
+        if not devs:
+            return
+        configcache = ConfigCache.new()
         for dev in devs:
-            dev.pushConfig()
+            configcache.update(dev)
 
     def modelDevices(self, uids):
         devs = imap(self._getObject, uids)
@@ -752,30 +756,53 @@ class DeviceFacade(TreeFacade):
     def getTemplates(self, id):
         object = self._getObject(id)
 
-        if isinstance(object, Device):
-            rrdTemplates = object.getAvailableTemplates()
-        else:
-            rrdTemplates = object.getRRDTemplates()
+        isDeviceClass = isinstance(object, DeviceClass)
+        if isDeviceClass:
+            pythonDeviceClass = object.getPythonDeviceClass()
+
+        zDeviceTemplates = object.zDeviceTemplates
+
+        rrdTemplates = object.getRRDTemplates()
+
+        templateNames = []
+        boundTemplates = []
+        unboundTemplates = []
+        for rrdTemplate in rrdTemplates:
+            if isDeviceClass and not issubclass(pythonDeviceClass, rrdTemplate.getTargetPythonClass()):
+                continue
+            templateNames.append(rrdTemplate.id)
+            if rrdTemplate.id in object.zDeviceTemplates:
+                boundTemplates.append(rrdTemplate)
+            else:
+                unboundTemplates.append(rrdTemplate)
 
         # used to sort the templates
         def byTitleOrId(left, right):
             return cmp(left.titleOrId().lower(), right.titleOrId().lower())
 
-        for rrdTemplate in sorted(rrdTemplates, byTitleOrId):
+        for rrdTemplate in sorted(boundTemplates, byTitleOrId) + sorted(unboundTemplates, byTitleOrId):
             uid = '/'.join(rrdTemplate.getPrimaryPath())
-            # only show Bound Templates
-            if rrdTemplate.id in object.zDeviceTemplates:
-                path = rrdTemplate.getUIPath()
+            path = ''
 
-                # if defined directly on the device do not show the path
-                if isinstance(object, Device) and object.titleOrId() in path:
-                    path = _t('Locally Defined')
-                yield {'id': uid,
-                       'uid': uid,
-                       'path': path,
-                       'text': '%s (%s)' % (rrdTemplate.titleOrId(), path),
-                       'leaf': True
-                       }
+            # for DeviceClasses show which are bound
+            if isinstance(object, DeviceClass):
+                if rrdTemplate.id in zDeviceTemplates:
+                    path = "%s (%s)" % (path, _t('Bound'))
+                if rrdTemplate.id + '-replacement' in templateNames:
+                    path = "%s (%s)" % (path, _t('Replaced'))
+
+            # if defined directly on the device do not show the path
+            uiPath = rrdTemplate.getUIPath()
+            if (not isDeviceClass) and object.titleOrId() in uiPath:
+                path = "%s (%s)" % (path, _t('Locally Defined'))
+            else:
+                path = "%s (%s)" % (path, uiPath)
+            yield {'id': uid,
+                   'uid': uid,
+                   'path': path,
+                   'text': '%s %s' % (rrdTemplate.titleOrId(), path),
+                   'leaf': True
+                   }
 
     def getLocalTemplates(self, uid):
         """
@@ -783,7 +810,15 @@ class DeviceFacade(TreeFacade):
         @param string uid: absolute path of a device
         @returns [Dict] All the templates defined on this device
         """
-        return [template for template in self.getTemplates(uid) if template['path'] == _t('Locally Defined')]
+        for template in self._getObject(uid).objectValues('RRDTemplate'):
+            uid = '/'.join(template.getPrimaryPath())
+            path = template.getUIPath()
+            yield {'id': uid,
+                   'uid': uid,
+                   'path': path,
+                   'text': '%s (%s)' % (template.titleOrId(), path),
+                   'leaf': True
+                   }
 
     def getUnboundTemplates(self, uid):
         return self._getBoundTemplates(uid, False)
@@ -1019,7 +1054,7 @@ class DeviceFacade(TreeFacade):
                 graphDefs[component.meta_type] = current_def
         return graphDefs
 
-    def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
+    def getComponentGraphs(self, uid, meta_type, graphId, limit, graphsOnSame, allOnSame=False):
         obj = self._getObject(uid)
 
         # get the components we are rendering graphs for
@@ -1044,7 +1079,7 @@ class DeviceFacade(TreeFacade):
             return []
 
         if allOnSame:
-            return [MultiContextMetricServiceGraphDefinition(graphDefault, components)]
+            return [MultiContextMetricServiceGraphDefinition(graphDefault, components, graphsOnSame)]
 
         graphs = []
         for comp in components:
@@ -1052,7 +1087,8 @@ class DeviceFacade(TreeFacade):
             if graph:
                 info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
                 graphs.append(info)
-        return graphs
+
+        return {"data": graphs[limit['start']:limit['end']], "data_length": len(graphs)}
 
     def getDevTypes(self, uid):
         """

@@ -33,6 +33,7 @@ from AccessControl import Permissions as permissions
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenModel.interfaces import IObjectEventsSubscriber
 
+from Products.Jobber.zenjobs import app
 from Products.ZenUtils.IpUtil import *
 from Products.ZenRelations.RelSchema import *
 from IpAddress import IpAddress
@@ -624,7 +625,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
 
         >>> net = dmd.Networks.addSubNetwork('1.2.3.0', 24)
         >>> net.primarySortKey()
-        16909056L
+        16909056
         """
         return numbip(self.id)
 
@@ -936,6 +937,7 @@ class AutoDiscoveryJob(SubprocessJob):
     specifying IP ranges, not both. Also accepts a set of zProperties to be
     set on devices that are discovered.
     """
+    name = 'AutoDiscoveryJob'
     def _run(self, nets=(), ranges=(), zProperties={}, collector='localhost'):
         # Store the nets and ranges
         self.nets = nets
@@ -969,6 +971,8 @@ class AutoDiscoveryJob(SubprocessJob):
                     cmd.extend(['--range', iprange])
             SubprocessJob._run(self, cmd)
 
+
+app.register_task(AutoDiscoveryJob)
 
 class IpNetworkPrinter(object):
 
