@@ -13,13 +13,12 @@ add zNoRelationshipCopy property for devices
 
 import logging
 import Migrate
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 
 
 class addzNoRelationshipCopy(Migrate.Step):
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 2, 0)
 
     def cutover(self, dmd):
         if not hasattr(dmd.Devices, "zNoRelationshipCopy"):

@@ -34,7 +34,7 @@ class ZensyslogSvcDevForMsgParsing(Migrate.Step):
     add 'Filter Dropped Events' to zensyslog 'Events' graph
     '''
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 2, 0)
 
     def cutover(self, dmd):
         try:
