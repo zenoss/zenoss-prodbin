@@ -21,8 +21,6 @@ import servicemigration as sm
 from servicemigration.metrics import Metric
 from servicemigration.graphdatapoint import GraphDatapoint
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
-
 
 log = logging.getLogger("zen.migrate")
 svcNamesToUpdate = ['zensyslog']
