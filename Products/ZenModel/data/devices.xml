@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2022-06-21 14:53:43.778826
+    Zenoss RelationshipManager export completed on 2024-05-09 14:11:11.562727
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 7.1.0]" export_date="2022-06-21 14:53:43.778826" zenoss_server="3f78d37a1f7f" >
+<objects version="[Zenoss, version 7.2.0]" export_date="2024-05-09 14:11:11.562727" zenoss_server="c030aa13a53f" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property type="lines" id="devtypes" mode="w" >
 []
+</property>
+<property id="zDeviceConfigBuildTimeout" visible="True" type="int" description="The number of seconds before timing out a device configuration build." label="Device configuration build timeout" >
+7200
+</property>
+<property id="zDeviceConfigPendingTimeout" visible="True" type="int" description="The number of seconds a device configuration build may be queued before a timeout." label="Device configuration build queued timeout" >
+7200
+</property>
+<property id="zDeviceConfigTTL" visible="True" type="int" description="The maximum number of seconds to wait before rebuilding a device configuration." label="Device configuration expiration" >
+43200
+</property>
+<property id="zDeviceConfigMinimumTTL" visible="True" type="int" description="The number of seconds the configuration is protected from being rebuilt." label="Device configuration pre-expiration window" >
+0
 </property>
 <property id="zPythonClass" visible="True" type="string" description="Python module used when creating a new device instances." label="Python Class" >
 </property>
@@ -195,6 +207,9 @@ False
 </property>
 <property id="zCredentialsZProperties" visible="True" type="lines" description="Used by ZenPack authors to denote which zProperties comprise the credentials for this device class." label="Connection Information" >
 []
+</property>
+<property id="zNoRelationshipCopy" visible="True" type="lines" description="Determine which relations should not being built during copying." label="Relations to skip during copying" >
+['pack']
 </property>
 <property visible="True" description="" type="lines" id="zSnmpDiscoveryPorts" label="" >
 []
