@@ -21,7 +21,6 @@ import servicemigration as sm
 from servicemigration.metrics import Metric
 from servicemigration.graphdatapoint import GraphDatapoint
 
-
 log = logging.getLogger("zen.migrate")
 svcNamesToUpdate = ['zensyslog']
 sm.require("1.0.0")

@@ -13,7 +13,6 @@ from Products.ZenCollector.configcache.constants import Constants
 from Products.ZenRelations.zPropertyCategory import setzPropertyCategory
 
 from . import Migrate
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 _properties = (
@@ -73,7 +72,7 @@ class addConfigCacheProperties(Migrate.Step):
     zDeviceConfigPendingTimeout z-properties to /Devices.
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 2, 1)
 
     def cutover(self, dmd):
         for args, kwargs in _properties:
