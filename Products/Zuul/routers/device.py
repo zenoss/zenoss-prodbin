@@ -1651,13 +1651,17 @@ class DeviceRouter(TreeRouter):
         audit('UI.Device.Add', deviceUid, data_=auditData)
         return DirectResponse.succeed(new_jobs=Zuul.marshal(jobrecords, keys=('uuid', 'description')))
 
-    @require('Manage Device')
+    def remodel_device_permissions(self, deviceUid, collectPlugins='', background=True):
+        ctx = self.context if deviceUid is None else self._getFacade()._getObject(deviceUid)
+        return Zuul.checkPermission(ZEN_MANAGE_DEVICE, ctx)
+
+    @require(remodel_device_permissions)
     def remodel(self, deviceUid, collectPlugins='', background=True):
         """
         Submit a job to have a device remodeled.
 
         @type  deviceUid: string
-        @param deviceUid: Device uid to have local template
+        @param deviceUid: Device uid to remodel
         @type  collectPlugins: string
         @param collectPlugins: (optional) Modeler plugins to use.
                                Takes a regular expression (default: '')
