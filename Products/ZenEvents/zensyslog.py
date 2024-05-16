@@ -44,10 +44,12 @@ from Products.ZenUtils.IpUtil import asyncNameLookup
 
 from Products.ZenEvents.EventServer import Stats
 from Products.ZenUtils.Utils import unused
+from Products.ZenHub.PBDaemon import HubDown
 from Products.ZenCollector.services.config import DeviceProxy
 unused(DeviceProxy)
 
 COLLECTOR_NAME = 'zensyslog'
+DYNAMIC_CONFIGS = ("defaultPriority", "syslogParsers", "syslogSummaryToMessage", "syslogMsgEvtFieldFilterRules")
 log = logging.getLogger("zen.%s" % COLLECTOR_NAME)
 
 
@@ -73,7 +75,11 @@ class SyslogPreferences(object):
         self.configCycleInterval = 20*60
 
     def postStartupTasks(self):
+        dynamicConfTask = DynamicConfigLoader(taskName=COLLECTOR_NAME + "DynamicConf", configId=COLLECTOR_NAME)
         task = SyslogTask(COLLECTOR_NAME, configId=COLLECTOR_NAME)
+        for confName in DYNAMIC_CONFIGS:
+            dynamicConfTask.attachAttributeObserver(confName, task.syslogProcessorConfChangeListener)
+        yield dynamicConfTask
         yield task
 
     def buildOptions(self, parser):
@@ -128,6 +134,52 @@ class SyslogPreferences(object):
         # add our collector's custom statistics
         statService = zope.component.queryUtility(IStatisticsService)
         statService.addStatistic("events", "COUNTER")
+
+
+@zope.interface.implementer(IScheduledTask)
+class DynamicConfigLoader(BaseTask):
+    """Handles retrieving additional dynamic configs for daemon from ZODB"""
+
+    def __init__(self, taskName, configId, scheduleIntervalSeconds=3*60, taskConfig=None):
+        BaseTask.__init__(self, taskName, configId, scheduleIntervalSeconds, taskConfig)
+        self.log = log
+        # Needed for interface
+        self.name = taskName
+        self.configId = configId
+        self.state = TaskStates.STATE_IDLE
+        self.interval = scheduleIntervalSeconds
+        self._daemon = zope.component.getUtility(ICollector)
+        self._preferences = self._daemon
+        for confName in DYNAMIC_CONFIGS:
+            setattr(self, confName, None)
+            setattr(self, confName + "CheckSum", None)
+
+    @defer.inlineCallbacks
+    def doTask(self):
+        """
+        Contact zenhub and gather configuration data.
+        e.g. remote_getSyslogMsgEvtFieldFilterRules
+        """
+        log.debug("%s gathering dynamic config changes", self.name)
+        try:
+            remoteProxy = self._daemon.getRemoteConfigServiceProxy()
+
+            for confName in DYNAMIC_CONFIGS:
+                remoteMethod = "get" + confName.capitalize()
+                checkSum, retConf = yield remoteProxy.callRemote(remoteMethod, getattr(self, confName + "CheckSum"))
+                if checkSum and retConf:
+                    setattr(self, confName + "CheckSum", checkSum)
+                    setattr(self, confName, retConf)
+                    log.debug("%s new %s changes applied to %s", retConf, confName, self.name)
+        except Exception as ex:
+            log.exception("task '%s' failed", self.name)
+
+            if isinstance(ex, HubDown):
+                # Allow the loader to be reaped and re-added
+                self.state = TaskStates.STATE_COMPLETED
+
+    def cleanup(self):
+        pass  # Required by interface
 
 
 class SyslogTask(BaseTask, DatagramProtocol):
@@ -259,6 +311,13 @@ class SyslogTask(BaseTask, DatagramProtocol):
         prettyTime = time.strftime(SyslogTask.SYSLOG_DATE_FORMAT, date)
         message = '%s %s %s' % (prettyTime, hostname, body)
         return message
+
+    def syslogProcessorConfChangeListener(self, observable, attrName, oldValue, newValue):
+        self.log.debug("Task %s changed %s. Updating it for task %s", observable.name, attrName, self.name)
+        if attrName == "syslogParsers":
+            self._daemon.processor.updateParsers(newValue)
+        elif attrName in ("defaultPriority", "syslogSummaryToMessage"):
+            setattr(self._daemon.processor, attrName, newValue)
 
     def datagramReceived(self, msg, client_address):
         """
