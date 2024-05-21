@@ -73,6 +73,13 @@
             '1y-ago': 31536000000
         };
 
+        /*
+         * If a given request is over GRAPHPAGESIZE then
+         * the results will be paginated.
+         * Lower the number of graphs that are displayed for IE
+         * since it dramatically speeds up the rendering speed.
+         **/
+        GRAPHPAGESIZE = Ext.isIE ? 25 : 50;
         /**
          * An example of using a custom renderer to show stacked graphs
          * for processes if you are viewing the memory or cpu and
@@ -291,16 +298,28 @@
                         select: me.onSelectGraph
                     }
                 },{
+                    xtype: 'textfield',
+                    name: 'graphsOnSame',
+                    ref: '../graphsOnSame',
+                    fieldLabel: 'Amount',
+                    allowBlank: false,
+                    width: 90,
+                    value: 50,
+                    labelSeparator: "",
+                    labelWidth: 60,
+                },{
                     xtype: 'checkbox',
                     baseCls: 'zencheckbox_allonsame',
-                    boxLabel: _t('All on same graph'),
+                    boxLabel: _t('on same graph'),
                     boxLabelAlign: 'before',
                     labelAlign: 'right',
                     margin: '0 10 0 20',
                     ref: '../allOnSame',
                     listeners: {
-                        change: me.updateGraphs,
-                        scope: me
+                         change: function () {
+                             me.updateGraphs(0)
+                         },
+                         scope: me
                     }
                 },{
                     xtype: 'button',
@@ -431,6 +450,8 @@
         onSelectComponentType: function (combo, selected) {
             this.compType = selected[0].get('value');
             var store, i, graphIds = this.componentGraphs[this.compType], data = [];
+            // set lastShown 0 to reset pagination limits
+            this.lastShown = 0;
             for (i = 0; i < graphIds.length; i++) {
                 data.push([
                     graphIds[i]
@@ -457,19 +478,31 @@
             // go to the server and return a list of graph configs
             // from which we can create EuropaGraphs from
             var graphId = selected[0].get('name');
+            this.lastShown = 0;
             this.graphId = graphId;
             this.updateGraphs();
 
         },
-        updateGraphs: function () {
+        updateGraphs: function (lastShown) {
             var meta_type = this.compType, uid = this.uid,
-                graphId = this.graphId, allOnSame = this.allOnSame.checked;
+                graphId = this.graphId, allOnSame = this.allOnSame.checked,
+                graphsOnSame = parseInt(this.graphsOnSame.getValue()),
+                me = this,
+                start = lastShown === undefined ? this.lastShown : lastShown,
+                end = start + GRAPHPAGESIZE;
+                if (isNaN(graphsOnSame)){
+                    // set to default value
+                    graphsOnSame = 50
+                }
+
                 if (graphId !== undefined) {
                     Zenoss.remote.DeviceRouter.getComponentGraphs({
                         uid: uid,
                         meta_type: meta_type,
                         graphId: graphId,
-                        allOnSame: allOnSame
+                        graphsOnSame: graphsOnSame,
+                        allOnSame: allOnSame,
+                        limit: {'start': start, 'end': end},
                     }, function (response) {
                         if (response.success) {
                             var graphs = [], fn;
@@ -503,6 +536,9 @@
                                 });
                             }
 
+                        // set up for the next page
+                        this.lastShown = end;
+
                         var gp = {
                             'drange': this.rangeToMilliseconds(this.drange),
                             'end': this.end.valueOf(),
@@ -517,7 +553,18 @@
                             graphs[i].aggregationText = this.aggregationMenu.getText();
                             grCols[c].items.push(graphs[i]);
                         }
-
+                        // if we have more to show, add a button
+                        if ((response.data_length - end) > 0) {
+                            grCols[c].items.push({
+                                xtype: 'button',
+                                text: _t('Show more results...'),
+                                handler: function(t) {
+                                    t.hide();
+                                    // will show the next page by looking at this.lastShown
+                                    me.updateGraphs()
+                                }
+                            })
+                        }
                         this.add(grCols);
                     }
                 }, this);
