@@ -32,10 +32,11 @@ definitions into a form that is consumable by the metric service
 
 
 class MetricServiceGraph(HasUuidInfoMixin):
-    def __init__(self, graph, context):
+    def __init__(self, graph, context, graphsOnSame=None):
         self._object = graph
         self._context = context
         self._showContextTitle = False
+        self._graphsOnSame = graphsOnSame
 
 
 class MetricServiceGraphDefinition(MetricServiceGraph):
@@ -401,6 +402,8 @@ class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
 
         self._updateRPNForMultiContext(infos, knownDatapointNames)
 
+        if self._graphsOnSame:
+            return infos[:self._graphsOnSame]
         return infos
 
     def _updateRPNForMultiContext(self, infos, knownDatapointNames):

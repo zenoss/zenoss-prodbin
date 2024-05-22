@@ -1998,14 +1998,18 @@ class DeviceRouter(TreeRouter):
         data = facade.getGraphDefinitionsForComponent(uid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
-    def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
+    def getComponentGraphs(self, uid, meta_type, graphId, limit, graphsOnSame, allOnSame=False):
         """
         Returns the graph denoted by graphId for every component in
         device (uid) with the meta_type meta_type
         """
+        data_length = 0
         facade = self._getFacade()
-        data = facade.getComponentGraphs(uid, meta_type, graphId, allOnSame=allOnSame)
-        return DirectResponse.succeed(data=Zuul.marshal(data))
+        data = facade.getComponentGraphs(uid, meta_type, graphId, limit, graphsOnSame, allOnSame=allOnSame)
+        if type(data) is dict:
+            data_length = data['data_length']
+            data = data['data']
+        return DirectResponse.succeed(data=Zuul.marshal(data), data_length=data_length)
 
     def getDevTypes(self, uid, filter=None):
         """
