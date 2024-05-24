@@ -535,7 +535,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
         };
 
 
-        if (Zenoss.Security.hasPermission('Manage Device')) {
+        if (Zenoss.Security.hasPermission('Maintenance Windows Edit')) {
             dialog = new Zenoss.SmartFormDialog(config);
             dialog.show();
         }else{ return false; }
