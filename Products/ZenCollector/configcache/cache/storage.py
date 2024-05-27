@@ -9,13 +9,13 @@
 
 # Key structure
 # =============
-# modelchange:device:uid:<device> <uid>
-# modelchange:device:config:<service>:<monitor>:<device> <config>
-# modelchange:device:age:<service>:<monitor> [(<score>, <device>), ...]
-# modelchange:device:retired:<service>:<monitor> [(<score>, <device>), ...]
-# modelchange:device:expired:<service>:<monitor> [(<score>, <device>), ...]
-# modelchange:device:pending:<service>:<monitor> [(<score>, <device>), ...]
-# modelchange:device:building:<service>:<monitor> [(<score>, <device>), ...]
+# configcache:device:uid:<device> <uid>
+# configcache:device:config:<service>:<monitor>:<device> <config>
+# configcache:device:age:<service>:<monitor> [(<score>, <device>), ...]
+# configcache:device:retired:<service>:<monitor> [(<score>, <device>), ...]
+# configcache:device:expired:<service>:<monitor> [(<score>, <device>), ...]
+# configcache:device:pending:<service>:<monitor> [(<score>, <device>), ...]
+# configcache:device:building:<service>:<monitor> [(<score>, <device>), ...]
 #
 # While "device" seems redundant, other values in this position could be
 # "threshold" and "property".
@@ -62,7 +62,6 @@ from __future__ import absolute_import, print_function, division
 import ast
 import json
 import logging
-import operator
 import re
 
 from functools import partial
@@ -137,6 +136,17 @@ class ConfigStore(object):
             self.__client, key.service, key.monitor, key.device
         )
 
+    def __iter__(self):
+        """
+        Returns an iterable over the known keys.
+
+        @rtype: Iterator[CacheKey]
+        """
+        return iter(
+            CacheKey(service, monitor, device)
+            for service, monitor, device in self.__config.scan(self.__client)
+        )
+
     def search(self, query=CacheQuery()):
         """
         Returns the configuration keys matching the search criteria.
@@ -206,11 +216,29 @@ class ConfigStore(object):
         Return the timestamp of when the config was built.
 
         @type key: CacheKey
+        @rtype: float
         """
         return _to_ts(
             self.__age.score(
                 self.__client, key.service, key.monitor, key.device
             )
+        )
+
+    def query_updated(self, query=CacheQuery()):
+        """
+        Return the last update timestamp of every configuration selected
+        by the query.
+
+        @type query: CacheQuery
+        @rtype: Iterable[Tuple[CacheKey, float]]
+        """
+        predicate = self._get_device_predicate(query.device)
+        return (
+            (key, ts)
+            for key, ts in self._get_metadata(
+                self.__age, query.service, query.monitor
+            )
+            if predicate(key.device)
         )
 
     def get(self, key, default=None):
@@ -412,21 +440,7 @@ class ConfigStore(object):
             (self.__building, ConfigStatus.Building),
         )
 
-        def accept_all(_):
-            return True
-
-        def filter_regex(regex, value):
-            m = regex.match(value)
-            return m is not None
-
-        if query.device == "*":
-            predicate = accept_all
-        elif "*" in query.device:
-            expr = query.device.replace("*", ".*")
-            regex = re.compile(expr)
-            predicate = partial(filter_regex, regex)
-        else:
-            predicate = partial(operator.eq, query.device)
+        predicate = self._get_device_predicate(query.device)
 
         for table, cls in tables:
             for key, ts in self._get_metadata(
@@ -447,6 +461,17 @@ class ConfigStore(object):
                 uid = self._get_uid(uids, key.device)
                 statuses.append(ConfigStatus.Current(key, uid, ts))
         return statuses
+
+    def _get_device_predicate(self, spec):
+
+        if spec == "*":
+            return lambda _: True
+        elif "*" in spec:
+            expr = spec.replace("*", ".*")
+            regex = re.compile(expr)
+            return lambda value: regex.match(value) is not None
+        else:
+            return lambda value: value == spec
 
     def _get_uid(self, uids, device):
         uid = uids.get(device)
