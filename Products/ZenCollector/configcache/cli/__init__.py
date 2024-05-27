@@ -14,6 +14,7 @@ from .expire import Expire
 from .list import List_
 from .remove import Remove
 from .show import Show
+from .stats import Stats
 
 
-__all__ = ("Expire", "List_", "Remove", "Show")
+__all__ = ("Expire", "List_", "Remove", "Show", "Stats")
