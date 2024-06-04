@@ -130,7 +130,7 @@ class DecodersUnitTest(TestCase):
         )
 
     def test_decode_long_values(self):
-        value = long(555)
+        value = int(555)
         self.assertEqual(
             decode_snmp_value(value),
             int(555)

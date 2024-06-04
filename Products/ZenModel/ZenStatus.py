@@ -93,11 +93,11 @@ class ZenAvailability(ZenStatus):
         if self.failstart == 0: 
             self.failstart = self.failincr = DateTime()
         if self.status < 0: self.status = 1
-        delta = long((DateTime() - self.failincr) * 86400)
+        delta = int((DateTime() - self.failincr) * 86400)
         if not self.failincr.isCurrentDay():
             yavail = self._getYearlyData(self.failstart.year())
             now = DateTime()
-            newdaydown = long((now.earliestTime() - now) * 86400)
+            newdaydown = int((now.earliestTime() - now) * 86400)
             yesterdaydown = self.todaydown + (delta - newdaydown)
             yavail.addDaily(yesterdaydown)
             self.todaydown = 0
@@ -138,7 +138,7 @@ class ZenAvailability(ZenStatus):
         """get availability for a date range as a float between 100.0 and 0.0"""
         if self.status < 0: return -1
         if not end: end = DateTime()
-        delta = long((end - start) * 86400.0)
+        delta = int((end - start) * 86400.0)
         dt = self.getDownTime(start,end)
         if dt < 0: return dt
         return 100.0 - ((self.getDownTime(start, end) / delta)*100)

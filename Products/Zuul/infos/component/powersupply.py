@@ -27,5 +27,5 @@ class PowerSupplyInfo(ComponentInfo):
     def millivolts(self):
         millivolts = self.getFetchedDataPoint('millivolts')
         if millivolts is not None:
-            millivolts = long(millivolts)
+            millivolts = int(millivolts)
         return millivolts

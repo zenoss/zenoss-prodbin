@@ -167,8 +167,8 @@ class NetworkCache(SimpleItem):
         subnets = []
         if net_obj:
             net = IPNetwork(ipunwrap(net_obj.id)) # addr.IPNetwork
-            first_decimal_ip = long(int(net.network))
-            last_decimal_ip = long(first_decimal_ip + math.pow(2, net.max_prefixlen - net_obj.netmask) - 1)
+            first_decimal_ip = int(net.network)
+            last_decimal_ip = int(first_decimal_ip + math.pow(2, net.max_prefixlen - net_obj.netmask) - 1)
             for net_uids in self.cache.values(min=first_decimal_ip, max=last_decimal_ip, excludemin=True, excludemax=True):
                 subnets.extend(net_uids)
         return subnets
@@ -522,7 +522,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         if result.total > 0:
             # networks found. if more than network is found, return the one
             # whose lastDecimalIp - firstDecimalIp is the smallest
-            net_brains_tuples = [ ( net_brain, long(net_brain.lastDecimalIp) - long(net_brain.firstDecimalIp) ) for net_brain in result.results ]
+            net_brains_tuples = [ ( net_brain, int(net_brain.lastDecimalIp) - int(net_brain.firstDecimalIp) ) for net_brain in result.results ]
             net_brain_tuple = min(net_brains_tuples, key=lambda x: x[1])
             net = net_brain_tuple[0].getObject()
         return net
@@ -575,7 +575,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         Could this network contain this IP?
         """
         net = IPNetwork(ipunwrap(self.id))
-        start = long(int(net.network))
+        start = int(net.network)
         end = start + math.pow(2, net.max_prefixlen - self.netmask)
         return start <= numbip(ip) < end
 
@@ -584,7 +584,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         """
         net = IPNetwork(ipunwrap(self.id))
         if (self.netmask == net.max_prefixlen): return [self.id]
-        ipnumb = long(int(net))
+        ipnumb = int(net)
         maxip = math.pow(2, net.max_prefixlen - self.netmask)
         start = int(ipnumb+1)
         end = int(ipnumb+maxip-1)

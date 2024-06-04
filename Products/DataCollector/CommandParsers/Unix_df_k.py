@@ -32,9 +32,9 @@ class Unix_df_k(CommandParser):
             try:
                 om = self.newObjectMap("ZenModel.FileSystem")
                 om["storageDevice"] = aline[0]
-                om["totalBytes"] = long(aline[1]) * 1024
-                om["usedBytes"] = long(aline[2]) * 1024
-                om["availBytes"] = long(aline[3]) * 1024
+                om["totalBytes"] = int(aline[1]) * 1024
+                om["usedBytes"] = int(aline[2]) * 1024
+                om["availBytes"] = int(aline[3]) * 1024
                 cap = aline[4][-1] == "%" and aline[4][:-1] or aline[4]
                 om["capacity"] = cap
                 om["mount"] = aline[5]
