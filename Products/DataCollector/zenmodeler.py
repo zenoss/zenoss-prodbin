@@ -889,17 +889,24 @@ class ZenModeler(PBDaemon):
         # We start modeling from here to accomodate the startup delay.
 
         if not self.started:
-            if self.immediate == 0 and self.startat:
-                # This stuff relies on ARBITRARY_BEAT being < 60s
-                if self.timeMatches():
-                    self.started = True
-                    self.log.info("Starting modeling...")
-                    reactor.callLater(1, self.main)
+            if self.immediate == 0:
+                if self.startat:
+                    # This stuff relies on ARBITRARY_BEAT being < 60s
+                    if self.timeMatches():
+                        # Run modeling in case we have now=False, startat is not None and local time matches the startat
+                        self.started = True
+                        self.log.info("Starting modeling...")
+                        reactor.callLater(1, self.main)
                 elif not self.isMainScheduled:
+                    # Or run modeling by cycleTime in case we have now=False, startat is None
+                    # and we haven't set schedule by cycleTime yet
                     self.isMainScheduled = True
                     reactor.callLater(self.cycleTime(), self.main)
             else:
                 self.started = True
+                # Going back to the normal modeling schedule either cron or cycleTime
+                # after the first immediate modeling during service startup
+                self.immediate = 0
                 self.log.info(
                     "Starting modeling in %s seconds.", self.startDelay
                 )
