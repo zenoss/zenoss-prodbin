@@ -148,6 +148,7 @@ class JobStore(Container, Iterable, Sized):
         """
         self.__client = client
         self.__expires = expires
+        self.__scan_count = 1000
 
     def search(self, **fields):
         """Return the job IDs for jobs matching the search criteria.
@@ -192,7 +193,9 @@ class JobStore(Container, Iterable, Sized):
 
         return (
             self.__client.hget(key, "jobid")
-            for key in self.__client.scan_iter(match=_keypattern)
+            for key in self.__client.scan_iter(
+                match=_keypattern, count=self.__scan_count
+            )
             if matchers == dict(zip(field_names, get_fields(key)))
         )
 
@@ -261,7 +264,9 @@ class JobStore(Container, Iterable, Sized):
         """
         return (
             self.__client.hget(key, "jobid")
-            for key in self.__client.scan_iter(match=_keypattern)
+            for key in self.__client.scan_iter(
+                match=_keypattern, count=self.__scan_count
+            )
         )
 
     def values(self):
@@ -269,7 +274,7 @@ class JobStore(Container, Iterable, Sized):
 
         :rtype: Iterator[Dict[str, Union[str, float]]]
         """
-        items = _iteritems(self.__client)
+        items = _iteritems(self.__client, self.__scan_count)
         return (
             {k: Fields[k].loads(v) for k, v in fields.iteritems()}
             for _, fields in items
@@ -280,7 +285,7 @@ class JobStore(Container, Iterable, Sized):
 
         :rtype: Iterator[Tuple[str, Dict[str, Union[str, float]]]]
         """
-        items = _iteritems(self.__client)
+        items = _iteritems(self.__client, self.__scan_count)
         return (
             (
                 fields["jobid"],
@@ -392,7 +397,12 @@ class JobStore(Container, Iterable, Sized):
         return self.__client.exists(_key(jobid))
 
     def __len__(self):
-        return sum(1 for _ in self.__client.scan_iter(match=_keypattern))
+        return sum(
+            1
+            for _ in self.__client.scan_iter(
+                match=_keypattern, count=self.__scan_count
+            )
+        )
 
     def __iter__(self):
         """Return an iterator producing all the job IDs in the datastore.
@@ -416,12 +426,12 @@ def _key(jobid):
     return _keytemplate.format(jobid)
 
 
-def _iteritems(client):
+def _iteritems(client, count):
     """Return an iterable of (redis key, job data) pairs.
 
     Only (key, data) pairs where data is not None are returned.
     """
-    keys = client.scan_iter(match=_keypattern)
+    keys = client.scan_iter(match=_keypattern, count=count)
     raw = ((key, client.hgetall(key)) for key in keys)
     return ((key, data) for key, data in raw if data)
 
