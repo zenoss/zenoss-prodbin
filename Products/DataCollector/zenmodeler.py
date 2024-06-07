@@ -903,7 +903,6 @@ class ZenModeler(PBDaemon):
                     self.isMainScheduled = True
                     reactor.callLater(self.cycleTime(), self.main)
             else:
-                self.started = True
                 # Going back to the normal modeling schedule either cron or cycleTime
                 # after the first immediate modeling during service startup
                 self.immediate = 0
@@ -987,6 +986,11 @@ class ZenModeler(PBDaemon):
             if not self.options.cycle:
                 self.stop()
             self.finished = []
+            # frequency of heartbeat rate could be 2 times per minute in case we have
+            # cron job modeling faster than 1 minute it'll be trigger a second time
+            if runTime < 60 and self.startat is not None:
+                time.sleep(60)
+            self.started = False
 
     def fillCollectionSlots(self, driver):
         """
@@ -1047,8 +1051,6 @@ class ZenModeler(PBDaemon):
         Check whether the current time matches a cron-like
         specification, return a straight true or false
         """
-        if self.startat is None:
-            return True
 
         def match_entity(entity, value):
             if entity == "*":
@@ -1340,7 +1342,7 @@ class ZenModeler(PBDaemon):
         @return: Twisted deferred object
         @rtype: Twisted deferred object
         """
-        if self.options.cycle:
+        if self.options.cycle and self.startat is None:
             self.isMainScheduled = True
             driveLater(self.cycleTime(), self.mainLoop)
 
