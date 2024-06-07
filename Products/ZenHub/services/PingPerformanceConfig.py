@@ -42,7 +42,6 @@ class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
         ds=None,
         perfServer="localhost",
         metadata=None,
-        context=None,
     ):
         self.ip = ipunwrap(ip)
         self.ipVersion = ipVersion
@@ -71,7 +70,6 @@ class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
                 dp.rrdmin,
                 dp.rrdmax,
                 metadata,
-                dp.getTags(context),
             )
 
             self.points.append(ipdData)
@@ -146,7 +144,6 @@ class PingPerformanceConfig(CollectorConfigService):
                         ds=dsList[0],
                         perfServer=perfServer,
                         metadata=metadata,
-                        context=iface
                     )
                     monitoredIps.append(ipProxy)
 
@@ -176,7 +173,6 @@ class PingPerformanceConfig(CollectorConfigService):
                     ds=dsList[0],
                     perfServer=perfServer,
                     metadata=metadata,
-                    context=device
                 )
                 proxy.monitoredIps.append(ipProxy)
                 addedIp = True
