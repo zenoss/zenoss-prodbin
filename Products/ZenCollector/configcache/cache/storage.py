@@ -328,7 +328,7 @@ class ConfigStore(object):
                 self.__pending.delete(pipe, svc, mon, dvc)
                 self.__building.delete(pipe, svc, mon, dvc)
 
-        self._set_status(pairs, self.__retired, _impl)
+        self._set_status(pairs, _impl)
 
     def set_expired(self, *pairs):
         """
@@ -346,7 +346,7 @@ class ConfigStore(object):
                 self.__pending.delete(pipe, svc, mon, dvc)
                 self.__building.delete(pipe, svc, mon, dvc)
 
-        self._set_status(pairs, self.__expired, _impl)
+        self._set_status(pairs, _impl)
 
     def set_pending(self, *pairs):
         """
@@ -364,7 +364,7 @@ class ConfigStore(object):
                 self.__pending.add(pipe, svc, mon, dvc, score)
                 self.__building.delete(pipe, svc, mon, dvc)
 
-        self._set_status(pairs, self.__pending, _impl)
+        self._set_status(pairs, _impl)
 
     def set_building(self, *pairs):
         """
@@ -382,14 +382,14 @@ class ConfigStore(object):
                 self.__pending.delete(pipe, svc, mon, dvc)
                 self.__building.add(pipe, svc, mon, dvc, score)
 
-        self._set_status(pairs, self.__building, _impl)
+        self._set_status(pairs, _impl)
 
-    def _set_status(self, pairs, table, fn):
+    def _set_status(self, pairs, fn):
         if len(pairs) == 0:
             return
 
         watch_keys = self._get_watch_keys(key for key, _ in pairs)
-        rows = (
+        rows = tuple(
             (key.service, key.monitor, key.device, ts) for key, ts in pairs
         )
 
