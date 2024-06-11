@@ -1017,10 +1017,10 @@ class EventsRouter(DirectRouter):
                 'allowNegative': False,
                 'value': self.context.dmd.ZenEventManager.defaultPriority
                 },{
-                'id': 'syslog_parsers',                                                                                                          │[zenoss@sma-dev03 Products]$ cp /z/zenProducts/ZenEvents/zensyslog.py ZenEvents/zensyslog.py
-                'name': _t('Syslog Parsers'),                                                                                                    │[zenoss@sma-dev03 Products]$ cp /z/zenProducts/ZenHub/services/SyslogConfig.py ZenHub/services/SyslogConfig.py
-                'xtype': 'textarea',                                                                                                             │[zenoss@sma-dev03 Products]$ git status
-                'value': self.context.dmd.ZenEventManager.syslogParsers                                                                          │# On branch feature/ZEN-34363
+                'id': 'syslog_parsers',
+                'name': _t('Syslog Parsers'),
+                'xtype': 'textarea',
+                'value': self.context.dmd.ZenEventManager.syslogParsers
                 },{           
                 'id': 'default_availability_days',
                 'name': _t('Default Availability Report (days)'),
