@@ -52,16 +52,10 @@ class EmptyConfigStoreTest(TestCase):
     def test_remove(t):
         t.assertIsNone(t.store.remove())
 
-    def test_get_status_no_keys(t):
-        result = t.store.get_status()
-        t.assertIsInstance(result, collections.Iterable)
-        t.assertTupleEqual(tuple(result), ())
-
     def test_get_status_unknown_key(t):
         key = CacheKey("a", "b", "c")
         result = t.store.get_status(key)
-        t.assertIsInstance(result, collections.Iterable)
-        t.assertTupleEqual(tuple(result), ())
+        t.assertIsNone(result)
 
     def test_get_pending(t):
         result = t.store.get_pending()
@@ -98,7 +92,7 @@ class NoConfigTest(TestCase):
         del t.store
 
     def test_current_status(t):
-        t.assertIsNone(next(t.store.get_status(t.key), None))
+        t.assertIsNone(t.store.get_status(t.key))
 
     def test_search_with_status(t):
         t.store.set_pending((t.key, t.now))
@@ -107,25 +101,25 @@ class NoConfigTest(TestCase):
     def test_retired(t):
         expected = ConfigStatus.Retired(t.key, None, t.now)
         t.store.set_retired((t.key, t.now))
-        status = next(t.store.get_status(t.key), None)
+        status = t.store.get_status(t.key)
         t.assertEqual(expected, status)
 
     def test_expired(t):
         expected = ConfigStatus.Expired(t.key, None, t.now)
         t.store.set_expired((t.key, t.now))
-        status = next(t.store.get_status(t.key), None)
+        status = t.store.get_status(t.key)
         t.assertEqual(expected, status)
 
     def test_pending(t):
         expected = ConfigStatus.Pending(t.key, None, t.now)
         t.store.set_pending((t.key, t.now))
-        status = next(t.store.get_status(t.key), None)
+        status = t.store.get_status(t.key)
         t.assertEqual(expected, status)
 
     def test_building(t):
         expected = ConfigStatus.Building(t.key, None, t.now)
         t.store.set_building((t.key, t.now))
-        status = next(t.store.get_status(t.key), None)
+        status = t.store.get_status(t.key)
         t.assertEqual(expected, status)
 
 
@@ -270,16 +264,12 @@ class ConfigStoreGetStatusTest(_BaseTest):
         t.store.add(t.record1)
         t.store.add(t.record2)
 
-        result = tuple(t.store.get_status(t.record1.key))
-        t.assertEqual(1, len(result))
-        status = result[0]
+        status = t.store.get_status(t.record1.key)
         t.assertEqual(t.record1.key, status.key)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.fields[0].updated, status.updated)
 
-        result = tuple(t.store.get_status(t.record2.key))
-        t.assertEqual(1, len(result))
-        status = result[0]
+        status = t.store.get_status(t.record2.key)
         t.assertEqual(t.record2.key, status.key)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.fields[1].updated, status.updated)
@@ -448,7 +438,7 @@ class SetStatusOnceTest(_BaseTest):
 
         actual = next(t.store.get_retired(), None)
         t.assertEqual(expected, actual)
-        actual = next(t.store.get_status(t.record1.key), None)
+        actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
         actual = next(t.store.get_expired(), None)
@@ -465,7 +455,7 @@ class SetStatusOnceTest(_BaseTest):
 
         actual = next(t.store.get_expired(), None)
         t.assertEqual(expected, actual)
-        actual = next(t.store.get_status(t.record1.key), None)
+        actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
         actual = next(t.store.get_retired(), None)
@@ -482,7 +472,7 @@ class SetStatusOnceTest(_BaseTest):
 
         actual = next(t.store.get_pending(), None)
         t.assertEqual(expected, actual)
-        actual = next(t.store.get_status(t.record1.key), None)
+        actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
         actual = next(t.store.get_retired(), None)
@@ -499,7 +489,7 @@ class SetStatusOnceTest(_BaseTest):
 
         actual = next(t.store.get_building(), None)
         t.assertEqual(expected, actual)
-        actual = next(t.store.get_status(t.record1.key), None)
+        actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
         actual = next(t.store.get_retired(), None)
@@ -525,7 +515,7 @@ class SetStatusTwiceTest(_BaseTest):
 
         actual = next(t.store.get_retired(), None)
         t.assertEqual(expected, actual)
-        actual = next(t.store.get_status(t.record1.key), None)
+        actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
         actual = next(t.store.get_expired(), None)
@@ -544,7 +534,7 @@ class SetStatusTwiceTest(_BaseTest):
 
         actual = next(t.store.get_expired(), None)
         t.assertEqual(expected, actual)
-        actual = next(t.store.get_status(t.record1.key), None)
+        actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
         actual = next(t.store.get_retired(), None)
@@ -563,7 +553,7 @@ class SetStatusTwiceTest(_BaseTest):
 
         actual = next(t.store.get_pending(), None)
         t.assertEqual(expected, actual)
-        actual = next(t.store.get_status(t.record1.key), None)
+        actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
         actual = next(t.store.get_retired(), None)
@@ -582,7 +572,7 @@ class SetStatusTwiceTest(_BaseTest):
 
         actual = next(t.store.get_building(), None)
         t.assertEqual(expected, actual)
-        actual = next(t.store.get_status(t.record1.key), None)
+        actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
         actual = next(t.store.get_retired(), None)
@@ -601,7 +591,7 @@ class TestCurrentOnlyMethods(_BaseTest):
     def test_older_with_current(t):
         t.store.add(t.record1)
 
-        status = next(t.store.get_status(t.record1.key), None)
+        status = t.store.get_status(t.record1.key)
         t.assertIsInstance(status, ConfigStatus.Current)
 
         older = next(t.store.get_older(t.record1.updated), None)
@@ -612,7 +602,7 @@ class TestCurrentOnlyMethods(_BaseTest):
         ts = t.record1.updated + 500
         t.store.set_retired((t.record1.key, ts))
 
-        status = next(t.store.get_status(t.record1.key), None)
+        status = t.store.get_status(t.record1.key)
         t.assertIsInstance(status, ConfigStatus.Retired)
 
         older = next(t.store.get_older(t.record1.updated), None)
@@ -623,7 +613,7 @@ class TestCurrentOnlyMethods(_BaseTest):
         ts = t.record1.updated + 500
         t.store.set_expired((t.record1.key, ts))
 
-        status = next(t.store.get_status(t.record1.key), None)
+        status = t.store.get_status(t.record1.key)
         t.assertIsInstance(status, ConfigStatus.Expired)
 
         older = next(t.store.get_older(t.record1.updated), None)
@@ -634,7 +624,7 @@ class TestCurrentOnlyMethods(_BaseTest):
         ts = t.record1.updated + 500
         t.store.set_pending((t.record1.key, ts))
 
-        status = next(t.store.get_status(t.record1.key), None)
+        status = t.store.get_status(t.record1.key)
         t.assertIsInstance(status, ConfigStatus.Pending)
 
         older = next(t.store.get_older(t.record1.updated), None)
@@ -645,7 +635,7 @@ class TestCurrentOnlyMethods(_BaseTest):
         ts = t.record1.updated + 500
         t.store.set_building((t.record1.key, ts))
 
-        status = next(t.store.get_status(t.record1.key), None)
+        status = t.store.get_status(t.record1.key)
         t.assertIsInstance(status, ConfigStatus.Building)
 
         older = next(t.store.get_older(t.record1.updated), None)
@@ -654,7 +644,7 @@ class TestCurrentOnlyMethods(_BaseTest):
     def test_newer_with_current(t):
         t.store.add(t.record1)
 
-        status = next(t.store.get_status(t.record1.key), None)
+        status = t.store.get_status(t.record1.key)
         t.assertIsInstance(status, ConfigStatus.Current)
 
         newer = next(t.store.get_newer(t.record1.updated - 1), None)
@@ -665,7 +655,7 @@ class TestCurrentOnlyMethods(_BaseTest):
         ts = t.record1.updated + 500
         t.store.set_retired((t.record1.key, ts))
 
-        status = next(t.store.get_status(t.record1.key), None)
+        status = t.store.get_status(t.record1.key)
         t.assertIsInstance(status, ConfigStatus.Retired)
 
         newer = next(t.store.get_newer(t.record1.updated - 1), None)
@@ -676,7 +666,7 @@ class TestCurrentOnlyMethods(_BaseTest):
         ts = t.record1.updated + 500
         t.store.set_expired((t.record1.key, ts))
 
-        status = next(t.store.get_status(t.record1.key), None)
+        status = t.store.get_status(t.record1.key)
         t.assertIsInstance(status, ConfigStatus.Expired)
 
         newer = next(t.store.get_newer(t.record1.updated - 1), None)
@@ -687,7 +677,7 @@ class TestCurrentOnlyMethods(_BaseTest):
         ts = t.record1.updated + 500
         t.store.set_pending((t.record1.key, ts))
 
-        status = next(t.store.get_status(t.record1.key), None)
+        status = t.store.get_status(t.record1.key)
         t.assertIsInstance(status, ConfigStatus.Pending)
 
         newer = next(t.store.get_newer(t.record1.updated - 1), None)
@@ -698,7 +688,7 @@ class TestCurrentOnlyMethods(_BaseTest):
         ts = t.record1.updated + 500
         t.store.set_building((t.record1.key, ts))
 
-        status = next(t.store.get_status(t.record1.key), None)
+        status = t.store.get_status(t.record1.key)
         t.assertIsInstance(status, ConfigStatus.Building)
 
         newer = next(t.store.get_newer(t.record1.updated - 1), None)
@@ -715,7 +705,7 @@ class GetStatusTest(_BaseTest):
         expected = ConfigStatus.Current(
             t.record1.key, t.record1.uid, t.record1.updated
         )
-        actual = next(t.store.get_status(t.record1.key), None)
+        actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
     def test_retired(t):
@@ -723,7 +713,7 @@ class GetStatusTest(_BaseTest):
         ts = t.record1.updated + 100
         t.store.set_retired((t.record1.key, ts))
         expected = ConfigStatus.Retired(t.record1.key, t.record1.uid, ts)
-        actual = next(t.store.get_status(t.record1.key), None)
+        actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
     def test_expired(t):
@@ -731,7 +721,7 @@ class GetStatusTest(_BaseTest):
         ts = t.record1.updated + 200
         t.store.set_expired((t.record1.key, ts))
         expected = ConfigStatus.Expired(t.record1.key, t.record1.uid, ts)
-        actual = next(t.store.get_status(t.record1.key), None)
+        actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
     def test_pending(t):
@@ -739,7 +729,7 @@ class GetStatusTest(_BaseTest):
         ts = t.record1.updated + 300
         t.store.set_pending((t.record1.key, ts))
         expected = ConfigStatus.Pending(t.record1.key, t.record1.uid, ts)
-        actual = next(t.store.get_status(t.record1.key), None)
+        actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
     def test_building(t):
@@ -747,7 +737,7 @@ class GetStatusTest(_BaseTest):
         ts = t.record1.updated + 400
         t.store.set_building((t.record1.key, ts))
         expected = ConfigStatus.Building(t.record1.key, t.record1.uid, ts)
-        actual = next(t.store.get_status(t.record1.key), None)
+        actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
 
@@ -760,7 +750,7 @@ class TestClearStatus(_BaseTest):
         t.store.add(t.record1)
         t.store.clear_status(t.record1.key)
 
-        status = next(t.store.get_status(t.record1.key), None)
+        status = t.store.get_status(t.record1.key)
         t.assertIsInstance(status, ConfigStatus.Current)
 
         t.assertIsNone(next(t.store.get_retired(), None))
@@ -775,7 +765,7 @@ class TestClearStatus(_BaseTest):
 
         t.store.clear_status(t.record1.key)
 
-        status = next(t.store.get_status(t.record1.key), None)
+        status = t.store.get_status(t.record1.key)
         t.assertIsInstance(status, ConfigStatus.Current)
 
         t.assertIsNone(next(t.store.get_retired(), None))
@@ -789,7 +779,7 @@ class TestClearStatus(_BaseTest):
 
         t.store.clear_status(t.record1.key)
 
-        t.assertIsNone(next(t.store.get_status(t.record1.key), None))
+        t.assertIsNone(t.store.get_status(t.record1.key))
         t.assertIsNone(next(t.store.get_retired(), None))
         t.assertIsNone(next(t.store.get_expired(), None))
         t.assertIsNone(next(t.store.get_pending(), None))
@@ -801,7 +791,7 @@ class TestClearStatus(_BaseTest):
 
         t.store.clear_status(t.record1.key)
 
-        t.assertIsNone(next(t.store.get_status(t.record1.key), None))
+        t.assertIsNone(t.store.get_status(t.record1.key))
         t.assertIsNone(next(t.store.get_retired(), None))
         t.assertIsNone(next(t.store.get_expired(), None))
         t.assertIsNone(next(t.store.get_pending(), None))
@@ -813,7 +803,7 @@ class TestClearStatus(_BaseTest):
 
         t.store.clear_status(t.record1.key)
 
-        t.assertIsNone(next(t.store.get_status(t.record1.key), None))
+        t.assertIsNone(t.store.get_status(t.record1.key))
         t.assertIsNone(next(t.store.get_retired(), None))
         t.assertIsNone(next(t.store.get_expired(), None))
         t.assertIsNone(next(t.store.get_pending(), None))
@@ -825,7 +815,7 @@ class TestClearStatus(_BaseTest):
 
         t.store.clear_status(t.record1.key)
 
-        t.assertIsNone(next(t.store.get_status(t.record1.key), None))
+        t.assertIsNone(t.store.get_status(t.record1.key))
         t.assertIsNone(next(t.store.get_retired(), None))
         t.assertIsNone(next(t.store.get_expired(), None))
         t.assertIsNone(next(t.store.get_pending(), None))
@@ -1038,9 +1028,7 @@ class TestAddTransitions(_BaseTest):
         retired_keys = tuple(t.store.get_retired())
         t.assertTupleEqual((), retired_keys)
 
-        result = tuple(t.store.get_status(t.record1.key))
-        t.assertEqual(1, len(result))
-        status = result[0]
+        status = t.store.get_status(t.record1.key)
         t.assertEqual(t.record1.key, status.key)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
@@ -1054,9 +1042,7 @@ class TestAddTransitions(_BaseTest):
         expired_keys = tuple(t.store.get_expired())
         t.assertTupleEqual((), expired_keys)
 
-        result = tuple(t.store.get_status(t.record1.key))
-        t.assertEqual(1, len(result))
-        status = result[0]
+        status = t.store.get_status(t.record1.key)
         t.assertEqual(t.record1.key, status.key)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
@@ -1075,9 +1061,7 @@ class TestAddTransitions(_BaseTest):
         pending_keys = tuple(t.store.get_pending())
         t.assertTupleEqual((), pending_keys)
 
-        result = tuple(t.store.get_status(t.record1.key))
-        t.assertEqual(1, len(result))
-        status = result[0]
+        status = t.store.get_status(t.record1.key)
         t.assertEqual(t.record1.key, status.key)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
@@ -1100,9 +1084,7 @@ class TestAddTransitions(_BaseTest):
         building_keys = tuple(t.store.get_building())
         t.assertTupleEqual((), building_keys)
 
-        result = tuple(t.store.get_status(t.record1.key))
-        t.assertEqual(1, len(result))
-        status = result[0]
+        status = t.store.get_status(t.record1.key)
         t.assertEqual(t.record1.key, status.key)
         t.assertIsInstance(status, ConfigStatus.Current)
         t.assertEqual(t.record1.updated, status.updated)
