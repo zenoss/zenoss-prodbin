@@ -43,7 +43,7 @@ from Products.ZenCollector.tasks import (
     SimpleTaskFactory, SimpleTaskSplitter, BaseTask, TaskStates
 )
 from Products.ZenEvents.EventServer import Stats
-from Products.ZenEvents.TrapFilter import TrapFilter, TrapFilterError
+from Products.ZenEvents.TrapFilter import TrapFilter
 from Products.ZenEvents.ZenEventClasses import Clear, Critical, Info
 from Products.ZenHub.interfaces import ICollectorEventTransformer
 from Products.ZenHub.services.SnmpTrapConfig import User
