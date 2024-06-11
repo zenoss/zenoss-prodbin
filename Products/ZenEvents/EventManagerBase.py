@@ -117,6 +117,20 @@ class EventManagerBase(ZenModelRM):
     eventAgingHours = 4
     eventAgingSeverity = 4
     historyMaxAgeDays = 0
+    trapFilters = """# Format: [COLLECTOR REGEX] include|exclude v1|v2 <version-specific options>
+# Include all generic SNMP V1 Traps 0-5
+include v1 0
+include v1 1
+include v1 2
+include v1 3
+include v1 4
+include v1 5
+
+# Include all enterprise-specific SNMP V1 traps
+include v1 *
+
+# Include all SNMP V2 traps
+include v2 *"""
     # Regular expressions that parse syslog tags from different sources
     # A tuple can also be specified, in which case the second item in the
     # tuple is a boolean which tells whether or not to keep the entry (default)
@@ -233,6 +247,7 @@ class EventManagerBase(ZenModelRM):
         {'id':'eventAgingHours', 'type':'int', 'mode':'w'},
         {'id':'eventAgingSeverity', 'type':'int', 'mode':'w'},
         {'id':'historyMaxAgeDays', 'type':'int', 'mode':'w'},
+        {'id':'trapFilters', 'type':'string', 'mode':'w'},
         {'id':'syslogParsers', 'type':'list', 'mode':'w'},
         {'id':'syslogSummaryToMessage', 'type':'boolean', 'mode':'w'},
         {'id':'syslogMsgEvtFieldFilterRules', 'type':'dict', 'mode':'w'},
@@ -311,9 +326,6 @@ class EventManagerBase(ZenModelRM):
         for name in allowedFilters:
             if hasattr(state, name):
                 kw.setdefault(name, getattr(state, name))
-        # ZEN-30539
-        if not getattr(state, 'generate', ''):
-            return None
         if getattr(state, 'startDate', None) is not None:
             kw.setdefault('startDate', Time.ParseUSDate(state.startDate))
         if getattr(state, 'endDate', None) is not None:
