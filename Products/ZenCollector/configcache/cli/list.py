@@ -100,7 +100,7 @@ class List_(object):
             )
         else:
             query = CacheQuery(service=self._service, monitor=self._monitor)
-        data = store.get_statuses(query)
+        data = store.query_statuses(query)
         if self._states:
             data = (
                 status for status in data if isinstance(status, self._states)

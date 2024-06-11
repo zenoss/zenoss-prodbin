@@ -141,7 +141,7 @@ class Stats(object):
             for group in self._groups:
                 group.handle_key(key)
                 group.handle_timestamp(key, ts)
-        for status in store.get_statuses(query):
+        for status in store.query_statuses(query):
             if not include(status.key.device):
                 continue
             for group in self._groups:
