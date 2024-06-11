@@ -1106,9 +1106,9 @@ class EventsRouter(DirectRouter):
         if defaultSyslogPriority is not None:
             self.context.dmd.ZenEventManager.defaultPriority = int(defaultSyslogPriority)
 
-        syslogParsers = values.pop('syslog_parsers', None)                                                                                       │#   (use "git checkout -- <file>..." to discard changes in working directory)
-        if syslogParsers is not None:                                                                                                            │#
-            self.context.dmd.ZenEventManager.syslogParsers = syslogParsers                                                                       │#       modified:   ZenEvents/SyslogProcessing.py
+        syslogParsers = values.pop('syslog_parsers', None)
+        if syslogParsers is not None:
+            self.context.dmd.ZenEventManager.syslogParsers = syslogParsers
 
         defaultAvailabilityDays = values.pop('default_availability_days', None)
         if defaultAvailabilityDays is not None:
