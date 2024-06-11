@@ -65,7 +65,7 @@ class ZentrapSvcDevForMsgParsing(Migrate.Step):
                 (x for x in svc.originalConfigs if x.name == '/opt/zenoss/etc/zentrap.filter.conf'),
                 None
             )
-            if fc.content == ofc.content:
+            if ofc is not None and fc.content == ofc.content:
                 log.info(
                     "%s %s service: 'zentrap.filter.conf' contents are the default"
                     "; skipping.", collectorName, svc.name)
