@@ -38,6 +38,7 @@ class SyslogConfig(CollectorConfigService):
         proxy.defaultPriority = self.zem.defaultPriority
         proxy.syslogParsers = self.zem.syslogParsers
         proxy.syslogSummaryToMessage = self.zem.syslogSummaryToMessage
+        proxy.syslogMsgEvtFieldFilterRules = self.zem.syslogMsgEvtFieldFilterRules
 
         return proxy
 

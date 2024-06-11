@@ -43,6 +43,9 @@ from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.IpUtil import asyncNameLookup
 
 from Products.ZenEvents.EventServer import Stats
+from Products.ZenEvents.SyslogMsgFilter import SyslogMsgFilter
+from Products.ZenEvents.ZenEventClasses import Clear, Info, Critical
+from Products.ZenHub.interfaces import ICollectorEventTransformer
 from Products.ZenUtils.Utils import unused
 from Products.ZenCollector.services.config import DeviceProxy
 unused(DeviceProxy)
@@ -358,6 +361,67 @@ class SyslogConfigTask(ObservableMixin):
 class SyslogDaemon(CollectorDaemon):
 
     _frameworkFactoryName = "nosip"
+
+    def __init__(self, *args, **kwargs):
+        self._syslogMsgFilter = SyslogMsgFilter()
+        zope.component.provideUtility(self._syslogMsgFilter, ICollectorEventTransformer)
+        kwargs["initializationCallback"] = self._initializeSyslogMsgFilter
+        super(SyslogDaemon, self).__init__(*args, **kwargs)
+
+    def _initializeSyslogMsgFilter(self):
+        try:
+            self._syslogMsgFilter.initialize()
+            initializationSucceededEvent = {
+                'component': 'zensyslog',
+                'device': self.options.monitor,
+                'eventClass': "/Status",
+                'eventKey': "SyslogMessageFilterInit",
+                'summary': 'initialized',
+                'severity': Clear,
+            }
+            self.sendEvent(initializationSucceededEvent)
+        except Exception as e:
+            initializationFailedEvent = {
+                'component': 'zensyslog',
+                'device': self.options.monitor,
+                'eventClass': "/Status",
+                'eventKey': "SyslogMessageFilterInit",
+                'summary': 'initialization failed',
+                'message': e.message,
+                'severity': Critical,
+            }
+            log.error("Failed to initialize syslog message filter: %s", e.message)
+            self.sendEvent(initializationFailedEvent)
+            self.setExitCode(1)
+            self.stop()
+
+    def _updateConfig(self, cfg):
+        result = super(SyslogDaemon, self)._updateConfig(cfg)
+        if result:
+            self._syslogMsgFilter.updateRuleSet(cfg.syslogMsgEvtFieldFilterRules)
+        return result
+
+    def _displayStatistics(self, verbose=False):
+        super(SyslogDaemon, self)._displayStatistics(verbose)
+        sendEventsOnCounters = ['eventFilterDroppedCount']
+        if not hasattr(self, 'lastCounterEventTime'):
+            self.lastCounterEventTime = time.time()
+        # Send an update event every hour
+        if self.lastCounterEventTime < (time.time() - 3600):
+            for counterName in sendEventsOnCounters:
+                counterEvent = {
+                    'component': 'zensyslog',
+                    'device': self.options.monitor,
+                    'eventClass': "/App/Zenoss",
+                    'eventKey': "zensyslog.{}".format(counterName),
+                    'summary': '{}: {}'.format(
+                        counterName,
+                        self.counters[counterName]),
+                    'severity': Info,
+                }
+                self.sendEvent(counterEvent)
+            self.lastCounterEventTime = time.time()
+
 
 
 if __name__=='__main__':
