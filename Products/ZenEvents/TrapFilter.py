@@ -291,7 +291,7 @@ class TrapFilter(object):
             previousDefinition = filtersByLevel[key]
             if self._parseDefConflictShouldOverride(filterDef, previousDefinition) is False:
                 return "OID '%s' conflicts with previous definition at line %d" % (oid, previousDefinition.lineNumber)
-            filtersByLevel[key] = filterDef
+        filtersByLevel[key] = filterDef
         return None
 
     def _parseV2FilterDefinition(self, lineNumber, action, remainingTokens, collectorRegex):
@@ -335,7 +335,7 @@ class TrapFilter(object):
             previousDefinition = filtersByLevel[oid]
             if self._parseDefConflictShouldOverride(filterDef, previousDefinition) is False:
                 return "OID '%s' conflicts with previous definition at line %d" % (oid, previousDefinition.lineNumber)
-            filtersByLevel[oid] = filterDef
+        filtersByLevel[oid] = filterDef
         return None
 
     def _validateOID(self, oid):
@@ -392,7 +392,7 @@ class TrapFilter(object):
         numFiltersDefined = len(self._v1Traps) + len(self._v1Filters) + len(self._v2Filters)
         self._filtersDefined = 0 != numFiltersDefined
         if self._filtersDefined:
-            log.info(
+            log.debug(
                 "Finished reading filter configuration. Lines parsed:%s, "
                 "Filters defined:%s [v1Traps:%d, v1Filters:%d, "
                 "v2Filters:%d]", lineNumber, numFiltersDefined,
