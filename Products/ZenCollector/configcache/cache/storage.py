@@ -300,11 +300,18 @@ class ConfigStore(object):
 
         @type keys: Sequence[CacheKey]
         """
-        with self.__client.pipeline() as pipe:
+        if len(keys) == 0:
+            return
+
+        def clear_impl(pipe):
+            pipe.multi()
             for key in keys:
-                svc, mon, dvc = key.service, key.monitor, key.device
-                self._delete_statuses(pipe, svc, mon, dvc)
-            pipe.execute()
+                self._delete_statuses(
+                    pipe, key.service, key.monitor, key.device
+                )
+
+        watch_keys = self._get_watch_keys(keys)
+        self.__client.transaction(clear_impl, *watch_keys)
 
     def _delete_statuses(self, pipe, svc, mon, dvc):
         self.__retired.delete(pipe, svc, mon, dvc)
@@ -410,27 +417,26 @@ class ConfigStore(object):
             )
         )
 
-    def get_status(self, *keys):
+    def get_status(self, key):
         """
-        Returns an iterable of ConfigStatus objects.
+        Returns the current status of the config identified by `key`.
 
-        @rtype: Iterable[ConfigStatus]
+        @type key: CacheKey
+        @rtype: ConfigStatus | None
         """
-        for key in keys:
-            scores = self._get_scores(key)
-            uid = self.__uids.get(self.__client, key.device)
-            status = self._get_status_from_scores(scores, key, uid)
-            if status is not None:
-                yield status
+        scores = self._get_scores(key)
+        if not any(scores):
+            return None
+        uid = self.__uids.get(self.__client, key.device)
+        return self._get_status_from_scores(scores, key, uid)
 
-    def get_statuses(self, query=CacheQuery()):
+    def query_statuses(self, query=CacheQuery()):
         """
         Return all status objects matching the query.
 
         @type query: CacheQuery
         @rtype: Iterable[ConfigStatus]
         """
-        statuses = []
         keys = set()
         uids = {}
         tables = (
@@ -439,7 +445,6 @@ class ConfigStore(object):
             (self.__pending, ConfigStatus.Pending),
             (self.__building, ConfigStatus.Building),
         )
-
         predicate = self._get_device_predicate(query.device)
 
         for table, cls in tables:
@@ -449,7 +454,7 @@ class ConfigStore(object):
                 if predicate(key.device):
                     keys.add(key)
                     uid = self._get_uid(uids, key.device)
-                    statuses.append(cls(key, uid, ts))
+                    yield cls(key, uid, ts)
         for key, ts in self._get_metadata(
             self.__age, query.service, query.monitor
         ):
@@ -459,8 +464,7 @@ class ConfigStore(object):
                 continue
             if predicate(key.device):
                 uid = self._get_uid(uids, key.device)
-                statuses.append(ConfigStatus.Current(key, uid, ts))
-        return statuses
+                yield ConfigStatus.Current(key, uid, ts)
 
     def _get_device_predicate(self, spec):
 
