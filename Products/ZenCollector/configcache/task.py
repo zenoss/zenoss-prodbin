@@ -66,7 +66,7 @@ def buildDeviceConfig(
 
     # Check whether this is an old job, i.e. job pending timeout.
     # If it is an old job, skip it, manager already sent another one.
-    status = next(store.get_status(key), None)
+    status = store.get_status(key)
     device = dmd.Devices.findDeviceByIdExact(deviceid)
     if _job_is_old(status, submitted, device, log):
         return
@@ -120,7 +120,7 @@ def buildDeviceConfig(
             svcname, monitorname, deviceid, uid, time(), config
         )
         # Get the current status of the configuration.
-        status = next(store.get_status(key), None)
+        status = store.get_status(key)
         if isinstance(status, (ConfigStatus.Expired, ConfigStatus.Pending)):
             # status is not ConfigStatus.Building, so another job will be
             # submitted or has already been submitted.
