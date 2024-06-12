@@ -65,5 +65,5 @@ class TestBuildDeviceConfig(TestCase):
 
         buildDeviceConfig(dmd, log, monitor, t.device_name, clsname, submitted)
 
-        status = next(t.store.get_status(key), None)
+        status = t.store.get_status(key)
         t.assertIsNone(status)

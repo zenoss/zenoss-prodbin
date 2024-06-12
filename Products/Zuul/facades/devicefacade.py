@@ -1024,7 +1024,7 @@ class DeviceFacade(TreeFacade):
                 graphDefs[component.meta_type] = current_def
         return graphDefs
 
-    def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
+    def getComponentGraphs(self, uid, meta_type, graphId, limit, graphsOnSame, allOnSame=False):
         obj = self._getObject(uid)
 
         # get the components we are rendering graphs for
@@ -1049,7 +1049,7 @@ class DeviceFacade(TreeFacade):
             return []
 
         if allOnSame:
-            return [MultiContextMetricServiceGraphDefinition(graphDefault, components)]
+            return [MultiContextMetricServiceGraphDefinition(graphDefault, components, graphsOnSame)]
 
         graphs = []
         for comp in components:
@@ -1057,7 +1057,8 @@ class DeviceFacade(TreeFacade):
             if graph:
                 info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
                 graphs.append(info)
-        return graphs
+
+        return {"data": graphs[limit['start']:limit['end']], "data_length": len(graphs)}
 
     def getDevTypes(self, uid):
         """
