@@ -11,12 +11,12 @@ from __future__ import absolute_import, print_function
 
 import inspect
 import logging
-import logging.config
-import logging.handlers
 import os
 import sys
 
 from functools import wraps
+
+import six
 
 from celery._state import get_current_task
 from celery.utils.log import (
@@ -236,7 +236,7 @@ class inject_logger(object):
                 if not isinstance(baselog, logging.getLoggerClass()):
                     raise TypeError("'log' callable does produce a logger")
                 self.baselog = baselog
-            elif isinstance(log, basestring):
+            elif isinstance(log, six.string_types):
                 self.baselog = logging.getLogger(log)
             else:
                 raise TypeError(
