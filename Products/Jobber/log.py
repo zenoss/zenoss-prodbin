@@ -419,7 +419,7 @@ class _LogLevelUpdaterThread(threading.Thread):
 
 
 def _get_hash(config):
-    return hashlib.md5(
+    return hashlib.sha256(
         "".join("{0}{1}".format(k, config[k]) for k in sorted(config))
     ).hexdigest()
 
