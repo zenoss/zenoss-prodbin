@@ -22,16 +22,19 @@ class NewDeviceHandler(object):
         self.dispatcher = dispatcher
 
     def __call__(self, deviceId, monitor, buildlimit, newDevice=True):
+        all_keys = set(
+            CacheKey(svcname, monitor, deviceId)
+            for svcname in self.dispatcher.service_names
+        )
         query = CacheQuery(device=deviceId, monitor=monitor)
-        pending_status = set()
-        other_status = set()
-        for status in self.store.query_statuses(query):
-            if isinstance(status, ConfigStatus.Pending):
-                pending_status.add(status.key)
-            else:
-                other_status.add(status.key)
-        for key in pending_status:
-            self.log.debug(
+        pending_keys = set(
+            status.key
+            for status in self.store.query_statuses(query)
+            if isinstance(status, ConfigStatus.Pending)
+        )
+        non_pending_keys = all_keys - pending_keys
+        for key in pending_keys:
+            self.log.info(
                 "build job already submitted for this config  "
                 "device=%s collector=%s service=%s",
                 key.device,
@@ -40,9 +43,9 @@ class NewDeviceHandler(object):
             )
         now = time.time()
         self.store.set_pending(
-            *((key, now) for key in other_status)
+            *((key, now) for key in non_pending_keys)
         )
-        for key in other_status:
+        for key in non_pending_keys:
             self.dispatcher.dispatch(
                 key.service, key.monitor, key.device, buildlimit, now
             )
@@ -133,6 +136,7 @@ class MissingConfigsHandler(object):
             status.key
             for key in noconfigkeys
             for status in self.store.get_status(key)
+            if status is not None
         )
         now = time.time()
         for key in (k for k in noconfigkeys if k not in skipkeys):
