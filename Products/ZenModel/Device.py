@@ -462,12 +462,30 @@ class Device(
         """
         if not hasattr(self, "zDeviceTemplates"):
             return ManagedEntity.getRRDTemplates(self)
-        result = []
-        for name in self.zDeviceTemplates:
-            template = self.getRRDTemplateByName(name)
-            if template:
-                result.append(template)
-        return result
+        templates = []
+        for templateName in self.zDeviceTemplates:
+            if templateName.endswith('-replacement') or \
+                    templateName.endswith('-addition'):
+                continue
+
+            template = self.getRRDTemplateByName(templateName)
+            if not template:
+                continue
+            replacement = self.getRRDTemplateByName(
+                '{}-replacement'.format(templateName))
+
+            if replacement and replacement not in templates:
+                templates.append(replacement)
+            else:
+                templates.append(template)
+
+            addition = self.getRRDTemplateByName(
+                '{}-addition'.format(templateName))
+
+            if addition and addition not in templates:
+                templates.append(addition)
+
+        return templates
 
     def getDataSourceOptions(self):
         """
@@ -2486,7 +2504,7 @@ class Device(
         from Products.ZenModel.RRDTemplate import manage_addRRDTemplate
 
         manage_addRRDTemplate(self, id)
-        if id not in self.zDeviceTemplates:
+        if id not in self.zDeviceTemplates and not id.endswith("-replacement") and not id.endswith("-addition"):
             self.bindTemplates(self.zDeviceTemplates + [id])
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
@@ -2505,16 +2523,16 @@ class Device(
         # Any templates available to the class that aren't overridden locally
         # are also available
         device_template_ids = set(t.id for t in templates)
-        templates.extend(
-            t
-            for t in self.deviceClass().getRRDTemplates()
-            if t.id not in device_template_ids
-        )
-
-        # filter before sorting
-        templates = filter(
-            lambda t: isinstance(self, t.getTargetPythonClass()), templates
-        )
+        templates.extend(t for t in self.deviceClass().getRRDTemplates()
+                                            if t.id not in device_template_ids)
+        # Filter out any templates that have been 'replaced'
+        filteredTemplates = list(templates)
+        for t in templates:
+            tName = t.titleOrId()
+            if tName.endswith("-replacement") or tName.endswith("-addition"):
+                filteredTemplates.remove(t)
+        # filter for python class before sorting
+        templates = filter(lambda t: isinstance(self, t.getTargetPythonClass()), filteredTemplates)
         return sorted(templates, key=lambda x: x.id.lower())
 
     def getSnmpV3EngineId(self):
