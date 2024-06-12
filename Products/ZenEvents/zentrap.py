@@ -274,7 +274,7 @@ class _MixedVarbindProcessor(object):
 class DynamicConfigLoader(BaseTask):
     """Handles retrieving additional dynamic configs for daemon from ZODB"""
 
-    def __init__(self, taskName, configId, scheduleIntervalSeconds=1*60, taskConfig=None):
+    def __init__(self, taskName, configId, scheduleIntervalSeconds=3*60, taskConfig=None):
         BaseTask.__init__(self, taskName, configId, scheduleIntervalSeconds, taskConfig)
         self.log = log
         # Needed for interface
