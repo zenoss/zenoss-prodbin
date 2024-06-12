@@ -65,7 +65,7 @@ class Expire(object):
         client = getRedisClient(url=getRedisUrl())
         store = createObject("configcache-store", client)
         query = CacheQuery(service=self._service, monitor=self._monitor)
-        results = store.get_status(*store.search(query))
+        results = store.query_statuses(query)
         method = self._no_devices if not self._devices else self._with_devices
         keys = method(results, wildcard=haswildcard)
         now = time.time()

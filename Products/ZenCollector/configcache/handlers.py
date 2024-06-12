@@ -11,7 +11,7 @@ from __future__ import print_function, absolute_import
 
 import time
 
-from .cache import CacheKey, ConfigStatus
+from .cache import CacheKey, CacheQuery, ConfigStatus
 
 
 class NewDeviceHandler(object):
@@ -22,16 +22,15 @@ class NewDeviceHandler(object):
         self.dispatcher = dispatcher
 
     def __call__(self, deviceId, monitor, buildlimit, newDevice=True):
-        keys = tuple(
-            CacheKey(svcname, monitor, deviceId)
-            for svcname in self.dispatcher.service_names
-        )
-        keys_with_pending_status = set(
-            status.key
-            for status in self.store.get_status(*keys)
-            if isinstance(status, ConfigStatus.Pending)
-        )
-        for key in keys_with_pending_status:
+        query = CacheQuery(device=deviceId, monitor=monitor)
+        pending_status = set()
+        other_status = set()
+        for status in self.store.query_statuses(query):
+            if isinstance(status, ConfigStatus.Pending):
+                pending_status.add(status.key)
+            else:
+                other_status.add(status.key)
+        for key in pending_status:
             self.log.debug(
                 "build job already submitted for this config  "
                 "device=%s collector=%s service=%s",
@@ -39,12 +38,11 @@ class NewDeviceHandler(object):
                 key.monitor,
                 key.service,
             )
-        keys_without_pending_status = set(keys) - keys_with_pending_status
         now = time.time()
         self.store.set_pending(
-            *((key, now) for key in keys_without_pending_status)
+            *((key, now) for key in other_status)
         )
-        for key in keys_without_pending_status:
+        for key in other_status:
             self.dispatcher.dispatch(
                 key.service, key.monitor, key.device, buildlimit, now
             )
@@ -68,7 +66,8 @@ class DeviceUpdateHandler(object):
     def __call__(self, keys, minttl):
         current_statuses = tuple(
             status
-            for status in self.store.get_status(*keys)
+            for key in keys
+            for status in self.store.get_status(key)
             if isinstance(status, ConfigStatus.Current)
         )
 
@@ -131,7 +130,9 @@ class MissingConfigsHandler(object):
         )
         # Identify all no-config keys that already have a status.
         skipkeys = tuple(
-            status.key for status in self.store.get_status(*noconfigkeys)
+            status.key
+            for key in noconfigkeys
+            for status in self.store.get_status(key)
         )
         now = time.time()
         for key in (k for k in noconfigkeys if k not in skipkeys):
