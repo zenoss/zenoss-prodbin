@@ -42,9 +42,7 @@ class NewDeviceHandler(object):
                 key.service,
             )
         now = time.time()
-        self.store.set_pending(
-            *((key, now) for key in non_pending_keys)
-        )
+        self.store.set_pending(*((key, now) for key in non_pending_keys))
         for key in non_pending_keys:
             self.dispatcher.dispatch(
                 key.service, key.monitor, key.device, buildlimit, now
@@ -68,10 +66,7 @@ class DeviceUpdateHandler(object):
 
     def __call__(self, keys, minttl):
         current_statuses = tuple(
-            status
-            for key in keys
-            for status in self.store.get_status(key)
-            if isinstance(status, ConfigStatus.Current)
+            filter(None, (self.store.get_status(key) for key in keys))
         )
 
         now = time.time()
@@ -133,10 +128,9 @@ class MissingConfigsHandler(object):
         )
         # Identify all no-config keys that already have a status.
         skipkeys = tuple(
-            status.key
+            key
             for key in noconfigkeys
-            for status in self.store.get_status(key)
-            if status is not None
+            if self.store.get_status(key) is not None
         )
         now = time.time()
         for key in (k for k in noconfigkeys if k not in skipkeys):
