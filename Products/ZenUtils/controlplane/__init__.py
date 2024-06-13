@@ -7,11 +7,25 @@
 #
 ##############################################################################
 
-from .data import *
-from .client import *
-from servicetree import ServiceTree
-from Products.ZenUtils.GlobalConfig import globalConfToDict
+from __future__ import absolute_import, print_function
+
 import os
+
+from Products.ZenUtils.GlobalConfig import globalConfToDict
+
+from .data import (
+    Host,
+    HostFactory,
+    ServiceDefinition,
+    ServiceDefinitionFactory,
+    ServiceInstance,
+    ServiceInstanceFactory,
+    ServiceJsonDecoder,
+    ServiceJsonEncoder,
+)
+from .client import ControlPlaneClient, ControlCenterError
+from .environment import configuration
+from .servicetree import ServiceTree
 
 
 def getConnectionSettings(options=None):
@@ -22,10 +36,29 @@ def getConnectionSettings(options=None):
     settings = {
         "user": o.get("controlplane-user", "zenoss"),
         "password": o.get("controlplane-password", "zenoss"),
-        }
+    }
     # allow these to be set from the global.conf for development but
     # give preference to the environment variables
-    settings["user"] = os.environ.get('CONTROLPLANE_SYSTEM_USER', settings['user'])
-    settings["password"] = os.environ.get('CONTROLPLANE_SYSTEM_PASSWORD', settings['password'])
+    settings["user"] = os.environ.get(
+        "CONTROLPLANE_SYSTEM_USER", settings["user"]
+    )
+    settings["password"] = os.environ.get(
+        "CONTROLPLANE_SYSTEM_PASSWORD", settings["password"]
+    )
     return settings
 
+
+__all__ = (
+    "ControlCenterError",
+    "ControlPlaneClient",
+    "Host",
+    "HostFactory",
+    "ServiceDefinition",
+    "ServiceDefinitionFactory",
+    "ServiceInstance",
+    "ServiceInstanceFactory",
+    "ServiceJsonDecoder",
+    "ServiceJsonEncoder",
+    "ServiceTree",
+    "configuration",
+)

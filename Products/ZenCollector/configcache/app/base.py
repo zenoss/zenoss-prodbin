@@ -18,11 +18,12 @@ import attr
 
 from MySQLdb import OperationalError
 
+from ..utils import MetricReporter
+
 from .config import add_config_arguments, getConfigFromArguments
 from .init import initialize_environment
 from .genconf import GenerateConfig
 from .logger import add_logging_arguments, setup_logging, setup_debug_logging
-from .metrics import MetricManager
 from .pid import add_pidfile_arguments, pidfile
 from .zodb import add_zodb_arguments, zodb
 
@@ -38,6 +39,7 @@ class Application(object):
         return cls(config, args.task)
 
     def __init__(self, config, task):
+        # config data from config files and CLI args
         self.config = config
         self.task = task
 
@@ -57,12 +59,12 @@ class Application(object):
             log.info("application has started")
             try:
                 # Setup Metric Reporting
-                metric_manager = MetricManager(
-                    daemon_tags={
-                        "zenoss_daemon": "configcache",
-                        "internal": True,
-                    }
+                prefix = getattr(self.task, "metric_prefix", "")
+                metric_reporter = MetricReporter(
+                    tags={"internal": True}, prefix=prefix
                 )
+
+                # Run the application loop
                 while not controller.shutdown:
                     try:
                         with zodb(self.config) as (db, session, dmd):
@@ -71,7 +73,7 @@ class Application(object):
                                 db,
                                 session,
                                 dmd,
-                                metric_manager,
+                                metric_reporter,
                             )
                             self.task(self.config, ctx).run()
                     except OperationalError as oe:
@@ -109,7 +111,7 @@ class ApplicationContext(object):
     db = attr.ib()
     session = attr.ib()
     dmd = attr.ib()
-    metrics = attr.ib()
+    metric_reporter = attr.ib()
 
 
 class _Controller(object):
