@@ -1712,6 +1712,7 @@
         },
         refresh: function() {
             this.callParent(arguments);
+            this.getStore().reload();
             this.fireEvent('eventgridrefresh', this);
         }
     }); // SimpleEventGridPanel

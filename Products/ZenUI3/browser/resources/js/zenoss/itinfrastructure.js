@@ -1666,6 +1666,7 @@ Ext.onReady(function () {
                             var grid = Ext.getCmp('device_grid');
                             if (grid.isVisible(true)) {
                                 grid.refresh();
+                                grid.getStore().reload();
                                 Ext.getCmp('organizer_events').refresh();
                                 refreshTreePanel();
                             }
