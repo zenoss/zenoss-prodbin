@@ -52,7 +52,7 @@ def _detectPing():
         log.info("ping6 not found in path")
 
     _PING_ARG_TEMPLATE = (
-        "%(ping)s -n -s %(datalength)d -c 1 -t %(ttl)d -w %(timeout)f %(ip)s"
+        "%(ping)s -n -s %(datalength)d -c 1 -t %(ttl)d -w %(timeout)d %(ip)s"
     )
     import platform
 
@@ -61,7 +61,7 @@ def _detectPing():
         log.info("Mac OS X detected; adjusting ping args.")
         _PING_ARG_TEMPLATE = (
             "%(ping)s -n -s %(datalength)d -c 1 "
-            "-m %(ttl)d -t %(timeout)f %(ip)s"
+            "-m %(ttl)d -t %(timeout)d %(ip)s"
         )
     elif system != "Linux":
         log.info(
@@ -150,7 +150,7 @@ class CmdPingTask(ZenStatus.PingTask):
                 ip=self.config.ip,
                 version=self.config.ipVersion,
                 ttl=64,
-                timeout=float(self._preferences.pingTimeOut),
+                timeout=int(self._preferences.pingTimeOut),
                 datalength=self._daemon.options.dataLength
                 if self._daemon.options.dataLength > 16
                 else 16,

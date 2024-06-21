@@ -13,6 +13,8 @@ import logging
 
 from multiprocessing import Process
 
+from metrology.instruments import Gauge, HistogramExponentiallyDecaying
+
 from zenoss.modelindex import constants
 from zope.component import createObject
 
@@ -51,6 +53,8 @@ class Invalidator(object):
     )
 
     configs = (("modelchange.zcml", CONFIGCACHE_MODULE),)
+
+    metric_prefix = "configcache.invalidations."
 
     @staticmethod
     def add_arguments(parser, subparsers):
@@ -107,6 +111,10 @@ class Invalidator(object):
 
         self.interval = config["poll-interval"]
 
+        # metrics
+        self.ctx.metric_reporter.add_tags({"zenoss_daemon": "invalidator"})
+        self._metrics = _Metrics(self.ctx.metric_reporter)
+
     def run(self):
         # Handle changes that occurred when Invalidator wasn't running.
         self._synchronize()
@@ -121,10 +129,16 @@ class Invalidator(object):
             try:
                 self.ctx.session.sync()
                 invalidations = poller.poll()
+
+                self._metrics.received.mark(len(invalidations))
+                self._metrics.processed.update(len(invalidations))
+
                 if not invalidations:
                     continue
+
                 self._process_invalidations(invalidations)
             finally:
+                self.ctx.metric_reporter.save()
                 # Call cacheGC to aggressively trim the ZODB cache
                 self.ctx.session.cacheGC()
                 self.ctx.controller.wait(self.interval)
@@ -147,6 +161,19 @@ class Invalidator(object):
                     "failed to process invalidation  device=%s",
                     inv.device,
                 )
+
+
+class InvalidationGauge(Gauge):
+
+    def __init__(self):
+        self._value = 0
+
+    @property
+    def value(self):
+        return self._value
+
+    def mark(self, value):
+        self._value = value
 
 
 _solr_fields = ("id", "collector", "uid")
@@ -275,3 +302,12 @@ class _InvalidationProcessor(object):
                 monitor,
                 oid,
             )
+
+
+class _Metrics(object):
+
+    def __init__(self, reporter):
+        self.received = InvalidationGauge()
+        self.processed = HistogramExponentiallyDecaying()
+        reporter.register("received", self.received)
+        reporter.register("processed", self.processed)

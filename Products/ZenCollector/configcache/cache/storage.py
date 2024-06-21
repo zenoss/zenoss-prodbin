@@ -9,13 +9,13 @@
 
 # Key structure
 # =============
-# modelchange:device:uid:<device> <uid>
-# modelchange:device:config:<service>:<monitor>:<device> <config>
-# modelchange:device:age:<service>:<monitor> [(<score>, <device>), ...]
-# modelchange:device:retired:<service>:<monitor> [(<score>, <device>), ...]
-# modelchange:device:expired:<service>:<monitor> [(<score>, <device>), ...]
-# modelchange:device:pending:<service>:<monitor> [(<score>, <device>), ...]
-# modelchange:device:building:<service>:<monitor> [(<score>, <device>), ...]
+# configcache:device:uid:<device> <uid>
+# configcache:device:config:<service>:<monitor>:<device> <config>
+# configcache:device:age:<service>:<monitor> [(<score>, <device>), ...]
+# configcache:device:retired:<service>:<monitor> [(<score>, <device>), ...]
+# configcache:device:expired:<service>:<monitor> [(<score>, <device>), ...]
+# configcache:device:pending:<service>:<monitor> [(<score>, <device>), ...]
+# configcache:device:building:<service>:<monitor> [(<score>, <device>), ...]
 #
 # While "device" seems redundant, other values in this position could be
 # "threshold" and "property".
@@ -62,7 +62,6 @@ from __future__ import absolute_import, print_function, division
 import ast
 import json
 import logging
-import operator
 import re
 
 from functools import partial
@@ -137,6 +136,17 @@ class ConfigStore(object):
             self.__client, key.service, key.monitor, key.device
         )
 
+    def __iter__(self):
+        """
+        Returns an iterable over the known keys.
+
+        @rtype: Iterator[CacheKey]
+        """
+        return iter(
+            CacheKey(service, monitor, device)
+            for service, monitor, device in self.__config.scan(self.__client)
+        )
+
     def search(self, query=CacheQuery()):
         """
         Returns the configuration keys matching the search criteria.
@@ -206,11 +216,29 @@ class ConfigStore(object):
         Return the timestamp of when the config was built.
 
         @type key: CacheKey
+        @rtype: float
         """
         return _to_ts(
             self.__age.score(
                 self.__client, key.service, key.monitor, key.device
             )
+        )
+
+    def query_updated(self, query=CacheQuery()):
+        """
+        Return the last update timestamp of every configuration selected
+        by the query.
+
+        @type query: CacheQuery
+        @rtype: Iterable[Tuple[CacheKey, float]]
+        """
+        predicate = self._get_device_predicate(query.device)
+        return (
+            (key, ts)
+            for key, ts in self._get_metadata(
+                self.__age, query.service, query.monitor
+            )
+            if predicate(key.device)
         )
 
     def get(self, key, default=None):
@@ -272,11 +300,18 @@ class ConfigStore(object):
 
         @type keys: Sequence[CacheKey]
         """
-        with self.__client.pipeline() as pipe:
+        if len(keys) == 0:
+            return
+
+        def clear_impl(pipe):
+            pipe.multi()
             for key in keys:
-                svc, mon, dvc = key.service, key.monitor, key.device
-                self._delete_statuses(pipe, svc, mon, dvc)
-            pipe.execute()
+                self._delete_statuses(
+                    pipe, key.service, key.monitor, key.device
+                )
+
+        watch_keys = self._get_watch_keys(keys)
+        self.__client.transaction(clear_impl, *watch_keys)
 
     def _delete_statuses(self, pipe, svc, mon, dvc):
         self.__retired.delete(pipe, svc, mon, dvc)
@@ -300,7 +335,7 @@ class ConfigStore(object):
                 self.__pending.delete(pipe, svc, mon, dvc)
                 self.__building.delete(pipe, svc, mon, dvc)
 
-        self._set_status(pairs, self.__retired, _impl)
+        self._set_status(pairs, _impl)
 
     def set_expired(self, *pairs):
         """
@@ -318,7 +353,7 @@ class ConfigStore(object):
                 self.__pending.delete(pipe, svc, mon, dvc)
                 self.__building.delete(pipe, svc, mon, dvc)
 
-        self._set_status(pairs, self.__expired, _impl)
+        self._set_status(pairs, _impl)
 
     def set_pending(self, *pairs):
         """
@@ -336,7 +371,7 @@ class ConfigStore(object):
                 self.__pending.add(pipe, svc, mon, dvc, score)
                 self.__building.delete(pipe, svc, mon, dvc)
 
-        self._set_status(pairs, self.__pending, _impl)
+        self._set_status(pairs, _impl)
 
     def set_building(self, *pairs):
         """
@@ -354,14 +389,14 @@ class ConfigStore(object):
                 self.__pending.delete(pipe, svc, mon, dvc)
                 self.__building.add(pipe, svc, mon, dvc, score)
 
-        self._set_status(pairs, self.__building, _impl)
+        self._set_status(pairs, _impl)
 
-    def _set_status(self, pairs, table, fn):
+    def _set_status(self, pairs, fn):
         if len(pairs) == 0:
             return
 
         watch_keys = self._get_watch_keys(key for key, _ in pairs)
-        rows = (
+        rows = tuple(
             (key.service, key.monitor, key.device, ts) for key, ts in pairs
         )
 
@@ -382,27 +417,26 @@ class ConfigStore(object):
             )
         )
 
-    def get_status(self, *keys):
+    def get_status(self, key):
         """
-        Returns an iterable of ConfigStatus objects.
+        Returns the current status of the config identified by `key`.
 
-        @rtype: Iterable[ConfigStatus]
+        @type key: CacheKey
+        @rtype: ConfigStatus | None
         """
-        for key in keys:
-            scores = self._get_scores(key)
-            uid = self.__uids.get(self.__client, key.device)
-            status = self._get_status_from_scores(scores, key, uid)
-            if status is not None:
-                yield status
+        scores = self._get_scores(key)
+        if not any(scores):
+            return None
+        uid = self.__uids.get(self.__client, key.device)
+        return self._get_status_from_scores(scores, key, uid)
 
-    def get_statuses(self, query=CacheQuery()):
+    def query_statuses(self, query=CacheQuery()):
         """
         Return all status objects matching the query.
 
         @type query: CacheQuery
         @rtype: Iterable[ConfigStatus]
         """
-        statuses = []
         keys = set()
         uids = {}
         tables = (
@@ -411,22 +445,7 @@ class ConfigStore(object):
             (self.__pending, ConfigStatus.Pending),
             (self.__building, ConfigStatus.Building),
         )
-
-        def accept_all(_):
-            return True
-
-        def filter_regex(regex, value):
-            m = regex.match(value)
-            return m is not None
-
-        if query.device == "*":
-            predicate = accept_all
-        elif "*" in query.device:
-            expr = query.device.replace("*", ".*")
-            regex = re.compile(expr)
-            predicate = partial(filter_regex, regex)
-        else:
-            predicate = partial(operator.eq, query.device)
+        predicate = self._get_device_predicate(query.device)
 
         for table, cls in tables:
             for key, ts in self._get_metadata(
@@ -435,7 +454,7 @@ class ConfigStore(object):
                 if predicate(key.device):
                     keys.add(key)
                     uid = self._get_uid(uids, key.device)
-                    statuses.append(cls(key, uid, ts))
+                    yield cls(key, uid, ts)
         for key, ts in self._get_metadata(
             self.__age, query.service, query.monitor
         ):
@@ -445,8 +464,18 @@ class ConfigStore(object):
                 continue
             if predicate(key.device):
                 uid = self._get_uid(uids, key.device)
-                statuses.append(ConfigStatus.Current(key, uid, ts))
-        return statuses
+                yield ConfigStatus.Current(key, uid, ts)
+
+    def _get_device_predicate(self, spec):
+
+        if spec == "*":
+            return lambda _: True
+        elif "*" in spec:
+            expr = spec.replace("*", ".*")
+            regex = re.compile(expr)
+            return lambda value: regex.match(value) is not None
+        else:
+            return lambda value: value == spec
 
     def _get_uid(self, uids, device):
         uid = uids.get(device)

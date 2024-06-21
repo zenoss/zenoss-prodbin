@@ -17,7 +17,7 @@ from zope.dottedname.resolve import resolve
 
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
-from Products.Jobber.task import requires, DMD, Abortable
+from Products.Jobber.task import requires, DMD
 from Products.Jobber.zenjobs import app
 
 from .cache import CacheKey, CacheRecord, ConfigStatus
@@ -27,7 +27,7 @@ from .utils import get_pending_timeout
 
 @app.task(
     bind=True,
-    base=requires(DMD, Abortable),
+    base=requires(DMD),
     name="configcache.build_device_config",
     summary="Create Device Configuration Task",
     description_template="Create the configuration for device {2}.",
@@ -56,6 +56,10 @@ def build_device_config(
     )
 
 
+# NOTE: the buildDeviceConfig function exists so that it can be tested
+# without having to handle Celery details in the unit tests.
+
+
 def buildDeviceConfig(
     dmd, log, monitorname, deviceid, configclassname, submitted
 ):
@@ -64,11 +68,14 @@ def buildDeviceConfig(
     store = _getStore()
     key = CacheKey(svcname, monitorname, deviceid)
 
+    # record when this build starts
+    started = time()
+
     # Check whether this is an old job, i.e. job pending timeout.
     # If it is an old job, skip it, manager already sent another one.
-    status = next(store.get_status(key), None)
+    status = store.get_status(key)
     device = dmd.Devices.findDeviceByIdExact(deviceid)
-    if _job_is_old(status, submitted, device, log):
+    if _job_is_old(status, submitted, started, device, log):
         return
 
     # If the status is Expired, another job is coming, so skip this job.
@@ -119,11 +126,18 @@ def buildDeviceConfig(
         record = CacheRecord.make(
             svcname, monitorname, deviceid, uid, time(), config
         )
+
         # Get the current status of the configuration.
-        status = next(store.get_status(key), None)
-        if isinstance(status, (ConfigStatus.Expired, ConfigStatus.Pending)):
-            # status is not ConfigStatus.Building, so another job will be
-            # submitted or has already been submitted.
+        recent_status = store.get_status(key)
+
+        # Test whether the status should be updated
+        update_status = _should_update_status(
+            recent_status, started, deviceid, monitorname, svcname, log
+        )
+
+        if not update_status:
+            # recent_status is not ConfigStatus.Building, so another job
+            # will be submitted or has already been submitted.
             store.put_config(record)
             log.info(
                 "saved config without changing status  "
@@ -146,6 +160,67 @@ def buildDeviceConfig(
             )
 
 
+def _should_update_status(
+    recent_status, started, deviceid, monitorname, svcname, log
+):
+    # Check for expected statuses.
+    if isinstance(recent_status, ConfigStatus.Building):
+        # The status is Building, so let's update the status.
+        return True
+
+    if isinstance(recent_status, ConfigStatus.Expired):
+        update_status = bool(recent_status.expired < started)
+        if not update_status:
+            log.info(
+                "config expired while building config  "
+                "device=%s collector=%s service=%s",
+                deviceid,
+                monitorname,
+                svcname,
+            )
+        else:
+            log.warning(
+                "config status has inconsistent state  status=Expired "
+                "expired=%s device=%s collector=%s service=%s",
+                datetime.fromtimestamp(recent_status.expired).isoformat(),
+                deviceid,
+                monitorname,
+                svcname,
+            )
+        return update_status
+
+    if isinstance(recent_status, ConfigStatus.Pending):
+        update_status = bool(recent_status.submitted < started)
+        if not update_status:
+            log.info(
+                "another job submitted while building config  "
+                "device=%s collector=%s service=%s",
+                deviceid,
+                monitorname,
+                svcname,
+            )
+        else:
+            log.warning(
+                "config status has inconsistent state  status=Pending "
+                "submitted=%s device=%s collector=%s service=%s",
+                datetime.fromtimestamp(recent_status.submitted).isoformat(),
+                deviceid,
+                monitorname,
+                svcname,
+            )
+        return update_status
+
+    log.warning(
+        "Unexpected status change during config build  "
+        "status=%s device=%s collector=%s service=%s",
+        type(recent_status).__name__,
+        deviceid,
+        monitorname,
+        svcname,
+    )
+    return True
+
+
 def _delete_config(key, store, log):
     log.info(
         "no configuration built  device=%s collector=%s service=%s",
@@ -166,12 +241,11 @@ def _delete_config(key, store, log):
     store.clear_status(key)
 
 
-def _job_is_old(status, submitted, device, log):
+def _job_is_old(status, submitted, now, device, log):
     if submitted is None or status is None:
         # job is not old (default state)
         return False
     limit = get_pending_timeout(device)
-    now = time()
     if submitted < (now - limit):
         log.warn(
             "skipped this job because it's too old  "
