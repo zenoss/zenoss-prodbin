@@ -493,7 +493,7 @@ class ZenPack(ZenModelRM):
 
         try:
             for instance in instances:
-                if instance.version >= migrateCutoff:
+                if instance.version.tuple() >= migrateCutoff:
                     recover.append(instance)
                     instance.migrate(self)
         except Exception as ex:
