@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2017, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2017-2024, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -34,6 +34,8 @@ class ZProxyMetricGatherer(MetricGatherer):
     ZPROXY_CONF_DIR = '/opt/zenoss/zproxy/conf/'
     # Note that changing the follwing ID format will break this script.
     INSTANCE_ID_FORMAT = '{}_{}'
+
+    last_changed = {}
 
     def __init__(self, interval=30):
         super(ZProxyMetricGatherer, self).__init__()
@@ -84,7 +86,7 @@ class ZProxyMetricGatherer(MetricGatherer):
             self.zopes = {}
 
         # Check mtime of /opt/zenoss/zproxy/conf/zope-upstreams.conf
-        # if it's newer than, say, now - self.interval, reread it.
+        # if it's newer than it was modified last time, reread it.
         zope_upstream_file = self.ZPROXY_CONF_DIR + 'zope-upstreams.conf'
         zenapi_upstream_file = self.ZPROXY_CONF_DIR + 'apizopes-upstreams.conf'
         zenreports_upstream_file = self.ZPROXY_CONF_DIR + 'zopereports-upstreams.conf'
@@ -92,13 +94,14 @@ class ZProxyMetricGatherer(MetricGatherer):
 
         def check_upstream_util(upstream_file):
             upstream_modified = os.path.getmtime(upstream_file)
-            now = time.time()
             zopes = []
-            if first_time or upstream_modified > (now - self.interval):
-                with open(upstream_file, 'r') as inf:
-                    zopes = inf.readlines()
-                    zopes = [line.rstrip('\n;') for line in zopes]
-                    zopes = [line.split(' ')[-1] for line in zopes]
+            if first_time:
+                now = time.time()
+                zopes = read_upstream_file(upstream_file)
+                self.last_changed[upstream_file] = now
+            elif upstream_modified > self.last_changed.get('upstream_file'):
+                zopes = read_upstream_file(upstream_file)
+                self.last_changed[upstream_file] = upstream_modified
             return zopes
 
         def check_upstream(svcName, upstream_file):
@@ -110,6 +113,13 @@ class ZProxyMetricGatherer(MetricGatherer):
                 for i, instance in enumerate(instances):
                     id_ = self.INSTANCE_ID_FORMAT.format(svcName, i)
                     self.zopes[id_] = instance
+               
+        def read_upstream_file(upstream_file):
+            with open(upstream_file, 'r') as inf:
+                zopes = inf.readlines()
+                zopes = [line.rstrip('\n;') for line in zopes]
+                zopes = [line.split(' ')[-1] for line in zopes]
+            return zopes
 
         check_upstream('Zope', zope_upstream_file)
         check_upstream('zenapi', zenapi_upstream_file)
