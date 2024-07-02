@@ -92,6 +92,13 @@ class ZProxyMetricGatherer(MetricGatherer):
         zenreports_upstream_file = self.ZPROXY_CONF_DIR + 'zopereports-upstreams.conf'
         zauth_upstream_file = self.ZPROXY_CONF_DIR + 'zauth-upstreams.conf'
 
+        def read_upstream_file(upstream_file):
+            with open(upstream_file, 'r') as inf:
+                zopes = inf.readlines()
+                zopes = [line.rstrip('\n;') for line in zopes]
+                zopes = [line.split(' ')[-1] for line in zopes]
+            return zopes
+
         def check_upstream_util(upstream_file):
             upstream_modified = os.path.getmtime(upstream_file)
             zopes = []
@@ -113,13 +120,6 @@ class ZProxyMetricGatherer(MetricGatherer):
                 for i, instance in enumerate(instances):
                     id_ = self.INSTANCE_ID_FORMAT.format(svcName, i)
                     self.zopes[id_] = instance
-               
-        def read_upstream_file(upstream_file):
-            with open(upstream_file, 'r') as inf:
-                zopes = inf.readlines()
-                zopes = [line.rstrip('\n;') for line in zopes]
-                zopes = [line.split(' ')[-1] for line in zopes]
-            return zopes
 
         check_upstream('Zope', zope_upstream_file)
         check_upstream('zenapi', zenapi_upstream_file)
