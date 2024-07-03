@@ -103,9 +103,8 @@ class ZProxyMetricGatherer(MetricGatherer):
             upstream_modified = os.path.getmtime(upstream_file)
             zopes = []
             if first_time:
-                now = time.time()
                 zopes = read_upstream_file(upstream_file)
-                self.last_changed[upstream_file] = now
+                self.last_changed[upstream_file] = upstream_modified
             elif upstream_modified > self.last_changed.get('upstream_file'):
                 zopes = read_upstream_file(upstream_file)
                 self.last_changed[upstream_file] = upstream_modified
