@@ -812,14 +812,15 @@ class DeviceFacade(TreeFacade):
 
         for rrdTemplate in sorted(boundTemplates, byTitleOrId):
             yield makenode(rrdTemplate)
-        available = []
-        for rrdTemplate in sorted(unboundTemplates, byTitleOrId):
-            available.append(makenode(rrdTemplate, "Available"))
-        yield {'id': 'Available',
-                   'text': 'Available',
-                   'leaf': False,
-                   'children': available
-                   }
+        if isDeviceClass:
+            available = []
+            for rrdTemplate in sorted(unboundTemplates, byTitleOrId):
+                available.append(makenode(rrdTemplate, "Available"))
+            yield {'id': 'Available',
+                    'text': 'Available',
+                    'leaf': False,
+                    'children': available
+                    }
 
 
     def getLocalTemplates(self, uid):
