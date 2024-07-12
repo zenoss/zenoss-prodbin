@@ -1,23 +1,22 @@
 from unittest import TestCase
 from mock import Mock
 
-# Breaks unittest independence due to
-# ImportError: No module named CMFCore.DirectoryView
-from Products.ZenHub.invalidationoid import (
-    DefaultOidTransform,
-    DeviceOidTransform,
-    IInvalidationOid,
+from Products.ZenRelations.PrimaryPathObjectManager import (
     PrimaryPathObjectManager,
+)
+from ..oids import (
+    IdentityOidTransform,
+    ComponentOidTransform,
+    IInvalidationOid,
 )
 
 from zope.interface.verify import verifyObject
-from zope.component import adaptedBy
 
 
-class DefaultOidTransformTest(TestCase):
+class IdentityOidTransformTest(TestCase):
     def setUp(self):
         self.obj = Mock(spec_set=PrimaryPathObjectManager)
-        self.default_oid_transform = DefaultOidTransform(self.obj)
+        self.default_oid_transform = IdentityOidTransform(self.obj)
 
     def test_implements_IInvalidationOid(self):
         # Provides the interface
@@ -25,23 +24,18 @@ class DefaultOidTransformTest(TestCase):
         # Implements the interface it according to spec
         verifyObject(IInvalidationOid, self.default_oid_transform)
 
-    def test_adapts_PrimaryPathObjectManager(self):
-        self.assertEqual(
-            list(adaptedBy(DefaultOidTransform)), [PrimaryPathObjectManager]
-        )
-
     def test_init(self):
-        self.assertEqual(self.default_oid_transform._obj, self.obj)
+        self.assertEqual(self.default_oid_transform._entity, self.obj)
 
     def test_transformOid(self):
         ret = self.default_oid_transform.transformOid("unmodified oid")
         self.assertEqual(ret, "unmodified oid")
 
 
-class DeviceOidTransformTest(TestCase):
+class ComponentOidTransformTest(TestCase):
     def setUp(self):
         self.obj = Mock(spec_set=PrimaryPathObjectManager)
-        self.device_oid_transform = DeviceOidTransform(self.obj)
+        self.device_oid_transform = ComponentOidTransform(self.obj)
 
     def test_implements_IInvalidationOid(self):
         # Provides the interface
@@ -50,10 +44,10 @@ class DeviceOidTransformTest(TestCase):
         verifyObject(IInvalidationOid, self.device_oid_transform)
 
     def test_init(self):
-        self.assertEqual(self.device_oid_transform._obj, self.obj)
+        self.assertEqual(self.device_oid_transform._entity, self.obj)
 
     def test_transformOid(self):
-        """returns unmodified oid, if _obj has no device attribute"""
+        """returns unmodified oid, if _entity has no device attribute"""
         self.assertFalse(hasattr(self.obj, "device"))
         ret = self.device_oid_transform.transformOid("unmodified oid")
         self.assertEqual(ret, "unmodified oid")
@@ -64,7 +58,7 @@ class DeviceOidTransformTest(TestCase):
         device = Mock(name="device", spec_set=["_p_oid"])
         obj.device.return_value = device
 
-        device_oid_transform = DeviceOidTransform(obj)
+        device_oid_transform = ComponentOidTransform(obj)
         ret = device_oid_transform.transformOid("ignored oid")
 
         self.assertEqual(ret, obj.device.return_value._p_oid)
