@@ -1711,8 +1711,8 @@
             return val;
         },
         refresh: function() {
-            this.callParent(arguments);
             this.getStore().reload();
+            this.callParent(arguments);
             this.fireEvent('eventgridrefresh', this);
         }
     }); // SimpleEventGridPanel
