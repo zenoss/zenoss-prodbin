@@ -13,7 +13,7 @@ from ..filters import (
     FILTER_EXCLUDE,
     IgnorableClassesFilter,
     IInvalidationFilter,
-    md5,
+    sha256,
     OSProcessClass,
     OSProcessClassFilter,
     OSProcessOrganizer,
@@ -21,7 +21,7 @@ from ..filters import (
 )
 from .mock_interface import create_interface_mock
 
-PATH = {"invalidationfilter": "Products.ZenHub.invalidationfilter"}
+PATH = {"path": "Products.ZenCollector.configcache.modelchange.filters"}
 
 
 class IgnorableClassesFilterTest(TestCase):
@@ -88,9 +88,7 @@ class BaseOrganizerFilterTest(TestCase):
         t.assertEqual(root, context.dmd.primaryAq())
 
     @patch(
-        "{invalidationfilter}.IModelCatalogTool".format(**PATH),
-        autospec=True,
-        spec_set=True,
+        "{path}.IModelCatalogTool".format(**PATH), autospec=True, spec_set=True
     )
     def test_initialize(t, IModelCatalogTool):
         # Create a Mock object that provides the ICatalogBrain interface
@@ -127,16 +125,14 @@ class BaseOrganizerFilterTest(TestCase):
         t.organizer.zenPropIsPassword.return_value = True
         zId, propertyString = next(results)
         t.assertEqual(zId, zprop)
-        t.assertEqual(
-            propertyString, t.organizer.getProperty.return_value
-        )
+        t.assertEqual(propertyString, t.organizer.getProperty.return_value)
         t.organizer.getProperty.assert_called_with(zprop, "")
 
         with t.assertRaises(StopIteration):
             next(results)
 
     @patch(
-        "{invalidationfilter}._getZorCProperties".format(**PATH),
+        "{path}._getZorCProperties".format(**PATH),
         autospec=True,
         spec_set=True,
     )
@@ -144,9 +140,9 @@ class BaseOrganizerFilterTest(TestCase):
         zprop = Mock(name="zenPropertyId", spec_set=[])
         data = (zprop, "property_string")
         _getZorCProps.return_value = [data]
-        actual = md5()
+        actual = sha256()
 
-        expect = md5()
+        expect = sha256()
         expect.update("%s|%s" % data)
 
         t.bof.generateChecksum(t.organizer, actual)
@@ -155,7 +151,7 @@ class BaseOrganizerFilterTest(TestCase):
         t.assertEqual(actual.hexdigest(), expect.hexdigest())
 
     @patch(
-        "{invalidationfilter}._getZorCProperties".format(**PATH),
+        "{path}._getZorCProperties".format(**PATH),
         autospec=True,
         spec_set=True,
     )
@@ -166,7 +162,7 @@ class BaseOrganizerFilterTest(TestCase):
 
         out = t.bof.organizerChecksum(t.organizer)
 
-        expect = md5()
+        expect = sha256()
         expect.update("%s|%s" % data)
         t.assertEqual(out, expect.hexdigest())
 
@@ -221,14 +217,12 @@ class DeviceClassInvalidationFilterTest(TestCase):
         t.assertEqual(root, context.dmd.Devices.primaryAq())
 
     @patch(
-        "{invalidationfilter}.BaseOrganizerFilter.generateChecksum".format(
-            **PATH
-        ),
+        "{path}.BaseOrganizerFilter.generateChecksum".format(**PATH),
         autospec=True,
         spec_set=True,
     )
     def test_generateChecksum(t, super_generateChecksum):
-        md5_checksum = md5()
+        hash_checksum = sha256()
         organizer = Mock(
             name="Products.ZenRelations.ZenPropertyManager",
             spec_set=["rrdTemplates"],
@@ -237,12 +231,12 @@ class DeviceClassInvalidationFilterTest(TestCase):
         rrdTemplate.exportXml.return_value = "some exemel"
         organizer.rrdTemplates.return_value = [rrdTemplate]
 
-        t.dcif.generateChecksum(organizer, md5_checksum)
+        t.dcif.generateChecksum(organizer, hash_checksum)
 
         # We cannot validate the output of the current version, refactor needed
         rrdTemplate.exportXml.was_called_once()
         super_generateChecksum.assert_called_with(
-            t.dcif, organizer, md5_checksum
+            t.dcif, organizer, hash_checksum
         )
 
 
@@ -277,9 +271,7 @@ class OSProcessClassFilterTest(TestCase):
         t.assertEqual(root, context.dmd.Processes.primaryAq())
 
     @patch(
-        "{invalidationfilter}.BaseOrganizerFilter.generateChecksum".format(
-            **PATH
-        ),
+        "{path}.BaseOrganizerFilter.generateChecksum".format(**PATH),
         autospec=True,
         spec_set=True,
     )
@@ -291,13 +283,13 @@ class OSProcessClassFilterTest(TestCase):
         prop = {"id": "property_id"}
         organizer._properties = [prop]
         organizer.property_id = "value"
-        md5_checksum = md5()
+        hash_checksum = sha256()
 
-        t.ospcf.generateChecksum(organizer, md5_checksum)
+        t.ospcf.generateChecksum(organizer, hash_checksum)
 
-        expect = md5()
+        expect = sha256()
         expect.update("%s|%s" % (prop["id"], getattr(organizer, prop["id"])))
-        t.assertEqual(md5_checksum.hexdigest(), expect.hexdigest())
+        t.assertEqual(hash_checksum.hexdigest(), expect.hexdigest())
         super_generateChecksum.assert_called_with(
-            t.ospcf, organizer, md5_checksum
+            t.ospcf, organizer, hash_checksum
         )

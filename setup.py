@@ -77,7 +77,7 @@ setup(
             "zenjobs=Products.Jobber.bin:main",
         ],
         "celery.commands": [
-            "monitor=Products.Jobber.monitor:ZenJobsMonitor",
+            "monitor=Products.Jobber.monitor:MonitorCommand",
         ],
     },
 )
