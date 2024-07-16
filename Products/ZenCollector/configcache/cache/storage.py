@@ -147,7 +147,7 @@ class ConfigStore(object):
             for service, monitor, device in self.__config.scan(self.__client)
         )
 
-    def search(self, query=CacheQuery()):
+    def search(self, query=None):
         """
         Returns the configuration keys matching the search criteria.
 
@@ -156,6 +156,8 @@ class ConfigStore(object):
         @raises TypeError: Unsupported value given for a field
         @raises AttributeError: Unknown field
         """
+        if query is None:
+            query = CacheQuery()
         if not isinstance(query, CacheQuery):
             raise TypeError("'{!r} is not a CacheQuery".format(query))
         return self._query(**attr.asdict(query))
@@ -224,7 +226,7 @@ class ConfigStore(object):
             )
         )
 
-    def query_updated(self, query=CacheQuery()):
+    def query_updated(self, query=None):
         """
         Return the last update timestamp of every configuration selected
         by the query.
@@ -232,6 +234,8 @@ class ConfigStore(object):
         @type query: CacheQuery
         @rtype: Iterable[Tuple[CacheKey, float]]
         """
+        if query is None:
+            query = CacheQuery()
         predicate = self._get_device_predicate(query.device)
         return (
             (key, ts)
@@ -272,13 +276,13 @@ class ConfigStore(object):
                 self._delete_statuses(pipe, svc, mon, dvc)
             pipe.execute()
 
-        devices = set(key.device for key in keys)
-        remaining = set(
+        devices = {key.device for key in keys}
+        remaining = {
             key.device
             for key in chain.from_iterable(
                 self._query(device=dvc) for dvc in devices
             )
-        )
+        }
         deleted = devices - remaining
         if deleted:
             self.__uids.delete(self.__client, *deleted)
@@ -430,13 +434,15 @@ class ConfigStore(object):
         uid = self.__uids.get(self.__client, key.device)
         return self._get_status_from_scores(scores, key, uid)
 
-    def query_statuses(self, query=CacheQuery()):
+    def query_statuses(self, query=None):
         """
         Return all status objects matching the query.
 
         @type query: CacheQuery
         @rtype: Iterable[ConfigStatus]
         """
+        if query is None:
+            query = CacheQuery()
         keys = set()
         uids = {}
         tables = (

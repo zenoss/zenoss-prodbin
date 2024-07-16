@@ -15,23 +15,22 @@ from .cache import CacheKey, CacheQuery, ConfigStatus
 
 
 class NewDeviceHandler(object):
-
     def __init__(self, log, store, dispatcher):
         self.log = log
         self.store = store
         self.dispatcher = dispatcher
 
     def __call__(self, deviceId, monitor, buildlimit, newDevice=True):
-        all_keys = set(
+        all_keys = {
             CacheKey(svcname, monitor, deviceId)
             for svcname in self.dispatcher.service_names
-        )
+        }
         query = CacheQuery(device=deviceId, monitor=monitor)
-        pending_keys = set(
+        pending_keys = {
             status.key
             for status in self.store.query_statuses(query)
             if isinstance(status, ConfigStatus.Pending)
-        )
+        }
         non_pending_keys = all_keys - pending_keys
         for key in pending_keys:
             self.log.info(
@@ -58,30 +57,39 @@ class NewDeviceHandler(object):
 
 
 class DeviceUpdateHandler(object):
-
     def __init__(self, log, store, dispatcher):
         self.log = log
         self.store = store
         self.dispatcher = dispatcher
 
     def __call__(self, keys, minttl):
-        current_statuses = tuple(
-            filter(None, (self.store.get_status(key) for key in keys))
+        statuses = tuple(
+            status
+            for status in (self.store.get_status(key) for key in keys)
+            if not isinstance(
+                status,
+                (
+                    # These statuses won't get 'stuck' in a wait period
+                    # before manager handles them.
+                    ConfigStatus.Expired,
+                    ConfigStatus.Retired,
+                ),
+            )
         )
 
         now = time.time()
         retirement = now - minttl
 
-        retired = set(
+        # Transitioning to Retired is relevant only for Current.
+        retired = {
             status.key
-            for status in current_statuses
-            if status.updated >= retirement
-        )
-        expired = set(
-            status.key
-            for status in current_statuses
-            if status.key not in retired
-        )
+            for status in statuses
+            if isinstance(status, ConfigStatus.Current)
+            and status.updated >= retirement
+        }
+        expired = {
+            status.key for status in statuses if status.key not in retired
+        }
 
         self.store.set_retired(*((key, now) for key in retired))
         self.store.set_expired(*((key, now) for key in expired))
@@ -105,7 +113,6 @@ class DeviceUpdateHandler(object):
 
 
 class MissingConfigsHandler(object):
-
     def __init__(self, log, store, dispatcher):
         self.log = log
         self.store = store
@@ -148,7 +155,6 @@ class MissingConfigsHandler(object):
 
 
 class RemoveConfigsHandler(object):
-
     def __init__(self, log, store):
         self.log = log
         self.store = store
