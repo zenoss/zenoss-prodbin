@@ -28,6 +28,8 @@ from __future__ import absolute_import, print_function
 
 import re
 
+import six
+
 
 class ConfigError(Exception):
     """Error for problems parsing config files."""
@@ -237,6 +239,7 @@ class InvalidLine(ConfigLine):
     Default line if no other ConfigLines matched. Assumed to be invalid
     input.
     """
+
     @property
     def setting(self):
         return None
@@ -360,22 +363,19 @@ class ConfigFile(object):
                 yield line.setting
 
 
-class Parser(object):
-    def __call__(self, file):
-        configFile = ConfigFile(file)
-        configFile.validate()
-        return configFile.items()
+def _parse(file):
+    configFile = ConfigFile(file)
+    configFile.validate()
+    return configFile.items()
 
 
 class ConfigLoader(object):
     """Lazily load the config when requested."""
 
-    def __init__(self, config_files, config=Config, parser=Parser()):
+    def __init__(self, config_files, config=Config):
         """
         :param config Config The config instance or class to load data into.
             Must support update which accepts an iterable of (key, value).
-        :param parser Parser The parser to use to parse the config files.
-            Must be a callable and return an iterable of (key, value).
         :param config_files list<string> A list of config file names to
             parse in order.
         """
@@ -383,7 +383,6 @@ class ConfigLoader(object):
             config_files = [config_files]
 
         self.config_files = config_files
-        self.parser = parser
         self.config = config
         self._config = None
 
@@ -398,14 +397,14 @@ class ConfigLoader(object):
             raise ConfigError("Config loader has no config files to load.")
 
         for file in self.config_files:
-            if not hasattr(file, "read") and isinstance(file, basestring):
-                # Look like a file name, open it
+            if isinstance(file, six.string_types):
+                # It's a string, so open it first
                 with open(file, "r") as fp:
-                    options = self.parser(fp)
+                    options = _parse(fp)
             else:
-                options = self.parser(file)
+                # Assume it's an open file
+                options = _parse(file)
 
-            # self._config.update(options)
             for k, v in options:
                 self._config[k] = v
 
