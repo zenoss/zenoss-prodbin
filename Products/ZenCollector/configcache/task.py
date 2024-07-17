@@ -75,6 +75,18 @@ def buildDeviceConfig(
     # If it is an old job, skip it, manager already sent another one.
     status = store.get_status(key)
     device = dmd.Devices.findDeviceByIdExact(deviceid)
+    if device is None:
+        log.warn(
+            "cannot build config because device was not found  "
+            "device=%s collector=%s service=%s submitted=%f",
+            key.device,
+            key.monitor,
+            key.service,
+            submitted,
+        )
+        store.clear_status(key)
+        return
+
     if _job_is_old(status, submitted, started, device, log):
         return
 
