@@ -9,13 +9,14 @@
 
 from __future__ import absolute_import, print_function
 
-import logging
 import Queue
 import threading
 
 from collections import defaultdict
 
 from celery.events.state import State
+
+from .logger import getLogger
 
 
 class EventsHandler(threading.Thread):
@@ -44,7 +45,7 @@ class EventsHandler(threading.Thread):
             "task-failed": (self._completed, self._failed),
         }
         self._heartbeats = defaultdict(int)
-        self._log = logging.getLogger("zen.zenjobs.monitor.handler")
+        self._log = getLogger(self)
 
     def run(self):
         self._log.info("started handling celery events")
