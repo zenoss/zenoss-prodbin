@@ -66,3 +66,28 @@ class TestBuildDeviceConfig(TestCase):
 
         status = t.store.get_status(key)
         t.assertIsNone(status)
+
+    @mock.patch("{task}.createObject".format(**PATH), autospec=True)
+    @mock.patch("{task}.resolve".format(**PATH), autospec=True)
+    def test_device_not_found(t, _resolve, _createObject):
+        monitor = "localhost"
+        clsname = "Products.ZenHub.services.PingService.PingService"
+        svcname = clsname.rsplit(".", 1)[0]
+        submitted = 123456.34
+        svcclass = mock.Mock()
+        svc = mock.MagicMock()
+        dmd = mock.Mock()
+        log = mock.Mock()
+        key = CacheKey(svcname, monitor, t.device_name)
+
+        _createObject.return_value = t.store
+        _resolve.return_value = svcclass
+        svcclass.return_value = svc
+        dmd.Devices.findDeviceByIdExact.return_value = None
+
+        t.store.set_pending((key, submitted))
+
+        buildDeviceConfig(dmd, log, monitor, t.device_name, clsname, submitted)
+
+        status = t.store.get_status(key)
+        t.assertIsNone(status)
