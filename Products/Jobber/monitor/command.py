@@ -9,7 +9,6 @@
 
 from __future__ import absolute_import, print_function
 
-import logging
 import Queue
 import signal
 
@@ -24,7 +23,7 @@ from .collector import MetricsCollector
 from .events import EventsMonitor
 from .handler import EventsHandler
 from .inspector import Inspector
-from .logger import configure_logging
+from .logger import configure_logging, getLogger
 from .metrics import ZenJobsMetrics
 from .reporter import MetricsReporter
 
@@ -78,7 +77,7 @@ class MonitorCommand(Command):
             maxcount=log_max_file_count,
             maxsize=log_max_file_size,
         )
-        log = logging.getLogger("zen.zenjobs.monitor.command")
+        log = getLogger(self)
         try:
             eventqueue = Queue.Queue()
             reporter = MetricsReporter()

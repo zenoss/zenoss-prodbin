@@ -17,14 +17,24 @@ import sys
 import six
 
 
+def getLogger(obj):
+    return logging.getLogger(
+        "zen.zenjobs.monitor.{}".format(
+            type(obj).__module__.split(".")[-1].lower()
+        )
+    )
+
+
 def configure_logging(level=None, filename=None, maxcount=None, maxsize=None):
     config = copy.deepcopy(_logging_config)
     common_handler = config["handlers"]["common"]
-    common_handler.update({
-        "filename": filename,
-        "maxBytes": maxsize,
-        "backupCount": maxcount,
-    })
+    common_handler.update(
+        {
+            "filename": filename,
+            "maxBytes": maxsize,
+            "backupCount": maxcount,
+        }
+    )
     config["loggers"]["zen.zenjobs.monitor"]["level"] = level.upper()
     logging.config.dictConfig(config)
 
