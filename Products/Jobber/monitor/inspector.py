@@ -7,9 +7,9 @@
 #
 ##############################################################################
 
-import logging
-
 from collections import defaultdict
+
+from .logger import getLogger
 
 
 class Inspector(object):
@@ -19,13 +19,14 @@ class Inspector(object):
         self._app = app
         self._timeout = timeout
         self._workers = defaultdict(dict)
-        self._log = logging.getLogger("zen.configcache.monitor.inspector")
+        self._log = getLogger(self)
 
     def running_counts(self):
         inspect = self._app.control.inspect(timeout=self._timeout)
         result = inspect.active()
         if result is None or "error" in result:
             self._log.warning("inspect method 'active' failed: {}", result)
+            return {}
         running = {}
         for node, tasks in result.items():
             service = _get_service_from_node(node)
@@ -40,7 +41,7 @@ class Inspector(object):
             self._log.warning(
                 "inspect method 'active_queues' failed: {}", result
             )
-            return ()
+            return {}
         return {
             _get_service_from_node(node): {
                 "serviceid": _get_serviceid_from_node(node),

@@ -9,7 +9,6 @@
 
 import contextlib
 import json
-import logging
 
 import attr
 import requests
@@ -19,6 +18,8 @@ from attr.validators import instance_of, deep_mapping
 from Products.ZenUtils.controlplane import configuration as cc_config
 from Products.ZenUtils.MetricReporter import DEFAULT_METRIC_URL
 
+from .logger import getLogger
+
 
 class MetricsReporter(object):
     def __init__(self, url=None, prefix=""):
@@ -27,7 +28,7 @@ class MetricsReporter(object):
             if not url:
                 url = DEFAULT_METRIC_URL
         self._url = url
-        self._log = logging.getLogger("zen.zenjobs.monitor.reporter")
+        self._log = getLogger(self)
 
     @contextlib.contextmanager
     def session(self, tags=None):

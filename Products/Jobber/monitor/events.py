@@ -9,11 +9,12 @@
 
 from __future__ import absolute_import, print_function
 
-import logging
 import threading
 import time
 
 from celery.events import EventReceiver
+
+from .logger import getLogger
 
 
 class EventsMonitor(threading.Thread):
@@ -31,7 +32,7 @@ class EventsMonitor(threading.Thread):
         super(EventsMonitor, self).__init__()
         self._sink = sink
         self._app = app
-        self._log = logging.getLogger("zen.zenjobs.monitor.events")
+        self._log = getLogger(self)
 
     def run(self):
         try_interval = 1

@@ -18,6 +18,8 @@ from itertools import chain
 
 from Products.ZenUtils.controlplane import configuration as cc_config
 
+from .logger import getLogger
+
 # from itertools import izip_longest
 
 # Metrics
@@ -43,7 +45,7 @@ class MetricsCollector(threading.Thread):
         self._reporter = reporter
         self._interval = interval
         self._stopEvent = threading.Event()
-        self._log = logging.getLogger("zen.zenjobs.monitor.collector")
+        self._log = getLogger(self)
 
     def stop(self):
         self._stopEvent.set()
