@@ -51,16 +51,16 @@ class MetricsReporter(object):
             }
         )
         body = {"metrics": [attr.asdict(sample) for sample in metrics]}
-        self._log.debug("sending metric payload: {}", body)
+        self._log.debug("sending metric payload: %s", body)
         response = session.post(self._url, data=json.dumps(body))
         if response.status_code != 200:
             self._log.warning(
-                "problem submitting metrics: {}, {}",
+                "problem submitting metrics: %s, %s",
                 response.status_code,
                 response.text.replace("\n", "\\n"),
             )
         else:
-            self._log.debug("{} metrics posted", len(metrics))
+            self._log.debug("%s metrics posted", len(metrics))
 
     def build_metric(self, **kw):
         metric = Metric(**kw)

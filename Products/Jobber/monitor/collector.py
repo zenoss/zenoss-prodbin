@@ -61,33 +61,38 @@ class MetricsCollector(threading.Thread):
 
     def task(self):
         self._log.debug("begin metric collection")
+        try:
+            running_counts = self._inspector.running_counts()
+            if not running_counts:
+                self._log.warning("count of running tasks not collected")
+            services = self._inspector.workers()
+            if not services:
+                self._log.warning(
+                    "unable to retrieve information about workers"
+                )
+            queues = {
+                str(queue["name"]): queue["messages"]
+                for queue in self._broker.queues(
+                    [info["queue"] for info in services.values()]
+                )
+            }
+            report = self._metrics.report()
 
-        running_counts = self._inspector.running_counts()
-        if not running_counts:
-            self._log.error("count of running tasks not collected")
-        services = self._inspector.workers()
-        queues = {
-            str(queue["name"]): queue["messages"]
-            for queue in self._broker.queues(
-                [info["queue"] for info in services.values()]
-            )
-        }
-        report = self._metrics.report()
+            mgen = _MetricGenerator(services, running_counts, queues, report)
 
-        mgen = _MetricGenerator(services, running_counts, queues, report)
+            common_tags = {"tenantId": cc_config.tenant_id}
+            with self._reporter.session(tags=common_tags) as session:
+                for metric in mgen():
+                    session.add(**metric)
 
-        common_tags = {"tenantId": cc_config.tenant_id}
-        with self._reporter.session(tags=common_tags) as session:
-            for metric in mgen():
-                session.add(**metric)
-
-            if self._log.getEffectiveLevel() == logging.DEBUG:
-                for metric in session.metrics:
-                    self._log.debug(metric)
+                if self._log.getEffectiveLevel() == logging.DEBUG:
+                    for metric in session.metrics:
+                        self._log.debug(metric)
+        finally:
+            self._log.debug("finished metric collection")
 
 
 class _MetricGenerator(object):
-
     def __init__(self, services, running_counts, queues, report):
         self._now = time.time()
         self._running_counts = running_counts
@@ -100,33 +105,31 @@ class _MetricGenerator(object):
         self._report = report
 
     def __call__(self):
-        return chain(
-            self._counts(), self._percents(), self._timings()
-        )
+        return chain(self._counts(), self._percents(), self._timings())
 
     def _counts(self):
         for service, info in self._services.iteritems():
-            pending_count = self._queues.get(info["queue"])
-            if pending_count is None:
-                continue
-            running_count = self._running_counts[service]
             tags = {"controlplane_service_id": self._serviceids[service]}
-            yield (
-                {
-                    "metric": "celery.{}.pending.count".format(service),
-                    "value": pending_count,
-                    "timestamp": self._now,
-                    "tags": tags,
-                }
-            )
-            yield (
-                {
-                    "metric": "celery.{}.running.count".format(service),
-                    "value": running_count,
-                    "timestamp": self._now,
-                    "tags": tags,
-                }
-            )
+            pending_count = self._queues.get(info["queue"])
+            if pending_count is not None:
+                yield (
+                    {
+                        "metric": "celery.{}.pending.count".format(service),
+                        "value": pending_count,
+                        "timestamp": self._now,
+                        "tags": tags,
+                    }
+                )
+            running_count = self._running_counts.get(service)
+            if running_count is not None:
+                yield (
+                    {
+                        "metric": "celery.{}.running.count".format(service),
+                        "value": running_count,
+                        "timestamp": self._now,
+                        "tags": tags,
+                    }
+                )
 
     def _percents(self):
         results = self._report.get("results")
@@ -167,7 +170,6 @@ class _MetricGenerator(object):
         cycletime_services = self._report["cycletime"]["services"]
         leadtime_services = self._report["leadtime"]["services"]
         for service, cycletimes in cycletime_services.iteritems():
-            leadtimes = leadtime_services.get(service)
             tags = {"controlplane_service_id": self._serviceids[service]}
             yield (
                 {
@@ -177,6 +179,7 @@ class _MetricGenerator(object):
                     "tags": tags,
                 }
             )
+            leadtimes = leadtime_services.get(service)
             yield (
                 {
                     "metric": "celery.{}.leadtime.mean".format(service),
