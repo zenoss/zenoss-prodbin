@@ -71,7 +71,7 @@ class EventsHandler(threading.Thread):
                     for handle in handlers:
                         handle(arg)
                 except Exception:
-                    self._log.exception("event handler failed: {}", handle)
+                    self._log.exception("event handler failed: %r", handle)
             except Queue.Empty:
                 pass
             except Exception:
@@ -85,10 +85,10 @@ class EventsHandler(threading.Thread):
         return node.split("@")[0].split("-")[0]
 
     def _online(self, worker):
-        self._log.info("worker online  worker={0.hostname}", worker)
+        self._log.info("worker online  worker=%s", worker.hostname)
 
     def _offline(self, worker):
-        self._log.warning("worker offline  worker={0.hostname}", worker)
+        self._log.warning("worker offline  worker=%s", worker.hostname)
 
     def _build_queue_svc_mapping(self):
         inspect = self._app.control.inspect()
@@ -110,7 +110,7 @@ class EventsHandler(threading.Thread):
         svcid = self._get_svc_from_queue(task.queue)
         if svcid is None:
             self._log.warning(
-                "no service for tasks on queue '{0.queue}' found", task
+                "no service for tasks on queue '%s' found", task.queue
             )
         else:
             self._metrics.count_sent(svcid)
