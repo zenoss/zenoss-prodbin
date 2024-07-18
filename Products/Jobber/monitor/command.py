@@ -32,7 +32,6 @@ class MonitorCommand(Command):
     # Override create_parser to get a different formatter class.
     # @override
     def create_parser(self, prog_name, command=None):
-        self.__command = command  # save the command for later
         # for compatibility with optparse usage.
         usage = self.usage(command).replace("%prog", "%(prog)s")
         parser = self.Parser(
@@ -97,9 +96,20 @@ class MonitorCommand(Command):
             monitor.start()
             collector.start()
 
+            state = {"shutdown": False}
+
+            def _handle_signal(state, signum, frame):
+                state["shutdown"] = True
+
+            signal.signal(
+                signal.SIGTERM, lambda sn, fr: _handle_signal(state, sn, fr)
+            )
+
             while True:
                 try:
                     signal.pause()
+                    if state["shutdown"]:
+                        break
                 except (KeyboardInterrupt, SystemExit):
                     break
         except Exception:

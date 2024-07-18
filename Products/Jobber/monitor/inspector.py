@@ -25,7 +25,7 @@ class Inspector(object):
         inspect = self._app.control.inspect(timeout=self._timeout)
         result = inspect.active()
         if result is None or "error" in result:
-            self._log.warning("inspect method 'active' failed: {}", result)
+            self._log.warning("inspect method 'active' failed: %s", result)
             return {}
         running = {}
         for node, tasks in result.items():
@@ -39,7 +39,7 @@ class Inspector(object):
         result = inspect.active_queues()
         if result is None or "error" in result:
             self._log.warning(
-                "inspect method 'active_queues' failed: {}", result
+                "inspect method 'active_queues' failed: %s", result
             )
             return {}
         return {
