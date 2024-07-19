@@ -10,7 +10,7 @@
 from __future__ import absolute_import, print_function
 
 from collections import defaultdict
-from threading import Lock
+from threading import RLock
 
 from metrology.instruments import HistogramUniform, Meter
 from metrology.instruments.gauge import PercentGauge
@@ -18,9 +18,58 @@ from metrology.instruments.gauge import PercentGauge
 
 class ZenJobsMetrics(object):
     def __init__(self):
+        self._lock = RLock()  # synchronize thread access
+        self._metrics = _BagOfMetrics()
+
+    def __enter__(self):
+        self._lock.acquire()
+        return self._metrics
+
+    def __exit__(self, *exc_info):
+        self._lock.release()
+
+    def report(self):
+        with self._lock:
+            cycletime = _get_timings(
+                self._metrics.cycletime,
+                self._metrics.cycletime_task,
+                self._metrics.cycletime_service,
+                self._metrics.cycletime_service_task,
+            )
+            leadtime = _get_timings(
+                self._metrics.leadtime,
+                self._metrics.leadtime_task,
+                self._metrics.leadtime_service,
+                self._metrics.leadtime_service_task,
+            )
+
+            results = {
+                service: {
+                    "success_rate": self._metrics.successes[service].mean_rate,
+                    "success_percent": self._metrics.success_pct[
+                        service
+                    ].value,
+                    "retry_rate": self._metrics.retries[service].mean_rate,
+                    "retry_percent": self._metrics.retry_pct[service].value,
+                    "failure_rate": self._metrics.failures[service].mean_rate,
+                    "failure_percent": self._metrics.failure_pct[
+                        service
+                    ].value,
+                }
+                for service in self._metrics.services
+            }
+
+            return {
+                "cycletime": cycletime,
+                "leadtime": leadtime,
+                "results": results,
+            }
+
+
+class _BagOfMetrics(object):
+    def __init__(self):
         # cache of service IDs
-        self._services = set()
-        self._lock = Lock()  # synchronize thread access
+        self.services = set()
 
         # Task runtimes;
         # {service-id: {task-name: histogram}}
@@ -58,101 +107,61 @@ class ZenJobsMetrics(object):
     def add_task_runtime(self, service, task, runtime):
         millisecs = int(runtime * 1000)
 
-        with self._lock:
-            if service not in self.cycletime_service_task:
-                self.cycletime_service_task[service] = {}
-            if task not in self.cycletime_service_task[service]:
-                self.cycletime_service_task[service][task] = HistogramUniform()
-            self.cycletime_service_task[service][task].update(millisecs)
+        if service not in self.cycletime_service_task:
+            self.cycletime_service_task[service] = {}
+        if task not in self.cycletime_service_task[service]:
+            self.cycletime_service_task[service][task] = HistogramUniform()
+        self.cycletime_service_task[service][task].update(millisecs)
 
-            if task not in self.cycletime_task:
-                self.cycletime_task[task] = HistogramUniform()
-            self.cycletime_task[task].update(millisecs)
+        if task not in self.cycletime_task:
+            self.cycletime_task[task] = HistogramUniform()
+        self.cycletime_task[task].update(millisecs)
 
-            if service not in self.cycletime_service:
-                self.cycletime_service[service] = HistogramUniform()
-            self.cycletime_service[service].update(millisecs)
+        if service not in self.cycletime_service:
+            self.cycletime_service[service] = HistogramUniform()
+        self.cycletime_service[service].update(millisecs)
 
-            self.cycletime.update(millisecs)
-            self._services.add(service)
+        self.cycletime.update(millisecs)
+        self.services.add(service)
 
     def add_task_leadtime(self, service, task, leadtime):
         millisecs = int(leadtime * 1000)
 
-        with self._lock:
-            if service not in self.leadtime_service_task:
-                self.leadtime_service_task[service] = {}
-            if task not in self.leadtime_service_task[service]:
-                self.leadtime_service_task[service][task] = HistogramUniform()
-            self.leadtime_service_task[service][task].update(millisecs)
+        if service not in self.leadtime_service_task:
+            self.leadtime_service_task[service] = {}
+        if task not in self.leadtime_service_task[service]:
+            self.leadtime_service_task[service][task] = HistogramUniform()
+        self.leadtime_service_task[service][task].update(millisecs)
 
-            if task not in self.leadtime_task:
-                self.leadtime_task[task] = HistogramUniform()
-            self.leadtime_task[task].update(millisecs)
+        if task not in self.leadtime_task:
+            self.leadtime_task[task] = HistogramUniform()
+        self.leadtime_task[task].update(millisecs)
 
-            if service not in self.leadtime_service:
-                self.leadtime_service[service] = HistogramUniform()
-            self.leadtime_service[service].update(millisecs)
+        if service not in self.leadtime_service:
+            self.leadtime_service[service] = HistogramUniform()
+        self.leadtime_service[service].update(millisecs)
 
-            self.leadtime.update(millisecs)
-            self._services.add(service)
+        self.leadtime.update(millisecs)
+        self.services.add(service)
 
     def count_sent(self, service):
-        with self._lock:
-            self._services.add(service)
+        self.services.add(service)
 
     def count_completed(self, service):
-        with self._lock:
-            self.completed[service].mark()
-            self._services.add(service)
+        self.completed[service].mark()
+        self.services.add(service)
 
     def mark_success(self, service):
-        with self._lock:
-            self.successes[service].mark()
-            self._services.add(service)
+        self.successes[service].mark()
+        self.services.add(service)
 
     def mark_retry(self, service):
-        with self._lock:
-            self.retries[service].mark()
-            self._services.add(service)
+        self.retries[service].mark()
+        self.services.add(service)
 
     def mark_failure(self, service):
-        with self._lock:
-            self.failures[service].mark()
-            self._services.add(service)
-
-    def report(self):
-        with self._lock:
-            cycletime = _get_timings(
-                self.cycletime,
-                self.cycletime_task,
-                self.cycletime_service,
-                self.cycletime_service_task,
-            )
-            leadtime = _get_timings(
-                self.leadtime,
-                self.leadtime_task,
-                self.leadtime_service,
-                self.leadtime_service_task,
-            )
-
-            results = {
-                service: {
-                    "success_rate": self.successes[service].mean_rate,
-                    "success_percent": self.success_pct[service].value,
-                    "retry_rate": self.retries[service].mean_rate,
-                    "retry_percent": self.retry_pct[service].value,
-                    "failure_rate": self.failures[service].mean_rate,
-                    "failure_percent": self.failure_pct[service].value,
-                }
-                for service in self._services
-            }
-
-            return {
-                "cycletime": cycletime,
-                "leadtime": leadtime,
-                "results": results,
-            }
+        self.failures[service].mark()
+        self.services.add(service)
 
 
 def _get_timings(total, bytask, byservice, byservicetask):

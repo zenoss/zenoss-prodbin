@@ -63,14 +63,7 @@ class MetricsReporter(object):
             self._log.debug("%s metrics posted", len(metrics))
 
     def build_metric(self, **kw):
-        metric = Metric(**kw)
-        metric.tags.update(
-            {
-                "tenantId": cc_config.tenant_id,
-                "serviceId": metric.tags["controlplane_service_id"],
-            }
-        )
-        return metric
+        return Metric(**kw)
 
 
 class _Session(object):
@@ -101,5 +94,7 @@ class Metric(object):
 
     @tags.validator
     def _verify_keys(self, attribute, value):
-        if "controlplane_service_id" not in value:
-            raise KeyError("Missing 'controlplane_service_id' tag")
+        if "serviceId" not in value:
+            raise KeyError("Missing 'serviceId' tag")
+        if "tenantId" not in value:
+            raise KeyError("Missing 'tenantId' tag")
