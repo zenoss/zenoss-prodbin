@@ -37,12 +37,12 @@ class EventsHandler(threading.Thread):
         self._stopEvent = threading.Event()
         self._queue_svc_map = {}
         self._handlers = {
-            "worker-online": (self._online,),
-            "worker-offline": (self._offline,),
-            "task-sent": (self._sent,),
-            "task-succeeded": (self._completed, self._succeeded),
-            "task-retried": (self._completed, self._retried),
-            "task-failed": (self._completed, self._failed),
+            "worker-online": self._online,
+            "worker-offline": self._offline,
+            "task-sent": self._sent,
+            "task-succeeded": self._succeeded,
+            "task-retried": self._retried,
+            "task-failed": self._failed,
         }
         self._heartbeats = defaultdict(int)
         self._log = getLogger(self)
@@ -57,8 +57,8 @@ class EventsHandler(threading.Thread):
 
                 event_type = event["type"]
 
-                handlers = self._handlers.get(event_type, [])
-                if not handlers:
+                handler = self._handlers.get(event_type)
+                if not handler:
                     continue
 
                 if event_type.startswith("task-"):
@@ -68,10 +68,9 @@ class EventsHandler(threading.Thread):
                     arg = state.workers.get(event["hostname"])
 
                 try:
-                    for handle in handlers:
-                        handle(arg)
+                    handler(arg)
                 except Exception:
-                    self._log.exception("event handler failed: %r", handle)
+                    self._log.exception("event handler failed: %r", handler)
             except Queue.Empty:
                 pass
             except Exception:
@@ -113,27 +112,34 @@ class EventsHandler(threading.Thread):
                 "no service for tasks on queue '%s' found", task.queue
             )
         else:
-            self._metrics.count_sent(svcid)
+            with self._metrics as updater:
+                updater.count_sent(svcid)
 
     def _succeeded(self, task):
         if not task.received or not task.started:
             return
         svcid = self._get_svc_from_node(task.hostname)
-        self._metrics.mark_success(svcid)
-        self._metrics.add_task_runtime(svcid, task.name, task.runtime)
+        with self._metrics as updater:
+            updater.mark_success(svcid)
+            updater.add_task_runtime(svcid, task.name, task.runtime)
+            _completed(task, svcid, updater)
 
     def _failed(self, task):
         svcid = self._get_svc_from_node(task.hostname)
-        self._metrics.mark_failure(svcid)
+        with self._metrics as updater:
+            updater.mark_failure(svcid)
+            _completed(task, svcid, updater)
 
     def _retried(self, task):
         svcid = self._get_svc_from_node(task.hostname)
-        self._metrics.mark_retry(svcid)
+        with self._metrics as updater:
+            updater.mark_retry(svcid)
+            _completed(task, svcid, updater)
 
-    def _completed(self, task):
-        if not task.sent:
-            return
-        svcid = self._get_svc_from_node(task.hostname)
-        leadtime = task.timestamp - task.sent
-        self._metrics.count_completed(svcid)
-        self._metrics.add_task_leadtime(svcid, task.name, leadtime)
+
+def _completed(task, svcid, metrics):
+    if not task.sent:
+        return
+    leadtime = task.timestamp - task.sent
+    metrics.count_completed(svcid)
+    metrics.add_task_leadtime(svcid, task.name, leadtime)
