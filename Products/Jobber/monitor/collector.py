@@ -67,20 +67,23 @@ class MetricsCollector(threading.Thread):
                 self._log.warning("count of running tasks not collected")
             services = self._inspector.workers()
             if not services:
-                self._log.warning(
-                    "unable to retrieve information about workers"
-                )
+                self._log.warning("no information about workers")
             queues = {
                 str(queue["name"]): queue["messages"]
                 for queue in self._broker.queues(
                     [info["queue"] for info in services.values()]
                 )
             }
+            if not queues:
+                self._log.warning("no information about queues")
             report = self._metrics.report()
 
             mgen = _MetricGenerator(services, running_counts, queues, report)
 
-            common_tags = {"tenantId": cc_config.tenant_id}
+            common_tags = {
+                "serviceId": cc_config.service_id,
+                "tenantId": cc_config.tenant_id,
+            }
             with self._reporter.session(tags=common_tags) as session:
                 for metric in mgen():
                     session.add(**metric)
@@ -109,7 +112,6 @@ class _MetricGenerator(object):
 
     def _counts(self):
         for service, info in self._services.iteritems():
-            tags = {"controlplane_service_id": self._serviceids[service]}
             pending_count = self._queues.get(info["queue"])
             if pending_count is not None:
                 yield (
@@ -117,7 +119,6 @@ class _MetricGenerator(object):
                         "metric": "celery.{}.pending.count".format(service),
                         "value": pending_count,
                         "timestamp": self._now,
-                        "tags": tags,
                     }
                 )
             running_count = self._running_counts.get(service)
@@ -127,14 +128,12 @@ class _MetricGenerator(object):
                         "metric": "celery.{}.running.count".format(service),
                         "value": running_count,
                         "timestamp": self._now,
-                        "tags": tags,
                     }
                 )
 
     def _percents(self):
         results = self._report.get("results")
         for service, result in results.iteritems():
-            tags = {"controlplane_service_id": self._serviceids[service]}
             success = result["success_percent"]
             failure = result["failure_percent"]
             retry = result["retry_percent"]
@@ -144,7 +143,6 @@ class _MetricGenerator(object):
                         "metric": "celery.{}.success.percent".format(service),
                         "value": success,
                         "timestamp": self._now,
-                        "tags": tags,
                     }
                 )
             if not math.isnan(failure):
@@ -153,7 +151,6 @@ class _MetricGenerator(object):
                         "metric": "celery.{}.failure.percent".format(service),
                         "value": failure,
                         "timestamp": self._now,
-                        "tags": tags,
                     }
                 )
             if not math.isnan(retry):
@@ -162,7 +159,6 @@ class _MetricGenerator(object):
                         "metric": "celery.{}.retry.percent".format(service),
                         "value": retry,
                         "timestamp": self._now,
-                        "tags": tags,
                     }
                 )
 
@@ -170,13 +166,11 @@ class _MetricGenerator(object):
         cycletime_services = self._report["cycletime"]["services"]
         leadtime_services = self._report["leadtime"]["services"]
         for service, cycletimes in cycletime_services.iteritems():
-            tags = {"controlplane_service_id": self._serviceids[service]}
             yield (
                 {
                     "metric": "celery.{}.cycletime.mean".format(service),
                     "value": cycletimes["mean"],
                     "timestamp": self._now,
-                    "tags": tags,
                 }
             )
             leadtimes = leadtime_services.get(service)
@@ -185,6 +179,5 @@ class _MetricGenerator(object):
                     "metric": "celery.{}.leadtime.mean".format(service),
                     "value": leadtimes["mean"],
                     "timestamp": self._now,
-                    "tags": tags,
                 }
             )
