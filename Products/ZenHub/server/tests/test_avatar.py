@@ -32,8 +32,8 @@ class HubAvatarTest(TestCase):
 
         self.services = create_autospec(ServiceManager)
         self.pools = {
-            "foo": create_autospec(WorkerPool),
-            "bar": create_autospec(WorkerPool),
+            "foo": WorkerPool("foo"),  # create_autospec(WorkerPool),
+            "bar": WorkerPool("bar"),  # create_autospec(WorkerPool),
         }
         self.avatar = HubAvatar(self.services, self.pools)
 
@@ -111,16 +111,15 @@ class HubAvatarTest(TestCase):
                 service_name,
             )
 
-    def test_perspective_reportingForWork_nominal(self):
+    def test_perspective_reportForWork_nominal(self):
         worker = Mock(
             spec_set=[
-                "workerId",
-                "sessionId",
+                "name",
                 "queue_name",
                 "notifyOnDisconnect",
             ]
         )
-        workerId = "default-1"
+        name = "default-1"
 
         disconnect_callback = []
 
@@ -130,12 +129,12 @@ class HubAvatarTest(TestCase):
         worker.notifyOnDisconnect.side_effect = _notifyOnDisconnect
 
         # Add the worker
-        self.avatar.perspective_reportingForWork(worker, workerId, "foo")
-        self.assertTrue(hasattr(worker, "sessionId"))
-        self.assertIsNotNone(worker.sessionId)
-        self.assertTrue(hasattr(worker, "workerId"))
-        self.assertEqual(worker.workerId, workerId)
-        self.pools["foo"].add.assert_called_once_with(worker)
+        self.avatar.perspective_reportForWork(worker, name, "foo")
+        self.assertTrue(hasattr(worker, "name"))
+        self.assertEqual(worker.name, name)
+
+        foo = self.pools["foo"]
+        self.assertIn(worker, foo)
 
         # Remove the worker
         self.assertEqual(
@@ -144,4 +143,17 @@ class HubAvatarTest(TestCase):
             "notifyOnDisconnect not called",
         )
         disconnect_callback[0](worker)
-        self.pools["foo"].remove.assert_called_once_with(worker)
+        self.assertNotIn(worker, foo)
+
+    def test_perspective_resignForWork_nominal(self):
+        worker = Mock(spec_set=["name", "queue_name", "notifyOnDisconnect"])
+        name = "default-1"
+        worklist = "foo"
+
+        # Add the worker
+        self.avatar.perspective_reportForWork(worker, name, worklist)
+        self.assertIn(worker, self.pools["foo"])
+
+        # Resign the worker
+        self.avatar.perspective_resignFromWork(name, worklist)
+        self.assertNotIn(worker, self.pools["foo"])

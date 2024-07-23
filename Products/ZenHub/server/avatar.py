@@ -12,7 +12,6 @@ from __future__ import absolute_import
 import logging
 import os
 
-from uuid import uuid4
 from twisted.spread import pb
 
 from ..errors import RemoteBadMonitor
@@ -77,48 +76,63 @@ class HubAvatar(pb.Avatar):
                 service.addListener(listener, options)
             return service
 
-    def perspective_reportingForWork(self, worker, workerId, worklistId):
+    def perspective_reportForWork(self, worker, name, worklistId):
         """Allow a worker to register for work.
 
         :param worker: Reference to zenhubworker
         :type worker: twisted.spread.pb.RemoteReference
-        :param int workerId: The worker's identifier
+        :param str name: The name of the worker
         :param str worklistId: The worker will work jobs from this worklist
         :rtype: None
         """
-        worker.workerId = workerId
-        worker.sessionId = uuid4()
         pool = self.__pools.get(worklistId)
         if pool is None:
             self.__log.error(
-                "Worker asked to work unknown worklist "
+                "worker asked to work unknown worklist  "
                 "worker=%s worklist=%s",
-                workerId,
+                name,
                 worklistId,
             )
             raise pb.Error("No such worklist: %s" % worklistId)
+        worker.name = name
         worker.queue_name = worklistId
         try:
             pool.add(worker)
         except Exception as ex:
-            self.__log.exception("Failed to add worker worker=%s", workerId)
+            self.__log.exception("failed to add worker  worker=%s", name)
             raise pb.Error(
                 "Internal ZenHub error: %s: %s" % (ex.__class__, ex),
             )
         self.__log.info(
-            "Worker ready to work worker=%s session=%s worklist=%s",
-            workerId,
-            worker.sessionId.hex,
-            worklistId,
+            "worker ready to work  worker=%s worklist=%s", name, worklistId
         )
+        worker.notifyOnDisconnect(self._remove_worker)
 
-        def removeWorker(worker):
-            pool = self.__pools.get(worker.queue_name)
-            pool.remove(worker)
-            self.__log.info(
-                "Worker disconnected worker=%s session=%s",
-                worker.workerId,
-                worker.sessionId.hex,
+    def perspective_resignFromWork(self, name, worklistId):
+        """Allow a worker to unregister itself from work.
+
+        :param str name: The name of the worker
+        :param str worklistId: The worker will work jobs from this worklist
+        :rtype: None
+        """
+        pool = self.__pools.get(worklistId)
+        if pool is None:
+            self.__log.error(
+                "worker asked to resign from unknown worklist  "
+                "worker=%s worklist=%s",
+                name,
+                worklistId,
             )
+            raise pb.Error("No such worklist: %s" % worklistId)
+        worker = next((r.ref for r in iter(pool) if r.name == name), None)
+        if worker is not None:
+            pool.remove(worker)
+            del worker  # maybe this works...?
+            self.__log.info("worker resigned  worker=%s", name)
 
-        worker.notifyOnDisconnect(removeWorker)
+    def _remove_worker(self, worker):
+        pool = self.__pools.get(worker.queue_name)
+        if pool is None:
+            return
+        pool.remove(worker)
+        self.__log.info("worker disconnected  worker=%s", worker.name)

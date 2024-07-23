@@ -56,13 +56,18 @@ def getConfigFromArguments(parser, args):
         long_name: default
         for long_name, _, _, default in options
     }
+
+    # Start with the defaults
     config = defaults.copy()
+
+    # Add globals.conf options; overwrites existing options.
     config.update(
         (key, xforms[key](value))
         for key, value in getGlobalConfiguration().items()
         if key in dest_names
     )
 
+    # Add application config file options; overwrites existing options.
     configfile = getattr(args, "configfile", None)
     if configfile:
         app_config_loader = ConfigLoader(configfile, Config)
@@ -77,7 +82,7 @@ def getConfigFromArguments(parser, args):
             if ex.errno != 2:
                 raise
 
-    # Apply command-line overrides.  An override is a value from the
+    # Add command-line overrides.  An override is a value from the
     # command line that differs from the default.  This does mean that
     # explicitely specified default values on the CLI are ignored.
     config.update(

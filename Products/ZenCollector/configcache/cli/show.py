@@ -17,10 +17,10 @@ from twisted.spread.jelly import unjellyableRegistry
 from zope.component import createObject
 
 from Products.ZenCollector.services.config import DeviceProxy
+from Products.ZenUtils.init import initialize_environment
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 from Products.ZenUtils.terminal_size import get_terminal_size
 
-from ..app import initialize_environment
 from ..app.args import get_subparser
 from ..cache import CacheQuery
 

@@ -7,14 +7,16 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import
+
 import json as _stdlib_json
 import logging
 import os
 import sys
 
 from collections import deque
-from cookielib import CookieJar
-from httplib import UNAUTHORIZED
+from six.moves.http_cookiejar import CookieJar
+from six.moves.http_client import UNAUTHORIZED
 
 from twisted.internet import defer, protocol, reactor
 from twisted.web.client import Agent, CookieAgent
@@ -27,6 +29,7 @@ from Products.ZenUtils.MetricServiceRequest import getPool
 
 from .compat import json
 from .utils import basic_auth_string_content, sanitized_float
+from six.moves import range
 
 defaultMetricsChannel = "metrics"
 defaultMetricBufferSize = 65536
@@ -228,7 +231,7 @@ class RedisListPublisher(BasePublisher):
             log.debug("trying to publish %d metrics", len(self._mq))
 
             metrics = []
-            for x in xrange(self._get_batch_size()):
+            for _ in range(self._get_batch_size()):
                 if not self._mq:
                     break
                 metrics.append(self._mq.popleft())
@@ -389,7 +392,7 @@ class HttpPostPublisher(BasePublisher):
 
     def _make_request(self):
         metrics = []
-        for x in xrange(HTTP_BATCH):
+        for _ in range(HTTP_BATCH):
             if not self._mq:
                 break
             metrics.append(self._mq.popleft())

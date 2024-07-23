@@ -13,7 +13,7 @@ import os
 import signal
 import sys
 
-from .app import pidfile
+from Products.ZenUtils.pidfile import PIDFile
 
 
 class Debug(object):
@@ -25,7 +25,7 @@ class Debug(object):
         self.pidfile = pidfile
 
     def run(self):
-        pf = pidfile({"pidfile": self.pidfile})
+        pf = PIDFile({"pidfile": self.pidfile})
         try:
             pid = pf.read()
             try:
