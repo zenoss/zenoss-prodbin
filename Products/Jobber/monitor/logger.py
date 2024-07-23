@@ -67,4 +67,7 @@ _logging_config = {
             "level": "INFO",
         },
     },
+    "root": {
+        "handlers": [],
+    },
 }
