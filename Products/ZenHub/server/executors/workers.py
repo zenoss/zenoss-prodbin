@@ -228,7 +228,7 @@ class _Running(object):
             )
             self._handle_retry(task, ex)
         except Exception as ex:
-            self.log.exception("Unexpected failure worklist=%s, task details: %r", self.name, dict([(f,getattr(task, f)) for f in task.__slots__]))
+            self.log.exception("Unexpected failure worklist=%s, task details: %r", self.name, {f: getattr(task, f, None) for f in task.__slots__})
             self._handle_error(task, ex)
         finally:
             # if the task is retryable, push the task
