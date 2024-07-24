@@ -112,4 +112,11 @@
         permission="zenoss.Common"
         />
 
+    <browser:view
+        class=".modelapi.ZenjobsMonitor"
+        name="ZenjobsMonitor"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
 </configure>

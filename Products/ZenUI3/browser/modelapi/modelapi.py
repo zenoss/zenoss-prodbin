@@ -443,3 +443,14 @@ class ConfigCacheDaemons(BaseApiView):
             ('configCacheBuilders', 'builder'),
             ('configCacheManagers', 'manager'),
         )
+
+class ZenjobsMonitor(BaseApiView):
+    """
+    This view emits info for zenjobs-monitor
+    """
+    @property
+    def _services(self):
+        return (
+            ('zenjobsMonitors', 'zenjobs-monitor'),
+        )
+
