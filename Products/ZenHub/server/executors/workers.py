@@ -228,8 +228,8 @@ class _Running(object):
             )
             self._handle_retry(task, ex)
         except Exception as ex:
+            self.log.exception("Unexpected failure worklist=%s, task details: %r", self.name, {f: getattr(task, f, None) for f in task.__slots__})
             self._handle_error(task, ex)
-            self.log.exception("Unexpected failure worklist=%s", self.name)
         finally:
             # if the task is retryable, push the task
             # to the front of its queue.
@@ -443,7 +443,14 @@ class ServiceCallTask(object):
         return ServiceCallCompleted(**data)
 
     def failure(self, error):
-        self.deferred.errback(error)
+        try:
+            self.deferred.errback(error)
+        except Exception as ex:
+            getLogger(self).exception("Unexpected exception in deferred.errback for task %s with original error %r", self.desc, error)
 
     def success(self, result):
-        self.deferred.callback(result)
+        try:
+            self.deferred.callback(result)
+        except Exception as ex:
+            getLogger(self).exception("Unexpected exception in deferred.callback for task %s with original result %r", self.desc, result)
+

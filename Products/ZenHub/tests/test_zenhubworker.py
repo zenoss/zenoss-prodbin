@@ -499,9 +499,16 @@ class ZenHubClientTest(TestCase):
         t.assertTrue(t.zhc.is_connected)
 
     @patch.object(ZenHubClient, "_ZenHubClient__prepForConnection")
-    def test_start(t, prepForConnection):
+    def test_start_while_stopping(t, prepForConnection):
         t.zhc._ZenHubClient__stopping = True
 
+        t.zhc.start()
+
+        t.assertTrue(t.zhc._ZenHubClient__stopping)
+        t.ClientService.assert_not_called()
+
+    @patch.object(ZenHubClient, "_ZenHubClient__prepForConnection")
+    def test_start(t, prepForConnection):
         t.zhc.start()
 
         t.assertFalse(t.zhc._ZenHubClient__stopping)

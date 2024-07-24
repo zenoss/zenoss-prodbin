@@ -475,7 +475,8 @@ class ZenHubClient(object):
 
     def start(self):
         """Start connecting to ZenHub."""
-        self.__stopping = False
+        if self.__stopping:
+            return
         factory = ZenPBClientFactory()
         self.__service = ClientService(
             self.__endpoint,
