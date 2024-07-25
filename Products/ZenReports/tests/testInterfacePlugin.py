@@ -46,7 +46,7 @@ def assertInterfaceRowIsCorrect(
         interface.id
     ]
     testTotal = testInputOctets + testOutputOctets
-    testPercentUsed = long(testTotal) * 8 * 100.0 / testSpeed
+    testPercentUsed = int(testTotal) * 8 * 100.0 / testSpeed
     assertRecordIsCorrect(
         test,
         record,

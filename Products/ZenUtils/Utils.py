@@ -980,7 +980,7 @@ def resequence(context, objects, seqmap, origseq, REQUEST):
     """
     if seqmap and origseq:
         try:
-            origseq = tuple(long(s) for s in origseq)
+            origseq = tuple(int(s) for s in origseq)
             seqmap = tuple(float(s) for s in seqmap)
         except ValueError:
             origseq = ()
@@ -1409,18 +1409,20 @@ def unsigned(v):
     >>> str(unsigned(-1))
     '4294967295'
     >>> unsigned(1)
-    1L
+    1
     >>> unsigned(1e6)
-    1000000L
+    1000000
     >>> unsigned(1e10)
-    10000000000L
+    10000000000
+    >>> unsigned(0 - ((2 ** 32) - 1))
+    1
 
     @param v: number
     @type v: negative 32-bit number
     @return: 2's complement unsigned value
     @rtype: unsigned int
     """
-    v = long(v)
+    v = int(v)
     if v < 0:
         return int(ctypes.c_uint32(v).value)
     return v

@@ -231,7 +231,7 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
                 v = REQUEST.form.get(optional, None)
                 if v:
                     try:
-                        REQUEST.form[optional] = long(v)
+                        REQUEST.form[optional] = int(v)
                     except ValueError:
                         msgs.append('Unable to convert "%s" to a number' % v)
             msgs = ', '.join(msgs)

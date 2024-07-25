@@ -155,7 +155,7 @@ class Commandable:
             self.write(out, '')
         self.write(out, '')
         self.write(out, 'DONE in %s seconds on %s targets' %
-                    (long(time.time() - startTime), numTargets))
+                    (int(time.time() - startTime), numTargets))
         REQUEST.RESPONSE.write(str(footer))
 
 

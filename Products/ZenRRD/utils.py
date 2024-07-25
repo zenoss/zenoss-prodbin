@@ -47,10 +47,8 @@ def loadargs(obj, args):
                 if obj._properties[i]["type"] == "lines":
                     value = map(string.strip, arg.split(","))
                     att = "_" + att
-                elif obj._properties[i]["type"] == "int":
+                elif obj._properties[i]["type"] in ("int", "long"):
                     value = int(arg)
-                elif obj._properties[i]["type"] == "long":
-                    value = long(arg)
                 elif obj._properties[i]["type"] == "float":
                     value = float(arg)
                 elif obj._properties[i]["type"] == "boolean":

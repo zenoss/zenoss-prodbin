@@ -343,7 +343,7 @@ class SimpleRRDDataSource(RRDDataSource):
                 value = REQUEST['rrdmin']
                 if value != '': 
                     try:
-                        value = long(value)
+                        value = int(value)
                     except ValueError:
                         messaging.IMessageSender(self).sendToBrowser(
                             'Error',
@@ -357,7 +357,7 @@ class SimpleRRDDataSource(RRDDataSource):
                 value = REQUEST['rrdmax']
                 if value != '': 
                     try:
-                        value = long(value)
+                        value = int(value)
                     except ValueError:
                         messaging.IMessageSender(self).sendToBrowser(
                             'Error',
