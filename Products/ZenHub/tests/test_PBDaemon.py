@@ -211,6 +211,7 @@ class PBDaemonTest(TestCase):
 
         t.name = "pb_daemon_name"
         t.pbd = PBDaemon(name=t.name)
+        t.pbd.fqdn = "fqdn"
 
         # Mock out 'log' to prevent spurious output to stdout.
         t.pbd.log = Mock(spec=logging.getLoggerClass())
@@ -447,6 +448,7 @@ class PBDaemonTest(TestCase):
                 "name": "event",
                 "newkey": "newkey",
                 "agent": t.pbd.name,
+                "manager": t.pbd.fqdn,
                 "monitor": t.pbd.options.monitor,
             },
         )

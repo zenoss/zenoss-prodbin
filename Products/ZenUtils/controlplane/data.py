@@ -221,7 +221,6 @@ def _convertToApplicationState(f):
             "stopped":   ApplicationState.STOPPED,
             "started":   ApplicationState.RUNNING,
             "pulling":   ApplicationState.STARTING,
-            "resuming":  ApplicationState.STARTING,
             "resumed":   ApplicationState.RUNNING,
             "pending_restart": ApplicationState.STARTING,
             "emergency_stopping": ApplicationState.STOPPING,

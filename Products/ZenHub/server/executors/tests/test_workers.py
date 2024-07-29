@@ -408,7 +408,7 @@ class RunningHandleMethodsTest(BaseRunning, TestCase):
     def test__handle_start_first_attempt(self):
         task = Mock(spec=["attempt", "started", "call"])
         task.attempt = 0
-        workerId = 1
+        workerId = "default_1"
 
         self.running._handle_start(task, workerId)
 
@@ -423,7 +423,7 @@ class RunningHandleMethodsTest(BaseRunning, TestCase):
     def test__handle_start_later_attempts(self):
         task = Mock(spec=["attempt", "started", "call"])
         task.attempt = 1
-        workerId = 1
+        workerId = "default_1"
 
         self.running._handle_start(task, workerId)
 
@@ -729,7 +729,10 @@ class RunningExecuteTest(BaseRunning, TestCase):
         worker = Mock(spec=["workerId", "run"])
         worker.run.side_effect = error
 
-        task = Mock(spec=["call", "retryable", "attempt", "priority"])
+        task = Mock(
+            spec=["call", "retryable", "attempt", "priority", "__slots__"]
+        )
+        task.__slots__ = ("workerId",)
         task.retryable = True
 
         handler = Mock()
@@ -753,7 +756,9 @@ class RunningExecuteTest(BaseRunning, TestCase):
         )
         self.workers.layoff.assert_called_once_with(worker)
         self.logger.exception.assert_called_once_with(
-            "Unexpected failure worklist=%s", "default"
+            "Unexpected failure worklist=%s, task details: %r",
+            "default",
+            {"workerId": None},
         )
 
         self.logger.error.assert_not_called()

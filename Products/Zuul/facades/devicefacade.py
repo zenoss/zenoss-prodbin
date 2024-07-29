@@ -780,7 +780,13 @@ class DeviceFacade(TreeFacade):
         def byTitleOrId(left, right):
             return cmp(left.titleOrId().lower(), right.titleOrId().lower())
 
-        for rrdTemplate in sorted(boundTemplates, byTitleOrId) + sorted(unboundTemplates, byTitleOrId):
+        for rrdTemplate in list(unboundTemplates):
+            if rrdTemplate.id.endswith('-replacement') or rrdTemplate.id.endswith('-addition'):
+                if '-'.join(rrdTemplate.id.split('-')[:-1]) in zDeviceTemplates:
+                    boundTemplates.append(rrdTemplate)
+                    unboundTemplates.remove(rrdTemplate)
+
+        def makenode(rrdTemplate, suborg=None):
             uid = '/'.join(rrdTemplate.getPrimaryPath())
             path = ''
 
@@ -797,12 +803,25 @@ class DeviceFacade(TreeFacade):
                 path = "%s (%s)" % (path, _t('Locally Defined'))
             else:
                 path = "%s (%s)" % (path, uiPath)
-            yield {'id': uid,
+            return {'id': uid,
                    'uid': uid,
                    'path': path,
                    'text': '%s %s' % (rrdTemplate.titleOrId(), path),
                    'leaf': True
                    }
+
+        for rrdTemplate in sorted(boundTemplates, byTitleOrId):
+            yield makenode(rrdTemplate)
+        if isDeviceClass:
+            available = []
+            for rrdTemplate in sorted(unboundTemplates, byTitleOrId):
+                available.append(makenode(rrdTemplate, "Available"))
+            yield {'id': 'Available',
+                    'text': 'Available',
+                    'leaf': False,
+                    'children': available
+                    }
+
 
     def getLocalTemplates(self, uid):
         """

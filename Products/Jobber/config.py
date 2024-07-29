@@ -142,27 +142,28 @@ class CeleryConfig(object):
     CELERYBEAT_REDIRECT_STDOUTS = attr.ib(default=True)
     CELERYBEAT_REDIRECT_STDOUTS_LEVEL = attr.ib(default="INFO")
 
-    @classmethod
-    def from_config(cls, cfg={}):
-        args = {
-            "broker_url": buildBrokerUrl(cfg),
-            "result_backend": cfg.get("redis-url"),
-            "result_expires": cfg.get("zenjobs-job-expires"),
-            "worker_concurrency": cfg.get("concurrent-jobs"),
-            "worker_max_tasks_per_child": cfg.get("max-jobs-per-worker"),
-            "task_time_limit": cfg.get("job-hard-time-limit"),
-            "task_soft_time_limit": cfg.get("job-soft-time-limit"),
-            "beat_max_loop_interval": cfg.get(
-                "scheduler-max-loop-interval"
-            ),
-            "worker_proc_alive_timeout": cfg.get("zenjobs-worker-alive-timeout"),
-        }
-        tz = os.environ.get("TZ")
-        if tz:
-            args["timezone"] = tz
 
-        return cls(**args)
+def from_config(cfg=None):
+    cfg = cfg if cfg is not None else {}
+    args = {
+        "broker_url": buildBrokerUrl(cfg),
+        "result_backend": cfg.get("redis-url"),
+        "result_expires": cfg.get("zenjobs-job-expires"),
+        "worker_concurrency": cfg.get("concurrent-jobs"),
+        "worker_max_tasks_per_child": cfg.get("max-jobs-per-worker"),
+        "task_time_limit": cfg.get("job-hard-time-limit"),
+        "task_soft_time_limit": cfg.get("job-soft-time-limit"),
+        "beat_max_loop_interval": cfg.get(
+            "scheduler-max-loop-interval"
+        ),
+        "worker_proc_alive_timeout": cfg.get("zenjobs-worker-alive-timeout"),
+    }
+    tz = os.environ.get("TZ")
+    if tz:
+        args["timezone"] = tz
+
+    return CeleryConfig(**args)
 
 
 # Initialized with default values (for when --config-file is not specified)
-ZenCeleryConfig = CeleryConfig.from_config(getConfig())
+ZenCeleryConfig = from_config(getConfig())

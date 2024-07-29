@@ -11,7 +11,7 @@ import logging
 import re
 
 from cStringIO import StringIO
-from hashlib import md5
+from hashlib import sha256
 
 from zope.interface import implementer
 
@@ -128,14 +128,14 @@ class BaseOrganizerFilter(object):
         self.checksum_map = results
 
     def organizerChecksum(self, organizer):
-        m = md5()
+        m = sha256()
         self.generateChecksum(organizer, m)
         return m.hexdigest()
 
-    def generateChecksum(self, organizer, md5_checksum):
+    def generateChecksum(self, organizer, hash_checksum):
         # Checksum all zProperties and custom properties
         for zId, propertyString in _getZorCProperties(organizer):
-            md5_checksum.update("%s|%s" % (zId, propertyString))
+            hash_checksum.update("%s|%s" % (zId, propertyString))
 
     def include(self, obj):
         # Move on if it's not one of our types
@@ -170,7 +170,7 @@ class DeviceClassInvalidationFilter(BaseOrganizerFilter):
     def getRoot(self, context):
         return context.dmd.Devices.primaryAq()
 
-    def generateChecksum(self, organizer, md5_checksum):
+    def generateChecksum(self, organizer, hash_checksum):
         """
         Generate a checksum representing the state of the device class as it
         pertains to configuration. This takes into account templates and
@@ -188,10 +188,10 @@ class DeviceClassInvalidationFilter(BaseOrganizerFilter):
                     "unable to export XML of template  template=%r", tpl
                 )
             else:
-                md5_checksum.update(s.getvalue())
+                hash_checksum.update(s.getvalue())
         # Include z/c properties from base class
         super(DeviceClassInvalidationFilter, self).generateChecksum(
-            organizer, md5_checksum
+            organizer, hash_checksum
         )
 
 
@@ -219,14 +219,14 @@ class OSProcessClassFilter(BaseOrganizerFilter):
     def getRoot(self, context):
         return context.dmd.Processes.primaryAq()
 
-    def generateChecksum(self, organizer, md5_checksum):
+    def generateChecksum(self, organizer, hash_checksum):
         # Include properties of OSProcessClass
         for prop in organizer._properties:
             prop_id = prop["id"]
-            md5_checksum.update(
+            hash_checksum.update(
                 "%s|%s" % (prop_id, getattr(organizer, prop_id, ""))
             )
         # Include z/c properties from base class
         super(OSProcessClassFilter, self).generateChecksum(
-            organizer, md5_checksum
+            organizer, hash_checksum
         )

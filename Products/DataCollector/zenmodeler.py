@@ -58,7 +58,7 @@ from Products.ZenCollector.interfaces import IEventService
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon, HubDown
 from Products.ZenUtils.Driver import drive, driveLater
-from Products.ZenUtils.Utils import unused, zenPath
+from Products.ZenUtils.Utils import unused, zenPath, wait
 from Products.Zuul.utils import safe_hasattr as hasattr
 
 # needed for Twisted's PB (Perspective Broker) to work
@@ -889,17 +889,23 @@ class ZenModeler(PBDaemon):
         # We start modeling from here to accomodate the startup delay.
 
         if not self.started:
-            if self.immediate == 0 and self.startat:
-                # This stuff relies on ARBITRARY_BEAT being < 60s
-                if self.timeMatches():
-                    self.started = True
-                    self.log.info("Starting modeling...")
-                    reactor.callLater(1, self.main)
+            if self.immediate == 0:
+                if self.startat:
+                    # This stuff relies on ARBITRARY_BEAT being < 60s
+                    if self.timeMatches():
+                        # Run modeling in case we have now=False, startat is not None and local time matches the startat
+                        self.started = True
+                        self.log.info("Starting modeling...")
+                        reactor.callLater(1, self.main)
                 elif not self.isMainScheduled:
+                    # Or run modeling by cycleTime in case we have now=False, startat is None
+                    # and we haven't set schedule by cycleTime yet
                     self.isMainScheduled = True
                     reactor.callLater(self.cycleTime(), self.main)
             else:
-                self.started = True
+                # Going back to the normal modeling schedule either cron or cycleTime
+                # after the first immediate modeling during service startup
+                self.immediate = 0
                 self.log.info(
                     "Starting modeling in %s seconds.", self.startDelay
                 )
@@ -941,6 +947,7 @@ class ZenModeler(PBDaemon):
                 self.devicegen = chain([first], self.devicegen)
         return result
 
+    @defer.inlineCallbacks
     def checkStop(self, unused=None):
         """
         Check to see if there's anything to do.
@@ -980,6 +987,11 @@ class ZenModeler(PBDaemon):
             if not self.options.cycle:
                 self.stop()
             self.finished = []
+            # frequency of heartbeat rate could be 2 times per minute in case we have
+            # cron job modeling faster than 1 minute it'll be trigger a second time
+            if runTime < 60 and self.startat is not None:
+                yield wait(60)
+            self.started = False
 
     def fillCollectionSlots(self, driver):
         """
@@ -1040,8 +1052,6 @@ class ZenModeler(PBDaemon):
         Check whether the current time matches a cron-like
         specification, return a straight true or false
         """
-        if self.startat is None:
-            return True
 
         def match_entity(entity, value):
             if entity == "*":
@@ -1333,7 +1343,7 @@ class ZenModeler(PBDaemon):
         @return: Twisted deferred object
         @rtype: Twisted deferred object
         """
-        if self.options.cycle:
+        if self.options.cycle and self.startat is None:
             self.isMainScheduled = True
             driveLater(self.cycleTime(), self.mainLoop)
 

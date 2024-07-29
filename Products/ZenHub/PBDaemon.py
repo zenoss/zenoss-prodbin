@@ -195,6 +195,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
         eventCopy["agent"] = self.name
         eventCopy["monitor"] = self.options.monitor
+        eventCopy["manager"] = self.fqdn
         return eventCopy
 
     def publisher(self):
