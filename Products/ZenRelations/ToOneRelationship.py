@@ -233,7 +233,7 @@ class ToOneRelationship(RelationshipBase):
                     self.obj.getPrimaryId(),
                     self.getPrimaryId(),
                 )
-                self.obj = None
+                self._remove()
 
         if not self.obj:
             return

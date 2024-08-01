@@ -244,8 +244,7 @@ class ToManyRelationship(ToManyRelationshipBase):
                     obj.getPrimaryId(),
                     self.getPrimaryId(),
                 )
-                self._objects.remove(obj)
-                self.__primary_parent__._p_changed = True
+                self._remove(obj)
                 deleted = True
 
         if not deleted:
@@ -296,12 +295,12 @@ class ToManyRelationship(ToManyRelationshipBase):
                 )
                 if repair:
                     log.critical("repair key %s", key)
-                    self._objects = [
+                    self._objects = PersistentList([
                         o for o in self._objects if o.getPrimaryId() != key
-                    ]
+                    ])
                     try:
                         obj = self.getObjByPath(key)
-                        self._objects.append(obj)
+                        self._add(obj)
                     except KeyError:
                         log.critical("obj %s not found in database", key)
 
