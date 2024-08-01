@@ -33,7 +33,8 @@ from Products.ZenEvents.EventClass import EventClass
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.ZenossSecurity import (
     ZEN_MANAGE_EVENTS,
-    ZEN_MANAGER_ROLE
+    ZEN_MANAGER_ROLE,
+    MANAGER_ROLE
 )
 from Products.ZenUtils.deprecated import deprecated
 from Products.Zuul.utils import resolve_context
@@ -1107,7 +1108,7 @@ class EventsRouter(DirectRouter):
         currentUser = self.context.dmd.ZenUsers.getUser()
         if currentUser:
 
-            if currentUser.has_role(ZEN_MANAGER_ROLE) and field in ZEN_MANAGER_EDIT_PERM:
+            if (currentUser.has_role(MANAGER_ROLE) or currentUser.has_role(ZEN_MANAGER_ROLE)) and field in ZEN_MANAGER_EDIT_PERM:
                 return True
 
         return False
