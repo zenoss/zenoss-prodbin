@@ -214,11 +214,12 @@ class NetworkFacade(TreeFacade):
         errorCount = 0
         for uid in uids:
             ip = self._getObject(uid)
-            # there is an interface do not delete it
-            if ip.interface():
+            # there is an interface or manageDevice do not delete it
+            if ip.interface() or ip.manageDevice():
                 errorCount += 1
                 continue
             # remove it from the relationship
+            ip._pre_remove()
             parent = aq_parent(ip)
             parent._delObject(ip.id)
             removeCount += 1
