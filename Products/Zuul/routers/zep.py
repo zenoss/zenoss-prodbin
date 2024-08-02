@@ -1107,8 +1107,10 @@ class EventsRouter(DirectRouter):
     def iseditable(self, field):
         currentUser = self.context.dmd.ZenUsers.getUser()
         if currentUser:
+            if currentUser.has_role(MANAGER_ROLE):
+                return True
 
-            if (currentUser.has_role(MANAGER_ROLE) or currentUser.has_role(ZEN_MANAGER_ROLE)) and field in ZEN_MANAGER_EDIT_PERM:
+            if currentUser.has_role(ZEN_MANAGER_ROLE) and field in ZEN_MANAGER_EDIT_PERM:
                 return True
 
         return False
