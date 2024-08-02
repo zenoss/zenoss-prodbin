@@ -207,6 +207,10 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
                 notify(IndexingEvent(device, idxs=('macAddresses',), update_metadata=False))
             except KeyError:
                 pass
+        if self.ipaddresses():
+            self.ipaddresses.removeRelation()
+        if self.iproutes():
+            self.iproutes.removeRelation()
 
     def object_added_handler(self):
         self._update_device_macs(self.device(), self.macaddress)

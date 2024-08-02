@@ -104,6 +104,11 @@ class IpAddress(ManagedEntity, IpAddressIndexable):
         self.title = ipunwrap(id)
         self.version = ipobj.version
 
+    def _pre_remove(self):
+        self.manageDevice.removeRelation()
+        self.interface.removeRelation()
+        self.clientroutes.removeRelation()
+
     def setPtrName(self):
         try:
             data = socket.gethostbyaddr(ipunwrap(self.id))
@@ -284,6 +289,8 @@ class IpAddress(ManagedEntity, IpAddressIndexable):
         peers = []
         if self.device():
             peers.append(self.device().primaryAq())
+        if self.manageDevice():
+            peers.append(self.manageDevice().primaryAq())
         if self.interface():
             peers.append(self.interface().primaryAq())
         return peers

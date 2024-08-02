@@ -22,6 +22,8 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenUtils.Utils import localIpCheck, prepId
 from Products.ZenRelations.RelSchema import *
 
+from Products.ZenModel.interfaces import IObjectEventsSubscriber
+from zope.interface import implements
 
 from OSComponent import OSComponent
 
@@ -61,6 +63,8 @@ class IpRouteEntry(OSComponent):
     """
     IpRouteEntry object
     """
+
+    implements(IObjectEventsSubscriber)
     
     meta_type = 'IpRouteEntry'
 
@@ -106,6 +110,14 @@ class IpRouteEntry(OSComponent):
     security = ClassSecurityInfo()
 
     ipcheck = re.compile(r'^127\.|^0\.0\.|^169\.254\.|^224\.|^::1$|^fe80:|^ff').search
+
+    def before_object_deleted_handler(self):
+        if self.interface():
+            self.interface.removeRelation()
+        if self.nexthop():
+            self.nexthop.removeRelation()
+        if self.target():
+            self.target.removeRelation()
     
     def __getattr__(self, name):
         """
