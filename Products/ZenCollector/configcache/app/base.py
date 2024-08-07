@@ -18,14 +18,22 @@ import attr
 
 from MySQLdb import OperationalError
 
+from Products.ZenUtils.config import (
+    add_config_arguments,
+    getConfigFromArguments,
+)
+from Products.ZenUtils.init import initialize_environment
+from Products.ZenUtils.logger import (
+    add_logging_arguments,
+    setup_logging_from_dict,
+    install_debug_logging_signal,
+)
+from Products.ZenUtils.pidfile import add_pidfile_arguments, PIDFile
+from Products.ZenUtils.zodb import add_zodb_arguments, zodb_from_dict
+
 from ..utils import MetricReporter
 
-from .config import add_config_arguments, getConfigFromArguments
-from .init import initialize_environment
 from .genconf import GenerateConfig
-from .logger import add_logging_arguments, setup_logging, setup_debug_logging
-from .pid import add_pidfile_arguments, pidfile
-from .zodb import add_zodb_arguments, zodb
 
 _delay = 10  # seconds
 
@@ -47,9 +55,9 @@ class Application(object):
         configs = getattr(self.task, "configs", ())
         overrides = getattr(self.task, "config_overrides", ())
         initialize_environment(configs=configs, overrides=overrides)
-        setup_logging(self.config)
-        setup_debug_logging(self.config)
-        with pidfile(self.config):
+        setup_logging_from_dict(self.config)
+        install_debug_logging_signal(self.config["log-level"])
+        with PIDFile(self.config):
             stop = Event()
             set_shutdown_handler(lambda x, y: _handle_signal(stop, x, y))
             controller = _Controller(stop)
@@ -67,7 +75,11 @@ class Application(object):
                 # Run the application loop
                 while not controller.shutdown:
                     try:
-                        with zodb(self.config) as (db, session, dmd):
+                        with zodb_from_dict(self.config, log=log) as (
+                            db,
+                            session,
+                            dmd,
+                        ):
                             ctx = ApplicationContext(
                                 controller,
                                 db,
@@ -90,12 +102,12 @@ class Application(object):
     @staticmethod
     def add_genconf_command(subparsers, parsers):
         GenerateConfig.add_command(subparsers, parsers)
-        pass
 
     @staticmethod
     def add_all_arguments(parser):
-        add_config_arguments(parser)
-        add_pidfile_arguments(parser)
+        basename = "-".join(parser.prog.split(" ")[:-1])
+        add_config_arguments(parser, basename)
+        add_pidfile_arguments(parser, basename)
         add_logging_arguments(parser)
         add_zodb_arguments(parser)
 

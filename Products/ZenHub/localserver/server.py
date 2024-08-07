@@ -3,7 +3,7 @@ import logging
 from twisted.web.server import Site
 
 from .resource import ZenResource
-from .options import add_options
+from .options import add_options, add_arguments
 
 
 class LocalServer(object):
@@ -12,6 +12,7 @@ class LocalServer(object):
     """
 
     buildOptions = staticmethod(add_options)
+    add_arguments = staticmethod(add_arguments)
 
     def __init__(self, reactor, endpoint):
         self.__reactor = reactor

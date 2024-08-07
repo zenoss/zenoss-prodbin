@@ -9,28 +9,29 @@
 
 from __future__ import absolute_import
 
-import contextlib
-import logging
+# import contextlib
+# import logging
 
 from random import SystemRandom
 
 import transaction
 
-from AccessControl.SecurityManagement import (
-    newSecurityManager,
-    noSecurityManager,
-)
-from Products.CMFCore.utils import getToolByName
+# from AccessControl.SecurityManagement import (
+#     newSecurityManager,
+#     noSecurityManager,
+# )
+# from Products.CMFCore.utils import getToolByName
 from ZODB.POSException import ConflictError, ReadConflictError
-from ZPublisher.HTTPRequest import HTTPRequest
-from ZPublisher.HTTPResponse import HTTPResponse
-from ZPublisher.BaseRequest import RequestContainer
+# from ZPublisher.HTTPRequest import HTTPRequest
+# from ZPublisher.HTTPResponse import HTTPResponse
+# from ZPublisher.BaseRequest import RequestContainer
 
-from Products.ZenRelations.ZenPropertyManager import setDescriptors
-from Products.ZenUtils.Utils import getObjByPath
+# from Products.ZenRelations.ZenPropertyManager import setDescriptors
+# from Products.ZenUtils.Utils import getObjByPath
+from Products.ZenUtils.zodb import zodb
 
 from ..config import getConfig
-from ..utils.log import get_logger, get_task_logger, inject_logger
+from ..utils.log import get_logger  # , get_task_logger, inject_logger
 
 mlog = get_logger("zen.zenjobs.task.dmd")
 
@@ -60,7 +61,7 @@ class DMD(object):
             userid = headers.get("userid")
         else:
             userid = getattr(self.request, "userid", None)
-        with zodb(self.app.db, userid, self.log) as dmd:
+        with zodb(self.app.db, userid, self.log) as (_, dmd):
             self.__dmd = dmd
             try:
                 self.__run = self.run
@@ -101,83 +102,83 @@ class DMD(object):
         return self.__dmd
 
 
-@contextlib.contextmanager
-def zodb(db, userid, log):
-    """Return the DMD context via contextmanager protocol.
-
-    :param db: ZODB database connection.
-    :param str userid: The ID of the user to authenticate with.
-    """
-    session = db.open()  # type: ZODB.Connection
-    try:
-        mlog.debug("Started ZODB session")
-        root = session.root()
-        application = _getContext(root["Application"])
-        dataroot = getObjByPath(application, "/zport/dmd")
-        user = _login(dataroot, userid=userid)
-        setDescriptors(dataroot)
-        log_mesg = ("Authenticated as user %s", user.getUserName())
-        log.info(*log_mesg)
-        mlog.debug(*log_mesg)
-        try:
-            yield dataroot
-        finally:
-            noSecurityManager()
-    finally:
-        session.close()
-        mlog.debug("Finished ZODB session")
-
-
-def _getContext(app):
-    resp = HTTPResponse(stdout=None)
-    env = {
-        "SERVER_NAME": "localhost",
-        "SERVER_PORT": "8080",
-        "REQUEST_METHOD": "GET",
-    }
-    req = HTTPRequest(None, env, resp)
-    return app.__of__(RequestContainer(REQUEST=req))
+# @contextlib.contextmanager
+# def zodb(db, userid, log):
+#     """Return the DMD context via contextmanager protocol.
+# 
+#     :param db: ZODB database connection.
+#     :param str userid: The ID of the user to authenticate with.
+#     """
+#     session = db.open()  # type: ZODB.Connection
+#     try:
+#         mlog.debug("Started ZODB session")
+#         root = session.root()
+#         application = _getContext(root["Application"])
+#         dataroot = getObjByPath(application, "/zport/dmd")
+#         user = _login(dataroot, userid=userid)
+#         setDescriptors(dataroot)
+#         log_mesg = ("Authenticated as user %s", user.getUserName())
+#         log.info(*log_mesg)
+#         mlog.debug(*log_mesg)
+#         try:
+#             yield dataroot
+#         finally:
+#             noSecurityManager()
+#     finally:
+#         session.close()
+#         mlog.debug("Finished ZODB session")
 
 
-@inject_logger(log=get_task_logger)
-def _login(log, context, userid=_default_user):
-    """Authenticate user and configure credentials."""
-    if userid is None:
-        log.warn("No user ID specified with job.")
-        userid = _default_user
-        log_mesg = ("Using default user '%s' instead.", userid)
-        if mlog.isEnabledFor(logging.DEBUG):
-            mlog.warn(*log_mesg)
-
-    user = _getUser(context, userid)
-    newSecurityManager(None, user)
-    mlog.debug("Logged in as user '%s'", user)
-    return user
+# def _getContext(app):
+#     resp = HTTPResponse(stdout=None)
+#     env = {
+#         "SERVER_NAME": "localhost",
+#         "SERVER_PORT": "8080",
+#         "REQUEST_METHOD": "GET",
+#     }
+#     req = HTTPRequest(None, env, resp)
+#     return app.__of__(RequestContainer(REQUEST=req))
 
 
-@inject_logger(log=get_task_logger)
-def _getUser(log, context, userid):
-    root = context.getPhysicalRoot()
-    tool = getToolByName(root, "acl_users")
+# @inject_logger(log=get_task_logger)
+# def _login(log, context, userid=_default_user):
+#     """Authenticate user and configure credentials."""
+#     if userid is None:
+#         log.warn("No user ID specified with job.")
+#         userid = _default_user
+#         log_mesg = ("Using default user '%s' instead.", userid)
+#         if mlog.isEnabledFor(logging.DEBUG):
+#             mlog.warn(*log_mesg)
+# 
+#     user = _getUser(context, userid)
+#     newSecurityManager(None, user)
+#     mlog.debug("Logged in as user '%s'", user)
+#     return user
 
-    user = tool.getUserById(userid)
-    if user is None:
-        # Try a different tool.
-        tool = getToolByName(root.zport, "acl_users")
-        user = tool.getUserById(userid)
 
-        if user is None:
-            log_mesg = ("User '%s' is not a valid user.", userid)
-            log.warn(*log_mesg)
-            if mlog.isEnabledFor(logging.DEBUG):
-                mlog.warn(*log_mesg)
-            log_mesg = ("Using default user '%s' instead.", _default_user)
-            log.warn(*log_mesg)
-            if mlog.isEnabledFor(logging.DEBUG):
-                mlog.warn(*log_mesg)
-            user = tool.getUserById(_default_user)
-
-    if not hasattr(user, "aq_base"):
-        user = user.__of__(tool)
-
-    return user
+# @inject_logger(log=get_task_logger)
+# def _getUser(log, context, userid):
+#     root = context.getPhysicalRoot()
+#     tool = getToolByName(root, "acl_users")
+# 
+#     user = tool.getUserById(userid)
+#     if user is None:
+#         # Try a different tool.
+#         tool = getToolByName(root.zport, "acl_users")
+#         user = tool.getUserById(userid)
+# 
+#         if user is None:
+#             log_mesg = ("User '%s' is not a valid user.", userid)
+#             log.warn(*log_mesg)
+#             if mlog.isEnabledFor(logging.DEBUG):
+#                 mlog.warn(*log_mesg)
+#             log_mesg = ("Using default user '%s' instead.", _default_user)
+#             log.warn(*log_mesg)
+#             if mlog.isEnabledFor(logging.DEBUG):
+#                 mlog.warn(*log_mesg)
+#             user = tool.getUserById(_default_user)
+# 
+#     if not hasattr(user, "aq_base"):
+#         user = user.__of__(tool)
+# 
+#     return user

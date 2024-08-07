@@ -9,14 +9,19 @@
 
 from __future__ import absolute_import
 
+import attr
+
+from attr.validators import instance_of
 from zope.interface import implementer
 
 from ..interfaces import IServiceAddedEvent
+# from .config import priorities
 from .interface import (
     IServiceCallReceivedEvent,
     IServiceCallStartedEvent,
     IServiceCallCompletedEvent,
 )
+from .priority import ServiceCallPriority
 from .utils import UNSPECIFIED as _UNSPECIFIED
 
 
@@ -38,83 +43,66 @@ class ReportWorkerStatus(object):
     """An event to signal zenhubworkers to report their status."""
 
 
-class ServiceCallEvent(object):
-    """Base class for ServiceCall* event classes."""
+@attr.s(slots=True, frozen=True)
+class _ReceivedData(object):
+    id = attr.ib(converter=str)
+    monitor = attr.ib(converter=str)
+    service = attr.ib(converter=str)
+    method = attr.ib(converter=str)
+    args = attr.ib()
+    kwargs = attr.ib()
+    timestamp = attr.ib(validator=instance_of(float))
+    queue = attr.ib()
+    priority = attr.ib(validator=instance_of(ServiceCallPriority))
 
-    __slots__ = ()
+    # @priority.validator
+    # def _check_priority(self, attribute, value):
+    #     if value not in priorities["names"]:
+    #         raise ValueError("Invalid priority value - '{}'".format(value))
 
-    def __init__(self, **kwargs):
-        for name in self.__slots__:
-            setattr(self, name, kwargs.pop(name, None))
-        # no left-over arguments
-        assert len(kwargs) == 0, "[%r] invalid arguments" % self
-        super(ServiceCallEvent, self).__init__()
+
+@attr.s(slots=True, frozen=True)
+class _StartedData(_ReceivedData):
+    worker = attr.ib(converter=str)
+    attempts = attr.ib(converter=int)
+
+    @attempts.validator
+    def _non_zero(self, attribute, value):
+        if value < 1:
+            raise ValueError("attempts must be an integer greater than zero")
+
+
+@attr.s(slots=True, frozen=True)
+class _CompletedData(_StartedData):
+    retry = attr.ib(default=_UNSPECIFIED)
+    error = attr.ib(default=_UNSPECIFIED)
+    result = attr.ib(default=_UNSPECIFIED)
+
+    def __attrs_post_init__(self):
+        if (
+            sum(
+                1
+                for name in ("result", "error", "retry")
+                if getattr(self, name) is _UNSPECIFIED
+            )
+            != 2
+        ):
+            raise TypeError(
+                "At least one of fields 'result', 'retry', and 'error' "
+                "must be specified"
+            )
 
 
 @implementer(IServiceCallReceivedEvent)
-class ServiceCallReceived(ServiceCallEvent):
+class ServiceCallReceived(_ReceivedData):
     """ZenHub has accepted a request to execute a method on a service."""
-
-    __slots__ = (
-        "id",
-        "monitor",
-        "service",
-        "method",
-        "args",
-        "kwargs",
-        "timestamp",
-        "queue",
-        "priority",
-    )
 
 
 @implementer(IServiceCallStartedEvent)
-class ServiceCallStarted(ServiceCallEvent):
+class ServiceCallStarted(_StartedData):
     """ZenHub has started executing a method on a service."""
-
-    __slots__ = ServiceCallReceived.__slots__ + ("worker", "attempts")
-
-    def __init__(self, **kwargs):
-        assert kwargs.get("attempts") is not None, "attempts is unspecified"
-        assert kwargs["attempts"] > 0, "attempts is less than 1"
-        super(ServiceCallStarted, self).__init__(**kwargs)
 
 
 @implementer(IServiceCallCompletedEvent)
-class ServiceCallCompleted(ServiceCallEvent):
+class ServiceCallCompleted(_CompletedData):
     """ZenHub has completed executing a method on a service."""
-
-    __slots__ = ServiceCallStarted.__slots__ + ("retry", "error", "result")
-
-    def __init__(self, **kwargs):
-        assert kwargs.get("attempts") is not None, "attempts is unspecified"
-        assert kwargs["attempts"] > 0, "attempts is less than 1"
-        error = kwargs.get("error", _UNSPECIFIED)
-        retry = kwargs.get("retry", _UNSPECIFIED)
-        result = kwargs.get("result", _UNSPECIFIED)
-        assert any(
-            (
-                all(
-                    (
-                        (result is not _UNSPECIFIED),
-                        (error is _UNSPECIFIED),
-                        (retry is _UNSPECIFIED),
-                    )
-                ),
-                all(
-                    (
-                        (result is _UNSPECIFIED),
-                        (error is not _UNSPECIFIED),
-                        (retry is _UNSPECIFIED),
-                    )
-                ),
-                all(
-                    (
-                        (result is _UNSPECIFIED),
-                        (error is _UNSPECIFIED),
-                        (retry is not _UNSPECIFIED),
-                    )
-                ),
-            )
-        ), "[completed] Fields result, retry, and error all unspecified"
-        super(ServiceCallCompleted, self).__init__(**kwargs)

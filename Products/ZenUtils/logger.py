@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2023, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2024, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -9,15 +9,14 @@
 
 from __future__ import absolute_import
 
-import argparse
-import copy
-import logging
-import logging.config
-import logging.handlers
-import os
-import signal
+import argparse as _argparse
+import copy as _copy
+import logging as _logging
+import logging.config as _logconfig
+import os as _os
+import signal as _signal
 
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import zenPath as _zenPath
 
 _default_config_template = {
     "version": 1,
@@ -44,8 +43,8 @@ _default_config_template = {
         }
     },
     "loggers": {
-        "": {"level": logging.WARN},
-        "zen": {"level": logging.NOTSET},
+        "": {"level": _logging.WARN},
+        "zen": {"level": _logging.NOTSET},
     },
     "root": {
         "handlers": ["main"],
@@ -53,9 +52,20 @@ _default_config_template = {
 }
 
 
-def setup_logging(config):
+def setup_logging_from_args(args):
     """Create formatting for log entries and set default log level."""
-    logconfig = copy.deepcopy(_default_config_template)
+    logconfig = _copy.deepcopy(_default_config_template)
+    loglevel = args.log_level
+    logconfig["loggers"]["zen"]["level"] = loglevel
+    logconfig["handlers"]["main"]["filename"] = args.log_filename
+    logconfig["handlers"]["main"]["maxBytes"] = args.log_max_file_size * 1024
+    logconfig["handlers"]["main"]["backupCount"] = args.log_max_file_count
+    _logconfig.dictConfig(logconfig)
+
+
+def setup_logging_from_dict(config):
+    """Create formatting for log entries and set default log level."""
+    logconfig = _copy.deepcopy(_default_config_template)
     loglevel = config["log-level"]
     logconfig["loggers"]["zen"]["level"] = loglevel
     logconfig["handlers"]["main"]["filename"] = config["log-filename"]
@@ -63,16 +73,16 @@ def setup_logging(config):
         config["log-max-file-size"] * 1024
     )
     logconfig["handlers"]["main"]["backupCount"] = config["log-max-file-count"]
-    logging.config.dictConfig(logconfig)
+    _logconfig.dictConfig(logconfig)
 
 
-def setup_debug_logging(config):
+def install_debug_logging_signal(default_level):
     # Allow the user to dynamically lower and raise the logging
     # level without restarts.
     try:
-        signal.signal(
-            signal.SIGUSR1,
-            lambda x, y: _debug_logging_switch(config["log-level"], x, y),
+        _signal.signal(
+            _signal.SIGUSR1,
+            lambda x, y: _debug_logging_switch(default_level, x, y),
         )
     except ValueError:
         # If we get called multiple times, this will generate an exception:
@@ -82,44 +92,29 @@ def setup_debug_logging(config):
 
 
 def _debug_logging_switch(default_level, signum, frame):
-    zenlog = logging.getLogger("zen")
+    zenlog = _logging.getLogger("zen")
     currentlevel = zenlog.getEffectiveLevel()
-    if currentlevel == logging.DEBUG:
+    if currentlevel == _logging.DEBUG:
         if currentlevel == default_level:
             return
         zenlog.setLevel(default_level)
-        logging.getLogger().setLevel(logging.WARN)
+        _logging.getLogger().setLevel(_logging.WARN)
         zenlog.info(
             "restored logging level back to %s (%d)",
-            logging.getLevelName(default_level) or "unknown",
+            _logging.getLevelName(default_level) or "unknown",
             default_level,
         )
     else:
-        zenlog.setLevel(logging.NOTSET)
-        logging.getLogger().setLevel(logging.DEBUG)
+        zenlog.setLevel(_logging.NOTSET)
+        _logging.getLogger().setLevel(_logging.DEBUG)
         zenlog.info(
             "logging level set to %s (%d)",
-            logging.getLevelName(logging.DEBUG),
-            logging.DEBUG,
+            _logging.getLevelName(_logging.DEBUG),
+            _logging.DEBUG,
         )
 
 
-def _level_as_int(v):
-    try:
-        return int(v)
-    except ValueError:
-        return logging.getLevelName(v.upper())
-
-
-def _add_log_suffix(v):
-    if not v.endswith(".log"):
-        if not os.path.basename(v):
-            raise ValueError("no filename for log file given")
-        return v + ".log"
-    return v
-
-
-class LogLevel(argparse.Action):
+class LogLevel(_argparse.Action):
     """Define a 'logging level' action for argparse."""
 
     def __init__(
@@ -144,7 +139,7 @@ class LogLevel(argparse.Action):
             value
             for pair in sorted(
                 (level_id, level_name.lower())
-                for level_id, level_name in logging._levelNames.items()
+                for level_id, level_name in _logging._levelNames.items()
                 if isinstance(level_id, int) and level_id != 0
             )
             for value in pair
@@ -163,14 +158,15 @@ class LogLevel(argparse.Action):
         setattr(namespace, self.dest, values)
 
 
-def add_logging_arguments(parser):
+def add_logging_arguments(parser, basename=None):
+    if basename is None:
+        basename = parser.prog
     group = parser.add_argument_group("Logging Options")
     group.add_argument("-v", "--log-level", action=LogLevel)
-    filename = "-".join(parser.prog.split(" ")[:-1]) + ".log"
-    dirname = zenPath("log")
+    dirname = _zenPath("log")
     group.add_argument(
         "--log-filename",
-        default=os.path.join(dirname, filename),
+        default=_os.path.join(dirname, _append_log_suffix(basename)),
         type=_add_log_suffix,
         help="Pathname of the log file.  If a directory path is not "
         "specified, the log file is save to {}".format(dirname),
@@ -187,3 +183,24 @@ def add_logging_arguments(parser):
         type=int,
         help="Maximum number of archival log files to keep",
     )
+
+
+def _level_as_int(v):
+    try:
+        return int(v)
+    except ValueError:
+        return _logging.getLevelName(v.upper())
+
+
+def _append_log_suffix(v):
+    if not v.endswith(".log"):
+        return v + ".log"
+    return v
+
+
+def _add_log_suffix(v):
+    if not v.endswith(".log"):
+        if not _os.path.basename(v):
+            raise ValueError("no filename for log file given")
+        return v + ".log"
+    return v

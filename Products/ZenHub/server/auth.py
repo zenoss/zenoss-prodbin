@@ -42,6 +42,12 @@ class HubRealm(object):
         """
         if pb.IPerspective not in interfaces:
             raise NotImplementedError
+        self.__log.info(
+            "%s requested an avatar  mind=%s interfaces=%s",
+            name,
+            mind,
+            interfaces,
+        )
         self.__log.debug(
             "Client authenticated who=probably-%s",
             "zenhubworker" if mind else "collector-daemon",

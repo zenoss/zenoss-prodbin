@@ -76,7 +76,7 @@ class PBDaemonInitTest(TestCase):
         t.assertEqual(pbd.mname, name)
 
         zhc = _getZenHubClient.return_value
-        zhc.notifyOnConnect.assert_has_calls(
+        zhc.notify_on_connect.assert_has_calls(
             [call(pbd._load_initial_services), call(ANY)]
         )
 
@@ -236,8 +236,8 @@ class PBDaemonTest(TestCase):
         # All the methods with this pattern need to be converted to properties
         url = Mock(name="url", spec_set=[])
         username = "username"
-        password = "password"
-        os.environ = {
+        password = "password"  # noqa S105
+        os.environ = {  # noqa B103
             "CONTROLPLANE_CONSUMER_URL": url,
             "CONTROLPLANE_CONSUMER_USERNAME": username,
             "CONTROLPLANE_CONSUMER_PASSWORD": password,
@@ -257,7 +257,7 @@ class PBDaemonTest(TestCase):
     def test_metricWriter_legacy(t, os):
         t.pbd.publisher = create_autospec(t.pbd.publisher)
         t.pbd.internalPublisher = create_autospec(t.pbd.internalPublisher)
-        os.environ = {"CONTROLPLANE": "0"}
+        os.environ = {"CONTROLPLANE": "0"}  # noqa B103
 
         ret = t.pbd.metricWriter()
 
@@ -275,7 +275,7 @@ class PBDaemonTest(TestCase):
         t.pbd.internalPublisher = create_autospec(
             t.pbd.internalPublisher, name="internalPublisher"
         )
-        os.environ = {"CONTROLPLANE": "1"}
+        os.environ = {"CONTROLPLANE": "1"}  # noqa B103
 
         ret = t.pbd.metricWriter()
 

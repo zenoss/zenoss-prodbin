@@ -188,7 +188,7 @@ class _Running(object):
         """
         try:
             # Notify listeners of a task execution attempt.
-            self._handle_start(task, worker.workerId)
+            self._handle_start(task, worker.name)
 
             # Run the task
             result = yield worker.run(task.call)
@@ -210,7 +210,7 @@ class _Running(object):
                 task.call.service,
                 task.call.method,
                 task.call.id,
-                worker.workerId,
+                worker.name,
             )
             error = pb.Error(
                 ("Internal ZenHub error: ({0.__class__.__name__}) {0}")
@@ -223,7 +223,7 @@ class _Running(object):
             # The attempt count is _not_ incremented.
             self.log.warn(
                 "Worker no longer accepting work worker=%s error=%s",
-                worker.workerId,
+                worker.name,
                 ex,
             )
             self._handle_retry(task, ex)
@@ -244,9 +244,9 @@ class _Running(object):
             # Make the worker available for work again
             self.workers.layoff(worker)
 
-    def _handle_start(self, task, workerId):
+    def _handle_start(self, task, workerName):
         task.attempt += 1
-        notify(task.started(workerId))
+        notify(task.started(workerName))
         if task.attempt == 1:
             self._log_initial_start(task)
         else:
@@ -297,7 +297,7 @@ class _Running(object):
             call.service,
             call.method,
             call.id.hex,
-            task.workerId,
+            task.worker_name,
             waited,
         )
 
@@ -310,7 +310,7 @@ class _Running(object):
             call.service,
             call.method,
             call.id.hex,
-            task.workerId,
+            task.worker_name,
             task.attempt,
             waited,
         )
@@ -324,7 +324,7 @@ class _Running(object):
             call.service,
             call.method,
             call.id.hex,
-            task.workerId,
+            task.worker_name,
             elapsed,
             task.error,
         )
@@ -340,7 +340,7 @@ class _Running(object):
             call.service,
             call.method,
             call.id.hex,
-            task.workerId,
+            task.worker_name,
             status,
             elapsed,
             lifetime,
@@ -361,7 +361,7 @@ class ServiceCallTask(object):
         "completed_tm",
         "error",
         "retryable",
-        "workerId",
+        "worker_name",
         "event_data",
     )
 
@@ -378,7 +378,7 @@ class ServiceCallTask(object):
         self.completed_tm = None
         self.error = None
         self.retryable = True
-        self.workerId = None
+        self.worker_name = None
         self.event_data = dict(call)
         self.event_data.update(
             {
@@ -394,11 +394,11 @@ class ServiceCallTask(object):
         data["timestamp"] = self.received_tm
         return ServiceCallReceived(**data)
 
-    def started(self, workerId):
+    def started(self, worker_name):
         """Return a ServiceCallStarted object."""
         self.started_tm = time.time()
-        self.workerId = workerId
-        self.event_data["worker"] = workerId
+        self.worker_name = worker_name
+        self.event_data["worker"] = worker_name
         data = dict(self.event_data)
         data.update(
             {

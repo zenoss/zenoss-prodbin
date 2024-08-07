@@ -20,9 +20,9 @@ import attr
 
 from zope.component import createObject
 
+from Products.ZenUtils.init import initialize_environment
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
-from ..app import initialize_environment
 from ..app.args import get_subparser
 from ..cache import CacheQuery, ConfigStatus
 
