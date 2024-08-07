@@ -9,8 +9,9 @@
 
 from __future__ import absolute_import
 
-import collections
 import logging
+
+from collections import Container, Iterable, Sized
 
 from twisted.internet import defer
 from twisted.spread import pb
@@ -22,23 +23,28 @@ from .events import ReportWorkerStatus
 from .utils import getLogger
 
 
-class WorkerPool(
-    collections.Container, collections.Iterable, collections.Sized
-):
+class WorkerPool(Container, Iterable, Sized):
     """Pool of ZenHubWorker RemoteReference objects."""
 
     def __init__(self, name):
         """Initialize a WorkerPool instance.
 
-        ZenHubWorker will specify a "queue" to accept tasks from.  The
-        name of the queue is given by the 'name' parameter.
+        ZenHubWorker will specify a "worklist" to accept tasks from.  The
+        name of the worklist is given by the 'name' parameter.
 
-        :param str name: Name of the "queue" associated with this pool.
+        :param str name: Name of the "worklist" associated with this pool.
         """
         # __available contains workers (by ID) available for work
         self.__available = WorkerAvailabilityQueue()
-        self.__workers = {}  # Worker refs by worker.sessionId
-        self.__services = {}  # Service refs by worker.sessionId
+
+        # Worker refs by worker.name
+        # type: {str: RemoteReference}
+        self.__workers = {}
+
+        # Service refs by worker.name
+        # type: {str: RemoteServiceRegistry}
+        self.__services = {}
+
         self.__name = name
         self.__log = getLogger(self)
         # Declare a handler for ReportWorkerStatus events
@@ -48,71 +54,69 @@ class WorkerPool(
     def name(self):
         return self.__name
 
-    def add(self, worker):
+    def add(self, worker):  # type: (worker: RemoteReference) -> None
         """Add a worker to the pool.
 
-        Note: the worker is expected to have both 'workerId' and
-        'sessionId' attributes.
+        The added worker will replace any existing worker that has the
+        same `name` attribute value.
 
-        @param worker {RemoteReference} A reference to the remote worker
+        @type worker: RemoteReference
         """
-        assert not isinstance(
-            worker, WorkerRef
-        ), "worker may not be a WorkerRef"
-        sessionId = worker.sessionId
-        if sessionId in self.__workers:
-            self.__log.debug(
-                "Worker already registered worker=%s", worker.workerId
-            )
+        if isinstance(worker, WorkerRef):
+            raise TypeError("worker may not be a WorkerRef")
+        name = worker.name
+        replaced = False
+        stored_worker = self.__workers.get(name)
+        if stored_worker is worker:
             return
-        self.__workers[sessionId] = worker
-        self.__services[sessionId] = RemoteServiceRegistry(worker)
-        self.__available.add(sessionId)
+        elif stored_worker is not None:
+            replaced = True
+            self.__discard(name)
+        self.__workers[name] = worker
+        self.__services[name] = RemoteServiceRegistry(worker)
+        self.__available.add(name)
         self.__log.debug(
-            "Worker registered worker=%s total-workers=%s",
-            worker.workerId,
+            "%s worker  worker=%s total-workers=%s",
+            "added" if not replaced else "replaced",
+            worker.name,
             len(self.__workers),
         )
 
     def remove(self, worker):
         """Remove a worker from the pool.
 
-        Note: the worker is expected to have both 'workerId' and
-        'sessionId' attributes.
-
         @param worker {RemoteReference} A reference to the remote worker
         """
-        assert not isinstance(
-            worker, WorkerRef
-        ), "worker may not be a WorkerRef"
-        sessionId = worker.sessionId
-        self.__remove(sessionId, worker=worker)
-
-    def __remove(self, sessionId, worker=None):
-        if sessionId not in self.__workers:
+        if isinstance(worker, WorkerRef):
+            raise TypeError("worker may not be a WorkerRef")
+        stored_worker = self.__workers.get(worker.name)
+        if stored_worker is not worker:
             self.__log.debug(
-                "Worker not registered worker=%s", worker.workerId
+                "cannot remove unknown worker  worker=%s", worker.name
             )
             return
-        if worker is None:
-            worker = self.__workers[sessionId]
-        del self.__workers[sessionId]
-        del self.__services[sessionId]
-        self.__available.discard(sessionId)
+        self.__discard(worker.name)
         self.__log.debug(
-            "Worker unregistered worker=%s total-workers=%s",
-            worker.workerId,
+            "removed worker  worker=%s total-workers=%s",
+            worker.name,
             len(self.__workers),
         )
 
-    def __contains__(self, worker):
-        """Return True if worker is registered, else False is returned.
+    def __discard(self, name):
+        del self.__workers[name]
+        del self.__services[name]
+        self.__available.discard(name)
 
-        Note: the worker is expected to have a 'sessionId' attribute.
+    def __contains__(self, worker):
+        """Return True if worker is present, else False is returned.
+
+        Note: the worker is expected to have a 'name' attribute.
 
         @param worker {RemoteReference} A reference to the remote worker
         """
-        return self.__workers.get(worker.sessionId) is worker
+        if isinstance(worker, WorkerRef):
+            raise TypeError("worker may not be a WorkerRef")
+        return self.__workers.get(worker.name) is worker
 
     def __len__(self):
         return len(self.__workers)
@@ -135,8 +139,8 @@ class WorkerPool(
         for worker in self.__workers.viewvalues():
             dfr = worker.callRemote("reportStatus")
             dfr.addErrback(
-                lambda ex: self.__log.error(
-                    "Failed to report status (%s): %s", worker.workerId, ex
+                lambda ex, name=worker.name: self.__log.error(
+                    "Failed to report status (%s): %s", name, ex
                 ),
             )
             deferreds.append(dfr)
@@ -148,48 +152,52 @@ class WorkerPool(
         return len(self.__available)
 
     @defer.inlineCallbacks
-    def hire(self):
+    def hire(self):  # type: () -> WorkerRef
         """Return a valid worker.
 
         This method blocks until a worker is available.
         """
         while True:
-            sessionId = yield self.__available.pop()
+            name = yield self.__available.pop()
             try:
-                worker = self.__workers[sessionId]
+                worker = self.__workers[name]
                 # Ping the worker to test whether it still exists
                 yield worker.callRemote("ping")
+            except KeyError:
+                self.__log.error(
+                    "available worker doesn't exist  worker=%s", name
+                )
             except (pb.PBConnectionLost, pb.DeadReferenceError) as ex:
                 msg = _bad_worker_messages.get(type(ex))
-                self.__log.error(msg, worker.workerId)
-                self.__remove(sessionId, worker=worker)
+                self.__log.error(msg, worker.name)
+                self.__discard(name)
             except Exception:
-                self.__log.exception("Unexpected error")
-                self.__remove(sessionId)
+                self.__log.exception("unexpected error")
+                self.__discard(name)
             else:
-                self.__log.debug("Worker hired worker=%s", worker.workerId)
+                self.__log.debug("hired worker  worker=%s", worker.name)
                 defer.returnValue(self.__makeref(worker))
 
-    def layoff(self, workerref):
+    def layoff(self, workerref):  # type: (workerref: WorkerRef) -> None
         """Make the worker available for hire."""
+        if not isinstance(workerref, WorkerRef):
+            raise TypeError("worker must be a WorkerRef")
         worker = workerref.ref
-        # Verify the worker is the same instance before making it
-        # available for hire again.
-        worker_p = self.__workers.get(worker.sessionId)
-        if worker_p:
-            self.__log.debug("Worker layed off worker=%s", worker.workerId)
-            self.__available.add(worker.sessionId)
-        else:
-            self.__log.debug("Worker retired worker=%s", worker.workerId)
+        if worker.name not in self.__workers:
+            self.__log.debug("Worker retired worker=%s", worker.name)
+            return
+        if worker.name not in self.__available:
+            self.__available.add(worker.name)
+            self.__log.debug("layed off worker  worker=%s", worker.name)
 
     def __makeref(self, worker):
-        return WorkerRef(worker, self.__services[worker.sessionId])
+        return WorkerRef(worker, self.__services[worker.name])
 
 
 _bad_worker_messages = {
-    pb.PBConnectionLost: "Worker failed ping test worker=%s",
+    pb.PBConnectionLost: "worker failed ping test  worker=%s",
     pb.DeadReferenceError: (
-        "Worker no longer available (dead reference) worker=%s"
+        "worker no longer available (dead reference)  worker=%s"
     ),
 }
 
@@ -263,7 +271,7 @@ class WorkerRef(object):
                 "Retrieved remote service service=%s id=%s worker=%s",
                 call.service,
                 call.id,
-                self.__worker.workerId,
+                self.__worker.name,
             )
         except Exception as ex:
             if self.__log.isEnabledFor(logging.DEBUG):
@@ -271,7 +279,7 @@ class WorkerRef(object):
                     "Failed to retrieve remote service "
                     "service=%s worker=%s error=(%s) %s",
                     call.service,
-                    self.__worker.workerId,
+                    self.__worker.name,
                     ex.__class__.__name__,
                     ex,
                 )
@@ -286,18 +294,18 @@ class WorkerRef(object):
                 call.service,
                 call.method,
                 call.id.hex,
-                self.__worker.workerId,
+                self.__worker.name,
             )
             defer.returnValue(result)
         except (RemoteException, pb.RemoteError) as ex:
             if self.__log.isEnabledFor(logging.DEBUG):
                 self.__log.error(
-                    "Remote method failed "
+                    "Remote method failed  "
                     "service=%s method=%s id=%s worker=%s error=%s",
                     call.service,
                     call.method,
                     call.id.hex,
-                    self.__worker.workerId,
+                    self.__worker.name,
                     ex,
                 )
             raise
@@ -309,7 +317,7 @@ class WorkerRef(object):
                     call.service,
                     call.method,
                     call.id.hex,
-                    self.__worker.workerId,
+                    self.__worker.name,
                     ex.__class__.__name__,
                     ex,
                 )
@@ -321,6 +329,9 @@ class WorkerAvailabilityQueue(defer.DeferredQueue):
 
     def __len__(self):
         return len(self.pending)
+
+    def __contains__(self, item):
+        return item in self.pending
 
     # Alias pop to get -- DeferredQueue.get removes the value from the queue.
     pop = defer.DeferredQueue.get

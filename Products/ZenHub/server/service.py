@@ -15,6 +15,9 @@ import sys
 import time
 import uuid
 
+import attr
+
+from attr.validators import instance_of
 from twisted.internet import defer
 from twisted.spread import pb
 from zope.component import getUtility
@@ -147,46 +150,32 @@ class ServiceLoader(object):
             raise
 
 
+@attr.s(slots=True, frozen=True)
 class ServiceCall(object):
     """Metadata for calling a method on a service."""
 
-    __slots__ = {
-        "id": "Unique instance identifier",
-        "monitor": "Name of performance monitor",
-        "service": "Name of service class",
-        "method": "Name of method found in service class",
-        "args": "Positional arguments to the method",
-        "kwargs": "Keyword arguments to the method",
-    }
+    monitor = attr.ib(converter=str)
+    """Name of the performance monitor (aka collector)"""
 
-    def __init__(self, **kw):
-        """Initialize a ServiceCall instance.
+    service = attr.ib(converter=str)
+    """Name of the ZenHub service class"""
 
-        :param str monitor: Name of the performance monitor (collector)
-        :param str service: Name of the service
-        :param str method: Name of the method on the service
-        :param Sequence[Any] args: positional arguments to method
-        :param Mapping[str, Any] kwargs: keyword arguments to method
-        """
-        self.id = uuid.uuid4()
-        self.monitor = kw.pop("monitor")
-        self.service = kw.pop("service")
-        self.method = kw.pop("method")
-        self.args = kw.pop("args")
-        self.kwargs = kw.pop("kwargs")
-        # Raise an exception if other arguments are given.
-        if kw:
-            raise AttributeError(
-                "%s has no attribute%s: %s"
-                % (
-                    type(self).__name__,
-                    "" if len(kw) == 1 else "s",
-                    ", ".join(kw.keys()),
-                )
-            )
+    method = attr.ib(converter=str)
+    """Name of the method to call on the ZenHub service class"""
 
-    def __iter__(self):
-        return ((name, getattr(self, name)) for name in ServiceCall.__slots__)
+    args = attr.ib()
+    """Positional arguments to the method"""
+
+    kwargs = attr.ib(validator=instance_of(dict))
+    """Keyword arguments to the method"""
+
+    id = attr.ib(factory=uuid.uuid4)
+    """Unique instance identifier"""
+
+    @args.validator
+    def _check_args(self, attribute, value):
+        if not isinstance(value, (list, tuple)):
+            raise TypeError("args must be a list or tuple")
 
 
 class ServiceReferenceFactory(object):
@@ -274,11 +263,11 @@ class ServiceReference(pb.Referenceable):
                 self.__name,
                 self.__monitor,
             )
-            state = yield executor.submit(call)
-            response = broker.serialize(state, self.perspective)
+            result = yield executor.submit(call)
+            response = broker.serialize(result, self.perspective)
             success = True
             defer.returnValue(response)
-        except _PropagatingErrors as ex:
+        except _PropagatingErrors:
             raise
         except Exception as ex:
             self.__log.exception(

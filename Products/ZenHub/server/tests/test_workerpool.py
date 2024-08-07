@@ -27,256 +27,285 @@ PATH = {"src": "Products.ZenHub.server.workerpool"}
 
 
 class WorkerPoolTest(TestCase):  # noqa: D101
-    def setUp(self):
-        self.queue = "default"
-        self.pool = WorkerPool(self.queue)
+    def setUp(t):
+        t.queue = "default"
+        t.pool = WorkerPool(t.queue)
 
-    def test_name_property(self):
-        self.assertEqual(self.queue, self.pool.name)
+    def test_name_property(t):
+        t.assertEqual(t.queue, t.pool.name)
 
-    def test_add_workers(self):
-        worker1 = Mock(workerId=1, sessionId="1")
-        worker2 = Mock(workerId=2, sessionId="2")
+    def test_add_workers(t):
+        worker1 = Mock(spec=["name"])
+        worker1.name = "default_1"
+        worker2 = Mock(spec=["name"])
+        worker2.name = "default_2"
 
-        self.pool.add(worker1)
-        self.assertIn(worker1, self.pool)
+        t.pool.add(worker1)
+        t.assertIn(worker1, t.pool)
 
-        self.pool.add(worker2)
-        self.assertIn(worker2, self.pool)
+        t.pool.add(worker2)
+        t.assertIn(worker2, t.pool)
 
-    def test_add_WorkerRef(self):
-        worker = Mock(workerId=1, sessionId="1")
+        t.assertEqual(2, len(t.pool))
+
+    def test_add_WorkerRef(t):
+        worker = Mock(spec=["name"])
+        worker.name = "default_1"
         services = Mock()
         workerref = WorkerRef(worker, services)
 
-        with self.assertRaises(AssertionError):
-            self.pool.add(workerref)
+        with t.assertRaises(TypeError):
+            t.pool.add(workerref)
 
-    def test_add_worker_twice(self):
-        worker = Mock(workerId=1, sessionId="1")
+    def test_add_worker_twice(t):
+        worker = Mock(spec=["name"])
+        worker.name = "default_1"
 
-        self.pool.add(worker)
-        self.assertIn(worker, self.pool)
+        t.pool.add(worker)
+        t.assertIn(worker, t.pool)
 
-        self.pool.add(worker)
-        self.assertIn(worker, self.pool)
-        self.assertEqual(len(self.pool), 1)
+        t.pool.add(worker)
+        t.assertIn(worker, t.pool)
 
-    def test_add_duplicate_worker(self):
-        worker = Mock(workerId=1, sessionId="1")
-        worker_dup = Mock(workerId=1, sessionId="2")
+        t.assertEqual(len(t.pool), 1)
 
-        self.pool.add(worker)
-        self.assertIn(worker, self.pool)
+    def test_replace_worker(t):
+        name = "default_1"
+        worker = Mock(spec=["name"])
+        worker.name = name
+        worker_replacement = Mock(spec=["name"])
+        worker_replacement.name = name
 
-        self.pool.add(worker_dup)
-        self.assertIn(worker_dup, self.pool)
-        self.assertIn(worker, self.pool)
+        t.pool.add(worker)
+        t.assertEqual(len(t.pool), 1)
+        t.assertIn(worker, t.pool)
+        t.assertNotIn(worker_replacement, t.pool)
 
-    def test_remove_worker(self):
-        worker1 = Mock(workerId=1, sessionId="1")
-        worker2 = Mock(workerId=2, sessionId="2")
-        self.pool.add(worker1)
-        self.pool.add(worker2)
-        self.assertEqual(len(self.pool), 2)
+        t.pool.add(worker_replacement)
+        t.assertEqual(len(t.pool), 1)
+        t.assertIn(worker_replacement, t.pool)
+        t.assertNotIn(worker, t.pool)
 
-        self.pool.remove(worker1)
-        self.assertNotIn(worker1, self.pool)
-        self.assertIn(worker2, self.pool)
-        self.assertEqual(len(self.pool), 1)
+    def test_remove_worker(t):
+        worker1 = Mock(spec=["name"])
+        worker1.name = "default_1"
+        worker2 = Mock(spec=["name"])
+        worker2.name = "default_2"
 
-        self.pool.remove(worker2)
-        self.assertNotIn(worker1, self.pool)
-        self.assertNotIn(worker2, self.pool)
-        self.assertEqual(len(self.pool), 0)
+        t.pool.add(worker1)
+        t.pool.add(worker2)
+        t.assertEqual(len(t.pool), 2)
 
-    def test_remove_WorkerRef(self):
-        worker = Mock(workerId=1, sessionId="1")
+        t.pool.remove(worker1)
+        t.assertNotIn(worker1, t.pool)
+        t.assertIn(worker2, t.pool)
+        t.assertEqual(len(t.pool), 1)
+
+        t.pool.remove(worker2)
+        t.assertNotIn(worker1, t.pool)
+        t.assertNotIn(worker2, t.pool)
+        t.assertEqual(len(t.pool), 0)
+
+    def test_remove_WorkerRef(t):
+        worker = Mock(spec=["name"])
+        worker.name = "default_1"
         services = Mock()
         workerref = WorkerRef(worker, services)
 
-        with self.assertRaises(AssertionError):
-            self.pool.add(workerref)
+        with t.assertRaises(TypeError):
+            t.pool.add(workerref)
 
-    def test_available(self):
-        worker = Mock(workerId=1, sessionId="1")
-        self.assertEqual(self.pool.available, 0)
+    def test_available(t):
+        worker = Mock(spec=["name"])
+        worker.name = "default_1"
+        t.assertEqual(t.pool.available, 0)
 
-        self.pool.add(worker)
-        self.assertEqual(self.pool.available, 1)
+        t.pool.add(worker)
+        t.assertEqual(t.pool.available, 1)
 
-        self.pool.remove(worker)
-        self.assertEqual(self.pool.available, 0)
+        t.pool.remove(worker)
+        t.assertEqual(t.pool.available, 0)
 
-    def test_iter_protocol(self):
-        w = next(iter(self.pool), None)
-        self.assertIsNone(w)
+    def test_iter_protocol(t):
+        w = next(iter(t.pool), None)
+        t.assertIsNone(w)
 
-        worker = Mock(workerId=1, sessionId="1")
-        self.pool.add(worker)
-        w = next(iter(self.pool), None)
-        self.assertIsNotNone(w)
-        self.assertIsInstance(w, WorkerRef)
-        self.assertIs(w.ref, worker)
+        worker = Mock(spec=["name"])
+        worker.name = "default_1"
+        t.pool.add(worker)
+        w = next(iter(t.pool), None)
+        t.assertIsNotNone(w)
+        t.assertIsInstance(w, WorkerRef)
+        t.assertIs(w.ref, worker)
 
-    def test_hire(self):
-        worker = Mock(workerId=1, sessionId="1")
+    def test_hire(t):
+        worker = Mock(spec=["name", "callRemote"])
+        worker.name = "default_1"
         worker.callRemote.return_value = defer.succeed("pong")
 
-        self.pool.add(worker)
+        t.pool.add(worker)
 
-        self.assertEqual(self.pool.available, 1)
-        self.assertEqual(len(self.pool), 1)
+        t.assertEqual(t.pool.available, 1)
+        t.assertEqual(len(t.pool), 1)
 
         def assign(x, v):
             x.value = v
 
-        dfr = self.pool.hire()
+        dfr = t.pool.hire()
         hired_worker = dfr.result
 
-        self.assertIsInstance(hired_worker, WorkerRef)
-        self.assertIs(hired_worker.ref, worker)
-        self.assertEqual(self.pool.available, 0)
-        self.assertEqual(len(self.pool), 1)
+        t.assertIsInstance(hired_worker, WorkerRef)
+        t.assertIs(hired_worker.ref, worker)
+        t.assertEqual(t.pool.available, 0)
+        t.assertEqual(len(t.pool), 1)
 
-    def test_remove_after_hire(self):
-        worker = Mock(workerId=1, sessionId="1")
-        self.pool.add(worker)
+    def test_remove_after_hire(t):
+        worker = Mock(spec=["name", "callRemote"])
+        worker.name = "default_1"
+        t.pool.add(worker)
 
-        self.assertEqual(self.pool.available, 1)
-        self.assertEqual(len(self.pool), 1)
+        t.assertEqual(t.pool.available, 1)
+        t.assertEqual(len(t.pool), 1)
 
-        dfr = self.pool.hire()
+        dfr = t.pool.hire()
         hired_worker = dfr.result
-        self.pool.remove(hired_worker.ref)
+        t.pool.remove(hired_worker.ref)
 
-        self.assertEqual(self.pool.available, 0)
-        self.assertEqual(len(self.pool), 0)
+        t.assertEqual(t.pool.available, 0)
+        t.assertEqual(len(t.pool), 0)
 
-    def test_hire_no_workers(self):
-        self.assertEqual(self.pool.available, 0)
-        self.assertEqual(len(self.pool), 0)
+    def test_hire_no_workers(t):
+        t.assertEqual(t.pool.available, 0)
+        t.assertEqual(len(t.pool), 0)
 
-        dfr = self.pool.hire()
+        dfr = t.pool.hire()
         # The deferred returned from the pool has not been called
-        self.assertFalse(dfr.called)
+        t.assertFalse(dfr.called)
 
-    def test_wait_for_available_worker(self):
-        self.assertEqual(self.pool.available, 0)
-        self.assertEqual(len(self.pool), 0)
+    def test_wait_for_available_worker(t):
+        t.assertEqual(t.pool.available, 0)
+        t.assertEqual(len(t.pool), 0)
 
-        dfr = self.pool.hire()
+        dfr = t.pool.hire()
         # The deferred returned from the pool has not been called
-        self.assertFalse(dfr.called)
+        t.assertFalse(dfr.called)
 
         # a worker becomes available
-        worker = Mock(workerId=1, sessionId="1")
+        worker = Mock(spec=["name", "callRemote"])
+        worker.name = "default_1"
         worker.callRemote.return_value = defer.succeed("pong")
-        self.pool.add(worker)
+        t.pool.add(worker)
 
         # the deferred is called, and the worker_reference_object is its result
-        self.assertTrue(dfr.called)
+        t.assertTrue(dfr.called)
         worker_ref = dfr.result
-        self.assertIsInstance(worker_ref, WorkerRef)
+        t.assertIsInstance(worker_ref, WorkerRef)
         # the reference object contains the worker
-        self.assertIs(worker_ref.ref, worker)
+        t.assertIs(worker_ref.ref, worker)
 
-    def test_hire_no_available_workers(self):
+    def test_hire_no_available_workers(t):
         with patch.object(
             WorkerPool, "available", return_value=0
         ) as available:
-            pool = WorkerPool(self.queue)
-            worker = Mock(workerId=1, sessionId="1")
+            pool = WorkerPool(t.queue)
+            worker = Mock(spec=["name", "callRemote"])
+            worker.name = "default_1"
             pool.add(worker)
 
             available.__len__.return_value = 0
-            self.assertEqual(len(pool), 1)
+            t.assertEqual(len(pool), 1)
 
-            dfr = self.pool.hire()
-            self.assertFalse(dfr.called)
+            dfr = t.pool.hire()
+            t.assertFalse(dfr.called)
 
             available.pop.assert_not_called()
 
-    def test_layoff(self):
-        worker = Mock(workerId=1, sessionId="1")
-        self.pool.add(worker)
+    def test_layoff(t):
+        worker = Mock(spec=["name", "callRemote"])
+        worker.name = "default_1"
+        t.pool.add(worker)
 
-        self.assertEqual(self.pool.available, 1)
-        self.assertEqual(len(self.pool), 1)
+        t.assertEqual(t.pool.available, 1)
+        t.assertEqual(len(t.pool), 1)
 
-        dfr = self.pool.hire()
+        dfr = t.pool.hire()
         hired_worker = dfr.result
 
-        self.assertEqual(self.pool.available, 0)
-        self.assertEqual(len(self.pool), 1)
+        t.assertEqual(t.pool.available, 0)
+        t.assertEqual(len(t.pool), 1)
 
-        self.pool.layoff(hired_worker)
+        t.pool.layoff(hired_worker)
 
-        self.assertEqual(self.pool.available, 1)
-        self.assertEqual(len(self.pool), 1)
+        t.assertEqual(t.pool.available, 1)
+        t.assertEqual(len(t.pool), 1)
 
-    def test_layoff_retired_worker(self):
-        worker = Mock(workerId=1, sessionId="1")
-        self.pool.add(worker)
+    def test_layoff_retired_worker(t):
+        worker = Mock(spec=["name", "callRemote"])
+        worker.name = "default_1"
+        t.pool.add(worker)
 
-        self.assertEqual(self.pool.available, 1)
-        self.assertEqual(len(self.pool), 1)
+        t.assertEqual(t.pool.available, 1)
+        t.assertEqual(len(t.pool), 1)
 
-        dfr = self.pool.hire()
+        dfr = t.pool.hire()
         hired_worker = dfr.result
 
-        self.assertEqual(self.pool.available, 0)
-        self.assertEqual(len(self.pool), 1)
+        t.assertEqual(t.pool.available, 0)
+        t.assertEqual(len(t.pool), 1)
 
-        worker2 = Mock(workerId=1, sessionId="2")
-        self.pool.remove(worker)
-        self.pool.add(worker2)
-        self.assertEqual(self.pool.available, 1)
-        self.assertEqual(len(self.pool), 1)
+        worker2 = Mock(spec=["name", "callRemote"])
+        worker2.name = "default_1"
+        t.pool.remove(worker)
+        t.pool.add(worker2)
+        t.assertEqual(t.pool.available, 1)
+        t.assertEqual(len(t.pool), 1)
 
-        self.pool.layoff(hired_worker)
-        self.assertEqual(self.pool.available, 1)
-        self.assertEqual(len(self.pool), 1)
+        t.pool.layoff(hired_worker)
+        t.assertEqual(t.pool.available, 1)
+        t.assertEqual(len(t.pool), 1)
 
-    def test_handleReportStatus(self):
-        worker_1 = Mock(name="worker_1")
-        worker_2 = Mock(name="worker_2")
-        self.pool.add(worker_1)
-        self.pool.add(worker_2)
+    def test_handleReportStatus(t):
+        worker_1 = Mock(spec=["name", "callRemote"])
+        worker_1.name = "default_1"
+        worker_2 = Mock(spec=["name", "callRemote"])
+        worker_2.name = "default_2"
+        t.pool.add(worker_1)
+        t.pool.add(worker_2)
 
-        self.pool.handleReportStatus(event=None)
+        t.pool.handleReportStatus(event=None)
 
         worker_1.callRemote.assert_called_with("reportStatus")
         worker_2.callRemote.assert_called_with("reportStatus")
 
 
 class RemoteServiceRegistryTest(TestCase):  # noqa: D101
-    def setUp(self):
-        self.worker = Mock(workerId=1, sessionId="1")
-        self.registry = RemoteServiceRegistry(self.worker)
+    def setUp(t):
+        t.worker = Mock(spec=["name", "callRemote"])
+        t.worker.name = "default_1"
+        t.registry = RemoteServiceRegistry(t.worker)
 
-    def test_api(self):
+    def test_api(t):
         name = "service"
         monitor = "monitor"
         service = Mock()
-        self.worker.callRemote.return_value = service
+        t.worker.callRemote.return_value = service
 
-        svc = self.registry.get((name, monitor))
-        self.assertIsNone(svc)
-        self.assertNotIn((name, monitor), self.registry)
+        svc = t.registry.get((name, monitor))
+        t.assertIsNone(svc)
+        t.assertNotIn((name, monitor), t.registry)
 
-        dfr = self.registry.lookup(name, monitor)
+        dfr = t.registry.lookup(name, monitor)
 
-        self.assertIsInstance(dfr, defer.Deferred)
-        self.assertTrue(dfr.called)
-        self.assertIs(dfr.result, service)
+        t.assertIsInstance(dfr, defer.Deferred)
+        t.assertTrue(dfr.called)
+        t.assertIs(dfr.result, service)
 
-        svc = self.registry.get((name, monitor))
-        self.assertIs(svc, service)
-        self.assertIn((name, monitor), self.registry)
+        svc = t.registry.get((name, monitor))
+        t.assertIs(svc, service)
+        t.assertIn((name, monitor), t.registry)
 
         # Note: 'callRemote' is called only once per (service, method).
-        self.worker.callRemote.assert_called_once_with(
+        t.worker.callRemote.assert_called_once_with(
             "getService",
             name,
             monitor,
@@ -284,28 +313,29 @@ class RemoteServiceRegistryTest(TestCase):  # noqa: D101
 
 
 class WorkerRefTest(TestCase):  # noqa: D101
-    def setUp(self):
-        self.getLogger_patcher = patch(
+    def setUp(t):
+        t.getLogger_patcher = patch(
             "{src}.getLogger".format(**PATH),
             autospec=True,
         )
-        self.getLogger = self.getLogger_patcher.start()
-        self.addCleanup(self.getLogger_patcher.stop)
-        self.logger = self.getLogger.return_value
-        self.worker = Mock(workerId=1, sessionId="1")
-        self.services = Mock(spec=RemoteServiceRegistry)
-        self.ref = WorkerRef(self.worker, self.services)
+        t.getLogger = t.getLogger_patcher.start()
+        t.addCleanup(t.getLogger_patcher.stop)
+        t.logger = t.getLogger.return_value
+        t.worker = Mock(spec=["name"])
+        t.worker.name = "default_1"
+        t.services = Mock(spec=RemoteServiceRegistry)
+        t.ref = WorkerRef(t.worker, t.services)
 
-    def test_properties(self):
-        self.assertEqual(self.ref.ref, self.worker)
-        self.assertEqual(self.ref.services, self.services)
+    def test_properties(t):
+        t.assertEqual(t.ref.ref, t.worker)
+        t.assertEqual(t.ref.services, t.services)
 
-    def test___getattr__(self):
-        self.assertEqual(self.ref.workerId, self.worker.workerId)
+    def test___getattr__(t):
+        t.assertEqual(t.ref.name, t.worker.name)
 
-    def test_run_no_arg_method(self):
+    def test_run_no_arg_method(t):
         service = Mock(spec=["callRemote"])
-        self.services.lookup.return_value = service
+        t.services.lookup.return_value = service
         call = ServiceCall(
             monitor="localhost",
             service="service",
@@ -315,20 +345,20 @@ class WorkerRefTest(TestCase):  # noqa: D101
         )
         expected_result = service.callRemote.return_value
 
-        dfr = self.ref.run(call)
+        dfr = t.ref.run(call)
 
-        self.assertIsInstance(dfr, defer.Deferred)
-        self.assertTrue(dfr.called)
-        self.assertEqual(dfr.result, expected_result)
-        self.services.lookup.assert_called_once_with(
+        t.assertIsInstance(dfr, defer.Deferred)
+        t.assertTrue(dfr.called)
+        t.assertEqual(dfr.result, expected_result)
+        t.services.lookup.assert_called_once_with(
             call.service,
             call.monitor,
         )
         service.callRemote.assert_called_once_with(call.method)
 
-    def test_run_method_with_args(self):
+    def test_run_method_with_args(t):
         service = Mock(spec=["callRemote"])
-        self.services.lookup.return_value = service
+        t.services.lookup.return_value = service
         call = ServiceCall(
             monitor="localhost",
             service="service",
@@ -338,12 +368,12 @@ class WorkerRefTest(TestCase):  # noqa: D101
         )
         expected_result = service.callRemote.return_value
 
-        dfr = self.ref.run(call)
+        dfr = t.ref.run(call)
 
-        self.assertIsInstance(dfr, defer.Deferred)
-        self.assertTrue(dfr.called)
-        self.assertEqual(dfr.result, expected_result)
-        self.services.lookup.assert_called_once_with(
+        t.assertIsInstance(dfr, defer.Deferred)
+        t.assertTrue(dfr.called)
+        t.assertEqual(dfr.result, expected_result)
+        t.services.lookup.assert_called_once_with(
             call.service,
             call.monitor,
         )
@@ -353,9 +383,9 @@ class WorkerRefTest(TestCase):  # noqa: D101
             arg=call.kwargs["arg"],
         )
 
-    def test_run_lookup_failure(self):
+    def test_run_lookup_failure(t):
         expected_error = ValueError("boom")
-        self.services.lookup.side_effect = expected_error
+        t.services.lookup.side_effect = expected_error
         call = ServiceCall(
             monitor="localhost",
             service="the_service",
@@ -365,30 +395,30 @@ class WorkerRefTest(TestCase):  # noqa: D101
         )
 
         result = []
-        dfr = self.ref.run(call)
+        dfr = t.ref.run(call)
         dfr.addErrback(lambda x: result.append(x))
 
-        self.services.lookup.assert_called_once_with(
+        t.services.lookup.assert_called_once_with(
             call.service,
             call.monitor,
         )
-        self.assertEqual(len(result), 1)
+        t.assertEqual(len(result), 1)
         failure = result[0]
-        self.assertIsInstance(failure, Failure)
+        t.assertIsInstance(failure, Failure)
         actual_error = failure.value
-        self.assertIsInstance(actual_error, ValueError)
-        self.logger.error.assert_called_once_with(
+        t.assertIsInstance(actual_error, ValueError)
+        t.logger.error.assert_called_once_with(
             "Failed to retrieve remote service "
             "service=%s worker=%s error=(%s) %s",
             call.service,
-            1,
+            t.worker.name,
             "ValueError",
             expected_error,
         )
 
-    def test_run_callremote_failure(self):
+    def test_run_callremote_failure(t):
         service = Mock(spec=["callRemote"])
-        self.services.lookup.return_value = service
+        t.services.lookup.return_value = service
         call = ServiceCall(
             monitor="localhost",
             service="service",
@@ -400,26 +430,26 @@ class WorkerRefTest(TestCase):  # noqa: D101
         service.callRemote.side_effect = expected_error
 
         result = []
-        dfr = self.ref.run(call)
+        dfr = t.ref.run(call)
         dfr.addErrback(lambda x: result.append(x))
 
-        self.services.lookup.assert_called_once_with(
+        t.services.lookup.assert_called_once_with(
             call.service,
             call.monitor,
         )
         service.callRemote.assert_called_once_with(call.method)
-        self.assertEqual(len(result), 1)
+        t.assertEqual(len(result), 1)
         failure = result[0]
-        self.assertIsInstance(failure, Failure)
+        t.assertIsInstance(failure, Failure)
         actual_error = failure.value
-        self.assertIsInstance(actual_error, ValueError)
-        self.logger.error.assert_called_once_with(
+        t.assertIsInstance(actual_error, ValueError)
+        t.logger.error.assert_called_once_with(
             "Failed to execute remote method "
             "service=%s method=%s id=%s worker=%s error=(%s) %s",
             call.service,
             call.method,
             call.id.hex,
-            1,
+            t.worker.name,
             "ValueError",
             expected_error,
         )

@@ -10,9 +10,12 @@
 from __future__ import absolute_import
 
 import collections
-import enum
 
 from itertools import chain, count, cycle
+
+import enum
+import six
+
 from zope.component import getUtility
 
 from Products.Zuul.interfaces import IDataRootFactory
@@ -301,7 +304,7 @@ class ServiceCallPriorityMap(collections.Mapping):
         return len(self.__map)
 
     def __makekey(self, key):
-        if isinstance(key, basestring):
+        if isinstance(key, six.string_types):
             key = str(key).split(":")
         service, method = key
         if service not in self.__services:

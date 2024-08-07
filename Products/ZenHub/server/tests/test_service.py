@@ -10,6 +10,9 @@
 from __future__ import absolute_import
 
 from unittest import TestCase
+
+import attr
+
 from mock import Mock, patch, call, MagicMock, sentinel
 from zope.interface.verify import verifyObject
 
@@ -41,7 +44,7 @@ class ServiceCallTest(TestCase):
         self.monitor = "monitor"
         self.service = "name"
         self.method = "method"
-        self.args = ()
+        self.args = []
         self.kwargs = {}
         self.call = ServiceCall(
             monitor=self.monitor,
@@ -61,7 +64,7 @@ class ServiceCallTest(TestCase):
         self.assertIsNotNone(self.call.id)
 
     def test_extra_arg_initialization(self):
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(TypeError):
             ServiceCall(
                 monitor="monitor",
                 service="name",
@@ -79,7 +82,7 @@ class ServiceCallTest(TestCase):
             "args": self.args,
             "kwargs": self.kwargs,
         }
-        dmap = dict(self.call)
+        dmap = attr.asdict(self.call)
         _id = dmap.pop("id", None)
         self.assertIsNotNone(_id)
         self.assertDictEqual(expected, dmap)
@@ -361,7 +364,9 @@ class ServiceReferenceTest(TestCase):
             RemoteException("boom", "tb"),
         ]
         for expected_ex in exceptions:
-            executor.submit.side_effect = lambda j: defer.fail(expected_ex)
+            executor.submit.side_effect = lambda j, ex=expected_ex: defer.fail(
+                ex
+            )
             cb = Mock()
             dfr = self.reference.remoteMessageReceived(
                 self.broker,
