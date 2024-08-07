@@ -11,6 +11,8 @@ from __future__ import absolute_import
 
 import time
 
+import attr
+
 from twisted.internet import defer
 from zope.component import getUtility
 from zope.event import notify
@@ -81,7 +83,7 @@ class SendEventExecutor(object):
             )
 
         # Build args for events
-        ctx = dict(call)
+        ctx = attr.asdict(call)
         ctx.update(
             {
                 "queue": self.__name,

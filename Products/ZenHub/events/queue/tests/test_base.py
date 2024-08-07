@@ -29,4 +29,5 @@ class BaseEventQueueTest(TestCase):
 
     def test___iter__(t):
         with t.assertRaises(NotImplementedError):
-            [i for i in t.beq]
+            for _ in t.beq:
+                pass
