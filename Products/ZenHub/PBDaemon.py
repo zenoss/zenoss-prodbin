@@ -45,6 +45,7 @@ from .errors import HubDown, translateError
 from .events import EventClient, EventQueueManager
 from .localserver import LocalServer, ZenHubStatus
 from .metricpublisher import publisher
+from .pinger import PingZenHub
 from .zenhubclient import ZenHubClient
 
 PB_PORT = 8789
@@ -68,7 +69,7 @@ stopEvent = {
 DEFAULT_HUB_HOST = "localhost"
 DEFAULT_HUB_PORT = PB_PORT
 DEFAULT_HUB_USERNAME = "admin"
-DEFAULT_HUB_PASSWORD = "zenoss"
+DEFAULT_HUB_PASSWORD = "zenoss"  # noqa S105
 DEFAULT_HUB_MONITOR = "localhost"
 
 
@@ -103,8 +104,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
         # Configure/initialize the ZenHub client
         self.__zhclient = _getZenHubClient(self, self.options)
-        self.__zhclient.notifyOnConnect(self._load_initial_services)
+        self.__zhclient.notify_on_connect(self._load_initial_services)
         self.__zenhub_ready = None
+
+        self.__pinger = PingZenHub(self.__zhclient)
 
         self._thresholds = Thresholds()
         self._threshold_notifier = ThresholdNotifier(
@@ -117,7 +120,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
         self.startEvent = startEvent.copy()
         self.stopEvent = stopEvent.copy()
-        details = dict(component=self.name, device=self.options.monitor)
+        details = {"component": self.name, "device": self.options.monitor}
         for evt in self.startEvent, self.stopEvent:
             evt.update(details)
 
@@ -155,7 +158,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.__server = None
 
         self.__zenhub_connected = False
-        self.__zhclient.notifyOnConnect(
+        self.__zhclient.notify_on_connect(
             lambda: self._set_zenhub_connected(True)
         )
 
@@ -164,7 +167,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         if state:
             # Re-add the disconnect callback because the ZenHub client
             # removes all disconnect callbacks after a disconnect.
-            self.__zhclient.notifyOnDisconnect(
+            self.__zhclient.notify_on_disconnect(
                 lambda: self._set_zenhub_connected(False)
             )
 
@@ -295,6 +298,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def connect(self):
         self.__zenhub_ready = self.__zhclient.start()
+        self.__pinger.start()
         return self.__zenhub_ready
 
     def connected(self):
@@ -650,12 +654,11 @@ def _getZenHubClient(app, options):
     )
     endpoint = clientFromString(reactor, endpointDescriptor)
     return ZenHubClient(
-        reactor,
+        app,
         endpoint,
         creds,
-        app,
         options.hubtimeout,
-        options.zhPingInterval,
+        reactor,
     )
 
 
