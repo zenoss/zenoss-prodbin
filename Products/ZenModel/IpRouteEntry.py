@@ -112,12 +112,14 @@ class IpRouteEntry(OSComponent):
     ipcheck = re.compile(r'^127\.|^0\.0\.|^169\.254\.|^224\.|^::1$|^fe80:|^ff').search
 
     def before_object_deleted_handler(self):
-        if self.interface():
-            self.interface.removeRelation()
-        if self.nexthop():
-            self.nexthop.removeRelation()
-        if self.target():
-            self.target.removeRelation()
+        device = self.device()
+        if device and device._operation != 1:
+            if self.interface():
+                self.interface.removeRelation()
+            if self.nexthop():
+                self.nexthop.removeRelation()
+            if self.target():
+                self.target.removeRelation()
     
     def __getattr__(self, name):
         """
