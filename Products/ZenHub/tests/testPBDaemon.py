@@ -27,14 +27,14 @@ from Products.ZenHub.events.queue.fingerprint import (
     DefaultFingerprintGenerator,
 )
 
-_TEST_EVENT = dict(
-    device="device1",
-    component="component1",
-    eventClass="/MyEventClass",
-    eventKey="MyEventKey",
-    severity=5,
-    summary="My summary",
-)
+_TEST_EVENT = {
+    "device": "device1",
+    "component": "component1",
+    "eventClass": "/MyEventClass",
+    "eventKey": "MyEventKey",
+    "severity": 5,
+    "summary": "My summary",
+}
 
 log = logging.getLogger("zen.testPBDaemon")
 
@@ -95,7 +95,7 @@ class TestDeDupingEventQueue(BaseEventQueueTest):
         )
 
     def testDeDuping(self):
-        for i in range(100):
+        for _ in range(100):
             self.queue.append(createTestEvent(mydetail="detailvalue"))
         self.assertEquals(1, len(self.queue))
         queued = list(self.queue)
@@ -183,7 +183,7 @@ class TestEventQueueManager(BaseTestCase):
         self.gsm.registerUtility(transformer)
         try:
             eqm = EventQueueManager(self.createOptions(), log)
-            for i in range(5):
+            for _ in range(5):
                 eqm.addEvent(createTestEvent())
         finally:
             self.gsm.unregisterUtility(transformer)
@@ -202,13 +202,13 @@ class TestEventQueueManager(BaseTestCase):
 
     def testNoDuplicateClears(self):
         eqm = EventQueueManager(self.createOptions(), log)
-        for i in range(5):
+        for _ in range(5):
             eqm.addEvent(createTestEvent(severity=0))
         self.assertEquals(1, len(eqm.event_queue))
         sent_events = []
         eqm.sendEvents(lambda evts: sent_events.extend(evts))
 
-        for i in range(5):
+        for _ in range(5):
             eqm.addEvent(createTestEvent(severity=0))
         self.assertEquals(0, len(eqm.event_queue))
 
@@ -220,7 +220,7 @@ class TestEventQueueManager(BaseTestCase):
         def send_events(evts):
             sent_events.extend(evts)
 
-        for i in range(5):
+        for _ in range(5):
             eqm.addEvent(createTestEvent(severity=0))
             eqm.sendEvents(send_events)
         self.assertEquals(5, len(sent_events))
@@ -235,7 +235,7 @@ class TestEventQueueManager(BaseTestCase):
             sent_events.extend(evts)
 
         eqm = EventQueueManager(opts, log)
-        for i in range(10):
+        for _ in range(10):
             eqm.addEvent(createTestEvent(severity=0))
             eqm.sendEvents(send_events)
         self.assertEquals(2, len(sent_events))

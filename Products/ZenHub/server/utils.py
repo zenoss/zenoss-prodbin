@@ -11,10 +11,13 @@ from __future__ import absolute_import, print_function
 
 import contextlib
 import importlib
+import logging
 import sys
 import traceback
+import types
 
-from Products.ZenUtils.Logger import getLogger as _getLogger
+import six
+
 from Products.ZenUtils.Utils import ipv6_available
 
 from .exceptions import UnknownServiceError
@@ -47,10 +50,17 @@ class TCPDescriptor(object):
 
 
 def getLogger(cls):
-    if isinstance(cls, basestring):
+    if isinstance(cls, six.string_types):
         name = cls.split(".")[-1]
-        return _getLogger("zenhub.server." + name)
-    return _getLogger("zenhub.server", cls)
+    else:
+        if isinstance(cls, types.InstanceType):
+            cls = cls.__class__
+        elif isinstance(cls, types.ModuleType):
+            pass  # Avoid matching the next elif statement.
+        elif not isinstance(cls, types.TypeType):
+            cls = type(cls)
+        name = cls.__name__.split(".")[-1]
+    return logging.getLogger("zen.zenhub.server.{}".format(name.lower()))
 
 
 def import_service_class(clspath):

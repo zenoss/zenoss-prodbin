@@ -230,5 +230,5 @@ class DeDupingEventQueueTest(TestCase):
 
     def test___iter__(t):
         t.ddeq.extendleft([t.event_a, t.event_b])
-        ret = [event for event in t.ddeq]
+        ret = list(t.ddeq)
         t.assertEqual(ret, [t.event_a, t.event_b])
