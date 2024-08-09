@@ -233,10 +233,8 @@ class ToOneRelationship(RelationshipBase):
                     self.obj.getPrimaryId(),
                     self.getPrimaryId(),
                 )
-                self.obj = None
-
-        if not self.obj:
-            return
+                self._remove()
+                return True
 
         parobj = self.getPrimaryParent()
         try:
@@ -263,6 +261,7 @@ class ToOneRelationship(RelationshipBase):
                     self.getPrimaryId(),
                 )
                 rrel._add(parobj)
+                return True
 
 
 InitializeClass(ToOneRelationship)

@@ -227,7 +227,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         self._objects = PersistentList(self._objects)
 
     def checkObjectRelation(self, obj, remoteName, parentObject, repair):
-        deleted = False
+        changed = False
         try:
             ppath = obj.getPrimaryPath()
             getObjByPath(self, ppath)
@@ -244,11 +244,10 @@ class ToManyRelationship(ToManyRelationshipBase):
                     obj.getPrimaryId(),
                     self.getPrimaryId(),
                 )
-                self._objects.remove(obj)
-                self.__primary_parent__._p_changed = True
-                deleted = True
+                self._remove(obj)
+                changed = True
 
-        if not deleted:
+        if not changed:
             rrel = getattr(obj, remoteName)
             if not rrel.hasobject(parentObject):
                 log.error(
@@ -263,19 +262,21 @@ class ToManyRelationship(ToManyRelationshipBase):
                         self.getPrimaryId(),
                     )
                     rrel._add(parentObject)
-        return deleted
+        return changed
 
     def checkRelation(self, repair=False):
         """Check to make sure that relationship bidirectionality is ok."""
         if len(self._objects):
             log.debug("checking relation: %s", self.id)
 
+        changed = False
         # look for objects that don't point back to us
         # or who should no longer exist in the database
         rname = self.remoteName()
         parobj = self.getPrimaryParent()
         for obj in self._objects:
-            self.checkObjectRelation(obj, rname, parobj, repair)
+            if self.checkObjectRelation(obj, rname, parobj, repair):
+                changed = True
 
         # find duplicate objects
         keycount = {}
@@ -296,14 +297,16 @@ class ToManyRelationship(ToManyRelationshipBase):
                 )
                 if repair:
                     log.critical("repair key %s", key)
-                    self._objects = [
+                    self._objects = PersistentList([
                         o for o in self._objects if o.getPrimaryId() != key
-                    ]
+                    ])
+                    changed = True
                     try:
                         obj = self.getObjByPath(key)
-                        self._objects.append(obj)
+                        self._add(obj)
                     except KeyError:
                         log.critical("obj %s not found in database", key)
+        return changed
 
 
 InitializeClass(ToManyRelationship)

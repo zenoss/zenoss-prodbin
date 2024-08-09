@@ -240,8 +240,11 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
     def checkRelations(self, repair=False):
         """Confirm the integrity of all relations on this object"""
         log.debug("checking relations on object %s", self.getPrimaryId())
+        changed = False
         for rel in self.getRelationships():
-            rel.checkRelation(repair)
+            if rel.checkRelation(repair):
+                changed = True
+        return changed
 
     ##########################################################################
     #
