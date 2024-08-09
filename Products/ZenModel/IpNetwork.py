@@ -656,6 +656,12 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             )
             for i in ips:
                 i.interface().ipaddresses._setObject(i.id, i)
+            mips = filter(
+                lambda n: isinstance(n, IpAddress) and n.manageDevice(),
+                netobj.getSubObjects(),
+            )
+            for i in mips:
+                i.manageDevice().ipaddress.addRelation(i)
 
         return self.getSubNetwork(ip)
 

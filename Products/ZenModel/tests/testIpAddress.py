@@ -28,6 +28,8 @@ class TestIpAddress(ZenModelBaseTest):
     def afterSetUp(self):
         super(TestIpAddress, self).afterSetUp()
         self.dev = self.dmd.Devices.createInstance("testdev")
+        self.dev.setManageIp('2.3.4.5')
+        self.maddr = self.dev.ipaddress().primaryAq()
         tmpIface = IpInterface('test')
         self.dev.os.interfaces._setObject('test',tmpIface)
         self.iface = self.dev.getDeviceComponents()[0]
@@ -46,6 +48,15 @@ class TestIpAddress(ZenModelBaseTest):
     def testSetNetmask(self):
         self.addr.setNetmask(8)
         self.assert_(self.addr.getIpAddress() == '1.2.3.4/8')
+
+
+    def testDeviceDelete(self):
+        maddrPath = self.maddr.getPrimaryId()
+        addrPath = self.addr.getPrimaryId()
+        self.dev.deleteDevice()
+        self.assert_(self.maddr.manageDevice() is None)
+        self.assert_(self.addr.interface() is None)
+
 
 #    def testSetIpAddress(self):
 #        self.addr.setIpAddress('2.3.4.5/16')
