@@ -10,7 +10,7 @@
 from __future__ import absolute_import
 
 from unittest import TestCase
-from mock import Mock, patch, create_autospec, sentinel
+from mock import create_autospec, MagicMock, patch, sentinel
 
 from ..avatar import HubAvatar, RemoteBadMonitor, pb
 from ..service import ServiceManager
@@ -22,27 +22,26 @@ PATH = {"src": "Products.ZenHub.server.avatar"}
 class HubAvatarTest(TestCase):
     """Test the HubAvatar class."""
 
-    def setUp(self):
-        self.getLogger_patcher = patch(
-            "{src}.getLogger".format(**PATH),
-            autospec=True,
+    def setUp(t):
+        t.getLogger_patcher = patch(
+            "{src}.getLogger".format(**PATH), autospec=True
         )
-        self.getLogger = self.getLogger_patcher.start()
-        self.addCleanup(self.getLogger_patcher.stop)
+        t.getLogger = t.getLogger_patcher.start()
+        t.addCleanup(t.getLogger_patcher.stop)
 
-        self.services = create_autospec(ServiceManager)
-        self.pools = {
-            "foo": create_autospec(WorkerPool),
-            "bar": create_autospec(WorkerPool),
+        t.services = create_autospec(ServiceManager)
+        t.pools = {
+            "foo": WorkerPool("foo"),
+            "bar": WorkerPool("bar"),
         }
-        self.avatar = HubAvatar(self.services, self.pools)
+        t.avatar = HubAvatar(t.services, t.pools)
 
-    def test_perspective_ping(self):
-        ret = self.avatar.perspective_ping()
-        self.assertEqual(ret, "pong")
+    def test_perspective_ping(t):
+        ret = t.avatar.perspective_ping()
+        t.assertEqual(ret, "pong")
 
-    @patch("{src}.os.environ".format(**PATH), name="os.environ", autospec=True)
-    def test_perspective_getHubInstanceId_normal(self, os_environ):
+    @patch("{src}.os".format(**PATH), name="os", autospec=True)
+    def test_perspective_getHubInstanceId_normal(t, _os):
         key = "CONTROLPLANE_INSTANCE_ID"
         hubId = "hub"
 
@@ -51,97 +50,108 @@ class HubAvatarTest(TestCase):
                 return hubId
             return d
 
-        os_environ.get.side_effect = side_effect
+        _os.environ.get.side_effect = side_effect
 
-        actual = self.avatar.perspective_getHubInstanceId()
+        actual = t.avatar.perspective_getHubInstanceId()
 
-        self.assertEqual(actual, hubId)
+        t.assertEqual(actual, hubId)
 
-    @patch("{src}.os.environ".format(**PATH), name="os.environ", autospec=True)
-    def test_perspective_getHubInstanceId_unknown(self, os_environ):
-        os_environ.get.side_effect = lambda k, d: d
-        actual = self.avatar.perspective_getHubInstanceId()
-        self.assertEqual(actual, "Unknown")
+    @patch("{src}.os".format(**PATH), name="os", autospec=True)
+    def test_perspective_getHubInstanceId_unknown(t, _os):
+        _os.environ.get.side_effect = lambda k, d: d
+        actual = t.avatar.perspective_getHubInstanceId()
+        t.assertEqual(actual, "Unknown")
 
-    def test_perspective_getService_no_listener(self):
+    def test_perspective_getService_no_listener(t):
         service_name = "testservice"
         monitor = "localhost"
 
-        expected = self.services.getService.return_value
-        actual = self.avatar.perspective_getService(service_name, monitor)
+        expected = t.services.getService.return_value
+        actual = t.avatar.perspective_getService(service_name, monitor)
 
-        self.services.getService.assert_called_with(service_name, monitor)
+        t.services.getService.assert_called_with(service_name, monitor)
         expected.addListener.assert_not_called()
-        self.assertEqual(expected, actual)
+        t.assertEqual(expected, actual)
 
-    def test_perspective_getService_with_listener(self):
+    def test_perspective_getService_with_listener(t):
         service_name = "testservice"
         monitor = "localhost"
         listener = sentinel.listener
         options = sentinel.options
 
-        expected = self.services.getService.return_value
-        actual = self.avatar.perspective_getService(
+        expected = t.services.getService.return_value
+        actual = t.avatar.perspective_getService(
             service_name,
             monitor,
             listener=listener,
             options=options,
         )
 
-        self.services.getService.assert_called_with(service_name, monitor)
+        t.services.getService.assert_called_with(service_name, monitor)
         expected.addListener.assert_called_once_with(listener, options)
-        self.assertEqual(expected, actual)
+        t.assertEqual(expected, actual)
 
-    def test_perspective_getService_raises_RemoteBadMonitor(self):
-        self.services.getService.side_effect = RemoteBadMonitor("tb", "msg")
-        with self.assertRaises(RemoteBadMonitor):
-            self.avatar.perspective_getService("service_name")
+    def test_perspective_getService_raises_RemoteBadMonitor(t):
+        t.services.getService.side_effect = RemoteBadMonitor("tb", "msg")
+        with t.assertRaises(RemoteBadMonitor):
+            t.avatar.perspective_getService("service_name")
 
     @patch("{src}.getLogger".format(**PATH))
-    def test_perspective_getService_raises_error(self, getLogger):
+    def test_perspective_getService_raises_error(t, getLogger):
         logger = getLogger.return_value
-        self.avatar._HubAvatar__log = logger
+        t.avatar._HubAvatar__log = logger
         service_name = "service_name"
-        self.services.getService.side_effect = Exception()
+        t.services.getService.side_effect = Exception()
 
-        with self.assertRaises(pb.Error):
-            self.avatar.perspective_getService(service_name)
+        with t.assertRaises(pb.Error):
+            t.avatar.perspective_getService(service_name)
             logger.exception.assert_called_once_with(
                 "Failed to get service '%s'",
                 service_name,
             )
 
-    def test_perspective_reportingForWork_nominal(self):
-        worker = Mock(
-            spec_set=[
-                "workerId",
-                "sessionId",
-                "queue_name",
-                "notifyOnDisconnect",
-            ]
-        )
-        workerId = "default-1"
+    def test_perspective_reportForWork_nominal(t):
+        remote = MagicMock(pb.RemoteReference, autospec=True)
+        pool_name = "foo"
+        name = "default_0"
 
         disconnect_callback = []
 
         def _notifyOnDisconnect(callback):
             disconnect_callback.append(callback)
 
-        worker.notifyOnDisconnect.side_effect = _notifyOnDisconnect
+        remote.notifyOnDisconnect.side_effect = _notifyOnDisconnect
 
         # Add the worker
-        self.avatar.perspective_reportingForWork(worker, workerId, "foo")
-        self.assertTrue(hasattr(worker, "sessionId"))
-        self.assertIsNotNone(worker.sessionId)
-        self.assertTrue(hasattr(worker, "workerId"))
-        self.assertEqual(worker.workerId, workerId)
-        self.pools["foo"].add.assert_called_once_with(worker)
+        t.avatar.perspective_reportForWork(remote, name, pool_name)
+
+        foo = t.pools[pool_name]
+        worker = foo.get(name)
+        t.assertIsNotNone(worker)
+        t.assertEqual(worker.remote, remote)
 
         # Remove the worker
-        self.assertEqual(
+        t.assertEqual(
             1,
             len(disconnect_callback),
             "notifyOnDisconnect not called",
         )
-        disconnect_callback[0](worker)
-        self.pools["foo"].remove.assert_called_once_with(worker)
+        disconnect_callback[0](remote)
+        worker = foo.get(name)
+        t.assertIsNone(worker)
+
+    def test_perspective_resignFromWork_nominal(t):
+        remote = MagicMock(pb.RemoteReference, autospec=True)
+        name = "default-1"
+        worklist = "foo"
+        pool = t.pools[worklist]
+
+        # Add the worker
+        t.avatar.perspective_reportForWork(remote, name, worklist)
+        worker = pool.get(name)
+        t.assertIsNotNone(worker)
+
+        # Resign the worker
+        t.avatar.perspective_resignFromWork(name, worklist)
+        worker = pool.get(name)
+        t.assertIsNone(worker)

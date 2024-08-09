@@ -76,7 +76,7 @@ class PBDaemonInitTest(TestCase):
         t.assertEqual(pbd.mname, name)
 
         zhc = _getZenHubClient.return_value
-        zhc.notifyOnConnect.assert_has_calls(
+        zhc.notify_on_connect.assert_has_calls(
             [call(pbd._load_initial_services), call(ANY)]
         )
 
@@ -232,12 +232,12 @@ class PBDaemonTest(TestCase):
         )
 
     @patch("{src}.os".format(**PATH), autospec=True)
-    def test_internalPublisher(t, os):
+    def test_internalPublisher(t, _os):
         # All the methods with this pattern need to be converted to properties
         url = Mock(name="url", spec_set=[])
         username = "username"
-        password = "password"
-        os.environ = {
+        password = "password"  # noqa S105
+        _os.environ = {
             "CONTROLPLANE_CONSUMER_URL": url,
             "CONTROLPLANE_CONSUMER_USERNAME": username,
             "CONTROLPLANE_CONSUMER_PASSWORD": password,
@@ -254,10 +254,10 @@ class PBDaemonTest(TestCase):
         t.assertEqual(t.pbd.internalPublisher(), ret)
 
     @patch("{src}.os".format(**PATH), autospec=True)
-    def test_metricWriter_legacy(t, os):
+    def test_metricWriter_legacy(t, _os):
         t.pbd.publisher = create_autospec(t.pbd.publisher)
         t.pbd.internalPublisher = create_autospec(t.pbd.internalPublisher)
-        os.environ = {"CONTROLPLANE": "0"}
+        _os.environ = {"CONTROLPLANE": "0"}
 
         ret = t.pbd.metricWriter()
 
@@ -269,28 +269,28 @@ class PBDaemonTest(TestCase):
     @patch("{src}.FilteredMetricWriter".format(**PATH), autospec=True)
     @patch("{src}.os".format(**PATH), autospec=True)
     def test_metricWriter_controlplane(
-        t, os, FilteredMetricWriter, AggregateMetricWriter
+        t, _os, _FilteredMetricWriter, _AggregateMetricWriter
     ):
         t.pbd.publisher = create_autospec(t.pbd.publisher, name="publisher")
         t.pbd.internalPublisher = create_autospec(
             t.pbd.internalPublisher, name="internalPublisher"
         )
-        os.environ = {"CONTROLPLANE": "1"}
+        _os.environ = {"CONTROLPLANE": "1"}
 
         ret = t.pbd.metricWriter()
 
         t.MetricWriter.assert_called_with(t.pbd.publisher())
-        AggregateMetricWriter.assert_called_with(
-            [t.MetricWriter.return_value, FilteredMetricWriter.return_value]
+        _AggregateMetricWriter.assert_called_with(
+            [t.MetricWriter.return_value, _FilteredMetricWriter.return_value]
         )
-        t.assertEqual(ret, AggregateMetricWriter.return_value)
+        t.assertEqual(ret, _AggregateMetricWriter.return_value)
         t.assertEqual(t.pbd.metricWriter(), ret)
 
     @patch("{src}.DerivativeTracker".format(**PATH), autospec=True)
-    def test_derivativeTracker(t, DerivativeTracker):
+    def test_derivativeTracker(t, _DerivativeTracker):
         ret = t.pbd.derivativeTracker()
 
-        t.assertEqual(ret, DerivativeTracker.return_value)
+        t.assertEqual(ret, _DerivativeTracker.return_value)
 
     def test_connect(t):
         zhc = t._getZenHubClient.return_value
@@ -371,7 +371,7 @@ class PBDaemonTest(TestCase):
     @patch("{src}.sys".format(**PATH), autospec=True)
     @patch("{src}.task".format(**PATH), autospec=True)
     @patch("{src}.TwistedMetricReporter".format(**PATH), autospec=True)
-    def test_run(t, TwistedMetricReporter, task, sys):
+    def test_run(t, _TwistedMetricReporter, _task, _sys):
         """Starts up all of the internal loops,
         does not return until reactor.run() completes (reactor is shutdown)
         """
@@ -401,7 +401,7 @@ class PBDaemonTest(TestCase):
 
         # only calls sys.exit if a custom exitcode is set, should probably
         # exit even if exitcode = 0
-        sys.exit.assert_called_with(t.pbd._customexitcode)
+        _sys.exit.assert_called_with(t.pbd._customexitcode)
 
     def test_setExitCode(t):
         exitcode = Mock()
@@ -471,14 +471,14 @@ class PBDaemonTest(TestCase):
         )
 
     @patch("{src}.os".format(**PATH))
-    def test__pickleName(t, os):
+    def test__pickleName(t, _os):
         # refactor as a property
         ret = t.pbd._pickleName()
-        os.environ.get.assert_called_with("CONTROLPLANE_INSTANCE_ID")
+        _os.environ.get.assert_called_with("CONTROLPLANE_INSTANCE_ID")
         t.assertEqual(
             ret,
             "var/{}_{}_counters.pickle".format(
-                t.pbd.name, os.environ.get.return_value
+                t.pbd.name, _os.environ.get.return_value
             ),
         )
 

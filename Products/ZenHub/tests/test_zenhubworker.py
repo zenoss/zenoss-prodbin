@@ -11,24 +11,21 @@ from __future__ import absolute_import
 
 import sys
 
-from mock import patch, sentinel, call, Mock, create_autospec, ANY, MagicMock
+from mock import patch, sentinel, call, Mock, create_autospec, ANY
 from unittest import TestCase
 
 from Products.ZenHub.zenhubworker import (
     _CumulativeWorkerStats,
     ContinuousProfiler,
-    defer,
     IDLE,
     IMetricManager,
     pb,
     PB_PORT,
-    PingZenHub,
     RemoteBadMonitor,
     ServiceReference,
     ServiceReferenceFactory,
     UnknownServiceError,
     ZCmdBase,
-    ZenHubClient,
     ZENHUB_MODULE,
     ZenHubWorker,
 )
@@ -83,6 +80,7 @@ class ZenHubWorkerTest(TestCase):
             "ContinuousProfiler",
             "MetricManager",
             "Metrology",
+            "PingZenHub",
             "ServiceLoader",
             "ServiceManager",
             "ServiceReferenceFactory",
@@ -154,14 +152,15 @@ class ZenHubWorkerTest(TestCase):
             "tcp:%s:%s" % (t.zhw.options.hubhost, t.zhw.options.hubport),
         )
         t.ZenHubClient.assert_called_once_with(
-            t.reactor,
+            t.zhw,
             t.clientFromString.return_value,
             t.UsernamePassword.return_value,
-            t.zhw,
             t.zhw.options.hub_response_timeout,
-            t.zhw.worklistId,
+            t.reactor,
         )
         t.assertEqual(t.ZenHubClient.return_value, t.zhw._ZenHubWorker__client)
+
+        t.PingZenHub.assert_called_once_with(t.ZenHubClient.return_value)
 
         t.serverFromString.assert_called_once_with(
             t.reactor,
@@ -224,6 +223,7 @@ class ZenHubWorkerTest(TestCase):
         t.reactor.addSystemEventTrigger.assert_has_calls(
             [
                 call("before", "shutdown", t.ZenHubClient.return_value.stop),
+                call("before", "shutdown", t.PingZenHub.return_value.stop),
                 call("before", "shutdown", t.LocalServer.return_value.stop),
                 call("before", "shutdown", t.MetricManager.return_value.stop),
             ]
@@ -432,368 +432,6 @@ class ZenHubWorkerTest(TestCase):
         t.assertFalse(t.zhw.options.profiling)
         t.assertEqual(t.zhw.options.monitor, "localhost")
         t.assertEqual(t.zhw.options.workerid, 0)
-
-
-class ZenHubClientTest(TestCase):
-    """Test the ZenHubClient class."""
-
-    def setUp(t):
-        # t.reactor = Mock()
-        t.endpoint = sentinel.endpoint
-        t.credentials = Mock()
-        t.worker = Mock()
-        t.timeout = 10
-        t.worklistId = "default"
-
-        # Patch external dependencies
-        needs_patching = [
-            "ZenPBClientFactory",
-            "clientFromString",
-            "ClientService",
-            "PingZenHub",
-            "backoffPolicy",
-            "getLogger",
-            "load_config",
-            "reactor",
-            "task.LoopingCall",
-        ]
-        t.patchers = {}
-        for target in needs_patching:
-            patched = patch(
-                "{src}.{target}".format(target=target, **PATH),
-                autospec=True,
-            )
-            t.patchers[target] = patched
-            name = target.rpartition(".")[-1]
-            setattr(t, name, patched.start())
-            t.addCleanup(patched.stop)
-
-        t.zhc = ZenHubClient(
-            t.reactor,
-            t.endpoint,
-            t.credentials,
-            t.worker,
-            t.timeout,
-            t.worklistId,
-        )
-
-    def test___init__(t):
-        t.assertEqual(t.zhc._ZenHubClient__reactor, t.reactor)
-        t.assertEqual(t.zhc._ZenHubClient__endpoint, t.endpoint)
-        t.assertEqual(t.zhc._ZenHubClient__credentials, t.credentials)
-        t.assertEqual(t.zhc._ZenHubClient__worker, t.worker)
-        t.assertEqual(t.zhc._ZenHubClient__timeout, t.timeout)
-
-        t.assertFalse(t.zhc._ZenHubClient__stopping)
-        t.assertIsNone(t.zhc._ZenHubClient__pinger)
-        t.assertIsNone(t.zhc._ZenHubClient__service)
-        t.assertEqual(t.zhc._ZenHubClient__log, t.getLogger.return_value)
-        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
-
-    def test_is_connected_false(t):
-        t.zhc._ZenHubClient__zenhub_connected = False
-        t.assertFalse(t.zhc.is_connected)
-
-    def test_is_connected_true(t):
-        t.zhc._ZenHubClient__zenhub_connected = True
-        t.assertTrue(t.zhc.is_connected)
-
-    @patch.object(ZenHubClient, "_ZenHubClient__prepForConnection")
-    def test_start(t, prepForConnection):
-        t.zhc._ZenHubClient__stopping = True
-
-        t.zhc.start()
-
-        t.assertFalse(t.zhc._ZenHubClient__stopping)
-        t.backoffPolicy.assert_called_once_with(initialDelay=0.5, factor=3.0)
-        t.ClientService.assert_called_once_with(
-            t.endpoint,
-            t.ZenPBClientFactory.return_value,
-            retryPolicy=t.backoffPolicy.return_value,
-        )
-        service = t.ClientService.return_value
-        service.startService.assert_called_once_with()
-        prepForConnection.assert_called_once_with()
-
-    @patch.object(ZenHubClient, "_ZenHubClient__reset")
-    def test_stop(t, reset):
-        t.zhc.stop()
-        t.assertTrue(t.zhc._ZenHubClient__stopping)
-        reset.assert_called_once_with()
-
-    @patch.object(ZenHubClient, "_ZenHubClient__reset")
-    @patch.object(ZenHubClient, "start")
-    def test_restart(t, start, reset):
-        t.zhc.restart()
-        reset.assert_called_once_with()
-        start.assert_called_once_with()
-
-    def test___reset_not_started(t):
-        service = t.ClientService.return_value
-        pinger = t.LoopingCall.return_value
-
-        t.zhc._ZenHubClient__reset()
-
-        service.stopService.assert_not_called()
-        pinger.stop.assert_not_called()
-
-    def test___reset_after_start(t):
-        service = t.ClientService.return_value
-        t.zhc._ZenHubClient__service = service
-        pinger = t.LoopingCall.return_value
-        t.zhc._ZenHubClient__pinger = pinger
-        t.zhc._ZenHubClient__zenhub_connected = True
-
-        t.zhc._ZenHubClient__reset()
-
-        service.stopService.assert_called_once_with()
-        pinger.stop.assert_called_once_with()
-        t.assertIsNone(t.zhc._ZenHubClient__pinger)
-        t.assertIsNone(t.zhc._ZenHubClient__service)
-        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
-
-    @patch.object(ZenHubClient, "_ZenHubClient__connected")
-    @patch.object(ZenHubClient, "_ZenHubClient__notConnected")
-    def test___prepForConnection(t, notConnected, connected):
-        service = t.ClientService.return_value
-        t.zhc._ZenHubClient__service = service
-        d = t.zhc._ZenHubClient__service.whenConnected.return_value
-
-        t.zhc._ZenHubClient__prepForConnection()
-
-        service.whenConnected.assert_called_once_with()
-        d.addCallbacks.assert_called_once_with(connected, notConnected)
-
-    def test___prepForConnection_after_stopping(t):
-        service = t.ClientService.return_value
-        t.zhc._ZenHubClient__service = service
-        t.zhc._ZenHubClient__stopping = True
-
-        t.zhc._ZenHubClient__prepForConnection()
-
-        service.whenConnected.assert_not_called()
-
-    @patch.object(ZenHubClient, "_ZenHubClient__prepForConnection")
-    def test___disconnected_not_connected(t, prepForConnection):
-
-        t.zhc._ZenHubClient__disconnected()
-
-        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
-        prepForConnection.assert_called_once_with()
-
-    @patch.object(ZenHubClient, "_ZenHubClient__prepForConnection")
-    def test___disconnected_after_connection(t, prepForConnection):
-        pinger = t.LoopingCall.return_value
-        t.zhc._ZenHubClient__pinger = pinger
-        t.zhc._ZenHubClient__zenhub_connected = True
-
-        t.zhc._ZenHubClient__disconnected()
-
-        prepForConnection.assert_called_once_with()
-        pinger.stop.assert_called_once_with()
-        t.assertIsNone(t.zhc._ZenHubClient__pinger)
-        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
-
-    @patch.object(ZenHubClient, "restart")
-    @patch.object(ZenHubClient, "_ZenHubClient__login")
-    def test___connected_no_connection(t, login, restart):
-        broker = MagicMock(spec=["transport"])
-        broker.transport.mock_add_spec([""])
-
-        t.zhc._ZenHubClient__connected(broker)
-        restart.assert_called_once_with()
-        login.assert_not_called()
-        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
-
-    @patch.object(ZenHubClient, "_ZenHubClient__login")
-    @patch.object(ZenHubClient, "_ZenHubClient__pingFail")
-    @patch.object(ZenHubClient, "restart")
-    @patch("{src}.setKeepAlive".format(**PATH), autospec=True)
-    def test___connected(t, setKeepAlive, restart, pingFail, login):
-        broker = MagicMock(spec=["transport", "notifyOnDisconnect"])
-        broker.transport.mock_add_spec(["socket"])
-        zenhub = login.return_value
-        pinger = t.LoopingCall.return_value
-        pinger_deferred = pinger.start.return_value
-
-        t.zhc._ZenHubClient__connected(broker)
-
-        login.assert_called_once_with(broker)
-        zenhub.callRemote.assert_called_once_with(
-            "reportingForWork",
-            t.zhc._ZenHubClient__worker,
-            workerId=t.zhc._ZenHubClient__worker.instanceId,
-            worklistId=t.worklistId,
-        )
-        t.LoopingCall.assert_called_once_with(t.PingZenHub.return_value)
-        t.assertEqual(t.zhc._ZenHubClient__pinger, pinger)
-        pinger.start.assert_called_once_with(
-            t.zhc._ZenHubClient__timeout,
-            now=False,
-        )
-        pinger_deferred.addErrback.assert_called_once_with(pingFail)
-        broker.notifyOnDisconnect.assert_called_once_with(
-            t.zhc._ZenHubClient__disconnected,
-        )
-
-        t.assertTrue(t.zhc._ZenHubClient__zenhub_connected)
-        restart.assert_not_called()
-        t.reactor.stop.assert_not_called()
-
-    @patch.object(ZenHubClient, "_ZenHubClient__login")
-    def test___connected_login_failure(t, login):
-        broker = MagicMock(spec=["transport"])
-        broker.transport.mock_add_spec(["socket"])
-        ex = ValueError("boom")
-        login.side_effect = ex
-
-        t.zhc._ZenHubClient__connected(broker)
-
-        login.assert_called_once_with(broker)
-        t.zhc._ZenHubClient__log.error.assert_called_once_with(
-            ANY,
-            type(ex).__name__,
-            ex,
-        )
-        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
-        t.reactor.stop.assert_called_once_with()
-
-    @patch.object(ZenHubClient, "_ZenHubClient__login")
-    @patch.object(ZenHubClient, "restart")
-    def test___connected_login_timeout(t, restart, login):
-        broker = MagicMock(spec=["transport"])
-        broker.transport.mock_add_spec(["socket"])
-        ex = defer.CancelledError()
-        login.side_effect = ex
-
-        t.zhc._ZenHubClient__connected(broker)
-
-        login.assert_called_once_with(broker)
-        t.zhc._ZenHubClient__log.error.assert_called_once_with(ANY)
-        restart.assert_called_once_with()
-
-        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
-        t.reactor.stop.assert_not_called()
-
-    @patch.object(ZenHubClient, "_ZenHubClient__login")
-    @patch.object(ZenHubClient, "restart")
-    def test___connected_reportingForWork_failure(t, restart, login):
-        broker = MagicMock(spec=["transport"])
-        broker.transport.mock_add_spec(["socket"])
-        zenhub = login.return_value
-        ex = ValueError("boom")
-        zenhub.callRemote.side_effect = ex
-
-        t.zhc._ZenHubClient__connected(broker)
-
-        login.assert_called_once_with(broker)
-        zenhub.callRemote.assert_called_once_with(
-            "reportingForWork",
-            t.zhc._ZenHubClient__worker,
-            workerId=t.zhc._ZenHubClient__worker.instanceId,
-            worklistId=t.worklistId,
-        )
-        t.zhc._ZenHubClient__log.error.assert_called_once_with(
-            ANY,
-            type(ex).__name__,
-            ex,
-        )
-        t.assertFalse(t.zhc._ZenHubClient__zenhub_connected)
-        t.reactor.stop.assert_called_once_with()
-
-    def test___login(t):
-        broker = MagicMock(spec=["factory"])
-        broker.factory.mock_add_spec(["login"])
-        expected = defer.Deferred()
-        broker.factory.login.return_value = expected
-        timeout = t.reactor.callLater.return_value
-        timeout.active.return_value = True
-
-        actual = t.zhc._ZenHubClient__login(broker)
-        actual.callback("OK")
-
-        t.assertEqual(expected, actual)
-        broker.factory.login.assert_called_once_with(
-            t.zhc._ZenHubClient__credentials,
-            t.zhc._ZenHubClient__worker,
-        )
-        t.reactor.callLater.assert_called_once_with(
-            t.zhc._ZenHubClient__timeout,
-            actual.cancel,
-        )
-        timeout.active.assert_called_once_with()
-        timeout.cancel.assert_called_once_with()
-
-    def test___login_timeout(t):
-        broker = MagicMock(spec=["factory"])
-        broker.factory.mock_add_spec(["login"])
-        expected = defer.Deferred()
-        broker.factory.login.return_value = expected
-        timeout = t.reactor.callLater.return_value
-        timeout.active.return_value = False
-
-        actual = t.zhc._ZenHubClient__login(broker)
-        actual.addErrback(lambda x: None)  # don't propate the error
-        actual.cancel()
-
-        t.assertEqual(expected, actual)
-        broker.factory.login.assert_called_once_with(
-            t.zhc._ZenHubClient__credentials,
-            t.zhc._ZenHubClient__worker,
-        )
-        t.reactor.callLater.assert_called_once_with(
-            t.zhc._ZenHubClient__timeout,
-            actual.cancel,
-        )
-        timeout.active.assert_called_once_with()
-        timeout.cancel.assert_not_called()
-
-
-class PingZenHubTest(TestCase):
-    """Test the PingZenHub class."""
-
-    def setUp(t):
-        t.zenhub = Mock()
-        t.client = Mock()
-        # Patch external dependencies
-        needs_patching = [
-            "getLogger",
-        ]
-        t.patchers = {}
-        for target in needs_patching:
-            patched = patch(
-                "{src}.{target}".format(target=target, **PATH),
-                autospec=True,
-            )
-            t.patchers[target] = patched
-            name = target.rpartition(".")[-1]
-            setattr(t, name, patched.start())
-            t.addCleanup(patched.stop)
-
-        t.pzh = PingZenHub(t.zenhub, t.client)
-
-    def test___init__(t):
-        logger = t.getLogger.return_value
-
-        t.assertEqual(t.zenhub, t.pzh._PingZenHub__zenhub)
-        t.assertEqual(t.client, t.pzh._PingZenHub__client)
-        t.assertEqual(logger, t.pzh._PingZenHub__log)
-        t.getLogger.assert_called_once_with(t.pzh)
-
-    def test___call__(t):
-        t.pzh.__call__()
-        t.zenhub.callRemote.assert_called_once_with("ping")
-        t.client.restart.assert_not_called()
-
-    def test___call__failed(t):
-        logger = t.getLogger.return_value
-        ex = ValueError("boom")
-        t.zenhub.callRemote.side_effect = ex
-
-        t.pzh.__call__()
-
-        logger.error.assert_called_once_with(ANY, ex)
-        t.client.restart.assert_called_once_with()
 
 
 class ServiceReferenceFactoryTest(TestCase):
