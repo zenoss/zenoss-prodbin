@@ -313,6 +313,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
 
         log.debug("checking relation: %s", self.id)
 
+        changed = False
         # look for objects that don't point back to us
         # or who should no longer exist in the database
         remoteName = self.remoteName()
@@ -330,6 +331,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
                         remoteName,
                     )
                     self._remove(obj, True)
+                    changed = True
                     continue
                 else:
                     msg = (
@@ -352,6 +354,8 @@ class ToManyContRelationship(ToManyRelationshipBase):
                         self.getPrimaryId(),
                     )
                     rrel._add(parentObject)
+                    changed = True
+        return changed
 
 
 InitializeClass(ToManyContRelationship)
