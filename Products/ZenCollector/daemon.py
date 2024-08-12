@@ -36,7 +36,11 @@ from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.observable import ObservableProxy
 from Products.ZenUtils.Utils import load_config
 
-from .config import ConfigurationLoaderTask, DeviceConfigLoader
+from .config import (
+    ConfigurationLoaderTask,
+    ManyDeviceConfigLoader,
+    SingleDeviceConfigLoader,
+)
 from .interfaces import (
     ICollector,
     ICollectorPreferences,
@@ -89,21 +93,11 @@ class CollectorDaemon(RRDDaemon):
             ignored.
         :type stoppingCallback: any callable, optional
         """
-        # Create the configuration first, so we have the collector name
-        # available before activating the rest of the Daemon class hierarchy.
-        if not ICollectorPreferences.providedBy(preferences):
-            raise TypeError("configuration must provide ICollectorPreferences")
-        if not ITaskSplitter.providedBy(taskSplitter):
-            raise TypeError("taskSplitter must provide ITaskSplitter")
-        if configurationListener is not None:
-            if not IConfigurationListener.providedBy(configurationListener):
-                raise TypeError(
-                    "configurationListener must provide IConfigurationListener"
-                )
+        _verify_input_args(preferences, taskSplitter, configurationListener)
 
         self._prefs = ObservableProxy(preferences)
         self._prefs.attachAttributeObserver(
-            "configCycleInterval", self._rescheduleConfig
+            "configCycleInterval", self._reschedule_configcycle
         )
         self._taskSplitter = taskSplitter
         self._configListener = ConfigListenerNotifier()
@@ -185,10 +179,6 @@ class CollectorDaemon(RRDDaemon):
         # Let the configuration do any additional startup it might need
         self.preferences.postStartup()
 
-        # Set flag to limit what actions are run after the first run
-        # of the config loader task.
-        self.__first_config_task_run = True
-
         # Variables used by enterprise collector in resmgr
         #
         # Flag that indicates we have finished loading the configs for the
@@ -198,19 +188,50 @@ class CollectorDaemon(RRDDaemon):
         # from zenhub
         self.encryptionKeyInitialized = False
 
+        # Initialize the object used for retrieving properties, thresholds,
+        # and other non-device configurations from ZenHub.
         self._configloader = ConfigurationLoaderTask(self, self._configProxy)
-        self._configloadertask = None
-        self._configloadertaskd = None
 
-        # Define _deviceloader to avoid race condition
-        # with task stats recording.
+        # Initialize the object used for retrieving device configurations.
         if self.options.device:
-            callback = self._singleDeviceConfigCallback
+            self._deviceloader = SingleDeviceConfigLoader(
+                self.options.device,
+                self,
+                self.preferences.configurationService,
+                self.options,
+                self._singleDeviceConfigCallback,
+            )
         else:
-            callback = self._manyDeviceConfigCallback
-        self._deviceloader = DeviceConfigLoader(self._configProxy, callback)
-        self._deviceloadertask = None
-        self._deviceloadertaskd = None
+            self._deviceloader = ManyDeviceConfigLoader(
+                self._configProxy, self._manyDeviceConfigCallback
+            )
+
+        # If cycling is enabled, initialize the tasks that will run
+        # on an interval.
+        if self.options.cycle:
+            self._configcycle = _TaskCycle(
+                self._configloader,
+                self._config_update_interval,
+                self.log,
+                description="properties, thresholds, etc. retrieval",
+                now=False
+            )
+            self._devicecycle = _TaskCycle(
+                self._deviceloader,
+                self._device_config_update_interval,
+                self.log,
+                description="device configuration retrieval",
+            )
+            if self.options.logTaskStats:
+                self._taskstatscycle = _TaskCycle(
+                    lambda: self._displayStatistics(verbose=True),
+                    self.options.logTaskStats,
+                    self.log,
+                    description="task statistics logging",
+                    now=False,
+                )
+            else:
+                self._taskstatscycle = None
 
         # deprecated; kept for vSphere ZP compatibility
         self._devices = _DeviceIdProxy(self._deviceloader)
@@ -309,9 +330,22 @@ class CollectorDaemon(RRDDaemon):
             framework = _getFramework(self.frameworkFactoryName)
             self.log.debug("using framework factory %r", framework)
             yield self._initEncryptionKey()
-            yield self._startConfigCycle()
-            yield self._startMaintenance()
-            yield self._startTaskStatsLogging()
+
+            # Initial configuration load
+            yield self._configloader()
+
+            # Add "post startup" tasks provided by preferences
+            self._add_poststartuptasks()
+
+            if self.options.cycle:
+                self._configcycle.start()
+                self._startMaintenance()
+                self._devicecycle.start()
+                if self._taskstatscycle is not None:
+                    self._taskstatscycle.start()
+            else:
+                # Since we're going to run once, load the device config(s) now.
+                yield self._deviceloader()
         except Exception as ex:
             self.log.critical("unrecoverable error: %s", ex)
             self.log.exception("failed during startup")
@@ -331,28 +365,28 @@ class CollectorDaemon(RRDDaemon):
             self.encryptionKeyInitialized = True
             self.log.debug("initialized encryption key")
 
-    def _startConfigCycle(self):
-        self._configloadertask = task.LoopingCall(self._configloader)
-        self._configloadertaskd = self._configloadertask.start(
-            self._config_update_interval
+    def _add_poststartuptasks(self):
+        post_startup_tasks = getattr(
+            self.preferences, "postStartupTasks", lambda: []
         )
-        reactor.addSystemEventTrigger(
-            "before", "shutdown", self._stop_configloadertask, "before"
-        )
-        self.log.info(
-            "started receiving collector config changes  interval=%d",
-            self._config_update_interval,
-        )
+        for task_ in post_startup_tasks():
+            self._scheduler.addTask(task_, now=True)
 
-    def _stop_configloadertask(self):
-        if self._configloadertask is None:
-            return
-        self._configloadertask.stop()
-        self._configloadertask = self._configloadertaskd = None
-
-    def _startMaintenance(self):
+    def _reschedule_configcycle(
+        self, observable, attrName, oldValue, newValue, **kwargs
+    ):
         if not self.options.cycle:
             return
+        if oldValue == newValue:
+            return
+        self.log.info(
+            "changed configuration loader task interval from %s to %s minutes",
+            oldValue,
+            newValue,
+        )
+        self._configcycle.interval = newValue * 60
+
+    def _startMaintenance(self):
         interval = self.preferences.cycleInterval
 
         if self.worker_id == 0:
@@ -368,42 +402,6 @@ class CollectorDaemon(RRDDaemon):
             interval, heartbeatSender, self._maintenanceCallback
         )
         self._maintenanceCycle.start()
-
-    def _startDeviceConfigLoader(self):
-        self._deviceloadertask = task.LoopingCall(self._deviceloader)
-        self._deviceloadertaskd = self._deviceloadertask.start(
-            self._device_config_update_interval
-        )
-        reactor.addSystemEventTrigger(
-            "before", "shutdown", self._stop_deviceloadertask, "before"
-        )
-        self.log.info(
-            "started receiving device config changes  interval=%d",
-            self._device_config_update_interval,
-        )
-
-    def _stop_deviceloadertask(self):
-        if self._deviceloadertask is None:
-            return
-        self._deviceloadertask.stop()
-        self._deviceloadertask = self._deviceloadertaskd = None
-
-    def _startTaskStatsLogging(self):
-        if not (self.options.cycle and self.options.logTaskStats):
-            return
-        self._taskstatslogger = task.LoopingCall(
-            self._displayStatistics, verbose=True
-        )
-        self._taskstatsloggerd = self._taskstatslogger.start(
-            self.options.logTaskStats, now=False
-        )
-        reactor.addSystemEventTrigger(
-            "before", "shutdown", self._taskstatslogger.stop, "before"
-        )
-        self.log.info(
-            "started logging task statistics  interval=%d",
-            self.options.logTaskStats,
-        )
 
     @defer.inlineCallbacks
     def getRemoteConfigCacheProxy(self):
@@ -606,23 +604,6 @@ class CollectorDaemon(RRDDaemon):
                 self.log.exception("exception while stopping daemon")
         super(CollectorDaemon, self).stop(ignored)
 
-    def _rescheduleConfig(
-        self, observable, attrName, oldValue, newValue, **kwargs
-    ):
-        """
-        Delete and re-add the configuration tasks to start on new interval.
-        """
-        if oldValue == newValue:
-            return
-        self._config_update_interval = newValue * 60
-        self._stop_configloadertask()
-        self.log.info(
-            "changing collector config task interval from %s to %s minutes",
-            oldValue,
-            newValue,
-        )
-        self._startConfigCycle()
-
     def _taskCompleteCallback(self, taskName):
         # if we're not running a normal daemon cycle then we need to shutdown
         # once all of our pending tasks have completed
@@ -636,18 +617,16 @@ class CollectorDaemon(RRDDaemon):
 
             # if all pending tasks have been completed then shutdown the daemon
             if len(self._pendingTasks) == 0:
-                self._displayStatistics()
+                self.log.info(
+                    "completed collection tasks  count=%s",
+                    self._completedTasks,
+                )
                 self.stop()
 
-    def _singleDeviceConfigCallback(self, new, updated, removed):
-        # type: (
-        #    Self,
-        #    Sequence[DeviceProxy],
-        #    Sequence[DeviceProxy],
-        #    Sequence[str]
-        # ) -> None
+    def _singleDeviceConfigCallback(self, config):
+        # type: (Self, DeviceProxy) -> None
         """
-        Update the device configs for the devices this collector manages
+        Update the device config for the device this collector manages
         when a device is specified on the command line.
 
         :param new: a list of new device configurations
@@ -657,14 +636,6 @@ class CollectorDaemon(RRDDaemon):
         :param removed: ignored
         :type removed: Sequence[str]
         """
-        config = next(
-            (
-                cfg
-                for cfg in itertools.chain(new, updated)
-                if self.options.device == cfg.id
-            ),
-            None,
-        )
         if not config:
             self.log.error(
                 "configuration for %s unavailable -- "
@@ -887,14 +858,6 @@ class CollectorDaemon(RRDDaemon):
         """
         Add post-startup tasks from the preferences.
         """
-        if self.__first_config_task_run:
-            postStartupTasks = getattr(
-                self.preferences, "postStartupTasks", lambda: []
-            )
-            for _task in postStartupTasks():
-                self._scheduler.addTask(_task, now=True)
-            self._startDeviceConfigLoader()
-            self.__first_config_task_run = False
 
     def postStatisticsImpl(self):
         self._displayStatistics()
@@ -959,6 +922,18 @@ class CollectorDaemon(RRDDaemon):
         return getattr(self.options, "workerid", 0)
 
 
+def _verify_input_args(prefs, tasksplitter, configlistener):
+    if not ICollectorPreferences.providedBy(prefs):
+        raise TypeError("configuration must provide ICollectorPreferences")
+    if not ITaskSplitter.providedBy(tasksplitter):
+        raise TypeError("taskSplitter must provide ITaskSplitter")
+    if configlistener is not None:
+        if not IConfigurationListener.providedBy(configlistener):
+            raise TypeError(
+                "configurationListener must provide IConfigurationListener"
+            )
+
+
 @attr.s(frozen=True, slots=True)
 class _DeviceConfigSizes(object):
     new = attr.ib(converter=len)
@@ -966,7 +941,7 @@ class _DeviceConfigSizes(object):
     removed = attr.ib(converter=len)
 
     def __nonzero__(self):
-        return (self.new, self.updated, self.removed) != (0,0,0)
+        return (self.new, self.updated, self.removed) != (0, 0, 0)
 
 
 class _DeviceIdProxy(object):
@@ -986,6 +961,78 @@ class _DeviceIdProxy(object):
 
     def discard(self, deviceId):
         pass
+
+
+class _TaskCycle(object):
+    """
+    Invoke a callable object at a regular interval.
+    """
+
+    def __init__(self, func, interval, log, description=None, now=True):
+        self._log = log
+        self._func = func
+        self._interval = interval
+        self._now = now
+        if description:
+            self._desc = description
+        elif hasattr(func, "im_func"):
+            self._desc = func.im_func.func_name
+        else:
+            self._desc = func.__class__.__name__
+        self._loop = None
+        self._loopd = None
+        self._triggerid = None
+
+    @property
+    def interval(self):
+        return self._interval
+
+    @interval.setter
+    def interval(self, value):
+        if value == self._interval:
+            return
+        self._interval = value
+        self._reschedule()
+
+    def start(self):
+        if self._loop is not None:
+            return
+        self._loop = task.LoopingCall(self._func)
+        self._loopd = self._loop.start(self._interval, now=self._now)
+        self._triggerid = reactor.addSystemEventTrigger(
+            "before", "shutdown", self.stop
+        )
+        self._log.info(
+            "started %s task  interval=%d now=%s",
+            self._desc,
+            self._interval,
+            self._now,
+        )
+        self._loopd.addCallback(self._logstopped)
+        self._loopd.addErrback(self._logerror)
+
+    def stop(self):
+        if self._loop is None:
+            return
+        self._loop.stop()
+        self._loop = self._loopd = None
+
+    def _logstopped(self, *args, **kw):
+        self._log.info("stopped %s task", self._desc)
+
+    def _logerror(self, result):
+        self._log.error(
+            "task did not run  func=%s error=%s", self._func, result
+        )
+
+    def _reschedule(self):
+        if self._loop is None:
+            # cycle is not running, so nothing to reschedule
+            return
+        self.stop()
+        reactor.removeSystemEventTrigger(self._triggerid)
+        self._triggerid = None
+        self.start()
 
 
 def _always_ok(*args):

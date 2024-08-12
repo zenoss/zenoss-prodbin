@@ -7,7 +7,6 @@
 #
 ##############################################################################
 
-import itertools
 import logging
 import time
 
@@ -66,7 +65,39 @@ class ConfigurationLoaderTask(object):
             self._collector._configureThresholds(thresholds)
 
 
-class DeviceConfigLoader(object):
+class SingleDeviceConfigLoader(object):
+    """Handles retrieving the config of a single device."""
+
+    def __init__(self, deviceid, collector, service, options, callback):
+        self._deviceId = deviceid
+        self._collector = collector
+        self._service = service
+        self._options = options
+        self._callback = callback
+
+    @property
+    def deviceIds(self):
+        return [self._deviceId]
+
+    @defer.inlineCallbacks
+    def __call__(self):
+        try:
+            ref = yield self._collector.getRemoteConfigCacheProxy()
+
+            log.debug("fetching device config for %s", self._deviceId)
+            # get options from prefs.options and send to remote
+            config = yield ref.callRemote(
+                "getDeviceConfig",
+                self._service,
+                self._deviceId,
+                options=self._options.__dict__,
+            )
+            yield self._callback(config)
+        except Exception:
+            log.exception("failed to retrieve device configs")
+
+
+class ManyDeviceConfigLoader(object):
     """Handles retrieving devices from the ConfigCache service."""
 
     def __init__(self, proxy, callback):
@@ -81,6 +112,7 @@ class DeviceConfigLoader(object):
 
     @defer.inlineCallbacks
     def __call__(self):
+        log.debug("fetching device configs")
         try:
             next_time = time.time()
             config_data = yield self._proxy.getConfigProxies(
@@ -103,16 +135,6 @@ class DeviceConfigLoader(object):
                 self._update_local_cache(new, updated, removed)
         except Exception:
             log.exception("failed to process device configs")
-
-    def _get_specified_config(self, new, updated):
-        return next(
-            (
-                cfg
-                for cfg in itertools.chain(new, updated)
-                if self._options.device == cfg.configId
-            ),
-            None,
-        )
 
     def _update_local_cache(self, new, updated, removed):
         self._deviceIds.difference_update(removed)
