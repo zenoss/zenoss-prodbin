@@ -52,23 +52,8 @@ class CallableTask(object):
         """
         Called whenever this task is being run.
         """
-        try:
-            if hasattr(self.task, "missed"):
-                self.task._eventService.sendEvent(
-                    {
-                        "eventClass": "/Perf/MissedRuns",
-                        "component": os.path.basename(sys.argv[0]).replace(
-                            ".py", ""
-                        ),
-                    },
-                    device=self.task._devId,
-                    summary="Task `{}` is being run.".format(self.task.name),
-                    severity=Event.Clear,
-                    eventKey=self.task.name,
-                )
-                del self.task.missed
-        except Exception:
-            pass
+        if hasattr(self.task, "missed"):
+            self._send_clear_event()
         self.taskStats.totalRuns += 1
 
     def logTwistedTraceback(self, reason):
@@ -93,11 +78,14 @@ class CallableTask(object):
         """
         Called whenever this task is late and missed its scheduled run time.
         """
-        try:
-            # some tasks we don't want to consider a missed run.
-            if getattr(self.task, "suppress_late", False):
-                return
+        # some tasks we don't want to consider a missed run.
+        if getattr(self.task, "suppress_late", False):
+            return
+        self._send_warning_event()
+        self.taskStats.missedRuns += 1
 
+    def _send_warning_event(self):
+        try:
             # send event only for missed runs on devices.
             self.task._eventService.sendEvent(
                 {
@@ -116,8 +104,27 @@ class CallableTask(object):
             )
             self.task.missed = True
         except Exception:
-            pass
-        self.taskStats.missedRuns += 1
+            if log.isEnabledFor(logging.DEBUG):
+                log.exception("unable to send /Perf/MissedRuns warning event")
+
+    def _send_clear_event(self):
+        try:
+            self.task._eventService.sendEvent(
+                {
+                    "eventClass": "/Perf/MissedRuns",
+                    "component": os.path.basename(sys.argv[0]).replace(
+                        ".py", ""
+                    ),
+                },
+                device=self.task._devId,
+                summary="Task `{}` is being run.".format(self.task.name),
+                severity=Event.Clear,
+                eventKey=self.task.name,
+            )
+            del self.task.missed
+        except Exception:
+            if log.isEnabledFor(logging.DEBUG):
+                log.exception("unable to send /Perf/MissedRuns clear event")
 
     def __call__(self):
         if self.task.state is TaskStates.STATE_PAUSED and not self.paused:

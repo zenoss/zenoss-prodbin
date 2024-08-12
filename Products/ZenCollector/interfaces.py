@@ -137,7 +137,7 @@ class IConfigurationProxy(zope.interface.Interface):
         @rtype: an iterable set of threshold definitions
         """
 
-    def getConfigProxies(configIds=[]):
+    def getConfigProxies(configIds=None):
         """
         Called by the framework whenever the configuration for this collector
         should be retrieved.

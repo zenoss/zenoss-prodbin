@@ -8,10 +8,15 @@
 ##############################################################################
 
 from .proxy import ConfigurationProxy
-from .task import ConfigurationLoaderTask, DeviceConfigLoader
+from .task import (
+    ConfigurationLoaderTask,
+    ManyDeviceConfigLoader,
+    SingleDeviceConfigLoader,
+)
 
 __all__ = (
     "ConfigurationLoaderTask",
     "ConfigurationProxy",
-    "DeviceConfigLoader",
+    "ManyDeviceConfigLoader",
+    "SingleDeviceConfigLoader",
 )
