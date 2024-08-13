@@ -21,7 +21,6 @@ from Products.ZenHub.interfaces import (
     FILTER_EXCLUDE,
     IInvalidationOid,
 )
-from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenRelations.PrimaryPathObjectManager import (
     PrimaryPathObjectManager,
@@ -136,13 +135,13 @@ class ApplyFilters(Action):
 
     def __call__(self, invalidation):
         for fltr in self._filters:
-            result = fltr.include(invalidation.device)
+            result = fltr.include(invalidation.entity)
             if result in (FILTER_INCLUDE, FILTER_EXCLUDE):
                 if result is FILTER_EXCLUDE:
                     log.debug(
-                        "invalidation excluded by filter  filter=%r device=%s",
+                        "invalidation excluded by filter  filter=%r entity=%s",
                         fltr,
-                        invalidation.device,
+                        invalidation.entity,
                     )
                 break
         else:
@@ -164,11 +163,11 @@ class ApplyTransforms(Action):
 
     def __call__(self, invalidation):
         # First, get any subscription adapters registered as transforms
-        adapters = subscribers((invalidation.device,), IInvalidationOid)
+        adapters = subscribers((invalidation.entity,), IInvalidationOid)
         # Next check for an old-style (regular adapter) transform
         try:
             adapters = chain(
-                adapters, (IInvalidationOid(invalidation.device),)
+                adapters, (IInvalidationOid(invalidation.entity),)
             )
         except TypeError:
             # No old-style adapter is registered
@@ -185,10 +184,10 @@ class ApplyTransforms(Action):
             else:
                 log.warn(
                     "IInvalidationOid adaptor returned a bad result  "
-                    "adaptor=%r result=%r device=%s oid=%s",
+                    "adaptor=%r result=%r entity=%s oid=%s",
                     adapter_,
                     result,
-                    invalidation.device,
+                    invalidation.entity,
                     invalidation.oid,
                 )
         # Remove any Nones a transform may have returned.
@@ -210,18 +209,16 @@ class CollectInvalidations(Action):
 
     def __call__(self, result):
         results = into_tuple(result)
-        devices = []
+        entities = []
         for result in results:
-            if not isinstance(result.device, Device):
-                continue
-            devices.append(result)
+            entities.append(result)
             log.debug(
-                "collected an invalidation  reason=%s device=%s oid=%r",
+                "collected an invalidation  reason=%s entity=%s oid=%r",
                 result.reason,
-                result.device,
+                result.entity,
                 result.oid,
             )
-        self._output.update(devices)
+        self._output.update(entities)
 
     def pop(self):
         """Return the collected data, removing it from the set."""

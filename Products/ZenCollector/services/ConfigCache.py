@@ -11,7 +11,7 @@ import logging
 
 from zope.component import createObject
 
-from Products.ZenCollector.configcache.cache import CacheQuery
+from Products.ZenCollector.configcache.cache import DeviceQuery
 from Products.ZenHub.errors import translateError
 from Products.ZenHub.HubService import HubService
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
@@ -35,7 +35,14 @@ class ConfigCache(HubService):
         self._monitor = self.dmd.Monitors.Performance._getOb(self.instance)
 
         client = getRedisClient(url=getRedisUrl())
-        self._store = createObject("configcache-store", client)
+        self._stores = type(
+            "Stores",
+            (object,),
+            {
+                "device": createObject("deviceconfigcache-store", client),
+                "oidmap": createObject("oidmapcache-store", client),
+            },
+        )()
 
     @translateError
     def remote_getDeviceNames(self, servicename, options):
@@ -89,7 +96,7 @@ class ConfigCache(HubService):
         @type names: Sequence[str]
         @rtype: ImmutableSequence[DeviceProxy]
         """
-        self.log.info(
+        self.log.debug(
             "[ConfigCache] getDeviceConfigs(%r, %r, %r, %r)",
             servicename,
             when,
@@ -108,7 +115,7 @@ class ConfigCache(HubService):
         # 'updated_keys' references newer configs found in 'previous'
         updated_keys = (
             status.key
-            for status in self._store.get_newer(
+            for status in self._stores.device.get_newer(
                 when, service=servicename, monitor=self.instance
             )
             if status.key.device in previous
@@ -116,16 +123,38 @@ class ConfigCache(HubService):
 
         # 'removed' references devices found in 'previous'
         # but not in 'current'.
-        current = set(key.device for key in current_keys)
+        current = {key.device for key in current_keys}
         removed = previous - current
 
         return {
-            "new": list(self._store.get(key).config for key in newest_keys),
-            "updated": list(
-                self._store.get(key).config for key in updated_keys
-            ),
+            "new": [
+                self._stores.device.get(key).config for key in newest_keys
+            ],
+            "updated": [
+                self._stores.device.get(key).config for key in updated_keys
+            ],
             "removed": list(removed),
         }
+
+    def remote_getOidMap(self, checksum):
+        """
+        Returns the current OID map if its checksum doesn't match `checksum`.
+        The checksum of the current OID map is returned as well.
+
+        The return value is two element tuple.  The first element is the
+        checksum and the second element is the json-ified oidmap.
+
+        If the stored checksum and the `checksum` parameter are the same or
+        if there is no oidmap data, the return value is `(None, None)`.
+
+        @rtype: Tuple[str, Dict] | None
+        """
+        self.log.debug("[ConfigCache] getOidMap(%r)", checksum)
+        stored_checksum = self._stores.oidmap.get_checksum()
+        if stored_checksum == checksum:
+            return (None, None)
+        record = self._stores.oidmap.get()
+        return (record.checksum, record.oidmap)
 
     def _keys(self, servicename):
         """
@@ -136,9 +165,9 @@ class ConfigCache(HubService):
         @type servicename: str
         @rtype: Iterator[str]
         """
-        query = CacheQuery(monitor=self.instance, service=servicename)
+        query = DeviceQuery(monitor=self.instance, service=servicename)
         self.log.info("[ConfigCache] using query %s", query)
-        return self._store.search(query)
+        return self._stores.device.search(query)
 
     def _filter(self, keys, predicate):
         """

@@ -15,7 +15,7 @@ def create_interface_mock(interface_class):
 
     # the init method, automatically spec the interface methods
     def init(self, *args, **kwargs):
-        Mock.__init__(self, spec=interface_class.names(), *args, **kwargs)
+        Mock.__init__(self, *args, spec=interface_class.names(), **kwargs)
 
     # subclass named '<interface class name>Mock'
     name = interface_class.__name__ + "Mock"

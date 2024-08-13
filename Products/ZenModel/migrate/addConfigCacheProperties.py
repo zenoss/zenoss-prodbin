@@ -17,7 +17,10 @@ from . import Migrate
 
 _properties = (
     (
-        (Constants.time_to_live_id, Constants.time_to_live_value),
+        (
+            Constants.device_time_to_live_id,
+            Constants.device_time_to_live_value,
+        ),
         {
             "type": "int",
             "label": "Device configuration expiration",
@@ -29,8 +32,8 @@ _properties = (
     ),
     (
         (
-            Constants.minimum_time_to_live_id,
-            Constants.minimum_time_to_live_value,
+            Constants.device_minimum_time_to_live_id,
+            Constants.device_minimum_time_to_live_value,
         ),
         {
             "type": "int",
@@ -42,7 +45,10 @@ _properties = (
         },
     ),
     (
-        (Constants.build_timeout_id, Constants.build_timeout_value),
+        (
+            Constants.device_build_timeout_id,
+            Constants.device_build_timeout_value,
+        ),
         {
             "type": "int",
             "label": "Device configuration build timeout",
@@ -53,7 +59,10 @@ _properties = (
         },
     ),
     (
-        (Constants.pending_timeout_id, Constants.pending_timeout_value),
+        (
+            Constants.device_pending_timeout_id,
+            Constants.device_pending_timeout_value,
+        ),
         {
             "type": "int",
             "label": "Device configuration build queued timeout",

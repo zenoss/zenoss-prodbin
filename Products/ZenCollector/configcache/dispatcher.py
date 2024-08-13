@@ -9,15 +9,15 @@
 
 from __future__ import absolute_import
 
-from .task import build_device_config
+from .tasks import build_device_config, build_oidmap
 
 
-class BuildConfigTaskDispatcher(object):
+class DeviceConfigTaskDispatcher(object):
     """Encapsulates the act of dispatching the build_device_config task."""
 
     def __init__(self, configClasses):
         """
-        Initialize a BuildConfigTaskDispatcher instance.
+        Initialize a DeviceConfigTaskDispatcher instance.
 
         The `configClasses` parameter should be the classes used to create
         the device configurations.
@@ -61,6 +61,18 @@ class BuildConfigTaskDispatcher(object):
         soft_limit, hard_limit = _get_limits(timeout)
         build_device_config.apply_async(
             args=(monitorid, deviceid, name),
+            kwargs={"submitted": submitted},
+            soft_time_limit=soft_limit,
+            time_limit=hard_limit,
+        )
+
+
+class OidMapTaskDispatcher(object):
+    """Encapsulates the act of dispatching the build_oidmap_config task."""
+
+    def dispatch(self, timeout, submitted):
+        soft_limit, hard_limit = _get_limits(timeout)
+        build_oidmap.apply_async(
             kwargs={"submitted": submitted},
             soft_time_limit=soft_limit,
             time_limit=hard_limit,

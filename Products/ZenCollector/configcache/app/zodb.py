@@ -51,7 +51,7 @@ _default_config_file = os.path.join(zenPath("etc"), "zodb.conf")
 class _ZODBConnectionDefaults:
     host = "localhost"
     user = "zenoss"
-    password = "zenoss"
+    password = "zenoss"  # noqa: S105
     db = "zodb"
     port = 3306
     cachesize = 1000

@@ -13,12 +13,14 @@ import re
 from cStringIO import StringIO
 from hashlib import sha256
 
+from Acquisition import aq_base
 from zope.interface import implementer
 
 from Products.ZenHub.interfaces import (
-    IInvalidationFilter,
-    FILTER_EXCLUDE,
     FILTER_CONTINUE,
+    FILTER_EXCLUDE,
+    FILTER_INCLUDE,
+    IInvalidationFilter,
 )
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.GraphDefinition import GraphDefinition
@@ -26,6 +28,10 @@ from Products.ZenModel.GraphPoint import GraphPoint
 from Products.ZenModel.IpAddress import IpAddress
 from Products.ZenModel.IpNetwork import IpNetwork
 from Products.ZenModel.Monitor import Monitor
+from Products.ZenModel.MibModule import MibModule
+from Products.ZenModel.MibNode import MibNode
+from Products.ZenModel.MibNotification import MibNotification
+from Products.ZenModel.MibOrganizer import MibOrganizer
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 from Products.ZenModel.ProductClass import ProductClass
@@ -68,10 +74,10 @@ class IgnorableClassesFilter(object):
 _iszorcustprop = re.compile("[zc][A-Z]").match
 
 _excluded_properties = (
-    Constants.build_timeout_id,
-    Constants.pending_timeout_id,
-    Constants.time_to_live_id,
-    Constants.minimum_time_to_live_id,
+    Constants.device_build_timeout_id,
+    Constants.device_pending_timeout_id,
+    Constants.device_time_to_live_id,
+    Constants.device_minimum_time_to_live_id,
 )
 
 
@@ -230,3 +236,28 @@ class OSProcessClassFilter(BaseOrganizerFilter):
         super(OSProcessClassFilter, self).generateChecksum(
             organizer, hash_checksum
         )
+
+
+@implementer(IInvalidationFilter)
+class MibFilter(object):
+    """
+    Invalidation filter for MibModule objects.
+
+    This filter uses 'z' and 'c' properties as well as local _properties
+    defined on the organizer to create a checksum.
+    """
+
+    def initialize(self, context):
+        pass
+
+    def include(self, obj):
+        if not isinstance(
+            obj, (MibOrganizer, MibModule, MibNode, MibNotification)
+        ):
+            return FILTER_CONTINUE
+        # log.info(
+        #     "Detected a MIB invalidation  type=%s id=%s",
+        #     type(aq_base(obj)).__name__,
+        #     obj.id,
+        # )
+        return FILTER_INCLUDE
