@@ -16,7 +16,6 @@ from ..constants import Constants
 
 
 class TestDevicePropertyMapTTLMakers(BaseTestCase):
-
     ttl_overrides = {
         "Server/Linux": 16320,
         "Server/Linux/linux0": 68000,
@@ -37,21 +36,22 @@ class TestDevicePropertyMapTTLMakers(BaseTestCase):
         t.dmd.Devices.createOrganizer("/Power")
 
         t.dmd.Devices.Server.Linux.setZenProperty(
-            Constants.time_to_live_id, t.ttl_overrides["Server/Linux"]
+            Constants.device_time_to_live_id, t.ttl_overrides["Server/Linux"]
         )
         t.dmd.Devices.Power.setZenProperty(
-            Constants.time_to_live_id, t.ttl_overrides["Power"]
+            Constants.device_time_to_live_id, t.ttl_overrides["Power"]
         )
         t.dmd.Devices.Network.setZenProperty(
-            Constants.time_to_live_id, t.ttl_overrides["Network"]
+            Constants.device_time_to_live_id, t.ttl_overrides["Network"]
         )
 
         t.linux_dev = t.dmd.Devices.Server.Linux.createInstance("linux0")
         t.linux_dev.setZenProperty(
-            Constants.time_to_live_id, t.ttl_overrides["Server/Linux/linux0"]
+            Constants.device_time_to_live_id,
+            t.ttl_overrides["Server/Linux/linux0"],
         )
         t.linux_dev.setZenProperty(
-            Constants.minimum_time_to_live_id,
+            Constants.device_minimum_time_to_live_id,
             t.min_ttl_overrides["Server/Linux/linux0"],
         )
 
@@ -61,7 +61,7 @@ class TestDevicePropertyMapTTLMakers(BaseTestCase):
         ttlmap = DevicePropertyMap.make_ttl_map(t.dmd.Devices)
 
         pathid = t.dmd.Devices.Server.getPrimaryId()
-        expected = Constants.time_to_live_value
+        expected = Constants.device_time_to_live_value
         actual = ttlmap.get(pathid)
         t.assertEqual(expected, actual)
 
@@ -71,7 +71,7 @@ class TestDevicePropertyMapTTLMakers(BaseTestCase):
         t.assertEqual(expected, actual)
 
         pathid = t.dmd.Devices.Server.Cmd.getPrimaryId()
-        expected = Constants.time_to_live_value
+        expected = Constants.device_time_to_live_value
         actual = ttlmap.get(pathid)
         t.assertEqual(expected, actual)
 
@@ -91,7 +91,7 @@ class TestDevicePropertyMapTTLMakers(BaseTestCase):
         t.assertEqual(expected, actual)
 
         pathid = t.cmd_dev.getPrimaryId()
-        expected = Constants.time_to_live_value
+        expected = Constants.device_time_to_live_value
         actual = ttlmap.get(pathid)
         t.assertEqual(expected, actual)
 
@@ -99,7 +99,7 @@ class TestDevicePropertyMapTTLMakers(BaseTestCase):
         minttlmap = DevicePropertyMap.make_minimum_ttl_map(t.dmd.Devices)
 
         pathid = t.dmd.Devices.Server.getPrimaryId()
-        expected = Constants.minimum_time_to_live_value
+        expected = Constants.device_minimum_time_to_live_value
         actual = minttlmap.get(pathid)
         t.assertEqual(expected, actual)
 
@@ -109,26 +109,25 @@ class TestDevicePropertyMapTTLMakers(BaseTestCase):
         t.assertEqual(expected, actual)
 
         pathid = t.cmd_dev.getPrimaryId()
-        expected = Constants.minimum_time_to_live_value
+        expected = Constants.device_minimum_time_to_live_value
         actual = minttlmap.get(pathid)
         t.assertEqual(expected, actual)
 
     def test_large_min_ttl_value(t):
-        minttl_value = Constants.time_to_live_value + 100
+        minttl_value = Constants.device_time_to_live_value + 100
         t.cmd_dev.setZenProperty(
-            Constants.minimum_time_to_live_id, minttl_value
+            Constants.device_minimum_time_to_live_id, minttl_value
         )
 
         minttlmap = DevicePropertyMap.make_minimum_ttl_map(t.dmd.Devices)
 
         pathid = t.cmd_dev.getPrimaryId()
-        expected = Constants.time_to_live_value + 100
+        expected = Constants.device_time_to_live_value + 100
         actual = minttlmap.get(pathid)
         t.assertEqual(expected, actual)
 
 
 class TestDevicePropertyMapPendingTimeout(BaseTestCase):
-
     pending_overrides = {
         "Server/Linux": 500,
         "Server/Linux/linux0": 600,
@@ -145,18 +144,19 @@ class TestDevicePropertyMapPendingTimeout(BaseTestCase):
         t.dmd.Devices.createOrganizer("/Power")
 
         t.dmd.Devices.Server.Linux.setZenProperty(
-            Constants.pending_timeout_id, t.pending_overrides["Server/Linux"]
+            Constants.device_pending_timeout_id,
+            t.pending_overrides["Server/Linux"],
         )
         t.dmd.Devices.Power.setZenProperty(
-            Constants.pending_timeout_id, t.pending_overrides["Power"]
+            Constants.device_pending_timeout_id, t.pending_overrides["Power"]
         )
         t.dmd.Devices.Network.setZenProperty(
-            Constants.pending_timeout_id, t.pending_overrides["Network"]
+            Constants.device_pending_timeout_id, t.pending_overrides["Network"]
         )
 
         t.linux_dev = t.dmd.Devices.Server.Linux.createInstance("linux0")
         t.linux_dev.setZenProperty(
-            Constants.pending_timeout_id,
+            Constants.device_pending_timeout_id,
             t.pending_overrides["Server/Linux/linux0"],
         )
 
@@ -166,7 +166,7 @@ class TestDevicePropertyMapPendingTimeout(BaseTestCase):
         pendingmap = DevicePropertyMap.make_pending_timeout_map(t.dmd.Devices)
 
         pathid = t.dmd.Devices.Server.getPrimaryId()
-        expected = Constants.pending_timeout_value
+        expected = Constants.device_pending_timeout_value
         actual = pendingmap.get(pathid)
         t.assertEqual(expected, actual)
 
@@ -176,7 +176,7 @@ class TestDevicePropertyMapPendingTimeout(BaseTestCase):
         t.assertEqual(expected, actual)
 
         pathid = t.dmd.Devices.Server.Cmd.getPrimaryId()
-        expected = Constants.pending_timeout_value
+        expected = Constants.device_pending_timeout_value
         actual = pendingmap.get(pathid)
         t.assertEqual(expected, actual)
 
@@ -196,13 +196,12 @@ class TestDevicePropertyMapPendingTimeout(BaseTestCase):
         t.assertEqual(expected, actual)
 
         pathid = t.cmd_dev.getPrimaryId()
-        expected = Constants.pending_timeout_value
+        expected = Constants.device_pending_timeout_value
         actual = pendingmap.get(pathid)
         t.assertEqual(expected, actual)
 
 
 class TestDevicePropertyMapBuildTimeout(BaseTestCase):
-
     build_overrides = {
         "Server/Linux": 500,
         "Server/Linux/linux0": 600,
@@ -219,18 +218,19 @@ class TestDevicePropertyMapBuildTimeout(BaseTestCase):
         t.dmd.Devices.createOrganizer("/Power")
 
         t.dmd.Devices.Server.Linux.setZenProperty(
-            Constants.build_timeout_id, t.build_overrides["Server/Linux"]
+            Constants.device_build_timeout_id,
+            t.build_overrides["Server/Linux"],
         )
         t.dmd.Devices.Power.setZenProperty(
-            Constants.build_timeout_id, t.build_overrides["Power"]
+            Constants.device_build_timeout_id, t.build_overrides["Power"]
         )
         t.dmd.Devices.Network.setZenProperty(
-            Constants.build_timeout_id, t.build_overrides["Network"]
+            Constants.device_build_timeout_id, t.build_overrides["Network"]
         )
 
         t.linux_dev = t.dmd.Devices.Server.Linux.createInstance("linux0")
         t.linux_dev.setZenProperty(
-            Constants.build_timeout_id,
+            Constants.device_build_timeout_id,
             t.build_overrides["Server/Linux/linux0"],
         )
 
@@ -240,7 +240,7 @@ class TestDevicePropertyMapBuildTimeout(BaseTestCase):
         buildmap = DevicePropertyMap.make_build_timeout_map(t.dmd.Devices)
 
         pathid = t.dmd.Devices.Server.getPrimaryId()
-        expected = Constants.build_timeout_value
+        expected = Constants.device_build_timeout_value
         actual = buildmap.get(pathid)
         t.assertEqual(expected, actual)
 
@@ -250,7 +250,7 @@ class TestDevicePropertyMapBuildTimeout(BaseTestCase):
         t.assertEqual(expected, actual)
 
         pathid = t.dmd.Devices.Server.Cmd.getPrimaryId()
-        expected = Constants.build_timeout_value
+        expected = Constants.device_build_timeout_value
         actual = buildmap.get(pathid)
         t.assertEqual(expected, actual)
 
@@ -270,6 +270,6 @@ class TestDevicePropertyMapBuildTimeout(BaseTestCase):
         t.assertEqual(expected, actual)
 
         pathid = t.cmd_dev.getPrimaryId()
-        expected = Constants.build_timeout_value
+        expected = Constants.device_build_timeout_value
         actual = buildmap.get(pathid)
         t.assertEqual(expected, actual)

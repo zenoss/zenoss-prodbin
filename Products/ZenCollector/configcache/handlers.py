@@ -11,7 +11,7 @@ from __future__ import print_function, absolute_import
 
 import time
 
-from .cache import CacheKey, CacheQuery, ConfigStatus
+from .cache import DeviceKey, DeviceQuery, ConfigStatus
 
 
 class NewDeviceHandler(object):
@@ -22,10 +22,10 @@ class NewDeviceHandler(object):
 
     def __call__(self, deviceId, monitor, buildlimit, newDevice=True):
         all_keys = {
-            CacheKey(svcname, monitor, deviceId)
+            DeviceKey(svcname, monitor, deviceId)
             for svcname in self.dispatcher.service_names
         }
-        query = CacheQuery(device=deviceId, monitor=monitor)
+        query = DeviceQuery(device=deviceId, monitor=monitor)
         pending_keys = {
             status.key
             for status in self.store.query_statuses(query)
@@ -121,7 +121,7 @@ class MissingConfigsHandler(object):
     def __call__(self, deviceId, monitor, keys, buildlimit):
         """
         @param keys: These keys are associated with a config
-        @type keys: Sequence[CacheKey]
+        @type keys: Sequence[DeviceKey]
         """
         # Send a job for for all config services that don't currently have
         # an associated configuration.  Some ZenPacks, i.e. vSphere, defer
@@ -129,7 +129,7 @@ class MissingConfigsHandler(object):
         # must be sent to pick up any new configs.
         hasconfigs = tuple(key.service for key in keys)
         noconfigkeys = tuple(
-            CacheKey(svcname, monitor, deviceId)
+            DeviceKey(svcname, monitor, deviceId)
             for svcname in self.dispatcher.service_names
             if svcname not in hasconfigs
         )

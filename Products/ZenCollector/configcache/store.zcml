@@ -8,8 +8,13 @@ License.zenoss under the directory where your Zenoss product is installed.
 <configure xmlns="http://namespaces.zope.org/zope">
 
    <utility
-      factory=".cache.storage.ConfigStoreFactory"
-      name="configcache-store"
+      factory=".cache.storage.DeviceConfigStoreFactory"
+      name="deviceconfigcache-store"
+      />
+
+   <utility
+      factory=".cache.storage.OidMapStoreFactory"
+      name="oidmapcache-store"
       />
 
 </configure>

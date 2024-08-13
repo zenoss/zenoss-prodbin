@@ -203,7 +203,7 @@ class CollectorConfigService(HubService, UpdateCollectorMixin, ThresholdMixin):
         if isinstance(device, Device):
             guid = IGlobalIdentifier(device).getGUID()
             if guid:
-                setattr(proxy, "_device_guid", guid)
+                proxy._device_guid = guid
         return proxy
 
     def _filterDevice(self, device):

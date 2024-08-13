@@ -24,33 +24,91 @@ from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
 from ..app import initialize_environment
 from ..app.args import get_subparser
-from ..cache import CacheQuery, ConfigStatus
+from ..cache import DeviceQuery, ConfigStatus
 
 from .args import get_common_parser, MultiChoice
 
 
 class List_(object):
-
     description = "List configurations"
 
+    @staticmethod
+    def add_arguments(parser, subparsers):
+        listp = get_subparser(
+            subparsers,
+            "list",
+            description=List_.description,
+        )
+        list_subparsers = listp.add_subparsers(title="List Subcommands")
+        ListDevices.add_arguments(listp, list_subparsers)
+        ListOidMap.add_arguments(listp, list_subparsers)
+
+
+class ListOidMap(object):
+    description = "List the oidmap configuration"
     configs = (("list.zcml", __name__),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
-        subp = get_subparser(
+        devicep = get_subparser(
             subparsers,
-            "list",
-            description=List_.description,
+            "oidmap",
+            description=ListOidMap.description,
+        )
+        devicep.set_defaults(factory=ListOidMap)
+
+    def __init__(self, args):
+        pass
+
+    def run(self):
+        initialize_environment(configs=self.configs, useZope=False)
+        client = getRedisClient(url=getRedisUrl())
+        store = createObject("oidmapcache-store", client)
+        status = store.get_status()
+        if status is None:
+            print("No oidmap found in the cache.")
+            return
+
+        hdr_tmplt = "{0:{3}}  {1:^{4}}  {2:^{5}}"
+        row_tmplt = "{0:{3}}  {1:{4}}  {2:>{5}}"
+
+        headings = ("STATUS", "LAST CHANGE", "AGE")
+        status_text = _format_status(status)
+        ts = attr.astuple(status)[-1]
+        ts_text = _format_date(ts)
+        now = time.time()
+        age_text = _format_timedelta(now - ts)
+        row = (status_text, ts_text, age_text)
+
+        maxs, maxt, maxa = 1, 1, 1
+        maxs = max(maxs, len(status_text))
+        maxt = max(maxt, len(ts_text))
+        maxa = max(maxa, len(age_text))
+        widths = (maxs, maxt, maxa)
+
+        print(hdr_tmplt.format(*chain(headings, widths)))
+        print(row_tmplt.format(*chain(row, widths)))
+
+
+class ListDevices(object):
+    configs = (("list.zcml", __name__),)
+
+    @staticmethod
+    def add_arguments(parser, subparsers):
+        devicep = get_subparser(
+            subparsers,
+            "device",
+            description="List device configurations",
             parent=get_common_parser(),
         )
-        subp.add_argument(
+        devicep.add_argument(
             "-u",
             dest="show_uid",
             default=False,
             action="store_true",
             help="Display ZODB path for device",
         )
-        subp.add_argument(
+        devicep.add_argument(
             "-f",
             dest="states",
             action=MultiChoice,
@@ -59,7 +117,7 @@ class List_(object):
             help="Only list configurations having these states.  One or "
             "more states may be specified, separated by commas.",
         )
-        subp.set_defaults(factory=List_)
+        devicep.set_defaults(factory=ListDevices)
 
     def __init__(self, args):
         self._monitor = "*{}*".format(args.collector).replace("***", "*")
@@ -85,40 +143,22 @@ class List_(object):
             return
         initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
-        store = createObject("configcache-store", client)
-        if haswildcard:
-            query = CacheQuery(
-                service=self._service,
-                monitor=self._monitor,
-                device=self._devices[0],
-            )
-        elif len(self._devices) == 1:
-            query = CacheQuery(
-                service=self._service,
-                monitor=self._monitor,
-                device=self._devices[0],
-            )
-        else:
-            query = CacheQuery(service=self._service, monitor=self._monitor)
-        data = store.query_statuses(query)
-        if self._states:
-            data = (
-                status for status in data if isinstance(status, self._states)
-            )
-        if len(self._devices) > 1:
-            data = (
-                status for status in data if status.key.device in self._devices
-            )
+        store = createObject("deviceconfigcache-store", client)
+        query = self._make_query(haswildcard)
+        data = tuple(self._filter(store.query_statuses(query)))
+        uid_map = self._get_uidmap(store, data)
+
         rows = []
         maxd, maxs, maxt, maxa, maxm = 1, 1, 1, 1, 1
         now = time.time()
         for status in sorted(
             data, key=lambda x: (x.key.device, x.key.service)
         ):
-            if self._showuid:
-                devid = status.uid or status.key.device
-            else:
-                devid = status.key.device
+            devid = (
+                status.key.device
+                if (status.key.device not in uid_map)
+                else uid_map[status.key.device]
+            )
             status_text = _format_status(status)
             ts = attr.astuple(status)[-1]
             ts_text = _format_date(ts)
@@ -153,6 +193,39 @@ class List_(object):
             print(hdr_tmplt.format(*chain(headings, widths)))
         for row in rows:
             print(row_tmplt.format(*chain(row, widths)))
+
+    def _make_query(self, haswildcard):
+        if haswildcard:
+            return DeviceQuery(
+                service=self._service,
+                monitor=self._monitor,
+                device=self._devices[0],
+            )
+        if len(self._devices) == 1:
+            return DeviceQuery(
+                service=self._service,
+                monitor=self._monitor,
+                device=self._devices[0],
+            )
+        return DeviceQuery(service=self._service, monitor=self._monitor)
+
+    def _filter(self, data):
+        if self._states:
+            data = (
+                status for status in data if isinstance(status, self._states)
+            )
+        if len(self._devices) > 1:
+            data = (
+                status for status in data if status.key.device in self._devices
+            )
+        return data
+
+    def _get_uidmap(self, store, data):
+        if self._showuid:
+            keys = tuple(status.key for status in data)
+            uids = store.get_uids(*keys)
+            return dict(uids)
+        return {}
 
 
 _name_state_lookup = {

@@ -18,7 +18,11 @@ import Products
 
 from Products.ZenCollector.services.config import CollectorConfigService
 
-_excluded_config_classes = ("NullConfigService", "NullConfig")
+_excluded_config_classes = (
+    "NullConfigService",
+    "NullConfig",
+    "SnmpTrapConfig",
+)
 
 
 def mod_from_path(path):
@@ -41,7 +45,7 @@ def mod_from_path(path):
         offset = rpath.index("Products")
     elif "ZenPacks" in rpath:
         offset = rpath.index("ZenPacks")
-    return ".".join(itertools.chain(rpath[1:offset + 1][::-1], [path.stem]))
+    return ".".join(itertools.chain(rpath[1 : offset + 1][::-1], [path.stem]))
 
 
 def getConfigServicesFromModule(name):
@@ -74,7 +78,7 @@ def getConfigServicesFromModule(name):
         return ()
 
 
-def getConfigServices():
+def getDeviceConfigServices():
     """
     Returns a tuple containing all the installed config service classes.
     An empty tuple is returned if no config service classes are found.

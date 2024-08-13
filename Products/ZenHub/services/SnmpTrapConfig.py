@@ -66,7 +66,6 @@ pb.setUnjellyableForClass(User, User)
 
 
 class SnmpTrapConfig(CollectorConfigService):
-
     # Override _notifyAll, notifyAffectedDevices, _filterDevice and
     # _filterDevicesOnly to guarantee that only one MibConfigTask is ever
     # sent down to zentrap.
@@ -84,12 +83,12 @@ class SnmpTrapConfig(CollectorConfigService):
         proxy = CollectorConfigService._createDeviceProxy(self, device)
         proxy.configCycleInterval = 3600
         proxy.name = "SNMP Trap Configuration"
-        proxy.device = device.id
+        # proxy.device = device.id
 
         # Gather all OID -> Name mappings from /Mibs catalog
-        proxy.oidMap = dict(
-            (b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid
-        )
+        # proxy.oidMap = {
+        #     b.oid: b.id for b in self.dmd.Mibs.mibSearch() if b.oid
+        # }
 
         proxy.trapFilters = self.zem.trapFilters
 
@@ -130,13 +129,23 @@ class SnmpTrapConfig(CollectorConfigService):
         return users
 
     def remote_getTrapFilters(self, remoteCheckSum):
-        currentCheckSum = md5(self.zem.trapFilters).hexdigest()
-        return (None, None) if currentCheckSum == remoteCheckSum else (currentCheckSum, self.zem.trapFilters)
+        currentCheckSum = md5(self.zem.trapFilters).hexdigest()  # noqa S324
+        return (
+            (None, None)
+            if currentCheckSum == remoteCheckSum
+            else (currentCheckSum, self.zem.trapFilters)
+        )
 
     def remote_getOidMap(self, remoteCheckSum):
-        oidMap = dict((b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid)
-        currentCheckSum = md5(json.dumps(oidMap, sort_keys=True).encode('utf-8')).hexdigest()
-        return (None, None) if currentCheckSum == remoteCheckSum else (currentCheckSum, oidMap)
+        oidMap = {b.oid: b.id for b in self.dmd.Mibs.mibSearch() if b.oid}
+        currentCheckSum = md5(  # noqa S324
+            json.dumps(oidMap, sort_keys=True).encode("utf-8")
+        ).hexdigest()
+        return (
+            (None, None)
+            if currentCheckSum == remoteCheckSum
+            else (currentCheckSum, oidMap)
+        )
 
     def _objectUpdated(self, object):
         user = self._create_user(object)

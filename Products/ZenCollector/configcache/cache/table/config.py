@@ -8,87 +8,59 @@
 ##############################################################################
 
 
-class DeviceConfigTable(object):
+class _StringTable(object):
+    """ """
+
+    def __init__(self, template, scan_page_size=1000):
+        self.__template = template
+        self.__scan_count = 1000
+
+    def make_key(self, **parts):
+        return self.__template.format(**parts)
+
+    def exists(self, client, **parts):
+        return client.exists(self.make_key(**parts))
+
+    def scan(self, client, **parts):
+        pattern = self.make_key(**parts)
+        result = client.scan_iter(match=pattern, count=self.__scan_count)
+        return (tuple(key.rsplit(":", len(parts))[1:]) for key in result)
+
+    def get(self, client, **parts):
+        key = self.make_key(**parts)
+        return client.get(key)
+
+    def set(self, client, data, **parts):
+        key = self.make_key(**parts)
+        client.set(key, data)
+
+    def delete(self, client, **parts):
+        key = self.make_key(**parts)
+        client.delete(key)
+
+
+class OidMapConfigTable(_StringTable):
+    """
+    Manages OidMap data.
+    """
+
+    def __init__(self, app, scan_page_size=1000):
+        super(OidMapConfigTable, self).__init__(
+            "{app}:oidmap:config:{{service}}:{{monitor}}".format(app=app),
+            scan_page_size=scan_page_size
+        )
+
+
+class DeviceConfigTable(_StringTable):
     """
     Manages device configuration data for a specific configuration service.
     """
 
-    def __init__(self, app, scan_page_size=1000, mget_page_size=10):
+    def __init__(self, app, scan_page_size=1000):
         """Initialize a DeviceConfigTable instance."""
-        self.__template = (
+        super(DeviceConfigTable, self).__init__(
             "{app}:device:config:{{service}}:{{monitor}}:{{device}}".format(
                 app=app
-            )
+            ),
+            scan_page_size=scan_page_size
         )
-        self.__scan_count = scan_page_size
-        self.__mget_count = mget_page_size
-
-    def make_key(self, service, monitor, device):
-        return self.__template.format(
-            service=service, monitor=monitor, device=device
-        )
-
-    def exists(self, client, service, monitor, device):
-        """Return True if configuration data exists for the given ID.
-
-        :param service: Name of the configuration service.
-        :type service: str
-        :param monitor: Name of the monitor the device is a member of.
-        :type monitor: str
-        :param device: The ID of the device
-        :type device: str
-        :rtype: boolean
-        """
-        return client.exists(self.make_key(service, monitor, device))
-
-    def scan(self, client, service="*", monitor="*", device="*"):
-        """
-        Return an iterable of tuples of (service, monitor, device).
-        """
-        pattern = self.make_key(service, monitor, device)
-        result = client.scan_iter(match=pattern, count=self.__scan_count)
-        return (tuple(key.rsplit(":", 3)[1:]) for key in result)
-
-    def get(self, client, service, monitor, device):
-        """Return the config data for the given config ID.
-
-        If the config ID is not found, the default argument is returned.
-
-        :type service: str
-        :type monitor: str
-        :type device: str
-        :rtype: Union[IJellyable, None]
-        """
-        key = self.make_key(service, monitor, device)
-        return client.get(key)
-
-    def set(self, client, service, monitor, device, data):
-        """Insert or replace the config data for the given config ID.
-
-        If existing data for the device exists under a different monitor,
-        it will be deleted.
-
-        :param service: The name of the configuration service.
-        :type service: str
-        :param monitor: The ID of the performance monitor
-        :type monitor: str
-        :param device: The ID of the configuration
-        :type device: str
-        :param data: The serialized configuration data
-        :type data: str
-        :raises: ValueError
-        """
-        key = self.make_key(service, monitor, device)
-        client.set(key, data)
-
-    def delete(self, client, service, monitor, device):
-        """Delete a key.
-
-        This method does not fail if the key doesn't exist.
-
-        :type service: str
-        :type monitor: str
-        :type device: str
-        """
-        key = self.make_key(service, monitor, device)
-        client.delete(key)
