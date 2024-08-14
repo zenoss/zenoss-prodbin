@@ -450,7 +450,7 @@ class CollectorDaemon(RRDDaemon):
         timestamp="N",
         min="U",
         max="U",
-        threshEventData=None,
+        threshEventData={},
         deviceId=None,
         contextUUID=None,
         deviceUUID=None,
@@ -526,7 +526,7 @@ class CollectorDaemon(RRDDaemon):
         timestamp="N",
         min="U",
         max="U",
-        threshEventData=None,
+        threshEventData={},
         metadata=None,
     ):
         metadata = metadata or {}
