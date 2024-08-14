@@ -116,7 +116,6 @@ class MetricServiceRequest(object):
             returnset=returnSet,
             start=start,
             end=end,
-            downsample=downsample,
             queries=metricQueries
         )
         body = FileBodyProducer(StringIO(json.dumps(request)))
