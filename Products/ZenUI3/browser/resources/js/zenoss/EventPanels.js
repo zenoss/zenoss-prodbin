@@ -1717,6 +1717,7 @@
             return val;
         },
         refresh: function() {
+            this.getStore().reload();
             this.callParent(arguments);
             this.fireEvent('eventgridrefresh', this);
         }
