@@ -20,7 +20,6 @@ from xml.dom.minidom import parse
 import shutil
 import traceback
 import logging
-import commands
 
 from AccessControl.class_init import InitializeClass
 from OFS.SimpleItem import SimpleItem
@@ -303,19 +302,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         from Products.ZenUtils.qverify import ZenAmqp
         return Version.parse("RabbitMQ %s" % ZenAmqp().getVersion())
 
-    @versionmeta("Erlang", "http://www.erlang.org/")
-    def getErlangVersion(self):
-        retVal, output = commands.getstatusoutput('erl -noshell +V')
-        version = None
-
-        if not retVal:
-            try:
-                version = re.findall(r'version (\S+)', output)[0]
-            except Exception:
-                pass
-
-        return Version.parse("Erlang %s" % version)
-
     def getAllVersions(self):
         """
         Return a list of version numbers for currently tracked component
@@ -329,7 +315,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 self.getMySQLVersion,
                 self.getTwistedVersion,
                 self.getRabbitMQVersion,
-                self.getErlangVersion,
                 self.getNetSnmpVersion,
                 self.getPyNetSnmpVersion,
                 self.getWmiVersion,
