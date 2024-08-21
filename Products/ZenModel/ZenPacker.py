@@ -60,6 +60,8 @@ class ZenPacker(object):
                 pass
         if len(result) == 0:
             try:
+                if isinstance(id, unicode):
+                    id = id.encode('utf-8')
                 result.append(self.dmd.unrestrictedTraverse(id))
             except KeyError:
                 pass
