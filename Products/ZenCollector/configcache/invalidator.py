@@ -10,6 +10,7 @@
 from __future__ import print_function, absolute_import
 
 import logging
+import time
 
 from multiprocessing import Process
 
@@ -20,14 +21,19 @@ from zope.component import createObject
 
 import Products.ZenCollector.configcache as CONFIGCACHE_MODULE
 
+from Products.ZenModel.Device import Device
+from Products.ZenModel.MibModule import MibModule
+from Products.ZenModel.MibNode import MibNode
+from Products.ZenModel.MibNotification import MibNotification
+from Products.ZenModel.MibOrganizer import MibOrganizer
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from .app import Application
 from .app.args import get_subparser
-from .cache import CacheQuery
+from .cache import ConfigStatus, DeviceQuery
 from .debug import Debug as DebugCommand
-from .dispatcher import BuildConfigTaskDispatcher
+from .dispatcher import DeviceConfigTaskDispatcher, OidMapTaskDispatcher
 from .handlers import (
     NewDeviceHandler,
     DeviceUpdateHandler,
@@ -36,9 +42,9 @@ from .handlers import (
 )
 from .modelchange import InvalidationCause
 from .utils import (
-    get_build_timeout,
-    get_minimum_ttl,
-    getConfigServices,
+    DeviceProperties,
+    getDeviceConfigServices,
+    OidMapProperties,
     RelStorageInvalidationPoller,
 )
 
@@ -46,7 +52,6 @@ _default_interval = 30.0
 
 
 class Invalidator(object):
-
     description = (
         "Analyzes changes in ZODB to determine whether to update "
         "device configurations"
@@ -95,18 +100,34 @@ class Invalidator(object):
         self.log = logging.getLogger("zen.configcache.invalidator")
         self.ctx = context
 
-        configClasses = getConfigServices()
-        for cls in configClasses:
+        deviceconfigClasses = getDeviceConfigServices()
+        for cls in deviceconfigClasses:
             self.log.info(
                 "using service class %s.%s", cls.__module__, cls.__name__
             )
-        self.dispatcher = BuildConfigTaskDispatcher(configClasses)
+        self.dispatchers = type(
+            "Dispatchers",
+            (object,),
+            {
+                "__slots__": ("device", "oidmap"),
+                "device": DeviceConfigTaskDispatcher(deviceconfigClasses),
+                "oidmap": OidMapTaskDispatcher(),
+            },
+        )()
 
         client = getRedisClient(url=getRedisUrl())
-        self.store = createObject("configcache-store", client)
+        self.stores = type(
+            "Stores",
+            (object,),
+            {
+                "__slots__": ("device", "oidmap"),
+                "device": createObject("deviceconfigcache-store", client),
+                "oidmap": createObject("oidmapcache-store", client),
+            },
+        )()
 
         self._process = _InvalidationProcessor(
-            self.log, self.store, self.dispatcher
+            self.log, self.stores, self.dispatchers
         )
 
         self.interval = config["poll-interval"]
@@ -144,27 +165,32 @@ class Invalidator(object):
                 self.ctx.controller.wait(self.interval)
 
     def _synchronize(self):
-        sync_process = Process(
-            target=_synchronize_cache,
-            args=(self.log, self.ctx.dmd, self.dispatcher),
+        sync_deviceconfigs = Process(
+            target=_synchronize_deviceconfig_cache,
+            args=(self.log, self.ctx.dmd, self.dispatchers.device),
         )
-        sync_process.start()
-        sync_process.join()  # blocks until subprocess has exited
+        sync_oidmaps = Process(
+            target=_synchronize_oidmap_cache,
+            args=(self.log, self.ctx.dmd, self.dispatchers.oidmap),
+        )
+        sync_deviceconfigs.start()
+        sync_oidmaps.start()
+        sync_deviceconfigs.join()  # blocks until subprocess has exited
+        sync_oidmaps.join()  # blocks until subprocess has exited
 
     def _process_invalidations(self, invalidations):
         self.log.debug("found %d relevant invalidations", len(invalidations))
         for inv in invalidations:
             try:
-                self._process(inv.device, inv.oid, inv.reason)
+                self._process(inv.entity, inv.oid, inv.reason)
             except Exception:
                 self.log.exception(
-                    "failed to process invalidation  device=%s",
-                    inv.device,
+                    "failed to process invalidation  entity=%s",
+                    inv.entity,
                 )
 
 
 class InvalidationGauge(Gauge):
-
     def __init__(self):
         self._value = 0
 
@@ -176,18 +202,31 @@ class InvalidationGauge(Gauge):
         self._value = value
 
 
-_solr_fields = ("id", "collector", "uid")
-
-
-def _synchronize_cache(log, dmd, dispatcher):
+def _synchronize_oidmap_cache(log, dmd, dispatcher):
     store = createObject(
-        "configcache-store", getRedisClient(url=getRedisUrl())
+        "oidmapcache-store", getRedisClient(url=getRedisUrl())
+    )
+    if store:
+        return
+    now = time.time()
+    store.set_pending(now)
+    buildlimit = OidMapProperties().build_timeout
+    dispatcher.dispatch(buildlimit, now)
+    log.info("submitted build job for oidmap")
+
+
+_deviceconfig_solr_fields = ("id", "collector", "uid")
+
+
+def _synchronize_deviceconfig_cache(log, dmd, dispatcher):
+    store = createObject(
+        "deviceconfigcache-store", getRedisClient(url=getRedisUrl())
     )
     tool = IModelCatalogTool(dmd)
     catalog_results = tool.cursor_search(
         types=("Products.ZenModel.Device.Device",),
         limit=constants.DEFAULT_SEARCH_LIMIT,
-        fields=_solr_fields,
+        fields=_deviceconfig_solr_fields,
     ).results
     devices = {
         (brain.id, brain.collector): brain.uid
@@ -234,9 +273,9 @@ def _addNewOrChangedDevices(log, store, dispatcher, dmd, devices):
                 uid,
             )
             continue
-        timeout = get_build_timeout(device)
+        timeout = DeviceProperties(device).build_timeout
         keys_with_configs = tuple(
-            store.search(CacheQuery(monitor=monitorId, device=deviceId))
+            store.search(DeviceQuery(monitor=monitorId, device=deviceId))
         )
         uid = device.getPrimaryId()
         if not keys_with_configs:
@@ -255,20 +294,32 @@ def _addNewOrChangedDevices(log, store, dispatcher, dmd, devices):
 
 
 class _InvalidationProcessor(object):
-
-    def __init__(self, log, store, dispatcher):
+    def __init__(self, log, stores, dispatchers):
         self.log = log
-        self.store = store
-        self._remove = RemoveConfigsHandler(log, store)
-        self._update = DeviceUpdateHandler(log, store, dispatcher)
-        self._missing = MissingConfigsHandler(log, store, dispatcher)
-        self._new = NewDeviceHandler(log, store, dispatcher)
+        self.stores = stores
+        self._remove = RemoveConfigsHandler(log, stores.device)
+        self._update = DeviceUpdateHandler(
+            log, stores.device, dispatchers.device
+        )
+        self._missing = MissingConfigsHandler(
+            log, stores.device, dispatchers.device
+        )
+        self._new = NewDeviceHandler(log, stores.device, dispatchers.device)
 
-    def __call__(self, device, oid, reason):
+    def __call__(self, obj, oid, reason):
+        if isinstance(obj, Device):
+            self._handle_device(obj, oid, reason)
+        elif isinstance(
+            obj, (MibOrganizer, MibModule, MibNode, MibNotification)
+        ):
+            self._handle_mib(obj, oid, reason)
+
+    def _handle_device(self, device, oid, reason):
         uid = device.getPrimaryId()
         self.log.info("handling device %s", uid)
-        buildlimit = get_build_timeout(device)
-        minttl = get_minimum_ttl(device)
+        devprops = DeviceProperties(device)
+        buildlimit = devprops.build_timeout
+        minttl = devprops.minimum_ttl
         monitor = device.getPerformanceServerName()
         if monitor is None:
             self.log.warn(
@@ -279,13 +330,15 @@ class _InvalidationProcessor(object):
             )
             return
         keys_with_config = tuple(
-            self.store.search(CacheQuery(monitor=monitor, device=device.id))
+            self.stores.device.search(
+                DeviceQuery(monitor=monitor, device=device.id)
+            )
         )
         if not keys_with_config:
             self._new(device.id, monitor, buildlimit)
         elif reason is InvalidationCause.Updated:
             # Check for device class change
-            stored_uid = self.store.get_uid(device.id)
+            stored_uid = self.stores.device.get_uid(device.id)
             if uid != stored_uid:
                 self._new(device.id, monitor, buildlimit, False)
             else:
@@ -303,9 +356,17 @@ class _InvalidationProcessor(object):
                 oid,
             )
 
+    def _handle_mib(self, obj, oid, reason):
+        status = self.stores.oidmap.get_status()
+        if isinstance(status, (ConfigStatus.Expired, ConfigStatus.Pending)):
+            # Status is already updated, so do nothing.
+            return
+        now = time.time()
+        self.stores.oidmap.set_expired(now)
+        self.log.info("expired oidmap")
+
 
 class _Metrics(object):
-
     def __init__(self, reporter):
         self.received = InvalidationGauge()
         self.processed = HistogramExponentiallyDecaying()

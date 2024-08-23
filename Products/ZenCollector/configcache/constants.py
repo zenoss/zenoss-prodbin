@@ -10,13 +10,22 @@
 
 class Constants(object):
 
-    build_timeout_id = "zDeviceConfigBuildTimeout"
-    pending_timeout_id = "zDeviceConfigPendingTimeout"
-    time_to_live_id = "zDeviceConfigTTL"
-    minimum_time_to_live_id = "zDeviceConfigMinimumTTL"
+    device_build_timeout_id = "zDeviceConfigBuildTimeout"
+    device_pending_timeout_id = "zDeviceConfigPendingTimeout"
+    device_time_to_live_id = "zDeviceConfigTTL"
+    device_minimum_time_to_live_id = "zDeviceConfigMinimumTTL"
 
     # Default values
-    build_timeout_value = 7200
-    pending_timeout_value = 7200
-    time_to_live_value = 43200
-    minimum_time_to_live_value = 0
+    device_build_timeout_value = 7200
+    device_pending_timeout_value = 7200
+    device_time_to_live_value = 43200
+    device_minimum_time_to_live_value = 0
+
+    oidmap_build_timeout_id = "configcache-oidmap-build-timeout"
+    oidmap_pending_timeout_id = "configcache-oidmap-pending-timeout"
+    oidmap_time_to_live_id = "configcache-oidmap-ttl"
+
+    # Default values
+    oidmap_build_timeout_value = 7200
+    oidmap_pending_timeout_value = 7200
+    oidmap_time_to_live_value = 43200

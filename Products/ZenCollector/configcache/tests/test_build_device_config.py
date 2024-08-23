@@ -15,13 +15,13 @@ from unittest import TestCase
 
 from Products.Jobber.tests.utils import RedisLayer
 
-from ..cache import CacheKey
-from ..cache.storage import ConfigStore
-from ..task import buildDeviceConfig
+from ..cache import DeviceKey
+from ..cache.storage import DeviceConfigStore
+from ..tasks.deviceconfig import buildDeviceConfig
 
 PATH = {
     "zenjobs": "Products.Jobber.zenjobs",
-    "task": "Products.ZenCollector.configcache.task",
+    "task": "Products.ZenCollector.configcache.tasks.deviceconfig",
 }
 
 
@@ -32,7 +32,7 @@ class TestBuildDeviceConfig(TestCase):
     def setUp(t):
         t.device_name = "qadevice"
         t.device_uid = "/zport/dmd/Devices/Server/Linux/devices/qadevice"
-        t.store = ConfigStore(t.layer.redis)
+        t.store = DeviceConfigStore(t.layer.redis)
 
     def tearDown(t):
         del t.store
@@ -50,7 +50,7 @@ class TestBuildDeviceConfig(TestCase):
         dmd = mock.Mock()
         log = mock.Mock()
         dvc = mock.Mock()
-        key = CacheKey(svcname, monitor, t.device_name)
+        key = DeviceKey(svcname, monitor, t.device_name)
 
         _createObject.return_value = t.store
         _resolve.return_value = svcclass
@@ -79,7 +79,7 @@ class TestBuildDeviceConfig(TestCase):
         svc = mock.MagicMock()
         dmd = mock.Mock()
         log = mock.Mock()
-        key = CacheKey(svcname, monitor, t.device_name)
+        key = DeviceKey(svcname, monitor, t.device_name)
 
         _createObject.return_value = t.store
         _resolve.return_value = svcclass

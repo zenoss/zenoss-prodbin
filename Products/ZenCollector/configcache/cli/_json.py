@@ -69,15 +69,10 @@ class JSONOutput(object):
                 ]
                 continue
 
-            rows = [
-                {hdr: value for hdr, value in zip(headings, row)}
-                for row in rows
-            ]
+            rows = [dict(zip(headings, row)) for row in rows]
             if len(rows) == 0:
-                summary = {hdr: value for hdr, value in zip(headings, summary)}
+                summary = dict(zip(headings, summary))
             else:
-                summary = {
-                    hdr: value for hdr, value in zip(headings[1:], summary)
-                }
+                summary = dict(zip(headings[1:], summary))
             result[group.name] = {"data": rows, "summary": summary}
         print(json.dumps(result))

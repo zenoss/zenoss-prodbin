@@ -16,9 +16,9 @@ from unittest import TestCase
 
 from mock import Mock, patch
 
-from ..cache import CacheKey, ConfigStatus
-from ..cache.storage import ConfigStore
-from ..dispatcher import BuildConfigTaskDispatcher
+from ..cache import DeviceKey, ConfigStatus
+from ..cache.storage import DeviceConfigStore
+from ..dispatcher import DeviceConfigTaskDispatcher
 from ..handlers import DeviceUpdateHandler
 
 
@@ -29,8 +29,8 @@ class DeviceUpdateHandlerTest(TestCase):
     """Test the DeviceUpdateHandler object."""
 
     def setUp(t):
-        t.store = Mock(ConfigStore)
-        t.dispatcher = Mock(BuildConfigTaskDispatcher)
+        t.store = Mock(DeviceConfigStore)
+        t.dispatcher = Mock(DeviceConfigTaskDispatcher)
         t.dispatcher.service_names = ("ServiceA", "ServiceB")
         t.log = Mock(logging.getLogger("zen"))
         t.handler = DeviceUpdateHandler(t.log, t.store, t.dispatcher)
@@ -43,15 +43,15 @@ class DeviceUpdateHandlerTest(TestCase):
 
     @patch("{src}.time".format(**PATH), autospec=True)
     def test_current_to_expired(t, _time):
-        key1 = CacheKey('a', 'b', 'c1')
-        key2 = CacheKey('a', 'b', 'c2')
+        key1 = DeviceKey('a', 'b', 'c1')
+        key2 = DeviceKey('a', 'b', 'c2')
         updated1 = 33330.0
         updated2 = 33331.0
         now = 34000.0
         _time.time.return_value = now
 
-        status1 = ConfigStatus.Current(key1, "/a/b/c1", updated1)
-        status2 = ConfigStatus.Current(key2, "/a/b/c2", updated2)
+        status1 = ConfigStatus.Current(key1, updated1)
+        status2 = ConfigStatus.Current(key2, updated2)
         t.store.get_status.side_effect = (status1, status2)
 
         t.handler((key1, key2), 100.0)
@@ -61,15 +61,15 @@ class DeviceUpdateHandlerTest(TestCase):
 
     @patch("{src}.time".format(**PATH), autospec=True)
     def test_current_to_retired(t, _time):
-        key1 = CacheKey('a', 'b', 'c1')
-        key2 = CacheKey('a', 'b', 'c2')
+        key1 = DeviceKey('a', 'b', 'c1')
+        key2 = DeviceKey('a', 'b', 'c2')
         updated1 = 33330.0
         updated2 = 33331.0
         now = 34000.0
         _time.time.return_value = now
 
-        status1 = ConfigStatus.Current(key1, "/a/b/c1", updated1)
-        status2 = ConfigStatus.Current(key2, "/a/b/c2", updated2)
+        status1 = ConfigStatus.Current(key1, updated1)
+        status2 = ConfigStatus.Current(key2, updated2)
         t.store.get_status.side_effect = (status1, status2)
 
         t.handler((key1, key2), 1000.0)
@@ -79,15 +79,15 @@ class DeviceUpdateHandlerTest(TestCase):
 
     @patch("{src}.time".format(**PATH), autospec=True)
     def test_current_to_retired_and_expired(t, _time):
-        key1 = CacheKey('a', 'b', 'c1')
-        key2 = CacheKey('a', 'd', 'c2')
+        key1 = DeviceKey('a', 'b', 'c1')
+        key2 = DeviceKey('a', 'd', 'c2')
         updated1 = 33330.0
         updated2 = 32331.0
         now = 34000.0
         _time.time.return_value = now
 
-        status1 = ConfigStatus.Current(key1, "/a/b/c1", updated1)
-        status2 = ConfigStatus.Current(key2, "/a/d/c2", updated2)
+        status1 = ConfigStatus.Current(key1, updated1)
+        status2 = ConfigStatus.Current(key2, updated2)
         t.store.get_status.side_effect = (status1, status2)
 
         t.handler((key1, key2), 1000.0)
@@ -97,15 +97,15 @@ class DeviceUpdateHandlerTest(TestCase):
 
     @patch("{src}.time".format(**PATH), autospec=True)
     def test_pending_to_expired(t, _time):
-        key1 = CacheKey('a', 'b', 'c1')
-        key2 = CacheKey('a', 'b', 'c2')
+        key1 = DeviceKey('a', 'b', 'c1')
+        key2 = DeviceKey('a', 'b', 'c2')
         updated1 = 33330.0
         updated2 = 32331.0
         now = 34000.0
         _time.time.return_value = now
 
-        status1 = ConfigStatus.Pending(key1, "/a/b/c1", updated1)
-        status2 = ConfigStatus.Pending(key2, "/a/b/c2", updated2)
+        status1 = ConfigStatus.Pending(key1, updated1)
+        status2 = ConfigStatus.Pending(key2, updated2)
         t.store.get_status.side_effect = (status1, status2)
 
         t.handler((key1, key2), 1000.0)
@@ -115,14 +115,14 @@ class DeviceUpdateHandlerTest(TestCase):
 
     @patch("{src}.time".format(**PATH), autospec=True)
     def test_only_expired(t, _time):
-        key1 = CacheKey('a', 'b', 'c1')
-        key2 = CacheKey('a', 'b', 'c2')
+        key1 = DeviceKey('a', 'b', 'c1')
+        key2 = DeviceKey('a', 'b', 'c2')
         expired1 = 33330.0
         expired2 = 33331.0
         _time.time.return_value = 34000.0
 
-        status1 = ConfigStatus.Expired(key1, "/a/b/c1", expired1)
-        status2 = ConfigStatus.Expired(key2, "/a/b/c2", expired2)
+        status1 = ConfigStatus.Expired(key1, expired1)
+        status2 = ConfigStatus.Expired(key2, expired2)
         t.store.get_status.side_effect = (status1, status2)
 
         t.handler((key1, key2), 100.0)
@@ -132,14 +132,14 @@ class DeviceUpdateHandlerTest(TestCase):
 
     @patch("{src}.time".format(**PATH), autospec=True)
     def test_only_retired(t, _time):
-        key1 = CacheKey('a', 'b', 'c1')
-        key2 = CacheKey('a', 'b', 'c2')
+        key1 = DeviceKey('a', 'b', 'c1')
+        key2 = DeviceKey('a', 'b', 'c2')
         expired1 = 33330.0
         expired2 = 33331.0
         _time.time.return_value = 34000.0
 
-        status1 = ConfigStatus.Retired(key1, "/a/b/c1", expired1)
-        status2 = ConfigStatus.Retired(key2, "/a/b/c2", expired2)
+        status1 = ConfigStatus.Retired(key1, expired1)
+        status2 = ConfigStatus.Retired(key2, expired2)
         t.store.get_status.side_effect = (status1, status2)
 
         t.handler((key1, key2), 1000.0)
@@ -149,15 +149,15 @@ class DeviceUpdateHandlerTest(TestCase):
 
     @patch("{src}.time".format(**PATH), autospec=True)
     def test_only_building(t, _time):
-        key1 = CacheKey('a', 'b', 'c1')
-        key2 = CacheKey('a', 'b', 'c2')
+        key1 = DeviceKey('a', 'b', 'c1')
+        key2 = DeviceKey('a', 'b', 'c2')
         expired1 = 33330.0
         expired2 = 33331.0
         _time.time.return_value = 34000.0
         now = 34000.0
 
-        status1 = ConfigStatus.Building(key1, "/a/b/c1", expired1)
-        status2 = ConfigStatus.Building(key2, "/a/b/c2", expired2)
+        status1 = ConfigStatus.Building(key1, expired1)
+        status2 = ConfigStatus.Building(key2, expired2)
         t.store.get_status.side_effect = (status1, status2)
 
         t.handler((key1, key2), 1000.0)

@@ -11,6 +11,9 @@ from __future__ import print_function, absolute_import, division
 
 import argparse
 import sys
+import time
+
+import attr
 
 from zope.component import createObject
 
@@ -18,10 +21,10 @@ from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
 from ..app import initialize_environment
 from ..app.args import get_subparser
-from ..cache import CacheQuery
+from ..cache import DeviceQuery
 
 from .args import get_common_parser, MultiChoice
-from ._tables import TablesOutput
+from ._tables import TablesOutput, _xform
 from ._json import JSONOutput
 from ._stats import (
     AverageAgeStat,
@@ -35,8 +38,61 @@ from ._groups import DeviceGroup, ServiceGroup, MonitorGroup, StatusGroup
 
 
 class Stats(object):
-    description = "Show statistics about the configuration cache"
+    description = "Show statistics about the configurations"
 
+    @staticmethod
+    def add_arguments(parser, subparsers):
+        statsp = get_subparser(
+            subparsers,
+            "stats",
+            description=Stats.description,
+        )
+        show_subparsers = statsp.add_subparsers(title="Stats Subcommands")
+        StatsDevices.add_arguments(statsp, show_subparsers)
+        StatsOidMap.add_arguments(statsp, show_subparsers)
+
+
+class StatsOidMap(object):
+    description = "Show the statistics of the oidmap configuration"
+    configs = (("stats.zcml", __name__),)
+
+    @staticmethod
+    def add_arguments(parser, subparsers):
+        subp = get_subparser(
+            subparsers,
+            "oidmap",
+            description=StatsOidMap.description,
+        )
+        subp.set_defaults(factory=StatsOidMap)
+
+    def __init__(self, args):
+        pass
+
+    def run(self):
+        initialize_environment(configs=self.configs, useZope=False)
+        client = getRedisClient(url=getRedisUrl())
+        store = createObject("oidmapcache-store", client)
+        record = store.get()
+        status = store.get_status()
+        if record is None and status is None:
+            print("No oidmap found in the cache.")
+        else:
+            now = time.time()
+            if record is not None:
+                age = now - record.created
+                print("Oidmap Age: {}".format(_xform(age, "timedelta")))
+            else:
+                print("no oidmap")
+            if status is not None:
+                status_text = type(status).__name__
+                print("Status: {}".format(status_text))
+                ts = attr.astuple(status)[-1]
+                age = now - ts
+                print("Status Age: {}".format(_xform(age, "timedelta")))
+
+
+class StatsDevices(object):
+    description = "Show statistics about the device configurations"
     configs = (("stats.zcml", __name__),)
 
     _groups = ("collector", "device", "service", "status")
@@ -45,13 +101,16 @@ class Stats(object):
     @staticmethod
     def add_arguments(parser, subparsers):
         subp = get_subparser(
-            subparsers, "stats", Stats.description, parent=get_common_parser()
+            subparsers,
+            "device",
+            StatsDevices.description,
+            parent=get_common_parser(),
         )
         subp.add_argument(
             "-S",
             dest="statistic",
             action=MultiChoice,
-            choices=Stats._statistics,
+            choices=StatsDevices._statistics,
             default=argparse.SUPPRESS,
             help="Specify the statistics to return.  One or more statistics "
             "may be specified (comma separated). By default, all "
@@ -61,7 +120,7 @@ class Stats(object):
             "-G",
             dest="group",
             action=MultiChoice,
-            choices=Stats._groups,
+            choices=StatsDevices._groups,
             default=argparse.SUPPRESS,
             help="Specify the statistics groupings to return.  One or more "
             "groupings may be specified (comma separated). By default, all "
@@ -74,11 +133,11 @@ class Stats(object):
             default="tables",
             help="Output statistics in the specified format",
         )
-        subp.set_defaults(factory=Stats)
+        subp.set_defaults(factory=StatsDevices)
 
     def __init__(self, args):
         stats = []
-        for statId in getattr(args, "statistic", Stats._statistics):
+        for statId in getattr(args, "statistic", StatsDevices._statistics):
             if statId == "count":
                 stats.append(CountStat)
             elif statId == "avg_age":
@@ -90,7 +149,7 @@ class Stats(object):
             elif statId == "max_age":
                 stats.append(MaxAgeStat)
         self._groups = []
-        for groupId in getattr(args, "group", Stats._groups):
+        for groupId in getattr(args, "group", StatsDevices._groups):
             if groupId == "collector":
                 self._groups.append(MonitorGroup(stats))
             elif groupId == "device":
@@ -128,12 +187,12 @@ class Stats(object):
             return
         initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
-        store = createObject("configcache-store", client)
+        store = createObject("deviceconfigcache-store", client)
 
         if len(self._devices) == 1:
-            query = CacheQuery(self._service, self._monitor, self._devices[0])
+            query = DeviceQuery(self._service, self._monitor, self._devices[0])
         else:
-            query = CacheQuery(self._service, self._monitor)
+            query = DeviceQuery(self._service, self._monitor)
         include = _get_device_predicate(self._devices)
         for key, ts in store.query_updated(query):
             if not include(key.device):
