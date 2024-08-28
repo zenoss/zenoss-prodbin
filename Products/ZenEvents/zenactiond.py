@@ -35,7 +35,7 @@ from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenEvents.ZenEventClasses import Warning as SEV_WARNING
 from Products.ZenEvents.NotificationDao import NotificationDao
 from zope.component import getUtility, getUtilitiesFor
-from zope.component.interfaces import ComponentLookupError
+from zope.interface.interfaces import ComponentLookupError
 from zope.interface import implements
 
 from Products.ZenEvents.interfaces import ISignalProcessorTask

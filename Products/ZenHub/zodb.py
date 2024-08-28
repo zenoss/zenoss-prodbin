@@ -10,7 +10,7 @@
 import logging
 
 from zope.component import provideHandler
-from zope.component.interfaces import ObjectEvent
+from zope.interface.interfaces import ObjectEvent
 from zope.interface import implementer
 from zope.interface.advice import addClassAdvisor
 

@@ -3,7 +3,7 @@
 import logging
 log = logging.getLogger('zen.Example')
 
-import Globals
+# import Globals
 import zope.component
 import zope.interface
 
@@ -27,7 +27,7 @@ from Products.ZenUtils.Utils import unused
 from ZenPacks.NAMESPACE.PACKNAME.services.ExampleConfigService \
     import ExampleConfigService
 
-unused(Globals)
+# unused(Globals)
 unused(ExampleConfigService)
 
 

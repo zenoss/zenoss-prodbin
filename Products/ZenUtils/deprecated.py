@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-import Globals
+# import Globals
 import logging
 import traceback
 from decorator import decorator
@@ -76,7 +76,7 @@ def deprecated(func, *args, **kwargs):
     If the function is used it will log a warning to the current
     log file and $ZENHOME/log/deprecated.log
     """
-    if Globals.DevelopmentMode:   # Never show to customers.
-        DeprecatedLogger.logFunction(func)
+#     if Globals.DevelopmentMode:   # Never show to customers.
+#         DeprecatedLogger.logFunction(func)
 
     return func(*args, **kwargs)

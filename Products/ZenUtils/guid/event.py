@@ -12,7 +12,7 @@ import logging
 from zope.event import notify
 from zope.component import adapter, getUtility
 from zope.interface import implements
-from zope.component.interfaces import ObjectEvent
+from zope.interface.interfaces import ObjectEvent
 from zope.container.interfaces import IObjectMovedEvent, IObjectRemovedEvent
 from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
 from .interfaces import IGUIDEvent, IGUIDManager, IGloballyIdentifiable

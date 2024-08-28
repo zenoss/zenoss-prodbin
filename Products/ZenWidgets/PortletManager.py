@@ -10,7 +10,7 @@
 import md5
 import os
 
-from Globals import DevelopmentMode
+# from Globals import DevelopmentMode
 from AccessControl import getSecurityManager
 from AccessControl.class_init import InitializeClass
 
@@ -148,7 +148,7 @@ class PortletManager(ZenModelRM):
         Return the source of the portlets permitted to this user as a
         javascript file.
         """
-        srcs = [x.get_source(DevelopmentMode) for x in self.get_portlets()]
+        srcs = [x.get_source(False) for x in self.get_portlets()]
         srcs.append(
             'YAHOO.register("portletsource", YAHOO.zenoss.portlet, {})'
         )

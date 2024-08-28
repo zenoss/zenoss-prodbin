@@ -12,7 +12,8 @@ from __future__ import absolute_import, print_function
 from unittest import TestCase
 
 from mock import MagicMock, mock_open, patch
-from zope.component import getGlobalSiteManager, ComponentLookupError
+from zope.component import getGlobalSiteManager
+from zope.interface.interfaces import ComponentLookupError
 
 from Products.Jobber.task.utils import job_log_has_errors
 

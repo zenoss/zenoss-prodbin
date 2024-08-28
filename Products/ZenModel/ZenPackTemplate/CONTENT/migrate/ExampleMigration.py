@@ -1,13 +1,13 @@
 import logging
 log = logging.getLogger('zen.migrate')
 
-import Globals
+# import Globals
 
 from Products.ZenModel.ZenPack import ZenPackMigration
 from Products.ZenModel.migrate.Migrate import Version
 from Products.ZenUtils.Utils import unused
 
-unused(Globals)
+# unused(Globals)
 
 
 # Your migration class must subclass ZenPackMigration.

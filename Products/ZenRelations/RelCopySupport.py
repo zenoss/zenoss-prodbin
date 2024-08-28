@@ -23,13 +23,14 @@ from OFS.CopySupport import (
     _cb_decode,
     CopyContainer,
     CopyError,
-    eInvalid,
-    eNoData,
-    eNotFound,
 )
 from OFS.ObjectManager import checkValidId
 
 from .Exceptions import ZenRelationsError
+
+eInvalid = "Invalid Id"
+eNoData = "No Data"
+eNotFound = "Item Not Found"
 
 
 class RelCopyContainer(CopyContainer):

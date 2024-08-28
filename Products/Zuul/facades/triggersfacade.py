@@ -15,7 +15,7 @@ import zenoss.protocols.protobufs.zep_pb2 as zep
 from copy import deepcopy
 from zExceptions import BadRequest
 from zope.component import getUtility
-from zope.component.interfaces import ComponentLookupError
+from zope.interface.interfaces import ComponentLookupError
 from zope.interface import providedBy
 from zope.schema import getFields
 from zenoss.protocols.interfaces import IQueueSchema

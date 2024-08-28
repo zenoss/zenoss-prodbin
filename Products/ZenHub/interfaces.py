@@ -8,7 +8,7 @@
 ##############################################################################
 
 from enum import IntEnum
-from zope.component.interfaces import Interface, IObjectEvent
+from zope.interface.interfaces import Interface, IObjectEvent
 from zope.interface import Attribute
 
 

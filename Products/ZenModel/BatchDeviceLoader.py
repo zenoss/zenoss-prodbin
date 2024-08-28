@@ -21,7 +21,7 @@ import socket
 from ZODB.POSException import ConflictError
 from ZODB.transact import transact
 from zope.component import getUtility
-from zope.component.interfaces import ComponentLookupError
+from zope.interface.interfaces import ComponentLookupError
 from zope.event import notify
 
 from zExceptions import BadRequest

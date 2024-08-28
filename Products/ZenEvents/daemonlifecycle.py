@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from zope.component.interfaces import ObjectEvent
+from zope.interface.interfaces import ObjectEvent
 
 class DaemonLifecycleEvent(ObjectEvent):
     """

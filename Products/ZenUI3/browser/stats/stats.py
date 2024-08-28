@@ -20,7 +20,7 @@ import ZPublisher.interfaces
 
 from Products.Five.browser import BrowserView
 from zope import component, interface
-from ZServer.PubCore.ZRendezvous import ZRendevous
+# from ZServer.PubCore.ZRendezvous import ZRendevous
 
 from Products.Zuul import interfaces
 from Products.ZenModel.DataRoot import DataRoot
@@ -173,8 +173,8 @@ class ZopeMetrics(object):
         freeThreads = 0
         for frame in sys._current_frames().values():
             _self = frame.f_locals.get("self")
-            if getattr(_self, "__module__", None) == ZRendevous.__module__:
-                freeThreads += 1
+            # if getattr(_self, "__module__", None) == ZRendevous.__module__:
+            #     freeThreads += 1
         metrics["freeThreads"] = freeThreads
 
         try:

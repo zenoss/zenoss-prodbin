@@ -25,7 +25,7 @@ from AccessControl import getSecurityManager
 from OFS.OrderedFolder import OrderedFolder
 from App.special_dtml import DTMLFile
 from AccessControl.class_init import InitializeClass
-from Globals import DevelopmentMode
+# from Globals import DevelopmentMode
 from Products.ZenModel.SiteError import SiteError
 from Products.ZenModel.ZenModelBase import ZenModelBase
 from Products.ZenModel.ZenMenuable import ZenMenuable
@@ -820,7 +820,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         Whether we're in debug mode, so that javascript will behave accordingly
         """
-        return DevelopmentMode
+        return False  # DevelopmentMode
 
     def versionId(self):
         """

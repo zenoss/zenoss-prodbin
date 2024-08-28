@@ -14,7 +14,7 @@ from Testing.ZopeTestCase.layer import ZopeLite
 from Zope2.App import zcml
 from zope import component, interface
 from zope.component.hooks import setHooks
-from zope.component.interfaces import IObjectEvent
+from zope.interface.interfaces import IObjectEvent
 from zope.testing import cleanup
 
 from Products.ZenRelations.RelationshipBase import IRelationship

@@ -10,7 +10,7 @@ import unittest
 import doctest
 import transaction
 import socket
-import Globals
+# import Globals
 import os.path
 
 from Zope2.App import zcml as _zcml
@@ -38,10 +38,11 @@ def load_unittest_site(force=False):
         return
     _zcml._initialized = True
 
-    Globals.INSTANCE_HOME
+    # Globals.INSTANCE_HOME
 
     # load instance site configuration file
-    site_zcml = os.path.join(Globals.INSTANCE_HOME, "etc", "site.zcml")
+    # site_zcml = os.path.join(Globals.INSTANCE_HOME, "etc", "site.zcml")
+    site_zcml = os.path.join("/opt/zenoss", "etc", "site.zcml")
 
     if not os.path.exists(site_zcml):
         # check for zope installation home skel during running unit tests

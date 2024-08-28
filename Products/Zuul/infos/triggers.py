@@ -13,7 +13,7 @@ log = logging.getLogger('zen.triggerinfos')
 
 from datetime import datetime
 from time import time
-from zope.component.interfaces import ComponentLookupError
+from zope.interface.interfaces import ComponentLookupError
 from zope.interface import implements
 from zope.component import getUtility
 from Products.ZenModel.interfaces import IAction

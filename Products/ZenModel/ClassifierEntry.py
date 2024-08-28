@@ -22,7 +22,7 @@ __version__ = "$Revision: 1.6 $"[11:-2]
 from AccessControl import ClassSecurityInfo
 from App.special_dtml import DTMLFile
 
-from Products.ZCatalog.CatalogAwareness import CatalogAware
+# from Products.ZCatalog.CatalogAwareness import CatalogAware
 from OFS.SimpleItem import SimpleItem
 from OFS.PropertyManager import PropertyManager
 
@@ -51,7 +51,8 @@ def manage_addClassifierEntry(context, id=None, title=None,
 
 addClassifierEntry = DTMLFile('dtml/addClassifierEntry',globals())
 
-class ClassifierEntry(PropertyManager, CatalogAware, SimpleItem):
+# class ClassifierEntry(PropertyManager, CatalogAware, SimpleItem):
+class ClassifierEntry(PropertyManager, SimpleItem):
     """ClassifierEntry"""
 
     meta_type = 'ClassifierEntry'

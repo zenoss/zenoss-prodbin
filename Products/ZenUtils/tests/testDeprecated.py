@@ -17,7 +17,7 @@ If you would like to run these tests from python, simply do the following:
 import unittest
 import os
 import os.path
-import Globals
+# import Globals
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenUtils.Utils import zenPath  # TODO: this test shouldn't rely on zenPath
 from Products.ZenUtils.deprecated import deprecated, DeprecatedLogger
@@ -46,11 +46,11 @@ class TestDeprecated(BaseTestCase):
 
     def afterSetUp(self):
         super(TestDeprecated, self).afterSetUp()
-        self.oldDevMode = Globals.DevelopmentMode
+        # self.oldDevMode = Globals.DevelopmentMode
         self._doesLogFileExist(deleteIt=True)
 
     def testReleaseMode(self):
-        Globals.DevelopmentMode = False
+        # Globals.DevelopmentMode = False
         DeprecatedLogger.config(repeat=True,
                                 fileName=TEST_LOGFILE,  # should be ignored
                                 propagate=False)        # quiet
@@ -58,7 +58,7 @@ class TestDeprecated(BaseTestCase):
         self.assertFalse(self._doesLogFileExist())
 
     def testDevModeNoLog(self):
-        Globals.DevelopmentMode = True
+        # Globals.DevelopmentMode = True
         DeprecatedLogger.config(repeat=True,
                                 fileName=None,    # no file
                                 propagate=False)  # quiet
@@ -66,7 +66,7 @@ class TestDeprecated(BaseTestCase):
         self.assertFalse(self._doesLogFileExist())
 
     def testDevModeWithLog(self):
-        Globals.DevelopmentMode = True
+        # Globals.DevelopmentMode = True
         DeprecatedLogger.config(repeat=True,
                                 fileName=TEST_LOGFILE,  # should create it
                                 propagate=False)        # quiet
@@ -76,7 +76,7 @@ class TestDeprecated(BaseTestCase):
             self.assertTrue('Call to deprecated function add' in f.read())
 
     def beforeTearDown(self):
-        Globals.DevelopmentMode = self.oldDevMode
+        # Globals.DevelopmentMode = self.oldDevMode
         self._doesLogFileExist(deleteIt=True)
         super(TestDeprecated, self).beforeTearDown()
 

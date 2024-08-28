@@ -15,7 +15,7 @@ CPU utilization, total RSS and the number of processes that match the
 
 import logging
 
-import Globals
+# import Globals
 
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_OSProcess
@@ -27,14 +27,16 @@ log = logging.getLogger("zen.ps")
 
 # Keep track of state between runs
 # (device, cmdAndArgs)
-Globals.MostRecentMonitoredTimePids = getattr(
-    Globals, "MostRecentMonitoredTimePids", {}
-)
+# Globals.MostRecentMonitoredTimePids = getattr(
+#     Globals, "MostRecentMonitoredTimePids", {}
+# )
+_MostRecentMonitoredTimePids = {}
 
 
 # For use in unit tests, to reset MostRecentMonitoredTimePids between tests.
 def resetRecentlySeenPids():
-    Globals.MostRecentMonitoredTimePids = {}
+    global _MostRecentMonitoredTimePids
+    _MostRecentMonitoredTimePids = {}
 
 
 def parseCpuTime(cputime):
@@ -248,14 +250,21 @@ class ps(CommandParser):
         # Globals.MostRecentMonitoredTimePids is a global that simply keeps
         # the most recent data ... used to retrieve the "before" at
         # monitoring time.
-        if Globals.MostRecentMonitoredTimePids.get(device, None):
-            beforePidsProcesses = Globals.MostRecentMonitoredTimePids[
-                device
-            ].get(processSet, None)
+        # if Globals.MostRecentMonitoredTimePids.get(device, None):
+        #     beforePidsProcesses = Globals.MostRecentMonitoredTimePids[
+        #         device
+        #     ].get(processSet, None)
+        # else:
+        #     beforePidsProcesses = Globals.MostRecentMonitoredTimePids[
+        #         device
+        #     ] = {}
+        global _MostRecentMonitoredTimePids
+        if _MostRecentMonitoredTimePids.get(device, None):
+            beforePidsProcesses = _MostRecentMonitoredTimePids[device].get(
+                processSet, None
+            )
         else:
-            beforePidsProcesses = Globals.MostRecentMonitoredTimePids[
-                device
-            ] = {}
+            beforePidsProcesses = _MostRecentMonitoredTimePids[device] = {}
 
         # The first time this runs ... there is no "before"
         # This occurs when beforePidsProcesses is an empty dict
@@ -267,9 +276,12 @@ class ps(CommandParser):
                 "%s ... skipping",
                 processSet,
             )
-            Globals.MostRecentMonitoredTimePids[device][
-                processSet
-            ] = afterPidsProcesses
+            # Globals.MostRecentMonitoredTimePids[device][
+            #     processSet
+            # ] = afterPidsProcesses
+            _MostRecentMonitoredTimePids[device][processSet] = (
+                afterPidsProcesses
+            )
             return
 
         beforePids = beforePidsProcesses.keys()
@@ -340,6 +352,7 @@ class ps(CommandParser):
                 cmd.deviceConfig.device,
             )
 
-        Globals.MostRecentMonitoredTimePids[device][
-            processSet
-        ] = afterPidsProcesses
+        # Globals.MostRecentMonitoredTimePids[device][
+        #     processSet
+        # ] = afterPidsProcesses
+        _MostRecentMonitoredTimePids[device][processSet] = afterPidsProcesses

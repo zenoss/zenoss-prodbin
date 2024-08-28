@@ -53,7 +53,7 @@ from zope.i18n import translate
 from zope.interface import providedBy
 from zope.schema._field import Password
 from zope.schema import getFields
-from ZServer.HTTPServer import zhttp_channel
+# from ZServer.HTTPServer import zhttp_channel
 
 from .Exceptions import ZenPathError, ZentinelException
 from .jsonutils import unjson
@@ -1735,7 +1735,7 @@ def is_browser_connection_open(request):
     return any(
         getattr(cnxn, "creation_time", missing) == creation_time
         for cnxn in asyncore.socket_map.values()
-        if isinstance(cnxn, zhttp_channel)
+        # if isinstance(cnxn, zhttp_channel)
     )
 
 

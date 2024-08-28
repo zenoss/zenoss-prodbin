@@ -136,9 +136,9 @@ class MySqlZodbFactory(object):
         storage = relstorage.storage.RelStorage(adapter, **relstoreParams)
         cache_size = kwargs.get("zodb_cachesize", 1000)
         db = ZODB.DB(storage, cache_size=cache_size)
-        import Globals
+        # import Globals
 
-        Globals.DB = db
+        # Globals.DB = db
         return db, storage
 
     def buildOptions(self, parser):

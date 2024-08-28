@@ -16,7 +16,7 @@ would like to run these tests from python, simply to the following:
 '''
 import unittest
 from zope.interface import implements
-from zope.component.interfaces import IObjectEvent
+from zope.interface.interfaces import IObjectEvent
 from Products.Zuul.catalog.events import IndexingEvent
 
 from OFS.SimpleItem import SimpleItem

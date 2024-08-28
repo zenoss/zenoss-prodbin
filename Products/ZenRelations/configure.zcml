@@ -8,7 +8,7 @@
 
     <subscriber
         for=".ToManyContRelationship.ToManyContRelationship
-             zope.component.interfaces.IObjectEvent"
+             zope.interface.interfaces.IObjectEvent"
         handler="zope.container.contained.dispatchToSublocations"
         />
 

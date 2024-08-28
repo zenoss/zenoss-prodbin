@@ -12,7 +12,7 @@ import os
 
 from urlparse import urljoin
 
-import Globals
+# import Globals
 import zope.interface
 
 from Products.Five.viewlet.viewlet import ViewletBase
@@ -191,7 +191,8 @@ class ZenossAllJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
 
     def update(self):
-        if Globals.DevelopmentMode or not COMPILED_JS_EXISTS:
+        # if Globals.DevelopmentMode or not COMPILED_JS_EXISTS:
+        if not COMPILED_JS_EXISTS:
             # Use the view that creates concatenated js on the fly from disk
             self.path = "/zport/dmd/zenoss-all.js"
         else:
@@ -204,10 +205,11 @@ class ExtAllJs(JavaScriptSrcViewlet):
     path = None
 
     def update(self):
-        if Globals.DevelopmentMode:
-            self.path = "/++resource++extjs/ext-all-dev.js"
-        else:
-            self.path = "/++resource++extjs/ext-all.js"
+        # if Globals.DevelopmentMode:
+        #     self.path = "/++resource++extjs/ext-all-dev.js"
+        # else:
+        #     self.path = "/++resource++extjs/ext-all.js"
+        self.path = "/++resource++extjs/ext-all.js"
 
 
 class FireFoxExtCompat(JavaScriptSnippet):
