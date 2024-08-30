@@ -82,12 +82,12 @@ class MessagePrePublishingEvent(object):
         self.maintWindowChanges = maintWindowChanges
 
 
+@implementer(IMessagePostPublishingEvent)
 class MessagePostPublishingEvent(object):
     """
     Fired after transaction completion.
     """
 
-    implementer(IMessagePostPublishingEvent)
 
     def __init__(self, refs=None):
         self.refs = refs

@@ -9,7 +9,7 @@
 
 from zenoss.protocols.protobufs import zep_pb2 as eventConstants
 from zenoss.protocols.protobufs import model_pb2 as modelConstants
-from zope.interface import implements
+from zope.interface import implementer
 
 from Products.ZenEvents.events2.proxy import EventProxy
 from Products.ZenMessaging.queuemessaging.interfaces import (
@@ -61,12 +61,12 @@ class ObjectProtobuf(object):
                 continue
 
 
+@implementer(IModelProtobufSerializer)
 class DeviceProtobuf(ObjectProtobuf):
     """
     Fills up the properties of a device protobuf.
     """
 
-    implements(IModelProtobufSerializer)
 
     @property
     def modelType(self):
@@ -78,12 +78,12 @@ class DeviceProtobuf(ObjectProtobuf):
         return proto
 
 
+@implementer(IModelProtobufSerializer)
 class OrganizerProtobuf(ObjectProtobuf):
     """
     Fills up the properties of an organizer protobuf.
     """
 
-    implements(IModelProtobufSerializer)
 
     @property
     def modelType(self):
@@ -97,12 +97,12 @@ class OrganizerProtobuf(ObjectProtobuf):
         return proto
 
 
+@implementer(IModelProtobufSerializer)
 class DeviceComponentProtobuf(ObjectProtobuf):
     """
     Fills up the properties of a Device Component
     """
 
-    implements(IModelProtobufSerializer)
 
     @property
     def modelType(self):
@@ -309,12 +309,12 @@ class EventProtobufDetailMapper(EventProtobufMapper):
         proto.details.add(name=self._detailName, value=[value])
 
 
+@implementer(IProtobufSerializer)
 class EventProtobuf(ObjectProtobuf):
     """
     Fills up the properties of an event
     """
 
-    implements(IProtobufSerializer)
 
     # event property, protobuf property
     _FIELD_MAPPERS = {
