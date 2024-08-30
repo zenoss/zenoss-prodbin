@@ -1,5 +1,5 @@
-<configure xmlns="http://namespaces.zope.org/zope"
-           i18n_domain="Five">
+<?xml version="1.0"?>
+<configure xmlns="http://namespaces.zope.org/zope" i18n_domain="Five">
 
   <!-- Permissions here should parallel ZenModel.ZenossSecurity -->
 
@@ -188,4 +188,5 @@
       id="zenoss.ManageTrigger"
       title="Manage Trigger"
       />
+
 </configure>
