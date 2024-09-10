@@ -652,7 +652,7 @@ class SpoofedOptions(object):
         self.infile = ""
         self.noCommit = True
         self.noindex = True
-        self.dataroot = "/zport/dmd"
+        self.zodb_dataroot = "/zport/dmd"
 
 
 class NoLoginImportRM(ImportRM):

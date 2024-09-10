@@ -372,7 +372,7 @@ class ZenHub(ZCmdBase):
 
 
 @implementer(IHubConfProvider)
-class DefaultConfProvider(object):  # noqa: D101
+class DefaultConfProvider(object):
     adapts(ZenHub)
 
     def __init__(self, zenhub):
@@ -386,7 +386,7 @@ class DefaultConfProvider(object):  # noqa: D101
 
 
 @implementer(IHubHeartBeatCheck)
-class DefaultHubHeartBeatCheck(object):  # noqa: D101
+class DefaultHubHeartBeatCheck(object):
     adapts(ZenHub)
 
     def __init__(self, zenhub):
