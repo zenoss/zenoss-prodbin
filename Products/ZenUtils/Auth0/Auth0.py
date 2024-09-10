@@ -418,11 +418,15 @@ class Auth0(BasePlugin):
         # It's possible for a fresh start to get here, but ZC has already
         # logged us in.  If we have a JWT token, try to use that before
         # redirecting to ZC.
-        sessionInfo = request.SESSION.get(Auth0.session_key)
-        if not sessionInfo:
-            token = request.cookies.get(Auth0.zc_token_key, None)
-            if token:
+        token = request.cookies.get(Auth0.zc_token_key, None)
+        if token:
+            sessionInfo = request.SESSION.get(Auth0.session_key)
+            if not sessionInfo:
                 sessionInfo = self.storeToken(token, request, conf)
+        else:
+            # If we don't have a token cookie, disregard any previous sessionInfo.
+            # The user no longer has a valid session.
+            sessionInfo = None
 
         if not sessionInfo:
             # There is no valid access token, so we must redirect back to auth0 to obtain one.
