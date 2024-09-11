@@ -15,6 +15,8 @@ import time
 
 from optparse import SUPPRESS_HELP
 
+import attr
+
 from metrology import Metrology
 from metrology.instruments import Gauge
 from twisted.internet import defer, reactor, task
@@ -34,7 +36,7 @@ from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.observable import ObservableProxy
 from Products.ZenUtils.Utils import load_config
 
-from .config import DeviceConfigLoader
+from .config import ConfigurationLoaderTask, DeviceConfigLoader
 from .interfaces import (
     ICollector,
     ICollectorPreferences,
@@ -48,8 +50,6 @@ from .interfaces import (
 )
 from .listeners import ConfigListenerNotifier
 from .utils.maintenance import MaintenanceCycle, ZenHubHeartbeatSender
-
-CONFIG_LOADER_NAME = "configLoader"
 
 
 @implementer(ICollector, IDataService, IEventService)
@@ -160,6 +160,8 @@ class CollectorDaemon(RRDDaemon):
             # value is None, zero, or some other False-like value.
             self._device_config_update_interval = 300
 
+        self._config_update_interval = self._prefs.configCycleInterval * 60
+
         self._deviceGuids = {}
         self._unresponsiveDevices = set()
         self._rrd = None
@@ -203,6 +205,10 @@ class CollectorDaemon(RRDDaemon):
         # Flag that indicates the daemon has received the encryption key
         # from zenhub
         self.encryptionKeyInitialized = False
+
+        self._configloader = ConfigurationLoaderTask(self, self._configProxy)
+        self._configloadertask = None
+        self._configloadertaskd = None
 
         # Define _deviceloader to avoid race condition
         # with task stats recording.
@@ -333,35 +339,26 @@ class CollectorDaemon(RRDDaemon):
             self.encryptionKeyInitialized = True
             self.log.debug("initialized encryption key")
 
-    def _startConfigCycle(self, startDelay=0):  # type: (Self, float) -> None
-        framework = _getFramework(self.frameworkFactoryName)
-        configLoader = framework.getConfigurationLoaderTask()(
-            CONFIG_LOADER_NAME, taskConfig=self.preferences
+    def _startConfigCycle(self):
+        self._configloadertask = task.LoopingCall(self._configloader)
+        self._configloadertaskd = self._configloadertask.start(
+            self._config_update_interval
         )
-        configLoader.startDelay = startDelay
-        # Don't add the config loader task if the scheduler already has
-        # an instance of it.
-        if configLoader not in self._scheduler:
-            # Run initial maintenance cycle as soon as possible
-            # TODO: should we not run maintenance if running in
-            # non-cycle mode?
-            self._scheduler.addTask(configLoader)
-            self.log.info(
-                "scheduled task  "
-                "name=%s config-id=%s interval=%s start-delay=%s",
-                configLoader.name,
-                configLoader.configId,
-                getattr(configLoader, "interval", "n/a"),
-                configLoader.startDelay,
-            )
-        else:
-            self.log.info(
-                "task already scheduled  name=%s config-id=%s",
-                configLoader.name,
-                configLoader.configId,
-            )
+        reactor.addSystemEventTrigger(
+            "before", "shutdown", self._stop_configloadertask, "before"
+        )
+        self.log.info(
+            "started receiving collector config changes  interval=%d",
+            self._config_update_interval,
+        )
 
-    def _startMaintenance(self):  # type: (Self) -> None
+    def _stop_configloadertask(self):
+        if self._configloadertask is None:
+            return
+        self._configloadertask.stop()
+        self._configloadertask = self._configloadertaskd = None
+
+    def _startMaintenance(self):
         if not self.options.cycle:
             return
         interval = self.preferences.cycleInterval
@@ -386,12 +383,18 @@ class CollectorDaemon(RRDDaemon):
             self._device_config_update_interval
         )
         reactor.addSystemEventTrigger(
-            "before", "shutdown", self._deviceloadertask.stop, "before"
+            "before", "shutdown", self._stop_deviceloadertask, "before"
         )
         self.log.info(
             "started receiving device config changes  interval=%d",
             self._device_config_update_interval,
         )
+
+    def _stop_deviceloadertask(self):
+        if self._deviceloadertask is None:
+            return
+        self._deviceloadertask.stop()
+        self._deviceloadertask = self._deviceloadertaskd = None
 
     def _startTaskStatsLogging(self):
         if not (self.options.cycle and self.options.logTaskStats):
@@ -485,6 +488,7 @@ class CollectorDaemon(RRDDaemon):
         :return: a deferred that fires when the metric gets published.
         """
         timestamp = int(time.time()) if timestamp == "N" else timestamp
+        threshEventData = threshEventData if threshEventData else {}
         tags = {"contextUUID": contextUUID, "key": contextKey}
         if self.should_trace_metric(metric, contextKey):
             tags["mtrace"] = "{}".format(int(time.time()))
@@ -622,15 +626,16 @@ class CollectorDaemon(RRDDaemon):
         """
         Delete and re-add the configuration tasks to start on new interval.
         """
-        if oldValue != newValue:
-            self.log.info(
-                "changing config task interval from %s to %s minutes",
-                oldValue,
-                newValue,
-            )
-            self._scheduler.removeTasksForConfig(CONFIG_LOADER_NAME)
-            # values are in minutes, scheduler takes seconds
-            self._startConfigCycle(newValue * 60)
+        if oldValue == newValue:
+            return
+        self._config_update_interval = newValue * 60
+        self._stop_configloadertask()
+        self.log.info(
+            "changing collector config task interval from %s to %s minutes",
+            oldValue,
+            newValue,
+        )
+        self._startConfigCycle()
 
     def _taskCompleteCallback(self, taskName):
         # if we're not running a normal daemon cycle then we need to shutdown
@@ -721,11 +726,13 @@ class CollectorDaemon(RRDDaemon):
 
             self._updateConfig(cfg)
 
-        lengths = (len(new), len(updated), len(removed))
-        logmethod = self.log.debug if lengths == (0, 0, 0) else self.log.info
+        sizes = _DeviceConfigSizes(new, updated, removed)
+        logmethod = self.log.debug if not sizes else self.log.info
         logmethod(
             "processed %d new, %d updated, and %d removed device configs",
-            *lengths
+            sizes.new,
+            sizes.updated,
+            sizes.removed,
         )
 
     def _deleteDevice(self, deviceId):
@@ -874,7 +881,7 @@ class CollectorDaemon(RRDDaemon):
 
         # Device ping issues returns as a tuple of (deviceId, count, total)
         # and we just want the device id
-        newUnresponsiveDevices = set(i[0] for i in issues)
+        newUnresponsiveDevices = {i[0] for i in issues}
 
         clearedDevices = self._unresponsiveDevices.difference(
             newUnresponsiveDevices
@@ -964,6 +971,16 @@ class CollectorDaemon(RRDDaemon):
     def worker_id(self):
         """The ID of this particular service instance."""
         return getattr(self.options, "workerid", 0)
+
+
+@attr.s(frozen=True, slots=True)
+class _DeviceConfigSizes(object):
+    new = attr.ib(converter=len)
+    updated = attr.ib(converter=len)
+    removed = attr.ib(converter=len)
+
+    def __nonzero__(self):
+        return (self.new, self.updated, self.removed) != (0,0,0)
 
 
 class _DeviceIdProxy(object):
