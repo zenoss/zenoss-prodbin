@@ -54,14 +54,14 @@ class _ChoicesChecker(object):
         return iter(self._choices)
 
 
-_common_parser = None
+_devargs_parser = None
 
 
-def get_common_parser():
-    global _common_parser
-    if _common_parser is None:
-        _common_parser = argparse.ArgumentParser(add_help=False)
-        _common_parser.add_argument(
+def get_devargs_parser():
+    global _devargs_parser
+    if _devargs_parser is None:
+        _devargs_parser = argparse.ArgumentParser(add_help=False)
+        _devargs_parser.add_argument(
             "-m",
             "--collector",
             type=str,
@@ -69,7 +69,7 @@ def get_common_parser():
             help="Name of the performance collector.  Supports simple '*' "
             "wildcard comparisons.  A lone '*' selects all collectors.",
         )
-        _common_parser.add_argument(
+        _devargs_parser.add_argument(
             "-s",
             "--service",
             type=str,
@@ -77,7 +77,7 @@ def get_common_parser():
             help="Name of the configuration service.  Supports simple '*' "
             "wildcard comparisons.  A lone '*' selects all services.",
         )
-        _common_parser.add_argument(
+        _devargs_parser.add_argument(
             "device",
             nargs="*",
             default=argparse.SUPPRESS,
@@ -85,4 +85,4 @@ def get_common_parser():
             "Supports simple '*' wildcard comparisons. Not specifying a "
             "device will select all devices.",
         )
-    return _common_parser
+    return _devargs_parser

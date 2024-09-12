@@ -9,12 +9,8 @@
 
 from __future__ import absolute_import
 
-
-from .expire import Expire
-from .list import List_
-from .remove import Remove
-from .show import Show
-from .stats import Stats
+from .device import Device
+from .oidmap import OidMap
 
 
-__all__ = ("Expire", "List_", "Remove", "Show", "Stats")
+__all__ = ("Device", "OidMap")

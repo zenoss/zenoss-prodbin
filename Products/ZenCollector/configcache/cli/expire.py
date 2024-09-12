@@ -20,34 +20,20 @@ from ..app import initialize_environment
 from ..app.args import get_subparser
 from ..cache import ConfigStatus, DeviceQuery
 
-from .args import get_common_parser
+from .args import get_devargs_parser
 from ._selection import get_message, confirm
 
 
-class Expire(object):
-    description = "Mark configurations as expired"
-
-    @staticmethod
-    def add_arguments(parser, subparsers):
-        listp = get_subparser(
-            subparsers,
-            "expire",
-            description=Expire.description,
-        )
-        expire_subparsers = listp.add_subparsers(title="Expire Subcommands")
-        ExpireDevices.add_arguments(listp, expire_subparsers)
-        ExpireOidMap.add_arguments(listp, expire_subparsers)
-
-
 class ExpireOidMap(object):
-    configs = (("expire.zcml", __name__),)
+    description = "Mark OID Map as expired"
+    configs = (("store.zcml", __name__),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
         subp = get_subparser(
             subparsers,
-            "oidmap",
-            description="Expire oidmap configuration",
+            "expire",
+            description=ExpireOidMap.description,
         )
         subp.set_defaults(factory=ExpireOidMap)
 
@@ -66,18 +52,19 @@ class ExpireOidMap(object):
             print("Oidmap configuration already expired")
 
 
-class ExpireDevices(object):
-    configs = (("expire.zcml", __name__),)
+class ExpireDevice(object):
+    description = "Mark device configurations as expired"
+    configs = (("store.zcml", __name__),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
         subp = get_subparser(
             subparsers,
-            "device",
-            description="Expire device configurations",
-            parent=get_common_parser(),
+            "expire",
+            description=ExpireDevice.description,
+            parent=get_devargs_parser(),
         )
-        subp.set_defaults(factory=ExpireDevices)
+        subp.set_defaults(factory=ExpireDevice)
 
     def __init__(self, args):
         self._monitor = args.collector

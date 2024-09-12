@@ -10,7 +10,7 @@
 from __future__ import absolute_import, print_function
 
 from .app.args import get_arg_parser
-from .cli import Expire, List_, Remove, Show, Stats
+from .cli import OidMap, Device
 from .invalidator import Invalidator
 from .manager import Manager
 from .version import Version
@@ -24,11 +24,8 @@ def main(argv=None):
     Version.add_arguments(parser, subparsers)
     Manager.add_arguments(parser, subparsers)
     Invalidator.add_arguments(parser, subparsers)
-    Expire.add_arguments(parser, subparsers)
-    List_.add_arguments(parser, subparsers)
-    Remove.add_arguments(parser, subparsers)
-    Show.add_arguments(parser, subparsers)
-    Stats.add_arguments(parser, subparsers)
+    OidMap.add_arguments(parser, subparsers)
+    Device.add_arguments(parser, subparsers)
 
     args = parser.parse_args()
     args.factory(args).run()
