@@ -226,7 +226,7 @@ def _update_object(obj, diff):
         if attr is MISSINGNO:
             continue
         elif callable(attr):
-            changed = _update_callable_attribute(attr, value)
+            changed |= _update_callable_attribute(attr, value)
         else:
             if attr != value:
                 setattr(obj, attrname, value)
