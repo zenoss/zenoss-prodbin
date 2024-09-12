@@ -25,30 +25,15 @@ from ..app.args import get_subparser
 from ..cache import DeviceQuery
 
 
-class Show(object):
-    description = "Show a configuration"
-
-    @staticmethod
-    def add_arguments(parser, subparsers):
-        showp = get_subparser(
-            subparsers,
-            "show",
-            description=Show.description,
-        )
-        show_subparsers = showp.add_subparsers(title="Show Subcommands")
-        ShowDevice.add_arguments(showp, show_subparsers)
-        ShowOidMap.add_arguments(showp, show_subparsers)
-
-
 class ShowOidMap(object):
     description = "Show the oidmap configuration"
-    configs = (("show.zcml", __name__),)
+    configs = (("store.zcml", __name__),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
         subp = get_subparser(
             subparsers,
-            "oidmap",
+            "show",
             description=ShowOidMap.description,
         )
         termsize = get_terminal_size()
@@ -90,12 +75,12 @@ class ShowOidMap(object):
 
 class ShowDevice(object):
     description = "Show a device configuration"
-    configs = (("show.zcml", __name__),)
+    configs = (("store.zcml", __name__),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
         subp = get_subparser(
-            subparsers, "device", description=ShowDevice.description
+            subparsers, "show", description=ShowDevice.description
         )
         termsize = get_terminal_size()
         subp.add_argument(
