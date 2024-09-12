@@ -24,91 +24,30 @@ from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
 from ..app import initialize_environment
 from ..app.args import get_subparser
-from ..cache import DeviceQuery, ConfigStatus
+from ..cache import ConfigStatus, DeviceQuery
 
-from .args import get_common_parser, MultiChoice
+from .args import get_devargs_parser, MultiChoice
 
 
-class List_(object):
-    description = "List configurations"
+class ListDevice(object):
+    configs = (("store.zcml", __name__),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
         listp = get_subparser(
             subparsers,
             "list",
-            description=List_.description,
-        )
-        list_subparsers = listp.add_subparsers(title="List Subcommands")
-        ListDevices.add_arguments(listp, list_subparsers)
-        ListOidMap.add_arguments(listp, list_subparsers)
-
-
-class ListOidMap(object):
-    description = "List the oidmap configuration"
-    configs = (("list.zcml", __name__),)
-
-    @staticmethod
-    def add_arguments(parser, subparsers):
-        devicep = get_subparser(
-            subparsers,
-            "oidmap",
-            description=ListOidMap.description,
-        )
-        devicep.set_defaults(factory=ListOidMap)
-
-    def __init__(self, args):
-        pass
-
-    def run(self):
-        initialize_environment(configs=self.configs, useZope=False)
-        client = getRedisClient(url=getRedisUrl())
-        store = createObject("oidmapcache-store", client)
-        status = store.get_status()
-        if status is None:
-            print("No oidmap found in the cache.")
-            return
-
-        hdr_tmplt = "{0:{3}}  {1:^{4}}  {2:^{5}}"
-        row_tmplt = "{0:{3}}  {1:{4}}  {2:>{5}}"
-
-        headings = ("STATUS", "LAST CHANGE", "AGE")
-        status_text = _format_status(status)
-        ts = attr.astuple(status)[-1]
-        ts_text = _format_date(ts)
-        now = time.time()
-        age_text = _format_timedelta(now - ts)
-        row = (status_text, ts_text, age_text)
-
-        maxs, maxt, maxa = 1, 1, 1
-        maxs = max(maxs, len(status_text))
-        maxt = max(maxt, len(ts_text))
-        maxa = max(maxa, len(age_text))
-        widths = (maxs, maxt, maxa)
-
-        print(hdr_tmplt.format(*chain(headings, widths)))
-        print(row_tmplt.format(*chain(row, widths)))
-
-
-class ListDevices(object):
-    configs = (("list.zcml", __name__),)
-
-    @staticmethod
-    def add_arguments(parser, subparsers):
-        devicep = get_subparser(
-            subparsers,
-            "device",
             description="List device configurations",
-            parent=get_common_parser(),
+            parent=get_devargs_parser(),
         )
-        devicep.add_argument(
+        listp.add_argument(
             "-u",
             dest="show_uid",
             default=False,
             action="store_true",
             help="Display ZODB path for device",
         )
-        devicep.add_argument(
+        listp.add_argument(
             "-f",
             dest="states",
             action=MultiChoice,
@@ -117,7 +56,7 @@ class ListDevices(object):
             help="Only list configurations having these states.  One or "
             "more states may be specified, separated by commas.",
         )
-        devicep.set_defaults(factory=ListDevices)
+        listp.set_defaults(factory=ListDevice)
 
     def __init__(self, args):
         self._monitor = "*{}*".format(args.collector).replace("***", "*")
