@@ -7,7 +7,7 @@
 # 
 ##############################################################################
 
-
+from Products.ZenUtils.snmp import authentication_protocols, privacy_protocols
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.form import schema
 from Products.Zuul.utils import ZuulMessageFactory as _t
@@ -198,15 +198,17 @@ class ISNMPv3ActionContentInfo(ISnmpTrapActionContentInfo):
     contextName = schema.TextLine(title=_t(u'Context Name'))
 
     authProto = schema.Choice(title=_t(u"Authentication Protocol"),
-        vocabulary=SimpleVocabulary.fromValues(['None', 'MD5', 'SHA']),
-        default = _t(u'None')
+        vocabulary=SimpleVocabulary.fromValues(
+            ('None',) + authentication_protocols
+        ),
+        default=_t(u'None'),
     )
     securityName = schema.TextLine(title=_t(u'Security Name'))
     securityPassphrase = schema.Password(title=_t(u'Security Passphrase'))
 
     privProto = schema.Choice(title=_t(u"Privacy Protocol"),
-        vocabulary=SimpleVocabulary.fromValues(['None', 'DES', 'AES']),
-        default = _t(u'None')
+        vocabulary=SimpleVocabulary.fromValues(('None',) + privacy_protocols),
+        default=_t(u'None'),
     )
     privacyPassphrase = schema.Password(title=_t(u'Privacy Passphrase'))
 

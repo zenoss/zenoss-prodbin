@@ -2421,24 +2421,6 @@ class Device(
         """
         map(lambda o: o.exportXml(ofile, ignorerels), (self.hw, self.os))
 
-    def zenPropertyOptions(self, propname):
-        """
-        Returns a list of possible options for a given zProperty
-        """
-        if propname == "zCollectorPlugins":
-            from Products.DataCollector.Plugins import loadPlugins
-
-            return sorted(ldr.pluginName for ldr in loadPlugins(self.dmd))
-        if propname == "zCommandProtocol":
-            return ["ssh", "telnet"]
-        if propname == "zSnmpVer":
-            return ["v1", "v2c", "v3"]
-        if propname == "zSnmpAuthType":
-            return ["", "MD5", "SHA"]
-        if propname == "zSnmpPrivType":
-            return ["", "DES", "AES"]
-        return ManagedEntity.zenPropertyOptions(self, propname)
-
     security.declareProtected(ZEN_MANAGE_DEVICE, "pushConfig")
 
     def pushConfig(self, REQUEST=None):
