@@ -120,9 +120,9 @@ class ShowDevice(object):
         store = createObject("deviceconfigcache-store", client)
         results, err = _query_cache(
             store,
-            service="*{}*".format(self._service),
-            monitor="*{}*".format(self._monitor),
-            device="*{}*".format(self._device),
+            service=self._service,
+            monitor=self._monitor,
+            device=self._device,
         )
         if results:
             for cls in set(unjellyableRegistry.values()):

@@ -59,8 +59,8 @@ class ListDevice(object):
         listp.set_defaults(factory=ListDevice)
 
     def __init__(self, args):
-        self._monitor = "*{}*".format(args.collector).replace("***", "*")
-        self._service = "*{}*".format(args.service).replace("***", "*")
+        self._monitor = args.collector
+        self._service = args.service
         self._showuid = args.show_uid
         self._devices = getattr(args, "device", [])
         state_names = getattr(args, "states", ())
@@ -81,17 +81,22 @@ class ListDevice(object):
             )
             return
         initialize_environment(configs=self.configs, useZope=False)
+        self._display(*self._collate(*self._get(haswildcard)))
+
+    def _get(self, haswildcard):
         client = getRedisClient(url=getRedisUrl())
         store = createObject("deviceconfigcache-store", client)
         query = self._make_query(haswildcard)
-        data = tuple(self._filter(store.query_statuses(query)))
-        uid_map = self._get_uidmap(store, data)
+        statuses = tuple(self._filter(store.query_statuses(query)))
+        uid_map = self._get_uidmap(store, statuses)
+        return (statuses, uid_map)
 
+    def _collate(self, statuses, uid_map):
         rows = []
         maxd, maxs, maxt, maxa, maxm = 1, 1, 1, 1, 1
         now = time.time()
         for status in sorted(
-            data, key=lambda x: (x.key.device, x.key.service)
+            statuses, key=lambda x: (x.key.device, x.key.service)
         ):
             devid = (
                 status.key.device
@@ -117,30 +122,16 @@ class ListDevice(object):
                     status.key.service,
                 )
             )
-        hdr_tmplt = "{0:{6}}  {1:{7}}  {2:^{8}}  {3:^{9}}  {4:{10}}  {5}"
-        row_tmplt = "{0:{6}}  {1:{7}}  {2:{8}}  {3:>{9}}  {4:{10}}  {5}"
-        headings = (
-            "DEVICE",
-            "STATUS",
-            "LAST CHANGE",
-            "AGE",
-            "COLLECTOR",
-            "SERVICE",
-        )
-        widths = (maxd, maxs, maxt, maxa, maxm)
+        return rows, (maxd, maxs, maxt, maxa, maxm)
+
+    def _display(self, rows, widths):
         if rows:
-            print(hdr_tmplt.format(*chain(headings, widths)))
+            print(_header_template.format(*chain(_headings, widths)))
         for row in rows:
-            print(row_tmplt.format(*chain(row, widths)))
+            print(_row_template.format(*chain(row, widths)))
 
     def _make_query(self, haswildcard):
-        if haswildcard:
-            return DeviceQuery(
-                service=self._service,
-                monitor=self._monitor,
-                device=self._devices[0],
-            )
-        if len(self._devices) == 1:
+        if haswildcard or len(self._devices) == 1:
             return DeviceQuery(
                 service=self._service,
                 monitor=self._monitor,
@@ -166,6 +157,10 @@ class ListDevice(object):
             return dict(uids)
         return {}
 
+
+_header_template = "{0:{6}}  {1:{7}}  {2:^{8}}  {3:^{9}}  {4:{10}}  {5}"
+_row_template = "{0:{6}}  {1:{7}}  {2:{8}}  {3:>{9}}  {4:{10}}  {5}"
+_headings = ("DEVICE", "STATUS", "LAST CHANGE", "AGE", "COLLECTOR", "SERVICE")
 
 _name_state_lookup = {
     "current": ConfigStatus.Current,
