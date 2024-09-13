@@ -81,18 +81,20 @@ class ExpireDevice(object):
                     file=sys.stderr,
                 )
                 return
-            else:
-                self._devices = self._devices[0].replace("*", "")
         if not self._confirm_inputs():
             print("exit")
             return
         initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
         store = createObject("deviceconfigcache-store", client)
-        query = DeviceQuery(service=self._service, monitor=self._monitor)
+        self._expire(store, self._get(store, haswildcard))
+
+    def _get(self, store, haswildcard):
+        query = self._make_query(haswildcard)
         results = store.query_statuses(query)
-        method = self._no_devices if not self._devices else self._with_devices
-        keys = method(results, wildcard=haswildcard)
+        return tuple(self._get_keys_from_results(results, haswildcard))
+
+    def _expire(self, store, keys):
         now = time.time()
         store.set_expired(*((key, now) for key in keys))
         count = len(keys)
@@ -101,24 +103,23 @@ class ExpireDevice(object):
             % (count, "" if count == 1 else "s")
         )
 
-    def _no_devices(self, results, wildcard=False):
-        return tuple(status.key for status in results)
+    def _make_query(self, haswildcard):
+        if haswildcard:
+            return DeviceQuery(
+                service=self._service,
+                monitor=self._monitor,
+                device=self._devices[0],
+            )
+        return DeviceQuery(service=self._service, monitor=self._monitor)
 
-    def _with_devices(self, results, wildcard=False):
-        if wildcard:
-            predicate = self._check_wildcard
-        else:
-            predicate = self._check_list
-
-        return tuple(
-            status.key for status in results if predicate(status.key.device)
+    def _get_keys_from_results(self, results, haswildcard):
+        if not self._devices or haswildcard:
+            return (status.key for status in results)
+        return (
+            status.key
+            for status in results
+            if status.key.device in self._devices
         )
-
-    def _check_wildcard(self, device):
-        return self._devices in device
-
-    def _check_list(self, device):
-        return device in self._devices
 
     def _confirm_inputs(self):
         if self._devices:
