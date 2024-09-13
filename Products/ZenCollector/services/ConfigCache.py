@@ -127,12 +127,8 @@ class ConfigCache(HubService):
         removed = previous - current
 
         return {
-            "new": [
-                _get_configs(newest_keys, self._stores.device, self.log)
-            ],
-            "updated": [
-                _get_configs(updated_keys, self._stores.device, self.log)
-            ],
+            "new": list(self._get_configs(newest_keys)),
+            "updated": list(self._get_configs(updated_keys)),
             "removed": list(removed),
         }
 
@@ -194,24 +190,23 @@ class ConfigCache(HubService):
                     method = self.log.warn
                 method("error filtering device ID %s", key.device)
 
-
-def _get_configs(keys, store, log):
-    if log.isEnabledFor(logging.DEBUG):
-        mlog = log.exception
-    else:
-        mlog = log.error
-    for key in keys:
-        try:
-            yield store.get(key).config
-        except Exception as ex:
-            mlog(
-                "failed to retrieve config "
-                "error=%s service=%s collector=%s device=%s",
-                ex,
-                key.service,
-                key.monitor,
-                key.device,
-            )
+    def _get_configs(self, keys):
+        if self.log.isEnabledFor(logging.DEBUG):
+            mlog = self.log.exception
+        else:
+            mlog = self.log.error
+        for key in keys:
+            try:
+                yield self._stores.device.get(key).config
+            except Exception as ex:
+                mlog(
+                    "failed to retrieve config "
+                    "error=%s service=%s collector=%s device=%s",
+                    ex,
+                    key.service,
+                    key.monitor,
+                    key.device,
+                )
 
 
 class _DeviceProxy(object):
