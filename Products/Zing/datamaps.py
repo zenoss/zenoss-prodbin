@@ -155,7 +155,6 @@ class ZingDatamapHandler(object):
             device_organizers_fact = ZFact.organizer_fact_from_device(device)
 
             for (f, ctx) in facts:
-
                 # Return datamap fact
                 comp_uuid = f.metadata.get(
                     ZFact.DimensionKeys.CONTEXT_UUID_KEY, ""
@@ -163,7 +162,8 @@ class ZingDatamapHandler(object):
                 zing_tx_state.already_generated_device_info_facts.add(
                     comp_uuid
                 )
-                yield f
+                if f.is_valid():
+                    yield f
                 if ctx is None:
                     for component in device.getDeviceComponents():
                         if component.getUUID() == comp_uuid:
@@ -171,7 +171,6 @@ class ZingDatamapHandler(object):
                             break
                 comp_groups = []
                 if ctx is not None and ctx.is_device_component:
-
                     # organizers and impact relationships facts for the component
                     comp_groups = ctx._obj.getComponentGroupNames()
                     # organizers fact for the component
