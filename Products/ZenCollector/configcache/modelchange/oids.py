@@ -40,6 +40,16 @@ class IdentityOidTransform(BaseTransform):
 
 
 @implementer(IInvalidationOid)
+class RootMibOrganizer(BaseTransform):
+    """
+    Transform into the root MibOrganizer.
+    """
+
+    def transformOid(self, oid):
+        return self._entity.getDmdRoot("Mibs")._p_oid
+
+
+@implementer(IInvalidationOid)
 class ComponentOidTransform(BaseTransform):
     """
     If the object has a relationship with a device, return the device's OID.

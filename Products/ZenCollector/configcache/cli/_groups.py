@@ -65,7 +65,7 @@ class DeviceGroup(object):
     def summary(self):
         if self._samples == 0:
             return []
-        return list(s.value() for s in self._summary)
+        return [s.value() for s in self._summary]
 
 
 class ServiceGroup(object):
@@ -119,7 +119,7 @@ class ServiceGroup(object):
     def summary(self):
         if self._samples == 0:
             return []
-        return list(s.value() for s in self._summary)
+        return [s.value() for s in self._summary]
 
 
 class MonitorGroup(object):
@@ -173,7 +173,7 @@ class MonitorGroup(object):
     def summary(self):
         if self._samples == 0:
             return []
-        return list(s.value() for s in self._summary)
+        return [s.value() for s in self._summary]
 
 
 class StatusGroup(object):
@@ -228,4 +228,4 @@ class StatusGroup(object):
     def summary(self):
         if self._samples == 0:
             return []
-        return list(s.value() for s in self._summary)
+        return [s.value() for s in self._summary]

@@ -20,9 +20,9 @@ from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 from Products.Jobber.task import requires, DMD
 from Products.Jobber.zenjobs import app
 
-from .cache import CacheKey, CacheRecord, ConfigStatus
-from .constants import Constants
-from .utils import get_pending_timeout
+from ..cache import DeviceKey, DeviceRecord, ConfigStatus
+from ..constants import Constants
+from ..utils import DeviceProperties
 
 
 @app.task(
@@ -66,7 +66,7 @@ def buildDeviceConfig(
     svcconfigclass = resolve(configclassname)
     svcname = configclassname.rsplit(".", 1)[0]
     store = _getStore()
-    key = CacheKey(svcname, monitorname, deviceid)
+    key = DeviceKey(svcname, monitorname, deviceid)
 
     # record when this build starts
     started = time()
@@ -131,11 +131,14 @@ def buildDeviceConfig(
     service = svcconfigclass(dmd, monitorname)
     result = service.remote_getDeviceConfigs((deviceid,))
     config = result[0] if result else None
+
+    # get a new store; the prior store's connection may have gone stale.
+    store = _getStore()
     if config is None:
         _delete_config(key, store, log)
     else:
         uid = device.getPrimaryId()
-        record = CacheRecord.make(
+        record = DeviceRecord.make(
             svcname, monitorname, deviceid, uid, time(), config
         )
 
@@ -257,7 +260,7 @@ def _job_is_old(status, submitted, now, device, log):
     if submitted is None or status is None:
         # job is not old (default state)
         return False
-    limit = get_pending_timeout(device)
+    limit = DeviceProperties(device).pending_timeout
     if submitted < (now - limit):
         log.warn(
             "skipped this job because it's too old  "
@@ -266,7 +269,7 @@ def _job_is_old(status, submitted, now, device, log):
             status.key.monitor,
             status.key.service,
             submitted,
-            Constants.pending_timeout_id,
+            Constants.device_pending_timeout_id,
             limit,
         )
         return True
@@ -275,4 +278,4 @@ def _job_is_old(status, submitted, now, device, log):
 
 def _getStore():
     client = getRedisClient(url=getRedisUrl())
-    return createObject("configcache-store", client)
+    return createObject("deviceconfigcache-store", client)

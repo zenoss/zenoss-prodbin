@@ -16,8 +16,8 @@ from unittest import TestCase
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.Jobber.tests.utils import subTest, RedisLayer
 
-from ..cache import CacheKey, CacheQuery, CacheRecord, ConfigStatus
-from ..cache.storage import ConfigStore
+from ..cache import DeviceKey, DeviceQuery, DeviceRecord, ConfigStatus
+from ..cache.storage import DeviceConfigStore
 
 
 _fields = collections.namedtuple(
@@ -25,13 +25,13 @@ _fields = collections.namedtuple(
 )
 
 
-class EmptyConfigStoreTest(TestCase):
-    """Test an empty ConfigStore object."""
+class EmptyDeviceConfigStoreTest(TestCase):
+    """Test an empty DeviceConfigStore object."""
 
     layer = RedisLayer
 
     def setUp(t):
-        t.store = ConfigStore(t.layer.redis)
+        t.store = DeviceConfigStore(t.layer.redis)
 
     def tearDown(t):
         del t.store
@@ -41,11 +41,11 @@ class EmptyConfigStoreTest(TestCase):
         t.assertTupleEqual(tuple(t.store.search()), ())
 
     def test_get_with_default_default(t):
-        key = CacheKey("a", "b", "c")
+        key = DeviceKey("a", "b", "c")
         t.assertIsNone(t.store.get(key))
 
     def test_get_with_nondefault_default(t):
-        key = CacheKey("a", "b", "c")
+        key = DeviceKey("a", "b", "c")
         dflt = object()
         t.assertEqual(t.store.get(key, dflt), dflt)
 
@@ -53,7 +53,7 @@ class EmptyConfigStoreTest(TestCase):
         t.assertIsNone(t.store.remove())
 
     def test_get_status_unknown_key(t):
-        key = CacheKey("a", "b", "c")
+        key = DeviceKey("a", "b", "c")
         result = t.store.get_status(key)
         t.assertIsNone(result)
 
@@ -82,11 +82,11 @@ class NoConfigTest(TestCase):
 
     layer = RedisLayer
 
-    key = CacheKey("a", "b", "c")
+    key = DeviceKey("a", "b", "c")
     now = 12345.0
 
     def setUp(t):
-        t.store = ConfigStore(t.layer.redis)
+        t.store = DeviceConfigStore(t.layer.redis)
 
     def tearDown(t):
         del t.store
@@ -99,25 +99,25 @@ class NoConfigTest(TestCase):
         t.assertEqual(0, len(tuple(t.store.search())))
 
     def test_retired(t):
-        expected = ConfigStatus.Retired(t.key, None, t.now)
+        expected = ConfigStatus.Retired(t.key, t.now)
         t.store.set_retired((t.key, t.now))
         status = t.store.get_status(t.key)
         t.assertEqual(expected, status)
 
     def test_expired(t):
-        expected = ConfigStatus.Expired(t.key, None, t.now)
+        expected = ConfigStatus.Expired(t.key, t.now)
         t.store.set_expired((t.key, t.now))
         status = t.store.get_status(t.key)
         t.assertEqual(expected, status)
 
     def test_pending(t):
-        expected = ConfigStatus.Pending(t.key, None, t.now)
+        expected = ConfigStatus.Pending(t.key, t.now)
         t.store.set_pending((t.key, t.now))
         status = t.store.get_status(t.key)
         t.assertEqual(expected, status)
 
     def test_building(t):
-        expected = ConfigStatus.Building(t.key, None, t.now)
+        expected = ConfigStatus.Building(t.key, t.now)
         t.store.set_building((t.key, t.now))
         status = t.store.get_status(t.key)
         t.assertEqual(expected, status)
@@ -135,10 +135,10 @@ class _BaseTest(TestCase):
 
     def setUp(t):
         DeviceProxy.__eq__ = _compare_configs
-        t.store = ConfigStore(t.layer.redis)
+        t.store = DeviceConfigStore(t.layer.redis)
         t.config1 = _make_config("test1", "_test1", "abc-test-01")
         t.config2 = _make_config("test2", "_test2", "abc-test-02")
-        t.record1 = CacheRecord.make(
+        t.record1 = DeviceRecord.make(
             t.fields[0].service,
             t.fields[0].monitor,
             t.fields[0].device,
@@ -146,7 +146,7 @@ class _BaseTest(TestCase):
             t.fields[0].updated,
             t.config1,
         )
-        t.record2 = CacheRecord.make(
+        t.record2 = DeviceRecord.make(
             t.fields[1].service,
             t.fields[1].monitor,
             t.fields[1].device,
@@ -165,17 +165,17 @@ class _BaseTest(TestCase):
 
 
 class ConfigStoreAddTest(_BaseTest):
-    """Test the `add` method of ConfigStore."""
+    """Test the `add` method of DeviceConfigStore."""
 
     def test_add_new_config(t):
         t.store.add(t.record1)
         t.store.add(t.record2)
-        expected1 = CacheKey(
+        expected1 = DeviceKey(
             t.fields[0].service,
             t.fields[0].monitor,
             t.fields[0].device,
         )
-        expected2 = CacheKey(
+        expected2 = DeviceKey(
             t.fields[1].service,
             t.fields[1].monitor,
             t.fields[1].device,
@@ -186,16 +186,16 @@ class ConfigStoreAddTest(_BaseTest):
         t.assertIn(expected2, result)
 
         result = t.store.get(t.record1.key)
-        t.assertIsInstance(result, CacheRecord)
+        t.assertIsInstance(result, DeviceRecord)
         t.assertEqual(t.record1, result)
 
         result = t.store.get(t.record2.key)
-        t.assertIsInstance(result, CacheRecord)
+        t.assertIsInstance(result, DeviceRecord)
         t.assertEqual(t.record2, result)
 
 
 class ConfigStoreSearchTest(_BaseTest):
-    """Test the `search` method of ConfigStore."""
+    """Test the `search` method of DeviceConfigStore."""
 
     def test_negative_search(t):
         t.store.add(t.record1)
@@ -209,7 +209,7 @@ class ConfigStoreSearchTest(_BaseTest):
         )
         for case in cases:
             with subTest(key=case):
-                result = tuple(t.store.search(CacheQuery(**case)))
+                result = tuple(t.store.search(DeviceQuery(**case)))
                 t.assertTupleEqual((), result)
 
     def test_positive_search_single(t):
@@ -229,7 +229,7 @@ class ConfigStoreSearchTest(_BaseTest):
         )
         for case in cases:
             with subTest(key=case):
-                result = tuple(t.store.search(CacheQuery(**case)))
+                result = tuple(t.store.search(DeviceQuery(**case)))
                 t.assertTupleEqual((t.record1.key,), result)
 
     def test_positive_search_multiple(t):
@@ -253,12 +253,12 @@ class ConfigStoreSearchTest(_BaseTest):
         )
         for args, count in cases:
             with subTest(key=args):
-                result = tuple(t.store.search(CacheQuery(**args)))
+                result = tuple(t.store.search(DeviceQuery(**args)))
                 t.assertEqual(count, len(result))
 
 
 class ConfigStoreGetStatusTest(_BaseTest):
-    """Test the `get_status` method of ConfigStore."""
+    """Test the `get_status` method of DeviceConfigStore."""
 
     def test_get_status(t):
         t.store.add(t.record1)
@@ -276,7 +276,7 @@ class ConfigStoreGetStatusTest(_BaseTest):
 
 
 class ConfigStoreGetOlderTest(_BaseTest):
-    """Test the `get_older` method of ConfigStore."""
+    """Test the `get_older` method of DeviceConfigStore."""
 
     def test_get_older_less_single(t):
         t.store.add(t.record1)
@@ -366,7 +366,7 @@ class ConfigStoreGetOlderTest(_BaseTest):
 
 
 class ConfigStoreGetNewerTest(_BaseTest):
-    """Test the `get_newer` method of ConfigStore."""
+    """Test the `get_newer` method of DeviceConfigStore."""
 
     def test_get_newer_less_single(t):
         t.store.add(t.record1)
@@ -433,7 +433,7 @@ class SetStatusOnceTest(_BaseTest):
 
     def test_retired_once(t):
         ts = t.record1.updated + 100
-        expected = ConfigStatus.Retired(t.record1.key, None, ts)
+        expected = ConfigStatus.Retired(t.record1.key, ts)
         t.store.set_retired((t.record1.key, ts))
 
         actual = next(t.store.get_retired(), None)
@@ -450,7 +450,7 @@ class SetStatusOnceTest(_BaseTest):
 
     def test_expired_once(t):
         ts = t.record1.updated + 100
-        expected = ConfigStatus.Expired(t.record1.key, None, ts)
+        expected = ConfigStatus.Expired(t.record1.key, ts)
         t.store.set_expired((t.record1.key, ts))
 
         actual = next(t.store.get_expired(), None)
@@ -467,7 +467,7 @@ class SetStatusOnceTest(_BaseTest):
 
     def test_pending_once(t):
         ts = t.record1.updated + 100
-        expected = ConfigStatus.Pending(t.record1.key, None, ts)
+        expected = ConfigStatus.Pending(t.record1.key, ts)
         t.store.set_pending((t.record1.key, ts))
 
         actual = next(t.store.get_pending(), None)
@@ -484,7 +484,7 @@ class SetStatusOnceTest(_BaseTest):
 
     def test_building_once(t):
         ts = t.record1.updated + 100
-        expected = ConfigStatus.Building(t.record1.key, None, ts)
+        expected = ConfigStatus.Building(t.record1.key, ts)
         t.store.set_building((t.record1.key, ts))
 
         actual = next(t.store.get_building(), None)
@@ -509,7 +509,7 @@ class SetStatusTwiceTest(_BaseTest):
     def test_retired_twice(t):
         ts1 = t.record1.updated + 100
         ts2 = t.record1.updated + 200
-        expected = ConfigStatus.Retired(t.record1.key, None, ts2)
+        expected = ConfigStatus.Retired(t.record1.key, ts2)
         t.store.set_retired((t.record1.key, ts1))
         t.store.set_retired((t.record1.key, ts2))
 
@@ -528,7 +528,7 @@ class SetStatusTwiceTest(_BaseTest):
     def test_expired_twice(t):
         ts1 = t.record1.updated + 100
         ts2 = t.record1.updated + 200
-        expected = ConfigStatus.Expired(t.record1.key, None, ts2)
+        expected = ConfigStatus.Expired(t.record1.key, ts2)
         t.store.set_expired((t.record1.key, ts1))
         t.store.set_expired((t.record1.key, ts2))
 
@@ -547,7 +547,7 @@ class SetStatusTwiceTest(_BaseTest):
     def test_pending_twice(t):
         ts1 = t.record1.updated + 100
         ts2 = t.record1.updated + 200
-        expected = ConfigStatus.Pending(t.record1.key, None, ts2)
+        expected = ConfigStatus.Pending(t.record1.key, ts2)
         t.store.set_pending((t.record1.key, ts1))
         t.store.set_pending((t.record1.key, ts2))
 
@@ -566,7 +566,7 @@ class SetStatusTwiceTest(_BaseTest):
     def test_building_twice(t):
         ts1 = t.record1.updated + 100
         ts2 = t.record1.updated + 200
-        expected = ConfigStatus.Building(t.record1.key, None, ts2)
+        expected = ConfigStatus.Building(t.record1.key, ts2)
         t.store.set_building((t.record1.key, ts1))
         t.store.set_building((t.record1.key, ts2))
 
@@ -703,7 +703,7 @@ class GetStatusTest(_BaseTest):
     def test_current(t):
         t.store.add(t.record1)
         expected = ConfigStatus.Current(
-            t.record1.key, t.record1.uid, t.record1.updated
+            t.record1.key, t.record1.updated
         )
         actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
@@ -712,7 +712,7 @@ class GetStatusTest(_BaseTest):
         t.store.add(t.record1)
         ts = t.record1.updated + 100
         t.store.set_retired((t.record1.key, ts))
-        expected = ConfigStatus.Retired(t.record1.key, t.record1.uid, ts)
+        expected = ConfigStatus.Retired(t.record1.key, ts)
         actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
@@ -720,7 +720,7 @@ class GetStatusTest(_BaseTest):
         t.store.add(t.record1)
         ts = t.record1.updated + 200
         t.store.set_expired((t.record1.key, ts))
-        expected = ConfigStatus.Expired(t.record1.key, t.record1.uid, ts)
+        expected = ConfigStatus.Expired(t.record1.key, ts)
         actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
@@ -728,7 +728,7 @@ class GetStatusTest(_BaseTest):
         t.store.add(t.record1)
         ts = t.record1.updated + 300
         t.store.set_pending((t.record1.key, ts))
-        expected = ConfigStatus.Pending(t.record1.key, t.record1.uid, ts)
+        expected = ConfigStatus.Pending(t.record1.key, ts)
         actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
@@ -736,7 +736,7 @@ class GetStatusTest(_BaseTest):
         t.store.add(t.record1)
         ts = t.record1.updated + 400
         t.store.set_building((t.record1.key, ts))
-        expected = ConfigStatus.Building(t.record1.key, t.record1.uid, ts)
+        expected = ConfigStatus.Building(t.record1.key, ts)
         actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
@@ -837,7 +837,7 @@ class TestStatusChangesFromRetired(_BaseTest):
         actual = next(t.store.get_retired(), None)
         t.assertIsNone(actual)
 
-        expected = ConfigStatus.Expired(t.record1.key, None, expired)
+        expected = ConfigStatus.Expired(t.record1.key, expired)
         actual = next(t.store.get_expired(), None)
         t.assertEqual(expected, actual)
 
@@ -851,7 +851,7 @@ class TestStatusChangesFromRetired(_BaseTest):
         actual = next(t.store.get_retired(), None)
         t.assertIsNone(actual)
 
-        expected = ConfigStatus.Pending(t.record1.key, None, pending)
+        expected = ConfigStatus.Pending(t.record1.key, pending)
         actual = next(t.store.get_pending(), None)
         t.assertEqual(expected, actual)
 
@@ -865,7 +865,7 @@ class TestStatusChangesFromRetired(_BaseTest):
         actual = next(t.store.get_retired(), None)
         t.assertIsNone(actual)
 
-        expected = ConfigStatus.Building(t.record1.key, None, building)
+        expected = ConfigStatus.Building(t.record1.key, building)
         actual = next(t.store.get_building(), None)
         t.assertEqual(expected, actual)
 
@@ -885,7 +885,7 @@ class TestStatusChangesFromExpired(_BaseTest):
         actual = next(t.store.get_expired(), None)
         t.assertIsNone(actual)
 
-        expected = ConfigStatus.Retired(t.record1.key, None, retired)
+        expected = ConfigStatus.Retired(t.record1.key, retired)
         actual = next(t.store.get_retired(), None)
         t.assertEqual(expected, actual)
 
@@ -899,7 +899,7 @@ class TestStatusChangesFromExpired(_BaseTest):
         actual = next(t.store.get_expired(), None)
         t.assertIsNone(actual)
 
-        expected = ConfigStatus.Pending(t.record1.key, None, pending)
+        expected = ConfigStatus.Pending(t.record1.key, pending)
         actual = next(t.store.get_pending(), None)
         t.assertEqual(expected, actual)
 
@@ -913,7 +913,7 @@ class TestStatusChangesFromExpired(_BaseTest):
         actual = next(t.store.get_expired(), None)
         t.assertIsNone(actual)
 
-        expected = ConfigStatus.Building(t.record1.key, None, building)
+        expected = ConfigStatus.Building(t.record1.key, building)
         actual = next(t.store.get_building(), None)
         t.assertEqual(expected, actual)
 
@@ -933,7 +933,7 @@ class TestStatusChangesFromPending(_BaseTest):
         actual = next(t.store.get_pending(), None)
         t.assertIsNone(actual)
 
-        expected = ConfigStatus.Retired(t.record1.key, None, retired)
+        expected = ConfigStatus.Retired(t.record1.key, retired)
         actual = next(t.store.get_retired(), None)
         t.assertEqual(expected, actual)
 
@@ -947,7 +947,7 @@ class TestStatusChangesFromPending(_BaseTest):
         actual = next(t.store.get_pending(), None)
         t.assertIsNone(actual)
 
-        expected = ConfigStatus.Expired(t.record1.key, None, expired)
+        expected = ConfigStatus.Expired(t.record1.key, expired)
         actual = next(t.store.get_expired(), None)
         t.assertEqual(expected, actual)
 
@@ -961,7 +961,7 @@ class TestStatusChangesFromPending(_BaseTest):
         actual = next(t.store.get_pending(), None)
         t.assertIsNone(actual)
 
-        expected = ConfigStatus.Building(t.record1.key, None, building)
+        expected = ConfigStatus.Building(t.record1.key, building)
         actual = next(t.store.get_building(), None)
         t.assertEqual(expected, actual)
 
@@ -981,7 +981,7 @@ class TestStatusChangesFromBuilding(_BaseTest):
         actual = next(t.store.get_building(), None)
         t.assertIsNone(actual)
 
-        expected = ConfigStatus.Retired(t.record1.key, None, retired)
+        expected = ConfigStatus.Retired(t.record1.key, retired)
         actual = next(t.store.get_retired(), None)
         t.assertEqual(expected, actual)
 
@@ -995,7 +995,7 @@ class TestStatusChangesFromBuilding(_BaseTest):
         actual = next(t.store.get_building(), None)
         t.assertIsNone(actual)
 
-        expected = ConfigStatus.Expired(t.record1.key, None, expired)
+        expected = ConfigStatus.Expired(t.record1.key, expired)
         actual = next(t.store.get_expired(), None)
         t.assertEqual(expected, actual)
 
@@ -1009,7 +1009,7 @@ class TestStatusChangesFromBuilding(_BaseTest):
         actual = next(t.store.get_building(), None)
         t.assertIsNone(actual)
 
-        expected = ConfigStatus.Pending(t.record1.key, None, pending)
+        expected = ConfigStatus.Pending(t.record1.key, pending)
         actual = next(t.store.get_pending(), None)
         t.assertEqual(expected, actual)
 
@@ -1099,7 +1099,7 @@ class DeviceMonitorChangeTest(_BaseTest):
         t.store.add(t.record1)
         newmonitor = "b2"
         updated = t.record1.updated + 1000
-        newrecord = CacheRecord.make(
+        newrecord = DeviceRecord.make(
             t.record1.service,
             newmonitor,
             t.record1.device,
@@ -1123,10 +1123,10 @@ class DeviceUIDTest(TestCase):
     def setUp(t):
         t.device_name = "qadevice"
         t.device_uid = "/zport/dmd/Devices/Server/Linux/devices/qadevice"
-        t.store = ConfigStore(t.layer.redis)
+        t.store = DeviceConfigStore(t.layer.redis)
         t.config1 = _make_config("qadevice", "qadevice", "abc-test-01")
         t.config2 = _make_config("qadevice", "qadevice", "abc-test-01")
-        t.record1 = CacheRecord.make(
+        t.record1 = DeviceRecord.make(
             "snmp",
             "localhost",
             t.device_name,
@@ -1134,7 +1134,7 @@ class DeviceUIDTest(TestCase):
             123456.23,
             t.config1,
         )
-        t.record2 = CacheRecord.make(
+        t.record2 = DeviceRecord.make(
             "ping",
             "localhost",
             t.device_name,
@@ -1154,11 +1154,12 @@ class DeviceUIDTest(TestCase):
         t.store.add(t.record1)
         t.store.add(t.record2)
 
-        t.assertEqual(t.device_uid, t.store.get_uid(t.device_name))
+        device_uid = t.store.get_uid(t.device_name)
+        t.assertEqual(t.device_uid, device_uid)
 
         records = tuple(
             t.store.get(key)
-            for key in t.store.search(CacheQuery(device=t.device_name))
+            for key in t.store.search(DeviceQuery(device=t.device_name))
         )
 
         t.assertEqual(2, len(records))
@@ -1176,7 +1177,7 @@ class DeviceUIDTest(TestCase):
 
         records = tuple(
             t.store.get(key)
-            for key in t.store.search(CacheQuery(device=t.device_name))
+            for key in t.store.search(DeviceQuery(device=t.device_name))
         )
         t.assertEqual(1, len(records))
         t.assertEqual(t.device_uid, records[0].uid)
@@ -1188,7 +1189,7 @@ class DeviceUIDTest(TestCase):
 
         records = tuple(
             t.store.get(key)
-            for key in t.store.search(CacheQuery(device=t.device_name))
+            for key in t.store.search(DeviceQuery(device=t.device_name))
         )
         t.assertEqual(0, len(records))
         t.assertIsNone(t.store.get_uid(t.device_name))

@@ -13,14 +13,14 @@ from unittest import TestCase
 
 from mock import call, patch
 
-from ..dispatcher import BuildConfigTaskDispatcher, build_device_config
+from ..dispatcher import DeviceConfigTaskDispatcher, build_device_config
 
 
 PATH = {"src": "Products.ZenCollector.configcache.dispatcher"}
 
 
-class BuildConfigTaskDispatcherTest(TestCase):
-    """Test the BuildConfigTaskDispatcher object."""
+class DeviceConfigTaskDispatcherTest(TestCase):
+    """Test the DeviceConfigTaskDispatcher object."""
 
     def setUp(t):
         t.class_a = type(
@@ -32,7 +32,7 @@ class BuildConfigTaskDispatcherTest(TestCase):
         )
         t.class_b_name = ".".join((t.class_b.__module__, t.class_b.__name__))
 
-        t.bctd = BuildConfigTaskDispatcher((t.class_a, t.class_b))
+        t.bctd = DeviceConfigTaskDispatcher((t.class_a, t.class_b))
 
     @patch.object(build_device_config, "apply_async")
     def test_dispatch_all(t, _apply_async):

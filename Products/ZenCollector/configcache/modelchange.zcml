@@ -29,6 +29,12 @@ License.zenoss under the directory where your Zenoss product is installed.
       />
 
    <utility
+      factory=".modelchange.filters.MibFilter"
+      provides="Products.ZenHub.interfaces.IInvalidationFilter"
+      name="MIBStuff"
+      />
+
+   <utility
       factory=".modelchange.filters.IgnorableClassesFilter"
       provides="Products.ZenHub.interfaces.IInvalidationFilter"
       name="IgnorableClasses"
@@ -86,6 +92,30 @@ License.zenoss under the directory where your Zenoss product is installed.
       factory=".modelchange.oids.ThresholdToDevice"
       provides="Products.ZenHub.interfaces.IInvalidationOid"
       for="Products.ZenModel.ThresholdClass.ThresholdClass"
+      />
+
+   <subscriber
+      factory=".modelchange.oids.RootMibOrganizer"
+      provides="Products.ZenHub.interfaces.IInvalidationOid"
+      for="Products.ZenModel.MibNode.MibNode"
+      />
+
+   <subscriber
+      factory=".modelchange.oids.RootMibOrganizer"
+      provides="Products.ZenHub.interfaces.IInvalidationOid"
+      for="Products.ZenModel.MibNotification.MibNotification"
+      />
+
+   <subscriber
+      factory=".modelchange.oids.RootMibOrganizer"
+      provides="Products.ZenHub.interfaces.IInvalidationOid"
+      for="Products.ZenModel.MibModule.MibModule"
+      />
+
+   <subscriber
+      factory=".modelchange.oids.RootMibOrganizer"
+      provides="Products.ZenHub.interfaces.IInvalidationOid"
+      for="Products.ZenModel.MibOrganizer.MibOrganizer"
       />
 
 </configure>

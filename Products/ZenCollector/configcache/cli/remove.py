@@ -11,34 +11,76 @@ from __future__ import absolute_import, print_function
 
 import sys
 
-import six
-
 from zope.component import createObject
 
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
 from ..app import initialize_environment
 from ..app.args import get_subparser
-from ..cache import CacheQuery
+from ..cache import DeviceQuery
 
 from .args import get_common_parser
+from ._selection import get_message, confirm
 
 
 class Remove(object):
+    description = "Mark configurations as expired"
 
-    description = "Delete configurations from the cache"
+    @staticmethod
+    def add_arguments(parser, subparsers):
+        removep = get_subparser(
+            subparsers,
+            "remove",
+            description=Remove.description,
+        )
+        remove_subparsers = removep.add_subparsers(title="Remove Subcommands")
+        RemoveDevices.add_arguments(removep, remove_subparsers)
+        RemoveOidMap.add_arguments(removep, remove_subparsers)
 
+
+class RemoveOidMap(object):
+
+    description = "Remove oidmap configuration from the cache"
     configs = (("remove.zcml", __name__),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
         subp = get_subparser(
             subparsers,
-            "remove",
-            description=Remove.description,
+            "oidmap",
+            description=RemoveOidMap.description,
+        )
+        subp.set_defaults(factory=RemoveOidMap)
+
+    def __init__(self, args):
+        pass
+
+    def run(self):
+        initialize_environment(configs=self.configs, useZope=False)
+        client = getRedisClient(url=getRedisUrl())
+        store = createObject("oidmapcache-store", client)
+        status = store.get_status()
+        if status is None:
+            print("No oidmap configuration found in the cache")
+        else:
+            store.remove()
+            print("Oidmap configuration removed from the cache")
+
+
+class RemoveDevices(object):
+
+    description = "Delete device configurations from the cache"
+    configs = (("remove.zcml", __name__),)
+
+    @staticmethod
+    def add_arguments(parser, subparsers):
+        subp = get_subparser(
+            subparsers,
+            "device",
+            description=RemoveDevices.description,
             parent=get_common_parser(),
         )
-        subp.set_defaults(factory=Remove)
+        subp.set_defaults(factory=RemoveDevices)
 
     def __init__(self, args):
         self._monitor = args.collector
@@ -62,8 +104,8 @@ class Remove(object):
             return
         initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
-        store = createObject("configcache-store", client)
-        query = CacheQuery(service=self._service, monitor=self._monitor)
+        store = createObject("deviceconfigcache-store", client)
+        query = DeviceQuery(service=self._service, monitor=self._monitor)
         results = store.query_statuses(query)
         method = self._no_devices if not self._devices else self._with_devices
         keys = method(results, wildcard=haswildcard)
@@ -96,64 +138,5 @@ class Remove(object):
     def _confirm_inputs(self):
         if self._devices:
             return True
-        if (self._monitor, self._service) == ("*", "*"):
-            mesg = "Delete all device configurations"
-        elif "*" not in self._monitor and self._service == "*":
-            mesg = (
-                "Delete all configurations for devices monitored by the "
-                "'%s' collector" % (self._monitor,)
-            )
-        elif "*" in self._monitor and self._service == "*":
-            mesg = (
-                "Delete all configurations for devices monitored by all "
-                "collectors matching '%s'" % (self._monitor,)
-            )
-        elif self._monitor == "*" and "*" not in self._service:
-            mesg = (
-                "Delete all device configurations created by the '%s' "
-                "service" % (self._service.split(".")[-1],)
-            )
-        elif self._monitor == "*" and "*" in self._service:
-            mesg = (
-                "Delete all device configurations created by all "
-                "services matching '%s'" % (self._service,)
-            )
-        elif "*" in self._monitor and "*" not in self._service:
-            mesg = (
-                "Delete all configurations created by the '%s' "
-                "service for devices monitored by all collectors "
-                "matching '%s'" % (self._service, self._monitor)
-            )
-        elif "*" not in self._monitor and "*" in self._service:
-            mesg = (
-                "Delete all configurations for devices monitored by the "
-                "'%s' collector and created by all services matching '%s'"
-                % (self._monitor, self._service)
-            )
-        elif "*" not in self._monitor and "*" not in self._service:
-            mesg = (
-                "Delete all configurations for devices monitored by the "
-                "'%s' collector and created by the '%s' service"
-                % (self._monitor, self._service)
-            )
-        elif "*" in self._monitor and "*" in self._service:
-            mesg = (
-                "Delete all configurations device monitored by all "
-                "collectors matching '%s' and created by all services "
-                "matching '%s'" % (self._monitor, self._service)
-            )
-        else:
-            mesg = "collector '%s'  service '%s'" % (
-                self._monitor,
-                self._service,
-            )
-        return _confirm(mesg)
-
-
-def _confirm(mesg):
-    response = None
-    while response not in ["y", "n", ""]:
-        response = six.moves.input(
-            "%s. Are you sure (y/N)? " % (mesg,)
-        ).lower()
-    return response == "y"
+        mesg = get_message("Delete", self._monitor, self._service)
+        return confirm(mesg)
