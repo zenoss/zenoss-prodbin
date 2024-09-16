@@ -90,9 +90,9 @@ def _convertConfigLinesToArguments(parser, lines):
     # valid key
     #     an option's string without the leading "--"
     #     can differ from an option's destination
-    validOpts = set(
-        (opt.get_opt_string() for opt in getAllParserOptionsGen(parser))
-    )
+    validOpts = {
+        opt.get_opt_string() for opt in getAllParserOptionsGen(parser)
+    }
 
     args = []
     for line in lines:
@@ -163,30 +163,30 @@ class _GlobalConfParserAdapter(object):
             with open(filename) as file:
                 for line in file:
                     if line.lstrip().startswith("#") or line.strip() == "":
-                        lines.append(dict(type="comment", line=line))
+                        lines.append({"type": "comment", "line": line})
                     else:
                         try:
                             key, value = line.strip().split(None, 1)
                         except ValueError:
                             lines.append(
-                                dict(
-                                    type="option",
-                                    line=line,
-                                    key=line.strip(),
-                                    value=None,
-                                    option=None,
-                                )
+                                {
+                                    "type": "option",
+                                    "line": line,
+                                    "key": line.strip(),
+                                    "value": None,
+                                    "option": None,
+                                }
                             )
                         else:
                             option = self.parser.get_option("--%s" % key)
                             lines.append(
-                                dict(
-                                    type="option",
-                                    line=line,
-                                    key=key,
-                                    value=value,
-                                    option=option,
-                                )
+                                {
+                                    "type": "option",
+                                    "line": line,
+                                    "key": key,
+                                    "value": value,
+                                    "option": option,
+                                }
                             )
         except IOError as e:
             errorMessage = (

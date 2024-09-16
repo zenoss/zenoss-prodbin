@@ -228,7 +228,7 @@ class ZCmdBase(ZenDaemon):
         if not self.app:
             self.opendb()
         if not self.dataroot:
-            self.dataroot = getObjByPath(self.app, self.options.dataroot)
+            self.dataroot = getObjByPath(self.app, self.options.zodb_dataroot)
             self.dmd = self.dataroot
 
     def getContext(self, app):
@@ -247,7 +247,7 @@ class ZCmdBase(ZenDaemon):
 
     def getDmdObj(self, path):
         """Return an object based on a path starting from the dmd."""
-        return getObjByPath(self.app, self.options.dataroot + path)
+        return getObjByPath(self.app, self.options.zodb_dataroot + path)
 
     def findDevice(self, name):
         """Return a device based on its FQDN."""

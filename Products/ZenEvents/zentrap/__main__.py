@@ -1,17 +1,13 @@
-#! /usr/bin/env bash
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2024, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-. $ZENHOME/bin/zenfunctions
+from Products.ZenEvents.zentrap.app import TrapDaemon
 
-PRGHOME=$ZENHOME/Products/ZenEvents
-PRGNAME=zentrap
-CFGFILE=$CFGDIR/zentrap.conf
-
-generic "$@"
+if __name__ == "__main__":
+    TrapDaemon().run()

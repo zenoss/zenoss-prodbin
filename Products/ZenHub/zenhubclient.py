@@ -293,7 +293,7 @@ class ZenHubClient(object):
 
     def _reset(self):
         self._zenhubref = None
-        self._services = {}
+        self._services.clear()
 
 
 def _get_reactor(reactor):

@@ -152,7 +152,7 @@ class MySqlZodbFactory(object):
         group.add_option(
             "-R",
             "--zodb-dataroot",
-            dest="dataroot",
+            dest="zodb_dataroot",
             default="/zport/dmd",
             help="root object for data load (i.e. /zport/dmd)",
         )

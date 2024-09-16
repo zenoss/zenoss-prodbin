@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:meta="http://namespaces.zope.org/meta"
            i18n_domain="Five">
