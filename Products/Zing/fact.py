@@ -89,7 +89,7 @@ class Fact(object):
 
     def is_valid(self):
         uuid = self.metadata.get(DimensionKeys.CONTEXT_UUID_KEY)
-        return uuid is not None and uuid is not ""
+        return uuid is not None and uuid != ""
 
     def set_context_uuid_from_object(self, obj):
         self.metadata[DimensionKeys.CONTEXT_UUID_KEY] = get_context_uuid(obj)

@@ -832,29 +832,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             if not devs.hasProperty(id):
                 devs._setProperty(id, defaultValue, type)
 
-    def zenPropertyOptions(self, propname):
-        """
-        Provide a set of default options for a zProperty
-
-        @param propname: zProperty name
-        @type propname: string
-        @return: list of zProperty options
-        @rtype: list
-        """
-        if propname == 'zCollectorPlugins':
-            from Products.DataCollector.Plugins import loadPlugins
-            return sorted(ldr.pluginName for ldr in loadPlugins(self.dmd))
-        if propname == 'zCommandProtocol':
-            return ['ssh', 'telnet']
-        if propname == 'zSnmpVer':
-            return ['v1', 'v2c', 'v3']
-        if propname == 'zSnmpAuthType':
-            return ['', 'MD5', 'SHA']
-        if propname == 'zSnmpPrivType':
-            return ['', 'DES', 'AES']
-        return DeviceOrganizer.zenPropertyOptions(self, propname)
-
-
     def pushConfig(self, REQUEST=None):
         """
         This will result in a push of all the devices to live collectors

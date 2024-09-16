@@ -23,6 +23,7 @@ from Products.ZenModel.ZenossSecurity import (
     ZEN_ZPROPERTIES_EDIT,
     ZEN_ZPROPERTIES_VIEW,
 )
+from Products.ZenUtils.snmp import authentication_protocols, privacy_protocols
 from Products.ZenUtils.Utils import getDisplayType
 from Products.ZenWidgets.interfaces import IMessageSender
 
@@ -173,15 +174,15 @@ Z_PROPERTIES = [
         "zSnmpAuthType",
         "",
         "string",
-        "SNMP Auth Type",
-        'Use "MD5" or "SHA" signatures to authenticate SNMP requests',
+        "SNMP Authentication Protocol",
+        'The cryptographic protocol used to authenticate SNMP requests.',
     ),
     (
         "zSnmpPrivType",
         "",
         "string",
-        "SNMP Priv Type",
-        '"DES" or "AES" cryptographic algorithms.',
+        "SNMP Privacy Protocol",
+        'The cryptographic protocol used to encrypt SNMP packets.',
     ),
     (
         "zSnmpContext",
@@ -1005,8 +1006,22 @@ class ZenPropertyManager(object, PropertyManager):
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, "zenPropertyOptions")
 
     def zenPropertyOptions(self, propname):
-        """Provide a set of default options for a ZProperty."""
-        return []
+        """
+        Returns a list of possible options for a given zProperty
+        """
+        if propname == "zCollectorPlugins":
+            from Products.DataCollector.Plugins import loadPlugins
+
+            return tuple(sorted(p.pluginName for p in loadPlugins(self.dmd)))
+        if propname == "zCommandProtocol":
+            return ("ssh", "telnet")
+        if propname == "zSnmpVer":
+            return ("v1", "v2c", "v3")
+        if propname == "zSnmpAuthType":
+            return ("",) + authentication_protocols
+        if propname == "zSnmpPrivType":
+            return ("",) + privacy_protocols
+        return ()
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, "isLocal")
 

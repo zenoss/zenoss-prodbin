@@ -13,7 +13,13 @@ from twisted.internet import reactor
 from twisted.internet.defer import Deferred
 from pynetsnmp.twistedsnmp import AgentProxy
 
+authentication_protocols = (
+    "MD5", "SHA", "SHA-224", "SHA-256", "SHA-384", "SHA-512"
+)
+privacy_protocols = ("DES", "AES", "AES-192", "AES-256")
+
 _LOG = logging.getLogger("zen.ZenUtils.snmp")
+
 
 class SnmpConfig(object):
     succeeded = None
