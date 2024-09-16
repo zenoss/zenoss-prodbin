@@ -247,7 +247,28 @@ class ToManyContRelationship(ToManyRelationshipBase):
 
     def objectValuesGen(self):
         """Generator that returns all related objects."""
-        return (obj.__of__(self) for obj in self._objects.values())
+        for obj in self._objects.values():
+            try:
+                yield obj.__of__(self)
+            except Exception:
+                # If the object does not have an `__of__` method, don't
+                # trust that it has an `getPrimaryId` method.  So,
+                # use `getPrimaryId` if it exists, otherwise, use the
+                # type of the object itself.
+                if hasattr(obj, "getPrimaryId"):
+                    key = "primary-id"
+                    value = obj.getPrimaryId()
+                else:
+                    # Getting the type of an object that's been wrapped
+                    # in an aquisition wrapper isn't helpful, so unwrap
+                    # it first, but don't trust that `aq_base` will
+                    # succeed.
+                    key = "type"
+                    try:
+                        value = type(aq_base(obj))
+                    except Exception:
+                        value = type(obj)
+                log.exception("failed to wrap object  %s=%s", key, value)
 
     def objectItems(self, spec=None):
         """over ride to only return owned objects for many to many rel"""
