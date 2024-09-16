@@ -59,7 +59,6 @@
 
 from __future__ import absolute_import, print_function, division
 
-import ast
 import inspect
 import json
 import logging
@@ -70,6 +69,7 @@ from functools import partial
 from itertools import chain
 
 import attr
+import six
 
 from attr.validators import instance_of
 from twisted.spread.jelly import jelly, unjelly
@@ -648,8 +648,41 @@ def _range(client, table, query, minv=None, maxv=None):
     )
 
 
-def _unjelly(data):
-    return unjelly(ast.literal_eval(data))
+def _deserialize(data):
+    # Python2's `unicode` built-in won't accept a unicode string when the
+    # `encoding` parameter is given.  Twisted's `unjelly` function assumes
+    # that a Unicode value is an utf-8-encoded non-unicode string.  However,
+    # by default, all strings from a JSON loader are Unicode strings, so
+    # Twisted's `unjelly` function fails on the unicode value.
+    #
+    # The fix is add a hook to ensure that all strings are converted into
+    # binary (non-unicode) strings.  However, Twisted's jelly format is
+    # s-expressions, which are basically nested lists, and there's no JSON
+    # hook for lists.  So, wrap the data into a JSON-object (a dict) and
+    # use a function to customize the decoding.
+    data = '{{"config":{}}}'.format(data)
+    return unjelly(json.loads(data, object_hook=_decode_config))
+
+
+def _decode_config(data):
+    return _decode_list(data.get("config"))
+
+
+def _decode_list(data):
+    return [_decode_item(item) for item in data]
+
+
+def _decode_item(item):
+    if isinstance(item, six.text_type):
+        return item.encode("utf-8")
+    elif isinstance(item, list):
+        return _decode_list(item)
+    else:
+        return item
+
+
+def _serialize(config):
+    return json.dumps(jelly(config))
 
 
 def _to_score(ts):
@@ -663,7 +696,7 @@ def _to_ts(score):
 def _to_record(svc, mon, dvc, uid, updated, config):
     key = DeviceKey(svc, mon, dvc)
     updated = _to_ts(updated)
-    config = _unjelly(config)
+    config = _deserialize(config)
     return DeviceRecord(key, uid, updated, config)
 
 
@@ -674,7 +707,7 @@ def _from_record(record):
         record.device,
         record.uid,
         _to_score(record.updated),
-        json.dumps(jelly(record.config)),
+        _serialize(record.config),
     )
 
 
