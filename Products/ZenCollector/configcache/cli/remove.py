@@ -19,29 +19,14 @@ from ..app import initialize_environment
 from ..app.args import get_subparser
 from ..cache import DeviceQuery
 
-from .args import get_common_parser
+from .args import get_devargs_parser
 from ._selection import get_message, confirm
-
-
-class Remove(object):
-    description = "Mark configurations as expired"
-
-    @staticmethod
-    def add_arguments(parser, subparsers):
-        removep = get_subparser(
-            subparsers,
-            "remove",
-            description=Remove.description,
-        )
-        remove_subparsers = removep.add_subparsers(title="Remove Subcommands")
-        RemoveDevices.add_arguments(removep, remove_subparsers)
-        RemoveOidMap.add_arguments(removep, remove_subparsers)
 
 
 class RemoveOidMap(object):
 
     description = "Remove oidmap configuration from the cache"
-    configs = (("remove.zcml", __name__),)
+    configs = (("store.zcml", __name__),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
@@ -67,20 +52,20 @@ class RemoveOidMap(object):
             print("Oidmap configuration removed from the cache")
 
 
-class RemoveDevices(object):
+class RemoveDevice(object):
 
     description = "Delete device configurations from the cache"
-    configs = (("remove.zcml", __name__),)
+    configs = (("store.zcml", __name__),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
         subp = get_subparser(
             subparsers,
-            "device",
-            description=RemoveDevices.description,
-            parent=get_common_parser(),
+            "remove",
+            description=RemoveDevice.description,
+            parent=get_devargs_parser(),
         )
-        subp.set_defaults(factory=RemoveDevices)
+        subp.set_defaults(factory=RemoveDevice)
 
     def __init__(self, args):
         self._monitor = args.collector

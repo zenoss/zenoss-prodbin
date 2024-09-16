@@ -23,7 +23,7 @@ from ..app import initialize_environment
 from ..app.args import get_subparser
 from ..cache import DeviceQuery
 
-from .args import get_common_parser, MultiChoice
+from .args import get_devargs_parser, MultiChoice
 from ._tables import TablesOutput, _xform
 from ._json import JSONOutput
 from ._stats import (
@@ -37,30 +37,15 @@ from ._stats import (
 from ._groups import DeviceGroup, ServiceGroup, MonitorGroup, StatusGroup
 
 
-class Stats(object):
-    description = "Show statistics about the configurations"
-
-    @staticmethod
-    def add_arguments(parser, subparsers):
-        statsp = get_subparser(
-            subparsers,
-            "stats",
-            description=Stats.description,
-        )
-        show_subparsers = statsp.add_subparsers(title="Stats Subcommands")
-        StatsDevices.add_arguments(statsp, show_subparsers)
-        StatsOidMap.add_arguments(statsp, show_subparsers)
-
-
 class StatsOidMap(object):
     description = "Show the statistics of the oidmap configuration"
-    configs = (("stats.zcml", __name__),)
+    configs = (("store.zcml", __name__),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
         subp = get_subparser(
             subparsers,
-            "oidmap",
+            "stats",
             description=StatsOidMap.description,
         )
         subp.set_defaults(factory=StatsOidMap)
@@ -91,9 +76,9 @@ class StatsOidMap(object):
                 print("Status Age: {}".format(_xform(age, "timedelta")))
 
 
-class StatsDevices(object):
+class StatsDevice(object):
     description = "Show statistics about the device configurations"
-    configs = (("stats.zcml", __name__),)
+    configs = (("store.zcml", __name__),)
 
     _groups = ("collector", "device", "service", "status")
     _statistics = ("count", "avg_age", "median_age", "min_age", "max_age")
@@ -102,15 +87,15 @@ class StatsDevices(object):
     def add_arguments(parser, subparsers):
         subp = get_subparser(
             subparsers,
-            "device",
-            StatsDevices.description,
-            parent=get_common_parser(),
+            "stats",
+            StatsDevice.description,
+            parent=get_devargs_parser(),
         )
         subp.add_argument(
             "-S",
             dest="statistic",
             action=MultiChoice,
-            choices=StatsDevices._statistics,
+            choices=StatsDevice._statistics,
             default=argparse.SUPPRESS,
             help="Specify the statistics to return.  One or more statistics "
             "may be specified (comma separated). By default, all "
@@ -120,7 +105,7 @@ class StatsDevices(object):
             "-G",
             dest="group",
             action=MultiChoice,
-            choices=StatsDevices._groups,
+            choices=StatsDevice._groups,
             default=argparse.SUPPRESS,
             help="Specify the statistics groupings to return.  One or more "
             "groupings may be specified (comma separated). By default, all "
@@ -133,11 +118,11 @@ class StatsDevices(object):
             default="tables",
             help="Output statistics in the specified format",
         )
-        subp.set_defaults(factory=StatsDevices)
+        subp.set_defaults(factory=StatsDevice)
 
     def __init__(self, args):
         stats = []
-        for statId in getattr(args, "statistic", StatsDevices._statistics):
+        for statId in getattr(args, "statistic", StatsDevice._statistics):
             if statId == "count":
                 stats.append(CountStat)
             elif statId == "avg_age":
@@ -149,7 +134,7 @@ class StatsDevices(object):
             elif statId == "max_age":
                 stats.append(MaxAgeStat)
         self._groups = []
-        for groupId in getattr(args, "group", StatsDevices._groups):
+        for groupId in getattr(args, "group", StatsDevice._groups):
             if groupId == "collector":
                 self._groups.append(MonitorGroup(stats))
             elif groupId == "device":
