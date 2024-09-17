@@ -66,6 +66,12 @@ class MetadataKeys(object):
     TITLE_KEY = "title"
     DEVICE_UUID_KEY = "device_uuid"
     DEVICE_KEY = "device"
+    OS_MODEL = "OSModel"
+    OS_MANUFACTURER = "OSManufacturer"
+    HW_MODEL = "HWModel"
+    HW_MANUFACTURER = "HWManufacturer"
+    HW_TAG = "HWTag"
+    HW_SERIAL_NUMBER = "HWSerialNumber"
 
 
 class Fact(object):
@@ -194,6 +200,27 @@ def device_info_fact(device):
     f.data[MetadataKeys.PROD_STATE_KEY] = device.convertProdState(f.data[MetadataKeys.PROD_STATE_VALUE_KEY])
     if device.device(): # zProdStateThreshold is for devices, component shouldn't have it
         f.data[MetadataKeys.PROD_STATE_THRESHOLD] = str(device.device().getProdStateThreshold())
+
+    osModel, osManufacturer = extract_model_manufacturer(device.getOSProductKey())
+    if osModel != "":
+        f.data[MetadataKeys.OS_MODEL] = osModel
+    if osManufacturer != "":
+        f.data[MetadataKeys.OS_MANUFACTURER] = osManufacturer
+
+    hwModel, hwManufacturer = extract_model_manufacturer(device.getHWProductKey())
+    if hwModel != "":
+        f.data[MetadataKeys.HW_MODEL] = hwModel
+    if hwManufacturer != "":
+        f.data[MetadataKeys.HW_MANUFACTURER] = hwManufacturer
+
+    hwTag = device.getHWTag()
+    if hwTag is not None and hwTag != "":
+        f.data[MetadataKeys.HW_TAG] = hwTag
+
+    hwSN = device.getHWSerialNumber()
+    if hwSN is not None and hwSN != "":
+        f.data[MetadataKeys.HW_SERIAL_NUMBER] = hwSN
+
     valid_types = (str, int, long, float, bool, list, tuple, set,)
     for propdict in device._propertyMap():
         propId = propdict.get("id")
@@ -202,6 +229,7 @@ def device_info_fact(device):
             or iszprop(propId)
             or iscustprop(propId)
             or device.zenPropIsPassword(propId)
+            or is_os_or_hw_prop(propId)
         ):
             continue
         value = None
@@ -238,6 +266,21 @@ def device_info_fact(device):
     except Exception:
         pass
     return f
+
+def extract_model_manufacturer(productKey):
+    model = ""
+    manufacturer = ""
+    if isinstance(productKey, tuple):
+        if len(productKey) == 2 and productKey[1] != "":
+            manufacturer = productKey[1]
+        if len(productKey) != 0:
+            model = productKey[0]
+    elif isinstance(productKey, str):
+        model = productKey
+    return (model, manufacturer)
+
+def is_os_or_hw_prop(propID):
+    return propID == "setOSProductKey" or propID == "setHWProductKey"
 
 
 def organizer_fact_from_device(device):
