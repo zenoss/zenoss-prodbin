@@ -12,18 +12,16 @@
 Provides configuration for an OID translation service.
 """
 
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
-import logging
 import json
+import logging
+
 from hashlib import md5
 
 from twisted.spread import pb
 
-from Products.ZenCollector.services.config import CollectorConfigService
-from Products.ZenHub.zodb import onUpdate
-from Products.ZenModel.DeviceClass import DeviceClass
-from Products.ZenModel.Device import Device
+from Products.ZenHub.HubService import HubService
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 log = logging.getLogger("zen.HubService.SnmpTrapConfig")
@@ -65,52 +63,10 @@ class User(pb.Copyable, pb.RemoteCopy):
 pb.setUnjellyableForClass(User, User)
 
 
-class SnmpTrapConfig(CollectorConfigService):
-
-    # Override _notifyAll, notifyAffectedDevices, _filterDevice and
-    # _filterDevicesOnly to guarantee that only one MibConfigTask is ever
-    # sent down to zentrap.
-
-    def _notifyAll(self, object):
-        pass
-
-    def _filterDevice(self, device):
-        return device.id == FakeDevice.id
-
-    def _filterDevices(self, deviceList):
-        return [FakeDevice()]
-
-    def _createDeviceProxy(self, device):
-        proxy = CollectorConfigService._createDeviceProxy(self, device)
-        proxy.configCycleInterval = 3600
-        proxy.name = "SNMP Trap Configuration"
-        proxy.device = device.id
-
-        # Gather all OID -> Name mappings from /Mibs catalog
-        proxy.oidMap = dict(
-            (b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid
-        )
-
-        proxy.trapFilters = self.zem.trapFilters
-
-        return proxy
-
-    def _create_user(self, obj):
-        # if v3 and has at least one v3 user property, then we want to
-        # create a user
-        if obj.getProperty("zSnmpVer", None) != "v3" or not any(
-            obj.hasProperty(p) for p in SNMPV3_USER_ZPROPS
-        ):
-            return
-        user = User()
-        user.version = int(obj.zSnmpVer[1])
-        user.engine_id = obj.zSnmpEngineId
-        user.username = obj.zSnmpSecurityName
-        user.authentication_type = obj.zSnmpAuthType
-        user.authentication_passphrase = obj.zSnmpAuthPassword
-        user.privacy_protocol = obj.zSnmpPrivType
-        user.privacy_passphrase = obj.zSnmpPrivPassword
-        return user
+class SnmpTrapConfig(HubService):
+    """
+    Configuration service for the zentrap collection daemon.
+    """
 
     def remote_createAllUsers(self):
         cat = IModelCatalogTool(self.dmd)
@@ -130,27 +86,46 @@ class SnmpTrapConfig(CollectorConfigService):
         return users
 
     def remote_getTrapFilters(self, remoteCheckSum):
-        currentCheckSum = md5(self.zem.trapFilters).hexdigest()
-        return (None, None) if currentCheckSum == remoteCheckSum else (currentCheckSum, self.zem.trapFilters)
+        currentCheckSum = md5(self.zem.trapFilters).hexdigest()  # noqa S324
+        return (
+            (None, None)
+            if currentCheckSum == remoteCheckSum
+            else (currentCheckSum, self.zem.trapFilters)
+        )
 
     def remote_getOidMap(self, remoteCheckSum):
-        oidMap = dict((b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid)
-        currentCheckSum = md5(json.dumps(oidMap, sort_keys=True).encode('utf-8')).hexdigest()
-        return (None, None) if currentCheckSum == remoteCheckSum else (currentCheckSum, oidMap)
+        oidMap = {b.oid: b.id for b in self.dmd.Mibs.mibSearch() if b.oid}
+        currentCheckSum = md5(  # noqa S324
+            json.dumps(oidMap, sort_keys=True).encode("utf-8")
+        ).hexdigest()
+        return (
+            (None, None)
+            if currentCheckSum == remoteCheckSum
+            else (currentCheckSum, oidMap)
+        )
+
+    def _create_user(self, obj):
+        # if v3 and has at least one v3 user property, then we want to
+        # create a user
+        if obj.getProperty("zSnmpVer", None) != "v3" or not any(
+            obj.hasProperty(p) for p in SNMPV3_USER_ZPROPS
+        ):
+            return
+        user = User()
+        user.version = int(obj.zSnmpVer[1])
+        user.engine_id = obj.zSnmpEngineId
+        user.username = obj.zSnmpSecurityName
+        user.authentication_type = obj.zSnmpAuthType
+        user.authentication_passphrase = obj.zSnmpAuthPassword
+        user.privacy_protocol = obj.zSnmpPrivType
+        user.privacy_passphrase = obj.zSnmpPrivPassword
+        return user
 
     def _objectUpdated(self, object):
         user = self._create_user(object)
         if user:
             for listener in self.listeners:
                 listener.callRemote("createUser", user)
-
-    @onUpdate(DeviceClass)
-    def deviceClassUpdated(self, object, event):
-        self._objectUpdated(object)
-
-    @onUpdate(Device)
-    def deviceUpdated(self, object, event):
-        self._objectUpdated(object)
 
 
 if __name__ == "__main__":

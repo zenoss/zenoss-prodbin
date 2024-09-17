@@ -30,11 +30,11 @@ class DevicePropertyMap(object):
         return cls(
             getPropertyValues(
                 obj,
-                Constants.time_to_live_id,
-                Constants.time_to_live_value,
+                Constants.device_time_to_live_id,
+                Constants.device_time_to_live_value,
                 _getZProperty,
             ),
-            Constants.time_to_live_value,
+            Constants.device_time_to_live_value,
         )
 
     @classmethod
@@ -42,11 +42,11 @@ class DevicePropertyMap(object):
         return cls(
             getPropertyValues(
                 obj,
-                Constants.minimum_time_to_live_id,
-                Constants.minimum_time_to_live_value,
+                Constants.device_minimum_time_to_live_id,
+                Constants.device_minimum_time_to_live_value,
                 _getZProperty,
             ),
-            Constants.minimum_time_to_live_value,
+            Constants.device_minimum_time_to_live_value,
         )
 
     @classmethod
@@ -54,11 +54,11 @@ class DevicePropertyMap(object):
         return cls(
             getPropertyValues(
                 obj,
-                Constants.pending_timeout_id,
-                Constants.pending_timeout_value,
+                Constants.device_pending_timeout_id,
+                Constants.device_pending_timeout_value,
                 _getZProperty,
             ),
-            Constants.pending_timeout_value,
+            Constants.device_pending_timeout_value,
         )
 
     @classmethod
@@ -66,11 +66,11 @@ class DevicePropertyMap(object):
         return cls(
             getPropertyValues(
                 obj,
-                Constants.build_timeout_id,
-                Constants.build_timeout_value,
+                Constants.device_build_timeout_id,
+                Constants.device_build_timeout_value,
                 _getZProperty,
             ),
-            Constants.build_timeout_value,
+            Constants.device_build_timeout_value,
         )
 
     def __init__(self, values, default):

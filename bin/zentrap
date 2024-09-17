@@ -8,11 +8,10 @@
 # 
 ##############################################################################
 
-
 . $ZENHOME/bin/zenfunctions
 
 PRGHOME=$ZENHOME/Products/ZenEvents
-PRGNAME=zentrap.py
+PRGNAME=zentrap
 CFGFILE=$CFGDIR/zentrap.conf
 
 generic "$@"

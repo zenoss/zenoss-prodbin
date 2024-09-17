@@ -24,33 +24,30 @@ from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
 from ..app import initialize_environment
 from ..app.args import get_subparser
-from ..cache import CacheQuery, ConfigStatus
+from ..cache import ConfigStatus, DeviceQuery
 
-from .args import get_common_parser, MultiChoice
+from .args import get_devargs_parser, MultiChoice
 
 
-class List_(object):
-
-    description = "List configurations"
-
-    configs = (("list.zcml", __name__),)
+class ListDevice(object):
+    configs = (("store.zcml", __name__),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
-        subp = get_subparser(
+        listp = get_subparser(
             subparsers,
             "list",
-            description=List_.description,
-            parent=get_common_parser(),
+            description="List device configurations",
+            parent=get_devargs_parser(),
         )
-        subp.add_argument(
+        listp.add_argument(
             "-u",
             dest="show_uid",
             default=False,
             action="store_true",
             help="Display ZODB path for device",
         )
-        subp.add_argument(
+        listp.add_argument(
             "-f",
             dest="states",
             action=MultiChoice,
@@ -59,11 +56,11 @@ class List_(object):
             help="Only list configurations having these states.  One or "
             "more states may be specified, separated by commas.",
         )
-        subp.set_defaults(factory=List_)
+        listp.set_defaults(factory=ListDevice)
 
     def __init__(self, args):
-        self._monitor = "*{}*".format(args.collector).replace("***", "*")
-        self._service = "*{}*".format(args.service).replace("***", "*")
+        self._monitor = args.collector
+        self._service = args.service
         self._showuid = args.show_uid
         self._devices = getattr(args, "device", [])
         state_names = getattr(args, "states", ())
@@ -84,41 +81,28 @@ class List_(object):
             )
             return
         initialize_environment(configs=self.configs, useZope=False)
+        self._display(*self._collate(*self._get(haswildcard)))
+
+    def _get(self, haswildcard):
         client = getRedisClient(url=getRedisUrl())
-        store = createObject("configcache-store", client)
-        if haswildcard:
-            query = CacheQuery(
-                service=self._service,
-                monitor=self._monitor,
-                device=self._devices[0],
-            )
-        elif len(self._devices) == 1:
-            query = CacheQuery(
-                service=self._service,
-                monitor=self._monitor,
-                device=self._devices[0],
-            )
-        else:
-            query = CacheQuery(service=self._service, monitor=self._monitor)
-        data = store.query_statuses(query)
-        if self._states:
-            data = (
-                status for status in data if isinstance(status, self._states)
-            )
-        if len(self._devices) > 1:
-            data = (
-                status for status in data if status.key.device in self._devices
-            )
+        store = createObject("deviceconfigcache-store", client)
+        query = self._make_query(haswildcard)
+        statuses = tuple(self._filter(store.query_statuses(query)))
+        uid_map = self._get_uidmap(store, statuses)
+        return (statuses, uid_map)
+
+    def _collate(self, statuses, uid_map):
         rows = []
         maxd, maxs, maxt, maxa, maxm = 1, 1, 1, 1, 1
         now = time.time()
         for status in sorted(
-            data, key=lambda x: (x.key.device, x.key.service)
+            statuses, key=lambda x: (x.key.device, x.key.service)
         ):
-            if self._showuid:
-                devid = status.uid or status.key.device
-            else:
-                devid = status.key.device
+            devid = (
+                status.key.device
+                if (status.key.device not in uid_map)
+                else uid_map[status.key.device]
+            )
             status_text = _format_status(status)
             ts = attr.astuple(status)[-1]
             ts_text = _format_date(ts)
@@ -138,22 +122,45 @@ class List_(object):
                     status.key.service,
                 )
             )
-        hdr_tmplt = "{0:{6}}  {1:{7}}  {2:^{8}}  {3:^{9}}  {4:{10}}  {5}"
-        row_tmplt = "{0:{6}}  {1:{7}}  {2:{8}}  {3:>{9}}  {4:{10}}  {5}"
-        headings = (
-            "DEVICE",
-            "STATUS",
-            "LAST CHANGE",
-            "AGE",
-            "COLLECTOR",
-            "SERVICE",
-        )
-        widths = (maxd, maxs, maxt, maxa, maxm)
-        if rows:
-            print(hdr_tmplt.format(*chain(headings, widths)))
-        for row in rows:
-            print(row_tmplt.format(*chain(row, widths)))
+        return rows, (maxd, maxs, maxt, maxa, maxm)
 
+    def _display(self, rows, widths):
+        if rows:
+            print(_header_template.format(*chain(_headings, widths)))
+        for row in rows:
+            print(_row_template.format(*chain(row, widths)))
+
+    def _make_query(self, haswildcard):
+        if haswildcard or len(self._devices) == 1:
+            return DeviceQuery(
+                service=self._service,
+                monitor=self._monitor,
+                device=self._devices[0],
+            )
+        return DeviceQuery(service=self._service, monitor=self._monitor)
+
+    def _filter(self, data):
+        if self._states:
+            data = (
+                status for status in data if isinstance(status, self._states)
+            )
+        if len(self._devices) > 1:
+            data = (
+                status for status in data if status.key.device in self._devices
+            )
+        return data
+
+    def _get_uidmap(self, store, data):
+        if self._showuid:
+            keys = tuple(status.key for status in data)
+            uids = store.get_uids(*keys)
+            return dict(uids)
+        return {}
+
+
+_header_template = "{0:{6}}  {1:{7}}  {2:^{8}}  {3:^{9}}  {4:{10}}  {5}"
+_row_template = "{0:{6}}  {1:{7}}  {2:{8}}  {3:>{9}}  {4:{10}}  {5}"
+_headings = ("DEVICE", "STATUS", "LAST CHANGE", "AGE", "COLLECTOR", "SERVICE")
 
 _name_state_lookup = {
     "current": ConfigStatus.Current,

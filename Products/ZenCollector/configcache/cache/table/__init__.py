@@ -7,13 +7,13 @@
 #
 ##############################################################################
 
-from .uid import DeviceUIDTable
-from .config import DeviceConfigTable
-from .metadata import ConfigMetadataTable
+from .hash import Hash
+from .sortedset import SortedSet
+from .string import String
 
 
 __all__ = (
-    "DeviceUIDTable",
-    "DeviceConfigTable",
-    "ConfigMetadataTable",
+    "Hash",
+    "SortedSet",
+    "String",
 )

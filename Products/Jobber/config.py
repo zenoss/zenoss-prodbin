@@ -118,13 +118,16 @@ class CeleryConfig(object):
     imports = attr.ib(
         default=[
             "Products.Jobber.jobs",
-            "Products.ZenCollector.configcache.task",
+            "Products.ZenCollector.configcache.tasks",
             "Products.ZenModel.IpNetwork",  # ensure task is registered
             "Products.ZenModel.ZDeviceLoader",  # ensure task is registered
         ]
     )
     task_routes = attr.ib(
-        default={"configcache.build_device_config": {"queue": "configcache"}}
+        default={
+            "configcache.build_device_config": {"queue": "configcache"},
+            "configcache.build_oidmap": {"queue": "configcache"},
+        }
     )
     result_extended = attr.ib(default=True)
     result_serializer = attr.ib(default="without-unicode")

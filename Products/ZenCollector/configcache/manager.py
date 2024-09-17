@@ -28,15 +28,14 @@ from .app.args import get_subparser
 from .cache import ConfigStatus
 from .constants import Constants
 from .debug import Debug as DebugCommand
-from .dispatcher import BuildConfigTaskDispatcher
+from .dispatcher import DeviceConfigTaskDispatcher, OidMapTaskDispatcher
 from .propertymap import DevicePropertyMap
-from .utils import getConfigServices
+from .utils import getDeviceConfigServices, OidMapProperties
 
 _default_interval = 30.0  # seconds
 
 
 class Manager(object):
-
     description = (
         "Determines whether device configs are old and regenerates them"
     )
@@ -78,10 +77,24 @@ class Manager(object):
 
     def __init__(self, config, context):
         self.ctx = context
-        configClasses = getConfigServices()
-        self.dispatcher = BuildConfigTaskDispatcher(configClasses)
+        configClasses = getDeviceConfigServices()
+        self.dispatchers = type(
+            "Dispatchers",
+            (object,),
+            {
+                "device": DeviceConfigTaskDispatcher(configClasses),
+                "oidmap": OidMapTaskDispatcher(),
+            },
+        )()
         client = getRedisClient(url=getRedisUrl())
-        self.store = createObject("configcache-store", client)
+        self.stores = type(
+            "Stores",
+            (object,),
+            {
+                "device": createObject("deviceconfigcache-store", client),
+                "oidmap": createObject("oidmapcache-store", client),
+            },
+        )()
         self.interval = config["check-interval"]
         self.log = logging.getLogger("zen.configcache.manager")
 
@@ -106,21 +119,9 @@ class Manager(object):
         while not self.ctx.controller.shutdown:
             try:
                 self.ctx.session.sync()
-                timedout = tuple(self._get_build_timeouts())
-                if not timedout:
-                    self.log.debug("no configuration builds have timed out")
-                else:
-                    self._expire_configs(timedout, "build")
-                timedout = tuple(self._get_pending_timeouts())
-                if not timedout:
-                    self.log.debug(
-                        "no pending configuration builds have timed out"
-                    )
-                else:
-                    self._expire_configs(timedout, "pending")
-                statuses = self._get_configs_to_rebuild()
-                if statuses:
-                    self._rebuild_configs(statuses)
+                self._expire_timedout_builds()
+                self._expire_timedout_pending()
+                self._rebuild_configs()
             except Exception as ex:
                 self.log.exception("unexpected error %s", ex)
             finally:
@@ -128,48 +129,114 @@ class Manager(object):
                 self.ctx.session.cacheGC()
             self.ctx.controller.wait(self.interval)
 
-    def _get_build_timeouts(self):
+    def _expire_timedout_builds(self):
+        timedout = tuple(self._get_device_build_timeouts())
+        if not timedout:
+            self.log.debug("no device configuration builds have timed out")
+        else:
+            self._expire_device_configs(timedout, "build")
+        timedout = self._get_oidmap_build_timeout()
+        if not timedout:
+            self.log.debug("no oidmap configuration build has timed out")
+        else:
+            self._expire_oidmap_config(timedout, "build")
+
+    def _expire_timedout_pending(self):
+        timedout = tuple(self._get_device_pending_timeouts())
+        if not timedout:
+            self.log.debug(
+                "no pending device configuration builds have timed out"
+            )
+        else:
+            self._expire_device_configs(timedout, "pending")
+        timedout = self._get_oidmap_pending_timeout()
+        if not timedout:
+            self.log.debug(
+                "no pending oidmap configuration build has timed out"
+            )
+        else:
+            self._expire_oidmap_config(timedout, "pending")
+
+    def _rebuild_configs(self):
+        statuses = self._get_device_configs_to_rebuild()
+        if statuses:
+            self._rebuild_device_configs(statuses)
+        self._maybe_rebuild_oidmap_config()
+
+    def _get_device_build_timeouts(self):
         buildlimitmap = DevicePropertyMap.make_build_timeout_map(
             self.ctx.dmd.Devices
         )
         # Test against a time 10 minutes earlier to minimize interfering
         # with builder working on the same config.
         now = time() - 600
-        for status in self.store.get_building():
-            limit = buildlimitmap.get(status.uid)
+        for status in self.stores.device.get_building():
+            uid = self.stores.device.get_uid(status.key.device)
+            limit = buildlimitmap.get(uid)
             if status.started < (now - limit):
                 yield (
                     status,
                     "started",
                     status.started,
-                    Constants.build_timeout_id,
+                    Constants.device_build_timeout_id,
                     limit,
                 )
 
-    def _get_pending_timeouts(self):
+    def _get_oidmap_build_timeout(self):
+        status = self.stores.oidmap.get_status()
+        if not isinstance(status, ConfigStatus.Building):
+            return None
+        limit = OidMapProperties().build_timeout
+        now = time() - 600
+        if status.started < (now - limit):
+            return (
+                status,
+                "started",
+                status.started,
+                Constants.oidmap_build_timeout_id,
+                limit,
+            )
+
+    def _get_device_pending_timeouts(self):
         pendinglimitmap = DevicePropertyMap.make_pending_timeout_map(
             self.ctx.dmd.Devices
         )
         now = time()
-        for status in self.store.get_pending():
-            limit = pendinglimitmap.get(status.uid)
+        for status in self.stores.device.get_pending():
+            uid = self.stores.device.get_uid(status.key.device)
+            limit = pendinglimitmap.get(uid)
             if status.submitted < (now - limit):
                 yield (
                     status,
                     "submitted",
                     status.submitted,
-                    Constants.pending_timeout_id,
+                    Constants.device_pending_timeout_id,
                     limit,
                 )
 
-    def _expire_configs(self, data, kind):
+    def _get_oidmap_pending_timeout(self):
+        status = self.stores.oidmap.get_status()
+        if not isinstance(status, ConfigStatus.Pending):
+            return None
+        limit = OidMapProperties().pending_timeout
         now = time()
-        self.store.set_expired(
+        if status.submitted < (now - limit):
+            return (
+                status,
+                "submitted",
+                status.submitted,
+                Constants.oidmap_pending_timeout_id,
+                limit,
+            )
+
+    def _expire_device_configs(self, data, kind):
+        now = time()
+        self.stores.device.set_expired(
             *((status.key, now) for status, _, _, _, _ in data)
         )
         for status, valId, val, limitId, limitValue in data:
             self.log.info(
-                "expired configuration due to %s timeout  "
+                "expired device configuration due to %s timeout  "
                 "%s=%s %s=%s service=%s collector=%s device=%s",
                 kind,
                 valId,
@@ -181,7 +248,20 @@ class Manager(object):
                 status.key.device,
             )
 
-    def _get_configs_to_rebuild(self):
+    def _expire_oidmap_config(self, data, kind):
+        now = time()
+        self.stores.oidmap.set_expired(now)
+        status, valId, val, limitId, limitValue = data
+        self.log.info(
+            "expired oidmap configuration due to %s timeout  %s=%s %s=%s",
+            kind,
+            valId,
+            datetime.fromtimestamp(val).strftime("%Y-%m-%d %H:%M:%S"),
+            limitId,
+            limitValue,
+        )
+
+    def _get_device_configs_to_rebuild(self):
         minttl_map = DevicePropertyMap.make_minimum_ttl_map(
             self.ctx.dmd.Devices
         )
@@ -191,35 +271,38 @@ class Manager(object):
         ready_to_rebuild = []
 
         # Retrieve the 'retired' configs
-        for status in self.store.get_retired():
-            built = self.store.get_updated(status.key)
-            if built is None or built < now - minttl_map.get(status.uid):
+        for status in self.stores.device.get_retired():
+            built = self.stores.device.get_updated(status.key)
+            uid = self.stores.device.get_uid(status.key.device)
+            if built is None or built < now - minttl_map.get(uid):
                 ready_to_rebuild.append(status)
 
         # Append the 'expired' configs
-        ready_to_rebuild.extend(self.store.get_expired())
+        ready_to_rebuild.extend(self.stores.device.get_expired())
 
         # Append the 'older' configs.
         min_age = now - ttl_map.smallest_value()
-        for status in self.store.get_older(min_age):
+        for status in self.stores.device.get_older(min_age):
             # Select the min ttl if the ttl is a smaller value
-            limit = max(minttl_map.get(status.uid), ttl_map.get(status.uid))
+            uid = self.stores.device.get_uid(status.key.device)
+            limit = max(minttl_map.get(uid), ttl_map.get(uid))
             expiration_threshold = now - limit
             if status.updated <= expiration_threshold:
                 ready_to_rebuild.append(status)
 
         return ready_to_rebuild
 
-    def _rebuild_configs(self, statuses):
+    def _rebuild_device_configs(self, statuses):
         buildlimitmap = DevicePropertyMap.make_build_timeout_map(
             self.ctx.dmd.Devices
         )
         count = 0
         for status in statuses:
-            timeout = buildlimitmap.get(status.uid)
+            uid = self.stores.device.get_uid(status.key.device)
+            timeout = buildlimitmap.get(uid)
             now = time()
-            self.store.set_pending((status.key, now))
-            self.dispatcher.dispatch(
+            self.stores.device.set_pending((status.key, now))
+            self.dispatchers.device.dispatch(
                 status.key.service,
                 status.key.monitor,
                 status.key.device,
@@ -249,7 +332,7 @@ class Manager(object):
                     datetime.fromtimestamp(status.updated).strftime(
                         "%Y-%m-%d %H:%M:%S"
                     ),
-                    Constants.build_timeout_id,
+                    Constants.device_build_timeout_id,
                     timeout,
                     status.key.service,
                     status.key.monitor,
@@ -259,9 +342,33 @@ class Manager(object):
         if count == 0:
             self.log.debug("found no expired or old configurations to rebuild")
 
+    def _maybe_rebuild_oidmap_config(self):
+        props = OidMapProperties()
+        status = self.stores.oidmap.get_status()
+        now = time()
+        if isinstance(status, ConfigStatus.Current):
+            if now < (status.updated + props.ttl):
+                return  # oidmap not old enough for rebuild
+        elif isinstance(status, (ConfigStatus.Pending, ConfigStatus.Building)):
+            return  # wrong status for an automatic rebuild
+        created = self.stores.oidmap.get_created()
+        if created:
+            created = datetime.fromtimestamp(created).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+        else:
+            created = "n/a"
+        self.stores.oidmap.set_pending(now)
+        self.dispatchers.oidmap.dispatch(props.build_timeout, now)
+        self.log.info(
+            "submitted job to rebuild oidmap  created=%s %s=%s",
+            created,
+            Constants.oidmap_build_timeout_id,
+            props.build_timeout,
+        )
+
 
 class _MetricCollector(PeriodicTask):
-
     def __init__(self, reporter):
         super(_MetricCollector, self).__init__(interval=60)
         self._reporter = reporter
@@ -271,7 +378,7 @@ class _MetricCollector(PeriodicTask):
     def task(self):
         if self._store is None:
             client = getRedisClient(url=getRedisUrl())
-            self._store = createObject("configcache-store", client)
+            self._store = createObject("deviceconfigcache-store", client)
         self._collect()
         self._reporter.save()
 
@@ -290,20 +397,19 @@ class _MetricCollector(PeriodicTask):
         self._metrics.count.pending.mark(counts.get(ConfigStatus.Pending, 0))
         self._metrics.count.building.mark(counts.get(ConfigStatus.Building, 0))
 
-        for age in ages.get(ConfigStatus.Current, []):       
+        for age in ages.get(ConfigStatus.Current, []):
             self._metrics.age.current.update(age)
-        for age in ages.get(ConfigStatus.Expired, []):       
+        for age in ages.get(ConfigStatus.Expired, []):
             self._metrics.age.retired.update(age)
-        for age in ages.get(ConfigStatus.Retired, []):       
+        for age in ages.get(ConfigStatus.Retired, []):
             self._metrics.age.expired.update(age)
-        for age in ages.get(ConfigStatus.Pending, []):       
+        for age in ages.get(ConfigStatus.Pending, []):
             self._metrics.age.pending.update(age)
-        for age in ages.get(ConfigStatus.Building, []):       
+        for age in ages.get(ConfigStatus.Building, []):
             self._metrics.age.building.update(age)
 
 
 class StatusCountGauge(Gauge):
-
     def __init__(self):
         self._value = 0
 
@@ -316,7 +422,6 @@ class StatusCountGauge(Gauge):
 
 
 class _Metrics(object):
-
     def __init__(self, reporter):
         self.count = type(
             "Count",

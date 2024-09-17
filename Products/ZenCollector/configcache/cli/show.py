@@ -22,18 +22,66 @@ from Products.ZenUtils.terminal_size import get_terminal_size
 
 from ..app import initialize_environment
 from ..app.args import get_subparser
-from ..cache import CacheQuery
+from ..cache import DeviceQuery
 
 
-class Show(object):
-
-    description = "Show a configuration"
-
-    configs = (("show.zcml", __name__),)
+class ShowOidMap(object):
+    description = "Show the oidmap configuration"
+    configs = (("store.zcml", __name__),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
-        subp = get_subparser(subparsers, "show", description=Show.description)
+        subp = get_subparser(
+            subparsers,
+            "show",
+            description=ShowOidMap.description,
+        )
+        termsize = get_terminal_size()
+        subp.add_argument(
+            "--width",
+            type=int,
+            default=termsize.columns,
+            help="Maxiumum number of columns to use in the output. "
+            "By default, this is the width of the terminal",
+        )
+        subp.set_defaults(factory=ShowOidMap)
+
+    def __init__(self, args):
+        if _is_output_redirected():
+            # when stdout is redirected, default to 79 columns unless
+            # the --width option has a non-default value.
+            termsize = get_terminal_size()
+            if args.width != termsize.columns:
+                self._columns = args.width
+            else:
+                self._columns = 79
+        else:
+            self._columns = args.width
+
+    def run(self):
+        initialize_environment(configs=self.configs, useZope=False)
+        client = getRedisClient(url=getRedisUrl())
+        store = createObject("oidmapcache-store", client)
+        record = store.get()
+        if record is None:
+            print(
+                "No oidmap configuration found in the cache", file=sys.stderr
+            )
+        else:
+            pretty.pprint(
+                record.oidmap, max_width=self._columns, max_seq_length=0
+            )
+
+
+class ShowDevice(object):
+    description = "Show a device configuration"
+    configs = (("store.zcml", __name__),)
+
+    @staticmethod
+    def add_arguments(parser, subparsers):
+        subp = get_subparser(
+            subparsers, "show", description=ShowDevice.description
+        )
         termsize = get_terminal_size()
         subp.add_argument(
             "--width",
@@ -49,7 +97,7 @@ class Show(object):
             "collector", nargs=1, help="name of the performance collector"
         )
         subp.add_argument("device", nargs=1, help="name of the device")
-        subp.set_defaults(factory=Show)
+        subp.set_defaults(factory=ShowDevice)
 
     def __init__(self, args):
         self._monitor = args.collector[0]
@@ -69,12 +117,12 @@ class Show(object):
     def run(self):
         initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
-        store = createObject("configcache-store", client)
+        store = createObject("deviceconfigcache-store", client)
         results, err = _query_cache(
             store,
-            service="*{}*".format(self._service),
-            monitor="*{}*".format(self._monitor),
-            device="*{}*".format(self._device),
+            service=self._service,
+            monitor=self._monitor,
+            device=self._device,
         )
         if results:
             for cls in set(unjellyableRegistry.values()):
@@ -82,20 +130,22 @@ class Show(object):
                     pretty.for_type(cls, _pp_DeviceProxy)
                 else:
                     pretty.for_type(cls, _pp_default)
-            pretty.pprint(results.config, max_width=self._columns)
+            pretty.pprint(
+                results.config, max_width=self._columns, max_seq_length=0
+            )
         else:
             print(err, file=sys.stderr)
 
 
 def _query_cache(store, service, monitor, device):
-    query = CacheQuery(service=service, monitor=monitor, device=device)
+    query = DeviceQuery(service=service, monitor=monitor, device=device)
     results = store.search(query)
     first_key = next(results, None)
     if first_key is None:
-        return (None, "configuration not found")
+        return (None, "device configuration not found")
     second_key = next(results, None)
     if second_key is not None:
-        return (None, "more than one configuration matched arguments")
+        return (None, "more than one device configuration matched arguments")
     return (store.get(first_key), None)
 
 

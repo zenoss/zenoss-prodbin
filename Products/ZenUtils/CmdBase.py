@@ -34,6 +34,7 @@ import zope.component
 from zope.traversing.adapters import DefaultTraversable
 from Zope2.App import zcml
 
+from .config import ConfigLoader
 from .Utils import (
     getAllParserOptionsGen,
     load_config_override,
@@ -42,7 +43,7 @@ from .Utils import (
 )
 from .GlobalConfig import (
     _convertConfigLinesToArguments,
-    applyGlobalConfToParser,
+    getGlobalConfiguration,
 )
 
 
@@ -60,18 +61,6 @@ _OPTIONS_TO_IGNORE = (
 
 class DMDError:
     pass
-
-
-def checkLogLevel(option, opt, value):
-    if re.match(r"^\d+$", value):
-        value = int(value)
-    else:
-        intval = getattr(logging, value.upper(), None)
-        if intval is None:
-            raise OptionValueError('"%s" is not a valid log level.' % value)
-        value = intval
-
-    return value
 
 
 def remove_args(argv, remove_args_novals, remove_args_vals):
@@ -100,10 +89,25 @@ def remove_args(argv, remove_args_novals, remove_args_vals):
     return new_args
 
 
-class LogSeverityOption(Option):
+def checkLogLevel(option, opt, value):
+    if re.match(r"^\d+$", value):
+        value = int(value)
+    else:
+        intval = getattr(logging, value.upper(), None)
+        if intval is None:
+            raise OptionValueError('"%s" is not a valid log level.' % value)
+        value = intval
+
+    return value
+
+
+class CmdBaseOption(Option):
     TYPES = Option.TYPES + ("loglevel",)
     TYPE_CHECKER = copy(Option.TYPE_CHECKER)
     TYPE_CHECKER["loglevel"] = checkLogLevel
+
+
+LogSeverityOption = CmdBaseOption
 
 
 class CmdBase(object):
@@ -147,19 +151,11 @@ class CmdBase(object):
 
         self.buildParser()
         self.buildOptions()
-
-        # Get defaults from global.conf. They will be overridden by
-        # daemon-specific config file or command line arguments.
-        applyGlobalConfToParser(self.parser)
+        # Update the defaults from the config files
+        self.parser.defaults.update(
+            _get_defaults_from_config([] if self.noopts else self.inputArgs)
+        )
         self.parseOptions()
-        if self.options.configfile:
-            self.parser.defaults = self.getConfigFileDefaults(
-                self.options.configfile
-            )
-            # We've updated the parser with defaults from configs, now we need
-            # to reparse our command-line to get the correct overrides from
-            # the command-line
-            self.parseOptions()
 
         if should_log is not None:
             self.doesLogging = should_log
@@ -172,20 +168,7 @@ class CmdBase(object):
         Create the options parser.
         """
         if not self.parser:
-            from Products.ZenModel.ZenossInfo import ZenossInfo
-
-            try:
-                zinfo = ZenossInfo("")
-                version = str(zinfo.getZenossVersion())
-            except Exception:
-                from Products.ZenModel.ZVersion import VERSION
-
-                version = VERSION
-            self.parser = OptionParser(
-                usage=self.usage,
-                version="%prog " + version,
-                option_class=LogSeverityOption,
-            )
+            self.parser = _build_parser()
 
     def buildOptions(self):
         """
@@ -272,58 +255,6 @@ class CmdBase(object):
         if self.options.genxmlconfigs:
             self.generate_xml_configs(self.parser, self.options)
 
-    def getConfigFileDefaults(self, filename, correctErrors=True):
-        # TODO: This should be refactored - duplicated code with CmdBase.
-        """
-        Parse a config file which has key-value pairs delimited by white space,
-        and update the parser's option defaults with these values.
-
-        :parameter filename: name of configuration file
-        :type filename: string
-        """
-        options = self.parser.get_default_values()
-        lines = self.loadConfigFile(filename)
-        if lines:
-            lines, errors = self.validateConfigFile(
-                filename, lines, correctErrors=correctErrors
-            )
-
-            args = self.getParamatersFromConfig(lines)
-            try:
-                self.parser._process_args([], args, options)
-            except (BadOptionError, OptionValueError) as err:
-                print(
-                    "WARN: %s in config file %s"
-                    % (
-                        err,
-                        filename,
-                    ),
-                    file=sys.stderr,
-                )
-
-        return options.__dict__
-
-    def getGlobalConfigFileDefaults(self):
-        # Deprecated: This method is duplicated in GlobalConfig.py
-        """
-        Parse a config file which has key-value pairs delimited by white space,
-        and update the parser's option defaults with these values.
-        """
-        filename = zenPath("etc", "global.conf")
-        options = self.parser.get_default_values()
-        lines = self.loadConfigFile(filename)
-        if lines:
-            args = self.getParamatersFromConfig(lines)
-
-            try:
-                self.parser._process_args([], args, options)
-            except (BadOptionError, OptionValueError):
-                # Ignore it, we only care about our own options as
-                # defined in the parser.
-                pass
-
-        return options.__dict__
-
     def loadConfigFile(self, filename):
         """
         Parse a config file which has key-value pairs delimited by white space.
@@ -338,7 +269,7 @@ class CmdBase(object):
             with open(filename) as file:
                 for line in file:
                     if line.lstrip().startswith("#") or line.strip() == "":
-                        lines.append(dict(type="comment", line=line))
+                        lines.append({"type": "comment", "line": line})
                     else:
                         try:
                             # Add default blank string for keys with no
@@ -346,28 +277,29 @@ class CmdBase(object):
                             # Valid delimiters are space, ':' and/or '='
                             # (see ZenUtils/config.py)
                             key, value = (
-                                re.split(r"[\s:=]+", line.strip(), 1) + [""]
+                                re.split(r"[\s:=]+", line.strip(), maxsplit=1)
+                                + [""]
                             )[:2]
                         except ValueError:
                             lines.append(
-                                dict(
-                                    type="option",
-                                    line=line,
-                                    key=line.strip(),
-                                    value=None,
-                                    option=None,
-                                )
+                                {
+                                    "type": "option",
+                                    "line": line,
+                                    "key": line.strip(),
+                                    "value": None,
+                                    "option": None,
+                                }
                             )
                         else:
                             option = self.parser.get_option("--%s" % key)
                             lines.append(
-                                dict(
-                                    type="option",
-                                    line=line,
-                                    key=key,
-                                    value=value,
-                                    option=option,
-                                )
+                                {
+                                    "type": "option",
+                                    "line": line,
+                                    "key": key,
+                                    "value": value,
+                                    "option": option,
+                                }
                             )
         except IOError as e:
             errorMessage = (
@@ -726,7 +658,7 @@ class CmdBase(object):
                 )
 
             else:
-                target = "=<replaceable>" + opt.dest.lower() + "</replaceable>"
+                target = "=<replaceable>" + opt.dest + "</replaceable>"
                 all_options = all_options + target
                 all_options = re.sub(r",", target + ",", all_options)
                 print(
@@ -762,8 +694,7 @@ class CmdBase(object):
         # Header for the configuration file
         #
         unused(options)
-        daemon_name = os.path.basename(sys.argv[0])
-        daemon_name = daemon_name.replace(".py", "")
+        daemon_name = os.path.basename(sys.argv[0]).replace(".py", "")
 
         export_date = datetime.datetime.now()
 
@@ -802,33 +733,85 @@ class CmdBase(object):
             # --option_name=variable_name
             #
             if opt.action in ["store_true", "store_false"]:
-                print(
-                    """    <option id="%s" type="%s" default="%s" help="%s" />
-"""
-                    % (option_name, "boolean", default_value, help_text),
-                    end="",
+                params = (
+                    ("id", option_name),
+                    ("type", "boolean"),
+                    ("default", default_value),
+                    ("help", help_text),
                 )
-
             else:
-                target = opt.dest.lower()
-                print(
-                    """    <option id="%s" type="%s" default="%s" target="%s" help="%s" />
-"""
-                    % (
-                        option_name,
-                        opt.type,
-                        quote(default_value),
-                        target,
-                        help_text,
-                    ),
-                    end="",
+                params = (
+                    ("id", option_name),
+                    ("type", opt.type),
+                    ("default", quote(default_value)),
+                    ("target", opt.dest),
+                    ("help", help_text),
                 )
+            print(
+                "    <option %s />\n"
+                % " ".join('%s="%s"' % (k, v) for k, v in params),
+                end="",
+            )
 
         #
         # Close the table elements
         #
-        print(
-            """
-</configuration>"""
-        )
+        print("\n</configuration>")
         sys.exit(0)
+
+
+def _build_parser(cls=OptionParser):
+    from Products.ZenModel.ZenossInfo import ZenossInfo
+
+    try:
+        zinfo = ZenossInfo("")
+        version = str(zinfo.getZenossVersion())
+    except Exception:
+        from Products.ZenModel.ZVersion import VERSION
+
+        version = VERSION
+    return cls(
+        version="%prog " + version,
+        option_class=CmdBaseOption,
+    )
+
+
+def _get_defaults_from_config(args):
+    overrides = dict(getGlobalConfiguration())
+
+    cparser = _build_parser(cls=_KnownOptionsParser)
+    cparser.add_option(
+        "-C",
+        "--configfile",
+        dest="configfile",
+    )
+
+    opts, _ = cparser.parse_args(args=args)
+    if opts.configfile:
+        try:
+            appcfg = ConfigLoader(opts.configfile)()
+            overrides.update(appcfg)
+        except Exception as ex:
+            print("warning: {}".format(ex), file=sys.stderr)
+    return {key.replace("-", "_"): value for key, value in overrides.items()}
+
+
+class _KnownOptionsParser(OptionParser):
+    """
+    Extend OptionParser to skip unknown options and disable --help.
+    """
+
+    def __init__(self, *args, **kwargs):
+        OptionParser.__init__(self, *args, add_help_option=False, **kwargs)
+
+    def _process_long_opt(self, rargs, values):
+        try:
+            OptionParser._process_long_opt(self, rargs, values)
+        except BadOptionError:
+            pass
+
+    def _process_short_opts(self, rargs, values):
+        try:
+            OptionParser._process_short_opts(self, rargs, values)
+        except BadOptionError:
+            pass

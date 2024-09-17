@@ -12,34 +12,59 @@ from __future__ import absolute_import, print_function
 import sys
 import time
 
-import six
-
 from zope.component import createObject
 
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
 from ..app import initialize_environment
 from ..app.args import get_subparser
-from ..cache import CacheQuery
+from ..cache import ConfigStatus, DeviceQuery
 
-from .args import get_common_parser
+from .args import get_devargs_parser
+from ._selection import get_message, confirm
 
 
-class Expire(object):
-
-    description = "Mark configurations as expired"
-
-    configs = (("expire.zcml", __name__),)
+class ExpireOidMap(object):
+    description = "Mark OID Map as expired"
+    configs = (("store.zcml", __name__),)
 
     @staticmethod
     def add_arguments(parser, subparsers):
         subp = get_subparser(
             subparsers,
             "expire",
-            description=Expire.description,
-            parent=get_common_parser(),
+            description=ExpireOidMap.description,
         )
-        subp.set_defaults(factory=Expire)
+        subp.set_defaults(factory=ExpireOidMap)
+
+    def __init__(self, args):
+        pass
+
+    def run(self):
+        initialize_environment(configs=self.configs, useZope=False)
+        client = getRedisClient(url=getRedisUrl())
+        store = createObject("oidmapcache-store", client)
+        status = store.get_status()
+        if not isinstance(status, ConfigStatus.Expired):
+            store.set_expired(time.time())
+            print("Expired oidmap configuration")
+        else:
+            print("Oidmap configuration already expired")
+
+
+class ExpireDevice(object):
+    description = "Mark device configurations as expired"
+    configs = (("store.zcml", __name__),)
+
+    @staticmethod
+    def add_arguments(parser, subparsers):
+        subp = get_subparser(
+            subparsers,
+            "expire",
+            description=ExpireDevice.description,
+            parent=get_devargs_parser(),
+        )
+        subp.set_defaults(factory=ExpireDevice)
 
     def __init__(self, args):
         self._monitor = args.collector
@@ -56,18 +81,20 @@ class Expire(object):
                     file=sys.stderr,
                 )
                 return
-            else:
-                self._devices = self._devices[0].replace("*", "")
         if not self._confirm_inputs():
             print("exit")
             return
         initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
-        store = createObject("configcache-store", client)
-        query = CacheQuery(service=self._service, monitor=self._monitor)
+        store = createObject("deviceconfigcache-store", client)
+        self._expire(store, self._get(store, haswildcard))
+
+    def _get(self, store, haswildcard):
+        query = self._make_query(haswildcard)
         results = store.query_statuses(query)
-        method = self._no_devices if not self._devices else self._with_devices
-        keys = method(results, wildcard=haswildcard)
+        return tuple(self._get_keys_from_results(results, haswildcard))
+
+    def _expire(self, store, keys):
         now = time.time()
         store.set_expired(*((key, now) for key in keys))
         count = len(keys)
@@ -76,86 +103,26 @@ class Expire(object):
             % (count, "" if count == 1 else "s")
         )
 
-    def _no_devices(self, results, wildcard=False):
-        return tuple(status.key for status in results)
+    def _make_query(self, haswildcard):
+        if haswildcard:
+            return DeviceQuery(
+                service=self._service,
+                monitor=self._monitor,
+                device=self._devices[0],
+            )
+        return DeviceQuery(service=self._service, monitor=self._monitor)
 
-    def _with_devices(self, results, wildcard=False):
-        if wildcard:
-            predicate = self._check_wildcard
-        else:
-            predicate = self._check_list
-
-        return tuple(
-            status.key for status in results if predicate(status.key.device)
+    def _get_keys_from_results(self, results, haswildcard):
+        if not self._devices or haswildcard:
+            return (status.key for status in results)
+        return (
+            status.key
+            for status in results
+            if status.key.device in self._devices
         )
-
-    def _check_wildcard(self, device):
-        return self._devices in device
-
-    def _check_list(self, device):
-        return device in self._devices
 
     def _confirm_inputs(self):
         if self._devices:
             return True
-        if (self._monitor, self._service) == ("*", "*"):
-            mesg = "Recreate all device configurations"
-        elif "*" not in self._monitor and self._service == "*":
-            mesg = (
-                "Recreate all configurations for devices monitored by the "
-                "'%s' collector" % (self._monitor,)
-            )
-        elif "*" in self._monitor and self._service == "*":
-            mesg = (
-                "Recreate all configurations for devices monitored by all "
-                "collectors matching '%s'" % (self._monitor,)
-            )
-        elif self._monitor == "*" and "*" not in self._service:
-            mesg = (
-                "Recreate all device configurations created by the '%s' "
-                "service" % (self._service.split(".")[-1],)
-            )
-        elif self._monitor == "*" and "*" in self._service:
-            mesg = (
-                "Recreate all device configurations created by all "
-                "services matching '%s'" % (self._service,)
-            )
-        elif "*" in self._monitor and "*" not in self._service:
-            mesg = (
-                "Recreate all configurations created by the '%s' "
-                "service for devices monitored by all collectors "
-                "matching '%s'" % (self._service, self._monitor)
-            )
-        elif "*" not in self._monitor and "*" in self._service:
-            mesg = (
-                "Recreate all configurations for devices monitored by the "
-                "'%s' collector and created by all services matching '%s'"
-                % (self._monitor, self._service)
-            )
-        elif "*" not in self._monitor and "*" not in self._service:
-            mesg = (
-                "Recreate all configurations for devices monitored by the "
-                "'%s' collector and created by the '%s' service"
-                % (self._monitor, self._service)
-            )
-        elif "*" in self._monitor and "*" in self._service:
-            mesg = (
-                "Recreate all configurations device monitored by all "
-                "collectors matching '%s' and created by all services "
-                "matching '%s'" % (self._monitor, self._service)
-            )
-        else:
-            mesg = "collector '%s'  service '%s'" % (
-                self._monitor,
-                self._service,
-            )
-        return _confirm(mesg)
-
-
-def _confirm(mesg):
-    response = None
-    while response not in ["y", "n", ""]:
-        response = six.moves.input(
-            "%s. Are you sure (y/N)? " % (mesg,)
-        ).lower()
-    return response == "y"
+        mesg = get_message("Recreate", self._monitor, self._service)
+        return confirm(mesg)

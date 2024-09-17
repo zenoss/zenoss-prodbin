@@ -9,6 +9,18 @@
 
 from __future__ import absolute_import
 
-from .model import CacheKey, CacheQuery, CacheRecord, ConfigStatus
+from .model import (
+    ConfigStatus,
+    DeviceKey,
+    DeviceQuery,
+    DeviceRecord,
+    OidMapRecord,
+)
 
-__all__ = ("CacheKey", "CacheQuery", "CacheRecord", "ConfigStatus")
+__all__ = (
+    "ConfigStatus",
+    "DeviceKey",
+    "DeviceQuery",
+    "DeviceRecord",
+    "OidMapRecord",
+)
