@@ -64,6 +64,7 @@ import json
 import logging
 import re
 import types
+import zlib
 
 from functools import partial
 from itertools import chain
@@ -660,6 +661,10 @@ def _deserialize(data):
     # s-expressions, which are basically nested lists, and there's no JSON
     # hook for lists.  So, wrap the data into a JSON-object (a dict) and
     # use a function to customize the decoding.
+    try:
+        data = zlib.decompress(data)
+    except zlib.error:
+        pass
     data = '{{"config":{}}}'.format(data)
     return unjelly(json.loads(data, object_hook=_decode_config))
 
@@ -682,7 +687,7 @@ def _decode_item(item):
 
 
 def _serialize(config):
-    return json.dumps(jelly(config))
+    return zlib.compress(json.dumps(jelly(config)))
 
 
 def _to_score(ts):
