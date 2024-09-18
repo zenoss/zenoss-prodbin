@@ -43,7 +43,7 @@ def datamap_applied_time_tsdb_reporter(datamap_applied_event):
     """Log datamap.apply time by target meta_type to TSDB"""
     metric_manager = getUtility(IMetricManager, "zenhub_worker_metricmanager")
 
-    meta_type = datamap_applied_event.datamap.target.meta_type
+    meta_type = getattr(datamap_applied_event.datamap.target, "meta_type", "NOTFOUND")
     tags = {"meta_type": meta_type}
     start = datamap_applied_event.datamap.start_time
     end = datamap_applied_event.datamap.end_time
