@@ -11,7 +11,7 @@ import logging
 
 from zope.component import createObject
 
-from Products.ZenCollector.configcache.cache import DeviceQuery
+from Products.ZenCollector.configcache.cache import DeviceKey, DeviceQuery
 from Products.ZenHub.errors import translateError
 from Products.ZenHub.HubService import HubService
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
@@ -135,6 +135,41 @@ class ConfigCache(HubService):
             ],
             "removed": list(removed),
         }
+
+    @translateError
+    def remote_getDeviceConfig(self, servicename, deviceid, options=None):
+        """
+        Returns the configuration for the requested device or None.
+
+        If the device does not exist or if the device is filtered out for
+        whatever reason, None is returned.
+
+        Otherwise, the configuration for the device is returned.
+
+        @param servicename: Name of the configuration service.
+        @type servicename: str
+        @param when: When the last set of devices was returned.
+        @type when: datetime.datetime
+        @param deviceid: Name of the device.
+        @type deviceid: str
+        @rtype: DeviceProxy | None
+        """
+        self.log.info(
+            "[ConfigCache] getDeviceConfig(%r, %r, %r)",
+            servicename,
+            deviceid,
+            options,
+        )
+        predicate = getOptionsFilter(options)
+        key = DeviceKey(
+            service=servicename, monitor=self.instance, device=deviceid
+        )
+        filtered = tuple(self._filter([key], predicate))
+        if len(filtered) == 0:
+            return None
+        if key not in self._stores.device:
+            return None
+        return self._stores.device.get(key).config
 
     def remote_getOidMap(self, checksum):
         """
