@@ -168,10 +168,10 @@ class TaskScheduler(object):
                 continue
             stopOrder = getattr(task, "stopOrder", 0)
             queue = stopQ.setdefault(stopOrder, [])
-            queue.append((taskName, taskWrapper, task))
+            queue.append((taskName, taskWrapper))
 
         for stopOrder in sorted(stopQ):
-            for taskName, taskWrapper, task in stopQ[stopOrder]:
+            for taskName, taskWrapper in stopQ[stopOrder]:
                 loopTask = self._loopingCalls[taskName]
                 if loopTask.running:
                     log.debug("Stopping running task %s", taskName)
@@ -198,7 +198,7 @@ class TaskScheduler(object):
             return
 
         if task.name in self._tasksToCleanup:
-            delay = random.randint(0, int(task.interval / 2))
+            delay = random.randint(0, int(task.interval / 2))  # noqa: S311
             delayed = delayed + delay
             if attempts > TaskScheduler.ATTEMPTS:
                 del self._tasksToCleanup[task.name]
@@ -251,7 +251,7 @@ class TaskScheduler(object):
         time.
         """
         # simple delay of random number between 0 and half the task interval
-        delay = random.randint(0, int(task.interval / 2))
+        delay = random.randint(0, int(task.interval / 2))  # noqa: S311
         return delay
 
     def taskAdded(self, taskWrapper):
@@ -299,7 +299,7 @@ class TaskScheduler(object):
         Get all tasks associated with the specified identifier.
         """
         tasks = []
-        for taskName, taskWrapper in self._tasks.iteritems():
+        for taskWrapper in self._tasks.itervalues():
             task = taskWrapper.task
             if task.configId == configId:
                 tasks.append(task)
@@ -494,8 +494,8 @@ class TaskScheduler(object):
             totalRuns,
             totalFailedRuns,
             totalMissedRuns,
-            self.executor.queued,
-            self.executor.running,
+            self._executor.queued,
+            self._executor.running,
         )
         if self._displaycounts != counts:
             self._displaycounts = counts
