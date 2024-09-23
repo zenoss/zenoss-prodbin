@@ -84,7 +84,10 @@ def buildDeviceConfig(
             key.service,
             submitted,
         )
-        store.clear_status(key)
+        # Speculatively delete the config because this device may have been
+        # re-identified under a new ID so the config keyed by the old ID
+        # should be removed.
+        _delete_config(key, store, log)
         return
 
     if _job_is_old(status, submitted, started, device, log):
@@ -135,6 +138,12 @@ def buildDeviceConfig(
     # get a new store; the prior store's connection may have gone stale.
     store = _getStore()
     if config is None:
+        log.info(
+            "no configuration built  device=%s collector=%s service=%s",
+            key.device,
+            key.monitor,
+            key.service,
+        )
         _delete_config(key, store, log)
     else:
         uid = device.getPrimaryId()
@@ -237,12 +246,6 @@ def _should_update_status(
 
 
 def _delete_config(key, store, log):
-    log.info(
-        "no configuration built  device=%s collector=%s service=%s",
-        key.device,
-        key.monitor,
-        key.service,
-    )
     if key in store:
         store.remove(key)
         log.info(
