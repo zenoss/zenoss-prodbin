@@ -44,7 +44,7 @@ class TrapFilterTest(TestCase):
         t.filter._filterspec._v1Traps[genericTrap] = filterDef
 
         event = {"snmpVersion": "1", "snmpV1GenericTrapType": genericTrap}
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
     def testDropV1EventForGenericTrapForExclusion(t):
         genericTrap = 1
@@ -52,7 +52,7 @@ class TrapFilterTest(TestCase):
         t.filter._filterspec._v1Traps[genericTrap] = filterDef
 
         event = {"snmpVersion": "1", "snmpV1GenericTrapType": genericTrap}
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     def testDropV1EventForGenericTrapForNoMatch(t):
         genericTrap = 1
@@ -60,7 +60,7 @@ class TrapFilterTest(TestCase):
         t.filter._filterspec._v1Traps[genericTrap] = filterDef
 
         event = {"snmpVersion": "1", "snmpV1GenericTrapType": 2}
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     def testDropV1EventForEnterpriseSimpleGlobMatch(t):
         filterDef = V1FilterDefinition(99, "exclude", "1.2.3.*")
@@ -72,10 +72,10 @@ class TrapFilterTest(TestCase):
             "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1.2.3.4",
         }
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         filterDef.action = "include"
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
     # This test uses 1 filters for each of two OID levels where the filter
     # specifies a glob match
@@ -93,34 +93,34 @@ class TrapFilterTest(TestCase):
             "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1.2.3.4",
         }
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3.99"
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3.99.5"
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3.4.99"
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3.4.5"
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3.4.5.99"
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.99.4"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.99.4.5.6"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     def testDropV1EventIncludeAll(t):
         filterDef = V1FilterDefinition(99, "include", "*")
@@ -132,13 +132,13 @@ class TrapFilterTest(TestCase):
             "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1",
         }
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1."
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3"
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
     def testDropV1EventExcludeAll(t):
         filterDef = V1FilterDefinition(99, "exclude", "*")
@@ -150,10 +150,10 @@ class TrapFilterTest(TestCase):
             "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1",
         }
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     def testDropV1EventExcludeAllBut(t):
         filterDef = V1FilterDefinition(99, "exclude", "*")
@@ -174,29 +174,29 @@ class TrapFilterTest(TestCase):
             "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1",
         }
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.4.5.1"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.4.5"
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.4.5"
         event["snmpV1SpecificTrap"] = 23
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3.4"
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3.4.5"
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
     def testDropV1EventIncludeAllBut(t):
         filterDef = V1FilterDefinition(99, "include", "*")
@@ -217,25 +217,25 @@ class TrapFilterTest(TestCase):
             "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1",
         }
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2"
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3"
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.4.5.1"
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.4.5"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3.4"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3.4.5"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     def testDropV1EventForInvalidGenericTrap(t):
         filterDef = V1FilterDefinition(99, "include", "*")
@@ -247,7 +247,7 @@ class TrapFilterTest(TestCase):
             "snmpV1GenericTrapType": 9,
             "snmpV1Enterprise": "1.2",
         }
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     def testDropV1EventForMissingGenericTrap(t):
         filterDef = V1FilterDefinition(99, "include", "*")
@@ -255,7 +255,7 @@ class TrapFilterTest(TestCase):
         t.filter._filterspec._v1Filters[1] = filtersByLevel
 
         event = {"snmpVersion": "1", "snmpV1Enterprise": "1.2"}
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     def testDropV1EventForMissingEnterpriseOID(t):
         filterDef = V1FilterDefinition(99, "include", "*")
@@ -266,7 +266,7 @@ class TrapFilterTest(TestCase):
             "snmpVersion": "1",
             "snmpV1GenericTrapType": 6,
         }
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     def testDropV1EventForEnterpriseAllExcept(t):
         filterDef = V1FilterDefinition(99, "include", "1.2.3")
@@ -284,16 +284,16 @@ class TrapFilterTest(TestCase):
             "snmpV1Enterprise": "1.2.3",
             "snmpV1SpecificTrap": 59,
         }
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1SpecificTrap"] = 99
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3.4"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     def testDropV1EventForEnterpriseSpecific(t):
         filterDef = V1FilterDefinition(99, "include", "1.2.3")
@@ -311,19 +311,19 @@ class TrapFilterTest(TestCase):
             "snmpV1Enterprise": "1.2.3",
             "snmpV1SpecificTrap": 59,
         }
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1SpecificTrap"] = 60
-        t.assertFalse(t.filter._dropV1Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["snmpV1SpecificTrap"] = 1
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2.3.4"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["snmpV1Enterprise"] = "1.2"
-        t.assertTrue(t.filter._dropV1Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     def testDropV2EventForSimpleExactMatch(t):
         filterDef = V2FilterDefinition(99, "exclude", "1.2.3.4")
@@ -331,10 +331,10 @@ class TrapFilterTest(TestCase):
         t.filter._filterspec._v2Filters[4] = filtersByLevel
 
         event = {"snmpVersion": "2", "oid": "1.2.3.4"}
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         filterDef.action = "include"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
     def testDropV2EventForSimpleGlobMatch(t):
         filterDef = V2FilterDefinition(99, "exclude", "1.2.3.*")
@@ -342,10 +342,10 @@ class TrapFilterTest(TestCase):
         t.filter._filterspec._v2Filters[4] = filtersByLevel
 
         event = {"snmpVersion": "2", "oid": "1.2.3.4"}
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         filterDef.action = "include"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
     # This test uses 1 filters for each of two OID levels where the filter
     # specifies an exact match
@@ -359,23 +359,23 @@ class TrapFilterTest(TestCase):
         t.filter._filterspec._v2Filters[4] = filtersByLevel
 
         event = {"snmpVersion": "2", "oid": "1.2.3"}
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3.4"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         # OIDs with fewer or more levels than the existing filters
         # should NOT match
         event["oid"] = "1.2"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
         event["oid"] = "1.2.3.4.9"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         # OIDs that differ only in the last level should NOT match
         event["oid"] = "1.2.9"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
         event["oid"] = "1.2.3.9"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     # This test uses 1 filters for each of two OID levels where the filter
     # specifies a glob match
@@ -389,34 +389,34 @@ class TrapFilterTest(TestCase):
         t.filter._filterspec._v2Filters[6] = filtersByLevel
 
         event = {"snmpVersion": "2", "oid": "1.2.3.4"}
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3.99"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3.99.5"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3.4.99"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3.4.5"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3.4.5.99"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.99.4"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.99.4.5.6"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     def testDropV2EventIncludeAll(t):
         filterDef = V2FilterDefinition(99, "include", "*")
@@ -424,13 +424,13 @@ class TrapFilterTest(TestCase):
         t.filter._filterspec._v2Filters[1] = filtersByLevel
 
         event = {"snmpVersion": "2", "oid": "1"}
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1."
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
     def testDropV2EventExcludeAll(t):
         filterDef = V2FilterDefinition(99, "exclude", "*")
@@ -438,10 +438,10 @@ class TrapFilterTest(TestCase):
         t.filter._filterspec._v2Filters[1] = filtersByLevel
 
         event = {"snmpVersion": "2", "oid": "1"}
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     def testDropV2EventExcludeAllBut(t):
         filterDef = V2FilterDefinition(99, "exclude", "*")
@@ -457,25 +457,25 @@ class TrapFilterTest(TestCase):
         t.filter._filterspec._v2Filters[3] = filtersByLevel
 
         event = {"snmpVersion": "2", "oid": "1"}
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["oid"] = "1.2"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["oid"] = "1.4.5.1"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["oid"] = "1.4.5"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3.4"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3.4.5"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
     def testDropV2EventIncludeAllBut(t):
         filterDef = V2FilterDefinition(99, "include", "*")
@@ -491,25 +491,25 @@ class TrapFilterTest(TestCase):
         t.filter._filterspec._v2Filters[3] = filtersByLevel
 
         event = {"snmpVersion": "2", "oid": "1"}
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1.2"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1.4.5.1"
-        t.assertFalse(t.filter._dropV2Event(event))
+        t.assertFalse(t.filter._dropEvent(event))
 
         event["oid"] = "1.4.5"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3.4"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
         event["oid"] = "1.2.3.4.5"
-        t.assertTrue(t.filter._dropV2Event(event))
+        t.assertTrue(t.filter._dropEvent(event))
 
     def testDropEvent(t):
         filterDef = V1FilterDefinition(99, "include", "*")
