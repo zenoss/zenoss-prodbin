@@ -84,6 +84,9 @@ class EventClient(object):
         self.__queue.addEvent(built_event)
         self.counters["eventCount"] += 1
 
+    def sendHeartbeat(self, event):
+        self.__queue.addHeartbeatEvent(event)
+
     @defer.inlineCallbacks
     def _last_push(self, task):
         yield self._push()

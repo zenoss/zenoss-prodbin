@@ -54,8 +54,8 @@ from Products.DataCollector.TelnetClient import (
 )
 from Products.ZenCollector.cyberark import get_cyberark
 from Products.ZenCollector.daemon import parseWorkerOptions, addWorkerOptions
-from Products.ZenCollector.interfaces import IEventService
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
+from Products.ZenHub.interfaces import IEventService
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon, HubDown
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.Utils import unused, zenPath, wait

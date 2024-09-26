@@ -47,7 +47,6 @@ from .interfaces import (
     IConfigurationDispatchingFilter,
     IConfigurationListener,
     IDataService,
-    IEventService,
     IFrameworkFactory,
     IStatisticsService,
     ITaskSplitter,
@@ -56,7 +55,7 @@ from .listeners import ConfigListenerNotifier
 from .utils.maintenance import MaintenanceCycle, ZenHubHeartbeatSender
 
 
-@implementer(ICollector, IDataService, IEventService)
+@implementer(ICollector, IDataService)
 class CollectorDaemon(RRDDaemon):
     """The daemon class for the entire ZenCollector framework."""
 
@@ -118,7 +117,6 @@ class CollectorDaemon(RRDDaemon):
         # that collector implementors can easily retrieve a reference back here
         # if needed
         provideUtility(self, ICollector)
-        provideUtility(self, IEventService)
         provideUtility(self, IDataService)
 
         # Register the collector's own preferences object so it may be easily
@@ -402,7 +400,6 @@ class CollectorDaemon(RRDDaemon):
                 self.options.monitor,
                 self.name,
                 self.options.heartbeatTimeout,
-                self._eventqueue,
             )
         else:
             heartbeatSender = None

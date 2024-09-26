@@ -21,6 +21,8 @@ from twisted.internet.endpoints import clientFromString, serverFromString
 from twisted.internet import defer, reactor, task
 from twisted.internet.error import ReactorNotRunning
 from twisted.spread import pb
+from zope.component import provideUtility
+from zope.interface import implementer
 
 from Products.ZenEvents.ZenEventClasses import (
     App_Start,
@@ -43,6 +45,7 @@ from Products.ZenUtils.ZenDaemon import ZenDaemon
 
 from .errors import HubDown, translateError
 from .events import EventClient, EventQueueManager
+from .interfaces import IEventService
 from .localserver import LocalServer, ZenHubStatus
 from .metricpublisher import publisher
 from .pinger import PingZenHub
@@ -78,6 +81,7 @@ class FakeRemote:
         return defer.fail(HubDown())
 
 
+@implementer(IEventService)
 class PBDaemon(ZenDaemon, pb.Referenceable):
     """Base class for services that connect to ZenHub."""
 
@@ -99,6 +103,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         # instead of via code, be sure to store it correctly.
         if name is not None:
             self.name = self.mname = name
+
+        provideUtility(self, IEventService)
 
         super(PBDaemon, self).__init__(noopts, keeproot)
 
@@ -124,7 +130,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         for evt in self.startEvent, self.stopEvent:
             evt.update(details)
 
-        self._eventqueue = EventQueueManager(self.options, self.log)
+        self.__eventqueue = EventQueueManager(self.options, self.log)
         self._metrologyReporter = None
 
         self.__publisher = publisher
@@ -134,7 +140,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
         self.__eventclient = EventClient(
             self.options,
-            self._eventqueue,
+            self.__eventqueue,
             self.generateEvent,
             lambda: self.getService("EventService"),
         )
@@ -181,7 +187,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def __record_queued_events_count(self):
         if self.rrdStats.name:
-            self.rrdStats.gauge("eventQueueLength", len(self._eventqueue))
+            self.rrdStats.gauge("eventQueueLength", len(self.__eventqueue))
 
     def generateEvent(self, event, **kw):
         """
@@ -268,6 +274,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def sendEvents(self, events):
         return self.__eventclient.sendEvents(events)
+
+    def sendHeartbeat(self, event):
+        self.__eventclient.sendHeartbeat(event)
 
     @defer.inlineCallbacks
     def sendEvent(self, event, **kw):
