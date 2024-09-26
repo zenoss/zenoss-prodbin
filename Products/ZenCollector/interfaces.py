@@ -9,6 +9,8 @@
 
 import zope.interface
 
+# IEventService imported here for ZenPack compability
+from Products.ZenHub.interfaces import IEventService  # noqa: F401
 from Products.ZenUtils.observable import IObservable
 
 
@@ -547,15 +549,6 @@ class IDataService(zope.interface.Interface):
         @return: the parameter value converted to a number
         @rtype: number or None
         """
-
-
-class IEventService(zope.interface.Interface):
-    """
-    A service that allows the sending of an event.
-    """
-
-    def sendEvent(event, **kw):
-        pass
 
 
 class IFrameworkFactory(zope.interface.Interface):

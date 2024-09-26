@@ -24,8 +24,9 @@ import zope.component
 
 from zope.interface import implements
 
-from Products.ZenCollector.interfaces import ICollector, IEventService
+from Products.ZenCollector.interfaces import ICollector
 from Products.ZenHub.interfaces import ICollectorEventTransformer, \
+    IEventService, \
     TRANSFORM_CONTINUE, \
     TRANSFORM_DROP
 from Products.ZenUtils.Utils import unused, zenPath

@@ -9,7 +9,6 @@ from mock import ANY, Mock, patch, create_autospec, call
 from Products.ZenHub.PBDaemon import (
     collections,
     defer,
-    # EventQueueManager,
     PBDaemon,
     publisher,
 )
@@ -91,7 +90,6 @@ class PBDaemonInitTest(TestCase):
         t.assertEqual(pbd.rrdStats, DaemonStats.return_value)
         t.assertEqual(pbd.lastStats, 0)
         t.assertEqual(pbd.services, _getZenHubClient.return_value.services)
-        t.assertEqual(pbd._eventqueue, EventQueueManager.return_value)
         t.assertEqual(pbd.startEvent, startEvent.copy())
         t.assertEqual(pbd.stopEvent, stopEvent.copy())
 
@@ -198,7 +196,7 @@ class PBDaemonTest(TestCase):
         ]
 
         for target in patches:
-            patcher = patch("{src}.{}".format(target, **PATH), autospec=True)
+            patcher = patch("{src}.{}".format(target, **PATH), spec=True)
             setattr(t, target, patcher.start())
             t.addCleanup(patcher.stop)
 

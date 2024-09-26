@@ -23,9 +23,9 @@ from twisted.web import client
 from zope.component import queryUtility
 
 from Products.ZenEvents import Event
+from Products.ZenHub.interfaces import IEventService
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
-from .interfaces import IEventService
 from .ExpiringCache import ExpiringCache
 
 _CFG_URL = "cyberark-url"

@@ -198,6 +198,21 @@ class ICollectorEventFingerprintGenerator(Interface):
         """
 
 
+class IEventService(Interface):
+    """
+    A service that allows the sending of an event.
+    """
+
+    def sendEvents(events):
+        pass
+
+    def sendEvent(event, **kw):
+        pass
+
+    def sendHeartbeat(event):
+        pass
+
+
 TRANSFORM_CONTINUE = 0
 TRANSFORM_STOP = 1
 TRANSFORM_DROP = 2
