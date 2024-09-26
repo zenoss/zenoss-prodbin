@@ -130,7 +130,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         for evt in self.startEvent, self.stopEvent:
             evt.update(details)
 
-        self.__eventqueue = EventQueueManager(self.options, self.log)
         self._metrologyReporter = None
 
         self.__publisher = publisher
@@ -138,12 +137,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.__metric_writer = None
         self.__derivative_tracker = None
 
-        self.__eventclient = EventClient(
-            self.options,
-            self.__eventqueue,
-            self.generateEvent,
-            lambda: self.getService("EventService"),
-        )
+        self.__eventqueue = None
+        self.__eventclient = None
         self.__recordQueuedEventsCountLoop = task.LoopingCall(
             self.__record_queued_events_count
         )
@@ -186,7 +181,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         return self.__zhclient.services
 
     def __record_queued_events_count(self):
-        if self.rrdStats.name:
+        if self.rrdStats.name and self.__eventqueue is not None:
             self.rrdStats.gauge("eventQueueLength", len(self.__eventqueue))
 
     def generateEvent(self, event, **kw):
@@ -273,13 +268,19 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         return self.getServiceNow("EventService")
 
     def sendEvents(self, events):
+        if self.__eventclient is None:
+            return
         return self.__eventclient.sendEvents(events)
 
     def sendHeartbeat(self, event):
+        if self.__eventclient is None:
+            return
         self.__eventclient.sendHeartbeat(event)
 
     @defer.inlineCallbacks
     def sendEvent(self, event, **kw):
+        if self.__eventclient is None:
+            return
         yield self.__eventclient.sendEvent(event, **kw)
 
     def getServiceNow(self, svcName):
@@ -427,16 +428,23 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     @defer.inlineCallbacks
     def _stop(self):
-        if self.options.cycle:
+        if self.__eventclient is not None:
             self.__eventclient.sendEvent(self.stopEvent)
             yield self.__eventclient.stop()
             self.log.debug("stopped event client")
         yield self.__zhclient.stop()
 
     def _setup_event_client(self):
+        self.__eventqueue = EventQueueManager(self.options, self.log)
+        self.__eventclient = EventClient(
+            self.options,
+            self.__eventqueue,
+            self.generateEvent,
+            lambda: self.getService("EventService"),
+        )
         self.__eventclient.start()
-        self.__recordQueuedEventsCountLoop.start(2.0, now=False)
         self.__eventclient.sendEvent(self.startEvent)
+        self.__recordQueuedEventsCountLoop.start(2.0, now=False)
         self.log.info("started event client")
 
     def _setup_stats_recording(self):

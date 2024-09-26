@@ -119,6 +119,7 @@ class TrapFilter(object):
             (tf for tf in self._filters if tf.is_valid(event)), None
         )
         if trapfilter:
+            log.debug("using trap filter %r", trapfilter)
             return trapfilter(event)
         log.error("dropping unknown trap  event=%r", event)
         return True
@@ -179,7 +180,7 @@ class EnterpriseV1Predicate(TrapFilterPredicate):
             )
             return True
 
-        result = _check_definitions(
+        return _check_definitions(
             (
                 getter()
                 for getter in (
@@ -190,9 +191,6 @@ class EnterpriseV1Predicate(TrapFilterPredicate):
                 )
             )
         )
-        if result:
-            log.debug("drop specific v1 trap  trap=%s", event)
-        return result
 
     def _getSpecificTrapDefinition(self, event, enterpriseOID):
         specificTrap = event.get("snmpV1SpecificTrap", None)
@@ -201,14 +199,14 @@ class EnterpriseV1Predicate(TrapFilterPredicate):
         key = "".join([enterpriseOID, "-", str(specificTrap)])
         definition = _findFilterByLevel(key, self._definitions)
         if definition:
-            log.debug("matched definition %s", definition)
+            log.debug("matched [specific-trap] definition %s", definition)
         return definition
 
     def _getWildCardDefinition(self, enterpriseOID):
         key = "".join([enterpriseOID, "-", "*"])
         definition = _findFilterByLevel(key, self._definitions)
         if definition:
-            log.debug("matched definition %s", definition)
+            log.debug("matched [wildcard] definition %s", definition)
         return definition
 
     def _getGlobMatchDefinition(self, enterpriseOID):
@@ -216,7 +214,7 @@ class EnterpriseV1Predicate(TrapFilterPredicate):
             enterpriseOID, self._definitions
         )
         if definition:
-            log.debug("matched definition %s", definition)
+            log.debug("matched [glob] definition %s", definition)
         return definition
 
 
@@ -226,7 +224,7 @@ class SnmpV2Predicate(TrapFilterPredicate):
 
     def __call__(self, event):
         oid = event["oid"]
-        result = _check_definitions(
+        return _check_definitions(
             (
                 getter()
                 for getter in (
@@ -236,21 +234,18 @@ class SnmpV2Predicate(TrapFilterPredicate):
                 )
             )
         )
-        if result:
-            log.debug("drop v2 trap  trap=%s", event)
-        return result
 
     def _getExactMatchDefinition(self, oid):
         # First, try an exact match on the OID
         definition = _findFilterByLevel(oid, self._definitions)
         if definition:
-            log.debug("matched definition %s", definition)
+            log.debug("matched [exact] definition %s", definition)
         return definition
 
     def _getGlobMatchDefinition(self, oid):
         definition = _findClosestGlobbedFilter(oid, self._definitions)
         if definition:
-            log.debug("matched definition %s", definition)
+            log.debug("matched [glob] definition %s", definition)
         return definition
 
 

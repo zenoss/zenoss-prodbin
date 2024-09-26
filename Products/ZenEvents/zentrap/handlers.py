@@ -86,15 +86,14 @@ class TrapHandler(object):
             )
 
         result["zenoss.trap_source_ip"] = addr[0]
+        community = self.getCommunity(pdu)
+        self.sendTrapEvent(result, community, eventType, starttime)
         log.debug(
-            "asyncHandleTrap: eventType=%s oid=%s snmpVersion=%s",
+            "handled trap  event-type=%s oid=%s snmp-version=%s",
             eventType,
             result["oid"],
             result["snmpVersion"],
         )
-
-        community = self.getCommunity(pdu)
-        self.sendTrapEvent(result, community, eventType, starttime)
 
     def sendTrapEvent(self, result, community, eventType, starttime):
         summary = "snmp trap %s" % eventType
