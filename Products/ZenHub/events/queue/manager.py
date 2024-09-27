@@ -12,6 +12,8 @@ import time
 from collections import deque
 from itertools import chain
 
+import six
+
 from metrology import Metrology
 from metrology.instruments import Gauge
 from metrology.registry import registry
@@ -192,7 +194,7 @@ class EventQueueManager(object):
                 num_heartbeat_events = min(
                     chunk_remaining, len(prev_heartbeat_event_queue)
                 )
-                for i in xrange(num_heartbeat_events):
+                for _ in six.moves.range(num_heartbeat_events):
                     heartbeat_events.append(
                         prev_heartbeat_event_queue.popleft()
                     )
@@ -202,13 +204,13 @@ class EventQueueManager(object):
                 num_perf_events = min(
                     chunk_remaining, len(prev_perf_event_queue)
                 )
-                for i in xrange(num_perf_events):
+                for _ in six.moves.range(num_perf_events):
                     perf_events.append(prev_perf_event_queue.popleft())
                 chunk_remaining -= num_perf_events
 
                 events = []
                 num_events = min(chunk_remaining, len(prev_event_queue))
-                for i in xrange(num_events):
+                for _ in six.moves.range(num_events):
                     events.append(prev_event_queue.popleft())
                 return heartbeat_events, perf_events, events
 

@@ -9,7 +9,6 @@ from mock import ANY, Mock, patch, create_autospec, call
 from Products.ZenHub.PBDaemon import (
     collections,
     defer,
-    # EventQueueManager,
     PBDaemon,
     publisher,
 )
@@ -83,7 +82,7 @@ class PBDaemonInitTest(TestCase):
         ls = _getLocalServer.return_value
         ls.add_resource.assert_called_once_with("zenhub", ANY)
 
-        EventQueueManager.assert_called_with(PBDaemon.options, PBDaemon.log)
+        EventQueueManager.assert_not_called()
 
         # Check lots of attributes, should verify that they are needed
         t.assertEqual(pbd._thresholds, Thresholds.return_value)
@@ -91,7 +90,6 @@ class PBDaemonInitTest(TestCase):
         t.assertEqual(pbd.rrdStats, DaemonStats.return_value)
         t.assertEqual(pbd.lastStats, 0)
         t.assertEqual(pbd.services, _getZenHubClient.return_value.services)
-        t.assertEqual(pbd._eventqueue, EventQueueManager.return_value)
         t.assertEqual(pbd.startEvent, startEvent.copy())
         t.assertEqual(pbd.stopEvent, stopEvent.copy())
 
@@ -198,7 +196,7 @@ class PBDaemonTest(TestCase):
         ]
 
         for target in patches:
-            patcher = patch("{src}.{}".format(target, **PATH), autospec=True)
+            patcher = patch("{src}.{}".format(target, **PATH), spec=True)
             setattr(t, target, patcher.start())
             t.addCleanup(patcher.stop)
 
@@ -417,6 +415,7 @@ class PBDaemonTest(TestCase):
 
     def test_sendEvents(t):
         ec = t.EventClient.return_value
+        t.pbd._setup_event_client()
         events = [{"name": "evt_a"}, {"name": "evt_b"}]
 
         d = t.pbd.sendEvents(events)
@@ -428,6 +427,7 @@ class PBDaemonTest(TestCase):
         ec = t.EventClient.return_value
         sendEvent = Mock(name="sendEvent")
         ec.sendEvent = sendEvent
+        t.pbd._setup_event_client()
         event = {"name": "event"}
 
         d = t.pbd.sendEvent(event, newkey="newkey")
@@ -460,6 +460,7 @@ class PBDaemonTest(TestCase):
     def test_postStatistics(t):
         ec = t.EventClient.return_value
         ec.counters = collections.Counter()
+        t.pbd._setup_event_client()
         # sets rrdStats, then calls postStatisticsImpl
         t.pbd.rrdStats = Mock(name="rrdStats", spec_set=["counter"])
         ctrs = {"c1": 3, "c2": 5}
