@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 # Copyright (C) Zenoss, Inc. 2023, all rights reserved.
@@ -13,16 +14,13 @@ import collections
 
 from unittest import TestCase
 
+import six
+
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.Jobber.tests.utils import subTest, RedisLayer
 
 from ..cache import DeviceKey, DeviceQuery, DeviceRecord, ConfigStatus
 from ..cache.storage import DeviceConfigStore
-
-
-_fields = collections.namedtuple(
-    "_fields", "service monitor device uid updated"
-)
 
 
 class EmptyDeviceConfigStoreTest(TestCase):
@@ -123,14 +121,19 @@ class NoConfigTest(TestCase):
         t.assertEqual(expected, status)
 
 
+_values = collections.namedtuple(
+    "_values", "service monitor device uid updated"
+)
+
+
 class _BaseTest(TestCase):
     # Base class to share setup code
 
     layer = RedisLayer
 
-    fields = (
-        _fields("a", "b", "c1", "/c1", 1234500.0),
-        _fields("a", "b", "c2", "/c1", 1234550.0),
+    values = (
+        _values("a", "b", "c1", "/c1", 1234500.0),
+        _values("a", "b", "c2", "/c2", 1234550.0),
     )
 
     def setUp(t):
@@ -139,19 +142,19 @@ class _BaseTest(TestCase):
         t.config1 = _make_config("test1", "_test1", "abc-test-01")
         t.config2 = _make_config("test2", "_test2", "abc-test-02")
         t.record1 = DeviceRecord.make(
-            t.fields[0].service,
-            t.fields[0].monitor,
-            t.fields[0].device,
-            t.fields[0].uid,
-            t.fields[0].updated,
+            t.values[0].service,
+            t.values[0].monitor,
+            t.values[0].device,
+            t.values[0].uid,
+            t.values[0].updated,
             t.config1,
         )
         t.record2 = DeviceRecord.make(
-            t.fields[1].service,
-            t.fields[1].monitor,
-            t.fields[1].device,
-            t.fields[1].uid,
-            t.fields[1].updated,
+            t.values[1].service,
+            t.values[1].monitor,
+            t.values[1].device,
+            t.values[1].uid,
+            t.values[1].updated,
             t.config2,
         )
 
@@ -171,14 +174,14 @@ class ConfigStoreAddTest(_BaseTest):
         t.store.add(t.record1)
         t.store.add(t.record2)
         expected1 = DeviceKey(
-            t.fields[0].service,
-            t.fields[0].monitor,
-            t.fields[0].device,
+            t.values[0].service,
+            t.values[0].monitor,
+            t.values[0].device,
         )
         expected2 = DeviceKey(
-            t.fields[1].service,
-            t.fields[1].monitor,
-            t.fields[1].device,
+            t.values[1].service,
+            t.values[1].monitor,
+            t.values[1].device,
         )
         result = tuple(t.store.search())
         t.assertEqual(2, len(result))
@@ -214,7 +217,7 @@ class ConfigStoreSearchTest(_BaseTest):
 
     def test_positive_search_single(t):
         t.store.add(t.record1)
-        f0 = t.fields[0]
+        f0 = t.values[0]
         cases = (
             {"service": f0.service},
             {"service": f0.service, "monitor": f0.monitor},
@@ -235,7 +238,7 @@ class ConfigStoreSearchTest(_BaseTest):
     def test_positive_search_multiple(t):
         t.store.add(t.record1)
         t.store.add(t.record2)
-        f0 = t.fields[0]
+        f0 = t.values[0]
         cases = (
             ({"service": f0.service}, 2),
             ({"service": f0.service, "monitor": f0.monitor}, 2),
@@ -267,12 +270,12 @@ class ConfigStoreGetStatusTest(_BaseTest):
         status = t.store.get_status(t.record1.key)
         t.assertEqual(t.record1.key, status.key)
         t.assertIsInstance(status, ConfigStatus.Current)
-        t.assertEqual(t.fields[0].updated, status.updated)
+        t.assertEqual(t.values[0].updated, status.updated)
 
         status = t.store.get_status(t.record2.key)
         t.assertEqual(t.record2.key, status.key)
         t.assertIsInstance(status, ConfigStatus.Current)
-        t.assertEqual(t.fields[1].updated, status.updated)
+        t.assertEqual(t.values[1].updated, status.updated)
 
 
 class ConfigStoreGetOlderTest(_BaseTest):
@@ -702,9 +705,7 @@ class GetStatusTest(_BaseTest):
 
     def test_current(t):
         t.store.add(t.record1)
-        expected = ConfigStatus.Current(
-            t.record1.key, t.record1.updated
-        )
+        expected = ConfigStatus.Current(t.record1.key, t.record1.updated)
         actual = t.store.get_status(t.record1.key)
         t.assertEqual(expected, actual)
 
@@ -1116,8 +1117,32 @@ class DeviceMonitorChangeTest(_BaseTest):
         t.assertEqual(newrecord, result)
 
 
-class DeviceUIDTest(TestCase):
+class GetUIDsTest(_BaseTest):
+    def test_get_uids_missing(t):
+        result = t.store.get_uids(t.values[0].device, t.values[1].device)
+        t.assertIsInstance(result, collections.Iterator)
+        result = sorted(result)
+        t.assertEqual(len(result), 2)
+        r1, r2 = result
+        t.assertEqual(r1[0], t.values[0].device)
+        t.assertIsNone(r1[1])
+        t.assertEqual(r2[0], t.values[1].device)
+        t.assertIsNone(r2[1])
 
+    def test_get_uids_stored(t):
+        t.store.add(t.record1)
+        t.store.add(t.record2)
+        result = t.store.get_uids(t.values[0].device, t.values[1].device)
+        result = sorted(result)
+        t.assertEqual(len(result), 2)
+        r1, r2 = result
+        t.assertEqual(r1[0], t.values[0].device)
+        t.assertEqual(r1[1], t.values[0].uid)
+        t.assertEqual(r2[0], t.values[1].device)
+        t.assertEqual(r2[1], t.values[1].uid)
+
+
+class DeviceUIDTest(TestCase):
     layer = RedisLayer
 
     def setUp(t):
@@ -1200,7 +1225,7 @@ def _make_config(_id, configId, guid):
     config.id = _id
     config._config_id = configId
     config._device_guid = guid
-    config.data = u"fancy"
+    config.data = six.ensure_text("𝗳ӓꞥϲỷ")
     return config
 
 
