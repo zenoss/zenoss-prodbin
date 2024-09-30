@@ -152,8 +152,8 @@ class ListDevice(object):
 
     def _get_uidmap(self, store, data):
         if self._showuid:
-            keys = tuple(status.key for status in data)
-            uids = store.get_uids(*keys)
+            deviceids = tuple(status.key.device for status in data)
+            uids = store.get_uids(*deviceids)
             return dict(uids)
         return {}
 
