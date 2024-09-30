@@ -179,7 +179,7 @@ class KeyConverter(object):
         hkey = _hashkey(raw)
         value = self.__cache.get(hkey)
         if value is None:
-            value = self.__keytype(*self._atoms(raw))
+            value = self.__keytype(**self._atoms(raw))
             self.__cache[hkey] = value
         return value
 

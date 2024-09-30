@@ -741,6 +741,12 @@ class _CompositeTable(object):
     def keys(self):
         return self.__km
 
+    def mget(self, client, *keys):
+        # The mget method accepts multiple keys and so must be handled
+        # differently than _callmethod, which accepts only one key.
+        rawkeys = tuple(self.__km.to_raw(k) for k in keys)
+        return self.__methods["mget"](client, *rawkeys)
+
     def to_rawkey(self, key):
         return self.__km.to_raw(key)
 
