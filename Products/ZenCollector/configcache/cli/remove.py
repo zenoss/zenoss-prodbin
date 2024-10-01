@@ -86,7 +86,7 @@ class RemoveDevice(object):
         initialize_environment(configs=self.configs, useZope=False)
         client = getRedisClient(url=getRedisUrl())
         store = createObject("deviceconfigcache-store", client)
-        self._remove(self._get(store, haswildcard))
+        self._remove(store, self._get(store, haswildcard))
 
     def _get(self, store, haswildcard):
         query = self._make_query(haswildcard)
