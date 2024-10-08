@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import, print_function
+
 import errno
 import logging
 import socket
@@ -17,9 +19,9 @@ import ctypes as c  # Magical interfacing with C code
 from pynetsnmp import netsnmp
 
 # Version codes from the PDU
-SNMPv1 = 0
-SNMPv2 = 1
-SNMPv3 = 3
+SNMPv1 = netsnmp.SNMP_VERSION_1
+SNMPv2 = netsnmp.SNMP_VERSION_2c
+SNMPv3 = netsnmp.SNMP_VERSION_3
 
 log = logging.getLogger("zen.zentrap")
 
