@@ -13,6 +13,8 @@ Creates events from SNMP Traps.
 Currently a wrapper around the Net-SNMP C library.
 """
 
+from __future__ import absolute_import, print_function
+
 import socket
 import sys
 import time
