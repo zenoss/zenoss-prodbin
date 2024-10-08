@@ -791,8 +791,11 @@ def _get_defaults_from_config(args):
         try:
             appcfg = ConfigLoader(opts.configfile)()
             overrides.update(appcfg)
-        except Exception as ex:
-            print("warning: {}".format(ex), file=sys.stderr)
+        except Exception as ex:  # noqa: F841 S110
+            # Restore this code when the wrapper scripts no longer
+            # add the -C option all the time.
+            # print("warning: {}".format(ex), file=sys.stderr)
+            pass
     return {key.replace("-", "_"): value for key, value in overrides.items()}
 
 
