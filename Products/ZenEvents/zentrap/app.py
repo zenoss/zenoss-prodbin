@@ -57,7 +57,7 @@ class TrapDaemon(PBDaemon):
     def __init__(self, *args, **kwargs):
         super(TrapDaemon, self).__init__(*args, **kwargs)
 
-        self.configCycleInterval = 20 * 60  # seconds
+        self.configCycleInterval = 2 * 60  # seconds
         self.cycleInterval = 5 * 60  # seconds
 
         self.__lastCounterEventTime = time.time()
@@ -233,7 +233,6 @@ class TrapDaemon(PBDaemon):
             reactor.addSystemEventTrigger(
                 "before", "shutdown", self._receiver.stop
             )
-
             reactor.addSystemEventTrigger(
                 "after", "shutdown", self._displayStatistics
             )

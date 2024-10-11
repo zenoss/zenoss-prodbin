@@ -15,6 +15,7 @@ from zenoss.protocols.protobufs.zep_pb2 import DaemonHeartbeat
 from zope.component import getUtility
 
 from Products.ZenEvents.ZenEventClasses import Heartbeat
+from Products.ZenHub.interfaces import IEventService
 from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
 
 log = logging.getLogger("zen.maintenance")
@@ -65,17 +66,16 @@ class ZenHubHeartbeatSender(object):
     Default heartbeat sender for CollectorDaemon.
     """
 
-    def __init__(self, monitor, daemon, timeout, queue):
+    def __init__(self, monitor, daemon, timeout):
         self.__event = {
             "eventClass": Heartbeat,
             "device": monitor,
             "component": daemon,
             "timeout": timeout
         }
-        self.__queue = queue
 
     def heartbeat(self):
-        self.__queue.addHeartbeatEvent(self.__event)
+        getUtility(IEventService).sendHeartbeat(self.__event)
 
 
 class MaintenanceCycle(object):

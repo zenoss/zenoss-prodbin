@@ -100,7 +100,7 @@ class FilterSpecification(object):
         self._filtersDefined = 0 != numFiltersDefined
         if self._filtersDefined:
             log.debug(
-                "Finished reading filter configuration. Lines parsed:%s, "
+                "finished reading filter configuration. Lines parsed:%s, "
                 "Filters defined:%s [v1Traps:%d, v1Filters:%d, "
                 "v2Filters:%d]",
                 lineNumber,
@@ -110,13 +110,13 @@ class FilterSpecification(object):
                 len(self._v2Filters),
             )
         else:
-            log.warn("No zentrap filters defined.")
+            log.warn("no zentrap filters defined.")
         return events
 
     def _reset(self):
-        self._v1Traps = {}
-        self._v1Filters = {}
-        self._v2Filters = {}
+        self._v1Traps.clear()
+        self._v1Filters.clear()
+        self._v2Filters.clear()
         self._filtersDefined = False
 
     def _parseFilterDefinition(self, line, lineNumber):
@@ -165,7 +165,7 @@ class FilterSpecification(object):
                 return None
         except Exception:
             errorMessage = (
-                "Could not compile collector expression {!r} on "
+                "could not compile collector expression {!r} on "
                 "line {}".format(collectorRegex, lineNumber)
             )
             log.error(errorMessage)
@@ -439,13 +439,14 @@ class GenericTrapFilterDefinition(BaseFilterDefinition):
         self.genericTrap = genericTrap
 
     def __eq__(self, other):
-        if isinstance(other, GenericTrapFilterDefinition):
-            return self.genericTrap == other.genericTrap
-        else:
-            return False
+        if not isinstance(other, GenericTrapFilterDefinition):
+            return NotImplemented
+        return self.genericTrap == other.genericTrap
 
     def __ne__(self, other):
-        return not self.__eq__(other)
+        if not isinstance(other, GenericTrapFilterDefinition):
+            return NotImplemented
+        return self.genericTrap != other.genericTrap
 
     def __hash__(self):
         return hash(self.genericTrap)
@@ -462,13 +463,14 @@ class OIDBasedFilterDefinition(BaseFilterDefinition):
         return countOidLevels(self.oid)
 
     def __eq__(self, other):
-        if isinstance(other, OIDBasedFilterDefinition):
-            return self.oid == other.oid
-        else:
-            return False
+        if not isinstance(other, OIDBasedFilterDefinition):
+            return NotImplemented
+        return self.oid == other.oid
 
     def __ne__(self, other):
-        return not self.__eq__(other)
+        if not isinstance(other, OIDBasedFilterDefinition):
+            return NotImplemented
+        return self.oid != other.oid
 
     def __hash__(self):
         return hash(self.oid)

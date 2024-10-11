@@ -17,9 +17,9 @@ from twisted.internet import reactor, error, defer
 from twisted.internet.error import TimeoutError
 from twisted.python import failure
 
-from Products.ZenCollector.interfaces import IEventService
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
+from Products.ZenHub.interfaces import IEventService
 from Products.ZenUtils.Driver import drive
 from Products.ZenUtils.snmp import (
     SnmpAgentDiscoverer,

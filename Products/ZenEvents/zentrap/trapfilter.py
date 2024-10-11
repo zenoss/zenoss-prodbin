@@ -44,7 +44,11 @@ class TrapFilter(object):
         self._app = app
         self._filterspec = spec
         self._checksum = None
-        self._genericTraps = frozenset([0, 1, 2, 3, 4, 5])
+        self._filters = (
+            GenericV1Predicate(self._filterspec.v1traps),
+            EnterpriseV1Predicate(self._filterspec.v1filters),
+            SnmpV2Predicate(self._filterspec.v2filters),
+        )
 
     # implements ICollectorEventTransformer
     def transform(self, event):
@@ -62,9 +66,9 @@ class TrapFilter(object):
         result = TRANSFORM_CONTINUE
         snmpVersion = event.get("snmpVersion", None)
         if snmpVersion and self._filterspec.defined:
-            log.debug("Filtering V%s event %s", snmpVersion, event)
+            log.debug("filtering V%s event %s", snmpVersion, event)
             if self._dropEvent(event):
-                log.debug("Dropping event %s", event)
+                log.debug("dropping event %s", event)
                 self._app.counters["eventFilterDroppedCount"] += 1
                 result = TRANSFORM_DROP
         else:
@@ -111,117 +115,166 @@ class TrapFilter(object):
             False if the event be kept.
         @rtype: boolean
         """
-        result = True
-        snmpVersion = event.get("snmpVersion", None)
+        trapfilter = next(
+            (tf for tf in self._filters if tf.is_valid(event)), None
+        )
+        if trapfilter:
+            log.debug("using trap filter %r", trapfilter)
+            return trapfilter(event)
+        log.error("dropping unknown trap  event=%r", event)
+        return True
 
-        if snmpVersion == "1":
-            result = self._dropV1Event(event)
-        elif snmpVersion == "2" or snmpVersion == "3":
-            result = self._dropV2Event(event)
-        else:
-            log.error(
-                "Unknown snmp version %s, Dropping event:%r",
-                snmpVersion,
-                event,
-            )
 
-        return result
+class TrapFilterPredicate(object):
+    """
+    Base class for predicates that determine whether a trap is ignored.
 
-    def _dropV1Event(self, event):
-        genericTrap = event.get("snmpV1GenericTrapType", None)
-        if genericTrap is not None and genericTrap in self._genericTraps:
-            filterDefinition = self._filterspec.v1traps.get(genericTrap, None)
-            if filterDefinition is None:
-                return True
-            return filterDefinition.action == "exclude"
+    Predicate implementations will return True indicating that the
+    event should be ignored.
+    """
 
-        if genericTrap != 6:
-            log.error(
-                "Generic trap '%s' is invalid for V1 event: %s",
-                genericTrap,
-                event,
-            )
-            return True
+    def __init__(self, definitions):
+        self._definitions = definitions
 
-        enterpriseOID = event.get("snmpV1Enterprise", None)
-        if enterpriseOID is None:
+    def is_valid(self, event):
+        return False
+
+    def __call__(self, event):
+        return False
+
+
+class GenericV1Predicate(TrapFilterPredicate):
+    def __init__(self, *args):
+        super(GenericV1Predicate, self).__init__(*args)
+        self._genericTraps = frozenset([0, 1, 2, 3, 4, 5])
+
+    def is_valid(self, event):
+        if event.get("snmpVersion", None) != "1":
+            return False
+        if event.get("snmpV1GenericTrapType", None) not in self._genericTraps:
+            return False
+        return True
+
+    def __call__(self, event):
+        traptype = event.get("snmpV1GenericTrapType", None)
+        definition = self._definitions.get(traptype, None)
+        if definition and definition.action != "exclude":
+            return False
+        return True
+
+
+class EnterpriseV1Predicate(TrapFilterPredicate):
+    def is_valid(self, event):
+        if event.get("snmpVersion", None) != "1":
+            return False
+        if event.get("snmpV1GenericTrapType", None) != 6:
+            return False
+        return True
+
+    def __call__(self, event):
+        oid = event.get("snmpV1Enterprise", None)
+        if oid is None:
             log.error(
                 "No OID found for enterprise-specific trap for V1 event: %s",
                 event,
             )
             return True
 
-        specificTrap = event.get("snmpV1SpecificTrap", None)
-        if specificTrap is not None:
-            key = "".join([enterpriseOID, "-", str(specificTrap)])
-            filterDefinition = self._findFilterByLevel(
-                key, self._filterspec.v1filters
-            )
-            if filterDefinition is not None:
-                log.debug(
-                    "_dropV1Event: matched definition %s", filterDefinition
+        return _check_definitions(
+            (
+                getter()
+                for getter in (
+                    # order is important!
+                    lambda: self._getSpecificTrapDefinition(event, oid),
+                    lambda: self._getWildCardDefinition(oid),
+                    lambda: self._getGlobMatchDefinition(oid),
                 )
-                return filterDefinition.action == "exclude"
-
-        key = "".join([enterpriseOID, "-", "*"])
-        filterDefinition = self._findFilterByLevel(
-            key, self._filterspec.v1filters
-        )
-        if filterDefinition is not None:
-            log.debug("_dropV1Event: matched definition %s", filterDefinition)
-            return filterDefinition.action == "exclude"
-
-        filterDefinition = self._findClosestGlobbedFilter(
-            enterpriseOID, self._filterspec.v1filters
-        )
-        if filterDefinition is None:
-            log.debug("_dropV1Event: no matching definitions found")
-            return True
-
-        log.debug("_dropV1Event: matched definition %s", filterDefinition)
-        return filterDefinition.action == "exclude"
-
-    def _dropV2Event(self, event):
-        oid = event["oid"]
-
-        # First, try an exact match on the OID
-        filterDefinition = self._findFilterByLevel(
-            oid, self._filterspec.v2filters
-        )
-        if filterDefinition is not None:
-            log.debug("_dropV2Event: matched definition %s", filterDefinition)
-            return filterDefinition.action == "exclude"
-
-        # Convert the OID to its globbed equivalent and try that
-        filterDefinition = self._findClosestGlobbedFilter(
-            oid, self._filterspec.v2filters
-        )
-        if filterDefinition is None:
-            log.debug("_dropV2Event: no matching definitions found")
-            return True
-
-        log.debug("_dropV2Event: matched definition %s", filterDefinition)
-        return filterDefinition.action == "exclude"
-
-    def _findClosestGlobbedFilter(self, oid, filtersByLevel):
-        filterDefinition = None
-        globbedValue = oid
-        while globbedValue != "*":
-            globbedValue = getNextHigherGlobbedOid(globbedValue)
-            filterDefinition = self._findFilterByLevel(
-                globbedValue, filtersByLevel
             )
-            if filterDefinition:
-                break
-        return filterDefinition
+        )
 
-    def _findFilterByLevel(self, oid, filtersByLevel):
-        filterDefinition = None
-        oidLevels = countOidLevels(oid)
-        filtersByOid = filtersByLevel.get(oidLevels, None)
-        if filtersByOid is not None and len(filtersByOid) > 0:
-            filterDefinition = filtersByOid.get(oid, None)
-        return filterDefinition
+    def _getSpecificTrapDefinition(self, event, enterpriseOID):
+        specificTrap = event.get("snmpV1SpecificTrap", None)
+        if specificTrap is None:
+            return None
+        key = "".join([enterpriseOID, "-", str(specificTrap)])
+        definition = _findFilterByLevel(key, self._definitions)
+        if definition:
+            log.debug("matched [specific-trap] definition %s", definition)
+        return definition
+
+    def _getWildCardDefinition(self, enterpriseOID):
+        key = "".join([enterpriseOID, "-", "*"])
+        definition = _findFilterByLevel(key, self._definitions)
+        if definition:
+            log.debug("matched [wildcard] definition %s", definition)
+        return definition
+
+    def _getGlobMatchDefinition(self, enterpriseOID):
+        definition = _findClosestGlobbedFilter(
+            enterpriseOID, self._definitions
+        )
+        if definition:
+            log.debug("matched [glob] definition %s", definition)
+        return definition
+
+
+class SnmpV2Predicate(TrapFilterPredicate):
+    def is_valid(self, event):
+        return event.get("snmpVersion", None) in ("2", "3")
+
+    def __call__(self, event):
+        oid = event["oid"]
+        return _check_definitions(
+            (
+                getter()
+                for getter in (
+                    # order is important!
+                    lambda: self._getExactMatchDefinition(oid),
+                    lambda: self._getGlobMatchDefinition(oid),
+                )
+            )
+        )
+
+    def _getExactMatchDefinition(self, oid):
+        # First, try an exact match on the OID
+        definition = _findFilterByLevel(oid, self._definitions)
+        if definition:
+            log.debug("matched [exact] definition %s", definition)
+        return definition
+
+    def _getGlobMatchDefinition(self, oid):
+        definition = _findClosestGlobbedFilter(oid, self._definitions)
+        if definition:
+            log.debug("matched [glob] definition %s", definition)
+        return definition
+
+
+def _check_definitions(definitions):
+    definition = next((defn for defn in definitions if defn is not None), None)
+    if definition is None:
+        log.debug("no matching definitions found")
+        return True
+    return definition.action == "exclude"
+
+
+def _findClosestGlobbedFilter(oid, filtersByLevel):
+    filterDefinition = None
+    globbedValue = oid
+    while globbedValue != "*":
+        globbedValue = getNextHigherGlobbedOid(globbedValue)
+        filterDefinition = _findFilterByLevel(globbedValue, filtersByLevel)
+        if filterDefinition:
+            break
+    return filterDefinition
+
+
+def _findFilterByLevel(oid, filtersByLevel):
+    filterDefinition = None
+    oidLevels = countOidLevels(oid)
+    filtersByOid = filtersByLevel.get(oidLevels, None)
+    if filtersByOid is not None and len(filtersByOid) > 0:
+        filterDefinition = filtersByOid.get(oid, None)
+    return filterDefinition
 
 
 def getNextHigherGlobbedOid(oid):

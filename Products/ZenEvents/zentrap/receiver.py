@@ -25,7 +25,7 @@ from .net import (
     sockaddr_in6,
 )
 
-log = logging.getLogger("zen.zentrap.server")
+log = logging.getLogger("zen.zentrap.receiver")
 
 
 class Receiver(object):
