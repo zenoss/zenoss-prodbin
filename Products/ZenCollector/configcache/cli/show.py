@@ -11,12 +11,13 @@ from __future__ import absolute_import, print_function
 
 import os
 import sys
+import types
 
 from IPython.lib import pretty
 from twisted.spread.jelly import unjellyableRegistry
+from twisted.spread import pb
 from zope.component import createObject
 
-from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 from Products.ZenUtils.terminal_size import get_terminal_size
 
@@ -126,13 +127,21 @@ class ShowDevice(object):
         )
         if results:
             for cls in set(unjellyableRegistry.values()):
-                if cls is DeviceProxy:
-                    pretty.for_type(cls, _pp_DeviceProxy)
+                if isinstance(
+                    cls, (types.ClassType, types.TypeType)
+                ) and issubclass(cls, (pb.Copyable, pb.RemoteCopy)):
+                    pretty.for_type(cls, _pp_hide_passwords)
                 else:
                     pretty.for_type(cls, _pp_default)
-            pretty.pprint(
-                results.config, max_width=self._columns, max_seq_length=0
-            )
+            try:
+                pretty.pprint(
+                    results.config, max_width=self._columns, max_seq_length=0
+                )
+            except IOError as ex:
+                if ex.errno != 32:  # broken pipe
+                    print(ex, file=sys.stderr)
+            except KeyboardInterrupt as ex:
+                print(ex, file=sys.stderr)
         else:
             print(err, file=sys.stderr)
 
@@ -149,7 +158,7 @@ def _query_cache(store, service, monitor, device):
     return (store.get(first_key), None)
 
 
-def _pp_DeviceProxy(obj, p, cycle):
+def _pp_hide_passwords(obj, p, cycle):
     _printer(
         obj,
         p,
