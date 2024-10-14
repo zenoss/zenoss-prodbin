@@ -97,6 +97,9 @@ class TrapFilter(object):
             trapfilters = trapfilters if trapfilters is not None else ""
             events = self._filterspec.update_from_string(trapfilters)
             for event in events:
+                mesg = event.get("message")
+                if mesg:
+                    log.warn(mesg)
                 self._app.sendEvent(event)
 
             state = "updated" if self._checksum is not None else "initial"
@@ -160,7 +163,7 @@ class GenericV1Predicate(TrapFilterPredicate):
     def __call__(self, event):
         traptype = event.get("snmpV1GenericTrapType", None)
         definition = self._definitions.get(traptype, None)
-        if definition and definition.action != "exclude":
+        if definition and not definition.exclude:
             return False
         return True
 
@@ -256,7 +259,7 @@ def _check_definitions(definitions):
     if definition is None:
         log.debug("no matching definitions found")
         return True
-    return definition.action == "exclude"
+    return definition.exclude
 
 
 def _findClosestGlobbedFilter(oid, filtersByLevel):

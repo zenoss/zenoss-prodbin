@@ -131,6 +131,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             evt.update(details)
 
         self._metrologyReporter = None
+        self.__statistics_task = None
 
         self.__publisher = publisher
         self.__internal_publisher = internal_publisher
@@ -408,10 +409,13 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
             if self.options.cycle:
                 state = "eventclient"
-                yield self._setup_event_client()
+                self._setup_event_client()
 
                 state = "stats"
-                yield self._setup_stats_recording()
+                self._start_statistics_task()
+
+                state = "metrics"
+                self._start_internal_metrics_task()
 
             reactor.addSystemEventTrigger("before", "shutdown", self._stop)
 
@@ -447,24 +451,41 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.__recordQueuedEventsCountLoop.start(2.0, now=False)
         self.log.info("started event client")
 
-    def _setup_stats_recording(self):
-        loop = task.LoopingCall(self.postStatistics)
-        loop.start(self.options.writeStatistics, now=False)
-        daemonTags = {
-            "zenoss_daemon": self.name,
-            "zenoss_monitor": self.options.monitor,
-            "internal": True,
-        }
+    def _start_internal_metrics_task(self):
         self._metrologyReporter = TwistedMetricReporter(
             self.options.writeStatistics,
             self.metricWriter(),
-            daemonTags,
+            {
+                "zenoss_daemon": self.name,
+                "zenoss_monitor": self.options.monitor,
+                "internal": True,
+            },
         )
         self._metrologyReporter.start()
         reactor.addSystemEventTrigger(
-            "before", "shutdown", self._metrologyReporter.stop
+            "before", "shutdown", self._stop_internal_metrics_task
         )
-        self.log.info("started statistics recording task")
+        self.log.info("started internal metrics task")
+
+    def _stop_internal_metrics_task(self):
+        if self._metrologyReporter:
+            self._metrologyReporter.stop()
+            self._metrologyReporter = None
+            self.log.info("stopped internal metrics task")
+
+    def _start_statistics_task(self):
+        self.__statistics_task = task.LoopingCall(self.postStatistics)
+        self.__statistics_task.start(self.options.writeStatistics, now=False)
+        reactor.addSystemEventTrigger(
+            "before", "shutdown", self._stop_statistics_task
+        )
+        self.log.info("started statistics reporting task")
+
+    def _stop_statistics_task(self):
+        if self.__statistics_task:
+            self.__statistics_task.stop()
+            self.__statistics_task = None
+            self.log.info("stopped statistics reporting task")
 
     def postStatisticsImpl(self):
         pass
@@ -478,7 +499,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.rrdStats.counter(name, value)
 
         # persist counters values
-        self.postStatisticsImpl()
+        try:
+            self.postStatisticsImpl()
+        except Exception:
+            self.log.exception("sub-class postStatisticsImpl method failed")
 
     def _pickleName(self):
         instance_id = os.environ.get("CONTROLPLANE_INSTANCE_ID")

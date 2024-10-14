@@ -24,7 +24,7 @@ from twisted.internet.task import LoopingCall
 
 from zope.component import provideUtility
 
-from Products.ZenEvents.EventServer import Stats
+from Products.ZenCollector.utils.maintenance import ZenHubHeartbeatSender
 from Products.ZenEvents.ZenEventClasses import Info
 from Products.ZenHub.interfaces import ICollectorEventTransformer
 from Products.ZenHub.PBDaemon import PBDaemon
@@ -39,6 +39,8 @@ from .receiver import Receiver
 from .replay import PacketReplay
 from .trapfilter import TrapFilter
 from .users import CreateAllUsers
+
+_dropped_events_task_interval = 3600
 
 
 class TrapDaemon(PBDaemon):
@@ -62,19 +64,27 @@ class TrapDaemon(PBDaemon):
         self.configCycleInterval = 2 * 60  # seconds
         self.cycleInterval = 5 * 60  # seconds
 
-        self.__lastCounterEventTime = time.time()
-        self._stats = Stats()
-
         filterspec = FilterSpecification(self.options.monitor)
         self._trapfilter = TrapFilter(self, filterspec)
         provideUtility(self._trapfilter, ICollectorEventTransformer)
-        self._trapfilter_task = self._trapfilter_taskd = None
+        self._trapfilter_task = None
+
+        self._heartbeat_sender = ZenHubHeartbeatSender(
+            self.options.monitor,
+            self.name,
+            self.options.heartbeatTimeout,
+        )
+        self._heartbeat_task = None
 
         self._oidmap = OidMap(self)
-        self._oidmap_task = self._oidmap_taskd = None
+        self._oidmap_task = None
 
         self._createusers = None
-        self._createusers_task = self._createusers_taskd = None
+        self._createusers_task = None
+
+        self._dropped_events_task = None
+
+        self._receiver = None
 
     def buildOptions(self):
         super(TrapDaemon, self).buildOptions()
@@ -157,15 +167,17 @@ class TrapDaemon(PBDaemon):
             # captured packets.
             self._replay_packets(replay)
         else:
-            # No `replay` object, so start receiving traps.
+            # Start tasks used for normal (non-replay) operation.
+            self._start_dropped_events_task()
+            self._start_heartbeat_task()
             self._start_receiver()
 
     # @override
     def postStatisticsImpl(self):
-        totalTime, totalEvents, maxTime = self.stats.report()
+        if self._receiver is None:
+            return
+        totalTime, totalEvents, maxTime = self._receiver.handler.stats.report()
         self.rrdStats.counter("events", totalEvents)
-
-        self._sendEventForEventFilterDroppedCount()
 
     @defer.inlineCallbacks
     def getRemoteConfigCacheProxy(self):
@@ -179,23 +191,42 @@ class TrapDaemon(PBDaemon):
         proxy = yield self.getService(self._configservice)
         defer.returnValue(proxy)
 
-    def _sendEventForEventFilterDroppedCount(self):
+    def _start_dropped_events_task(self):
+        self._dropped_events_task = LoopingCall(
+            self._send_dropped_trap_count_event
+        )
+        self._dropped_events_task.start(_dropped_events_task_interval)
+        reactor.addSystemEventTrigger(
+            "before", "shutdown", self._stop_dropped_events_task
+        )
+        self.log.info(
+            "started task to send an event with the current "
+            "dropped events count"
+        )
+
+    def _stop_dropped_events_task(self):
+        if self._dropped_events_task is None:
+            return
+        self._dropped_events_task.stop()
+        self._dropped_events_task = None
+        self.log.info(
+            "stopped task to send an event with the current "
+            "dropped events count"
+        )
+
+    def _send_dropped_trap_count_event(self):
         counterName = "eventFilterDroppedCount"
-        now = time.time()
-        # Send an update event every hour
-        if self.__lastCounterEventTime < (now - 3600):
-            count = self.counters[counterName]
-            self.log.info("sma stat event, counter %s: %s", counterName, count)
-            counterEvent = {
-                "component": "zentrap",
-                "device": self.options.monitor,
-                "eventClass": "/App/Zenoss",
-                "eventKey": "zentrap.{}".format(counterName),
-                "summary": "{}: {}".format(counterName, count),
-                "severity": Info,
-            }
-            self.sendEvent(counterEvent)
-            self.__lastCounterEventTime = now
+        count = self.counters[counterName]
+        self.log.info("sma stat event, counter %s: %s", counterName, count)
+        counterEvent = {
+            "component": "zentrap",
+            "device": self.options.monitor,
+            "eventClass": "/App/Zenoss",
+            "eventKey": "zentrap.{}".format(counterName),
+            "summary": "{}: {}".format(counterName, count),
+            "severity": Info,
+        }
+        self.sendEvent(counterEvent)
 
     def _replay_packets(self, replay):
         handler = ReplayTrapHandler(
@@ -203,25 +234,38 @@ class TrapDaemon(PBDaemon):
             self.options.varbindCopyMode,
             self.options.monitor,
             self,
-            self._stats,
         )
         for packet in replay:
             handler((packet.host, packet.port), packet, time.time())
+
+    def _start_heartbeat_task(self):
+        self._heartbeat_task = LoopingCall(self._heartbeat_sender.heartbeat)
+        self._heartbeat_task.start(self.cycleInterval)
+        reactor.addSystemEventTrigger(
+            "before", "shutdown", self._stop_heartbeat_task
+        )
+        self.log.info("started task for sending heartbeats")
+
+    def _stop_heartbeat_task(self):
+        if self._heartbeat_task is None:
+            return
+        self._heartbeat_task.stop()
+        self._heartbeat_task = None
+        self.log.info("stopped task for sending heartbeats")
 
     def _start_receiver(self):
         self._start_trapfilter_task()
         self._start_oidmap_task()
 
         try:
-            # Attempt to wrap the trap handler in a `Capture` object.
-            # If a `Capture` object is created, it becomes the handler.
             handler = TrapHandler(
                 self._oidmap,
                 self.options.varbindCopyMode,
                 self.options.monitor,
                 self,
-                self._stats,
             )
+            # Attempt to wrap the trap handler in a `Capture` object.
+            # If a `Capture` object is created, it becomes the handler.
             capture = Capture.wrap_handler(self.options, handler)
             if capture:
                 handler = capture
@@ -243,52 +287,52 @@ class TrapDaemon(PBDaemon):
 
     def _start_trapfilter_task(self):
         self._trapfilter_task = LoopingCall(self._trapfilter.task)
-        self._trapfilter_taskd = self._trapfilter_task.start(
-            self.configCycleInterval
-        )
+        self._trapfilter_task.start(self.configCycleInterval)
         reactor.addSystemEventTrigger(
             "before", "shutdown", self._stop_trapfilter_task
         )
-        self.log.info("started task to periodically retrieve trap filters")
+        self.log.info("started task to retrieve trap filters")
 
     def _stop_trapfilter_task(self):
         if self._trapfilter_task:
             self._trapfilter_task.stop()
-            self._trapfilter_task = self._trapfilter_taskd = None
+            self._trapfilter_task = None
+            self.log.info("stopped task to retrieve trap filters")
 
     def _start_oidmap_task(self):
         self._oidmap_task = LoopingCall(self._oidmap.task)
-        self._oidmap_taskd = self._oidmap_task.start(self.configCycleInterval)
+        self._oidmap_task.start(self.configCycleInterval)
         reactor.addSystemEventTrigger(
             "before", "shutdown", self._stop_oidmap_task
         )
-        self.log.info("started task to periodically retrieve the OID map")
+        self.log.info("started task to retrieve the OID map")
 
     def _stop_oidmap_task(self):
         if self._oidmap_task:
             self._oidmap_task.stop()
-            self._oidmap_task = self._oidmap_taskd = None
+            self._oidmap_task = None
+            self.log.info("stopped task to retrieve the OID map")
 
     def _start_createusers_task(self):
         self._createusers_task = LoopingCall(self._createusers.task)
-        self._createusers_taskd = self._createusers_task.start(
-            self.configCycleInterval
-        )
+        self._createusers_task.start(self.configCycleInterval)
         reactor.addSystemEventTrigger(
             "before", "shutdown", self._stop_createusers_task
         )
-        self.log.info("started task to periodically retrieve and create users")
+        self.log.info("started task to retrieve and create users")
 
     def _stop_createusers_task(self):
-        if self._createusers_task:
-            self._createusers_task.stop()
-            self._createusers_task = self._trap_taskd = None
+        if self._createusers_task is None:
+            return
+        self._createusers_task.stop()
+        self._createusers_task = None
+        self.log.info("stopped task to retrieve and create users")
 
     def remote_createUser(self, user):
         reactor.callInThread(self._createusers.create_users, [user])
 
     def _displayStatistics(self):
-        totalTime, totalEvents, maxTime = self._stats.report()
+        totalTime, totalEvents, maxTime = self._receiver.handler.stats.report()
         display = "%d events processed in %.2f seconds" % (
             totalEvents,
             totalTime,

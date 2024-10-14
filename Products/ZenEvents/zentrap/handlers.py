@@ -16,6 +16,8 @@ import time
 from pynetsnmp import netsnmp
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_WARNING
 
+from Products.ZenEvents.EventServer import Stats
+
 from .decode import decode_snmp_value
 from .net import SNMPv1, SNMPv2, SNMPv3
 from .processors import (
@@ -38,11 +40,11 @@ class TrapHandler(object):
         MixedVarbindProcessor.MODE: MixedVarbindProcessor,
     }
 
-    def __init__(self, oidmap, copymode, monitor, eventsvc, stats):
+    def __init__(self, oidmap, copymode, monitor, eventsvc):
         self._oidmap = oidmap
         self._monitor = monitor
         self._eventservice = eventsvc
-        self._stats = stats
+        self.stats = Stats()
 
         if copymode not in self._varbind_processors:
             copymode = MixedVarbindProcessor.MODE
@@ -110,7 +112,7 @@ class TrapHandler(object):
         result.setdefault("lastTime", starttime)
         result.setdefault("monitor", self._monitor)
         self._eventservice.sendEvent(result)
-        self._stats.add(time.time() - starttime)
+        self.stats.add(time.time() - starttime)
 
     def decodeSnmpv1(self, addr, pdu):
         result = {"snmpVersion": "1"}
