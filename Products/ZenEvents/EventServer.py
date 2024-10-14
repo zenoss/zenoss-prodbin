@@ -7,17 +7,13 @@
 # 
 ##############################################################################
 
-
-__doc__ = """EventServer
+"""EventServer
 
 Formerly contained base class 'EventServer' for ZenSyslog, ZenTrap and others.
 Stats is still used by ZenSysLog and ZenTrap
-
-$Id$
 """
 
-__version__ = "$Revision$"[11:-2]
-
+from __future__ import absolute_import
 
 
 class Stats:

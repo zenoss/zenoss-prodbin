@@ -211,7 +211,7 @@ class FilterSpecificationTest(TestCase):
         t.assertEqual(
             results,
             "Invalid SNMP version 'V4'; the only valid versions are "
-            "'v1' or 'v2' or 'v3'",
+            "'v1', 'v2', or 'v3'",
         )
 
     def testParseFilterDefinitionForInvalidV1Definition(t):
