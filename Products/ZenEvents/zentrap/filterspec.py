@@ -12,15 +12,9 @@ from __future__ import absolute_import, print_function
 import logging
 import re
 
+from Products.ZenEvents import ZenEventClasses as severity
+
 log = logging.getLogger("zen.zentrap")
-
-
-def countOidLevels(oid):
-    """
-    @return: The number of levels in an OID
-    @rtype: int
-    """
-    return oid.count(".") + 1 if oid else 0
 
 
 class FilterSpecification(object):
@@ -78,20 +72,18 @@ class FilterSpecification(object):
 
             errorMessage = self._parseFilterDefinition(line, lineNumber)
             if errorMessage:
-                errorMessage = (
-                    "Failed to parse filter definition at line %d: %s"
-                    % (lineNumber, errorMessage)
-                )
-                log.warn(errorMessage)
                 events.append(
                     {
                         "device": "127.0.0.1",
                         "eventClass": "/App/Zenoss",
-                        "severity": 4,
+                        "severity": severity.Error,
                         "eventClassKey": "",
                         "summary": "SNMP Trap Filter processing issue",
                         "component": "zentrap",
-                        "message": errorMessage,
+                        "message": (
+                            "Failed to parse filter definition on "
+                            "line {}: {}".format(lineNumber, errorMessage)
+                        ),
                         "eventKey": "SnmpTrapFilter.{}".format(lineNumber),
                     }
                 )
@@ -138,7 +130,7 @@ class FilterSpecification(object):
         if len(tokens) < 3:
             return "Incomplete filter definition"
 
-        if re.search("include|exclude", tokens[0], re.IGNORECASE):
+        if _actions.search(tokens[0]):
             collectorRegex = ".*"
             action = tokens[0].lower()
             snmpVersion = tokens[1].lower()
@@ -148,44 +140,34 @@ class FilterSpecification(object):
             action = tokens[1].lower()
             snmpVersion = tokens[2].lower()
             remainingTokens = tokens[3:]
-        if action != "include" and action != "exclude":
+        if action not in _actions:
             return (
-                "Invalid action '%s'; the only valid actions are "
-                "'include' or 'exclude'" % tokens[0]
+                "Invalid action '{}'; the only valid actions are "
+                "'{}' or '{}'".format(
+                    tokens[0], _actions.include, _actions.exclude
+                )
             )
-        elif (
-            snmpVersion != "v1" and snmpVersion != "v2" and snmpVersion != "v3"
-        ):
+        elif snmpVersion not in _snmpVersions:
             return (
-                "Invalid SNMP version '%s'; the only valid versions are "
-                "'v1' or 'v2' or 'v3'" % tokens[1]
+                "Invalid SNMP version '{}'; the only valid versions are "
+                "'{}', '{}', or '{}'".format(
+                    tokens[1],
+                    _snmpVersions.v1,
+                    _snmpVersions.v2,
+                    _snmpVersions.v3,
+                )
             )
 
         # Do not parse if CollectorRegex does not match collector name
         try:
             if not re.search(collectorRegex, self._monitor):
                 return None
-        except Exception:
-            errorMessage = (
-                "could not compile collector expression {!r} on "
-                "line {}".format(collectorRegex, lineNumber)
+        except Exception as ex:
+            return "regular expression failure '{!r}'; {}".format(
+                collectorRegex, ex
             )
-            log.error(errorMessage)
-            self._app.sendEvent(
-                {
-                    "device": "127.0.0.1",
-                    "eventClass": "/App/Zenoss",
-                    "severity": 4,
-                    "eventClassKey": "",
-                    "summary": "SNMP Trap Filter processing issue",
-                    "component": "zentrap",
-                    "message": errorMessage,
-                    "eventKey": "SnmpTrapFilter.{}".format(lineNumber),
-                }
-            )
-            return errorMessage
 
-        if snmpVersion == "v1":
+        if snmpVersion == _snmpVersions.v1:
             return self._parseV1FilterDefinition(
                 lineNumber, action, remainingTokens, collectorRegex
             )
@@ -422,11 +404,58 @@ class FilterSpecification(object):
             return "At least one '.' required"
 
 
+class _SNMPVersions(object):
+    __slots__ = ("v1", "v2", "v3")
+
+    def __init__(self):
+        self.v1 = "v1"
+        self.v2 = "v2"
+        self.v3 = "v3"
+
+    def __contains__(self, value):
+        return value == self.v1 or value == self.v2 or value == self.v3
+
+
+_snmpVersions = _SNMPVersions()
+
+
+class _Actions(object):
+    __slots__ = ("exclude", "include", "search_regex")
+
+    def __init__(self):
+        self.exclude = "exclude"
+        self.include = "include"
+        self.search_regex = re.compile(
+            "{}|{}".format(self.exclude, self.include), re.IGNORECASE
+        )
+
+    def search(self, text):
+        return self.search_regex.search(text)
+
+    def __contains__(self, value):
+        return value == self.exclude or value == self.include
+
+
+_actions = _Actions()
+
+
+def countOidLevels(oid):
+    """
+    @return: The number of levels in an OID
+    @rtype: int
+    """
+    return oid.count(".") + 1 if oid else 0
+
+
 class BaseFilterDefinition(object):
     def __init__(self, lineNumber=None, action=None, collectorRegex=None):
         self.lineNumber = lineNumber
         self.action = action
         self.collectorRegex = collectorRegex
+
+    @property
+    def exclude(self):
+        return self.action == _actions.exclude
 
 
 class GenericTrapFilterDefinition(BaseFilterDefinition):

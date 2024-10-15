@@ -49,6 +49,10 @@ class Receiver(object):
 
         self._pre_parse_callback = pre_parse_factory(_pre_parse)
 
+    @property
+    def handler(self):
+        return self._handler
+
     def start(self):
         # Start listening for SNMP traps
         self._session = netsnmp.Session()
@@ -77,6 +81,7 @@ class Receiver(object):
         @param pdu: Net-SNMP object
         @type pdu: netsnmp_pdu object
         """
+        start_time = time.time()
         if pdu.version not in (SNMPv1, SNMPv2, SNMPv3):
             log.error("unable to handle trap version %d", pdu.version)
             return
@@ -89,7 +94,7 @@ class Receiver(object):
             return
         log.debug("received packet from %s on port %s", ip_address, port)
         try:
-            self._handler((ip_address, port), pdu, time.time())
+            self._handler((ip_address, port), pdu, start_time)
         except Exception:
             log.error("unable to handle trap version %s", pdu.version)
         else:

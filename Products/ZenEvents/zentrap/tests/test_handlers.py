@@ -50,8 +50,9 @@ class _SnmpV1Base(_Common):
 
         t.oidmap._oidmap = oidMap
         handler = ReplayTrapHandler(
-            t.oidmap, copymode, t.monitor, t.eventservice, t.stats
+            t.oidmap, copymode, t.monitor, t.eventservice
         )
+        handler.stats = t.stats
         return pckt, handler
 
 
@@ -159,9 +160,11 @@ class _SnmpV2Base(_Common):
         if extraOidMap:
             oidmap.update(extraOidMap)
         t.oidmap._oidmap = oidmap
-        return ReplayTrapHandler(
-            t.oidmap, copymode, t.monitor, t.eventservice, t.stats
+        handler = ReplayTrapHandler(
+            t.oidmap, copymode, t.monitor, t.eventservice
         )
+        handler.stats = t.stats
+        return handler
 
     def makeInputs(
         t,
@@ -229,8 +232,9 @@ class TestDecodeSnmpV2OrV3(_SnmpV2Base):
         )
         t.oidmap._oidmap = {"1.2.6.0": "testVar"}
         handler = ReplayTrapHandler(
-            t.oidmap, None, t.monitor, t.eventservice, t.stats
+            t.oidmap, None, t.monitor, t.eventservice
         )
+        handler.stats = t.stats
         eventType, result = handler.decodeSnmpV2OrV3(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         t.assertEqual(totalVarKeys, 1)
