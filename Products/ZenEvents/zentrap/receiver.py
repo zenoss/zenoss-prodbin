@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import, print_function
+
 import ctypes
 import logging
 import socket
@@ -86,20 +88,15 @@ class Receiver(object):
         if ip_address is None:
             return
         log.debug("received packet from %s on port %s", ip_address, port)
-
-        dup = netsnmp.lib.snmp_clone_pdu(ctypes.byref(pdu))
-        if not dup:
-            log.error("could not clone PDU")
-            return
         try:
-            self._handler((ip_address, port), dup.contents, time.time())
+            self._handler((ip_address, port), pdu, time.time())
         except Exception:
             log.error("unable to handle trap version %s", pdu.version)
         else:
             if pdu.command == netsnmp.CONSTANTS.SNMP_MSG_INFORM:
                 self.snmpInform((ip_address, port), pdu)
         finally:
-            netsnmp.lib.snmp_free_pdu(dup)
+            log.debug("completed handling trap")
 
     def snmpInform(self, addr, pdu):
         """
