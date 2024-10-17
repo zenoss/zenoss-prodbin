@@ -7,69 +7,53 @@
 #
 ##############################################################################
 
-from __future__ import print_function
-
 """SyslogConfig
 
 Provides configuration for syslog message to Zenoss event conversions.
 """
 
+from __future__ import absolute_import, print_function
+
 import logging
+
 from hashlib import md5
 
-from Products.ZenCollector.services.config import CollectorConfigService
+from Products.ZenHub.HubService import HubService
+from Products.ZenEvents.zensyslog.config import ConfigUpdates
 
-log = logging.getLogger("zen.HubService.SyslogConfig")
-
-
-class FakeDevice(object):
-    id = "Syslog payload"
+log = logging.getLogger("zen.hub.services.syslogconfig")
 
 
-class SyslogConfig(CollectorConfigService):
+class SyslogConfig(HubService):
+    def remote_getConfig(self, checksums):
+        result = ConfigUpdates()
 
-    def _filterDevice(self, device):
-        return device.id == FakeDevice.id
+        priority = self.zem.defaultPriority
+        priority_checksum = _checksum(priority)
+        if checksums.priority != priority_checksum:
+            result.priority = priority
+            result.checksums.priority = priority_checksum
 
-    def _filterDevices(self, deviceList):
-        return [FakeDevice()]
+        use_summary = self.zem.syslogSummaryToMessage
+        use_summary_checksum = _checksum(use_summary)
+        if checksums.use_summary != use_summary_checksum:
+            result.use_summary = use_summary
+            result.checksums.use_summary = use_summary_checksum
 
-    def _createDeviceProxy(self, device):
-        proxy = CollectorConfigService._createDeviceProxy(self, device)
-        proxy.configCycleInterval = 3600
-        proxy.name = "Syslog Configuration"
-        proxy.device = device.id
+        parsers = self.zem.syslogParsers
+        parsers_checksum = _checksum(parsers)
+        if checksums.parsers != parsers_checksum:
+            result.parsers = parsers
+            result.checksums.parsers = parsers_checksum
 
-        proxy.defaultPriority = self.zem.defaultPriority
-        proxy.syslogParsers = self.zem.syslogParsers
-        proxy.syslogSummaryToMessage = self.zem.syslogSummaryToMessage
-        proxy.syslogMsgEvtFieldFilterRules = self.zem.syslogMsgEvtFieldFilterRules
+        rules = self.zem.syslogMsgEvtFieldFilterRules
+        rules_checksum = _checksum(rules)
+        if checksums.rules != rules_checksum:
+            result.rules = rules
+            result.checksums.rules = rules_checksum
 
-        return proxy
+        return result
 
-    def __checkSumRetConf(self, remoteCheckSum, confName):
-        currentCheckSum = md5(str(getattr(self.zem, confName))).hexdigest()
-        return (None, None) if currentCheckSum == remoteCheckSum else (currentCheckSum, getattr(self.zem, confName))
 
-    def remote_getDefaultPriority(self, remoteCheckSum):
-        return self.__checkSumRetConf(remoteCheckSum, "defaultPriority")
-
-    def remote_getSyslogParsers(self, remoteCheckSum):
-        return self.__checkSumRetConf(remoteCheckSum, "syslogParsers")
-
-    def remote_getSyslogSummaryToMessage(self, remoteCheckSum):
-        return self.__checkSumRetConf(remoteCheckSum, "syslogSummaryToMessage")
-
-    def remote_getSyslogMsgEvtFieldFilterRules(self, remoteCheckSum):
-        return self.__checkSumRetConf(remoteCheckSum, "syslogMsgEvtFieldFilterRules")
-
-if __name__ == "__main__":
-    from Products.ZenHub.ServiceTester import ServiceTester
-
-    tester = ServiceTester(SyslogConfig)
-
-    def printer(config):
-        print("Default syslog priority = ", config.defaultPriority)
-
-    tester.printDeviceProxy = printer
-    tester.showDeviceInfo()
+def _checksum(value):
+    return md5(str(value)).hexdigest()  # noqa: S324
