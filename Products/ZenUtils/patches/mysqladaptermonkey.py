@@ -88,7 +88,7 @@ try:
         return conn, cursor
 
     @monkeypatch('relstorage.adapters.mysql.connmanager.MySQLdbConnectionManager')
-    def close(self,conn,cursor):
+    def close(self, conn=None, cursor=None):
         try:
             if conn is not None and cursor is not None:
                 sql = "DELETE FROM connection_info WHERE connection_id = connection_id();"
@@ -96,7 +96,7 @@ try:
                 conn.commit()
         except Exception:
             pass
-        original(self, conn, cursor)
+        original(self, conn=conn, cursor=cursor)
 
     @monkeypatch('relstorage.adapters.mysql.schema.MySQLSchemaInstaller')
     def create(self, cursor):
