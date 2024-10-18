@@ -132,6 +132,21 @@ def buildDeviceConfig(
     )
 
     service = svcconfigclass(dmd, monitorname)
+    method = getattr(service, "remote_getDeviceConfigs", None)
+    if method is None:
+        log.warn(
+            "config service does not have required API  "
+            "device=%s collector=%s service=%s submitted=%f",
+            key.device,
+            key.monitor,
+            key.service,
+            submitted,
+        )
+        # Services without a remote_getDeviceConfigs method can't create
+        # device configs, so delete the config that may exist.
+        _delete_config(key, store, log)
+        return
+
     result = service.remote_getDeviceConfigs((deviceid,))
     config = result[0] if result else None
 

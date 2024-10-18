@@ -180,7 +180,7 @@ include v2 *"""
     "expr": "^(?P<deviceModel>[^\[]+)\[(?P<deviceManufacturer>ADTRAN)\]:(?P<component>[^\|]+\|\d+\|\d+)\|(?P<summary>.*)",
     "keep": True
 },{
-    "description": "",
+    "description": "fortigate devices",
     "expr": "^date=.+ (?P<summary>devname=.+ log_id=(?P<eventClassKey>\d+) type=(?P<component>\S+).+)",
     "keep": True
 },{
