@@ -515,8 +515,12 @@ def _getByStatusAndType(statuses, jobtype=None):
 
 def _getJobTypeStr(jobtype):
     if isinstance(jobtype, type):
-        return jobtype.name
-    task = app.tasks.get(str(jobtype))
-    if not task:
-        raise ValueError("No such job: {!r}".format(jobtype))
-    return task.name
+        name = jobtype.name
+    else:
+        task = app.tasks.get(str(jobtype))
+        if not task:
+            raise ValueError("No such task: {!r}".format(jobtype))
+        name = task.name
+    if name is None:
+        raise ValueError("zenjobs task name is None: {!r}".format(jobtype))
+    return name
