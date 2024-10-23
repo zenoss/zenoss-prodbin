@@ -621,7 +621,9 @@ try:
 
                         prevent_pke_oids = self.remove_connected_oids(conn, cursor, grouped_oids, packed_func, total, oids_processed)
 
-                        self._pack_cleanup(conn, cursor)
+                        store_connection = PrePackConnection(self.connmanager)
+
+                        self._pack_cleanup(store_connection=store_connection)
 
                         try:
                             if skipped_oids:
@@ -639,6 +641,93 @@ try:
                 conn.commit()
         finally:
             self.connmanager.close(conn, cursor)
+
+    @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
+    def _add_refs_for_oids(self, load_batcher, store_batcher, oids, get_references):
+
+        """
+        Fill object_refs with the states for some objects.
+
+        Returns the number of references added.
+        """
+        # oids should be a slice of an ``OidList``, which may be an
+        # ``array.array``; those are relatively slow to iterate.
+
+        # The batcher always does deletes before inserts, which is
+        # exactly what we want.
+        # In the past, we performed all deletes and then all inserts;
+        # now, things to batching, they could be interleaved, but
+        # because we process OID-by-OID, that should be fine.
+        # In the past, we also DELETED from object_refs_added and object_ref
+        # everything found in the ``oids`` parameter; now we only do a delete if
+        # we get back a row from object_state; again, that shouldn't matter, rows
+        # should be found in object_state.
+        object_ref_schema = store_batcher.row_schema_of_length(3)
+        object_refs_added_schema = store_batcher.row_schema_of_length(2)
+
+        # Use the batcher to get efficient ``= ANY()``
+        # queries, but go ahead and collect into a list at once
+        rows = list(load_batcher.select_from(
+            ('zoid', 'tid', 'state'),
+            'object_state',
+            suffix=' ORDER BY zoid ',
+            zoid=oids
+        ))
+
+        num_refs_found = 0
+
+        for from_oid, tid, state in rows:
+            state = self.driver.binary_column_as_state_type(state)
+            row = (from_oid, tid)
+            # Check if the row already exists
+            existing_row = store_batcher.select_from(
+                'object_refs_added',
+                ('zoid',),
+                zoid=from_oid
+            )
+
+            if not existing_row:
+                store_batcher.insert_into(
+                    'object_refs_added (zoid, tid)',
+                    object_refs_added_schema,
+                    row,
+                    row,
+                    size=2
+                )
+
+            store_batcher.delete_from(
+                'object_refs_added',
+                zoid=from_oid
+            )
+            store_batcher.delete_from(
+                'object_ref',
+                zoid=from_oid
+            )
+
+            if state:
+                try:
+                    to_oids = get_references(state)
+                except:
+                    log.exception(
+                        "pre_pack: can't unpickle "
+                        "object %d in transaction %d; state length = %d",
+                        from_oid, tid, len(state)
+                    )
+                    raise
+
+                for to_oid in to_oids:
+                    row = (from_oid, tid, to_oid)
+                    num_refs_found += 1
+                    store_batcher.insert_into(
+                        'object_ref (zoid, tid, to_zoid)',
+                        object_ref_schema,
+                        row,
+                        row,
+                        size=3
+                    )
+
+        return num_refs_found
+
 
     '''
     Methods added to support packing systems that have not been packed for a long time
