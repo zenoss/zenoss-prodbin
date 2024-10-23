@@ -15,6 +15,8 @@ import re
 
 from collections import Container, Iterable, Sized
 
+import six
+
 from celery import states as celery_states
 
 from Products.ZenUtils.RedisUtils import getRedisClient
@@ -101,7 +103,7 @@ class _Any(object):
     """
 
     def __init__(self, *matches):
-        if not all(isinstance(m, basestring) for m in matches):
+        if not all(isinstance(m, six.string_types) for m in matches):
             raise ValueError(
                 "All values must be strings %s" % (matches,),
             )
@@ -174,7 +176,7 @@ class JobStore(Container, Iterable, Sized):
         for name, match in fields.items():
             # Note: check for string first because strings are also
             # iterable.
-            if isinstance(match, basestring):
+            if isinstance(match, six.string_types):
                 matchers[name] = match
             elif isinstance(match, Iterable):
                 matchers[name] = _Any(*match)

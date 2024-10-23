@@ -41,7 +41,7 @@ class ZenTask(SendZenossEventMixin, Task):
         summary = getattr(task, "summary", None)
         if not summary:
             summary = _default_summary.format(task)
-        setattr(cls, "summary", summary)
+        cls.summary = summary
 
         task.max_retries = getConfig().get("zodb-max-retries", 5)
 
