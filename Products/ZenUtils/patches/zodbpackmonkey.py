@@ -686,6 +686,11 @@ try:
                 zoid=from_oid
             )
 
+            # We monkey-patched this method to add the check below (everything else is the same as the original
+            # relstorage.adapters.packundo.HistoryFreePackUndo._add_refs_for_oids).
+            # This check helps avoid an IntegrityError,
+            # which started occurring after upgrading RelStorage to version 3.5.0.
+            # Previously, before inserting the zoid, it was first deleted from the object_refs_added table.
             if not existing_row:
                 store_batcher.insert_into(
                     'object_refs_added (zoid, tid)',
