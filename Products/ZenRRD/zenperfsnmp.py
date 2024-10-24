@@ -258,7 +258,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
 
     def getOidsSet(self):
         if self._chosenOid:
-            return set(oid for oid in self._oids if self._chosenOid in oid)
+            return {oid for oid in self._oids if self._chosenOid in oid}
         else:
             return set(self._oids)
 
@@ -366,7 +366,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                 self._snmpConnInfo.zSnmpTimeout,
                 self._snmpConnInfo.zSnmpTries,
             )
-        except (error.TimeoutError, SnmpTimeoutError) as e:
+        except (error.TimeoutError, SnmpTimeoutError):
             raise
         except Exception as e:
             log.exception(
@@ -827,7 +827,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
             or self._snmpProxy._snmpConnInfo != self._snmpConnInfo
         ):
             self._snmpProxy = self._snmpConnInfo.createSession(
-                protocol=self._snmpPort.protocol, allowCache=True
+                protocol=self._snmpPort.protocol
             )
             self._snmpProxy.open()
         return self._snmpProxy
