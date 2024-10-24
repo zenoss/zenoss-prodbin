@@ -166,7 +166,7 @@ class SyslogProcessor(object):
             event["message"] = event.get("summary", "")
             event["unparsedMessage"] = mesg
 
-    def _maybe_overwrite_severity(event):
+    def _maybe_overwrite_severity(self, event):
         if "overwriteSeverity" not in event:
             return
         overwrite_v = int(event["overwriteSeverity"])
