@@ -46,7 +46,9 @@ class HubService(object, pb.Referenceable):
         :param instance: The name of the collection monitor.
         :type instance: str
         """
-        self.log = logging.getLogger("zen.hub")
+        self.log = logging.getLogger(
+            "zen.hub.{}".format(type(self).__name__.lower())
+        )
         self.fqdn = socket.getfqdn()
         self.dmd = dmd
         self.zem = dmd.ZenEventManager

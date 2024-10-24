@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from pynetsnmp import CONSTANTS, security
+from pynetsnmp.twistedsnmp import AgentProxy
 from twisted.spread import pb
 from zope import component
 
@@ -90,7 +92,7 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
             self.zSnmpTimeout,
             self.zSnmpTries,
         )
-        result += " version: %s " % (self.zSnmpVer)
+        result += " version: %s" % (self.zSnmpVer)
         if "3" not in self.zSnmpVer:
             result += " community: %s" % self.zSnmpCommunity
         else:
@@ -99,41 +101,39 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
             result += " privType: %s" % self.zSnmpPrivType
         return result
 
-    def createSession(self, protocol=None, allowCache=False):
-        "Create a session based on the properties"
-        from pynetsnmp.twistedsnmp import AgentProxy
-
-        cmdLineArgs = []
+    def createSession(self, protocol=None):
+        """Create a session based on the properties"""
         if "3" in self.zSnmpVer:
             if self.zSnmpPrivType:
-                cmdLineArgs += ["-l", "authPriv"]
-                cmdLineArgs += ["-x", self.zSnmpPrivType]
-                cmdLineArgs += ["-X", self.zSnmpPrivPassword]
-            elif self.zSnmpAuthType:
-                cmdLineArgs += ["-l", "authNoPriv"]
+                priv = security.Privacy(
+                    self.zSnmpPrivType, self.zSnmpPrivPassword
+                )
             else:
-                cmdLineArgs += ["-l", "noAuthNoPriv"]
+                priv = None
             if self.zSnmpAuthType:
-                cmdLineArgs += ["-a", self.zSnmpAuthType]
-                cmdLineArgs += ["-A", self.zSnmpAuthPassword]
-            if self.zSnmpEngineId:
-                cmdLineArgs += ["-e", self.zSnmpEngineId]
-            cmdLineArgs += ["-u", self.zSnmpSecurityName]
-            if hasattr(self, "zSnmpContext") and self.zSnmpContext:
-                cmdLineArgs += ["-n", self.zSnmpContext]
-
-        # the parameter tries seems to really be retries so take one off
-        retries = max(self.zSnmpTries - 1, 0)
-        p = AgentProxy(
-            ip=self.manageIp,
-            port=self.zSnmpPort,
+                auth = security.Authentication(
+                    self.zSnmpAuthType, self.zSnmpAuthPassword
+                )
+            else:
+                auth = ()
+            sec = security.UsmUser(
+                self.zSnmpSecurityName,
+                auth=auth,
+                priv=priv,
+                engineid=self.zSnmpEngineId,
+                context=self.zSnmpContext,
+            )
+        else:
+            if "2" in self.zSnmpVer:
+                version = CONSTANTS.SNMP_VERSION_2c
+            else:
+                version = CONSTANTS.SNMP_VERSION_1
+            sec = security.Community(self.zSnmpCommunity, version=version)
+        p = AgentProxy.create(
+            (self.manageIp, self.zSnmpPort),
+            security=sec,
             timeout=self.zSnmpTimeout,
-            tries=retries,
-            snmpVersion=self.zSnmpVer,
-            community=self.zSnmpCommunity,
-            cmdLineArgs=cmdLineArgs,
-            protocol=protocol,
-            allowCache=allowCache,
+            retries=max(self.zSnmpTries - 1, 0),
         )
         p.snmpConnInfo = self
         return p

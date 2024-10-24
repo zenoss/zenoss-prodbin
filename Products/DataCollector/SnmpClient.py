@@ -48,7 +48,7 @@ class SnmpClient(BaseClient):
         options=None,
         device=None,
         datacollector=None,
-        plugins=[],
+        plugins=None,
     ):
         super(SnmpClient, self).__init__(device, datacollector)
         global defaultTries, defaultTimeout
@@ -56,7 +56,7 @@ class SnmpClient(BaseClient):
         self.device = device
         self.options = options
         self.datacollector = datacollector
-        self.plugins = plugins
+        self.plugins = plugins if plugins else []
 
         self._getdata = {}
         self._tabledata = {}

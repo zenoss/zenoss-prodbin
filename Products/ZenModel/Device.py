@@ -114,7 +114,7 @@ _sourcetype_to_collector_map = {
     "COMMAND": "zencommand",
 }
 
-log = logging.getLogger("zen.Device")
+log = logging.getLogger("zen.model.device")
 
 
 def getNetworkRoot(context, performanceMonitor):
@@ -160,7 +160,6 @@ def manage_createDevice(
     """
     manageIp = manageIp.replace(" ", "")
     deviceName = context.prepId(deviceName)
-    log.info("device name '%s' for ip '%s'", deviceName, manageIp)
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
     device = deviceClass.createInstance(
         deviceName, performanceMonitor, manageIp
@@ -187,6 +186,13 @@ def manage_createDevice(
         priority,
         zProperties,
         title,
+    )
+    log.info(
+        "created device  name=%s manageIp=%s collector=%s class=%s",
+        deviceName,
+        manageIp,
+        performanceMonitor,
+        devicePath,
     )
     return device
 
@@ -464,15 +470,17 @@ class Device(
             return ManagedEntity.getRRDTemplates(self)
         templates = []
         for templateName in self.zDeviceTemplates:
-            if templateName.endswith('-replacement') or \
-                    templateName.endswith('-addition'):
+            if templateName.endswith("-replacement") or templateName.endswith(
+                "-addition"
+            ):
                 continue
 
             template = self.getRRDTemplateByName(templateName)
             if not template:
                 continue
             replacement = self.getRRDTemplateByName(
-                '{}-replacement'.format(templateName))
+                "{}-replacement".format(templateName)
+            )
 
             if replacement and replacement not in templates:
                 templates.append(replacement)
@@ -480,7 +488,8 @@ class Device(
                 templates.append(template)
 
             addition = self.getRRDTemplateByName(
-                '{}-addition'.format(templateName))
+                "{}-addition".format(templateName)
+            )
 
             if addition and addition not in templates:
                 templates.append(addition)
@@ -2486,7 +2495,11 @@ class Device(
         from Products.ZenModel.RRDTemplate import manage_addRRDTemplate
 
         manage_addRRDTemplate(self, id)
-        if id not in self.zDeviceTemplates and not id.endswith("-replacement") and not id.endswith("-addition"):
+        if (
+            id not in self.zDeviceTemplates
+            and not id.endswith("-replacement")
+            and not id.endswith("-addition")
+        ):
             self.bindTemplates(self.zDeviceTemplates + [id])
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
@@ -2505,8 +2518,11 @@ class Device(
         # Any templates available to the class that aren't overridden locally
         # are also available
         device_template_ids = set(t.id for t in templates)
-        templates.extend(t for t in self.deviceClass().getRRDTemplates()
-                                            if t.id not in device_template_ids)
+        templates.extend(
+            t
+            for t in self.deviceClass().getRRDTemplates()
+            if t.id not in device_template_ids
+        )
         # Filter out any templates that have been 'replaced'
         filteredTemplates = list(templates)
         for t in templates:
@@ -2514,7 +2530,10 @@ class Device(
             if tName.endswith("-replacement") or tName.endswith("-addition"):
                 filteredTemplates.remove(t)
         # filter for python class before sorting
-        templates = filter(lambda t: isinstance(self, t.getTargetPythonClass()), filteredTemplates)
+        templates = filter(
+            lambda t: isinstance(self, t.getTargetPythonClass()),
+            filteredTemplates,
+        )
         return sorted(templates, key=lambda x: x.id.lower())
 
     def getSnmpV3EngineId(self):
