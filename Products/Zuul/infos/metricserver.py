@@ -372,7 +372,7 @@ class CollectorDataPointGraphPoint(MetricServiceGraphPoint):
 
 class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
     """
-    This is a specialized adapter for multi graph reports where we have metrics for multiple
+    This is a specialized adapter where we have metrics for multiple
     contexts on a single adapter.
     """
     implements(templateInterfaces.IMetricServiceGraphDefinition)
@@ -412,6 +412,32 @@ class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
                 newRPN = mutateRPN(info.prefix(), knownDatapointNames,
                                    info._object.rpn)
                 info.setMultiContextRPN(newRPN)
+
+
+class MultiGraphReportGraphDefinition(MultiContextMetricServiceGraphDefinition):
+    """
+    This is a specialized adapter for multi graph reports where we have metrics for multiple
+    contexts on a single adapter.
+    """
+    implements(templateInterfaces.IMetricServiceGraphDefinition)
+
+    def __init__(self, graph, context, collection=None):
+        super(MultiGraphReportGraphDefinition, self).__init__(graph, context)
+        self._collection = collection
+
+    @property
+    def contextTitle(self):
+        """For multi graph reports we need group name in title."""
+        obj = self._object
+        if hasattr(obj, "getGraphGroups"):
+            groupName = next(
+                (group.titleOrId() for group in obj.getGraphGroups()
+                 if obj.id == group.graphDefId and self._collection.id == group.collectionId),
+                obj.titleOrId()
+            )
+        else:
+            groupName = obj.titleOrId()
+        return groupName
 
 
 class OSProcessMetricServiceGraphDefinition(MetricServiceGraphDefinition):
