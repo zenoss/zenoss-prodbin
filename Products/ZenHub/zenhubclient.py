@@ -229,7 +229,7 @@ class ZenHubClient(object):
             if hasattr(broker.transport, "socket"):
                 setKeepAlive(broker.transport.socket)
             else:
-                log.warn("broker.transport.socket attribute is missing")
+                log.warning("broker.transport.socket attribute is missing")
 
             self._zenhubref = yield self._login(broker)
 
@@ -280,7 +280,8 @@ class ZenHubClient(object):
         return d
 
     def _disconnected(self):
-        log.warn("disconnected from ZenHub")
+        logmethod = log.warning if self._service.running else log.info
+        logmethod("disconnected from ZenHub")
         self._reset()
         while len(self._disconnected_callbacks):
             callback = self._disconnected_callbacks.pop(0)

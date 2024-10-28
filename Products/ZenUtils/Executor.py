@@ -216,15 +216,12 @@ class AsyncExecutor(object):
             )
             task.error(ex)
         except Exception as ex:
-            message = (
-                "Bad task  executor=%s task-id=%s label=%s",
-                self._id, task.id, task.label
-            )
+            message = "Bad task  executor=%s task-id=%s label=%s"
+            params = (self._id, task.id, task.label)
             if self._log.isEnabledFor(logging.DEBUG):
-                self._log.exception(message)
+                self._log.exception(message, *params)
             else:
-                self._log.error("%s: %s", message, ex)
-
+                self._log.error(message + " error=%s", *(params + (ex,)))
             task.error(ex)
         finally:
             self._tasks_running -= 1
