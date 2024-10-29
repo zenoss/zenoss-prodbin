@@ -25,6 +25,8 @@ import socket
 
 from optparse import SUPPRESS_HELP
 
+import six
+
 from twisted.internet import defer
 from twisted.names.error import DNSNameError
 
@@ -86,7 +88,7 @@ class ZenDisc(ZenModeler):
     """
 
     initialServices = PBDaemon.initialServices + ["DiscoverService"]
-    name = "zendisc"
+    mname = name = "zendisc"
     scanned = 0
 
     def __init__(self, single=True):
@@ -146,7 +148,8 @@ class ZenDisc(ZenModeler):
             full_ip_list = net.fullIpList()
             if self.options.removeInterfaceIps:
                 full_ip_list = yield self.config().callRemote(
-                    "removeInterfaces", net)
+                    "removeInterfaces", net
+                )
 
             results = yield self.pingMany(full_ip_list)
             goodips, badips = _partitionPingResults(results)
@@ -172,7 +175,7 @@ class ZenDisc(ZenModeler):
         back.
         """
         iprange = self.options.range
-        if isinstance(iprange, basestring):
+        if isinstance(iprange, six.string_types):
             iprange = [iprange]
         # in case someone uses 10.0.0.0-5,192.168.0.1-5 instead of
         # --range 10.0.0.0-5 --range 192.168.0.1-5
@@ -187,8 +190,8 @@ class ZenDisc(ZenModeler):
         self.log.debug(
             "Found %d good IPs and %d bad IPs", len(goodips), len(badips)
         )
-        devices = yield self.discoverDevices(goodips)
         self.log.info("Discovered %d active IPs", len(goodips))
+        devices = yield self.discoverDevices(goodips)
         defer.returnValue(devices)
 
     @defer.inlineCallbacks
@@ -231,16 +234,16 @@ class ZenDisc(ZenModeler):
         if dev:
             devname = dev.id
         msg = "Discovered device name '%s' for ip '%s'" % (devname, ip)
-        evt = dict(
-            device=devname,
-            ipAddress=ip,
-            eventKey=ip,
-            component=comp,
-            eventClass=Status_Snmp,
-            summary=msg,
-            severity=sev,
-            agent="Discover",
-        )
+        evt = {
+            "device": devname,
+            "ipAddress": ip,
+            "eventKey": ip,
+            "component": comp,
+            "eventClass": Status_Snmp,
+            "summary": msg,
+            "severity": sev,
+            "agent": "Discover",
+        }
         self.sendEvent(evt)
 
     @defer.inlineCallbacks
@@ -418,16 +421,16 @@ class ZenDisc(ZenModeler):
                 defer.returnValue(None)
 
         try:
-            kw = dict(
-                deviceName=ip,
-                discoverProto=None,
-                devicePath=devicepath,
-                performanceMonitor=self.options.monitor,
-                locationPath=self.options.location,
-                groupPaths=self.options.groups,
-                systemPaths=self.options.systems,
-                productionState=prodState,
-            )
+            kw = {
+                "deviceName": ip,
+                "discoverProto": None,
+                "devicePath": devicepath,
+                "performanceMonitor": self.options.monitor,
+                "locationPath": self.options.location,
+                "groupPaths": self.options.groups,
+                "systemPaths": self.options.systems,
+                "productionState": prodState,
+            }
 
             # If zProperties are set via a job, get them and pass them in
             if self.options.job:
@@ -552,18 +555,18 @@ class ZenDisc(ZenModeler):
             self.log.exception(e)
             if self.options.snmpMissing:
                 self.sendEvent(
-                    dict(
-                        device=ip,
-                        component=ip,
-                        ipAddress=ip,
-                        eventKey=ip,
-                        eventClass=Status_Snmp,
-                        summary=str(e),
-                        severity=Info,
-                        agent="Discover",
-                    )
+                    {
+                        "device": ip,
+                        "component": ip,
+                        "ipAddress": ip,
+                        "eventKey": ip,
+                        "eventClass": Status_Snmp,
+                        "summary": str(e),
+                        "severity": Info,
+                        "agent": "Discover",
+                    }
                 )
-        except Exception as e:
+        except Exception:
             self.log.exception("Failed device discovery for '%s'", ip)
         finally:
             self.log.info("Finished scanning device with address %s", ip)
@@ -580,7 +583,7 @@ class ZenDisc(ZenModeler):
         """
         network = self.options.net
         # net option from the config file is a string
-        if isinstance(network, basestring):
+        if isinstance(network, six.string_types):
             network = [network]
         # in case someone uses 10.0.0.0,192.168.0.1 instead of
         # --net 10.0.0.0 --net 192.168.0.1

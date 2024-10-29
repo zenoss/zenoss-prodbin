@@ -130,7 +130,7 @@ class ZenModeler(PBDaemon):
                 self.log.debug('option "now" specified, starting immediately.')
             else:
                 # self.startDelay = randint(10, 60) * 60
-                self.startDelay = randint(10, 60) * 1
+                self.startDelay = randint(10, 60) * 1  # noqa: S311
                 self.immediate = 0
                 self.log.info(
                     'option "now" not specified, waiting %s seconds to start.',
@@ -336,7 +336,7 @@ class ZenModeler(PBDaemon):
         if USE_WMI:
             self.wmiCollect(device, ip, timeout)
         else:
-            self.log.info(
+            self.log.debug(
                 "skipping WMI-based collection, PySamba zenpack not installed"
             )
         self.log.info(
@@ -362,7 +362,6 @@ class ZenModeler(PBDaemon):
         """
         if self.options.nowmi:
             return
-
         client = None
         try:
             plugins = self.selectPlugins(device, "wmi")
@@ -370,9 +369,10 @@ class ZenModeler(PBDaemon):
                 self.log.info("No WMI plugins found for %s", device.id)
                 return
             if self.checkCollection(device):
-                self.log.info("WMI collector method for device %s", device.id)
                 self.log.info(
-                    "plugins: %s", ", ".join(map(lambda p: p.name(), plugins))
+                    "WMI collector method for device %s", device.id)
+                self.log.info(
+                    "plugins: %s", ", ".join(p.name() for p in plugins)
                 )
                 client = WMIClient(device, self, plugins)
             if not client or not plugins:
@@ -402,9 +402,11 @@ class ZenModeler(PBDaemon):
             if self.checkCollection(device):
                 self.log.info("Python collection device %s", device.id)
                 self.log.info(
-                    "plugins: %s", ", ".join(map(lambda p: p.name(), plugins))
+                    "plugins: %s", ", ".join(p.name() for p in plugins)
                 )
                 client = PythonClient(device, self, plugins)
+            else:
+                self.log.info("no Python collection for device %s", device.id)
             if not client or not plugins:
                 self.log.warn("Python client creation failed")
                 return
@@ -440,6 +442,7 @@ class ZenModeler(PBDaemon):
 
             # don't even create a client if we shouldn't collect/model yet
             if not self.checkCollection(device):
+                self.log.info("no cmd collection for device %s", device.id)
                 return
 
             if protocol == "ssh":
@@ -455,7 +458,7 @@ class ZenModeler(PBDaemon):
                 )
                 clientType = "ssh"
                 self.log.info(
-                    "Using SSH collection method for device %s", hostname
+                    "using SSH collection method for device %s", hostname
                 )
 
             elif protocol == "telnet":
@@ -472,7 +475,7 @@ class ZenModeler(PBDaemon):
                 )
                 clientType = "telnet"
                 self.log.info(
-                    "Using telnet collection method for device %s", hostname
+                    "using telnet collection method for device %s", hostname
                 )
 
             else:
@@ -497,10 +500,10 @@ class ZenModeler(PBDaemon):
                 return
 
             if not client:
-                self.log.warn("Shell command collector creation failed")
+                self.log.warn("shell command collector creation failed")
             else:
                 self.log.info(
-                    "plugins: %s", ", ".join(map(lambda p: p.name(), plugins))
+                    "plugins: %s", ", ".join(p.name() for p in plugins)
                 )
         except Exception:
             self.log.exception("Error opening command collector")
@@ -525,23 +528,28 @@ class ZenModeler(PBDaemon):
                 return
 
             if not ip:
-                self.log.info("No manage IP for %s", hostname)
+                self.log.info("no manage IP for %s", hostname)
                 return
 
             plugins = []
             plugins = self.selectPlugins(device, "snmp")
             if not plugins:
-                self.log.info("No SNMP plugins found for %s", hostname)
+                self.log.info("no SNMP plugins found for %s", hostname)
                 return
 
             if self.checkCollection(device):
                 self.log.info("SNMP collection device %s", hostname)
                 self.log.info(
-                    "plugins: %s", ", ".join(map(lambda p: p.name(), plugins))
+                    "plugins: %s", ", ".join(p.name() for p in plugins)
                 )
                 client = SnmpClient(
                     device.id, ip, self.options, device, self, plugins
                 )
+                self.log.info(
+                    "SNMP config summary: %s", client.connInfo.summary()
+                )
+            else:
+                self.log.info("no SNMP collection for device %s", hostname)
             if not client or not plugins:
                 self.log.warn("SNMP collector creation failed")
                 return
@@ -630,11 +638,13 @@ class ZenModeler(PBDaemon):
                     "Portscan collector method for device %s", hostname
                 )
                 self.log.info(
-                    "plugins: %s", ", ".join(map(lambda p: p.name(), plugins))
+                    "plugins: %s", ", ".join(p.name() for p in plugins)
                 )
                 client = PortscanClient(
                     device.id, ip, self.options, device, self, plugins
                 )
+            else:
+                self.log.info("no portscan collection for device %s", hostname)
             if not client or not plugins:
                 self.log.warn("Portscan collector creation failed")
                 return
@@ -987,8 +997,9 @@ class ZenModeler(PBDaemon):
             if not self.options.cycle:
                 self.stop()
             self.finished = []
-            # frequency of heartbeat rate could be 2 times per minute in case we have
-            # cron job modeling faster than 1 minute it'll be trigger a second time
+            # frequency of heartbeat rate could be 2 times per minute in
+            # case we have cron job modeling faster than 1 minute it'll be
+            # trigger a second time.
             if runTime < 60 and self.startat is not None:
                 yield wait(60)
             self.started = False

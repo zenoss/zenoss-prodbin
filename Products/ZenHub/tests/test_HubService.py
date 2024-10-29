@@ -18,7 +18,9 @@ class TestHubService(TestCase):
         self.assertIsInstance(self.hub_service, pb.Referenceable)
 
         # Validate attributes created by __init__
-        self.assertEqual(self.hub_service.log, logging.getLogger("zen.hub"))
+        self.assertEqual(
+            self.hub_service.log, logging.getLogger("zen.hub.hubservice")
+        )
         self.assertEqual(self.hub_service.fqdn, socket.getfqdn())
         self.assertEqual(self.hub_service.dmd, self.dmd)
         self.assertEqual(self.hub_service.zem, self.dmd.ZenEventManager)

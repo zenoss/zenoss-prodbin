@@ -197,7 +197,7 @@ class ConfigCache(HubService):
         @rtype: Iterator[str]
         """
         query = DeviceQuery(monitor=self.instance, service=servicename)
-        self.log.info("[ConfigCache] using query %s", query)
+        self.log.debug("[ConfigCache] using query %s", query)
         return self._stores.device.search(query)
 
     def _filter(self, keys, predicate):

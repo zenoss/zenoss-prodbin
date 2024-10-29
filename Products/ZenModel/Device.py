@@ -114,7 +114,7 @@ _sourcetype_to_collector_map = {
     "COMMAND": "zencommand",
 }
 
-log = logging.getLogger("zen.Device")
+log = logging.getLogger("zen.model.device")
 
 
 def getNetworkRoot(context, performanceMonitor):
@@ -160,7 +160,6 @@ def manage_createDevice(
     """
     manageIp = manageIp.replace(" ", "")
     deviceName = context.prepId(deviceName)
-    log.info("device name '%s' for ip '%s'", deviceName, manageIp)
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
     device = deviceClass.createInstance(
         deviceName, performanceMonitor, manageIp
@@ -187,6 +186,13 @@ def manage_createDevice(
         priority,
         zProperties,
         title,
+    )
+    log.info(
+        "created device  name=%s manageIp=%s collector=%s class=%s",
+        deviceName,
+        manageIp,
+        performanceMonitor,
+        devicePath,
     )
     return device
 
@@ -2539,7 +2545,11 @@ class Device(
         from Products.ZenModel.RRDTemplate import manage_addRRDTemplate
 
         manage_addRRDTemplate(self, id)
-        if id not in self.zDeviceTemplates and not id.endswith("-replacement") and not id.endswith("-addition"):
+        if (
+            id not in self.zDeviceTemplates
+            and not id.endswith("-replacement")
+            and not id.endswith("-addition")
+        ):
             self.bindTemplates(self.zDeviceTemplates + [id])
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
