@@ -189,6 +189,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
 
         self._snmpProxy = None
         self._snmpConnInfo = self._device.snmpConnInfo
+        log.info("SNMP info summary  %s", self._snmpConnInfo.summary())
         self._oids = self._device.oids
         self._oidDeque = deque(self._oids.keys())
         self._good_oids = set()
