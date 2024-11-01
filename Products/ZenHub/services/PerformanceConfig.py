@@ -158,13 +158,13 @@ class PerformanceConfig(HubService, ThresholdMixin):
         return self.conf.propertyItems()
 
     @onUpdate(PerformanceConf)
-    def perfConfUpdated(self, object, event):
-        if object.id == self.instance:
+    def perfConfUpdated(self, conf, event):
+        if conf.id == self.instance:
             for listener in self.listeners:
-                listener.callRemote("setPropertyItems", object.propertyItems())
+                listener.callRemote("setPropertyItems", conf.propertyItems())
 
     @onUpdate(ZenPack)
-    def zenPackUpdated(self, object, event):
+    def zenPackUpdated(self, zenpack, event):
         for listener in self.listeners:
             try:
                 listener.callRemote(
