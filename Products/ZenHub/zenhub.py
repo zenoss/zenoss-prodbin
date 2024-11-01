@@ -153,7 +153,6 @@ class ZenHub(ZCmdBase):
         # Invalidation Processing
         self._invalidation_manager = InvalidationManager(
             self.dmd,
-            self.log,
             self.async_syncdb,
             self.storage.poll_invalidations,
             self.sendEvent,
