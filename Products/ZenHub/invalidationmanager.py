@@ -13,7 +13,7 @@ from time import time
 from itertools import chain
 from functools import wraps
 
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 from ZODB.POSException import POSKeyError
 from zope.component import getUtility, getUtilitiesFor, subscribers
 
@@ -36,11 +36,10 @@ from .interfaces import (
 )
 from .invalidations import INVALIDATIONS_PAUSED
 
-log = logging.getLogger("zen.{}".format(__name__.split(".")[-1].lower()))
+log = logging.getLogger("zen.zenhub.invalidations")
 
 
 class InvalidationManager(object):
-
     _invalidation_paused_event = {
         "summary": "Invalidation processing is "
         "currently paused. To resume, set "
@@ -58,7 +57,6 @@ class InvalidationManager(object):
     def __init__(
         self,
         dmd,
-        log,
         syncdb,
         poll_invalidations,
         send_event,
@@ -66,7 +64,6 @@ class InvalidationManager(object):
     ):
         self.__dmd = dmd
         self.__syncdb = syncdb
-        self.log = log
         self.__poll_invalidations = poll_invalidations
         self.__send_event = send_event
         self.poll_interval = poll_interval
@@ -80,7 +77,6 @@ class InvalidationManager(object):
             self.__dmd
         )
         self.processor = getUtility(IInvalidationProcessor)
-        log.debug("got InvalidationProcessor %s", self.processor)
         app = self.__dmd.getPhysicalRoot()
         self.invalidation_pipeline = InvalidationPipeline(
             app, self._invalidation_filters, self._queue
@@ -105,7 +101,7 @@ class InvalidationManager(object):
                 fltr.initialize(ctx)
                 invalidation_filters.append(fltr)
             log.info(
-                "Registered %s invalidation filters.",
+                "registered %s invalidation filters.",
                 len(invalidation_filters),
             )
             log.info("invalidation filters: %s", invalidation_filters)
@@ -127,35 +123,38 @@ class InvalidationManager(object):
             now = time()
             yield self._syncdb()
             if self._paused():
-                return
+                returnValue(None)
 
             oids = self._poll_invalidations()
             if not oids:
-                log.debug("no invalidations found: oids=%s", oids)
-                return
+                log.debug("no invalidations found")
+                returnValue(None)
 
             for oid in oids:
                 yield self.invalidation_pipeline.run(oid)
 
-            self.log.debug("Processed %s raw invalidations", len(oids))
-            yield self.processor.processQueue(self._queue)
+            handled, ignored = yield self.processor.processQueue(self._queue)
+            log.debug(
+                "processed invalidations  "
+                "handled-count=%d, ignored-count=%d",
+                handled,
+                ignored,
+            )
             self._queue.clear()
-
         except Exception:
             log.exception("error in process_invalidations")
         finally:
             self.totalEvents += 1
             self.totalTime += time() - now
-            log.debug("end process_invalidations")
 
     @inlineCallbacks
     def _syncdb(self):
         try:
-            self.log.debug("[processQueue] syncing....")
+            log.debug("syncing with ZODB ...")
             yield self.__syncdb()
-            self.log.debug("[processQueue] synced")
+            log.debug("synced with ZODB")
         except Exception:
-            self.log.warn("Unable to poll invalidations, will try again.")
+            log.warn("Unable to poll invalidations")
 
     def _paused(self):
         if not self._currently_paused:
@@ -183,7 +182,7 @@ class InvalidationManager(object):
             log.debug("poll invalidations from dmd.storage")
             return self.__poll_invalidations()
         except Exception:
-            log.exception("error in _poll_invalidations")
+            log.exception("failed to poll invalidations")
 
     @inlineCallbacks
     def _send_event(self, event):
