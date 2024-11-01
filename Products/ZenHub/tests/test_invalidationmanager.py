@@ -49,7 +49,6 @@ class InvalidationManagerTest(TestCase):
         t.dmd = Mock(
             name="dmd", spec_set=["getPhysicalRoot", "pauseHubNotifications"]
         )
-        t.log = Mock(name="log", spec_set=["debug", "warn", "info"])
         t.syncdb = Mock(name="ZenHub.async_syncdb", spec_set=[])
         t.poll_invalidations = Mock(
             name="ZenHub.storage.poll_invalidations", spec_set=[]
@@ -57,12 +56,14 @@ class InvalidationManagerTest(TestCase):
 
         t.send_event = Mock(ZenHub.sendEvent, name="ZenHub.sendEvent")
         t.im = InvalidationManager(
-            t.dmd, t.log, t.syncdb, t.poll_invalidations, t.send_event
+            t.dmd, t.syncdb, t.poll_invalidations, t.send_event
         )
+
+    def tearDown(t):
+        logging.disable(logging.NOTSET)
 
     def test___init__(t):
         t.assertEqual(t.im._InvalidationManager__dmd, t.dmd)
-        t.assertEqual(t.im.log, t.log)
         t.assertEqual(t.im._InvalidationManager__syncdb, t.syncdb)
         t.assertEqual(
             t.im._InvalidationManager__poll_invalidations, t.poll_invalidations
@@ -198,16 +199,16 @@ class InvalidationPipelineTest(TestCase):
     def test_invalidation_pipeline(t):
         t.invalidation_pipeline.run(t.oid)
 
-        t.assertEqual(t.sink, set([t.oid]))
+        t.assertEqual(t.sink, {t.oid})
 
     def test__build_pipeline(t):
         __pipeline = t.invalidation_pipeline._build_pipeline()
         __pipeline.send(t.oid)
 
-        t.assertEqual(t.sink, set([t.oid]))
+        t.assertEqual(t.sink, {t.oid})
 
     @patch("{src}.log".format(**PATH), autospec=True)
-    def test_run_handles_exceptions(t, log):
+    def test_run_handles_exceptions(t, log_):
         """An exception in any of the coroutines will first raise the exception
         then cause StopIteration exceptions on subsequent runs.
         we handle the first exception and rebuild the pipeline
@@ -219,8 +220,8 @@ class InvalidationPipelineTest(TestCase):
         t.invalidation_pipeline.run(x)  # causes an exception
         t.invalidation_pipeline.run(t.oid)
 
-        log.exception.assert_called_with(ANY)
-        t.assertEqual(t.sink, set([t.oid]))
+        log_.exception.assert_called_with(ANY)
+        t.assertEqual(t.sink, {t.oid})
         # ensure the dereferenced pipeline is cleaned up safely
         import gc
 
@@ -380,7 +381,7 @@ class set_sink_Test(TestCase):
     def test_set_sink_accepts_a_set(t):
         output = set()
         set_sink_pipe = set_sink(output)
-        set_sink_pipe.send({"a", "a", "b", "c"} or ("a",))
+        set_sink_pipe.send({"a", "b", "c"} or ("a",))
         t.assertEqual(output, {"a", "b", "c"})
 
     def test_set_sink_accepts_a_tuple(t):
