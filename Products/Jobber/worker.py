@@ -14,6 +14,7 @@ import itertools
 import logging
 import time
 
+import MySQLdb
 import pathlib2 as pathlib
 import Products
 import ZODB.config
@@ -23,6 +24,9 @@ from Zope2.App import zcml
 from .config import getConfig
 from .utils.app import get_app
 
+_DEFAULT_WORKER_PROC_ALIVE_TIMEOUT = 4.0  # Celery default
+_OPERATIONAL_ERROR_RETRY_DELAY = 0.1
+_WORKER_TIMEOUT_OFFSET = 10
 _mlog = logging.getLogger("zen.zenjobs.worker")
 
 
@@ -95,11 +99,44 @@ def setup_zodb(**kw):
     """Initialize a ZODB connection."""
     zodbcfg = getConfig().get("zodb-config-file")
     url = "file://%s" % zodbcfg
-    get_app().db = ZODB.config.databaseFromURL(url)
-    _mlog.getChild("setup_zodb").info("ZODB connection initialized")
+    app = get_app()
+    attempt = 0
+    log = _mlog.getChild("setup_zodb")
+    while attempt < 3:
+        try:
+            app.db = ZODB.config.databaseFromURL(url)
+        except MySQLdb.OperationalError as ex:
+            error = str(ex)
+            # Sleep for a very short duration.  Celery signal handlers
+            # are given short durations to complete.
+            time.sleep(_OPERATIONAL_ERROR_RETRY_DELAY)
+            attempt += 1
+        except Exception as ex:
+            log.exception("unexpected failure")
+            # To avoid retrying on unexpected errors, set `attempt` to 3 to
+            # cause the loop to exit on the next iteration to allow the
+            # "else:" clause to run and cause this worker to exit.
+            error = str(ex)
+            attempt = 3
+        else:
+            log.info("ZODB connection initialized")
+            # Break the loop since the database initialization succeeded.
+            break
+    else:
+        log.error("failed to initialize ZODB connection: %s", error)
+        timeout = app.conf.get(
+            "worker_proc_alive_timeout", _DEFAULT_WORKER_PROC_ALIVE_TIMEOUT
+        )
+        # Add time to the worker_proc_alive_timeout config to force Celery
+        # to kill this worker.  If the database connection cannot be
+        # initialized, this worker instance is useless.
+        time.sleep(timeout + _WORKER_TIMEOUT_OFFSET)
 
 
 def teardown_zodb(**kw):
     """Shut down the ZODB connection."""
-    get_app().db.close()
+    app = get_app()
+    db = getattr(app, "db", None)
+    if db is not None:
+        db.close()
     _mlog.getChild("teardown_zodb").info("ZODB connection closed")
