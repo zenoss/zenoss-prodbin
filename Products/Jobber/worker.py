@@ -24,9 +24,7 @@ from Zope2.App import zcml
 from .config import getConfig
 from .utils.app import get_app
 
-_DEFAULT_WORKER_PROC_ALIVE_TIMEOUT = 4.0  # Celery default
-_OPERATIONAL_ERROR_RETRY_DELAY = 0.1
-_WORKER_TIMEOUT_OFFSET = 10
+_OPERATIONAL_ERROR_RETRY_DELAY = 0.5
 _mlog = logging.getLogger("zen.zenjobs.worker")
 
 
@@ -124,13 +122,7 @@ def setup_zodb(**kw):
             break
     else:
         log.error("failed to initialize ZODB connection: %s", error)
-        timeout = app.conf.get(
-            "worker_proc_alive_timeout", _DEFAULT_WORKER_PROC_ALIVE_TIMEOUT
-        )
-        # Add time to the worker_proc_alive_timeout config to force Celery
-        # to kill this worker.  If the database connection cannot be
-        # initialized, this worker instance is useless.
-        time.sleep(timeout + _WORKER_TIMEOUT_OFFSET)
+        raise SystemExit("Unable to initialize ZODB connection")
 
 
 def teardown_zodb(**kw):
