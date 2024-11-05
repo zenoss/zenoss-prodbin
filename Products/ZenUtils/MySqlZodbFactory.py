@@ -9,8 +9,10 @@
 
 import logging
 import optparse
+import time
 import uuid
 
+import MySQLdb
 import relstorage.adapters.mysql
 import relstorage.options
 import relstorage.storage
@@ -24,6 +26,7 @@ from .ZodbFactory import IZodbFactory
 
 _DEFAULT_MYSQLPORT = 3306
 _DEFAULT_COMMIT_LOCK_TIMEOUT = 30
+_OPERATIONAL_ERROR_RETRY_DELAY = 0.5
 
 log = logging.getLogger("zen.MySqlZodbFactory")
 
@@ -134,7 +137,10 @@ class MySqlZodbFactory(object):
         if cache_servers:
             relstoreParams["cache_servers"] = cache_servers
 
-        storage = relstorage.storage.RelStorage(adapter, **relstoreParams)
+        storage = _get_storage(adapter, relstoreParams)
+        if storage is None:
+            raise SystemExit("Unable to retrieve ZODB storage")
+
         cache_size = kwargs.get("zodb_cachesize", 1000)
         db = ZODB.DB(storage, cache_size=cache_size)
         import Globals
@@ -227,3 +233,25 @@ class MySqlZodbFactory(object):
             ),
         )
         parser.add_option_group(group)
+
+
+def _get_storage(adapter, params):
+    attempt = 0
+    while attempt < 3:
+        try:
+            return relstorage.storage.RelStorage(adapter, **params)
+        except MySQLdb.OperationalError as ex:
+            error = str(ex)
+            # Sleep for a very short duration.  Celery signal handlers
+            # are given short durations to complete.
+            time.sleep(_OPERATIONAL_ERROR_RETRY_DELAY)
+            attempt += 1
+        except Exception as ex:
+            log.exception("unexpected failure")
+            # To avoid retrying on unexpected errors, set `attempt` to 3 to
+            # cause the loop to exit on the next iteration to allow the
+            # "else:" clause to run and cause this worker to exit.
+            error = str(ex)
+            attempt = 3
+    else:
+        log.error("failed to initialize ZODB connection: %s", error)
