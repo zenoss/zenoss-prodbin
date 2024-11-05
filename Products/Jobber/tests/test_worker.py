@@ -16,10 +16,9 @@ from unittest import TestCase
 from mock import call, Mock, patch
 
 from Products.Jobber.worker import (
-    setup_zodb,
     MySQLdb,
+    setup_zodb,
     _OPERATIONAL_ERROR_RETRY_DELAY,
-    _WORKER_TIMEOUT_OFFSET,
 )
 
 PATH = {"src": "Products.Jobber.worker"}
@@ -76,14 +75,14 @@ class TestSetupZODB(TestCase):
             call(_OPERATIONAL_ERROR_RETRY_DELAY),
             call(_OPERATIONAL_ERROR_RETRY_DELAY),
             call(_OPERATIONAL_ERROR_RETRY_DELAY),
-            call(timeout + _WORKER_TIMEOUT_OFFSET),
         )
 
-        setup_zodb()
+        with t.assertRaises(SystemExit):
+            setup_zodb()
 
         time_.sleep.assert_has_calls(sleep_calls)
         t.assertEqual(
-            len(sleep_calls) - 1, zodb_.config.databaseFromURL.call_count
+            len(sleep_calls), zodb_.config.databaseFromURL.call_count
         )
         t.assertEqual(len(sleep_calls), time_.sleep.call_count)
 
@@ -105,7 +104,7 @@ class TestSetupZODB(TestCase):
         config = {"zodb-config-file": filename}
         getConfig_.return_value = config
 
-        setup_zodb()
+        with t.assertRaises(SystemExit):
+            setup_zodb()
 
         t.assertEqual(1, zodb_.config.databaseFromURL.call_count)
-        time_.sleep.assert_called_once_with(timeout + _WORKER_TIMEOUT_OFFSET)
