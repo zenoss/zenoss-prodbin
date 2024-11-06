@@ -71,12 +71,16 @@ class SnmpClient(BaseClient):
         if self.proxy is not None:
             self.proxy.close()
         srcport = snmpprotocol.port()
-        self.proxy = self.connInfo.createSession(srcport.protocol)
-        self.proxy.open()
+        try:
+            self.proxy = self.connInfo.createSession(srcport.protocol)
+            self.proxy.open()
+        except Exception as ex:
+            log.error("failed to initialize SNMP session  error=%s", ex)
+            self.proxy = None
 
     def run(self):
         """Start snmp collection."""
-        log.debug("Starting %s", self.connInfo.summary())
+        log.debug("starting  %s", self.connInfo.summary())
         self.initSnmpProxy()
         drive(self.doRun).addBoth(self.clientFinished)
 
@@ -103,13 +107,15 @@ class SnmpClient(BaseClient):
         yield defer.succeed(result)
 
     def doRun(self, driver):
+        if self.proxy is None:
+            return
         # test snmp connectivity
         log.debug("Testing SNMP configuration")
         yield self.proxy.walk(".1.3")
         try:
             driver.next()
         except TimeoutError:
-            log.info("Device timed out: %s", self.connInfo.summary())
+            log.info("device timed out  %s", self.connInfo.summary())
             if self.options.discoverCommunity:
                 yield self.findSnmpCommunity()
                 snmp_config = driver.next()
@@ -131,11 +137,11 @@ class SnmpClient(BaseClient):
                 raise
         except Snmpv3Error:
             log.error(
-                "Cannot connect to SNMP agent: %s", self.connInfo.summary()
+                "cannot connect to SNMP agent  %s", self.connInfo.summary()
             )
             raise
         except Exception:
-            log.exception("Unable to talk: %s", self.connInfo.summary())
+            log.exception("unable to talk  %s", self.connInfo.summary())
             raise
 
         changed = True
@@ -266,8 +272,7 @@ class SnmpClient(BaseClient):
 
             if isinstance(result.value, error.TimeoutError):
                 log.error(
-                    "Device %s timed out: are "
-                    "your SNMP settings correct?",
+                    "device %s timed out: are your SNMP settings correct?",
                     self.hostname,
                 )
                 summary = "SNMP agent down - no response received"
