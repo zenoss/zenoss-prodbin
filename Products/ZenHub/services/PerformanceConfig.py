@@ -7,7 +7,9 @@
 #
 ##############################################################################
 
-from pynetsnmp import CONSTANTS, security
+import logging
+
+from pynetsnmp import security
 from pynetsnmp.twistedsnmp import AgentProxy
 from twisted.spread import pb
 from zope import component
@@ -21,6 +23,8 @@ from Products.ZenModel.ZenPack import ZenPack
 
 from .Procrastinator import Procrastinate
 from .ThresholdMixin import ThresholdMixin
+
+log = logging.getLogger("zen.performanceconfig")
 
 ATTRIBUTES = (
     "id",
@@ -83,51 +87,47 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
         )
 
     def summary(self):
-        result = "SNMP info for %s at %s:%s" % (
+        result = "device=%s peer=%s:%s timeout=%s tries=%d version=%s" % (
             self.id,
             self.manageIp,
             self.zSnmpPort,
-        )
-        result += " timeout: %s tries: %d" % (
             self.zSnmpTimeout,
             self.zSnmpTries,
+            self.zSnmpVer,
         )
-        result += " version: %s" % (self.zSnmpVer)
         if "3" not in self.zSnmpVer:
-            result += " community: %s" % self.zSnmpCommunity
+            result += " community=%s" % self.zSnmpCommunity
         else:
-            result += " securityName: %s" % self.zSnmpSecurityName
-            result += " authType: %s" % self.zSnmpAuthType
-            result += " privType: %s" % self.zSnmpPrivType
+            result += (
+                " securityName=%s authType=%s authPassword=%s"
+                " privType=%s privPassword=%s engineID=%s"
+            ) % (
+                self.zSnmpSecurityName,
+                self.zSnmpAuthType,
+                "****" if self.zSnmpAuthPassword else "",
+                self.zSnmpPrivType,
+                "****" if self.zSnmpPrivPassword else "",
+                "****" if self.zSnmpEngineId else "",
+            )
         return result
 
     def createSession(self, protocol=None):
         """Create a session based on the properties"""
         if "3" in self.zSnmpVer:
-            if self.zSnmpPrivType:
-                priv = security.Privacy(
-                    self.zSnmpPrivType, self.zSnmpPrivPassword
-                )
-            else:
-                priv = None
-            if self.zSnmpAuthType:
-                auth = security.Authentication(
-                    self.zSnmpAuthType, self.zSnmpAuthPassword
-                )
-            else:
-                auth = ()
+            auth = self._get_auth()
+            priv = self._get_priv()
             sec = security.UsmUser(
                 self.zSnmpSecurityName,
                 auth=auth,
                 priv=priv,
-                engineid=self.zSnmpEngineId,
+                engine=self.zSnmpEngineId,
                 context=self.zSnmpContext,
             )
         else:
             if "2" in self.zSnmpVer:
-                version = CONSTANTS.SNMP_VERSION_2c
+                version = security.SNMP_VERSION_2c
             else:
-                version = CONSTANTS.SNMP_VERSION_1
+                version = security.SNMP_VERSION_1
             sec = security.Community(self.zSnmpCommunity, version=version)
         p = AgentProxy.create(
             (self.manageIp, self.zSnmpPort),
@@ -137,6 +137,24 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
         )
         p.snmpConnInfo = self
         return p
+
+    def _get_auth(self):
+        if self.zSnmpAuthType:
+            try:
+                return security.Authentication(
+                    self.zSnmpAuthType, self.zSnmpAuthPassword
+                )
+            except ValueError as ex:
+                log.error("error in SNMP authentication config: %s", ex)
+
+    def _get_priv(self):
+        if self.zSnmpPrivType:
+            try:
+                return security.Privacy(
+                    self.zSnmpPrivType, self.zSnmpPrivPassword
+                )
+            except ValueError as ex:
+                log.error("error in SNMP privacy config: %s", ex)
 
     def __repr__(self):
         return "<%s for %s>" % (self.__class__, self.id)

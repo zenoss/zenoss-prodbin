@@ -369,8 +369,7 @@ class ZenModeler(PBDaemon):
                 self.log.info("No WMI plugins found for %s", device.id)
                 return
             if self.checkCollection(device):
-                self.log.info(
-                    "WMI collector method for device %s", device.id)
+                self.log.info("WMI collector method for device %s", device.id)
                 self.log.info(
                     "plugins: %s", ", ".join(p.name() for p in plugins)
                 )
@@ -546,7 +545,7 @@ class ZenModeler(PBDaemon):
                     device.id, ip, self.options, device, self, plugins
                 )
                 self.log.info(
-                    "SNMP config summary: %s", client.connInfo.summary()
+                    "SNMP config summary  %s", client.connInfo.summary()
                 )
             else:
                 self.log.info("no SNMP collection for device %s", hostname)
@@ -1047,6 +1046,7 @@ class ZenModeler(PBDaemon):
                 else:
                     self.log.info("Device %s not returned is it down?", device)
             except StopIteration:
+                self.log.info("no more devices")
                 self.devicegen = None
             finally:
                 self.pendingNewClients = False
