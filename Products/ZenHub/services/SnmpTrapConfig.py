@@ -19,6 +19,7 @@ import logging
 
 from hashlib import md5
 
+from pynetsnmp.security import Authentication, Privacy, UsmUser
 from twisted.spread import pb
 
 from Products.ZenHub.HubService import HubService
@@ -40,24 +41,27 @@ class FakeDevice(object):
     id = "MIB payload"
 
 
-class User(pb.Copyable, pb.RemoteCopy):
-    version = None
-    engine_id = None
-    username = None
-    authentication_type = None  # MD5 or SHA
-    authentication_passphrase = None
-    privacy_protocol = None  # DES or AES
-    privacy_passphrase = None
+class User(UsmUser, pb.Copyable, pb.RemoteCopy):
+    def getStateToCopy(self):
+        state = pb.Copyable.getStateToCopy(self)
+        if self.auth:
+            state["auth"] = [self.auth.protocol.name, self.auth.passphrase]
+        else:
+            state["auth"] = None
+        if self.priv:
+            state["priv"] = [self.priv.protocol.name, self.priv.passphrase]
+        else:
+            state["priv"] = None
+        return state
 
-    def __str__(self):
-        fmt = (
-            "<User(version={0.version},"
-            "engine_id={0.engine_id},"
-            "username={0.username},"
-            "authentication_type={0.authentication_type},"
-            "privacy_protocol={0.privacy_protocol})>"
-        )
-        return fmt.format(self)
+    def setCopyableState(self, state):
+        auth = state.get("auth")
+        state["auth"] = Authentication(*auth) if auth else None
+        priv = state.get("priv")
+        state["priv"] = Privacy(*priv) if priv else None
+        pb.RemoteCopy.setCopyableState(self, state)
+
+    pass
 
 
 pb.setUnjellyableForClass(User, User)
@@ -105,21 +109,23 @@ class SnmpTrapConfig(HubService):
         )
 
     def _create_user(self, obj):
-        # if v3 and has at least one v3 user property, then we want to
-        # create a user
-        if obj.getProperty("zSnmpVer", None) != "v3" or not any(
-            obj.hasProperty(p) for p in SNMPV3_USER_ZPROPS
-        ):
+        # Users are only valid for SNMP v3.
+        if obj.getProperty("zSnmpVer", None) != "v3":
             return
-        user = User()
-        user.version = int(obj.zSnmpVer[1])
-        user.engine_id = obj.zSnmpEngineId
-        user.username = obj.zSnmpSecurityName
-        user.authentication_type = obj.zSnmpAuthType
-        user.authentication_passphrase = obj.zSnmpAuthPassword
-        user.privacy_protocol = obj.zSnmpPrivType
-        user.privacy_passphrase = obj.zSnmpPrivPassword
-        return user
+        try:
+            return User(
+                obj.zSnmpSecurityName,
+                auth=Authentication(obj.zSnmpAuthType, obj.zSnmpAuthPassword),
+                priv=Privacy(obj.zSnmpPrivType, obj.zSnmpPrivPassword),
+                engine=obj.zSnmpEngineId,
+                context=obj.zSnmpContext,
+            )
+        except Exception as ex:
+            log.error(
+                "failed to create SNMP Security user  user=%s error=%s",
+                obj.zSnmpSecurityName,
+                ex,
+            )
 
     def _objectUpdated(self, object):
         user = self._create_user(object)

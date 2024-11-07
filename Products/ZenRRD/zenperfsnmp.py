@@ -827,10 +827,24 @@ class SnmpPerformanceCollectionTask(BaseTask):
             self._snmpProxy is None
             or self._snmpProxy._snmpConnInfo != self._snmpConnInfo
         ):
-            self._snmpProxy = self._snmpConnInfo.createSession(
-                protocol=self._snmpPort.protocol
-            )
-            self._snmpProxy.open()
+            try:
+                self._snmpProxy = self._snmpConnInfo.createSession(
+                    protocol=self._snmpPort.protocol
+                )
+                self._snmpProxy.open()
+                self._sendStatusEvent(
+                    "SNMP config error cleared",
+                    eventKey="snmp_config_error",
+                    severity=Event.Clear,
+                )
+            except Exception as ex:
+                self._snmpProxy = None
+                log.error("failed to create SNMP session: %s", ex)
+                self._sendStatusEvent(
+                    "SNMP config error: {}".format(ex),
+                    eventKey="snmp_config_error",
+                )
+                raise
         return self._snmpProxy
 
     def _close(self):

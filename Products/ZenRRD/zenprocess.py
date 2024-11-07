@@ -384,9 +384,24 @@ class ZenProcessTask(ObservableMixin):
         """
         try:
             # see if we need to connect first before doing any collection
-            self.openProxy()
-            log.debug("Opened proxy to %s [%s]", self._devId, self._manageIp)
-            yield self._collectCallback()
+            try:
+                self.openProxy()
+                self._clearSmnpError(
+                    "SNMP config error cleared",
+                    eventKey="snmp_config_error",
+                    severity=Event.Clear,
+                )
+            except Exception as ex:
+                log.error("failed to create SNMP session: %s", ex)
+                self._sendSmnpError(
+                    "SNMP config error: {}".format(ex),
+                    eventKey="snmp_config_error",
+                )
+            else:
+                log.debug(
+                    "opened proxy to %s [%s]", self._devId, self._manageIp
+                )
+                yield self._collectCallback()
         finally:
             self._finished()
 
@@ -644,7 +659,7 @@ class ZenProcessTask(ObservableMixin):
         self.sendMissingProcsEvents(missing)
 
         # Store the total number of each process into an RRD
-        pidCounts = dict((p, 0) for p in self._deviceStats.processStats)
+        pidCounts = {p: 0 for p in self._deviceStats.processStats}
 
         for procStat in self._deviceStats.monitoredProcs:
             # monitoredProcs is determined from the current pids in
@@ -832,8 +847,12 @@ class ZenProcessTask(ObservableMixin):
             self.snmpProxy is None
             or self.snmpProxy.snmpConnInfo != self.snmpConnInfo
         ):
-            self.snmpProxy = self.snmpConnInfo.createSession()
-            self.snmpProxy.open()
+            try:
+                self.snmpProxy = self.snmpConnInfo.createSession()
+                self.snmpProxy.open()
+            except Exception:
+                self.snmpProxy = None
+                raise
 
     def _close(self):
         """
