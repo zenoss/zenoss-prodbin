@@ -114,12 +114,14 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
     def createSession(self, protocol=None):
         """Create a session based on the properties"""
         if "3" in self.zSnmpVer:
-            auth = self._get_auth()
-            priv = self._get_priv()
             sec = security.UsmUser(
                 self.zSnmpSecurityName,
-                auth=auth,
-                priv=priv,
+                auth=security.Authentication(
+                    self.zSnmpAuthType, self.zSnmpAuthPassword
+                ),
+                priv=security.Privacy(
+                    self.zSnmpPrivType, self.zSnmpPrivPassword
+                ),
                 engine=self.zSnmpEngineId,
                 context=self.zSnmpContext,
             )
@@ -137,24 +139,6 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
         )
         p.snmpConnInfo = self
         return p
-
-    def _get_auth(self):
-        if self.zSnmpAuthType:
-            try:
-                return security.Authentication(
-                    self.zSnmpAuthType, self.zSnmpAuthPassword
-                )
-            except ValueError as ex:
-                log.error("error in SNMP authentication config: %s", ex)
-
-    def _get_priv(self):
-        if self.zSnmpPrivType:
-            try:
-                return security.Privacy(
-                    self.zSnmpPrivType, self.zSnmpPrivPassword
-                )
-            except ValueError as ex:
-                log.error("error in SNMP privacy config: %s", ex)
 
     def __repr__(self):
         return "<%s for %s>" % (self.__class__, self.id)
