@@ -38,7 +38,7 @@ class SiteError:
 
 
     def createEmailHeader(cls, fromAddress, toAddress, subject):
-        ''' Create the smnp header for an error email
+        ''' Create the snmp header for an error email
         '''
         header = 'To: %s\nFrom: %s\nSubject: %s\n' % (
                     toAddress, fromAddress, subject)
