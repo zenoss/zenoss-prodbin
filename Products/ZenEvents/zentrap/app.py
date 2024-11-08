@@ -45,7 +45,7 @@ _dropped_events_task_interval = 3600
 
 class TrapDaemon(PBDaemon):
     """
-    Daemon for monitoring SMNP traps and sending events derived from
+    Daemon for monitoring SNMP traps and sending events derived from
     recieved traps.
     """
 
