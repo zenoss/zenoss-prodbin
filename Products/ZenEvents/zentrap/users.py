@@ -24,12 +24,21 @@ class CreateAllUsers(object):
     def __init__(self, app, receiver):
         self._app = app
         self._receiver = receiver
+        self._users = []
 
     @defer.inlineCallbacks
     def task(self):
         try:
             service = yield self._app.getRemoteConfigServiceProxy()
             users = yield service.callRemote("createAllUsers")
-            self._receiver.create_users(users)
+            diffs = tuple(user for user in users if user not in self._users)
+            if diffs:
+                log.debug(
+                    "received %d new/updated user%s",
+                    len(diffs),
+                    "s" if len(diffs) != 1 else "",
+                )
+                self._receiver.create_users(diffs)
+            self._users = users
         except Exception:
-            log.exception("failed to retrieve trap filters")
+            log.exception("failed to retrieve SNMP users")

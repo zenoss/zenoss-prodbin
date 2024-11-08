@@ -102,8 +102,8 @@ class SnmpClient(BaseClient):
                 result = False
             else:
                 device.setLastPollSnmpUpTime(lastchange)
-        except Exception:
-            pass
+        except Exception as ex:
+            log.debug("failed to check Cisco change: %s", ex)
         yield defer.succeed(result)
 
     def doRun(self, driver):
