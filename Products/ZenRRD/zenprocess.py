@@ -386,14 +386,14 @@ class ZenProcessTask(ObservableMixin):
             # see if we need to connect first before doing any collection
             try:
                 self.openProxy()
-                self._clearSmnpError(
+                self._clearSnmpError(
                     "SNMP config error cleared",
                     eventKey="snmp_config_error",
                     severity=Event.Clear,
                 )
             except Exception as ex:
                 log.error("failed to create SNMP session: %s", ex)
-                self._sendSmnpError(
+                self._sendSnmpError(
                     "SNMP config error: {}".format(ex),
                     eventKey="snmp_config_error",
                 )
