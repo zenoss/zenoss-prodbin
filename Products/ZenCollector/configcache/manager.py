@@ -379,15 +379,20 @@ class _MetricCollector(PeriodicTask):
         if self._store is None:
             client = getRedisClient(url=getRedisUrl())
             self._store = createObject("deviceconfigcache-store", client)
-        self._collect()
-        self._reporter.save()
+        try:
+            self._collect()
+            self._reporter.save()
+        except Exception:
+            logging.getLogger("zen.configcache.manager.metrics").exception(
+                "failed to collect/record metrics"
+            )
 
     def _collect(self):
         counts = Counter()
         ages = defaultdict(list)
         now = time()
         for status in self._store.query_statuses():
-            key, uid, ts = attr.astuple(status)
+            key, ts = attr.astuple(status)
             ages[type(status)].append(int(now - ts))
             counts.update([type(status)])
 
