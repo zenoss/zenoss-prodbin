@@ -380,7 +380,6 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
 
 
 def _save_record(log, storage, record):
-    # Retrieve the job storage connection.
     jobid = record["jobid"]
     if "userid" not in record:
         log.warn("No user ID submitted with job %s", jobid)
