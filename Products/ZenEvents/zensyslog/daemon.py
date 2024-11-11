@@ -59,7 +59,7 @@ class SyslogDaemon(PBDaemon):
         )
         self._heartbeat_task = None
 
-        self._parsers = Parsers(self)
+        self._parsers = Parsers(self.sendEvent)
         self._processor = SyslogProcessor(
             self.sendEvent,
             self.options.minpriority,
