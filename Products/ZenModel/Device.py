@@ -2195,6 +2195,44 @@ class Device(
         if xmlrpc:
             return 0
 
+    def _removeManageIp(self):
+        """
+        Safely remove the manageIp object from the device.  Remove the
+        ipaddress object from the device:ipaddress relation, and if the
+        ipaddress does not have any remaining relations, remove the
+        ipaddress object.
+        """
+        deviceId = self.titleOrId()
+        manageIp = self.manageIp
+        ipaddr = self.ipaddress()
+        log.debug('Set manageIp on {} to empty string'.format(deviceId))
+        if ipaddr:
+            ipaddrString = ipaddr.id
+            log.debug('Removing ipaddress/manageDevice relation from {} to {}'.format(deviceId, str(ipaddr)))
+            if ipaddrString != manageIp:
+                # Shouldn't happen, but manageIp is not the
+                # IP set on the device.
+                log.warn('Device {} has a mismatch between manageIp({})'
+                              'and device ip ({})'.format(
+                                  deviceId, manageIp, ipaddrString
+                                  )
+                              )
+            # Remove the ip from the ipaddress relation on the device
+            self.ipaddress.removeRelation(ipaddr)
+            # removeIpAddresses will only remove IP addresses that are no longer
+            #  attached to any device, so it's safe to call at this point
+            netFacade = getFacade('network', self.dmd)
+            ips = [ipaddr.getPrimaryId()]
+            log.debug('Removing IP address obj {} if no longer used'.format(ipaddrString))
+            removeCount, errorCount = netFacade.removeIpAddresses(ips)
+            if errorCount:
+                # This most likely means that the IP address is still
+                # attached to a different device
+                log.warn('Could not remove '
+                         'IP address {}'.format(ipaddrString))
+        # Set the manageIp to blank
+        self.manageIp = ''
+
     security.declareProtected(ZEN_DELETE_DEVICE, "deleteDevice")
 
     def deleteDevice(
@@ -2238,6 +2276,7 @@ class Device(
         self.dmd.getDmdRoot("ZenLinkManager").remove_device_from_cache(
             self.getId()
         )
+        self._removeManageIp()
         parent._delObject(self.getId())
         if REQUEST:
             if parent.getId() == "devices":
