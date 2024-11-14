@@ -7,10 +7,14 @@
 #
 ##############################################################################
 
+from __future__ import division
+
 import logging
 import random
 
 from copy import copy
+
+import six
 
 import zope.component
 import zope.interface
@@ -60,7 +64,7 @@ class BaseTask(ObservableMixin):
         """
         # If it's not responding, don't poll it so often
         if self.interval != self._maxbackoffseconds:
-            delay = random.randint(int(self.interval / 2), self.interval) * 2
+            delay = _randomize_delay(self.interval)
             self.interval = min(self._maxbackoffseconds, self.interval + delay)
             log.debug(
                 "Delaying next check for another %s",
@@ -85,7 +89,11 @@ class BaseTask(ObservableMixin):
         """
         Break lst into n-sized chunks
         """
-        return [lst[i : i + n] for i in xrange(0, len(lst), n)]
+        return [lst[i : i + n] for i in six.moves.range(0, len(lst), n)]
+
+
+def _randomize_delay(interval):
+    return random.randint(interval // 2, interval) * 2  # noqa: S311
 
 
 @zope.interface.implementer(ITaskSplitter)

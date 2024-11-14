@@ -21,8 +21,10 @@ from datetime import datetime, timedelta
 
 import zope.interface
 
-from pynetsnmp.netsnmp import SnmpTimeoutError, SnmpError
-from pynetsnmp.twistedsnmp import snmpprotocol, Snmpv3Error
+from pynetsnmp import oids
+from pynetsnmp.netsnmp import SnmpTimeoutError, NetSnmpError
+from pynetsnmp.twistedsnmp import snmpprotocol
+from pynetsnmp.errors import SnmpUsmError, SnmpUsmStatsError
 from twisted.internet import defer, error
 
 from Products.ZenCollector.daemon import CollectorDaemon
@@ -132,6 +134,17 @@ class StopTask(Exception):
 
 
 STATUS_EVENT = {"eventClass": Status_Snmp, "eventGroup": "SnmpTest"}
+
+_usm_stat_message = {
+    oids.WrongDigest: (
+        "invalid zSnmpAuthPassphrase/zSnmpAuthProtocol properties"
+    ),
+    oids.DecryptionError: (
+        "invalid zSnmpPrivPassphrase/zSnmpPrivProtocol properties"
+    ),
+    oids.UnknownUserName: "invalid zSnmpSecurityName property",
+    oids.UnknownSecurityLevel: "invalid zSnmp* properties",
+}
 
 
 @zope.interface.implementer(IScheduledTask)
@@ -367,7 +380,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                 self._snmpConnInfo.zSnmpTimeout,
                 self._snmpConnInfo.zSnmpTries,
             )
-        except (error.TimeoutError, SnmpTimeoutError):
+        except (error.TimeoutError, SnmpTimeoutError, SnmpUsmStatsError):
             raise
         except Exception as e:
             log.exception(
@@ -393,31 +406,19 @@ class SnmpPerformanceCollectionTask(BaseTask):
             # remove them from good oids. These will run in single mode so
             # we can figure out which ones are good or bad.
             if len(oid_chunk) == 1:
-                self.remove_from_good_oids(oid_chunk)
-                self._addBadOids(oid_chunk)
-                log.warn(
-                    "No return result, marking as bad oid: {%s} {%s}",
-                    self.configId,
-                    oid_chunk,
-                )
+                self._mark_bad_oids(oid_chunk)
             else:
-                log.warn(
-                    "No return result, will run in separately to determine "
-                    "which oids are valid: {%s} {%s}",
+                log.warning(
+                    "No results returned, will run in separately to "
+                    "determine which oids are valid  device=%s oids=%s",
                     self.configId,
                     oid_chunk,
                 )
-                self.remove_from_good_oids(oid_chunk)
+                self._remove_from_good_oids(oid_chunk)
         else:
             for oid in oid_chunk:
                 if oid not in update:
-                    log.error(
-                        "SNMP get did not return result: %s %s",
-                        self.configId,
-                        oid,
-                    )
-                    self.remove_from_good_oids([oid])
-                    self._addBadOids([oid])
+                    self._mark_bad_oids([oid])
             self.state = SnmpPerformanceCollectionTask.STATE_STORE_PERF
             try:
                 for oid, value in update.items():
@@ -432,12 +433,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                     # We should always get something useful back
                     if value == "" or value is None:
                         if oid not in self._bad_oids:
-                            log.error(
-                                "SNMP get returned empty value: %s %s",
-                                self.configId,
-                                oid,
-                            )
-                            self._addBadOids([oid])
+                            self._mark_bad_oids([oid])
                         continue
 
                     self._good_oids.add(oid)
@@ -541,7 +537,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
             except StopTask as e:
                 taskStopped = True
                 self._stoppedTaskCount += 1
-                log.warn(
+                log.warning(
                     "Device %s [%s] Task stopped collecting to avoid "
                     "exceeding cycle interval - %s",
                     self._devId,
@@ -551,12 +547,20 @@ class SnmpPerformanceCollectionTask(BaseTask):
                 self._logOidsNotCollected(
                     "Task was stopped so as not exceed cycle interval"
                 )
-            except (error.TimeoutError, SnmpTimeoutError) as e:
+            except (error.TimeoutError, SnmpTimeoutError):
                 log.debug(
                     "Device %s [%s] snmp timed out ",
                     self._devId,
                     self._manageIp,
                 )
+            except SnmpUsmStatsError as ex:
+                message = _usm_stat_message.get(ex.oid)
+                if not message:
+                    # The UnknownSecurityLevel message also works as a
+                    # generic USM stats error message.
+                    message = _usm_stat_message.get(oids.UnknownSecurityLevel)
+                log.error("%s  device=%s", message, self._devId)
+                raise
 
             if self._snmpConnInfo.zSnmpVer == "v3":
                 self._sendStatusEvent(
@@ -636,7 +640,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                 )
         except CycleExceeded as e:
             self._cycleExceededCount += 1
-            log.warn(
+            log.warning(
                 "Device %s [%s] scan stopped because time exceeded "
                 "cycle interval, %s",
                 self._devId,
@@ -648,44 +652,57 @@ class SnmpPerformanceCollectionTask(BaseTask):
                 "Scan stopped; Collection time exceeded interval - %s" % e,
                 eventKey="interval_exceeded",
             )
-        except Snmpv3Error as e:
+        except SnmpUsmError as e:
             self._logOidsNotCollected("of %s" % (e,))
             self._snmpV3ErrorCount += 1
-            summary = "Cannot connect to SNMP agent on {0._devId}: {1}".format(
-                self, e
+            log.error(
+                "cannot connect to SNMP agent  device=%s error=%s",
+                self.configId,
+                e,
             )
-            log.error("%s on %s", summary, self.configId)
-            self._sendStatusEvent(summary, eventKey="snmp_v3_error")
-        except SnmpError as e:
+            self._sendStatusEvent(
+                "Cannot connect to SNMP agent on {0._devId}: {1}".format(
+                    self, e
+                ),
+                eventKey="snmp_v3_error",
+            )
+        except NetSnmpError as e:
             self._logOidsNotCollected("of %s" % (e,))
-            summary = "Cannot connect to SNMP agent on {0._devId}: {1}".format(
-                self, e
+            log.error(
+                "cannot connect to SNMP agent  device=%s error=%s",
+                self.configId,
+                e,
             )
-            log.error("%s on %s", summary, self.configId)
-            self._sendStatusEvent(summary, eventKey="snmp_error")
+            self._sendStatusEvent(
+                "Cannot connect to SNMP agent on {0._devId}: {1}".format(
+                    self, e
+                ),
+                eventKey="snmp_error",
+            )
         finally:
             self._logTaskOidInfo(previous_bad_oids)
 
-    def remove_from_good_oids(self, oids):
+    def _remove_from_good_oids(self, oids):
         self._good_oids.difference_update(oids)
 
-    def _addBadOids(self, oids):
+    def _mark_bad_oids(self, oids):
         """
         Report any bad OIDs and then track the OID so we
         don't generate any further errors.
         """
         # make sure oids aren't in good set
-        self.remove_from_good_oids(oids)
+        self._remove_from_good_oids(oids)
         for oid in oids:
-            if oid in self._oids:
-                self._bad_oids.add(oid)
-                names = [dp[0] for dp in self._oids[oid]]
-                summary = "Error reading value for %s (%s) on %s" % (
-                    names,
-                    oid,
-                    self._devId,
-                )
-                log.warn(summary)
+            if oid in self._bad_oids or oid not in self._oids:
+                continue
+            self._bad_oids.add(oid)
+            names = [dp[0] for dp in self._oids[oid]]
+            log.warning(
+                "no result for oid  device=%s oid=%s names=%s",
+                self._devId,
+                oid,
+                names,
+            )
 
     def _finished(self, result):
         """
@@ -698,12 +715,12 @@ class SnmpPerformanceCollectionTask(BaseTask):
         try:
             self._close()
         except Exception as ex:
-            log.warn("Failed to close device %s: error %s", self._devId, ex)
+            log.warning("Failed to close device %s: error %s", self._devId, ex)
 
         doTask_end = datetime.now()
         duration = doTask_end - self._doTask_start
         if duration > timedelta(seconds=self._device.cycleInterval):
-            log.warn(
+            log.warning(
                 "Collection for %s took %s seconds; "
                 "cycle interval is %s seconds.",
                 self.configId,
@@ -793,7 +810,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                 oidsNotCollected,
             )
 
-    def _connect(self, result=None):
+    def _connect(self, ignored=None):
         """
         Create a connection to the remote device
         """
@@ -813,7 +830,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                     severity=Event.Clear,
                 )
             except Exception as ex:
-                self._snmpProxy = None
+                self._close()
                 log.error("failed to create SNMP session: %s", ex)
                 self._sendStatusEvent(
                     "SNMP config error: {}".format(ex),

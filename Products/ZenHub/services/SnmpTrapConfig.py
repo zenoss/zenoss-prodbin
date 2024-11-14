@@ -44,24 +44,22 @@ class FakeDevice(object):
 class User(UsmUser, pb.Copyable, pb.RemoteCopy):
     def getStateToCopy(self):
         state = pb.Copyable.getStateToCopy(self)
-        if self.auth:
+        if self.auth is not None:
             state["auth"] = [self.auth.protocol.name, self.auth.passphrase]
         else:
             state["auth"] = None
-        if self.priv:
+        if self.priv is not None:
             state["priv"] = [self.priv.protocol.name, self.priv.passphrase]
         else:
             state["priv"] = None
         return state
 
     def setCopyableState(self, state):
-        auth = state.get("auth")
-        state["auth"] = Authentication(*auth) if auth else None
-        priv = state.get("priv")
-        state["priv"] = Privacy(*priv) if priv else None
+        auth_args = state.get("auth")
+        state["auth"] = Authentication(*auth_args) if auth_args else None
+        priv_args = state.get("priv")
+        state["priv"] = Privacy(*priv_args) if priv_args else None
         pb.RemoteCopy.setCopyableState(self, state)
-
-    pass
 
 
 pb.setUnjellyableForClass(User, User)
@@ -80,14 +78,14 @@ class SnmpTrapConfig(HubService):
                 "Products.ZenModel.DeviceClass.DeviceClass",
             )
         )
-        users = []
+        users = set()
         for brain in brains:
             device = brain.getObject()
             user = self._create_user(device)
             if user is not None:
-                users.append(user)
+                users.add(user)
         log.debug("SnmpTrapConfig.remote_createAllUsers %s users", len(users))
-        return users
+        return list(users)
 
     def remote_getTrapFilters(self, remoteCheckSum):
         currentCheckSum = md5(self.zem.trapFilters).hexdigest()  # noqa S324
