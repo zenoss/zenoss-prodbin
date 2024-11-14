@@ -12,10 +12,10 @@ import sys
 
 import zope.component
 
-from pynetsnmp.twistedsnmp import snmpprotocol, Snmpv3Error
+from pynetsnmp.twistedsnmp import snmpprotocol, SnmpUsmError
 from twisted.internet import reactor, error, defer
-from twisted.internet.error import TimeoutError
 from twisted.python import failure
+from twisted.internet.error import TimeoutError
 
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
@@ -135,9 +135,10 @@ class SnmpClient(BaseClient):
                 self.initSnmpProxy()
             else:
                 raise
-        except Snmpv3Error:
+        except SnmpUsmError as ex:
             log.error(
-                "cannot connect to SNMP agent  %s", self.connInfo.summary()
+                "cannot connect to SNMP agent  error=%s %s",
+                ex, self.connInfo.summary()
             )
             raise
         except Exception:
@@ -277,11 +278,11 @@ class SnmpClient(BaseClient):
                 )
                 summary = "SNMP agent down - no response received"
                 log.info("Sending event: %s", summary)
-            elif isinstance(result.value, Snmpv3Error):
+            elif isinstance(result.value, SnmpUsmError):
                 log.error(
-                    "Connection to device %s failed: %s",
+                    "SNMP connection failed  device=%s error=%s",
                     self.hostname,
-                    result.value.message,
+                    result.value,
                 )
                 summary = "SNMP v3 specific error during SNMP collection"
             else:
