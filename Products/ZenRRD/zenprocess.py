@@ -24,7 +24,7 @@ import six
 import zope.component
 import zope.interface
 
-from pynetsnmp.twistedsnmp import Snmpv3Error
+from pynetsnmp.twistedsnmp import SnmpUsmError
 from twisted.internet import defer, error
 
 from Products.ZenCollector.daemon import CollectorDaemon
@@ -468,10 +468,10 @@ class ZenProcessTask(ObservableMixin):
                 "%s; Timeout on device" % (PROC_SCAN_ERROR % self._devId,),
                 TABLE_SCAN_TIMEOUT,
             )
-        except Snmpv3Error as e:
+        except SnmpUsmError as e:
             msg = (
-                "Cannot connect to SNMP agent on {0._devId}: {1.value}".format(
-                    self, str(e)
+                "Cannot connect to SNMP agent on {0._devId}: {1}".format(
+                    self, e
                 )
             )
             log.debug(msg)
@@ -773,7 +773,7 @@ class ZenProcessTask(ObservableMixin):
                         )
                         result = yield self._get(oidChunk)
                         results.update(result)
-                    except (error.TimeoutError, Snmpv3Error) as e:
+                    except (error.TimeoutError, SnmpUsmError) as e:
                         log.debug("error reading oid(s) %s - %s", oidChunk, e)
                         singleOids.update(oidChunk)
                 oidsToTest = []

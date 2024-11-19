@@ -31,7 +31,7 @@ class CreateAllUsers(object):
         try:
             service = yield self._app.getRemoteConfigServiceProxy()
             users = yield service.callRemote("createAllUsers")
-            diffs = tuple(user for user in users if user not in self._users)
+            diffs = tuple(u for u in users if u not in self._users)
             if diffs:
                 log.debug(
                     "received %d new/updated user%s",
