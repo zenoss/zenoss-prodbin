@@ -9,7 +9,7 @@
 
 import logging
 
-from pynetsnmp import security
+from pynetsnmp import usm
 from pynetsnmp.twistedsnmp import AgentProxy
 from twisted.spread import pb
 from zope import component
@@ -114,23 +114,17 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
     def createSession(self, protocol=None):
         """Create a session based on the properties"""
         if "3" in self.zSnmpVer:
-            sec = security.UsmUser(
+            sec = usm.User(
                 self.zSnmpSecurityName,
-                auth=security.Authentication(
+                auth=usm.Authentication(
                     self.zSnmpAuthType, self.zSnmpAuthPassword
                 ),
-                priv=security.Privacy(
-                    self.zSnmpPrivType, self.zSnmpPrivPassword
-                ),
+                priv=usm.Privacy(self.zSnmpPrivType, self.zSnmpPrivPassword),
                 engine=self.zSnmpEngineId,
                 context=self.zSnmpContext,
             )
         else:
-            if "2" in self.zSnmpVer:
-                version = security.SNMP_VERSION_2c
-            else:
-                version = security.SNMP_VERSION_1
-            sec = security.Community(self.zSnmpCommunity, version=version)
+            sec = usm.Community(self.zSnmpCommunity, version=self.zSnmpVer)
         p = AgentProxy.create(
             (self.manageIp, self.zSnmpPort),
             security=sec,
