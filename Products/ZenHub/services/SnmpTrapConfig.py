@@ -19,7 +19,7 @@ import logging
 
 from hashlib import md5
 
-from pynetsnmp.security import Authentication, Privacy, UsmUser
+from pynetsnmp import usm
 from twisted.spread import pb
 
 from Products.ZenHub.HubService import HubService
@@ -41,7 +41,7 @@ class FakeDevice(object):
     id = "MIB payload"
 
 
-class User(UsmUser, pb.Copyable, pb.RemoteCopy):
+class User(usm.User, pb.Copyable, pb.RemoteCopy):
     def getStateToCopy(self):
         state = pb.Copyable.getStateToCopy(self)
         if self.auth is not None:
@@ -56,9 +56,9 @@ class User(UsmUser, pb.Copyable, pb.RemoteCopy):
 
     def setCopyableState(self, state):
         auth_args = state.get("auth")
-        state["auth"] = Authentication(*auth_args) if auth_args else None
+        state["auth"] = usm.Authentication(*auth_args) if auth_args else None
         priv_args = state.get("priv")
-        state["priv"] = Privacy(*priv_args) if priv_args else None
+        state["priv"] = usm.Privacy(*priv_args) if priv_args else None
         pb.RemoteCopy.setCopyableState(self, state)
 
 
@@ -113,8 +113,10 @@ class SnmpTrapConfig(HubService):
         try:
             return User(
                 obj.zSnmpSecurityName,
-                auth=Authentication(obj.zSnmpAuthType, obj.zSnmpAuthPassword),
-                priv=Privacy(obj.zSnmpPrivType, obj.zSnmpPrivPassword),
+                auth=usm.Authentication(
+                    obj.zSnmpAuthType, obj.zSnmpAuthPassword
+                ),
+                priv=usm.Privacy(obj.zSnmpPrivType, obj.zSnmpPrivPassword),
                 engine=obj.zSnmpEngineId,
                 context=obj.zSnmpContext,
             )
