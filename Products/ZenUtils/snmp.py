@@ -16,8 +16,12 @@ from pynetsnmp.twistedsnmp import AgentProxy
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred
 
-authentication_protocols = tuple(str(p) for p in usm.auth_protocols)
-privacy_protocols = tuple(str(p) for p in usm.priv_protocols)
+authentication_protocols = tuple(
+    str(p) for p in usm.auth_protocols if p != usm.AUTH_NOAUTH
+)
+privacy_protocols = tuple(
+    str(p) for p in usm.priv_protocols if p != usm.PRIV_NOPRIV
+)
 
 _LOG = logging.getLogger("zen.ZenUtils.snmp")
 
