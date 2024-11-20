@@ -73,18 +73,18 @@ class _CompletedData(_StartedData):
     result = attr.ib(default=_UNSPECIFIED)
 
     def __attrs_post_init__(self):
-        if (
-            sum(
-                1
-                for name in ("result", "error", "retry")
-                if getattr(self, name) is _UNSPECIFIED
-            )
-            != 2
-        ):
+        unspecified = tuple(
+            name
+            for name in ("result", "error", "retry")
+            if getattr(self, name) is _UNSPECIFIED 
+        )
+        if len(unspecified) != 2:
             raise TypeError(
                 "At least one of fields 'result', 'retry', and 'error' "
-                "must be specified"
+                "must be given an argument"
             )
+        for name in unspecified:
+            object.__setattr__(self, name, None)
 
 
 @implementer(IServiceCallReceivedEvent)
