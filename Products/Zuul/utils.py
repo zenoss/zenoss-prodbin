@@ -172,6 +172,15 @@ def unbrain(item):
     return item
 
 
+def try_unbrain(item, default=None):
+    try:
+        return unbrain(item)
+    except KeyError:
+        if log.getEffectiveLevel() == logging.DEBUG:
+            log.warning("catalog object not found in ZODB  uid=%s", item.uid)
+        return default
+
+
 class BrainWhilePossible(object):
     def __init__(self, ob):
         self._ob = ob
@@ -489,7 +498,7 @@ class RedisGraphLinksTool(object):
         return client
 
     def _connected_to_redis(self):
-        """ Ensures we have a connection to redis """
+        """Ensures we have a connection to redis"""
         if self._redis_client is None:
             now = time.time()
             if (
