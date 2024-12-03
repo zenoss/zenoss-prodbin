@@ -8,7 +8,6 @@
 ##############################################################################
 
 import logging
-import sys
 
 from AccessControl import ClassSecurityInfo
 from AccessControl.class_init import InitializeClass
@@ -18,7 +17,6 @@ from persistent.list import PersistentList
 from zExceptions import NotFound
 
 from Products.ZenUtils.Utils import getObjByPath
-from Products.ZenUtils.tbdetail import log_tb
 
 from .Exceptions import ObjectNotFound, RelationshipExistsError, zenmarker
 from .ToManyRelationshipBase import ToManyRelationshipBase
@@ -115,14 +113,15 @@ class ToManyRelationship(ToManyRelationshipBase):
             objs = self.objectValuesAll()
         remoteName = self.remoteName()
         for obj in objs:
-            rel = getattr(obj, remoteName)
+            remoteRel = getattr(obj, remoteName)
             try:
-                rel._remove(self.__primary_parent__)
+                remoteRel._remove(self.__primary_parent__)
             except ObjectNotFound:
-                message = log_tb(sys.exc_info())
-                log.error(
-                    'Remote remove failed. Run "zenchkrels -r -x1". %s',
-                    message,
+                log.debug(
+                    "remote relation already removed  "
+                    "obj=%s remote-relation=%s",
+                    self.__primary_parent__.getPrimaryId(),
+                    remoteRel.getPrimaryId(),
                 )
 
     def _setObject(self, id, object, roles=None, user=None, set_owner=1):
@@ -206,7 +205,7 @@ class ToManyRelationship(ToManyRelationshipBase):
                 rel.addRelation(robj)
         return rel
 
-    def exportXml(self, ofile, ignorerels=[]):
+    def exportXml(self, ofile, ignorerels=()):
         """Return an xml representation of a ToManyRelationship
         <tomany id='interfaces'>
             <link>/Systems/OOL/Mail</link>

@@ -20,7 +20,7 @@ from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import IInfo, ITreeFacade, INetworkFacade
 from Products.Zuul.decorators import info
-from Products.Zuul.utils import unbrain
+from Products.Zuul.utils import try_unbrain
 from Products.Zuul.tree import SearchResults
 from zenoss.protocols.protobufs.zep_pb2 import (
   SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING,
@@ -122,7 +122,6 @@ class NetworkFacade(TreeFacade):
 
     def getIpAddresses(self, limit=0, start=0, sort='ipAddressAsInt', dir='DESC',
               params=None, uid=None, criteria=()):
-        infos = []
         cat = IModelCatalogTool(self._getObject(uid))
         reverse = dir=='DESC'
 
@@ -130,10 +129,13 @@ class NetworkFacade(TreeFacade):
                             start=start, limit=limit,
                             orderby=sort, reverse=reverse)
 
-        for brain in brains:
-            infos.append(IInfo(unbrain(brain)))
+        infos = [
+            IInfo(obj)
+            for obj in (try_unbrain(brain) for brain in brains)
+            if obj is not None
+        ]
 
-        devuuids = set(info.device.uuid for info in infos if info.device)
+        devuuids = {info.device.uuid for info in infos if info.device}
 
         # get ping severities
         zep = getFacade('zep')
