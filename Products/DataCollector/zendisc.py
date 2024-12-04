@@ -308,45 +308,44 @@ class ZenDisc(ZenModeler):
         timeout, retries = snmp_conf["zSnmpTimeout"], snmp_conf["zSnmpTries"]
         if snmp_conf["zSnmpVer"] == SnmpV3Config.version:
             for port in ports:
+                engine = snmp_conf.get("zSnmpEngineId")
+                context = snmp_conf.get("zSnmpContext")
+
+                common_params = {
+                    "ip": ip,
+                    "port": port,
+                    "timeout": timeout,
+                    "retries": retries,
+                    "securityName": snmp_conf["zSnmpSecurityName"],
+                }
+
+                if engine:
+                    common_params["engine"] = engine
+                if context:
+                    common_params["context"] = context
+
                 if snmp_conf["zSnmpPrivType"] and snmp_conf["zSnmpAuthType"]:
-                    configs.append(
-                        SnmpV3Config(
-                            ip,
-                            port=port,
-                            timeout=timeout,
-                            retries=retries,
-                            weight=3,
-                            securityName=snmp_conf["zSnmpSecurityName"],
-                            authType=snmp_conf["zSnmpAuthType"],
-                            authPassphrase=snmp_conf["zSnmpAuthPassword"],
-                            privType=snmp_conf["zSnmpPrivType"],
-                            privPassphrase=snmp_conf["zSnmpPrivPassword"],
-                        )
-                    )
+                    params = common_params.copy()
+                    params.update({
+                        "authType": snmp_conf["zSnmpAuthType"],
+                        "authPassphrase": snmp_conf["zSnmpAuthPassword"],
+                        "privType": snmp_conf["zSnmpPrivType"],
+                        "privPassphrase": snmp_conf["zSnmpPrivPassword"],
+                        "weight": 3,
+                    })
+                    configs.append(SnmpV3Config(**params))
                 elif snmp_conf["zSnmpAuthType"]:
-                    configs.append(
-                        SnmpV3Config(
-                            ip,
-                            port=port,
-                            timeout=timeout,
-                            retries=retries,
-                            weight=2,
-                            securityName=snmp_conf["zSnmpSecurityName"],
-                            authType=snmp_conf["zSnmpAuthType"],
-                            authPassphrase=snmp_conf["zSnmpAuthPassword"],
-                        )
-                    )
+                    params = common_params.copy()
+                    params.update({
+                        "authType": snmp_conf["zSnmpAuthType"],
+                        "authPassphrase": snmp_conf["zSnmpAuthPassword"],
+                        "weight": 2,
+                    })
+                    configs.append(SnmpV3Config(**params))
                 else:
-                    configs.append(
-                        SnmpV3Config(
-                            ip,
-                            port=port,
-                            timeout=timeout,
-                            retries=retries,
-                            weight=1,
-                            securityName=snmp_conf["zSnmpSecurityName"],
-                        )
-                    )
+                    params = common_params.copy()
+                    params["weight"] = 1
+                    configs.append(SnmpV3Config(**params))
         else:
             self.log.debug("Override acquired community strings")
             # Use a default set of SNMP community strings if the device
