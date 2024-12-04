@@ -212,7 +212,7 @@ def expandPackDir(fulldir):
     return demangleEggName(fulldir, name)
 
 
-_packname = re.compile("ZenPacks\.[^-/]+\.[^-/]+").search
+_packname = re.compile(r"ZenPacks\.[^-/]+\.[^-/]+").search
 
 
 def zenPackName(s):
