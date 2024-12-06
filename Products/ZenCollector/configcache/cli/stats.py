@@ -206,6 +206,6 @@ _name_stat_map = {
 
 
 def _get_device_predicate(devices, haswildcard):
-    if haswildcard:
+    if haswildcard or len(devices) == 0:
         return lambda x: True
     return lambda x: next((True for d in devices if x == d), False)
