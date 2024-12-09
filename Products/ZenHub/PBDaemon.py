@@ -407,10 +407,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             ready, self.__zenhub_ready = self.__zenhub_ready, None
             yield ready
 
-            if self.options.cycle:
-                state = "eventclient"
-                self._setup_event_client()
+            state = "eventclient"
+            self._setup_event_client()
 
+            if self.options.cycle:
                 state = "stats"
                 self._start_statistics_task()
 
