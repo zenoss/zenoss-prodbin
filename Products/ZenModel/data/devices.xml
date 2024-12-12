@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2022-09-23 19:53:49.177641
+    Zenoss RelationshipManager export completed on 2024-12-12 16:14:58.088341
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 6.7.0]" export_date="2022-09-23 19:53:49.177641" zenoss_server="9ccf62805e95" >
+<objects version="[Zenoss, version 6.8.0]" export_date="2024-12-12 16:14:58.088341" zenoss_server="5796c8a41fca" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property type="lines" id="devtypes" mode="w" >
 []
+</property>
+<property id="zDeviceConfigBuildTimeout" visible="True" type="int" description="The number of seconds before timing out a device configuration build." label="Device configuration build timeout" >
+7200
+</property>
+<property id="zDeviceConfigPendingTimeout" visible="True" type="int" description="The number of seconds a device configuration build may be queued before a timeout." label="Device configuration build queued timeout" >
+7200
+</property>
+<property id="zDeviceConfigTTL" visible="True" type="int" description="The maximum number of seconds to wait before rebuilding a device configuration." label="Device configuration expiration" >
+43200
+</property>
+<property id="zDeviceConfigMinimumTTL" visible="True" type="int" description="The number of seconds the configuration is protected from being rebuilt." label="Device configuration pre-expiration window" >
+0
 </property>
 <property id="zPythonClass" visible="True" type="string" description="Python module used when creating a new device instances." label="Python Class" >
 </property>
@@ -47,9 +59,9 @@ v2c
 </property>
 <property id="zSnmpPrivPassword" visible="True" type="password" description="The shared private key used for encrypting SNMP requests. Must be at least 8 characters long." label="SNMP Private Password" >
 </property>
-<property id="zSnmpAuthType" visible="True" type="string" description='Use "MD5" or "SHA" signatures to authenticate SNMP requests' label="SNMP Auth Type" >
+<property id="zSnmpAuthType" visible="True" type="string" description="The cryptographic protocol used to authenticate SNMP requests." label="SNMP Authentication Protocol" >
 </property>
-<property id="zSnmpPrivType" visible="True" type="string" description='"DES" or "AES" cryptographic algorithms.' label="SNMP Priv Type" >
+<property id="zSnmpPrivType" visible="True" type="string" description="The cryptographic protocol used to encrypt SNMP packets." label="SNMP Privacy Protocol" >
 </property>
 <property id="zSnmpContext" visible="True" type="string" description="Defines the SNMPv3 CONTEXT specified by the -n flag" label="SNMP Context" >
 </property>
@@ -195,6 +207,9 @@ False
 </property>
 <property id="zCredentialsZProperties" visible="True" type="lines" description="Used by ZenPack authors to denote which zProperties comprise the credentials for this device class." label="Connection Information" >
 []
+</property>
+<property id="zNoRelationshipCopy" visible="True" type="lines" description="Determine which relations should not being built during copying." label="Relations to skip during copying" >
+['pack']
 </property>
 <property visible="True" description="" type="lines" id="zSnmpDiscoveryPorts" label="" >
 []
