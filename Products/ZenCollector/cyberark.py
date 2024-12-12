@@ -13,6 +13,7 @@ import httplib
 import json
 import logging
 import os
+import re
 import urlparse
 
 from twisted.internet import defer, reactor, ssl
@@ -22,9 +23,9 @@ from twisted.web import client
 from zope.component import queryUtility
 
 from Products.ZenEvents import Event
+from Products.ZenHub.interfaces import IEventService
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
-from .interfaces import IEventService
 from .ExpiringCache import ExpiringCache
 
 _CFG_URL = "cyberark-url"
@@ -435,10 +436,18 @@ class CyberArkClient(object):
         defer.returnValue((response.code, result))
 
 
+_cert_pattern = re.compile(
+    r"(-{5}BEGIN CERTIFICATE-{5}.+?-{5}END CERTIFICATE-{5})",
+    re.MULTILINE | re.DOTALL
+)
+
+
 def load_certificates(url, cert_path):
     hostname = unicode(urlparse.urlsplit(url).hostname)
-    authority = ssl.Certificate.loadPEM(
-        FilePath(os.path.join(cert_path, "RootCA.crt")).getContent()
+    cert_data = FilePath(os.path.join(cert_path, "RootCA.crt")).getContent()
+    authorities = ssl.trustRootFromCertificates(
+        ssl.Certificate.loadPEM(m.group())
+        for m in _cert_pattern.finditer(cert_data)
     )
     client_cert = FilePath(os.path.join(cert_path, "client.crt")).getContent()
     client_key = FilePath(os.path.join(cert_path, "client.pem")).getContent()
@@ -447,7 +456,7 @@ def load_certificates(url, cert_path):
     )
     return ssl.optionsForClientTLS(
         hostname,
-        trustRoot=authority,
+        trustRoot=authorities,
         clientCertificate=client_certificate,
     )
 

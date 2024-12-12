@@ -7,22 +7,24 @@
 #
 ##############################################################################
 
-from Acquisition import aq_parent
-from twisted.internet import defer
+import logging
+
+from pynetsnmp import usm
+from pynetsnmp.twistedsnmp import AgentProxy
 from twisted.spread import pb
 from zope import component
 
+from Products.ZenHub.errors import translateError
 from Products.ZenHub.HubService import HubService
 from Products.ZenHub.interfaces import IBatchNotifier
-from Products.ZenHub.PBDaemon import translateError
-from Products.ZenHub.zodb import onUpdate, onDelete
-from Products.ZenModel.Device import Device
+from Products.ZenHub.zodb import onUpdate
 from Products.ZenModel.PerformanceConf import PerformanceConf
-from Products.ZenModel.privateobject import is_private
 from Products.ZenModel.ZenPack import ZenPack
 
 from .Procrastinator import Procrastinate
 from .ThresholdMixin import ThresholdMixin
+
+log = logging.getLogger("zen.performanceconfig")
 
 ATTRIBUTES = (
     "id",
@@ -57,67 +59,77 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
             setattr(self, propertyName, getattr(device, propertyName, None))
             self.id = device.id
 
-    def __cmp__(self, other):
-        for propertyName in ATTRIBUTES:
-            c = cmp(getattr(self, propertyName), getattr(other, propertyName))
-            if c != 0:
-                return c
-        return 0
+    def __eq__(self, other):
+        if not isinstance(other, SnmpConnInfo):
+            return False
+        if self is other:
+            return True
+        return all(
+            getattr(self, name) == getattr(other, name) for name in ATTRIBUTES
+        )
+
+    def __lt__(self, other):
+        if not isinstance(other, SnmpConnInfo):
+            return NotImplemented
+        if self is other:
+            return False
+        return any(
+            getattr(self, name) < getattr(other, name) for name in ATTRIBUTES
+        )
+
+    def __le__(self, other):
+        if not isinstance(other, SnmpConnInfo):
+            return NotImplemented
+        if self is other:
+            return True
+        return not any(
+            getattr(self, name) > getattr(other, name) for name in ATTRIBUTES
+        )
 
     def summary(self):
-        result = "SNMP info for %s at %s:%s" % (
+        result = "device=%s peer=%s:%s timeout=%s tries=%d version=%s" % (
             self.id,
             self.manageIp,
             self.zSnmpPort,
-        )
-        result += " timeout: %s tries: %d" % (
             self.zSnmpTimeout,
             self.zSnmpTries,
+            self.zSnmpVer,
         )
-        result += " version: %s " % (self.zSnmpVer)
         if "3" not in self.zSnmpVer:
-            result += " community: %s" % self.zSnmpCommunity
+            result += " community=%s" % self.zSnmpCommunity
         else:
-            result += " securityName: %s" % self.zSnmpSecurityName
-            result += " authType: %s" % self.zSnmpAuthType
-            result += " privType: %s" % self.zSnmpPrivType
+            result += (
+                " securityName=%s authType=%s authPassword=%s"
+                " privType=%s privPassword=%s engineID=%s"
+            ) % (
+                self.zSnmpSecurityName,
+                self.zSnmpAuthType,
+                "****" if self.zSnmpAuthPassword else "",
+                self.zSnmpPrivType,
+                "****" if self.zSnmpPrivPassword else "",
+                "****" if self.zSnmpEngineId else "",
+            )
         return result
 
-    def createSession(self, protocol=None, allowCache=False):
-        "Create a session based on the properties"
-        from pynetsnmp.twistedsnmp import AgentProxy
-
-        cmdLineArgs = []
+    def createSession(self, protocol=None):
+        """Create a session based on the properties"""
         if "3" in self.zSnmpVer:
-            if self.zSnmpPrivType:
-                cmdLineArgs += ["-l", "authPriv"]
-                cmdLineArgs += ["-x", self.zSnmpPrivType]
-                cmdLineArgs += ["-X", self.zSnmpPrivPassword]
-            elif self.zSnmpAuthType:
-                cmdLineArgs += ["-l", "authNoPriv"]
-            else:
-                cmdLineArgs += ["-l", "noAuthNoPriv"]
-            if self.zSnmpAuthType:
-                cmdLineArgs += ["-a", self.zSnmpAuthType]
-                cmdLineArgs += ["-A", self.zSnmpAuthPassword]
-            if self.zSnmpEngineId:
-                cmdLineArgs += ["-e", self.zSnmpEngineId]
-            cmdLineArgs += ["-u", self.zSnmpSecurityName]
-            if hasattr(self, "zSnmpContext") and self.zSnmpContext:
-                cmdLineArgs += ["-n", self.zSnmpContext]
-
-        # the parameter tries seems to really be retries so take one off
-        retries = max(self.zSnmpTries - 1, 0)
-        p = AgentProxy(
-            ip=self.manageIp,
-            port=self.zSnmpPort,
+            sec = usm.User(
+                self.zSnmpSecurityName,
+                auth=usm.Authentication(
+                    self.zSnmpAuthType, self.zSnmpAuthPassword
+                ),
+                priv=usm.Privacy(self.zSnmpPrivType, self.zSnmpPrivPassword),
+                engine=self.zSnmpEngineId,
+                context=self.zSnmpContext,
+            )
+        else:
+            sec = usm.Community(self.zSnmpCommunity, version=self.zSnmpVer)
+        p = AgentProxy.create(
+            (self.manageIp, self.zSnmpPort),
+            security=sec,
             timeout=self.zSnmpTimeout,
-            tries=retries,
-            snmpVersion=self.zSnmpVer,
-            community=self.zSnmpCommunity,
-            cmdLineArgs=cmdLineArgs,
-            protocol=protocol,
-            allowCache=allowCache,
+            retries=max(self.zSnmpTries - 1, 0),
         )
         p.snmpConnInfo = self
         return p
@@ -132,104 +144,29 @@ pb.setUnjellyableForClass(SnmpConnInfo, SnmpConnInfo)
 class PerformanceConfig(HubService, ThresholdMixin):
     def __init__(self, dmd, instance):
         HubService.__init__(self, dmd, instance)
-        self.config = self.dmd.Monitors.Performance._getOb(self.instance)
+        self.conf = self.dmd.Monitors.Performance._getOb(self.instance)
         self.procrastinator = Procrastinate(self.pushConfig)
         self._collectorMap = {}
         self._notifier = component.getUtility(IBatchNotifier)
 
     @translateError
     def remote_propertyItems(self):
-        return self.config.propertyItems()
-
-    def notifyAll(self, device):
-        self.procrastinator.doLater(device)
-
-    def pushConfig(self, device):
-        deferreds = []
-        cfg = None
-
-        cur_collector = device.perfServer.getRelatedId()
-        prev_collector = self._collectorMap.get(device.id, None)
-        self._collectorMap[device.id] = cur_collector
-
-        # Always push config to currently assigned collector.
-        if cur_collector == self.instance:
-            cfg = self.getDeviceConfig(device)
-
-        # Push a deleteDevice call if the device was previously assigned to
-        # this collector.
-        elif prev_collector and prev_collector == self.instance:
-            cfg = None
-
-        # Don't do anything if this collector is not, and has not been involved
-        # with the device
-        else:
-            return defer.DeferredList(deferreds)
-
-        for listener in self.listeners:
-            if cfg is None:
-                deferreds.append(
-                    listener.callRemote("deleteDevice", device.id)
-                )
-            else:
-                deferreds.append(self.sendDeviceConfig(listener, cfg))
-        return defer.DeferredList(deferreds)
-
-    def getDeviceConfig(self, device):
-        "How to get the config for a device"
-        return None
-
-    def sendDeviceConfig(self, listener, config):
-        "How to send the config to a device, probably via callRemote"
-        pass
+        return self.conf.propertyItems()
 
     @onUpdate(PerformanceConf)
-    def perfConfUpdated(self, object, event):
-        if object.id == self.instance:
+    def perfConfUpdated(self, conf, event):
+        if conf.id == self.instance:
             for listener in self.listeners:
-                listener.callRemote("setPropertyItems", object.propertyItems())
+                listener.callRemote("setPropertyItems", conf.propertyItems())
 
     @onUpdate(ZenPack)
-    def zenPackUpdated(self, object, event):
+    def zenPackUpdated(self, zenpack, event):
         for listener in self.listeners:
             try:
                 listener.callRemote(
                     "updateThresholdClasses", self.remote_getThresholdClasses()
                 )
             except Exception:
-                self.log.warning("Error notifying a listener of new classes")
-
-    @onUpdate(Device)
-    def deviceUpdated(self, object, event):
-        self.notifyAll(object)
-
-    @onUpdate(None)  # Matches all
-    def notifyAffectedDevices(self, object, event):
-        if isinstance(object, Device):
-            return
-
-        # something else... mark the devices as out-of-date
-        from Products.ZenModel.DeviceClass import DeviceClass
-
-        while object:
-            # Don't bother with privately managed objects; the ZenPack
-            # will handle them on its own
-            if is_private(object):
-                return
-            # walk up until you hit an organizer or a device
-            if isinstance(object, DeviceClass):
-                uid = (self.__class__.__name__, self.instance)
-                self._notifier.notify_subdevices(object, uid, self.notifyAll)
-                break
-
-            if isinstance(object, Device):
-                self.notifyAll(object)
-                break
-
-            object = aq_parent(object)
-
-    @onDelete(Device)
-    def deviceDeleted(self, object, event):
-        devid = object.id
-        for listener in self.listeners:
-            listener.callRemote("deleteDevice", devid)
+                self.log.warning(
+                    "Error notifying a listener of new threshold classes"
+                )

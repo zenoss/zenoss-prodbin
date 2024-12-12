@@ -13,7 +13,7 @@ from time import time
 from itertools import chain
 from functools import wraps
 
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 from ZODB.POSException import POSKeyError
 from zope.component import getUtility, getUtilitiesFor, subscribers
 
@@ -36,11 +36,10 @@ from .interfaces import (
 )
 from .invalidations import INVALIDATIONS_PAUSED
 
-log = logging.getLogger("zen.ZenHub.invalidationmanager")
+log = logging.getLogger("zen.zenhub.invalidations")
 
 
 class InvalidationManager(object):
-
     _invalidation_paused_event = {
         "summary": "Invalidation processing is "
         "currently paused. To resume, set "
@@ -58,7 +57,6 @@ class InvalidationManager(object):
     def __init__(
         self,
         dmd,
-        log,
         syncdb,
         poll_invalidations,
         send_event,
@@ -66,7 +64,6 @@ class InvalidationManager(object):
     ):
         self.__dmd = dmd
         self.__syncdb = syncdb
-        self.log = log
         self.__poll_invalidations = poll_invalidations
         self.__send_event = send_event
         self.poll_interval = poll_interval
@@ -76,41 +73,48 @@ class InvalidationManager(object):
         self.totalEvents = 0
         self.totalTime = 0
 
-        self.initialize_invalidation_filters()
+        self._invalidation_filters = self.initialize_invalidation_filters(
+            self.__dmd
+        )
         self.processor = getUtility(IInvalidationProcessor)
-        log.debug("got InvalidationProcessor %s", self.processor)
         app = self.__dmd.getPhysicalRoot()
         self.invalidation_pipeline = InvalidationPipeline(
             app, self._invalidation_filters, self._queue
         )
 
-    def initialize_invalidation_filters(self):
-        """Get Invalidation Filters, initialize them,
-        store them in the _invalidation_filters list, and return the list
+    @staticmethod
+    def initialize_invalidation_filters(ctx):
+        """
+        Return initialized IInvalidationFilter objects in a list.
+
+        :param ctx: Used to initialize the IInvalidationFilter objects.
+        :type ctx: DataRoot
+        :return: Initialized IInvalidationFilter objects
+        :rtype: List[IInvalidationFilter]
         """
         try:
             filters = (f for n, f in getUtilitiesFor(IInvalidationFilter))
-            self._invalidation_filters = []
+            invalidation_filters = []
             for fltr in sorted(
                 filters, key=lambda f: getattr(f, "weight", 100)
             ):
-                fltr.initialize(self.__dmd)
-                self._invalidation_filters.append(fltr)
-            self.log.info(
-                "Registered %s invalidation filters.",
-                len(self._invalidation_filters),
+                fltr.initialize(ctx)
+                invalidation_filters.append(fltr)
+            log.info(
+                "registered %s invalidation filters.",
+                len(invalidation_filters),
             )
-            self.log.info(
-                "invalidation filters: %s", self._invalidation_filters
-            )
-            return self._invalidation_filters
+            log.info("invalidation filters: %s", invalidation_filters)
+            return invalidation_filters
         except Exception:
             log.exception("error in initialize_invalidation_filters")
 
     @inlineCallbacks
     def process_invalidations(self):
-        """Periodically process database changes.
-        synchronize with the database, and poll invalidated oids from it,
+        """
+        Periodically process database changes.
+
+        Synchronize with the database, and poll invalidated oids from it,
         filter the oids,  send them to the invalidation_processor
 
         @return: None
@@ -119,35 +123,38 @@ class InvalidationManager(object):
             now = time()
             yield self._syncdb()
             if self._paused():
-                return
+                returnValue(None)
 
             oids = self._poll_invalidations()
             if not oids:
-                log.debug("no invalidations found: oids=%s", oids)
-                return
+                log.debug("no invalidations found")
+                returnValue(None)
 
             for oid in oids:
                 yield self.invalidation_pipeline.run(oid)
 
-            self.log.debug("Processed %s raw invalidations", len(oids))
-            yield self.processor.processQueue(self._queue)
+            handled, ignored = yield self.processor.processQueue(self._queue)
+            log.debug(
+                "processed invalidations  "
+                "handled-count=%d, ignored-count=%d",
+                handled,
+                ignored,
+            )
             self._queue.clear()
-
         except Exception:
             log.exception("error in process_invalidations")
         finally:
             self.totalEvents += 1
             self.totalTime += time() - now
-            log.debug("end process_invalidations")
 
     @inlineCallbacks
     def _syncdb(self):
         try:
-            self.log.debug("[processQueue] syncing....")
+            log.debug("syncing with ZODB ...")
             yield self.__syncdb()
-            self.log.debug("[processQueue] synced")
+            log.debug("synced with ZODB")
         except Exception:
-            self.log.warn("Unable to poll invalidations, will try again.")
+            log.warn("Unable to poll invalidations")
 
     def _paused(self):
         if not self._currently_paused:
@@ -175,7 +182,7 @@ class InvalidationManager(object):
             log.debug("poll invalidations from dmd.storage")
             return self.__poll_invalidations()
         except Exception:
-            log.exception("error in _poll_invalidations")
+            log.exception("failed to poll invalidations")
 
     @inlineCallbacks
     def _send_event(self, event):

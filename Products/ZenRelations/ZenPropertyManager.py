@@ -25,6 +25,7 @@ from Products.ZenModel.ZenossSecurity import (
     ZEN_ZPROPERTIES_EDIT,
     ZEN_ZPROPERTIES_VIEW,
 )
+from Products.ZenUtils.snmp import authentication_protocols, privacy_protocols
 from Products.ZenUtils.Utils import unused, getDisplayType
 from Products.ZenWidgets.interfaces import IMessageSender
 
@@ -44,6 +45,38 @@ Z_PROPERTY_META_DATA = {}
 # define all the zProperties.  The values are set on dmd.Devices in the
 # buildDeviceTreeProperties of DeviceClass
 Z_PROPERTIES = [
+    # Config Cache properties
+    (
+        "zDeviceConfigBuildTimeout",
+        7200,
+        "int",
+        "Device configuration build timeout",
+        "The number of seconds before timing out a device configuration build."
+    ),
+    (
+        "zDeviceConfigPendingTimeout",
+        7200,
+        "int",
+        "Device configuration build queued timeout",
+        "The number of seconds a device configuration build may be queued "
+        "before a timeout."
+    ),
+    (
+        "zDeviceConfigTTL",
+        43200,
+        "int",
+        "Device configuration expiration",
+        "The maximum number of seconds to wait before rebuilding a "
+        "device configuration."
+    ),
+    (
+        "zDeviceConfigMinimumTTL",
+        0,
+        "int",
+        "Device configuration pre-expiration window",
+        "The number of seconds the configuration is protected "
+        "from being rebuilt."
+    ),
     # zPythonClass maps device class to python classs (separate from device
     # class name)
     (
@@ -156,15 +189,15 @@ Z_PROPERTIES = [
         "zSnmpAuthType",
         "",
         "string",
-        "SNMP Auth Type",
-        'Use "MD5" or "SHA" signatures to authenticate SNMP requests',
+        "SNMP Authentication Protocol",
+        'The cryptographic protocol used to authenticate SNMP requests.',
     ),
     (
         "zSnmpPrivType",
         "",
         "string",
-        "SNMP Priv Type",
-        '"DES" or "AES" cryptographic algorithms.',
+        "SNMP Privacy Protocol",
+        'The cryptographic protocol used to encrypt SNMP packets.',
     ),
     (
         "zSnmpContext",
@@ -564,6 +597,14 @@ Z_PROPERTIES = [
         "Used by ZenPack authors to denote which zProperties comprise "
         "the credentials for this device class.",
     ),
+    (
+        "zNoRelationshipCopy",
+        ["pack"],
+        "lines",
+        "Relations to skip during copying",
+        "Determine which relations should not being built during copying."
+    )
+
 ]
 
 
@@ -668,18 +709,18 @@ class ZenPropertyManager(object, PropertyManager):
     the actual value the popup will have.
 
     It also has management for zenProperties which are properties that can be
-    inherited long the acquision chain.  All properties are for a branch are
-    defined on a "root node" specified by the function which must be returned
-    by the function getZenRootNode that should be over ridden in a sub class.
-    Prperties can then be added further "down" the aq_chain by calling
-    setZenProperty on any contained node.
+    inherited along the acquisition chain.  All properties are for a branch
+    are defined on a "root node" specified by the function which must be
+    returned by the function getZenRootNode that should be over ridden in a
+    sub class. Properties can then be added further "down" the aq_chain by
+    calling setZenProperty on any contained node.
 
     ZenProperties all have the same prefix which is defined by iszprop
     this can be overridden in a subclass.
 
     ZenPropertyManager overrides getProperty and getPropertyType from
     PropertyManager to support acquisition. If you want to query an object
-    about a property, but do not want it to search the acquistion chain then
+    about a property, but do not want it to search the acquisition chain then
     use the super classes method or aq_base.  Example:
 
         # acquires property from dmd.Devices
@@ -692,7 +733,7 @@ class ZenPropertyManager(object, PropertyManager):
         aq_base(dmd.Devices.Server).getProperty('zSnmpCommunity')
 
     The properties are stored as attributes which is convenient, but can be
-    confusing.  Attribute access always uses acquistion.  Setting an
+    confusing.  Attribute access always uses acquisition.  Setting an
     attribute, will not add it to the list of properties, so subsquent calls
     to hasProperty or getProperty won't return it.
 
@@ -1012,9 +1053,22 @@ class ZenPropertyManager(object, PropertyManager):
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, "zenPropertyOptions")
 
     def zenPropertyOptions(self, propname):
-        """Provide a set of default options for a ZProperty."""
-        unused(propname)
-        return []
+        """
+        Returns a list of possible options for a given zProperty
+        """
+        if propname == "zCollectorPlugins":
+            from Products.DataCollector.Plugins import loadPlugins
+
+            return tuple(sorted(p.pluginName for p in loadPlugins(self.dmd)))
+        if propname == "zCommandProtocol":
+            return ("ssh", "telnet")
+        if propname == "zSnmpVer":
+            return ("v1", "v2c", "v3")
+        if propname == "zSnmpAuthType":
+            return ("",) + authentication_protocols
+        if propname == "zSnmpPrivType":
+            return ("",) + privacy_protocols
+        return ()
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, "isLocal")
 
@@ -1077,7 +1131,7 @@ class ZenPropertyManager(object, PropertyManager):
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, "getPropertyType")
 
     def getPropertyType(self, id):
-        """Overrides methods from PropertyManager to support acquistion."""
+        """Overrides methods from PropertyManager to support acquisition."""
         ob = self._findParentWithProperty(id)
         if ob is not None:
             return PropertyManager.getPropertyType(ob, id)

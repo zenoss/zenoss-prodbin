@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009, 2023 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -18,7 +18,7 @@ import logging
 import re
 import time
 from dateutil.parser import parse as parse_to_dt
-from json import loads
+from json import loads, dumps
 from lxml.html.clean import clean_html
 from zenoss.protocols.exceptions import NoConsumersException, PublishException
 from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED
@@ -31,7 +31,11 @@ from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenEvents.EventClass import EventClass
 from Products.ZenMessaging.audit import audit
-from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_EVENTS
+from Products.ZenModel.ZenossSecurity import (
+    ZEN_MANAGE_EVENTS,
+    ZEN_MANAGER_ROLE,
+    MANAGER_ROLE
+)
 from Products.ZenUtils.deprecated import deprecated
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
@@ -42,6 +46,22 @@ from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.infos.event import EventCompatInfo, EventCompatDetailInfo
 
 READ_WRITE_ROLES = ['ZenManager', 'Manager', 'ZenOperator']
+
+ZEN_MANAGER_EDIT_PERM = (
+    'event_age_disable_severity',
+    'event_age_interval_minutes',
+    'event_archive_interval_minutes',
+    'event_age_severity_inclusive',
+    'default_syslog_priority',
+    'default_trap_filtering_definition',
+    'syslog_parsers',
+    'syslog_summary_to_message',
+    'default_syslog_message_filtering_rules',
+    'default_availability_days',
+    'event_time_purge_interval_days',
+    'enable_event_flapping_detection',
+    'flapping_event_class',
+)
 
 log = logging.getLogger('zen.%s' % __name__)
 
@@ -619,8 +639,7 @@ class EventsRouter(DirectRouter):
             log.debug(e)
             return False
 
-    def manage_events(self, evids=None, excludeIds=None, params=None,
-                      uid=None, asof=None, limit=None, timeout=None):
+    def manage_events(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
         user = self.context.dmd.ZenUsers.getUserSettings()
         if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
             return True
@@ -631,8 +650,7 @@ class EventsRouter(DirectRouter):
             if uid is not None:
                 organizer = self.context.dmd.Devices.getOrganizer(uid)
             else:
-                return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS,
-                                                        evids)
+                return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS, evids)
         except (AttributeError, KeyError):
             return False
 
@@ -649,7 +667,7 @@ class EventsRouter(DirectRouter):
                     )
 
         return organizer.getBreadCrumbUrlPath() in manage_events_for
-    
+
     def can_add_events(self, summary, device, component, severity, evclasskey,
                   evclass=None, monitor=None, **kwargs):
         ctx = self.context.dmd.Devices.findDevice(device.strip())
@@ -1017,6 +1035,28 @@ class EventsRouter(DirectRouter):
                 'allowNegative': False,
                 'value': self.context.dmd.ZenEventManager.defaultPriority
                 },{
+                'id': 'default_trap_filtering_definition',
+                'name': _t('SNMP Trap Filtering Rules'),
+                'xtype': 'textarea',
+                'allowNegative': False,
+                'value': self.context.dmd.ZenEventManager.trapFilters
+                },{
+                'id': 'syslog_parsers',
+                'name': _t('Syslog Parsers'),
+                'xtype': 'textarea',
+                'value': dumps(self.context.dmd.ZenEventManager.syslogParsers, indent=2)
+                },{
+                'id': 'syslog_summary_to_message',
+                'name': _t('Mirror Syslog Event\'s Summary value to Message field'),
+                'xtype': 'checkbox',
+                'value': self.context.dmd.ZenEventManager.syslogSummaryToMessage
+                },{
+                'id': 'default_syslog_message_filtering_rules',
+                'name': _t('Syslog Message Filtering Rules'),
+                'xtype': 'textarea',
+                'allowNegative': False,
+                'value': dumps(self.context.dmd.ZenEventManager.syslogMsgEvtFieldFilterRules, indent=2)
+                },{
                 'id': 'default_availability_days',
                 'name': _t('Default Availability Report (days)'),
                 'xtype': 'numberfield',
@@ -1065,6 +1105,17 @@ class EventsRouter(DirectRouter):
                 }]
         return configSchema
 
+    def iseditable(self, field):
+        currentUser = self.context.dmd.ZenUsers.getUser()
+        if currentUser:
+            if currentUser.has_role(MANAGER_ROLE):
+                return True
+
+            if currentUser.has_role(ZEN_MANAGER_ROLE) and field in ZEN_MANAGER_EDIT_PERM:
+                return True
+
+        return False
+
     def _mergeSchemaAndZepConfig(self, data, configSchema):
         """
         Copy the values and defaults from ZEP to our schema
@@ -1082,7 +1133,8 @@ class EventsRouter(DirectRouter):
         # constructed to include default values and be keyed by the protobuf
         # property name.
         data = self.zep.getConfig()
-        config = self._mergeSchemaAndZepConfig(data, self.configSchema)
+        schema = self._mergeSchemaAndZepConfig(data, self.configSchema)
+        config = [setting for setting in schema if self.iseditable(setting['id'])]
         return DirectResponse.succeed(data=config)
 
     @require('Manage DMD')
@@ -1101,11 +1153,28 @@ class EventsRouter(DirectRouter):
         if defaultSyslogPriority is not None:
             self.context.dmd.ZenEventManager.defaultPriority = int(defaultSyslogPriority)
 
+        trapFilters = values.pop('default_trap_filtering_definition', None)
+        if trapFilters is not None:
+            self.context.dmd.ZenEventManager.trapFilters = trapFilters
+
+        syslogParsers = values.pop('syslog_parsers', None)
+        if syslogParsers is not None:
+            self.context.dmd.ZenEventManager.syslogParsers = loads(syslogParsers)
+
+        syslogSummaryToMessage = values.pop('syslog_summary_to_message', None)
+        if syslogSummaryToMessage is not None:
+            self.context.dmd.ZenEventManager.syslogSummaryToMessage = syslogSummaryToMessage
+        syslogMsgEvtFieldFilterRules = values.pop('default_syslog_message_filtering_rules', None)
+        if syslogMsgEvtFieldFilterRules is not None:
+            self.context.dmd.ZenEventManager.syslogMsgEvtFieldFilterRules = loads(syslogMsgEvtFieldFilterRules)
+
         defaultAvailabilityDays = values.pop('default_availability_days', None)
         if defaultAvailabilityDays is not None:
             self.context.dmd.ZenEventManager.defaultAvailabilityDays = int(defaultAvailabilityDays)
 
-        self.zep.setConfigValues(values)
+        # filter by role whether user can update settings.
+        eventConfig = {key: value for (key, value) in values.items() if self.iseditable(key)}
+        self.zep.setConfigValues(eventConfig)
         return DirectResponse.succeed()
 
     def column_config(self, uid=None, archive=False):

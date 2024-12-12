@@ -18,7 +18,7 @@ from Products.ZenReports.AliasPlugin import (
 
 
 class interface(AliasPlugin):
-    "The interface usage report"
+    """The interface usage report"""
 
     def getComponentPath(self):
         return "os/interfaces"
@@ -52,7 +52,7 @@ class interface(AliasPlugin):
             Column(
                 "tmp_ipAddress",
                 PythonColumnHandler(
-                    'component.ipaddresses()[0].id if '
+                    "component.ipaddresses()[0].id if "
                     'len(component.ipaddresses()) == 1 else ""'
                 ),
             ),
@@ -96,7 +96,7 @@ class interface(AliasPlugin):
             Column(
                 "totalBits",
                 PythonColumnHandler(
-                    '(input + output) * 8 if input is not None and '
+                    "(input + output) * 8 if input is not None and "
                     'output is not None else "N/A"'
                 ),
             ),

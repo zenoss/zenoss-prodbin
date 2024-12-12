@@ -20,7 +20,7 @@ from ..log import (
     apply_levels,
     configure_logging,
     load_log_level_config,
-    _loglevelconf_filepath,
+    _loglevel_confs,
 )
 from .utils import LoggingLayer
 
@@ -39,10 +39,8 @@ class ConfigureLoggingTest(TestCase):
     @patch("{src}.LoggingProxy".format(**PATH), autospec=True)
     @patch("{src}.apply_levels".format(**PATH), autospec=True)
     @patch("{src}.load_log_level_config".format(**PATH), autospec=True)
-    @patch("{src}.get_default_config".format(**PATH), autospec=True)
     def test_nominal(
         t,
-        _get_default_config,
         _load_log_level_config,
         _apply_levels,
         _LoggingProxy,
@@ -52,7 +50,6 @@ class ConfigureLoggingTest(TestCase):
         _sys,
         _os,
     ):
-        dictConfig = _logging.config.dictConfig
         exists = _os.path.exists
         getLogger = _logging.getLogger
         levelConfig = _load_log_level_config.return_value
@@ -76,11 +73,11 @@ class ConfigureLoggingTest(TestCase):
 
         exists.return_value = True
 
-        configure_logging()
+        configure_logging("zenjobs")
 
-        dictConfig.assert_called_once_with(_get_default_config.return_value)
-        exists.assert_called_once_with(_loglevelconf_filepath)
-        _load_log_level_config.assert_called_once_with(_loglevelconf_filepath)
+        loglevel_confname = _loglevel_confs["zenjobs"]
+        exists.assert_called_once_with(loglevel_confname)
+        _load_log_level_config.assert_called_once_with(loglevel_confname)
         _apply_levels.assert_called_once_with(levelConfig)
 
         getLogger.assert_has_calls(getLogger_calls, any_order=True)
@@ -99,10 +96,8 @@ class ConfigureLoggingTest(TestCase):
     @patch("{src}.LoggingProxy".format(**PATH), autospec=True)
     @patch("{src}.apply_levels".format(**PATH), autospec=True)
     @patch("{src}.load_log_level_config".format(**PATH), autospec=True)
-    @patch("{src}.get_default_config".format(**PATH), autospec=True)
     def test_missing_loglevel_file(
         t,
-        _get_default_config,
         _load_log_level_config,
         _apply_levels,
         _LoggingProxy,
@@ -112,7 +107,6 @@ class ConfigureLoggingTest(TestCase):
         _sys,
         _os,
     ):
-        dictConfig = _logging.config.dictConfig
         exists = _os.path.exists
         getLogger = _logging.getLogger
         logs = {
@@ -135,10 +129,9 @@ class ConfigureLoggingTest(TestCase):
 
         exists.return_value = False
 
-        configure_logging()
+        configure_logging("zenjobs")
 
-        dictConfig.assert_called_once_with(_get_default_config.return_value)
-        exists.assert_called_once_with(_loglevelconf_filepath)
+        exists.assert_called_once_with(_loglevel_confs["zenjobs"])
         _load_log_level_config.assert_has_calls([])
         _apply_levels.assert_has_calls([])
 

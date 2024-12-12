@@ -1651,13 +1651,17 @@ class DeviceRouter(TreeRouter):
         audit('UI.Device.Add', deviceUid, data_=auditData)
         return DirectResponse.succeed(new_jobs=Zuul.marshal(jobrecords, keys=('uuid', 'description')))
 
-    @require('Manage Device')
+    def remodel_device_permissions(self, deviceUid, collectPlugins='', background=True):
+        ctx = self.context if deviceUid is None else self._getFacade()._getObject(deviceUid)
+        return Zuul.checkPermission(ZEN_MANAGE_DEVICE, ctx)
+
+    @require(remodel_device_permissions)
     def remodel(self, deviceUid, collectPlugins='', background=True):
         """
         Submit a job to have a device remodeled.
 
         @type  deviceUid: string
-        @param deviceUid: Device uid to have local template
+        @param deviceUid: Device uid to remodel
         @type  collectPlugins: string
         @param collectPlugins: (optional) Modeler plugins to use.
                                Takes a regular expression (default: '')
@@ -1994,14 +1998,18 @@ class DeviceRouter(TreeRouter):
         data = facade.getGraphDefinitionsForComponent(uid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
-    def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
+    def getComponentGraphs(self, uid, meta_type, graphId, limit, graphsOnSame, allOnSame=False):
         """
         Returns the graph denoted by graphId for every component in
         device (uid) with the meta_type meta_type
         """
+        data_length = 0
         facade = self._getFacade()
-        data = facade.getComponentGraphs(uid, meta_type, graphId, allOnSame=allOnSame)
-        return DirectResponse.succeed(data=Zuul.marshal(data))
+        data = facade.getComponentGraphs(uid, meta_type, graphId, limit, graphsOnSame, allOnSame=allOnSame)
+        if type(data) is dict:
+            data_length = data['data_length']
+            data = data['data']
+        return DirectResponse.succeed(data=Zuul.marshal(data), data_length=data_length)
 
     def getDevTypes(self, uid, filter=None):
         """

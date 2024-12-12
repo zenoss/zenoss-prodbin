@@ -378,7 +378,7 @@ Ext.onReady(function () {
             permission: 'Delete Device',
             handler: function () {
                 var selnode = getSelectionModel().getSelectedNode(),
-                    isclass = Zenoss.types.type(selnode.data.uid) === 'DeviceClass',
+                    isclass = selnode.data.uid.includes('Device'),
                     grpText = selnode.data.text.text;
                 var win = new Zenoss.FormDialog({
                     title: _t('Remove Devices'),
@@ -1683,6 +1683,7 @@ Ext.onReady(function () {
                     handler: function () {
                         var grid = Ext.getCmp('device_grid');
                         if (grid.isVisible(true)) {
+                            grid.getStore().reload();
                             grid.refresh();
                             Ext.getCmp('organizer_events').refresh();
                             refreshTreePanel();

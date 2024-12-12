@@ -1,4 +1,4 @@
-from mock import Mock, patch, create_autospec
+from mock import ANY, Mock, patch, create_autospec
 from unittest import TestCase
 
 from Products.ZenHub.tests.mock_interface import create_interface_mock
@@ -6,14 +6,13 @@ from Products.ZenHub.tests.mock_interface import create_interface_mock
 from Products.ZenCollector.daemon import (
     CollectorDaemon,
     defer,
-    Failure,
     ICollectorPreferences,
     IConfigurationListener,
     ITaskSplitter,
 )
 
 
-class TestCollectorDaemon_maintenanceCycle(TestCase):
+class TestCollectorDaemon_maintenanceCallback(TestCase):
     def setUp(t):
         # Patch out the  __init__ method, due to excessive side-effects
         t.init_patcher = patch.object(
@@ -39,19 +38,19 @@ class TestCollectorDaemon_maintenanceCycle(TestCase):
         t.cd.getDevicePingIssues = create_autospec(t.cd.getDevicePingIssues)
         t.cd._unresponsiveDevices = set()
 
-    def test__maintenanceCycle(t):
-        ret = t.cd._maintenanceCycle()
+    def test__maintenanceCallback(t):
+        ret = t.cd._maintenanceCallback()
 
         t.cd.log.debug.assert_called_with(
             "deviceIssues=%r", t.cd.getDevicePingIssues.return_value
         )
-        t.assertEqual(ret.result, t.cd.getDevicePingIssues.return_value)
+        t.assertIsNone(ret.result)
 
     def test_ignores_unresponsive_devices(t):
         t.cd.log = Mock(name="log")
         t.cd._prefs.pauseUnreachableDevices = False
 
-        ret = t.cd._maintenanceCycle()
+        ret = t.cd._maintenanceCallback()
 
         t.assertEqual(ret.result, None)
 
@@ -60,19 +59,19 @@ class TestCollectorDaemon_maintenanceCycle(TestCase):
         t.cd._prefs.pauseUnreachableDevices = False
         t.cd.options.cycle = False
 
-        ret = t.cd._maintenanceCycle()
+        ret = t.cd._maintenanceCallback()
 
-        t.assertEqual(ret.result, "No maintenance required")
+        t.assertIsNone(ret.result)
 
     def test_handle_getDevicePingIssues_exception(t):
         t.cd.getDevicePingIssues.side_effect = Exception
 
         handler = _Capture()
-        ret = t.cd._maintenanceCycle()
+        ret = t.cd._maintenanceCallback()
         ret.addErrback(handler)
 
-        t.assertIsInstance(handler.err, Failure)
-        t.assertIsInstance(handler.err.value, Exception)
+        t.assertIsNone(handler.err)
+        t.cd.log.exception.assert_called_once_with(ANY)
 
     def test_handle__pauseUnreachableDevices_exception(t):
         t.cd._pauseUnreachableDevices = create_autospec(
@@ -81,11 +80,11 @@ class TestCollectorDaemon_maintenanceCycle(TestCase):
         t.cd._pauseUnreachableDevices.side_effect = Exception
 
         handler = _Capture()
-        ret = t.cd._maintenanceCycle()
+        ret = t.cd._maintenanceCallback()
         ret.addErrback(handler)
 
-        t.assertIsInstance(handler.err, Failure)
-        t.assertIsInstance(handler.err.value, Exception)
+        t.assertIsNone(handler.err)
+        t.cd.log.exception.assert_called_once_with(ANY)
 
     def test__pauseUnreachableDevices(t):
         t.cd._scheduler = Mock(
@@ -105,7 +104,6 @@ class TestCollectorDaemon_maintenanceCycle(TestCase):
 
 
 class _Capture(object):
-
     def __init__(self):
         self.err = None
 

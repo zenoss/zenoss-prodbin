@@ -9,60 +9,37 @@
 #
 ##############################################################################
 -->
+<configure xmlns="http://namespaces.zope.org/zope">
 
+   <!-- Only load this in a ZenHub process -->
+   <utility
+      factory=".invalidations.InvalidationProcessor"
+      provides=".interfaces.IInvalidationProcessor"
+      />
 
-<configure xmlns="http://namespaces.zope.org/zope"
-           >
+   <utility
+      factory=".invalidationfilter.OSProcessOrganizerFilter"
+      provides=".interfaces.IInvalidationFilter"
+      name="OSProcessOrganizer"
+      />
 
-  <!-- Only load this in a ZenHub process -->
-  <utility
-    factory=".invalidations.InvalidationProcessor"
-    provides=".interfaces.IInvalidationProcessor"
-    />
+   <utility
+      factory=".invalidationfilter.OSProcessClassFilter"
+      provides=".interfaces.IInvalidationFilter"
+      name="OSProcessClass"
+      />
 
-  <utility
-    factory=".invalidationfilter.DeviceClassInvalidationFilter"
-    provides=".interfaces.IInvalidationFilter"
-    name="DeviceClass"
-    />
+   <utility
+      factory=".invalidationfilter.IgnorableClassesFilter"
+      provides=".interfaces.IInvalidationFilter"
+      name="IgnorableClasses"
+      />
 
-  <utility
-    factory=".invalidationfilter.OSProcessOrganizerFilter"
-    provides=".interfaces.IInvalidationFilter"
-    name="OSProcessOrganizer"
-    />
-
-  <utility
-    factory=".invalidationfilter.OSProcessClassFilter"
-    provides=".interfaces.IInvalidationFilter"
-    name="OSProcessClass"
-    />
-
-  <utility
-    factory=".invalidationfilter.IgnorableClassesFilter"
-    provides=".interfaces.IInvalidationFilter"
-    name="IgnorableClasses"
-    />
-
-    <subscriber provides=".interfaces.IInvalidationOid"
-             for="Products.ZenModel.DeviceComponent.DeviceComponent"
-             factory=".invalidationoid.DeviceOidTransform"
-            />
-
-    <subscriber provides=".interfaces.IInvalidationOid"
-             for="Products.ZenModel.DeviceHW.DeviceHW"
-             factory=".invalidationoid.DeviceOidTransform"
-            />
-
-    <subscriber provides=".interfaces.IInvalidationOid"
-             for="Products.ZenModel.OperatingSystem.OperatingSystem"
-             factory=".invalidationoid.DeviceOidTransform"
-            />
-
-    <subscriber provides=".interfaces.IInvalidationOid"
-             for="Products.ZenRelations.PrimaryPathObjectManager.PrimaryPathObjectManager"
-             factory=".invalidationoid.DefaultOidTransform"
-            />
+   <subscriber
+      factory=".invalidationoid.DefaultOidTransform"
+      provides=".interfaces.IInvalidationOid"
+      for="Products.ZenRelations.PrimaryPathObjectManager.PrimaryPathObjectManager"
+      />
 
    <include package=".server"/>
 

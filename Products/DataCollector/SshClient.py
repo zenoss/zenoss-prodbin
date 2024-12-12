@@ -33,8 +33,8 @@ from zope.component import queryUtility
 
 from Products.DataCollector import CollectorClient
 from Products.DataCollector.Exceptions import LoginFailed
-from Products.ZenCollector.interfaces import IEventService
 from Products.ZenEvents import Event
+from Products.ZenHub.interfaces import IEventService
 from Products.ZenUtils.IpUtil import getHostByName
 from Products.ZenUtils.Utils import getExitMessage
 

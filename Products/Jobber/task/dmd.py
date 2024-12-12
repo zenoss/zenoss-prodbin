@@ -29,7 +29,7 @@ from ZPublisher.BaseRequest import RequestContainer
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Products.ZenUtils.Utils import getObjByPath
 
-from ..config import ZenJobs
+from ..config import getConfig
 from ..utils.log import get_logger, get_task_logger, inject_logger
 
 mlog = get_logger("zen.zenjobs.task.dmd")
@@ -45,12 +45,21 @@ class DMD(object):
     """
 
     abstract = True
+    dmd_read_only = False
+
+    def __new__(cls, *args, **kwargs):
+        task = super(DMD, cls).__new__(cls, *args, **kwargs)
+        task.__dmd = None
+        return task
 
     def __call__(self, *args, **kwargs):
         """Override to attach a zodb root object to the task."""
-        # NOTE: work-around for Celery >= 4.0
-        # userid = getattr(self.request, "userid", None)
-        userid = self.request.headers.get("userid")
+        # Celery < 4.0 had a 'headers' attribute
+        headers = getattr(self.request, "headers", None)
+        if headers is not None:
+            userid = headers.get("userid")
+        else:
+            userid = getattr(self.request, "userid", None)
         with zodb(self.app.db, userid, self.log) as dmd:
             self.__dmd = dmd
             try:
@@ -65,13 +74,17 @@ class DMD(object):
     def __retry_on_conflict(self, *args, **kw):
         try:
             result = self.__run(*args, **kw)
-            transaction.commit()
-            self.log.debug("Transaction committed")
+            if not self.dmd_read_only:
+                transaction.commit()
+                self.log.debug("Transaction committed")
+            else:
+                transaction.abort()
+                self.log.debug("Transaction aborted  reason=read-only-task")
             return result
         except (ReadConflictError, ConflictError) as ex:
             transaction.abort()
             self.log.warn("Transaction aborted  reason=%s", ex)
-            limit = ZenJobs.get("zodb-retry-interval-limit", 30)
+            limit = getConfig().get("zodb-retry-interval-limit", 30)
             duration = int(SystemRandom().uniform(1, limit))
             self.log.info(
                 "Reschedule task to execute after %s seconds.",
@@ -95,7 +108,7 @@ def zodb(db, userid, log):
     :param db: ZODB database connection.
     :param str userid: The ID of the user to authenticate with.
     """
-    session = db.open()
+    session = db.open()  # type: ZODB.Connection
     try:
         mlog.debug("Started ZODB session")
         root = session.root()

@@ -207,6 +207,11 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
                 notify(IndexingEvent(device, idxs=('macAddresses',), update_metadata=False))
             except KeyError:
                 pass
+            if device._operation != 1:
+                if self.ipaddresses():
+                    self.ipaddresses.removeRelation()
+                if self.iproutes():
+                    self.iproutes.removeRelation()
 
     def object_added_handler(self):
         self._update_device_macs(self.device(), self.macaddress)
@@ -574,9 +579,25 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
                 order.insert(0, templateName)
 
         for name in order:
+            templates = []
             template = self.getRRDTemplateByName(name)
-            if template:
-                return [template]
+            if not template:
+                continue
+            replacement = self.getRRDTemplateByName(
+                '{}-replacement'.format(name))
+
+            if replacement and replacement not in templates:
+                templates.append(replacement)
+            else:
+                templates.append(template)
+
+            addition = self.getRRDTemplateByName(
+                '{}-addition'.format(name))
+
+            if addition and addition not in templates:
+                templates.append(addition)
+            if templates:
+                return templates
 
         return []
 

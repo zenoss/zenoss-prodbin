@@ -11,10 +11,11 @@ from __future__ import absolute_import
 
 import inspect
 
+from itertools import chain
+
 from zope.component import getUtility
 
 from ..interfaces import IJobStore
-from ..zenjobs import app
 
 
 def requires(*features):
@@ -24,6 +25,8 @@ def requires(*features):
     (*features, ZenTask, celery.app.task.Task, object) where 'features'
     are the classes given to this function.
     """
+    from ..zenjobs import app
+
     bases = tuple(features) + (app.Task, object)
     culled = []
     for feature in reversed(bases):
@@ -31,7 +34,12 @@ def requires(*features):
             if cls not in culled:
                 culled.insert(0, cls)
     name = "".join(t.__name__ for t in features) + "Task"
-    basetask = type(name, tuple(culled), {"abstract": True})
+    throws = set(
+        chain.from_iterable(getattr(cls, "throws", ()) for cls in culled)
+    )
+    basetask = type(
+        name, tuple(culled), {"abstract": True, "throws": tuple(throws)}
+    )
     return basetask
 
 

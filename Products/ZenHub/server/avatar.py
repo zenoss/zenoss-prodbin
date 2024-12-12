@@ -12,12 +12,12 @@ from __future__ import absolute_import
 import logging
 import os
 
-from uuid import uuid4
 from twisted.spread import pb
 
-from ..PBDaemon import RemoteBadMonitor
+from ..errors import RemoteBadMonitor
 from .exceptions import UnknownServiceError
 from .utils import getLogger
+from .worker import Worker
 
 
 class HubAvatar(pb.Avatar):
@@ -77,48 +77,78 @@ class HubAvatar(pb.Avatar):
                 service.addListener(listener, options)
             return service
 
-    def perspective_reportingForWork(self, worker, workerId, worklistId):
+    def perspective_reportForWork(self, remote, name, worklistId):
         """Allow a worker to register for work.
 
-        :param worker: Reference to zenhubworker
-        :type worker: twisted.spread.pb.RemoteReference
-        :param int workerId: The worker's identifier
+        :param workerref: Reference to zenhubworker
+        :type workerref: twisted.spread.pb.RemoteReference
+        :param str name: The name of the worker
         :param str worklistId: The worker will work jobs from this worklist
         :rtype: None
         """
-        worker.workerId = workerId
-        worker.sessionId = uuid4()
-        pool = self.__pools.get(worklistId)
-        if pool is None:
-            self.__log.error(
-                "Worker asked to work unknown worklist "
-                "worker=%s worklist=%s",
-                workerId,
-                worklistId,
-            )
-            raise pb.Error("No such worklist: %s" % worklistId)
-        worker.queue_name = worklistId
+        pool = self._get_pool(worklistId, name)
+        worker = Worker(name=name, remote=remote)
         try:
             pool.add(worker)
+            pool.ready(worker)
         except Exception as ex:
-            self.__log.exception("Failed to add worker worker=%s", workerId)
+            self.__log.exception(
+                "failed to add worker  worker=%s worklist=%s", name, worklistId
+            )
             raise pb.Error(
                 "Internal ZenHub error: %s: %s" % (ex.__class__, ex),
             )
         self.__log.info(
-            "Worker ready to work worker=%s session=%s worklist=%s",
-            workerId,
-            worker.sessionId.hex,
-            worklistId,
+            "registered worker  worker=%s worklist=%s", name, worklistId
+        )
+        remote.notifyOnDisconnect(
+            lambda ref, n=name, q=worklistId: self._remove_worker(ref, n, q)
         )
 
-        def removeWorker(worker):
-            pool = self.__pools.get(worker.queue_name)
+    def perspective_resignFromWork(self, name, worklistId):
+        """Allow a worker to unregister itself from work.
+
+        :param str name: The name of the worker
+        :param str worklistId: The worker will work jobs from this worklist
+        :rtype: None
+        """
+        pool = self._get_pool(worklistId, name)
+        worker = self._get_worker(pool, name, worklistId)
+        if worker is not None:
             pool.remove(worker)
+            del worker  # maybe this works...?
             self.__log.info(
-                "Worker disconnected worker=%s session=%s",
-                worker.workerId,
-                worker.sessionId.hex,
+                "unregistered worker  worker=%s worklist=%s", name, worklistId
             )
 
-        worker.notifyOnDisconnect(removeWorker)
+    def _get_pool(self, worklistId, name):
+        pool = self.__pools.get(worklistId)
+        if pool is None:
+            self.__log.error(
+                "worker asked to resign from unknown worklist  "
+                "worker=%s worklist=%s",
+                name,
+                worklistId,
+            )
+            raise pb.Error("No such worklist: %s" % worklistId)
+        return pool
+
+    def _get_worker(self, pool, name, worklistId):
+        worker = pool.get(name)
+        if worker is None:
+            self.__log.debug(
+                "unknown worker  worker=%s worklist=%s", name, worklistId
+            )
+        return worker
+
+    def _remove_worker(self, remote, name, worklistId):
+        # Note that 'remote' is ignored.
+        pool = self.__pools.get(worklistId)
+        if pool is None:
+            return
+        worker = self._get_worker(pool, name, worklistId)
+        if worker is not None:
+            pool.remove(worker)
+        self.__log.info(
+            "worker disconnected  worker=%s worklist=%s", name, worklistId
+        )

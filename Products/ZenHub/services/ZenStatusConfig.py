@@ -72,7 +72,7 @@ class ZenStatusConfig(CollectorConfigService):
 
     def _createDeviceProxy(self, device):
         proxy = CollectorConfigService._createDeviceProxy(self, device)
-        proxy.configCycleInterval = self._prefs.statusCycleInterval
+        proxy.configCycleInterval = self.conf.statusCycleInterval
 
         # add each component
         proxy.components = []

@@ -7,48 +7,61 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import, print_function
 
-__doc__="""CmdBase
-
-Provide utility functions for logging and config file parsing
-to command-line programs
-"""
-
-import os
-import os.path
-import sys
 import datetime
 import logging
+import os
+import os.path
 import re
+import sys
+import textwrap
+
 from copy import copy
+from optparse import (
+    BadOptionError,
+    NO_DEFAULT,
+    Option,
+    OptionGroup,
+    OptionParser,
+    OptionValueError,
+    SUPPRESS_HELP,
+)
+from urllib import quote
+
 import zope.component
+
 from zope.traversing.adapters import DefaultTraversable
 from Zope2.App import zcml
 
-from optparse import (
-        OptionParser, OptionGroup, Option,
-        SUPPRESS_HELP, NO_DEFAULT, OptionValueError, BadOptionError,
-    )
-from urllib import quote
+from .config import ConfigLoader
+from .Utils import (
+    getAllParserOptionsGen,
+    load_config_override,
+    unused,
+    zenPath,
+)
+from .GlobalConfig import (
+    _convertConfigLinesToArguments,
+    getGlobalConfiguration,
+)
 
-from Products.ZenUtils.Utils import unused, load_config_override, zenPath, getAllParserOptionsGen
-from Products.ZenUtils.GlobalConfig import _convertConfigLinesToArguments, applyGlobalConfToParser
+
+# List of options to not include when generating a config file.
+_OPTIONS_TO_IGNORE = (
+    "",
+    "configfile",
+    "genconf",
+    "genxmlconfigs",
+    "genxmltable",
+    "help",
+    "version",
+)
 
 
-class DMDError: pass
+class DMDError:
+    pass
 
-
-def checkLogLevel(option, opt, value):
-    if re.match(r'^\d+$', value):
-        value = int(value)
-    else:
-        intval = getattr(logging, value.upper(), None)
-        if intval:
-            value = intval
-        else:
-            raise OptionValueError('"%s" is not a valid log level.' % value)
-
-    return value
 
 def remove_args(argv, remove_args_novals, remove_args_vals):
     """
@@ -66,43 +79,63 @@ def remove_args(argv, remove_args_novals, remove_args_vals):
         for remove_arg in remove_args_vals:
             if remove_arg == arg:
                 add_arg = False
-                it.next() # Skip the argument value
+                it.next()  # Skip the argument value
                 break
-            elif arg.startswith(remove_arg + '='):
+            elif arg.startswith(remove_arg + "="):
                 add_arg = False
                 break
         if add_arg:
             new_args.append(arg)
     return new_args
 
-class LogSeverityOption(Option):
+
+def checkLogLevel(option, opt, value):
+    if re.match(r"^\d+$", value):
+        value = int(value)
+    else:
+        intval = getattr(logging, value.upper(), None)
+        if intval is None:
+            raise OptionValueError('"%s" is not a valid log level.' % value)
+        value = intval
+
+    return value
+
+
+class CmdBaseOption(Option):
     TYPES = Option.TYPES + ("loglevel",)
     TYPE_CHECKER = copy(Option.TYPE_CHECKER)
     TYPE_CHECKER["loglevel"] = checkLogLevel
 
 
+LogSeverityOption = CmdBaseOption
+
+
 class CmdBase(object):
+    """
+    Base class used for most Zenoss commands.
+    """
 
     doesLogging = True
 
-    """
-    Class used for all Zenoss commands
-    """
     def __init__(self, noopts=0, args=None, should_log=None):
         zope.component.provideAdapter(DefaultTraversable, (None,))
         # This explicitly loads all of the products - must happen first!
         from OFS.Application import import_products
+
         import_products()
-        #make sure we aren't in debug mode
+        # make sure we aren't in debug mode
         import Globals
+
         Globals.DevelopmentMode = False
         # We must import ZenossStartup at this point so that all Zenoss daemons
         # and tools will have any ZenPack monkey-patched methods available.
         import Products.ZenossStartup
+
         unused(Products.ZenossStartup)
         zcml.load_site()
         import Products.ZenWidgets
-        load_config_override('scriptmessaging.zcml', Products.ZenWidgets)
+
+        load_config_override("scriptmessaging.zcml", Products.ZenWidgets)
 
         self.usage = "%prog [options]"
         self.noopts = noopts
@@ -118,41 +151,24 @@ class CmdBase(object):
 
         self.buildParser()
         self.buildOptions()
-
-        # Get defaults from global.conf. They will be overridden by
-        # daemon-specific config file or command line arguments.
-        applyGlobalConfToParser(self.parser)
+        # Update the defaults from the config files
+        self.parser.defaults.update(
+            _get_defaults_from_config([] if self.noopts else self.inputArgs)
+        )
         self.parseOptions()
-        if self.options.configfile:
-            self.parser.defaults = self.getConfigFileDefaults(self.options.configfile)
-            # We've updated the parser with defaults from configs, now we need
-            # to reparse our command-line to get the correct overrides from
-            # the command-line
-            self.parseOptions()
 
         if should_log is not None:
             self.doesLogging = should_log
-            
+
         if self.doesLogging:
             self.setupLogging()
 
-
     def buildParser(self):
         """
-        Create the options parser
+        Create the options parser.
         """
         if not self.parser:
-            from Products.ZenModel.ZenossInfo import ZenossInfo
-            try:
-                zinfo= ZenossInfo('')
-                version= str(zinfo.getZenossVersion())
-            except Exception:
-                from Products.ZenModel.ZVersion import VERSION
-                version= VERSION
-            self.parser = OptionParser(usage=self.usage,
-                                       version="%prog " + version,
-                                       option_class=LogSeverityOption)
-
+            self.parser = _build_parser()
 
     def buildOptions(self):
         """
@@ -163,117 +179,83 @@ class CmdBase(object):
         if self.doesLogging:
             group = OptionGroup(self.parser, "Logging Options")
             group.add_option(
-                '-v', '--logseverity',
-                dest='logseverity', default='INFO', type='loglevel',
-                help='Logging severity threshold',
+                "-v",
+                "--logseverity",
+                dest="logseverity",
+                default="INFO",
+                type="loglevel",
+                help="Logging severity threshold",
             )
             group.add_option(
-                '--logpath', dest='logpath', default=zenPath('log'), type='str',
-                help='Override the default logging path; default $ZENHOME/log'
+                "--logpath",
+                dest="logpath",
+                default=zenPath("log"),
+                type="str",
+                help="Override the default logging path; default %default",
             )
             group.add_option(
-                '--maxlogsize',
-                dest='maxLogKiloBytes', default=10240, type='int',
-                help='Max size of log file in KB; default 10240',
+                "--maxlogsize",
+                dest="maxLogKiloBytes",
+                default=10240,
+                type="int",
+                help="Max size of log file in KB; default %default",
             )
             group.add_option(
-                '--maxbackuplogs',
-                dest='maxBackupLogs', default=3, type='int',
-                help='Max number of back up log files; default 3',
+                "--maxbackuplogs",
+                dest="maxBackupLogs",
+                default=3,
+                type="int",
+                help="Max number of back up log files; default %default",
             )
             self.parser.add_option_group(group)
 
-        self.parser.add_option("-C", "--configfile",
-                    dest="configfile",
-                    help="Use an alternate configuration file" )
+        self.parser.add_option(
+            "-C",
+            "--configfile",
+            dest="configfile",
+            help="Use an alternate configuration file",
+        )
 
-        self.parser.add_option("--genconf",
-                               action="store_true",
-                               default=False,
-                               help="Generate a template configuration file" )
+        self.parser.add_option(
+            "--genconf",
+            action="store_true",
+            default=False,
+            help="Generate a template configuration file",
+        )
 
-        self.parser.add_option("--genxmltable",
-                               action="store_true",
-                               default=False,
-                               help="Generate a Docbook table showing command-line switches." )
+        self.parser.add_option(
+            "--genxmltable",
+            action="store_true",
+            default=False,
+            help="Generate a Docbook table showing command-line switches.",
+        )
 
-        self.parser.add_option("--genxmlconfigs",
-                               action="store_true",
-                               default=False,
-                               help="Generate an XML file containing command-line switches." )
-
+        self.parser.add_option(
+            "--genxmlconfigs",
+            action="store_true",
+            default=False,
+            help="Generate an XML file containing command-line switches.",
+        )
 
     def parseOptions(self):
         """
-        Uses the optparse parse previously populated and performs common options.
+        Uses the optparse parse previously populated and performs common
+        options.
         """
-
-        if self.noopts:
-            args = []
-        else:
-            args = self.inputArgs
+        args = [] if self.noopts else self.inputArgs
 
         (self.options, self.args) = self.parser.parse_args(args=args)
 
         if self.options.genconf:
-            self.generate_configs( self.parser, self.options )
+            self.generate_configs(self.parser, self.options)
 
         if self.options.genxmltable:
-            self.generate_xml_table( self.parser, self.options )
+            self.generate_xml_table(self.parser, self.options)
 
         if self.options.genxmlconfigs:
-            self.generate_xml_configs( self.parser, self.options )
-
-
-    def getConfigFileDefaults(self, filename, correctErrors=True):
-        # TODO: This should be refactored - duplicated code with CmdBase.
-        """
-        Parse a config file which has key-value pairs delimited by white space,
-        and update the parser's option defaults with these values.
-
-        @parameter filename: name of configuration file
-        @type filename: string
-        """
-
-        options = self.parser.get_default_values()
-        lines = self.loadConfigFile(filename)
-        if lines:
-            lines, errors = self.validateConfigFile(filename, lines,
-                                                    correctErrors=correctErrors)
-
-            args = self.getParamatersFromConfig(lines)
-            try:
-                self.parser._process_args([], args, options)
-            except (BadOptionError, OptionValueError) as err:
-                print >>sys.stderr, 'WARN: %s in config file %s' % (err, filename)
-
-        return options.__dict__
-
-
-    def getGlobalConfigFileDefaults(self):
-        # Deprecated: This method is going away - it is duplicated in GlobalConfig.py
-        """
-        Parse a config file which has key-value pairs delimited by white space,
-        and update the parser's option defaults with these values.
-        """
-
-        filename = zenPath('etc', 'global.conf')
-        options = self.parser.get_default_values()
-        lines = self.loadConfigFile(filename)
-        if lines:
-            args = self.getParamatersFromConfig(lines)
-
-            try:
-                self.parser._process_args([], args, options)
-            except (BadOptionError, OptionValueError):
-                # Ignore it, we only care about our own options as defined in the parser
-                pass
-
-        return options.__dict__
-
+            self.generate_xml_configs(self.parser, self.options)
 
     def loadConfigFile(self, filename):
-        # TODO: This should be refactored - duplicated code with CmdBase.
         """
         Parse a config file which has key-value pairs delimited by white space.
 
@@ -286,37 +268,61 @@ class CmdBase(object):
         try:
             with open(filename) as file:
                 for line in file:
-                    if line.lstrip().startswith('#') or line.strip() == '':
-                        lines.append(dict(type='comment', line=line))
+                    if line.lstrip().startswith("#") or line.strip() == "":
+                        lines.append({"type": "comment", "line": line})
                     else:
                         try:
-                            # add default blank string for keys with no default value
-                            # valid delimiters are space, ':' and/or '=' (see ZenUtils/config.py)
-                            key, value = (re.split(r'[\s:=]+', line.strip(), 1) + ['',])[:2]
+                            # Add default blank string for keys with no
+                            # default value.
+                            # Valid delimiters are space, ':' and/or '='
+                            # (see ZenUtils/config.py)
+                            key, value = (
+                                re.split(r"[\s:=]+", line.strip(), maxsplit=1)
+                                + [""]
+                            )[:2]
                         except ValueError:
-                            lines.append(dict(type='option', line=line, key=line.strip(), value=None, option=None))
+                            lines.append(
+                                {
+                                    "type": "option",
+                                    "line": line,
+                                    "key": line.strip(),
+                                    "value": None,
+                                    "option": None,
+                                }
+                            )
                         else:
-                            option = self.parser.get_option('--%s' % key)
-                            lines.append(dict(type='option', line=line, key=key, value=value, option=option))
+                            option = self.parser.get_option("--%s" % key)
+                            lines.append(
+                                {
+                                    "type": "option",
+                                    "line": line,
+                                    "key": key,
+                                    "value": value,
+                                    "option": option,
+                                }
+                            )
         except IOError as e:
-            errorMessage = ('WARN: unable to read config file {filename} '
-                '-- skipping. ({exceptionName}: {exception})').format(
+            errorMessage = (
+                "WARN: unable to read config file {filename} "
+                "-- skipping. ({exceptionName}: {exception})"
+            ).format(
                 filename=filename,
                 exceptionName=e.__class__.__name__,
-                exception=e
+                exception=e,
             )
-            print >>sys.stderr, errorMessage
+            print(errorMessage, file=sys.stderr)
             return []
 
         return lines
 
-
-    def validateConfigFile(self, filename, lines, correctErrors=True, warnErrors=True):
+    def validateConfigFile(
+        self, filename, lines, correctErrors=True, warnErrors=True
+    ):
         """
-        Validate config file lines which has key-value pairs delimited by white space,
-        and validate that the keys exist for this command's option parser. If
-        the option does not exist or has an empty value it will comment it out
-        in the config file.
+        Validate config file lines which has key-value pairs delimited by
+        white space, and validate that the keys exist for this command's
+        option parser. If the option does not exist or has an empty value it
+        will comment it out in the config file.
 
         @parameter filename: path to the configuration file
         @type filename: string
@@ -326,88 +332,102 @@ class CmdBase(object):
             commented out.
         @type correctErrors: boolean
         """
-
         output = []
         errors = []
         validLines = []
         date = datetime.datetime.now().isoformat()
-        errorTemplate = '## Commenting out by config parser (%s) on %s: %%s\n' % (
-                sys.argv[0], date)
+        errorTemplate = (
+            "## Commenting out by config parser (%s) on %s: %%s\n"
+            % (sys.argv[0], date)
+        )
 
         for lineno, line in enumerate(lines):
-            if line['type'] == 'comment':
-                output.append(line['line'])
-            elif line['type'] == 'option':
-                if line['value'] is None:
-                    errors.append((lineno + 1, 'missing value for "%s"' % line['key']))
-                    output.append(errorTemplate % 'missing value')
-                    output.append('## %s' % line['line'])
-                elif line['option'] is None:
-                    errors.append((lineno + 1, 'unknown option "%s"' % line['key']))
-                    output.append(errorTemplate % 'unknown option')
-                    output.append('## %s' % line['line'])
+            if line["type"] == "comment":
+                output.append(line["line"])
+            elif line["type"] == "option":
+                if line["value"] is None:
+                    errors.append(
+                        (lineno + 1, 'missing value for "%s"' % line["key"])
+                    )
+                    output.append(errorTemplate % "missing value")
+                    output.append("## %s" % line["line"])
+                elif line["option"] is None:
+                    errors.append(
+                        (lineno + 1, 'unknown option "%s"' % line["key"])
+                    )
+                    output.append(errorTemplate % "unknown option")
+                    output.append("## %s" % line["line"])
                 else:
                     validLines.append(line)
-                    output.append(line['line'])
+                    output.append(line["line"])
             else:
-                errors.append((lineno + 1, 'unknown line "%s"' % line['line']))
-                output.append(errorTemplate % 'unknown line')
-                output.append('## %s' % line['line'])
+                errors.append((lineno + 1, 'unknown line "%s"' % line["line"]))
+                output.append(errorTemplate % "unknown line")
+                output.append("## %s" % line["line"])
 
         if errors:
             if correctErrors:
                 for lineno, message in errors:
-                    print >>sys.stderr, 'INFO: Commenting out %s on line %d in %s' % (message, lineno, filename)
+                    print(
+                        "INFO: Commenting out %s on line %d in %s"
+                        % (message, lineno, filename),
+                        file=sys.stderr,
+                    )
 
-                with open(filename, 'w') as file:
+                with open(filename, "w") as file:
                     file.writelines(output)
 
             if warnErrors:
                 for lineno, message in errors:
-                    print >>sys.stderr, 'WARN: %s on line %d in %s' % (message, lineno, filename)
+                    print(
+                        "WARN: %s on line %d in %s"
+                        % (message, lineno, filename),
+                        file=sys.stderr,
+                    )
 
         return validLines, errors
-
 
     def getParamatersFromConfig(self, lines):
         # Deprecated: This method is going away
         return _convertConfigLinesToArguments(self.parser, lines)
 
-
     def setupLogging(self):
         """
-        Set common logging options
+        Set common logging options.
         """
         rlog = logging.getLogger()
         rlog.setLevel(logging.WARN)
         mname = self.__class__.__name__
-        self.log = logging.getLogger("zen."+ mname)
+        self.log = logging.getLogger("zen." + mname)
         zlog = logging.getLogger("zen")
         try:
             loglevel = int(self.options.logseverity)
         except ValueError:
-            loglevel = getattr(logging, self.options.logseverity.upper(), logging.INFO)
+            loglevel = getattr(
+                logging, self.options.logseverity.upper(), logging.INFO
+            )
         zlog.setLevel(loglevel)
 
         logdir = self.checkLogpath()
         if logdir:
-            logfile = os.path.join(logdir, mname.lower()+".log")
+            logfile = os.path.join(logdir, mname.lower() + ".log")
             maxBytes = self.options.maxLogKiloBytes * 1024
             backupCount = self.options.maxBackupLogs
-            h = logging.handlers.RotatingFileHandler(logfile, maxBytes=maxBytes,
-                                                     backupCount=backupCount)
-            h.setFormatter(logging.Formatter(
-                "%(asctime)s %(levelname)s %(name)s: %(message)s",
-                "%Y-%m-%d %H:%M:%S"))
+            h = logging.handlers.RotatingFileHandler(
+                logfile, maxBytes=maxBytes, backupCount=backupCount
+            )
+            h.setFormatter(
+                logging.Formatter(
+                    "%(asctime)s %(levelname)s %(name)s: %(message)s",
+                    "%Y-%m-%d %H:%M:%S",
+                )
+            )
             rlog.addHandler(h)
         else:
             logging.basicConfig()
 
-
     def checkLogpath(self):
-        """
-        Validate the logpath is valid
-        """
+        """Validate the logpath is valid."""
         if not self.options.logpath:
             return None
         else:
@@ -417,93 +437,60 @@ class CmdBase(object):
                 try:
                     os.makedirs(logdir)
                 except OSError:
-                    raise SystemExit("logpath:%s doesn't exist and cannot be created" % logdir)
+                    raise SystemExit(
+                        "logpath:%s doesn't exist and cannot be created"
+                        % logdir
+                    )
             elif not os.path.isdir(logdir):
-                raise SystemExit("logpath:%s exists but is not a directory" % logdir)
+                raise SystemExit(
+                    "logpath:%s exists but is not a directory" % logdir
+                )
             return logdir
 
-
-    def pretty_print_config_comment( self, comment ):
+    def pretty_print_config_comment(self, comment):
         """
-        Quick and dirty pretty printer for comments that happen to be longer than can comfortably
-be seen on the display.
+        Quick and dirty pretty printer for comments that happen to be longer
+        than can comfortably be seen on the display.
         """
+        new_comment = textwrap.wrap(comment, width=75)
+        return "# " + "\n# ".join(new_comment)
 
-        max_size= 40
-        #
-        # As a heuristic we'll accept strings that are +-  text_window
-        # size in length.
-        #
-        text_window= 5
+    def _get_default_value(self, parser, opt):
+        default_value = parser.defaults.get(opt.dest)
+        if default_value is NO_DEFAULT or default_value is None:
+            return ""
+        return str(default_value)
 
-        if len( comment ) <= max_size + text_window:
-             return comment
+    def _get_help_text(self, opt, default_value):
+        if "%default" in opt.help:
+            return opt.help.replace("%default", default_value)
+        default_text = ""
+        if default_value != "":
+            default_text = " [default %s]" % (default_value,)
+        return opt.help + default_text
 
-        #
-        # First, take care of embedded newlines and expand them out to array entries
-        #
-        new_comment= []
-        all_lines= comment.split( '\n' )
-        for line in all_lines:
-           if len(line) <= max_size + text_window:
-                new_comment.append( line )
-                continue
-
-           start_position= max_size - text_window
-           while len(line) > max_size + text_window:
-                index= line.find( ' ', start_position )
-                if index > 0:
-                     new_comment.append( line[ 0:index ] )
-                     line= line[ index: ]
-
-                else:
-                     if start_position == 0:
-                        #
-                        # If we get here it means that the line is just one big string with no spaces
-                        # in it.  There's nothing that we can do except print it out.  Doh!
-                        #
-                        new_comment.append( line )
-                        break
-
-                     #
-                     # Okay, haven't found anything to split on -- go back and try again
-                     #
-                     start_position= start_position - text_window
-                     if start_position < 0:
-                        start_position= 0
-
-           else:
-                new_comment.append( line )
-
-        return "\n# ".join( new_comment )
-
-
-
-    def generate_configs( self, parser, options ):
+    def generate_configs(self, parser, options):
         """
-        Create a configuration file based on the long-form of the option names
+        Create a configuration file based on the long-form of the option names.
 
-        @parameter parser: an optparse parser object which contains defaults, help
-        @parameter options: parsed options list containing actual values
+        :param parser: an optparse parser object which contains defaults, help
+        :param options: parsed options list containing actual values
         """
-
         #
         # Header for the configuration file
         #
         unused(options)
-        daemon_name= os.path.basename( sys.argv[0] )
-        daemon_name= daemon_name.replace( '.py', '' )
+        daemon_name = os.path.basename(sys.argv[0])
+        daemon_name = daemon_name.replace(".py", "")
 
-        print """#
+        print(
+            """#
 # Configuration file for %s
 #
 #  To enable a particular option, uncomment the desired entry.
-#
-# Parameter     Setting
-# ---------     -------""" % ( daemon_name )
-
-
-        options_to_ignore= ( 'help', 'version', '', 'genconf', 'genxmltable' )
+#"""
+            % (daemon_name,)
+        )
 
         #
         # Create an entry for each of the command line flags
@@ -511,75 +498,69 @@ be seen on the display.
         # NB: Ideally, this should print out only the option parser dest
         #     entries, rather than the command line options.
         #
-        import re
         for opt in getAllParserOptionsGen(parser):
-                if opt.help is SUPPRESS_HELP:
-                        continue
+            if opt.help is SUPPRESS_HELP:
+                continue
 
-                #
-                # Get rid of the short version of the command
-                #
-                option_name= re.sub( r'.*/--', '', "%s" % opt )
+            #
+            # Don't include items in the ignore list
+            #
+            option_name = re.sub(r".*/--", "", "%s" % opt)
+            option_name = re.sub(r"^--", "", "%s" % option_name)
+            if option_name in _OPTIONS_TO_IGNORE:
+                continue
 
-                #
-                # And what if there's no short version?
-                #
-                option_name= re.sub( r'^--', '', "%s" % option_name )
+            #
+            # Find the actual value specified on the command line, if any,
+            # and display it
+            #
+            default_value = self._get_default_value(parser, opt)
+            help_text = self._get_help_text(opt, default_value)
+            description = self.pretty_print_config_comment(help_text)
 
-                #
-                # Don't display anything we shouldn't be displaying
-                #
-                if option_name in options_to_ignore:
-                        continue
+            value = getattr(parser.values, opt.dest)
+            if value is None:
+                value = default_value
 
-                #
-                # Find the actual value specified on the command line, if any,
-                # and display it
-                #
+            comment_char = "#" if str(value) == str(default_value) else ""
 
-                value= getattr( parser.values,  opt.dest )
-
-                default_value= parser.defaults.get( opt.dest )
-                if default_value is NO_DEFAULT or default_value is None:
-                        default_value= ""
-                default_string= ""
-                if default_value != "":
-                        default_string= ", default: " + str( default_value )
-
-                comment=  self.pretty_print_config_comment( opt.help + default_string )
-
-                #
-                # NB: I would prefer to use tabs to separate the parameter name
-                #     and value, but I don't know that this would work.
-                #
-                print """#
-# %s
-#%s %s""" % ( comment, option_name, value )
+            #
+            # NB: I would prefer to use tabs to separate the parameter name
+            #     and value, but I don't know that this would work.
+            #
+            print(
+                "\n".join(
+                    (
+                        "#",
+                        description,
+                        "%s%s %s" % (comment_char, option_name, value),
+                    )
+                )
+            )
 
         #
         # Pretty print and exit
         #
-        print "#"
-        sys.exit( 0 )
+        print("#")
+        sys.exit(0)
 
-
-
-    def generate_xml_table( self, parser, options ):
+    def generate_xml_table(self, parser, options):
         """
         Create a Docbook table based on the long-form of the option names
 
-        @parameter parser: an optparse parser object which contains defaults, help
-        @parameter options: parsed options list containing actual values
+        :param parser: an optparse parser object which contains defaults, help
+        :param options: parsed options list containing actual values
         """
 
         #
         # Header for the configuration file
         #
         unused(options)
-        daemon_name= os.path.basename( sys.argv[0] )
-        daemon_name= daemon_name.replace( '.py', '' )
+        daemon_name = os.path.basename(sys.argv[0])
+        daemon_name = daemon_name.replace(".py", "")
 
-        print """<?xml version="1.0" encoding="UTF-8"?>
+        print(
+            """<?xml version="1.0" encoding="UTF-8"?>
 
 <section version="4.0" xmlns="http://docbook.org/ns/docbook"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -589,13 +570,13 @@ be seen on the display.
    xmlns:html="http://www.w3.org/1999/xhtml"
    xmlns:db="http://docbook.org/ns/docbook"
 
-  xml:id="%s.options"
+  xml:id="{name}.options"
 >
 
-<title>%s Options</title>
+<title>{name} Options</title>
 <para />
 <table frame="all">
-  <caption>%s <indexterm><primary>Daemons</primary><secondary>%s</secondary></indexterm> options</caption>
+  <caption>{name} <indexterm><primary>Daemons</primary><secondary>{name}</secondary></indexterm> options</caption>
 <tgroup cols="2">
 <colspec colname="option" colwidth="1*" />
 <colspec colname="description" colwidth="2*" />
@@ -606,10 +587,10 @@ be seen on the display.
 </row>
 </thead>
 <tbody>
-""" % ( daemon_name, daemon_name, daemon_name, daemon_name )
-
-
-        options_to_ignore= ( 'help', 'version', '', 'genconf', 'genxmltable' )
+""".format(  # noqa E501
+                name=daemon_name
+            )
+        )
 
         #
         # Create an entry for each of the command line flags
@@ -618,73 +599,91 @@ be seen on the display.
         #     entries, rather than the command line options.
         #
         import re
+
         for opt in getAllParserOptionsGen(parser):
-                if opt.help is SUPPRESS_HELP:
-                        continue
+            if opt.help is SUPPRESS_HELP:
+                continue
 
-                #
-                # Create a Docbook-happy version of the option strings
-                # Yes, <arg></arg> would be better semantically, but the output
-                # just looks goofy in a table.  Use literal instead.
-                #
-                all_options= '<literal>' + re.sub( r'/', '</literal>,</para> <para><literal>', "%s" % opt ) + '</literal>'
+            #
+            # Create a Docbook-happy version of the option strings
+            # Yes, <arg></arg> would be better semantically, but the output
+            # just looks goofy in a table.  Use literal instead.
+            #
+            all_options = (
+                "<literal>"
+                + re.sub(
+                    r"/", "</literal>,</para> <para><literal>", "%s" % opt
+                )
+                + "</literal>"
+            )
 
-                #
-                # Don't display anything we shouldn't be displaying
-                #
-                option_name= re.sub( r'.*/--', '', "%s" % opt )
-                option_name= re.sub( r'^--', '', "%s" % option_name )
-                if option_name in options_to_ignore:
-                        continue
+            #
+            # Don't display anything we shouldn't be displaying
+            #
+            option_name = re.sub(r".*/--", "", "%s" % opt)
+            option_name = re.sub(r"^--", "", "%s" % option_name)
+            if option_name in _OPTIONS_TO_IGNORE:
+                continue
 
-                default_value= parser.defaults.get( opt.dest )
-                if default_value is NO_DEFAULT or default_value is None:
-                        default_value= ""
-                default_string= ""
-                if default_value != "":
-                        default_string= "<para> Default: <literal>" + str( default_value ) + "</literal></para>\n"
+            default_value = self._get_default_value(parser, opt)
 
-                comment= self.pretty_print_config_comment( opt.help )
+            if "%default" in opt.help:
+                comment = opt.help.replace("%default", default_value)
+            else:
+                comment = opt.help
 
-#
-# TODO: Determine the variable name used and display the --option_name=variable_name
-#
-                if opt.action in [ 'store_true', 'store_false' ]:
-                   print """<row>
+            default_string = ""
+            if default_value != "":
+                default_string = (
+                    "<para> Default: <literal>"
+                    + str(default_value)
+                    + "</literal></para>\n"
+                )
+
+            # comment = self.pretty_print_config_comment(opt.help)
+
+            #
+            # TODO: Determine the variable name used and display the
+            # --option_name=variable_name
+            #
+            if opt.action in ["store_true", "store_false"]:
+                print(
+                    """<row>
 <entry> <para>%s</para> </entry>
 <entry>
 <para>%s</para>
 %s</entry>
-</row>
-""" % ( all_options, comment, default_string )
+</row>"""
+                    % (all_options, comment, default_string)
+                )
 
-                else:
-                   target= '=<replaceable>' +  opt.dest.lower() + '</replaceable>'
-                   all_options= all_options + target
-                   all_options= re.sub( r',', target + ',', all_options )
-                   print """<row>
+            else:
+                target = "=<replaceable>" + opt.dest + "</replaceable>"
+                all_options = all_options + target
+                all_options = re.sub(r",", target + ",", all_options)
+                print(
+                    """<row>
 <entry> <para>%s</para> </entry>
 <entry>
 <para>%s</para>
 %s</entry>
-</row>
-""" % ( all_options, comment, default_string )
-
-
+</row>"""
+                    % (all_options, comment, default_string)
+                )
 
         #
         # Close the table elements
         #
-        print """</tbody></tgroup>
+        print(
+            """</tbody></tgroup>
 </table>
 <para />
 </section>
 """
-        sys.exit( 0 )
+        )
+        sys.exit(0)
 
-
-
-    def generate_xml_configs( self, parser, options ):
+    def generate_xml_configs(self, parser, options):
         """
         Create an XML file that can be used to create Docbook files
         as well as used as the basis for GUI-based daemon option
@@ -695,21 +694,17 @@ be seen on the display.
         # Header for the configuration file
         #
         unused(options)
-        daemon_name= os.path.basename( sys.argv[0] )
-        daemon_name= daemon_name.replace( '.py', '' )
+        daemon_name = os.path.basename(sys.argv[0]).replace(".py", "")
 
         export_date = datetime.datetime.now()
 
-        print """<?xml version="1.0" encoding="UTF-8"?>
+        print(
+            """<?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Default daemon configuration generated on %s -->
 <configuration id="%s" >
-
-""" % ( export_date, daemon_name )
-
-        options_to_ignore= (
-            'help', 'version', '', 'genconf', 'genxmltable',
-            'genxmlconfigs',
+"""
+            % (export_date, daemon_name)
         )
 
         #
@@ -718,42 +713,108 @@ be seen on the display.
         # NB: Ideally, this should print out only the option parser dest
         #     entries, rather than the command line options.
         #
-        import re
         for opt in getAllParserOptionsGen(parser):
-                if opt.help is SUPPRESS_HELP:
-                        continue
+            if opt.help is SUPPRESS_HELP:
+                continue
 
-                #
-                # Don't display anything we shouldn't be displaying
-                #
-                option_name= re.sub( r'.*/--', '', "%s" % opt )
-                option_name= re.sub( r'^--', '', "%s" % option_name )
-                if option_name in options_to_ignore:
-                        continue
+            #
+            # Don't display anything we shouldn't be displaying
+            #
+            option_name = re.sub(r".*/--", "", "%s" % opt)
+            option_name = re.sub(r"^--", "", "%s" % option_name)
+            if option_name in _OPTIONS_TO_IGNORE:
+                continue
 
-                default_value= parser.defaults.get( opt.dest )
-                if default_value is NO_DEFAULT or default_value is None:
-                        default_string= ""
-                else:
-                        default_string= str( default_value )
+            default_value = self._get_default_value(parser, opt)
+            help_text = quote(self._get_help_text(opt, default_value))
 
-#
-# TODO: Determine the variable name used and display the --option_name=variable_name
-#
-                if opt.action in [ 'store_true', 'store_false' ]:
-                   print """    <option id="%s" type="%s" default="%s" help="%s" />
-""" % ( option_name, "boolean", default_string, quote(opt.help),  )
-
-                else:
-                   target= opt.dest.lower()
-                   print """    <option id="%s" type="%s" default="%s" target="%s" help="%s" />
-""" % ( option_name, opt.type, quote(default_string), target, quote(opt.help), )
-
+            #
+            # TODO: Determine the variable name used and display the
+            # --option_name=variable_name
+            #
+            if opt.action in ["store_true", "store_false"]:
+                params = (
+                    ("id", option_name),
+                    ("type", "boolean"),
+                    ("default", default_value),
+                    ("help", help_text),
+                )
+            else:
+                params = (
+                    ("id", option_name),
+                    ("type", opt.type),
+                    ("default", quote(default_value)),
+                    ("target", opt.dest),
+                    ("help", help_text),
+                )
+            print(
+                "    <option %s />\n"
+                % " ".join('%s="%s"' % (k, v) for k, v in params),
+                end="",
+            )
 
         #
         # Close the table elements
         #
-        print """
-</configuration>
-"""
-        sys.exit( 0 )
+        print("\n</configuration>")
+        sys.exit(0)
+
+
+def _build_parser(cls=OptionParser):
+    from Products.ZenModel.ZenossInfo import ZenossInfo
+
+    try:
+        zinfo = ZenossInfo("")
+        version = str(zinfo.getZenossVersion())
+    except Exception:
+        from Products.ZenModel.ZVersion import VERSION
+
+        version = VERSION
+    return cls(
+        version="%prog " + version,
+        option_class=CmdBaseOption,
+    )
+
+
+def _get_defaults_from_config(args):
+    overrides = dict(getGlobalConfiguration())
+
+    cparser = _build_parser(cls=_KnownOptionsParser)
+    cparser.add_option(
+        "-C",
+        "--configfile",
+        dest="configfile",
+    )
+
+    opts, _ = cparser.parse_args(args=args)
+    if opts.configfile:
+        try:
+            appcfg = ConfigLoader(opts.configfile)()
+            overrides.update(appcfg)
+        except Exception as ex:  # noqa: F841 S110
+            # Restore this code when the wrapper scripts no longer
+            # add the -C option all the time.
+            # print("warning: {}".format(ex), file=sys.stderr)
+            pass
+    return {key.replace("-", "_"): value for key, value in overrides.items()}
+
+
+class _KnownOptionsParser(OptionParser):
+    """
+    Extend OptionParser to skip unknown options and disable --help.
+    """
+
+    def __init__(self, *args, **kwargs):
+        OptionParser.__init__(self, *args, add_help_option=False, **kwargs)
+
+    def _process_long_opt(self, rargs, values):
+        try:
+            OptionParser._process_long_opt(self, rargs, values)
+        except BadOptionError:
+            pass
+
+    def _process_short_opts(self, rargs, values):
+        try:
+            OptionParser._process_short_opts(self, rargs, values)
+        except BadOptionError:
+            pass

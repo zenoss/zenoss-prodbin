@@ -15,11 +15,11 @@ import zope.component
 from twisted.internet import reactor, error, defer
 from twisted.python import failure
 from twisted.internet.error import TimeoutError
-from pynetsnmp.twistedsnmp import snmpprotocol, Snmpv3Error
+from pynetsnmp.twistedsnmp import snmpprotocol, SnmpUsmError
 
-from Products.ZenCollector.interfaces import IEventService
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
+from Products.ZenHub.interfaces import IEventService
 from Products.ZenUtils.Driver import drive
 from Products.ZenUtils.snmp import (
     SnmpAgentDiscoverer,
@@ -48,15 +48,15 @@ class SnmpClient(BaseClient):
         options=None,
         device=None,
         datacollector=None,
-        plugins=[],
+        plugins=None,
     ):
-        BaseClient.__init__(self, device, datacollector)
+        super(SnmpClient, self).__init__(device, datacollector)
         global defaultTries, defaultTimeout
         self.hostname = hostname
         self.device = device
         self.options = options
         self.datacollector = datacollector
-        self.plugins = plugins
+        self.plugins = plugins if plugins else []
 
         self._getdata = {}
         self._tabledata = {}
@@ -71,12 +71,16 @@ class SnmpClient(BaseClient):
         if self.proxy is not None:
             self.proxy.close()
         srcport = snmpprotocol.port()
-        self.proxy = self.connInfo.createSession(srcport.protocol)
-        self.proxy.open()
+        try:
+            self.proxy = self.connInfo.createSession(srcport.protocol)
+            self.proxy.open()
+        except Exception as ex:
+            log.error("failed to initialize SNMP session  error=%s", ex)
+            self.proxy = None
 
     def run(self):
         """Start snmp collection."""
-        log.debug("Starting %s", self.connInfo.summary())
+        log.debug("starting  %s", self.connInfo.summary())
         self.initSnmpProxy()
         drive(self.doRun).addBoth(self.clientFinished)
 
@@ -98,18 +102,20 @@ class SnmpClient(BaseClient):
                 result = False
             else:
                 device.setLastPollSnmpUpTime(lastchange)
-        except Exception:
-            pass
+        except Exception as ex:
+            log.debug("failed to check Cisco change: %s", ex)
         yield defer.succeed(result)
 
     def doRun(self, driver):
+        if self.proxy is None:
+            return
         # test snmp connectivity
         log.debug("Testing SNMP configuration")
         yield self.proxy.walk(".1.3")
         try:
             driver.next()
         except TimeoutError:
-            log.info("Device timed out: %s", self.connInfo.summary())
+            log.info("device timed out  %s", self.connInfo.summary())
             if self.options.discoverCommunity:
                 yield self.findSnmpCommunity()
                 snmp_config = driver.next()
@@ -129,13 +135,14 @@ class SnmpClient(BaseClient):
                 self.initSnmpProxy()
             else:
                 raise
-        except Snmpv3Error:
+        except SnmpUsmError as ex:
             log.error(
-                "Cannot connect to SNMP agent: %s", self.connInfo.summary()
+                "cannot connect to SNMP agent  error=%s %s",
+                ex, self.connInfo.summary()
             )
             raise
         except Exception:
-            log.exception("Unable to talk: %s", self.connInfo.summary())
+            log.exception("unable to talk  %s", self.connInfo.summary())
             raise
 
         changed = True
@@ -266,16 +273,16 @@ class SnmpClient(BaseClient):
 
             if isinstance(result.value, error.TimeoutError):
                 log.error(
-                    "Device %s timed out: are " "your SNMP settings correct?",
+                    "device %s timed out: are your SNMP settings correct?",
                     self.hostname,
                 )
                 summary = "SNMP agent down - no response received"
                 log.info("Sending event: %s", summary)
-            elif isinstance(result.value, Snmpv3Error):
+            elif isinstance(result.value, SnmpUsmError):
                 log.error(
-                    "Connection to device %s failed: %s",
+                    "SNMP connection failed  device=%s error=%s",
                     self.hostname,
-                    result.value.message,
+                    result.value,
                 )
                 summary = "SNMP v3 specific error during SNMP collection"
             else:
@@ -286,13 +293,14 @@ class SnmpClient(BaseClient):
             self._sendStatusEvent(summary, eventKey="agent_down")
         else:
             self._sendStatusEvent(
-                "SNMP agent up", eventKey="agent_down", severity=Event.Clear
+                "SNMP agent up",
+                eventKey="agent_down",
+                severity=Event.Clear,
             )
         try:
             self.proxy.close()
         except AttributeError:
-            log.info("Caught AttributeError closing SNMP connection.")
-        """tell the datacollector that we are all done"""
+            log.info("caught AttributeError closing SNMP connection.")
         if self.datacollector:
             self.datacollector.clientFinished(self)
         else:

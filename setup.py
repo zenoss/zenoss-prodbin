@@ -1,22 +1,24 @@
+from __future__ import print_function
+
 from os import path  # , walk
 from distutils.command.build import build
 from setuptools import setup, find_packages
 from setuptools.command.develop import develop
 from setuptools.command.install import install
-from setuptools.command.sdist import sdist
 
 _here = path.abspath(path.dirname(__file__))
 
 with open(path.join(_here, "VERSION"), "r") as _f:
-    _version = ''.join(_f.readlines()).strip()
+    _version = "".join(_f.readlines()).strip()
 
 
 class ZenInstallCommand(install):
     """Used to disable installs."""
 
     def run(self):
-        print "Installation disabled"
+        print("Installation disabled")
         import sys
+
         sys.exit(1)
 
 
@@ -24,8 +26,9 @@ class ZenBuildCommand(build):
     """Used to disable builds."""
 
     def run(self):
-        print "Build disabled"
+        print("Build disabled")
         import sys
+
         sys.exit(1)
 
 
@@ -39,13 +42,6 @@ class ZenDevelopCommand(develop):
         "mp = m.__dict__.setdefault('__path__', [])",
         "(p not in mp) and mp.append(p)",
     )
-
-
-def applySchemaVersion(*args, **kw):
-    print("Applied: %s %s" % (args, kw))
-
-
-sdist.sub_commands.append(("apply_schema_version", applySchemaVersion))
 
 
 setup(
@@ -76,8 +72,12 @@ setup(
         "install": ZenInstallCommand,
     },
     entry_points={
+        "console_scripts": [
+            "configcache=Products.ZenCollector.configcache.__main__:main",
+            "zenjobs=Products.Jobber.bin:main",
+        ],
         "celery.commands": [
-            "monitor=Products.Jobber.monitor:ZenJobsMonitor",
+            "monitor=Products.Jobber.monitor:MonitorCommand",
         ],
     },
 )

@@ -281,6 +281,7 @@ def _getPrepublishingTimer():
 
 class PublishSynchronizer(object):
     _queuePublisher = None
+    _postPublishingEventArgs = ()
 
     def findNonImpactingEvents(self, events):
         """

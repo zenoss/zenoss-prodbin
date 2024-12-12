@@ -97,7 +97,8 @@ def decrementLegacyMetricCounters(event):
     global _legacy_worklist_counters
     for key in (event.priority, "total"):
         _legacy_worklist_counters[key] -= 1
-        # If the count falls below zero, there's a bug and should be logged.
+        # If the count falls below zero,
+        # there's a bug and should be logged.
         if _legacy_worklist_counters[key] < 0:
             log.warn(
                 "Counter is negative worklist=%s value=%s",

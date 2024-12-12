@@ -7,12 +7,12 @@
 #
 ##############################################################################
 
-from __future__ import print_function
-
 """CommandPerformanceConfig
 
 Provides configuration to zencommand clients.
 """
+
+from __future__ import print_function
 
 import logging
 import traceback
@@ -134,14 +134,13 @@ class CommandPerformanceConfig(CollectorConfigService):
                 if not ds.enabled:
                     continue
 
-                # Ignore SSH datasources if no username set
                 useSsh = getattr(ds, "usessh", False)
                 if useSsh and not device.zCommandUsername:
+                    # Send an event about no username set
                     self._warnUsernameNotSet(device)
-                    continue
-
-                # clear any lingering no-username events
-                self._clearUsernameNotSet(device)
+                else:
+                    # clear any lingering no-username events
+                    self._clearUsernameNotSet(device)
 
                 parserName = getattr(ds, "parser", "Auto")
                 ploader = getParserLoader(self.dmd, parserName)
@@ -253,7 +252,6 @@ class CommandPerformanceConfig(CollectorConfigService):
         if commands:
             proxy.datasources = list(commands)
             return proxy
-        return None
 
     def _sendCmdEvent(
         self,

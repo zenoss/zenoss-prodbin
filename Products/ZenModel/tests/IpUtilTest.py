@@ -137,14 +137,14 @@ class IpUtilTest(ZenModelBaseTest):
         self.assertEqual(
             IpUtil.numbip(
                 '192.168.2.3'),
-            3232236035L)
+            3232236035)
 
     def testStripGood(self):
         '''check that the strip function can
         convert a number back into an IP'''
         self.assertEqual(
             IpUtil.strip(
-                3232236035L),
+                3232236035),
             '192.168.2.3')
 
     def testGetNetBadIp(self):
@@ -173,7 +173,7 @@ class IpUtilTest(ZenModelBaseTest):
             IpUtil.getnet(
                 '192.168.2.3',
                 '255.255.240.0'),
-            3232235520L)
+            3232235520)
 
     def testGetNetStr(self):
         '''check to make sure getnetstr works fine,

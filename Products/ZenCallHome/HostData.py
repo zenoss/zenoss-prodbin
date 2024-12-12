@@ -7,44 +7,50 @@
 #
 ##############################################################################
 
-
-import string
-import os
+import logging
 import math
+import os
 import platform
 import socket
+import string
 
+from functools import total_ordering
 from subprocess import Popen, PIPE
-from Products.ZenCallHome import IHostData, IZenossEnvData
-from zope.interface import implements
 
-import logging
+from zope.interface import implementer
+
+from . import IHostData, IZenossEnvData
+
 log = logging.getLogger("zen.callhome")
 
-LOCAL_HOSTNAMES = ["localhost",
-                   "localhost.localdomain",
-                   socket.gethostname(),
-                   socket.getfqdn()]
+LOCAL_HOSTNAMES = [
+    "localhost",
+    "localhost.localdomain",
+    socket.gethostname(),
+    socket.getfqdn(),
+]
 
 
+@implementer(IHostData)
 class PlatformData(object):
-    implements(IHostData)
-
     def callHomeData(self):
         distro = " ".join(platform.linux_distribution())
         processor = platform.processor()
         system = platform.system()
         release = platform.release()
-        yield ("OS",
-               "{distro} {processor} "
-               "({system} kernel {release})".format(**locals()))
+        yield (
+            "OS",
+            "{distro} {processor} "
+            "({system} kernel {release})".format(**locals()),
+        )
 
 
+@implementer(IHostData)
 class ProcFileData(object):
     """
     Used to gather proc file  statistics for call home
     """
-    implements(IHostData)
+
     _proc_file = None
     _parser = None
 
@@ -80,7 +86,6 @@ class ProcFileData(object):
 
 
 class ProcFileParser(object):
-
     @classmethod
     def _parse_key_value(cls, line):
         if not line.strip():
@@ -89,7 +94,6 @@ class ProcFileParser(object):
 
 
 class CpuinfoParser(ProcFileParser):
-
     def __init__(self):
         self._processors = []
         self._processor = None
@@ -112,8 +116,10 @@ class CpuinfoParser(ProcFileParser):
             cores += count
             dct = dict(tuples)
             cache_size = convert_kb(dct["cache size"])
-            yield ("CPU",
-                   "{dct[model name]} ({cache_size} cache)".format(**locals()))
+            yield (
+                "CPU",
+                "{dct[model name]} ({cache_size} cache)".format(**locals()),
+            )
         yield "CPU Cores", cores
 
     def _summarize(self):
@@ -136,11 +142,10 @@ class CpuProcFileData(ProcFileData):
     _parser = CpuinfoParser
 
     def _ioErrorOutputHandler(self):
-        yield 'CPU Cores', 'Not available'
+        yield "CPU Cores", "Not available"
 
 
 class MemoryStat(object):
-
     def __init__(self, label, total_key, free_key):
         self.label = label
         self._total = [total_key, None]
@@ -152,15 +157,17 @@ class MemoryStat(object):
                 stat[1] = convert_kb(value, key.endswith("Total"))
 
     def __repr__(self):
-        return ("{self._free[1]} of "
-                "{self._total[1]} available").format(**locals())
+        return ("{self._free[1]} of " "{self._total[1]} available").format(
+            **locals()
+        )
 
 
 class MeminfoParser(ProcFileParser):
-
     def __init__(self):
-        self._stats = [MemoryStat("Memory", "MemTotal", "MemFree"),
-                       MemoryStat("Swap", "SwapTotal", "SwapFree")]
+        self._stats = [
+            MemoryStat("Memory", "MemTotal", "MemFree"),
+            MemoryStat("Swap", "SwapTotal", "SwapFree"),
+        ]
 
     def parse(self, line):
         key, value = self._parse_key_value(line)
@@ -179,13 +186,14 @@ class MemProcFileData(ProcFileData):
 
     def _ioErrorOutputHandler(self):
         for stat in self._parser()._stats:
-            yield stat.label, 'Not available'
+            yield stat.label, "Not available"
 
 
 class CommandData(object):
     """
     Base class for executing and return data based on executing a command
     """
+
     _args = []
     _parser = None
 
@@ -215,20 +223,27 @@ class CommandData(object):
         return tuple()
 
 
+@total_ordering
 class FilesystemInfo(object):
-
     def __init__(self, mounted_on="", size=None, avail=None):
         self.mounted_on = mounted_on
         self.size = size
         self.avail = avail
         self.supporting = []
 
-    def __cmp__(self, other_fs_info):
-        return cmp(self.mounted_on, other_fs_info.mounted_on)
+    def __eq__(self, other):
+        return self.mounted_on == other.mounted_on
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __lt__(self, other):
+        return self.mounted_on < other.mounted_on
 
     def __repr__(self):
-        repr_ = ("'{self.mounted_on}', "
-                 "{self.avail} of {self.size} available").format(**locals())
+        repr_ = (
+            "'{self.mounted_on}', " "{self.avail} of {self.size} available"
+        ).format(**locals())
         if self.supporting:
             supporting = ", ".join(self.supporting)
             repr_ = "{repr_} (supports {supporting})".format(**locals())
@@ -236,23 +251,26 @@ class FilesystemInfo(object):
 
 
 class DfParser(object):
-
     def __init__(self):
-        self._zenoss_mounts = {zenhome.environ_key: "",
-                               zendshome.environ_key: "",
-                               rabbitmq_mnesia_base.environ_key: ""}
+        self._zenoss_mounts = {
+            zenhome.environ_key: "",
+            zendshome.environ_key: "",
+            rabbitmq_mnesia_base.environ_key: "",
+        }
         self._filesystems = []
 
     def parse(self, line):
         if not line.startswith("/"):
             return
         filesystem, size, used, avail, use_pct, mounted_on = line.split()
-        fs_info = FilesystemInfo(mounted_on, convert_kb(size), convert_kb(
-                avail, False))
+        fs_info = FilesystemInfo(
+            mounted_on, convert_kb(size), convert_kb(avail, False)
+        )
 
         for environ_var in zenhome, zendshome, rabbitmq_mnesia_base:
             if environ_var.value is not None and environ_var.value.startswith(
-                    mounted_on):
+                mounted_on
+            ):
                 key = environ_var.environ_key
                 if len(mounted_on) > len(self._zenoss_mounts[key]):
                     fs_info.supporting.append(key)
@@ -266,8 +284,8 @@ class DfParser(object):
             yield "Filesystem", str(filesystem)
 
 
+@implementer(IHostData)
 class DfData(CommandData):
-    implements(IHostData)
 
     _args = ["df", "-Pk"]
     _parser = DfParser
@@ -276,9 +294,9 @@ class DfData(CommandData):
         yield "Filesystem", "Not Available"
 
 
+@implementer(IHostData)
 class HostId(CommandData):
-    implements(IHostData)
-    _args = ['hostid']
+    _args = ["hostid"]
 
     def __init__(self):
         self._parser = HostId
@@ -296,7 +314,6 @@ class HostId(CommandData):
 
 
 class RpmParser(object):
-
     def __init__(self, key):
         self._output = None
         self._key = key
@@ -306,22 +323,19 @@ class RpmParser(object):
 
     @property
     def output(self):
-        label = 'RPM'
+        label = "RPM"
         if self._key:
             label = "%s - %s" % (label, self._key)
         yield label, self._output
 
 
 class RPMData(CommandData):
-
     def __init__(self, rpm_arg):
         super(RPMData, self).__init__()
         self._rpm_arg = rpm_arg
-        if (
-            os.path.exists("/etc/redhat-release")
-            or
-            os.path.exists("/etc/SuSe-release")
-           ):
+        if os.path.exists("/etc/redhat-release") or os.path.exists(
+            "/etc/SuSe-release"
+        ):
             self._rpm_support = True
             self._args = ["rpm", "-q", rpm_arg]
         else:
@@ -332,7 +346,7 @@ class RPMData(CommandData):
         return RpmParser(self._rpm_arg)
 
     def _osErrorOutputHandler(self):
-        label = 'RPM'
+        label = "RPM"
         if self._rpm_arg:
             label = "%s - %s" % (label, self._rpm_arg)
         if self._rpm_support:
@@ -342,33 +356,30 @@ class RPMData(CommandData):
         yield label, value
 
 
+@implementer(IZenossEnvData)
 class ZenossRPMData(RPMData):
-    implements(IZenossEnvData)
-
     def __init__(self):
-        super(ZenossRPMData, self).__init__('zenoss')
+        super(ZenossRPMData, self).__init__("zenoss")
 
 
+@implementer(IZenossEnvData)
 class ZenDSRPMData(RPMData):
-    implements(IZenossEnvData)
-
     def __init__(self):
-        super(ZenDSRPMData, self).__init__('zends')
+        super(ZenDSRPMData, self).__init__("zends")
 
 
+@implementer(IZenossEnvData)
 class CoreZenpackRPMData(RPMData):
-    implements(IZenossEnvData)
-
     def __init__(self):
-        super(CoreZenpackRPMData, self).__init__('zenoss-core-zenpacks')
+        super(CoreZenpackRPMData, self).__init__("zenoss-core-zenpacks")
 
 
+@implementer(IZenossEnvData)
 class EnterpriseZenpackRPMData(RPMData):
-    implements(IZenossEnvData)
-
     def __init__(self):
         super(EnterpriseZenpackRPMData, self).__init__(
-            'zenoss-enterprise-zenpacks')
+            "zenoss-enterprise-zenpacks"
+        )
 
 
 class Zenhome(object):
@@ -437,29 +448,26 @@ class RabbitmqMnesiaBase(object):
 rabbitmq_mnesia_base = RabbitmqMnesiaBase()
 
 
+@implementer(IZenossEnvData)
 class ZenHomeData(object):
-    implements(IZenossEnvData)
-
     def callHomeData(self):
         return zenhome.generate()
 
 
+@implementer(IZenossEnvData)
 class ZenDSHomeData(object):
-    implements(IZenossEnvData)
-
     def callHomeData(self):
         return zendshome.generate()
 
 
+@implementer(IZenossEnvData)
 class RabbitData(object):
-    implements(IZenossEnvData)
-
     def callHomeData(self):
         return rabbitmq_mnesia_base.generate()
 
 
 def convert_kb(kb_str, round_up=True):
-    units = ['YB', 'ZB', 'EB', 'PB', 'TB', 'GB', 'MB', 'KB']
+    units = ["YB", "ZB", "EB", "PB", "TB", "GB", "MB", "KB"]
     quantity = int(kb_str.translate(None, string.ascii_letters))
     # 5 percent fudge factor for rounding up
     while quantity > (1024 - (1024 * 0.05)):

@@ -41,7 +41,7 @@ class SendZenossEventMixin(object):
 
 
 def _send_event(task, exc, task_id, args, kwargs):
-    classkey, summary = _getErrorInfo(task.app, exc)
+    classkey, summary = _getErrorInfo(task, exc)
     name = task.getJobType() if hasattr(task, "getJobType") else task.name
     publisher = getUtility(IEventPublisher)
     event = Event.Event(
@@ -67,21 +67,20 @@ def _send_event(task, exc, task_id, args, kwargs):
     mlog.info(*log_message)
 
 
-def _getTimeoutSummary(app, ex):
-    return "Job killed after {}.".format(
-        humanize_timedelta(
-            timedelta(
-                seconds=app.conf.get("CELERYD_TASK_SOFT_TIME_LIMIT"),
-            ),
-        ),
+def _getTimeoutSummary(task, ex):
+    _, soft_limit = task.request.timelimit or (None, None)
+    if soft_limit is None:
+        soft_limit = task.app.conf.get("task_soft_time_limit")
+    return "Job timed out after {}.".format(
+        humanize_timedelta(timedelta(seconds=soft_limit))
     )
 
 
-def _getAbortedSummary(app, ex):
+def _getAbortedSummary(task, ex):
     return "Job aborted by user"
 
 
-def _getErrorSummary(app, ex):
+def _getErrorSummary(task, ex):
     return "{0.__class__.__name__}: {0}".format(ex)
 
 
@@ -91,9 +90,9 @@ _error_eventkey_map = {
 }
 
 
-def _getErrorInfo(app, ex):
+def _getErrorInfo(task, ex):
     """Returns (eventkey, summary)."""
     key, summary_fn = _error_eventkey_map.get(
         type(ex).__name__, ("zenjobs-failure", _getErrorSummary)
     )
-    return key, summary_fn(app, ex)
+    return key, summary_fn(task, ex)

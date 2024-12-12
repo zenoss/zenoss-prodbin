@@ -29,6 +29,7 @@ from AccessControl import Permissions as permissions
 from DateTime import DateTime
 from OFS.SimpleItem import SimpleItem
 
+from Products.Jobber.zenjobs import app
 from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader
 from Products.ZenUtils.Utils import clearWebLoggingStream
 from Products.ZenUtils.IpUtil import getHostByName, ipwrap
@@ -182,7 +183,7 @@ class CreateDeviceJob(Job):
     """
     Create a new device object.
     """
-
+    name = 'CreateDeviceJob'
     # Declare DeviceExistsError as an expected exception so that a traceback
     # is not written to zenjobs' log.
     throws = Job.throws + (DeviceExistsError,)
@@ -275,6 +276,7 @@ class CreateDeviceJob(Job):
         return dev.setZenProperty(cProperty, value)
 
 
+app.register_task(CreateDeviceJob)
 # alias the DeviceCreationJob so zenpacks don't break
 DeviceCreationJob = CreateDeviceJob
 

@@ -1,24 +1,22 @@
-from unittest import TestCase
-from mock import Mock, patch, call, MagicMock, create_autospec
+import logging
 
-from Products.ZenHub.invalidations import (
-    betterObjectEventNotify,
+from unittest import TestCase
+from mock import Mock, patch, call, MagicMock
+from zope.component import adaptedBy
+
+from ..invalidations import (
+    _get_event,
+    _notify_event_subscribers,
     defer,
-    handle_oid,
     PrimaryPathObjectManager,
-    DeviceComponent,
     DeletionEvent,
     UpdateEvent,
     InvalidationProcessor,
     IInvalidationProcessor,
-    IITreeSet,
     IHubCreatedEvent,
-    INVALIDATIONS_PAUSED,
 )
+from .mock_interface import create_interface_mock
 
-from mock_interface import create_interface_mock
-
-from zope.component import adaptedBy
 
 """
 These tests are currently excellent examples of tests with excessive patching
@@ -27,13 +25,15 @@ Excessive patching indicates the function has too many side-effects
 Complicated Mocks indicate it reaches too deeply into external objects
 """
 
+PATH = {"src": "Products.ZenHub.invalidations"}
 
-class invalidationsTest(TestCase):
-    @patch("Products.ZenHub.invalidations.getGlobalSiteManager", autospec=True)
-    @patch("Products.ZenHub.invalidations.providedBy", autospec=True)
-    @patch("Products.ZenHub.invalidations.giveTimeToReactor", autospec=True)
-    def test_betterObjectEventNotify(
-        self, giveTimeToReactor, providedBy, getGlobalSiteManager
+
+class NotifyEventSubscribersTest(TestCase):
+    @patch("{src}.getGlobalSiteManager".format(**PATH), autospec=True)
+    @patch("{src}.providedBy".format(**PATH), autospec=True)
+    @patch("{src}.giveTimeToReactor".format(**PATH), autospec=True)
+    def test_notify_event_subscribers(
+        t, giveTimeToReactor, providedBy, getGlobalSiteManager
     ):
         gsm = Mock(name="global_site_manager", spec_set=["adapters"])
         getGlobalSiteManager.return_value = gsm
@@ -45,7 +45,7 @@ class invalidationsTest(TestCase):
         gsm.adapters.subscriptions.return_value = subscriptions
 
         event = Mock(name="event", spec_set=["object"])
-        ret = betterObjectEventNotify(event)
+        ret = _notify_event_subscribers(event)
 
         # Gets a list of subscriptions that adapt this event's interface
         gsm.adapters.subscriptions.assert_called_with(
@@ -60,180 +60,131 @@ class invalidationsTest(TestCase):
         )
 
         # InlineCallbacks return a Deferred
-        self.assertIsInstance(ret, defer.Deferred)
+        t.assertIsInstance(ret, defer.Deferred)
         # Has no return value
-        self.assertEqual(ret.result, None)
+        t.assertEqual(ret.result, None)
 
-    def setUp(self):
-        self.dmd = Mock(name="dmd", spec_set=["_p_jar"])
+
+class GetEventTest(TestCase):
+    def setUp(t):
+        t.dmd = Mock(name="dmd", spec_set=["_p_jar"])
         # object must be of type PrimaryPathObjectManager or DeviceComponent
-        self.obj = Mock(name="invalid type", spec_set=[])
-        self.oid = "oid"
-        self._p_jar = {self.oid: self.obj}
-        self.dmd._p_jar = self._p_jar
+        t.obj = Mock(name="invalid type", spec_set=[])
+        t.oid = "oid"
+        t._p_jar = {t.oid: t.obj}
+        t.dmd._p_jar = t._p_jar
 
-    def test_handle_oid(self):
-        """object must be of type PrimaryPathObjectManager or DeviceComponent
-        or it will be dropped, and handle_oid returns None
-        """
-        self.assertFalse(isinstance(self.obj, PrimaryPathObjectManager))
-        self.assertFalse(isinstance(self.obj, DeviceComponent))
-
-        ret = handle_oid(self.dmd, self.oid)
-        self.assertEqual(ret, None)
-
-    @patch(
-        "Products.ZenHub.invalidations.betterObjectEventNotify", autospec=True
-    )
-    def test_handle_oid_deletion(self, betterObjectEventNotify):
-        # Replace test object with a valid type
+    def test_get_deletion_event(t):
         obj = MagicMock(
             PrimaryPathObjectManager,
             name="primary_path_object_manager",
         )
-        self.dmd._p_jar = {self.oid: obj}
-        self.assertEqual(obj, self.dmd._p_jar[self.oid])
-        self.assertTrue(isinstance(obj, PrimaryPathObjectManager))
-
+        t.dmd._p_jar = {t.oid: obj}
         # obj.__of__(dmd).primaryAq() ensures we get the primary path
         primary_aq = obj.__of__.return_value.primaryAq
         # raising a KeyError indicates a deleted object
         primary_aq.side_effect = KeyError()
 
-        # Returns the result of betterObjectEventNotify(event)
-        # where event is a new UpdateEvent or DeleteEvent instance
-        # mock betterObjectEventNotify to pass back its one input
-        betterObjectEventNotify.side_effect = lambda event: event
+        t.assertEqual(obj, t.dmd._p_jar[t.oid])
+        t.assertTrue(isinstance(obj, PrimaryPathObjectManager))
 
-        # execute
-        ret = handle_oid(self.dmd, self.oid)
+        ret = _get_event(t.dmd, obj, t.oid)
+        t.assertIsInstance(ret, DeletionEvent)
 
-        # validate side effects
-        obj.__of__.assert_called_with(self.dmd)
-        primary_aq.assert_called_once_with()
-
-        # validate return value
-        # should be a deferred wrapping a deletion event, yielded from BOEN
-        # but we had to short-circut betterObjectEventNotify
-        self.assertIsInstance(ret, DeletionEvent)
-
-    @patch(
-        "Products.ZenHub.invalidations.betterObjectEventNotify", autospec=True
-    )
-    def test_handle_oid_update(self, betterObjectEventNotify):
-        # Replace test object with a valid type
+    def test_get_updated_event(t):
         obj = MagicMock(
             PrimaryPathObjectManager,
             name="primary_path_object_manager",
         )
-        self.dmd._p_jar = {self.oid: obj}
+        t.dmd._p_jar = {t.oid: obj}
+        obj.__of__.return_value.primaryAq.return_value = obj
 
-        # obj.__of__(dmd).primaryAq() ensures we get the primary path
-        primary_aq = obj.__of__.return_value.primaryAq
+        t.assertEqual(obj, t.dmd._p_jar[t.oid])
+        t.assertTrue(isinstance(obj, PrimaryPathObjectManager))
 
-        # Returns the result of betterObjectEventNotify(event)
-        # where event is a new UpdateEvent or DeleteEvent instance
-        # mock betterObjectEventNotify to pass back its one input
-        betterObjectEventNotify.side_effect = lambda event: event
-
-        # execute
-        ret = handle_oid(self.dmd, self.oid)
-
-        # validate side effects
-        obj.__of__.assert_called_with(self.dmd)
-        primary_aq.assert_called_once_with()
-
-        # validate return value
-        # should be a deferred wrapping a deletion event,
-        # yielded from betterObjectEventNotify
-        # but we had to short-circut betterObjectEventNotify
-        self.assertIsInstance(ret, UpdateEvent)
+        actual = _get_event(t.dmd, obj, t.oid)
+        t.assertIsInstance(actual, UpdateEvent)
 
 
 class InvalidationProcessorTest(TestCase):
-    def setUp(self):
-        self.patch_getGlobalSiteManager = patch(
-            "Products.ZenHub.invalidations.getGlobalSiteManager", autospec=True
+    def setUp(t):
+        logging.disable(logging.CRITICAL)
+        t.patch_getGlobalSiteManager = patch(
+            "{src}.getGlobalSiteManager".format(**PATH), autospec=True
         )
-        self.getGlobalSiteManager = self.patch_getGlobalSiteManager.start()
+        t.getGlobalSiteManager = t.patch_getGlobalSiteManager.start()
 
-        self.ip = InvalidationProcessor()
-        self.ip._hub = Mock(name="zenhub", spec_set=["dmd"])
-        self.ip._hub_ready = Mock(name="_hub_ready_deferred")
-        self.ip._invalidation_queue = Mock(spec_set=IITreeSet)
+        t.ip = InvalidationProcessor()
+        t.ip._hub = Mock(name="zenhub", spec_set=["dmd"])
+        t.ip._hub.dmd._p_jar = {}
+        t.ip._hub_ready = Mock(name="_hub_ready_deferred")
 
-    def tearDown(self):
-        self.patch_getGlobalSiteManager.stop()
+    def tearDown(t):
+        logging.disable(logging.NOTSET)
+        t.patch_getGlobalSiteManager.stop()
 
-    def test_init(self):
+    def test_init(t):
         IInvalidationProcessor.implementedBy(InvalidationProcessor)
 
         ip = InvalidationProcessor()
 
         IInvalidationProcessor.providedBy(ip)
-        # current version cannot be verified, setHub attribute not provided
-        # verifyObject(IInvalidationProcessor, processor)
 
-        self.assertIsInstance(ip._invalidation_queue, IITreeSet)
-        self.assertIsInstance(ip._hub_ready, defer.Deferred)
+        t.assertIsInstance(ip._hub_ready, defer.Deferred)
         # Registers its onHubCreated trigger, to wait for a HubCreated event
-        gsm = self.getGlobalSiteManager.return_value
+        gsm = t.getGlobalSiteManager.return_value
         gsm.registerHandler.assert_called_with(ip.onHubCreated)
 
-    def test_onHubCreated(self):
+    def test_onHubCreated(t):
         """this method gets triggered by a IHubCreatedEvent event"""
         # Is an adapter for IHubCreatedEvent type events
-        self.assertEqual(
+        t.assertEqual(
             list(adaptedBy(InvalidationProcessor.onHubCreated)),
             [IHubCreatedEvent],
         )
 
         IHubCreatedEventMock = create_interface_mock(IHubCreatedEvent)
         event = IHubCreatedEventMock()
-        self.ip._hub_ready = Mock(spec_set=defer.Deferred)
+        t.ip._hub_ready = Mock(spec_set=defer.Deferred)
 
-        self.ip.onHubCreated(event)
+        t.ip.onHubCreated(event)
 
         # _hub is set to the hub specified in the IHubCreatedEvent
-        self.assertEqual(self.ip._hub, event.hub)
+        t.assertEqual(t.ip._hub, event.hub)
         # the _hub_ready deffered gets called back / triggered
-        self.ip._hub_ready.callback.assert_called_with(self.ip._hub)
+        t.ip._hub_ready.callback.assert_called_with(t.ip._hub)
 
-    @patch("Products.ZenHub.invalidations.u64", autospec=True)
-    def test_processQueue(self, u64):
-        self.ip._hub.dmd.pauseHubNotifications = False
-        self.ip._dispatch = create_autospec(self.ip._dispatch)
-
+    @patch("{src}._get_event".format(**PATH), autospec=True)
+    @patch("{src}._notify_event_subscribers".format(**PATH), autospec=True)
+    def test_no_such_oids(t, notify_, get_event_):
         oids = ["oid1", "oid2", "oid3"]
-        ret = self.ip.processQueue(oids)
+        d = t.ip.processQueue(oids)
+        handled, ignored = d.result
 
-        u64.assert_has_calls([call(oid) for oid in oids])
-        self.ip._invalidation_queue.insert.assert_has_calls(
-            [call(u64.return_value) for _ in oids]
-        )
-        # WARNING: intended to return i>0 if successful, will currently
-        # reutrn 0 if a single oid passed in, even if successful
-        self.assertEqual(ret.result, len(oids) - 1)
+        t.assertTupleEqual((handled, ignored), (0, 0))
 
-    def test_processQueue_paused(self):
-        self.ip._hub.dmd.pauseHubNotifications = True
+    @patch("{src}._get_event".format(**PATH), autospec=True)
+    @patch("{src}._notify_event_subscribers".format(**PATH), autospec=True)
+    def test_ignored_oids(t, notify_, get_event_):
+        oids = ["oid1", "oid2", "oid3"]
+        objs = [Mock(), Mock(), Mock()]
+        t.ip._hub.dmd._p_jar.update(dict(zip(oids, objs)))
+        d = t.ip.processQueue(oids)
+        handled, ignored = d.result
 
-        ret = self.ip.processQueue("oids")
+        t.assertTupleEqual((handled, ignored), (0, 3))
 
-        self.assertEqual(ret.result, INVALIDATIONS_PAUSED)
+    @patch("{src}._get_event".format(**PATH), autospec=True)
+    @patch("{src}._notify_event_subscribers".format(**PATH), autospec=True)
+    def test_mix_of_oids(t, notify_, get_event_):
+        oids = ["oid1", "oid2", "oid3"]
+        objs = [
+            MagicMock(PrimaryPathObjectManager),
+            Mock(),
+            MagicMock(PrimaryPathObjectManager),
+        ]
+        t.ip._hub.dmd._p_jar.update(dict(zip(oids, objs)))
+        d = t.ip.processQueue(oids)
+        handled, ignored = d.result
 
-    @patch("Products.ZenHub.invalidations.handle_oid", autospec=True)
-    def test_dispatch(self, handle_oid):
-        handle_oid.fail = "derp"
-
-        dmd = self.ip._hub.dmd
-        oid = "oid"
-        ioid = "ioid"
-        queue = self.ip._invalidation_queue
-
-        ret = self.ip._dispatch(dmd, oid, ioid, queue)
-
-        handle_oid.assert_called_with(dmd, oid)
-        queue.remove.assert_called_with(ioid)
-
-        self.assertEqual(ret, handle_oid.return_value)
+        t.assertTupleEqual((handled, ignored), (2, 1))

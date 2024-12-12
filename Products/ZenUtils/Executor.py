@@ -19,21 +19,25 @@ log = logging.getLogger("zen.executor")
 
 
 def makeExecutor(queue=None, limit=0, log=log, startnow=True):
-    """Return a new task executor.
+    """
+    Return a new task executor.
 
     A limit of zero implies no limit.
 
-    @param name: Name of the executor
-    @type name: str
+    If startnow is False, then the `start` method must be called on the
+    returned executor to start the executor running.
 
-    @param queue: A queue-like object for storing tasks
-    @type queue: defer.DeferredQueue() or similiar
-
-    @param limit: The maximum number of concurrent tasks
-    @type limit: int
-
-    @param log: The log object
-    @type log: logging.Logger
+    :param name: Name of the executor
+    :type name: str
+    :param queue: A queue-like object for storing tasks
+    :type queue: defer.DeferredQueue() or equivalent
+    :param limit: The maximum number of concurrent tasks
+    :type limit: int
+    :param log: The log object
+    :type log: logging.Logger
+    :param startnow: If True, start the executor immediately (default True).
+    :type startnow: boolean
+    :rtype: AsyncExecutor
     """
     if queue is None:
         queue = defer.DeferredQueue()
@@ -136,10 +140,15 @@ class AsyncExecutor(object):
     def submit(self, call, timeout=None, label=""):
         """Submit a callable to run asynchronously.
 
-        @param call: A callable to be executed
-        @type call: callable
+        :param call: A callable to be executed
+        :type call: callable
+        :param timeout: how long a task can run before timeout?
+        :type timeout: float
+        :param label: A optional value to apply to a task.  This value can
+            be used to associate related tasks.
+        :type label: str
 
-        @return: A Deferred that returns the return value of the callable
+        :return: A Deferred that returns the return value of the callable
             if it does not raise an exception.  If the callable raises an
             exception, the Deferred returns the exception.
         """
@@ -207,15 +216,12 @@ class AsyncExecutor(object):
             )
             task.error(ex)
         except Exception as ex:
-            message = (
-                "Bad task  executor=%s task-id=%s label=%s",
-                self._id, task.id, task.label
-            )
+            message = "Bad task  executor=%s task-id=%s label=%s"
+            params = (self._id, task.id, task.label)
             if self._log.isEnabledFor(logging.DEBUG):
-                self._log.exception(message)
+                self._log.exception(message, *params)
             else:
-                self._log.error("%s: %s", message, ex)
-
+                self._log.error(message + " error=%s", *(params + (ex,)))
             task.error(ex)
         finally:
             self._tasks_running -= 1

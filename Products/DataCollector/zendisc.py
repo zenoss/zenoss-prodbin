@@ -21,6 +21,8 @@ import socket
 
 from optparse import SUPPRESS_HELP
 
+import six
+
 from twisted.internet import defer
 from twisted.names.error import DNSNameError
 
@@ -82,7 +84,7 @@ class ZenDisc(ZenModeler):
     """
 
     initialServices = PBDaemon.initialServices + ["DiscoverService"]
-    name = "zendisc"
+    mname = name = "zendisc"
     scanned = 0
 
     def __init__(self, single=True):
@@ -138,7 +140,14 @@ class ZenDisc(ZenModeler):
                 )
                 continue
             self.log.info("Discover network '%s'", net.getNetworkName())
-            results = yield self.pingMany(net.fullIpList())
+
+            full_ip_list = net.fullIpList()
+            if self.options.removeInterfaceIps:
+                full_ip_list = yield self.config().callRemote(
+                    "removeInterfaces", net
+                )
+
+            results = yield self.pingMany(full_ip_list)
             goodips, badips = _partitionPingResults(results)
             self.log.debug(
                 "Found %d good IPs and %d bad IPs", len(goodips), len(badips)
@@ -162,7 +171,7 @@ class ZenDisc(ZenModeler):
         back.
         """
         iprange = self.options.range
-        if isinstance(iprange, basestring):
+        if isinstance(iprange, six.string_types):
             iprange = [iprange]
         # in case someone uses 10.0.0.0-5,192.168.0.1-5 instead of
         # --range 10.0.0.0-5 --range 192.168.0.1-5
@@ -177,8 +186,8 @@ class ZenDisc(ZenModeler):
         self.log.debug(
             "Found %d good IPs and %d bad IPs", len(goodips), len(badips)
         )
-        devices = yield self.discoverDevices(goodips)
         self.log.info("Discovered %d active IPs", len(goodips))
+        devices = yield self.discoverDevices(goodips)
         defer.returnValue(devices)
 
     @defer.inlineCallbacks
@@ -221,16 +230,16 @@ class ZenDisc(ZenModeler):
         if dev:
             devname = dev.id
         msg = "Discovered device name '%s' for ip '%s'" % (devname, ip)
-        evt = dict(
-            device=devname,
-            ipAddress=ip,
-            eventKey=ip,
-            component=comp,
-            eventClass=Status_Snmp,
-            summary=msg,
-            severity=sev,
-            agent="Discover",
-        )
+        evt = {
+            "device": devname,
+            "ipAddress": ip,
+            "eventKey": ip,
+            "component": comp,
+            "eventClass": Status_Snmp,
+            "summary": msg,
+            "severity": sev,
+            "agent": "Discover",
+        }
         self.sendEvent(evt)
 
     @defer.inlineCallbacks
@@ -295,45 +304,44 @@ class ZenDisc(ZenModeler):
         timeout, retries = snmp_conf["zSnmpTimeout"], snmp_conf["zSnmpTries"]
         if snmp_conf["zSnmpVer"] == SnmpV3Config.version:
             for port in ports:
+                engine = snmp_conf.get("zSnmpEngineId")
+                context = snmp_conf.get("zSnmpContext")
+
+                common_params = {
+                    "ip": ip,
+                    "port": port,
+                    "timeout": timeout,
+                    "retries": retries,
+                    "securityName": snmp_conf["zSnmpSecurityName"],
+                }
+
+                if engine:
+                    common_params["engine"] = engine
+                if context:
+                    common_params["context"] = context
+
                 if snmp_conf["zSnmpPrivType"] and snmp_conf["zSnmpAuthType"]:
-                    configs.append(
-                        SnmpV3Config(
-                            ip,
-                            port=port,
-                            timeout=timeout,
-                            retries=retries,
-                            weight=3,
-                            securityName=snmp_conf["zSnmpSecurityName"],
-                            authType=snmp_conf["zSnmpAuthType"],
-                            authPassphrase=snmp_conf["zSnmpAuthPassword"],
-                            privType=snmp_conf["zSnmpPrivType"],
-                            privPassphrase=snmp_conf["zSnmpPrivPassword"],
-                        )
-                    )
+                    params = common_params.copy()
+                    params.update({
+                        "authType": snmp_conf["zSnmpAuthType"],
+                        "authPassphrase": snmp_conf["zSnmpAuthPassword"],
+                        "privType": snmp_conf["zSnmpPrivType"],
+                        "privPassphrase": snmp_conf["zSnmpPrivPassword"],
+                        "weight": 3,
+                    })
+                    configs.append(SnmpV3Config(**params))
                 elif snmp_conf["zSnmpAuthType"]:
-                    configs.append(
-                        SnmpV3Config(
-                            ip,
-                            port=port,
-                            timeout=timeout,
-                            retries=retries,
-                            weight=2,
-                            securityName=snmp_conf["zSnmpSecurityName"],
-                            authType=snmp_conf["zSnmpAuthType"],
-                            authPassphrase=snmp_conf["zSnmpAuthPassword"],
-                        )
-                    )
+                    params = common_params.copy()
+                    params.update({
+                        "authType": snmp_conf["zSnmpAuthType"],
+                        "authPassphrase": snmp_conf["zSnmpAuthPassword"],
+                        "weight": 2,
+                    })
+                    configs.append(SnmpV3Config(**params))
                 else:
-                    configs.append(
-                        SnmpV3Config(
-                            ip,
-                            port=port,
-                            timeout=timeout,
-                            retries=retries,
-                            weight=1,
-                            securityName=snmp_conf["zSnmpSecurityName"],
-                        )
-                    )
+                    params = common_params.copy()
+                    params["weight"] = 1
+                    configs.append(SnmpV3Config(**params))
         else:
             self.log.debug("Override acquired community strings")
             # Use a default set of SNMP community strings if the device
@@ -408,16 +416,16 @@ class ZenDisc(ZenModeler):
                 defer.returnValue(None)
 
         try:
-            kw = dict(
-                deviceName=ip,
-                discoverProto=None,
-                devicePath=devicepath,
-                performanceMonitor=self.options.monitor,
-                locationPath=self.options.location,
-                groupPaths=self.options.groups,
-                systemPaths=self.options.systems,
-                productionState=prodState,
-            )
+            kw = {
+                "deviceName": ip,
+                "discoverProto": None,
+                "devicePath": devicepath,
+                "performanceMonitor": self.options.monitor,
+                "locationPath": self.options.location,
+                "groupPaths": self.options.groups,
+                "systemPaths": self.options.systems,
+                "productionState": prodState,
+            }
 
             # If zProperties are set via a job, get them and pass them in
             if self.options.job:
@@ -542,18 +550,18 @@ class ZenDisc(ZenModeler):
             self.log.exception(e)
             if self.options.snmpMissing:
                 self.sendEvent(
-                    dict(
-                        device=ip,
-                        component=ip,
-                        ipAddress=ip,
-                        eventKey=ip,
-                        eventClass=Status_Snmp,
-                        summary=str(e),
-                        severity=Info,
-                        agent="Discover",
-                    )
+                    {
+                        "device": ip,
+                        "component": ip,
+                        "ipAddress": ip,
+                        "eventKey": ip,
+                        "eventClass": Status_Snmp,
+                        "summary": str(e),
+                        "severity": Info,
+                        "agent": "Discover",
+                    }
                 )
-        except Exception as e:
+        except Exception:
             self.log.exception("Failed device discovery for '%s'", ip)
         finally:
             self.log.info("Finished scanning device with address %s", ip)
@@ -570,7 +578,7 @@ class ZenDisc(ZenModeler):
         """
         network = self.options.net
         # net option from the config file is a string
-        if isinstance(network, basestring):
+        if isinstance(network, six.string_types):
             network = [network]
         # in case someone uses 10.0.0.0,192.168.0.1 instead of
         # --net 10.0.0.0 --net 192.168.0.1
@@ -872,6 +880,15 @@ class ZenDisc(ZenModeler):
             default=False,
             help="Prefer SNMP name to DNS name when modeling via SNMP.",
         )
+        self.parser.add_option(
+            "--remove-interface-ips",
+            dest="removeInterfaceIps",
+            action="store_true",
+            default=False,
+            help="Skip discovery on IPs already assigned to interfaces "
+            "(device components).",
+        )
+
         # --job: a development-only option that jobs will use to communicate
         # their existence to zendisc. Not for users, so help is suppressed.
         self.parser.add_option("--job", dest="job", help=SUPPRESS_HELP)

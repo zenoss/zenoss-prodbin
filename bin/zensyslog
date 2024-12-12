@@ -12,7 +12,7 @@
 . $ZENHOME/bin/zenfunctions
 
 PRGHOME=$ZENHOME/Products/ZenEvents
-PRGNAME=zensyslog.py
+PRGNAME=zensyslog
 CFGFILE=$CFGDIR/zensyslog.conf
 
 generic "$@"

@@ -24,6 +24,7 @@ from Products.ZenTestCase.BaseTestCase import (
     BaseTestCase,
     init_model_catalog_for_tests,
 )
+from Products.ZenUtils.ZenDocTest import load_unittest_site
 
 
 class EventLogger(object):
@@ -54,7 +55,6 @@ class ITestItem(interface.Interface):
 
 @interface.implementer(ITestItem, IItem)
 class TestItem(RelationshipManager):
-
     def __init__(self, id):
         self.id = id
         self.buildRelations()
@@ -96,7 +96,7 @@ class EventLayer(ZopeLite):
     def setUp(cls):
         import Products  # noqa F401
 
-        zcml.load_site(force=True)
+        load_unittest_site(force=True)
         setHooks()
 
         # Register Model Catalog related stuff

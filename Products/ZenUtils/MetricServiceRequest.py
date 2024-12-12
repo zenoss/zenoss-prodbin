@@ -67,7 +67,6 @@ class MetricServiceRequest(object):
             metrics.append(dict(
                 metric=name,
                 aggregator=self._aggMapping.get(cf.lower(), cf.lower()),
-                rpn='',
                 rate=rate,
                 format='%.2lf',
                 tags=dict(contextUUID=[uuid]),
@@ -98,9 +97,8 @@ class MetricServiceRequest(object):
         """
         metricQueries = []
         for metric in metrics:
-            log.info("fetchMetrics metrics %s", metric)
+            log.debug("fetchMetrics metrics %s", metric)
             cf = metric.get('cf', 'average')
-            rpn = metric.get('rpn', '')
             rate = metric.get('rate', False)
             tags = metric['tags']
             downsample = metric.get('downsample', '5m-avg')
@@ -109,21 +107,18 @@ class MetricServiceRequest(object):
                 metric=metricName,
                 downsample=downsample,
                 aggregator=self._aggMapping.get(cf.lower(), cf.lower()),
-                rpn=rpn,
                 rate=rate,
                 format='%.2lf',
-                tags=tags,
-                name=metricName
+                tags=tags
             ))
 
         request = dict(
             returnset=returnSet,
             start=start,
             end=end,
-            downsample=downsample,
             queries=metricQueries
         )
         body = FileBodyProducer(StringIO(json.dumps(request)))
-        log.info("POST %s %s %s", self._metric_url_v2, self._headers, json.dumps(request))
+        log.debug("POST %s %s %s", self._metric_url_v2, self._headers, json.dumps(request))
         d = self.agent.request('POST', self._metric_url_v2, self._headers, body)
         return d

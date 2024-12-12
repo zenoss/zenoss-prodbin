@@ -11,14 +11,14 @@ from __future__ import absolute_import, print_function
 
 import inspect
 import logging
-import logging.config
-import logging.handlers
 import os
 import sys
 
 from functools import wraps
 
-from celery.app import current_task
+import six
+
+from celery._state import get_current_task
 from celery.utils.log import (
     LoggingProxy as _LoggingProxy,
     logger_isa as _logger_isa,
@@ -152,7 +152,7 @@ class TaskFormatter(logging.Formatter):
         super(TaskFormatter, self).__init__(datefmt=datefmt)
 
     def format(self, record):  # noqa: A003
-        task = current_task()
+        task = get_current_task()
         if task and task.request:
             self._fmt = self._task
             record.__dict__.update(
@@ -236,7 +236,7 @@ class inject_logger(object):
                 if not isinstance(baselog, logging.getLoggerClass()):
                     raise TypeError("'log' callable does produce a logger")
                 self.baselog = baselog
-            elif isinstance(log, basestring):
+            elif isinstance(log, six.string_types):
                 self.baselog = logging.getLogger(log)
             else:
                 raise TypeError(

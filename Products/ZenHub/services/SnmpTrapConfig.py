@@ -7,22 +7,22 @@
 #
 ##############################################################################
 
-from __future__ import print_function
-
 """SnmpTrapConfig
 
 Provides configuration for an OID translation service.
 """
 
+from __future__ import absolute_import, print_function
+
+import json
 import logging
 
+from hashlib import md5
+
+from pynetsnmp import usm
 from twisted.spread import pb
 
-from Products.ZenCollector.services.config import CollectorConfigService
-from Products.ZenHub.zodb import onUpdate, onDelete
-from Products.ZenModel.DeviceClass import DeviceClass
-from Products.ZenModel.Device import Device
-from Products.ZenModel.MibBase import MibBase
+from Products.ZenHub.HubService import HubService
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 log = logging.getLogger("zen.HubService.SnmpTrapConfig")
@@ -41,77 +41,34 @@ class FakeDevice(object):
     id = "MIB payload"
 
 
-class User(pb.Copyable, pb.RemoteCopy):
-    version = None
-    engine_id = None
-    username = None
-    authentication_type = None  # MD5 or SHA
-    authentication_passphrase = None
-    privacy_protocol = None  # DES or AES
-    privacy_passphrase = None
+class User(usm.User, pb.Copyable, pb.RemoteCopy):
+    def getStateToCopy(self):
+        state = pb.Copyable.getStateToCopy(self)
+        if self.auth is not None:
+            state["auth"] = [self.auth.protocol.name, self.auth.passphrase]
+        else:
+            state["auth"] = None
+        if self.priv is not None:
+            state["priv"] = [self.priv.protocol.name, self.priv.passphrase]
+        else:
+            state["priv"] = None
+        return state
 
-    def __str__(self):
-        fmt = (
-            "<User(version={0.version},"
-            "engine_id={0.engine_id},"
-            "username={0.username},"
-            "authentication_type={0.authentication_type},"
-            "privacy_protocol={0.privacy_protocol})>"
-        )
-        return fmt.format(self)
+    def setCopyableState(self, state):
+        auth_args = state.get("auth")
+        state["auth"] = usm.Authentication(*auth_args) if auth_args else None
+        priv_args = state.get("priv")
+        state["priv"] = usm.Privacy(*priv_args) if priv_args else None
+        pb.RemoteCopy.setCopyableState(self, state)
 
 
 pb.setUnjellyableForClass(User, User)
 
 
-class SnmpTrapConfig(CollectorConfigService):
-
-    # Override _notifyAll, notifyAffectedDevices, _filterDevice and
-    # _filterDevicesOnly to guarantee that only one MibConfigTask is ever
-    # sent down to zentrap.
-
-    def _notifyAll(self, object):
-        pass
-
-    @onUpdate(None)  # Matches all
-    def notifyAffectedDevices(self, object, event):
-        pass
-
-    def _filterDevice(self, device):
-        return device.id == FakeDevice.id
-
-    def _filterDevices(self, deviceList):
-        return [FakeDevice()]
-
-    def _createDeviceProxy(self, device):
-        proxy = CollectorConfigService._createDeviceProxy(self, device)
-        proxy.configCycleInterval = 3600
-        proxy.name = "SNMP Trap Configuration"
-        proxy.device = device.id
-
-        # Gather all OID -> Name mappings from /Mibs catalog
-        proxy.oidMap = dict(
-            (b.oid, b.id) for b in self.dmd.Mibs.mibSearch() if b.oid
-        )
-
-        return proxy
-
-    def _create_user(self, obj):
-        # if v3 and has at least one v3 user property, then we want to
-        # create a user
-        if obj.getProperty("zSnmpVer", None) != "v3" or not any(
-            obj.hasProperty(p) for p in SNMPV3_USER_ZPROPS
-        ):
-            return
-        user = User()
-        user.version = int(obj.zSnmpVer[1])
-        user.engine_id = obj.zSnmpEngineId
-        user.username = obj.zSnmpSecurityName
-        user.authentication_type = obj.zSnmpAuthType
-        user.authentication_passphrase = obj.zSnmpAuthPassword
-        user.privacy_protocol = obj.zSnmpPrivType
-        user.privacy_passphrase = obj.zSnmpPrivPassword
-        return user
+class SnmpTrapConfig(HubService):
+    """
+    Configuration service for the zentrap collection daemon.
+    """
 
     def remote_createAllUsers(self):
         cat = IModelCatalogTool(self.dmd)
@@ -121,38 +78,60 @@ class SnmpTrapConfig(CollectorConfigService):
                 "Products.ZenModel.DeviceClass.DeviceClass",
             )
         )
-        users = []
+        users = set()
         for brain in brains:
             device = brain.getObject()
             user = self._create_user(device)
             if user is not None:
-                users.append(user)
+                users.add(user)
         log.debug("SnmpTrapConfig.remote_createAllUsers %s users", len(users))
-        return users
+        return list(users)
+
+    def remote_getTrapFilters(self, remoteCheckSum):
+        currentCheckSum = md5(self.zem.trapFilters).hexdigest()  # noqa S324
+        return (
+            (None, None)
+            if currentCheckSum == remoteCheckSum
+            else (currentCheckSum, self.zem.trapFilters)
+        )
+
+    def remote_getOidMap(self, remoteCheckSum):
+        oidMap = {b.oid: b.id for b in self.dmd.Mibs.mibSearch() if b.oid}
+        currentCheckSum = md5(  # noqa S324
+            json.dumps(oidMap, sort_keys=True).encode("utf-8")
+        ).hexdigest()
+        return (
+            (None, None)
+            if currentCheckSum == remoteCheckSum
+            else (currentCheckSum, oidMap)
+        )
+
+    def _create_user(self, obj):
+        # Users are only valid for SNMP v3.
+        if obj.getProperty("zSnmpVer", None) != "v3":
+            return
+        try:
+            return User(
+                obj.zSnmpSecurityName,
+                auth=usm.Authentication(
+                    obj.zSnmpAuthType, obj.zSnmpAuthPassword
+                ),
+                priv=usm.Privacy(obj.zSnmpPrivType, obj.zSnmpPrivPassword),
+                engine=obj.zSnmpEngineId,
+                context=obj.zSnmpContext,
+            )
+        except Exception as ex:
+            log.error(
+                "failed to create SNMP Security user  user=%s error=%s",
+                obj.zSnmpSecurityName,
+                ex,
+            )
 
     def _objectUpdated(self, object):
         user = self._create_user(object)
         if user:
             for listener in self.listeners:
                 listener.callRemote("createUser", user)
-
-    @onUpdate(DeviceClass)
-    def deviceClassUpdated(self, object, event):
-        self._objectUpdated(object)
-
-    @onUpdate(Device)
-    def deviceUpdated(self, object, event):
-        self._objectUpdated(object)
-
-    @onUpdate(MibBase)
-    def mibsChanged(self, device, event):
-        for listener in self.listeners:
-            listener.callRemote("notifyConfigChanged")
-
-    @onDelete(MibBase)
-    def mibsDeleted(self, device, event):
-        for listener in self.listeners:
-            listener.callRemote("notifyConfigChanged")
 
 
 if __name__ == "__main__":

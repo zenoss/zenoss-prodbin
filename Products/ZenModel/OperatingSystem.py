@@ -34,7 +34,7 @@ from Products.ZenUtils.Utils import prepId
 
 class OperatingSystem(Software):
 
-    totalSwap = 0L
+    totalSwap = 0
     uname = ""
 
     _properties = Software._properties + (

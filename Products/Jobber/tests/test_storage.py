@@ -95,7 +95,7 @@ class EmptyJobStoreTest(TestCase):
         t.store = JobStore(t.layer.redis)
 
     def tearDown(t):
-        t.layer.redis.flushall()
+        del t.store
 
     def test_keys(t):
         t.assertIsInstance(t.store.keys(), collections.Iterable)
@@ -228,7 +228,7 @@ class ModifyJobStoreTest(TestCase):
         t.store = JobStore(t.layer.redis)
 
     def tearDown(t):
-        t.layer.redis.flushall()
+        del t.store
 
     def test___setitem__full(t):
         t.store[t.full["jobid"]] = t.full
@@ -342,7 +342,7 @@ class ExpireKeysTest(TestCase):
         t.store[t.jobid] = t.initial
 
     def tearDown(t):
-        t.layer.redis.flushall()
+        del t.store
 
     def test_ttl_initial(t):
         ttl = t.store.ttl(t.jobid)
@@ -438,7 +438,7 @@ class PopulatedJobStoreTest(TestCase):
             t.layer.redis.hmset("zenjobs:job:%s" % jobid, data)
 
     def tearDown(t):
-        t.layer.redis.flushall()
+        del t.store
 
     def test_keys(t):
         t.assertIsInstance(t.store.keys(), collections.Iterable)

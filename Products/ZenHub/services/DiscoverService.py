@@ -18,13 +18,13 @@ from ZODB.transact import transact
 
 from Products.Jobber.exceptions import NoSuchJobException
 from Products.ZenEvents.ZenEventClasses import Status_Ping
-from Products.ZenHub.PBDaemon import translateError
 from Products.ZenModel.Device import manage_createDevice
 from Products.ZenModel.Exceptions import DeviceExistsError
 from Products.ZenRelations.ZenPropertyManager import iszprop
 from Products.ZenRelations.zPropertyCategory import getzPropertyCategory
 from Products.ZenUtils.IpUtil import strip, ipunwrap, isip
 
+from ..errors import translateError
 from .ModelerService import ModelerService
 
 DEFAULT_PING_THRESH = 168
@@ -88,7 +88,10 @@ pb.setUnjellyableForClass(IpNetProxy, IpNetProxy)
 class DiscoverService(ModelerService):
     @translateError
     def remote_getNetworks(self, net, includeSubNets):
-        "Get network objects to scan networks should be in CIDR form 1.1.1.0/24"
+        """
+        Get network objects to scan networks should be in
+        CIDR form 1.1.1.0/24
+        """
         netObj = self.dmd.Networks.getNetworkRoot().findNet(net)
         if not netObj:
             return None
@@ -138,21 +141,22 @@ class DiscoverService(ModelerService):
         else:
             devname = comp = ip
         self.sendEvent(
-            dict(
-                device=devname,
-                ipAddress=ip,
-                eventKey=ip,
-                component=comp,
-                eventClass=Status_Ping,
-                summary=msg,
-                severity=sev,
-                agent="Discover",
-            )
+            {
+                "device": devname,
+                "ipAddress": ip,
+                "eventKey": ip,
+                "component": comp,
+                "eventClass": Status_Ping,
+                "summary": msg,
+                "severity": sev,
+                "agent": "Discover",
+            }
         )
 
     @translateError
     def remote_createDevice(self, ip, force=False, **kw):
-        """Create a device.
+        """
+        Create a device.
 
         @param ip: The manageIp of the device
         @param kw: The args to manage_createDevice.
@@ -175,72 +179,7 @@ class DiscoverService(ModelerService):
                 kw["deviceName"] = ip
                 kw["title"] = deviceName
 
-        from Products.ZenModel.Device import getNetworkRoot
-
-        @transact
-        def _doDbWork():
-            """
-            return device object (either new or existing), and flag indicating
-            whether device was newly created, or just updated
-            """
-            try:
-                netroot = getNetworkRoot(
-                    self.dmd, kw.get("performanceMonitor", "localhost")
-                )
-                netobj = netroot.getNet(ip)
-                netmask = 24
-                if netobj is not None:
-                    netmask = netobj.netmask
-                else:
-                    defaultNetmasks = getattr(
-                        netroot, "zDefaultNetworkTree", []
-                    )
-                    if defaultNetmasks:
-                        netmask = defaultNetmasks[0]
-                autoDiscover = getattr(netobj, "zAutoDiscover", True)
-                # If we're not supposed to discover this IP, return None
-                if not force and not autoDiscover:
-                    return None, False
-                kw["manageIp"] = ipunwrap(ip)
-                dev = manage_createDevice(self.dmd, **kw)
-                netroot.createIp(ip, netmask)
-                return dev, True
-            except DeviceExistsError as e:
-                # Update device with latest info from zendisc
-                # (if necessary)
-                if not e.dev.getManageIp():
-                    e.dev.setManageIp(kw["manageIp"])
-
-                # only overwrite title if it has not been set
-                if not e.dev.title or isip(e.dev.title):
-                    if not isip(kw.get("deviceName")):
-                        e.dev.setTitle(kw["deviceName"])
-
-                # copy kw->updateAttributes, to keep kw intact in case
-                # we need to retry transaction
-                updateAttributes = {}
-                for k, v in kw.items():
-                    if k not in (
-                        "manageIp",
-                        "deviceName",
-                        "devicePath",
-                        "discoverProto",
-                        "performanceMonitor",
-                        "productionState",
-                    ):
-                        updateAttributes[k] = v
-                # use updateDevice so we don't clobber existing device properties.
-                e.dev.updateDevice(**updateAttributes)
-                return e.dev, False
-            except Exception as ex:
-                log.exception(
-                    "IP address %s (kw = %s) encountered error",
-                    ipunwrap(ip),
-                    kw,
-                )
-                raise pb.CopyableFailure(ex)
-
-        dev, deviceIsNew = _doDbWork()
+        dev, deviceIsNew = _update_device(self.dmd, ip, force, **kw)
         if dev is not None:
             return self.createDeviceProxy(dev), deviceIsNew
         else:
@@ -302,4 +241,93 @@ class DiscoverService(ModelerService):
     @translateError
     def remote_getDefaultNetworks(self):
         monitor = self.dmd.Monitors.Performance._getOb(self.instance)
-        return [net for net in monitor.discoveryNetworks]
+        return list(monitor.discoveryNetworks)
+
+    @translateError
+    def remote_removeInterfaces(self, net):
+        """
+        Remove IPs for particular network
+        already assigned to interfaces (device components)
+
+        @param net - network to discover
+        @return:  a list of IPs without addresses assigned for interfaces
+        @rtype: list
+        """
+
+        full_ip_list = net.fullIpList()
+
+        for d in self.dmd.Devices.getSubDevicesGen():
+            for interface in d.os.interfaces():
+                for addr in interface.ipaddresses():
+                    ip = addr.getIp()
+                    if net.netmask == addr.netmask and ip in full_ip_list:
+                        full_ip_list.remove(ip)
+
+        return full_ip_list
+
+
+@transact
+def _update_device(dmd, ip, force, **kw):
+    """
+    return device object (either new or existing), and flag indicating
+    whether device was newly created, or just updated
+    """
+    from Products.ZenModel.Device import getNetworkRoot
+
+    try:
+        monitor = kw.get("performanceMonitor", "localhost")
+        netroot = getNetworkRoot(dmd, monitor)
+        netobj = netroot.getNet(ip)
+        netmask = _get_netmask(netroot, netobj)
+        autoDiscover = getattr(netobj, "zAutoDiscover", True)
+        # If we're not supposed to discover this IP, return None
+        if not force and not autoDiscover:
+            return (None, False)
+        kw["manageIp"] = ipunwrap(ip)
+        dev = manage_createDevice(dmd, **kw)
+        netroot.createIp(ip, netmask)
+        return dev, True
+    except DeviceExistsError as e:
+        # Update device with latest info from zendisc
+        # (if necessary)
+        if not e.dev.getManageIp():
+            e.dev.setManageIp(kw["manageIp"])
+
+        # only overwrite title if it has not been set
+        if not e.dev.title or isip(e.dev.title):
+            if not isip(kw.get("deviceName")):
+                e.dev.setTitle(kw["deviceName"])
+
+        # copy kw->updateAttributes, to keep kw intact in case
+        # we need to retry transaction
+        updateAttributes = {}
+        for k, v in kw.items():
+            if k not in (
+                "manageIp",
+                "deviceName",
+                "devicePath",
+                "discoverProto",
+                "performanceMonitor",
+                "productionState",
+            ):
+                updateAttributes[k] = v
+        # use updateDevice so we don't clobber existing device
+        # properties.
+        e.dev.updateDevice(**updateAttributes)
+        return e.dev, False
+    except Exception as ex:
+        log.exception(
+            "IP address %s (kw = %s) encountered error",
+            ipunwrap(ip),
+            kw,
+        )
+        raise pb.CopyableFailure(ex)
+
+
+def _get_netmask(netroot, netobj):
+    if netobj is not None:
+        return netobj.netmask
+    defaultNetmasks = getattr(netroot, "zDefaultNetworkTree", [])
+    if defaultNetmasks:
+        return defaultNetmasks[0]
+    return 24

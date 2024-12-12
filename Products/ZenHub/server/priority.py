@@ -10,9 +10,12 @@
 from __future__ import absolute_import
 
 import collections
-import enum
 
 from itertools import chain, count, cycle
+
+import enum
+import six
+
 from zope.component import getUtility
 
 from Products.Zuul.interfaces import IDataRootFactory
@@ -150,7 +153,7 @@ def _build_weighted_list(data):
 
     # Generate a series of weights.  The first element should have the
     # highest weight.
-    weights = [(2**n) - 1 for n in range(len(elements), 0, -1)]
+    weights = [(2 ** n) - 1 for n in range(len(elements), 0, -1)]
 
     # Build a list of element lists where each element list has a length
     # matching their weight. E.g. given elements ('a', 'b') and weights
@@ -301,7 +304,7 @@ class ServiceCallPriorityMap(collections.Mapping):
         return len(self.__map)
 
     def __makekey(self, key):
-        if isinstance(key, basestring):
+        if isinstance(key, six.string_types):
             key = str(key).split(":")
         service, method = key
         if service not in self.__services:

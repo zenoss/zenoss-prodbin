@@ -7,49 +7,61 @@
 #
 ##############################################################################
 
-
 import logging
 import os
 import subprocess
 
 from Products.ZenUtils.Utils import zenPath
 
-logger = logging.getLogger('zen.callhome')
+logger = logging.getLogger("zen.callhome")
 
-CRYPTPATH = zenPath('Products', 'ZenCallHome', 'transport', 'crypt')
-GPGCMD = 'gpg --batch --no-tty --quiet --no-auto-check-trustdb '
+CRYPTPATH = zenPath("Products", "ZenCallHome", "transport", "crypt")
+GPGCMD = "gpg --batch --no-tty --quiet --no-auto-check-trustdb "
 
 
 def _getEnv():
     env = os.environ.copy()
-    env.pop('GPG_AGENT_INFO', None)
+    env.pop("GPG_AGENT_INFO", None)
     return env
 
 
 def encrypt(stringToEncrypt, publicKey):
-    cmd = (GPGCMD + '--keyring %s --trustdb-name %s -e -r %s' %
-           (CRYPTPATH + '/pubring.gpg',
-            CRYPTPATH + '/trustdb.gpg',
-            publicKey))
+    cmd = GPGCMD + "--keyring %s --trustdb-name %s -e -r %s" % (
+        CRYPTPATH + "/pubring.gpg",
+        CRYPTPATH + "/trustdb.gpg",
+        publicKey,
+    )
 
-    p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, env=_getEnv(),
-                         stdout=subprocess.PIPE, stderr=open(os.devnull))
+    p = subprocess.Popen(
+        cmd,
+        shell=True,
+        stdin=subprocess.PIPE,
+        env=_getEnv(),
+        stdout=subprocess.PIPE,
+        stderr=open(os.devnull),
+    )
     out = p.communicate(input=stringToEncrypt)[0]
 
     if p.returncode != 0:
-        logger.warn('Unable to encrypt payload -- is GPG installed?')
+        logger.warn("Unable to encrypt payload -- is GPG installed?")
         return None
     return out
 
 
 def decrypt(stringToDecrypt, symKey):
-    cmd = GPGCMD + '--passphrase %s -d' % symKey
+    cmd = GPGCMD + "--passphrase %s -d" % symKey
 
-    p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, env=_getEnv(),
-                         stdout=subprocess.PIPE, stderr=open(os.devnull))
+    p = subprocess.Popen(
+        cmd,
+        shell=True,
+        stdin=subprocess.PIPE,
+        env=_getEnv(),
+        stdout=subprocess.PIPE,
+        stderr=open(os.devnull),
+    )
     out = p.communicate(input=stringToDecrypt)[0]
 
     if p.returncode != 0:
-        logger.warn('Unable to decrypt payload -- is GPG installed?')
+        logger.warn("Unable to decrypt payload -- is GPG installed?")
         return None
     return out

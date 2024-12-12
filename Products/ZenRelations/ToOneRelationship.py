@@ -14,7 +14,6 @@ to give it toOne management Functions.
 """
 
 import logging
-import sys
 
 from AccessControl import ClassSecurityInfo
 from AccessControl.class_init import InitializeClass
@@ -23,7 +22,6 @@ from App.Dialogs import MessageDialog
 from App.special_dtml import DTMLFile
 from zExceptions import NotFound
 
-from Products.ZenUtils.tbdetail import log_tb
 from Products.ZenUtils.Utils import getObjByPath
 
 from .Exceptions import (
@@ -126,10 +124,11 @@ class ToOneRelationship(RelationshipBase):
             try:
                 remoteRel._remove(self.__primary_parent__)
             except ObjectNotFound:
-                message = log_tb(sys.exc_info())
-                log.error(
-                    'Remote remove failed. Run "zenchkrels -r -x1". %s',
-                    message,
+                log.debug(
+                    "remote relation already removed  "
+                    "obj=%s remote-relation=%s",
+                    self.__primary_parent__.getPrimaryId(),
+                    remoteRel.getPrimaryId(),
                 )
 
     security.declareProtected("View", "getRelatedId")
@@ -150,6 +149,9 @@ class ToOneRelationship(RelationshipBase):
         rel = self.__class__(self.id)
         rel.__primary_parent__ = container
         rel = rel.__of__(container)
+        norelcopy = getattr(self, 'zNoRelationshipCopy', [])
+        if self.id in norelcopy:
+            return rel
         if self.remoteTypeName() == "ToMany" and self.obj:
             rel.addRelation(self.obj)
         return rel
@@ -191,7 +193,7 @@ class ToOneRelationship(RelationshipBase):
         """Return the primary URL for our related object."""
         return self.obj.getPrimaryUrlPath()
 
-    def exportXml(self, ofile, ignorerels=[]):
+    def exportXml(self, ofile, ignorerels=()):
         """return an xml representation of a ToOneRelationship
         <toone id='cricket'>
             /Monitors/Cricket/crk0.srv.hcvlny.cv.net
@@ -200,10 +202,18 @@ class ToOneRelationship(RelationshipBase):
 
         if not self.obj or self.remoteType() == ToManyCont:
             return
-        ofile.write(
-            "<toone id='%s' objid='%s'/>\n"
-            % (self.id, self.obj.getPrimaryId())
-        )
+        try:
+            ofile.write(
+                "<toone id='%s' objid='%s'/>\n"
+                % (self.id, self.obj.getPrimaryId())
+            )
+        except Exception:
+            log.exception(
+                "skipping %s  object-type=%s object-id=%s",
+                self.id,
+                self.obj.__class__.__module__,
+                getattr(self.obj, "id", "<no-id-attribute>"),
+            )
 
     def checkRelation(self, repair=False):
         """Check to make sure that relationship bidirectionality is ok."""

@@ -1,16 +1,17 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-import time
 import math
+import time
+
 from decimal import Decimal
+
 
 def readable_time(seconds, precision=1):
     """
@@ -41,23 +42,31 @@ def readable_time(seconds, precision=1):
 
     """
     if seconds is None:
-        return '0 seconds'
+        return "0 seconds"
     remaining = abs(seconds)
     if remaining < 1:
-        return '0 seconds'
+        return "0 seconds"
 
-    names = ('year', 'month', 'week', 'day', 'hour', 'minute', 'second')
-    mults = (60*60*24*365, 60*60*24*30, 60*60*24*7, 60*60*24, 60*60, 60, 1)
+    names = ("year", "month", "week", "day", "hour", "minute", "second")
+    mults = (
+        60 * 60 * 24 * 365,
+        60 * 60 * 24 * 30,
+        60 * 60 * 24 * 7,
+        60 * 60 * 24,
+        60 * 60,
+        60,
+        1,
+    )
     result = []
     for name, div in zip(names, mults):
-        num = Decimal(str(math.floor(remaining/div)))
-        remaining -= int(num)*div
+        num = Decimal(str(math.floor(remaining / div)))
+        remaining -= int(num) * div
         num = int(num)
         if num:
-            result.append('%d %s%s' %(num, name, num>1 and 's' or ''))
-        if len(result)==precision:
+            result.append("%d %s%s" % (num, name, num > 1 and "s" or ""))
+        if len(result) == precision:
             break
-    return ' '.join(result)
+    return " ".join(result)
 
 
 def relative_time(t, precision=1, cmptime=None):
@@ -91,7 +100,7 @@ def relative_time(t, precision=1, cmptime=None):
     seconds = Decimal(str(t - cmptime))
     result = readable_time(seconds, precision)
     if seconds < 0:
-        result += ' ago'
+        result += " ago"
     else:
-        result = 'in ' + result
+        result = "in " + result
     return result

@@ -22,14 +22,14 @@ from zope.interface import implementer
 
 from Products.Zuul.interfaces import IMarshaller, IInfo
 
-from .config import ZenJobs
+from .config import getConfig
 from .interfaces import IJobStore, IJobRecord
 from .storage import Fields
 from .task.utils import job_log_has_errors
+from .utils.app import get_app
 from .utils.log import inject_logger
-from .zenjobs import app
 
-mlog = logging.getLogger("zen.zenjobs.model")
+_mlog = logging.getLogger("zen.zenjobs.model")
 
 sortable_keys = list(set(Fields) - {"details"})
 
@@ -121,7 +121,7 @@ class JobRecord(object):
 
     @property
     def job_type(self):
-        task = app.tasks.get(self.name)
+        task = get_app().tasks.get(self.name)
         if task is None:
             return self.name if self.name else ""
         try:
@@ -153,7 +153,7 @@ class JobRecord(object):
 
     @property
     def result(self):
-        return app.tasks[self.name].AsyncResult(self.jobid)
+        return get_app().tasks[self.name].AsyncResult(self.jobid)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -249,7 +249,7 @@ class RedisRecord(dict):
             summary=task.summary,
             description=description,
             logfile=os.path.join(
-                ZenJobs.get("job-log-path"), "%s.log" % jobid
+                getConfig().get("job-log-path"), "%s.log" % jobid
             ),
         )
         if "status" in fields:
@@ -280,15 +280,14 @@ class RedisRecord(dict):
         """Return a RedisRecord object built from the arguments passed to
         a before_task_publish signal handler.
         """
-        jobid = body.get("id")
-        taskname = body.get("task")
-        args = body.get("args", ())
-        kwargs = body.get("kwargs", {})
+        jobid = headers.get("id")
+        taskname = headers.get("task")
+        args, kwargs, _ = body
         return cls._build(jobid, taskname, args, kwargs, headers, properties)
 
     @classmethod
     def _build(cls, jobid, taskname, args, kwargs, headers, properties):
-        task = app.tasks[taskname]
+        task = get_app().tasks[taskname]
         fields = {}
         description = properties.pop("description", None)
         if description:
@@ -301,7 +300,7 @@ class RedisRecord(dict):
         return cls.from_task(task, jobid, args, kwargs, **fields)
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
     """Save the Zenoss specific job metadata to redis.
 
@@ -313,19 +312,26 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
     :param dict headers: Headers to accompany message sent to Celery worker
     :param dict properties: Additional task and custom key/value pairs
     """
-    if not body:
-        # If body is empty (or None), no job to save.
-        log.info("no body, so no job")
-        return
-
     if headers is None:
         # If headers is None, bad signal so ignore.
         log.info("no headers, bad signal?")
         return
 
-    task = app.tasks.get(body.get("task"))
+    if not body:
+        # If body is empty (or None), no job to save.
+        log.info("no body, so no job")
+        return
+
+    if not isinstance(body, tuple):
+        # body is not in protocol V2 format
+        log.warning("task data not in protocol V2 format")
+        return
+
+    taskname = headers.get("task")
+    task = get_app().tasks.get(taskname)
+
     if task is None:
-        log.warn("Ignoring unknown task: %s", body.get("task"))
+        log.warn("Ignoring unknown task: %s", taskname)
         return
 
     # If the result of tasks is ignored, don't create a job record.
@@ -350,8 +356,10 @@ def save_jobrecord(log, body=None, headers=None, properties=None, **ignored):
     if not saved:
         return
 
+    _, _, canvas = body
+
     # Iterate over the callbacks.
-    callbacks = body.get("callbacks") or []
+    callbacks = canvas.get("callbacks") or []
     links = []
     for cb in callbacks:
         links.extend(cb.flatten_links())
@@ -380,14 +388,14 @@ def _save_record(log, storage, record):
         return False
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 def stage_jobrecord(log, storage, sig):
     """Save Zenoss job data to redis with status "STAGED".
 
     :param sig: The job data
     :type sig: celery.canvas.Signature
     """
-    task = app.tasks.get(sig.task)
+    task = get_app().tasks.get(sig.task)
 
     # Tasks with ignored results cannot be tracked,
     # so don't insert a record into Redis.
@@ -405,14 +413,14 @@ def stage_jobrecord(log, storage, sig):
     _save_record(log, storage, record)
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 def commit_jobrecord(log, storage, sig):
     """Update STAGED job records to PENDING.
 
     :param sig: The job data
     :type sig: celery.canvas.Signature
     """
-    task = app.tasks.get(sig.task)
+    task = get_app().tasks.get(sig.task)
 
     # Tasks with ignored results cannot be tracked,
     # so there won't be a record to update.
@@ -441,7 +449,7 @@ def _catch_exception(f):
     return wrapper
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 @_catch_exception
 def job_start(log, task_id, task=None, **ignored):
     if task is not None and task.ignore_result:
@@ -465,7 +473,7 @@ def job_start(log, task_id, task=None, **ignored):
     log.info("status=%s started=%s", status, tm)
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 @_catch_exception
 def job_end(log, task_id, task=None, **ignored):
     if task is not None and task.ignore_result:
@@ -490,14 +498,14 @@ def job_end(log, task_id, task=None, **ignored):
     log.info("Job total duration is %0.3f seconds", finished - started)
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 @_catch_exception
 def job_success(log, result, sender=None, **ignored):
     if sender is not None and sender.ignore_result:
         return
     task_id = sender.request.id
     jobstore = getUtility(IJobStore, "redis")
-    status = app.backend.get_status(task_id)
+    status = get_app().backend.get_status(task_id)
     if job_log_has_errors(task_id):
         log.warn("Error messages detected in job log.")
         status = states.FAILURE
@@ -506,12 +514,12 @@ def job_success(log, result, sender=None, **ignored):
     log.info("status=%s finished=%s", status, tm)
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 @_catch_exception
 def job_failure(log, task_id, exception=None, sender=None, **ignored):
     if sender is not None and sender.ignore_result:
         return
-    status = app.backend.get_status(task_id)
+    status = get_app().backend.get_status(task_id)
 
     jobstore = getUtility(IJobStore, "redis")
     if task_id not in jobstore:
@@ -536,13 +544,13 @@ def job_failure(log, task_id, exception=None, sender=None, **ignored):
         jobstore.update(cbid, status=ABORTED, finished=tm)
 
 
-@inject_logger(log=mlog)
+@inject_logger(log=_mlog)
 @_catch_exception
 def job_retry(log, request, reason=None, sender=None, **ignored):
     if sender is not None and sender.ignore_result:
         return
     jobstore = getUtility(IJobStore, "redis")
     task_id = request.id
-    status = app.backend.get_status(task_id)
+    status = get_app().backend.get_status(task_id)
     jobstore.update(task_id, status=status)
     log.info("status=%s", status)

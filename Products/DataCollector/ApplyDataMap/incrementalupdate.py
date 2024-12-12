@@ -279,7 +279,7 @@ class IncrementalDataMap(object):
                 for objId, obj in self.relationship.objectItemsAll()
                 if objId == self._target_id
             ),
-            _NOTSET
+            _NOTSET,
         )
         if self._target is _NOTSET:
             changed = True

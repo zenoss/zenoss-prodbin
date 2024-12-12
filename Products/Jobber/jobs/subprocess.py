@@ -130,6 +130,10 @@ class SubprocessJob(Job):
             reader.join(timeout=1.0)
 
 
+from Products.Jobber.zenjobs import app
+app.register_task(SubprocessJob)
+
+
 @contextmanager
 def null_context():
     """Do nothing context manager."""

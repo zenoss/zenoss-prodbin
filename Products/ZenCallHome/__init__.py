@@ -13,78 +13,75 @@ from zope.interface import Interface
 
 class ICallHomeCollector(Interface):
     """
-    Implementers provide call home data
+    Implementers provide call home data.
     """
 
     def generateData(self):
         """
-        Generate data to be sent via call home
-        @return: dictionary of data to be sent.
-                 values keyed by "_ERRORS_" should
-                 be objects that will be attached
-                 at the top level.
+        Generate data to be sent via call home.
+
+        @return: Dictionary of data to be sent.  Values keyed by "_ERRORS_"
+            should be objects that will be attached at the top level.
         @rtype: dict
         """
 
 
 class IMasterCallHomeCollector(Interface):
     """
-    Implementers provide call home data when collected on zenoss master
+    Implementers provide call home data when collected on zenoss master.
     """
 
     def generateData(self, dmd):
         """
-        Generate data to be sent via call home
-        @param dmd: databse connection
-        @return: dictionary of data to be sent
-                 values keyed by "_ERRORS_" should
-                 be objects that will be attached
-                 at the top level.
+        Generate data to be sent via call home.
+
+        @param dmd: Databse connection
+        @return: Dictionary of data to be sent values keyed by "_ERRORS_"
+            should be objects that will be attached at the top level.
         @rtype: dict
         """
 
 
 class IVersionHistoryCallHomeCollector(Interface):
     """
-    Implementers provide version history records
+    Implementers provide version history records.
     """
 
     def addVersionHistory(self, dmd, callHomeData):
         """
-        Create records to be added to version history
-        @param the callhome data that will be modified
-               then sent
+        Create records to be added to version history.
+        @param the callhome data that will be modified then sent.
         """
 
 
 class IHostData(Interface):
     """
-    Used to gather Host machine statistics for call home
+    Used to gather Host machine statistics for call home.
     """
 
     def callHomeData(self):
         """
-        @return:: name, value pairs of host stats for call home
-        @rtype: list or generator of tuples
+        @return:: name, value pairs of host stats for call home.
+        @rtype: list or generator of tuples.
         """
 
 
 class IZenossData(Interface):
     """
-    Used to gather Zenoss statistics for call home
+    Used to gather Zenoss statistics for call home.
     """
 
     def callHomeData(self, dmd):
         """
-        @param: dmd connection
-        @return: name, value pairs of Zenoss instance stats for call home
-        @rtype: list or generator of tuples
+        @param: dmd connection.
+        @return: name, value pairs of Zenoss instance stats for call home.
+        @rtype: list or generator of tuples.
         """
 
 
 class IZenossEnvData(Interface):
     """
-    Used to gather the Zenoss environment data for call home
+    Used to gather the Zenoss environment data for call home.
     """
 
     def callHomeData(self):
@@ -148,6 +145,7 @@ class IVirtualDeviceType(Interface):
     Subscription adapter. Determine the virtual machine type of a device
     if any. More than one impl can be registered per Device
     """
+
     def vmType(self):
         """
         @return the type of virtual machine or None if not a virtual

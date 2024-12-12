@@ -1,9 +1,11 @@
-from unittest import TestCase
 from mock import Mock, patch, create_autospec
-
+from Products.ZCatalog.interfaces import ICatalogBrain
+from unittest import TestCase
 from zope.interface.verify import verifyObject
 
-from Products.ZenHub.invalidationfilter import (
+from ..invalidationfilter import (
+    _getZorCProperties,
+    _iszorcustprop,
     BaseOrganizerFilter,
     DeviceClass,
     DeviceClassInvalidationFilter,
@@ -17,48 +19,46 @@ from Products.ZenHub.invalidationfilter import (
     OSProcessOrganizer,
     OSProcessOrganizerFilter,
 )
-
-from Products.ZCatalog.interfaces import ICatalogBrain
-from mock_interface import create_interface_mock
+from .mock_interface import create_interface_mock
 
 PATH = {"invalidationfilter": "Products.ZenHub.invalidationfilter"}
 
 
 class IgnorableClassesFilterTest(TestCase):
-    def setUp(self):
-        self.icf = IgnorableClassesFilter()
+    def setUp(t):
+        t.icf = IgnorableClassesFilter()
 
-    def test_init(self):
-        IInvalidationFilter.providedBy(self.icf)
+    def test_init(t):
+        IInvalidationFilter.providedBy(t.icf)
         # current version fails because weight attribute is not defined
         # icf.weight = 1
         # verifyObject(IInvalidationFilter, icf)
-        self.assertTrue(hasattr(self.icf, "CLASSES_TO_IGNORE"))
+        t.assertTrue(hasattr(t.icf, "CLASSES_TO_IGNORE"))
 
-    def test_initialize(self):
+    def test_initialize(t):
         context = Mock(name="context")
-        self.icf.initialize(context)
+        t.icf.initialize(context)
         # No return or side-effects
 
-    def test_include(self):
+    def test_include(t):
         obj = Mock(name="object")
-        out = self.icf.include(obj)
-        self.assertEqual(out, FILTER_CONTINUE)
+        out = t.icf.include(obj)
+        t.assertEqual(out, FILTER_CONTINUE)
 
-    def test_include_excludes_classes_to_ignore(self):
-        self.icf.CLASSES_TO_IGNORE = str
-        out = self.icf.include("ignore me!")
-        self.assertEqual(out, FILTER_EXCLUDE)
+    def test_include_excludes_classes_to_ignore(t):
+        t.icf.CLASSES_TO_IGNORE = str
+        out = t.icf.include("ignore me!")
+        t.assertEqual(out, FILTER_EXCLUDE)
 
 
 class BaseOrganizerFilterTest(TestCase):
-    def setUp(self):
-        self.types = Mock(name="types")
-        self.bof = BaseOrganizerFilter(self.types)
+    def setUp(t):
+        t.types = Mock(name="types")
+        t.bof = BaseOrganizerFilter(t.types)
 
         # @patch with autospec fails (https://bugs.python.org/issue23078)
         # manually spec ZenPropertyManager
-        self.organizer = Mock(
+        t.organizer = Mock(
             name="Products.ZenRelations.ZenPropertyManager",
             spec_set=[
                 "zenPropertyIds",
@@ -68,148 +68,157 @@ class BaseOrganizerFilterTest(TestCase):
             ],
         )
 
-    def test_init(self):
-        IInvalidationFilter.providedBy(self.bof)
-        verifyObject(IInvalidationFilter, self.bof)
-        self.assertEqual(self.bof.weight, 10)
-        self.assertEqual(self.bof._types, self.types)
+    def test_init(t):
+        IInvalidationFilter.providedBy(t.bof)
+        verifyObject(IInvalidationFilter, t.bof)
+        t.assertEqual(t.bof.weight, 10)
+        t.assertEqual(t.bof._types, t.types)
 
-    def test_iszorcustprop(self):
-        match = self.bof.iszorcustprop("no match")
-        self.assertEqual(match, None)
-        match = self.bof.iszorcustprop("cProperty")
-        self.assertTrue(match)
-        match = self.bof.iszorcustprop("zProperty")
-        self.assertTrue(match)
+    def test_iszorcustprop(t):
+        result = _iszorcustprop("no match")
+        t.assertEqual(result, None)
+        result = _iszorcustprop("cProperty")
+        t.assertTrue(result)
+        result = _iszorcustprop("zProperty")
+        t.assertTrue(result)
 
-    def test_getRoot(self):
+    def test_getRoot(t):
         context = Mock(name="context")
-        root = self.bof.getRoot(context)
-        self.assertEqual(root, context.dmd.primaryAq())
+        root = t.bof.getRoot(context)
+        t.assertEqual(root, context.dmd.primaryAq())
 
     @patch(
         "{invalidationfilter}.IModelCatalogTool".format(**PATH),
         autospec=True,
         spec_set=True,
     )
-    def test_initialize(self, IModelCatalogTool):
+    def test_initialize(t, IModelCatalogTool):
         # Create a Mock object that provides the ICatalogBrain interface
         ICatalogBrainMock = create_interface_mock(ICatalogBrain)
         brain = ICatalogBrainMock()
 
         IModelCatalogTool.return_value.search.return_value = [brain]
-        checksum = create_autospec(self.bof.organizerChecksum)
-        self.bof.organizerChecksum = checksum
+        checksum = create_autospec(t.bof.organizerChecksum)
+        t.bof.organizerChecksum = checksum
         context = Mock(name="context")
 
-        self.bof.initialize(context)
+        t.bof.initialize(context)
 
-        self.assertEqual(
-            self.bof.checksum_map,
+        t.assertEqual(
+            t.bof.checksum_map,
             {brain.getPath.return_value: checksum.return_value},
         )
 
-    def test_getZorCProperties(self):
+    def test_getZorCProperties(t):
         zprop = Mock(name="zenPropertyId", spec_set=[])
-        self.organizer.zenPropertyIds.return_value = [zprop, zprop]
+        t.organizer.zenPropertyIds.return_value = [zprop, zprop]
 
         # getZorCProperties returns a generator
-        results = self.bof.getZorCProperties(self.organizer)
+        results = _getZorCProperties(t.organizer)
 
-        self.organizer.zenPropIsPassword.return_value = False
+        t.organizer.zenPropIsPassword.return_value = False
         zId, propertyString = next(results)
-        self.assertEqual(zId, zprop)
-        self.assertEqual(
-            propertyString, self.organizer.zenPropertyString.return_value
+        t.assertEqual(zId, zprop)
+        t.assertEqual(
+            propertyString, t.organizer.zenPropertyString.return_value
         )
-        self.organizer.zenPropertyString.assert_called_with(zprop)
+        t.organizer.zenPropertyString.assert_called_with(zprop)
 
-        self.organizer.zenPropIsPassword.return_value = True
+        t.organizer.zenPropIsPassword.return_value = True
         zId, propertyString = next(results)
-        self.assertEqual(zId, zprop)
-        self.assertEqual(
-            propertyString, self.organizer.getProperty.return_value
+        t.assertEqual(zId, zprop)
+        t.assertEqual(
+            propertyString, t.organizer.getProperty.return_value
         )
-        self.organizer.getProperty.assert_called_with(zprop, "")
+        t.organizer.getProperty.assert_called_with(zprop, "")
 
-        with self.assertRaises(StopIteration):
+        with t.assertRaises(StopIteration):
             next(results)
 
-    def test_generateChecksum(self):
-        getZorCProperties = create_autospec(self.bof.getZorCProperties)
+    @patch(
+        "{invalidationfilter}._getZorCProperties".format(**PATH),
+        autospec=True,
+        spec_set=True,
+    )
+    def test_generateChecksum(t, _getZorCProps):
         zprop = Mock(name="zenPropertyId", spec_set=[])
-        getZorCProperties.return_value = [(zprop, "property_string")]
-        self.bof.getZorCProperties = getZorCProperties
-        md5_checksum = md5()
-
-        self.bof.generateChecksum(self.organizer, md5_checksum)
+        data = (zprop, "property_string")
+        _getZorCProps.return_value = [data]
+        actual = md5()
 
         expect = md5()
-        expect.update("%s|%s" % (getZorCProperties(self.organizer)[0]))
-        getZorCProperties.assert_called_with(self.organizer)
-        self.assertEqual(md5_checksum.hexdigest(), expect.hexdigest())
+        expect.update("%s|%s" % data)
 
-    def test_organizerChecksum(self):
-        getZorCProperties = create_autospec(self.bof.getZorCProperties)
+        t.bof.generateChecksum(t.organizer, actual)
+
+        _getZorCProps.assert_called_with(t.organizer)
+        t.assertEqual(actual.hexdigest(), expect.hexdigest())
+
+    @patch(
+        "{invalidationfilter}._getZorCProperties".format(**PATH),
+        autospec=True,
+        spec_set=True,
+    )
+    def test_organizerChecksum(t, _getZorCProps):
         zprop = Mock(name="zenPropertyId", spec_set=[])
-        getZorCProperties.return_value = [(zprop, "property_string")]
-        self.bof.getZorCProperties = getZorCProperties
+        data = (zprop, "property_string")
+        _getZorCProps.return_value = [data]
 
-        out = self.bof.organizerChecksum(self.organizer)
+        out = t.bof.organizerChecksum(t.organizer)
 
         expect = md5()
-        expect.update("%s|%s" % (getZorCProperties(self.organizer)[0]))
-        self.assertEqual(out, expect.hexdigest())
+        expect.update("%s|%s" % data)
+        t.assertEqual(out, expect.hexdigest())
 
-    def test_include_ignores_non_matching_types(self):
-        self.bof._types = (str,)
-        ret = self.bof.include(False)
-        self.assertEqual(ret, FILTER_CONTINUE)
+    def test_include_ignores_non_matching_types(t):
+        t.bof._types = (str,)
+        ret = t.bof.include(False)
+        t.assertEqual(ret, FILTER_CONTINUE)
 
-    def test_include_if_checksum_changed(self):
-        organizerChecksum = create_autospec(self.bof.organizerChecksum)
-        self.bof.organizerChecksum = organizerChecksum
-        self.bof._types = (Mock,)
+    def test_include_if_checksum_changed(t):
+        organizerChecksum = create_autospec(t.bof.organizerChecksum)
+        t.bof.organizerChecksum = organizerChecksum
+        t.bof._types = (Mock,)
         obj = Mock(name="object", spec_set=["getPrimaryPath"])
         obj.getPrimaryPath.return_value = ["dmd", "brain"]
         organizer_path = "/".join(obj.getPrimaryPath())
-        self.bof.checksum_map = {organizer_path: "existing_checksum"}
+        t.bof.checksum_map = {organizer_path: "existing_checksum"}
         organizerChecksum.return_value = "current_checksum"
 
-        ret = self.bof.include(obj)
+        ret = t.bof.include(obj)
 
-        self.assertEqual(ret, FILTER_CONTINUE)
+        t.assertEqual(ret, FILTER_CONTINUE)
 
-    def test_include_if_checksum_unchanged(self):
-        organizerChecksum = create_autospec(self.bof.organizerChecksum)
-        self.bof.organizerChecksum = organizerChecksum
+    def test_include_if_checksum_unchanged(t):
+        organizerChecksum = create_autospec(t.bof.organizerChecksum)
+        t.bof.organizerChecksum = organizerChecksum
         existing_checksum = "checksum"
         current_checksum = "checksum"
         organizerChecksum.return_value = current_checksum
-        self.bof._types = (Mock,)
+        t.bof._types = (Mock,)
         obj = Mock(name="object", spec_set=["getPrimaryPath"])
         obj.getPrimaryPath.return_value = ["dmd", "brain"]
         organizer_path = "/".join(obj.getPrimaryPath())
-        self.bof.checksum_map = {organizer_path: existing_checksum}
+        t.bof.checksum_map = {organizer_path: existing_checksum}
 
-        ret = self.bof.include(obj)
+        ret = t.bof.include(obj)
 
-        self.assertEqual(ret, FILTER_EXCLUDE)
+        t.assertEqual(ret, FILTER_EXCLUDE)
 
 
 class DeviceClassInvalidationFilterTest(TestCase):
-    def setUp(self):
-        self.dcif = DeviceClassInvalidationFilter()
+    def setUp(t):
+        t.dcif = DeviceClassInvalidationFilter()
 
-    def test_init(self):
-        IInvalidationFilter.providedBy(self.dcif)
-        verifyObject(IInvalidationFilter, self.dcif)
-        self.assertEqual(self.dcif._types, (DeviceClass,))
+    def test_init(t):
+        IInvalidationFilter.providedBy(t.dcif)
+        verifyObject(IInvalidationFilter, t.dcif)
+        t.assertEqual(t.dcif._types, (DeviceClass,))
 
-    def test_getRoot(self):
+    def test_getRoot(t):
         context = Mock(name="context")
-        root = self.dcif.getRoot(context)
-        self.assertEqual(root, context.dmd.Devices.primaryAq())
+        root = t.dcif.getRoot(context)
+        t.assertEqual(root, context.dmd.Devices.primaryAq())
 
     @patch(
         "{invalidationfilter}.BaseOrganizerFilter.generateChecksum".format(
@@ -218,7 +227,7 @@ class DeviceClassInvalidationFilterTest(TestCase):
         autospec=True,
         spec_set=True,
     )
-    def test_generateChecksum(self, super_generateChecksum):
+    def test_generateChecksum(t, super_generateChecksum):
         md5_checksum = md5()
         organizer = Mock(
             name="Products.ZenRelations.ZenPropertyManager",
@@ -228,44 +237,44 @@ class DeviceClassInvalidationFilterTest(TestCase):
         rrdTemplate.exportXml.return_value = "some exemel"
         organizer.rrdTemplates.return_value = [rrdTemplate]
 
-        self.dcif.generateChecksum(organizer, md5_checksum)
+        t.dcif.generateChecksum(organizer, md5_checksum)
 
         # We cannot validate the output of the current version, refactor needed
         rrdTemplate.exportXml.was_called_once()
         super_generateChecksum.assert_called_with(
-            self.dcif, organizer, md5_checksum
+            t.dcif, organizer, md5_checksum
         )
 
 
 class OSProcessOrganizerFilterTest(TestCase):
-    def test_init(self):
+    def test_init(t):
         ospof = OSProcessOrganizerFilter()
 
         IInvalidationFilter.providedBy(ospof)
         verifyObject(IInvalidationFilter, ospof)
-        self.assertEqual(ospof._types, (OSProcessOrganizer,))
+        t.assertEqual(ospof._types, (OSProcessOrganizer,))
 
-    def test_getRoot(self):
+    def test_getRoot(t):
         ospof = OSProcessOrganizerFilter()
         context = Mock(name="context")
         root = ospof.getRoot(context)
-        self.assertEqual(root, context.dmd.Processes.primaryAq())
+        t.assertEqual(root, context.dmd.Processes.primaryAq())
 
 
 class OSProcessClassFilterTest(TestCase):
-    def setUp(self):
-        self.ospcf = OSProcessClassFilter()
+    def setUp(t):
+        t.ospcf = OSProcessClassFilter()
 
-    def test_init(self):
-        IInvalidationFilter.providedBy(self.ospcf)
-        verifyObject(IInvalidationFilter, self.ospcf)
+    def test_init(t):
+        IInvalidationFilter.providedBy(t.ospcf)
+        verifyObject(IInvalidationFilter, t.ospcf)
 
-        self.assertEqual(self.ospcf._types, (OSProcessClass,))
+        t.assertEqual(t.ospcf._types, (OSProcessClass,))
 
-    def test_getRoot(self):
+    def test_getRoot(t):
         context = Mock(name="context")
-        root = self.ospcf.getRoot(context)
-        self.assertEqual(root, context.dmd.Processes.primaryAq())
+        root = t.ospcf.getRoot(context)
+        t.assertEqual(root, context.dmd.Processes.primaryAq())
 
     @patch(
         "{invalidationfilter}.BaseOrganizerFilter.generateChecksum".format(
@@ -274,7 +283,7 @@ class OSProcessClassFilterTest(TestCase):
         autospec=True,
         spec_set=True,
     )
-    def test_generateChecksum(self, super_generateChecksum):
+    def test_generateChecksum(t, super_generateChecksum):
         organizer = Mock(
             name="Products.ZenRelations.ZenPropertyManager",
             spec_set=["property_id", "_properties"],
@@ -284,11 +293,11 @@ class OSProcessClassFilterTest(TestCase):
         organizer.property_id = "value"
         md5_checksum = md5()
 
-        self.ospcf.generateChecksum(organizer, md5_checksum)
+        t.ospcf.generateChecksum(organizer, md5_checksum)
 
         expect = md5()
         expect.update("%s|%s" % (prop["id"], getattr(organizer, prop["id"])))
-        self.assertEqual(md5_checksum.hexdigest(), expect.hexdigest())
+        t.assertEqual(md5_checksum.hexdigest(), expect.hexdigest())
         super_generateChecksum.assert_called_with(
-            self.ospcf, organizer, md5_checksum
+            t.ospcf, organizer, md5_checksum
         )

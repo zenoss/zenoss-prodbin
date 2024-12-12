@@ -10,49 +10,60 @@
 
 from __future__ import absolute_import
 
+import json
 import logging
-import os
 import signal
 import time
+import types
 
 from collections import defaultdict
 from contextlib import contextmanager
 from optparse import SUPPRESS_HELP, OptParseError
 
 from metrology import Metrology
-from twisted.application.internet import ClientService, backoffPolicy
 from twisted.cred.credentials import UsernamePassword
-from twisted.internet.endpoints import clientFromString
-from twisted.internet import defer, reactor, error, task
+from twisted.internet import defer, reactor, error
+from twisted.internet.endpoints import clientFromString, serverFromString
 from twisted.spread import pb
+from twisted.web._responses import INTERNAL_SERVER_ERROR
 from zope.component import getGlobalSiteManager
 
 import Products.ZenHub as ZENHUB_MODULE
 
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT
+from Products.ZenHub.localserver import (
+    ErrorResponse,
+    LocalServer,
+    ZenHubStatus,
+    ZenResource,
+)
 from Products.ZenHub.metricmanager import MetricManager, IMetricManager
 from Products.ZenHub.server import (
     ServiceLoader,
     ServiceManager,
     ServiceRegistry,
     UnknownServiceError,
-    ZenPBClientFactory,
 )
-from Products.ZenHub.PBDaemon import RemoteBadMonitor
+from Products.ZenHub.errors import RemoteBadMonitor
+from Products.ZenHub.pinger import PingZenHub
+from Products.ZenHub.zenhubclient import ZenHubClient
 from Products.ZenUtils.debugtools import ContinuousProfiler
-from Products.ZenUtils.PBUtil import setKeepAlive
 from Products.ZenUtils.Time import isoDateTime
-from Products.ZenUtils.Utils import zenPath, atomicWrite, load_config
+from Products.ZenUtils.Utils import load_config
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+
 
 IDLE = "None/None"
 
 
 def getLogger(obj):
     """Return a logger based on the name of the given class."""
-    cls = type(obj)
-    name = "zen.zenhubworker.%s" % (cls.__name__)
+    if isinstance(obj, types.InstanceType):
+        name = obj.__class__.__name__
+    else:
+        name = type(obj).__name__
+    name = "zen.zenhubworker.%s" % (name.lower())
     return logging.getLogger(name)
 
 
@@ -97,13 +108,28 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         )
         endpoint = clientFromString(reactor, endpointDescriptor)
         self.__client = ZenHubClient(
-            reactor,
+            self,
             endpoint,
             creds,
-            self,
             self.options.hub_response_timeout,
-            self.worklistId,
+            reactor,
         )
+        self.__client.notify_on_connect(self._register_worker)
+
+        # Configure/initialize the zenhub pinger
+        self.__pinger = PingZenHub(self.__client)
+
+        # bind the server to the localhost interface so only local
+        # connections can be established.
+        server_endpoint_descriptor = "tcp:{port}:interface=127.0.0.1".format(
+            port=self.options.localport
+        )
+        server_endpoint = serverFromString(reactor, server_endpoint_descriptor)
+        self.__server = LocalServer(reactor, server_endpoint)
+        self.__server.add_resource(
+            "zenhub", ZenHubStatus(lambda: self.getZenHubStatus())
+        )
+        self.__server.add_resource("stats", _ZenHubWorkerStats(self))
 
         # Setup Metric Reporting
         self.log.debug("Creating async MetricReporter")
@@ -131,6 +157,16 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         self.__client.start()
         self.__reactor.addSystemEventTrigger(
             "before", "shutdown", self.__client.stop
+        )
+
+        self.__pinger.start()
+        self.__reactor.addSystemEventTrigger(
+            "before", "shutdown", self.__pinger.stop
+        )
+
+        self.__server.start()
+        self.__reactor.addSystemEventTrigger(
+            "before", "shutdown", self.__server.stop
         )
 
         self._metric_manager.start()
@@ -186,15 +222,30 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
             if self.options.profiling:
                 self.profiler.dump_stats()
             super(ZenHubWorker, self).sighandler_USR1(signum, frame)
-        except Exception:
-            pass
+        except Exception as ex:
+            self.log.warning("error while handling a USR1 signal: %s", ex)
 
     def sighandler_USR2(self, *args):
         """Handle USR2 signals."""
         try:
             self.reportStats()
-        except Exception:
-            pass
+        except Exception as ex:
+            self.log.warning("error while reporting statistics: %s", ex)
+
+    @defer.inlineCallbacks
+    def _register_worker(self):
+        try:
+            yield self.__client.register_worker(
+                self, self.instanceId, self.worklistId
+            )
+        except Exception as ex:
+            self.log.error(
+                "failed to register zenhubworker with zenhub  "
+                "error=%s instance-id=%s worklist-id=%s",
+                ex,
+                self.instanceId,
+                self.worklistId,
+            )
 
     def _work_started(self, startTime):
         self.currentStart = startTime
@@ -206,29 +257,58 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         self.currentStart = 0
         if self.numCalls.count >= self.options.call_limit:
             self.log.info(
-                "Call limit of %s reached, "
-                "proceeding to shutdown (and restart)",
+                "Call limit of %s reached, proceeding to shutdown",
                 self.options.call_limit,
             )
             self.__reactor.callLater(0, self._shutdown)
 
-    def reportStats(self):
-        """Write zenhubworker's current statistics to the log."""
-        now = time.time()
+    def getZenHubStatus(self):
+        return "connected" if self.__client.is_connected else "disconnected"
+
+    def getStats(self):
+        results = {"current": self.current}
         if self.current != IDLE:
-            self.log.info(
-                "Currently performing %s, elapsed %.2f s",
-                self.current,
-                now - self.currentStart,
-            )
-        else:
-            self.log.info("Currently IDLE")
+            results["current.elapsed"] = time.time() - self.currentStart
+
         if self.__registry:
-            loglines = ["Running statistics:"]
             sorted_data = sorted(
                 self.__registry.iteritems(),
                 key=lambda kv: kv[0][1].rpartition(".")[-1],
             )
+            summarized_stats = []
+            for (_, svc), svcob in sorted_data:
+                svc = "%s" % svc.rpartition(".")[-1]
+                for method, stats in sorted(svcob.callStats.items()):
+                    summarized_stats.append(
+                        {
+                            "service": svc,
+                            "method": method,
+                            "count": stats.numoccurrences,
+                            "total": stats.totaltime,
+                            "average": stats.totaltime / stats.numoccurrences
+                            if stats.numoccurrences
+                            else 0.0,
+                            "last-run": isoDateTime(stats.lasttime),
+                        }
+                    )
+            results["statistics"] = summarized_stats
+
+        return results
+
+    def reportStats(self):
+        """Write zenhubworker's current statistics to the log."""
+        stats = self.getStats()
+        if stats["current"] != IDLE:
+            self.log.info(
+                "Currently performing %s, elapsed %.2f s",
+                stats["current"],
+                stats["current.elapsed"],
+            )
+        else:
+            self.log.info("Currently IDLE")
+        statistics = stats.get("statistics")
+        if statistics:
+            loglines = ["Running statistics:"]
             loglines.append(
                 " %-50s %-32s %8s %12s %8s %s"
                 % (
@@ -240,22 +320,18 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
                     "Last Run",
                 )
             )
-            for (_, svc), svcob in sorted_data:
-                svc = "%s" % svc.rpartition(".")[-1]
-                for method, stats in sorted(svcob.callStats.items()):
-                    loglines.append(
-                        " - %-48s %-32s %8d %12.2f %8.2f %s"
-                        % (
-                            svc,
-                            method,
-                            stats.numoccurrences,
-                            stats.totaltime,
-                            stats.totaltime / stats.numoccurrences
-                            if stats.numoccurrences
-                            else 0.0,
-                            isoDateTime(stats.lasttime),
-                        ),
-                    )
+            for entry in statistics:
+                loglines.append(
+                    " - %-48s %-32s %8d %12.2f %8.2f %s"
+                    % (
+                        entry["service"],
+                        entry["method"],
+                        entry["count"],
+                        entry["total"],
+                        entry["average"],
+                        entry["last-run"],
+                    ),
+                )
             self.log.info("\n".join(loglines))
         else:
             self.log.info("no service activity statistics")
@@ -294,9 +370,19 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
 
         Used by ZenHub to determine whether zenhubworker is still active.
         """
+        if self.numCalls.count >= self.options.call_limit:
+            raise pb.PBConnectionLost("restarting due to call limit")
         return "pong"
 
+    @defer.inlineCallbacks
     def _shutdown(self):
+        self.log.info("disconnecting from zenhub")
+        try:
+            yield self.__client.unregister_worker(
+                self.instanceId, self.worklistId
+            )
+        except Exception as ex:
+            self.log.error("error while unregistering from zenhub: %s", ex)
         self.log.info("Shutting down")
         try:
             self.__reactor.stop()
@@ -306,6 +392,7 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
     def buildOptions(self):
         """Add optparse options to the options parser."""
         ZCmdBase.buildOptions(self)
+        LocalServer.buildOptions(self.parser)
         self.parser.add_option(
             "--hubhost",
             dest="hubhost",
@@ -368,216 +455,22 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         )
 
 
-class ZenHubClient(object):
-    """A client for connecting to ZenHub as a ZenHub Worker.
+class _ZenHubWorkerStats(ZenResource):
+    def __init__(self, worker):
+        ZenResource.__init__(self)
+        self._worker = worker
 
-    After start is called, this class automatically handles connecting to
-    ZenHub, registering the zenhubworker with ZenHub, and automatically
-    reconnecting to ZenHub if the connection to ZenHub is corrupted for
-    any reason.
-    """
-
-    def __init__(
-        self,
-        reactor,
-        endpoint,
-        credentials,
-        worker,
-        timeout,
-        worklistId,
-    ):
-        """Initialize a ZenHubClient instance.
-
-        :type reactor: IReactorCore
-        :param endpoint: Where zenhub is found
-        :type endpoint: IStreamClientEndpoint
-        :param credentials: Credentials to log into ZenHub.
-        :type credentials: IUsernamePassword
-        :param worker: Reference to worker
-        :type worker: IReferenceable
-        :param float timeout: Seconds to wait before determining whether
-            ZenHub is unresponsive.
-        :param str worklistId: Name of the worklist to receive tasks from.
-        """
-        self.__reactor = reactor
-        self.__endpoint = endpoint
-        self.__credentials = credentials
-        self.__worker = worker
-        self.__timeout = timeout
-        self.__worklistId = worklistId
-
-        self.__stopping = False
-        self.__pinger = None
-        self.__service = None
-
-        self.__log = getLogger(self)
-        self.__signalFile = ConnectedToZenHubSignalFile()
-
-    def start(self):
-        """Start connecting to ZenHub."""
-        self.__stopping = False
-        factory = ZenPBClientFactory()
-        self.__service = ClientService(
-            self.__endpoint,
-            factory,
-            retryPolicy=backoffPolicy(initialDelay=0.5, factor=3.0),
-        )
-        self.__service.startService()
-        self.__prepForConnection()
-
-    def stop(self):
-        """Stop connecting to ZenHub."""
-        self.__stopping = True
-        self.__reset()
-
-    def restart(self):
-        """Restart the connect to ZenHub."""
-        self.__reset()
-        self.start()
-
-    def __reset(self):
-        if self.__pinger:
-            self.__pinger.stop()
-            self.__pinger = None
-        if self.__service:
-            self.__service.stopService()
-            self.__service = None
-        self.__signalFile.remove()
-
-    def __prepForConnection(self):
-        if not self.__stopping:
-            self.__log.info("Prepping for connection")
-            self.__service.whenConnected().addCallbacks(
-                self.__connected, self.__notConnected
-            )
-
-    def __disconnected(self, *args):
-        # Called when the connection to ZenHub is lost.
-        # Ensures that processing resumes when the connection to ZenHub
-        # is restored.
-        self.__log.info(
-            "Lost connection to ZenHub: %s",
-            args[0] if args else "<no reason given>",
-        )
-        if self.__pinger:
-            self.__pinger.stop()
-            self.__pinger = None
-        self.__signalFile.remove()
-        self.__prepForConnection()
-
-    def __notConnected(self, *args):
-        self.__log.info("Not connected! %r", args)
-
-    @defer.inlineCallbacks
-    def __connected(self, broker):
-        # Called when a connection to ZenHub is established.
-        # Logs into ZenHub and passes up a worker reference for ZenHub
-        # to use to dispatch method calls.
-
-        # Sometimes broker.transport doesn't have a 'socket' attribute
-        if not hasattr(broker.transport, "socket"):
-            self.restart()
-            defer.returnValue(None)
-
-        self.__log.info("Connection to ZenHub established")
+    def render_GET(self, request):
         try:
-            setKeepAlive(broker.transport.socket)
-
-            zenhub = yield self.__login(broker)
-            yield zenhub.callRemote(
-                "reportingForWork",
-                self.__worker,
-                workerId=self.__worker.instanceId,
-                worklistId=self.__worklistId,
+            request.responseHeaders.addRawHeader(
+                b"content-type", b"application/json; charset=utf-8"
             )
-
-            ping = PingZenHub(zenhub, self)
-            self.__pinger = task.LoopingCall(ping)
-            d = self.__pinger.start(self.__timeout, now=False)
-            d.addErrback(self.__pingFail)  # Catch and pass on errors
-        except defer.CancelledError:
-            self.__log.error("Timed out trying to login to ZenHub")
-            self.restart()
-            defer.returnValue(None)
-        except Exception as ex:
-            self.__log.error(
-                "Unable to report for work: (%s) %s", type(ex).__name__, ex
-            )
-            self.__signalFile.remove()
-            self.__reactor.stop()
-        else:
-            self.__log.info("Logged into ZenHub")
-            self.__signalFile.touch()
-
-            # Connection complete; install a listener to be notified if
-            # the connection is lost.
-            broker.notifyOnDisconnect(self.__disconnected)
-
-    def __login(self, broker):
-        d = broker.factory.login(self.__credentials, self.__worker)
-        timeoutCall = self.__reactor.callLater(self.__timeout, d.cancel)
-
-        def completedLogin(arg):
-            if timeoutCall.active():
-                timeoutCall.cancel()
-            return arg
-
-        d.addBoth(completedLogin)
-        return d
-
-    def __pingFail(self, ex):
-        self.__log.error("Pinger failed: %s", ex)
-
-
-class PingZenHub(object):
-    """Simple task to ping ZenHub.
-
-    PingZenHub's real purpose is to allow the ZenHubWorker to detect when
-    ZenHub is no longer responsive (for whatever reason).
-    """
-
-    def __init__(self, zenhub, client):
-        """Initialize a PingZenHub instance."""
-        self.__zenhub = zenhub
-        self.__client = client
-        self.__log = getLogger(self)
-
-    @defer.inlineCallbacks
-    def __call__(self):
-        """Ping zenhub.
-
-        If the ping fails, causes the connection to ZenHub to reset.
-        """
-        self.__log.debug("Pinging zenhub")
-        try:
-            response = yield self.__zenhub.callRemote("ping")
-            self.__log.debug("Pinged  zenhub: %s", response)
-        except Exception as ex:
-            self.__log.error("Ping failed: %s", ex)
-            self.__client.restart()
-
-
-class ConnectedToZenHubSignalFile(object):
-    """Manages a file that indicates successful connection to ZenHub."""
-
-    def __init__(self):
-        """Initialize a ConnectedToZenHubSignalFile instance."""
-        filename = "zenhub_connected"
-        self.__signalFilePath = zenPath("var", filename)
-        self.__log = getLogger(self)
-
-    def touch(self):
-        """Create the file."""
-        atomicWrite(self.__signalFilePath, "")
-        self.__log.debug("Created file '%s'", self.__signalFilePath)
-
-    def remove(self):
-        """Delete the file."""
-        try:
-            os.remove(self.__signalFilePath)
+            return json.dumps(self._worker.getStats())
         except Exception:
-            pass
-        self.__log.debug("Removed file '%s'", self.__signalFilePath)
+            self.log.exception("failed to get zenhubworker stats")
+            return ErrorResponse(
+                INTERNAL_SERVER_ERROR, "zenhubworker statistics unavailable"
+            )
 
 
 class ServiceReferenceFactory(object):

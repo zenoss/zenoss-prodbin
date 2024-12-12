@@ -9,8 +9,8 @@
 
 import logging
 
-from zope.interface import implements
-from zope.component import adapts
+from zope.interface import implementer
+from zope.component import adapter
 
 from Products.ZenRelations.PrimaryPathObjectManager import (
     PrimaryPathObjectManager,
@@ -18,13 +18,12 @@ from Products.ZenRelations.PrimaryPathObjectManager import (
 
 from .interfaces import IInvalidationOid
 
+log = logging.getLogger("zen.{}".format(__name__.split(".")[-1].lower()))
 
-log = logging.getLogger("zen.InvalidationOid")
 
-
+@adapter(PrimaryPathObjectManager)
+@implementer(IInvalidationOid)
 class DefaultOidTransform(object):
-    implements(IInvalidationOid)
-    adapts(PrimaryPathObjectManager)
 
     def __init__(self, obj):
         self._obj = obj
@@ -33,8 +32,8 @@ class DefaultOidTransform(object):
         return oid
 
 
+# DeviceOidTransform kept for backward compability with vSphere ZenPack.
 class DeviceOidTransform(object):
-    implements(IInvalidationOid)
 
     def __init__(self, obj):
         self._obj = obj

@@ -11,7 +11,7 @@ import logging
 import os
 
 from twisted.internet.defer import failure
-from zope.interface import implements
+from zope.interface import implementer
 from zope.component import getGlobalSiteManager
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
@@ -19,22 +19,22 @@ from Products.ZenHub.interfaces import (
     ICollectorEventTransformer,
     TRANSFORM_DROP,
 )
-from Products.ZenHub.PBDaemon import (
-    DeDupingEventQueue,
-    DequeEventQueue,
-    EventQueueManager,
+from Products.ZenHub.PBDaemon import PBDaemon
+from Products.ZenHub.events.queue.manager import EventQueueManager
+from Products.ZenHub.events.queue.deduping import DeDupingEventQueue
+from Products.ZenHub.events.queue.deque import DequeEventQueue
+from Products.ZenHub.events.queue.fingerprint import (
     DefaultFingerprintGenerator,
-    PBDaemon,
 )
 
-_TEST_EVENT = dict(
-    device="device1",
-    component="component1",
-    eventClass="/MyEventClass",
-    eventKey="MyEventKey",
-    severity=5,
-    summary="My summary",
-)
+_TEST_EVENT = {
+    "device": "device1",
+    "component": "component1",
+    "eventClass": "/MyEventClass",
+    "eventKey": "MyEventKey",
+    "severity": 5,
+    "summary": "My summary",
+}
 
 log = logging.getLogger("zen.testPBDaemon")
 
@@ -95,7 +95,7 @@ class TestDeDupingEventQueue(BaseEventQueueTest):
         )
 
     def testDeDuping(self):
-        for i in range(100):
+        for _ in range(100):
             self.queue.append(createTestEvent(mydetail="detailvalue"))
         self.assertEquals(1, len(self.queue))
         queued = list(self.queue)
@@ -170,9 +170,8 @@ class TestEventQueueManager(BaseTestCase):
         return options
 
     def testAddEventDroppedTransform(self):
+        @implementer(ICollectorEventTransformer)
         class DroppingTransformer(object):
-            implements(ICollectorEventTransformer)
-
             def __init__(self):
                 self.num_dropped = 0
 
@@ -184,7 +183,7 @@ class TestEventQueueManager(BaseTestCase):
         self.gsm.registerUtility(transformer)
         try:
             eqm = EventQueueManager(self.createOptions(), log)
-            for i in range(5):
+            for _ in range(5):
                 eqm.addEvent(createTestEvent())
         finally:
             self.gsm.unregisterUtility(transformer)
@@ -203,13 +202,13 @@ class TestEventQueueManager(BaseTestCase):
 
     def testNoDuplicateClears(self):
         eqm = EventQueueManager(self.createOptions(), log)
-        for i in range(5):
+        for _ in range(5):
             eqm.addEvent(createTestEvent(severity=0))
         self.assertEquals(1, len(eqm.event_queue))
         sent_events = []
         eqm.sendEvents(lambda evts: sent_events.extend(evts))
 
-        for i in range(5):
+        for _ in range(5):
             eqm.addEvent(createTestEvent(severity=0))
         self.assertEquals(0, len(eqm.event_queue))
 
@@ -221,7 +220,7 @@ class TestEventQueueManager(BaseTestCase):
         def send_events(evts):
             sent_events.extend(evts)
 
-        for i in range(5):
+        for _ in range(5):
             eqm.addEvent(createTestEvent(severity=0))
             eqm.sendEvents(send_events)
         self.assertEquals(5, len(sent_events))
@@ -236,7 +235,7 @@ class TestEventQueueManager(BaseTestCase):
             sent_events.extend(evts)
 
         eqm = EventQueueManager(opts, log)
-        for i in range(10):
+        for _ in range(10):
             eqm.addEvent(createTestEvent(severity=0))
             eqm.sendEvents(send_events)
         self.assertEquals(2, len(sent_events))
@@ -432,22 +431,25 @@ class Publisher(object):
 class TestMetricWriter(BaseTestCase):
     def setUp(self):
         os.environ["CONTROLPLANE"] = "0"
-        self.daemon = PBDaemon()
-        self.daemon._publisher = Publisher()
+        self.publisher = Publisher()
+        self.daemon = PBDaemon(publisher=self.publisher)
         self.metric_writer = self.daemon.metricWriter()
 
     def testWriteMetric(self):
         metric = ["name", 0.0, "now", {}]
         self.metric_writer.write_metric(*metric)
-        self.assertEquals([tuple(metric)], self.daemon._publisher.queue)
+        self.assertEquals([tuple(metric)], self.publisher.queue)
 
 
 class TestInternalMetricWriter(BaseTestCase):
     def setUp(self):
         os.environ["CONTROLPLANE"] = "1"
-        self.daemon = PBDaemon()
-        self.daemon._publisher = Publisher()
-        self.daemon._internal_publisher = Publisher()
+        self.publisher = Publisher()
+        self.internal_publisher = Publisher()
+        self.daemon = PBDaemon(
+            publisher=self.publisher,
+            internal_publisher=self.internal_publisher,
+        )
         self.metric_writer = self.daemon.metricWriter()
 
     def testWriteInternalMetric(self):
@@ -456,20 +458,19 @@ class TestInternalMetricWriter(BaseTestCase):
         self.metric_writer.write_metric(*metric)
         self.metric_writer.write_metric(*internal_metric)
         self.assertEquals(
-            [tuple(internal_metric)], self.daemon._internal_publisher.queue
+            [tuple(internal_metric)], self.internal_publisher.queue
         )
         self.assertEquals(
-            [tuple(metric), tuple(internal_metric)],
-            self.daemon._publisher.queue,
+            [tuple(metric), tuple(internal_metric)], self.publisher.queue
         )
 
     def testInternalPublisherIsNone(self):
-        self.daemon._internal_publisher = None
+        self.daemon.setInternalPublisher(None)
         del os.environ["CONTROLPLANE_CONSUMER_URL"]
         self.assertIsNone(self.daemon.internalPublisher())
 
     def testInternalPublisherIsInstance(self):
-        self.daemon._internal_publisher = None
+        self.daemon.setInternalPublisher(None)
         os.environ["CONTROLPLANE_CONSUMER_URL"] = "http://localhost"
         publisher = self.daemon.internalPublisher()
         from Products.ZenHub.metricpublisher.publisher import HttpPostPublisher

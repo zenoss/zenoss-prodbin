@@ -15,10 +15,12 @@ import uuid
 
 from AccessControl.SecurityManagement import getSecurityManager
 from celery import Task
-from celery.exceptions import Ignore, SoftTimeLimitExceeded
+from celery.exceptions import SoftTimeLimitExceeded
+
+from ..config import getConfig
+from ..utils.log import get_task_logger, get_logger
 
 from .event import SendZenossEventMixin
-from ..utils.log import get_task_logger, get_logger
 
 _default_summary = "Task {0.__class__.__name__}"
 
@@ -39,11 +41,9 @@ class ZenTask(SendZenossEventMixin, Task):
         summary = getattr(task, "summary", None)
         if not summary:
             summary = _default_summary.format(task)
-        setattr(cls, "summary", summary)
+        cls.summary = summary
 
-        from Products.Jobber.config import ZenJobs
-
-        task.max_retries = ZenJobs.get("zodb-max-retries", 5)
+        task.max_retries = getConfig().get("zodb-max-retries", 5)
 
         return task
 
@@ -68,7 +68,7 @@ class ZenTask(SendZenossEventMixin, Task):
         kw = req.kwargs if req.kwargs else {}
         return type(self).description_from(*args, **kw)
 
-    def subtask(self, *args, **kw):
+    def signature(self, *args, **kw):
         """Return celery.signature object for this task.
 
         This overridden version adds the currently logged in user's ID
@@ -88,7 +88,7 @@ class ZenTask(SendZenossEventMixin, Task):
             headers["userid"] = userid
         if self.request.id is None:
             kw["task_id"] = str(uuid.uuid4())
-        return super(ZenTask, self).subtask(*args, **kw)
+        return super(ZenTask, self).signature(*args, **kw)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         result = super(ZenTask, self).on_failure(
@@ -118,9 +118,6 @@ class ZenTask(SendZenossEventMixin, Task):
             del self.__run
 
     def __exec(self, *args, **kwargs):
-        if self.request.id is None:
-            self.log.error("Bad task: No ID found  request=%s", self.request)
-            raise Ignore()
         self.log.info("Job started")
         mlog.debug("Job started  request=%s", self.request)
         start = time.time()

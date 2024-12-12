@@ -11,7 +11,7 @@
     }
   </style>
 <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/xtheme-zenoss.css" />  
+            href="/++resource++zenui/css/xtheme-zenoss.css" />
   </tal:block>
 
   <tal:block metal:fill-slot="breadCrumbPane">

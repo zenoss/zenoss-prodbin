@@ -21,7 +21,7 @@ from twisted.web.client import Agent, CookieAgent
 from twisted.web.http_headers import Headers
 from twisted.web.iweb import IBodyProducer
 from txredis import RedisClientFactory
-from zope.interface import implements
+from zope.interface import implementer
 
 from Products.ZenUtils.MetricServiceRequest import getPool
 
@@ -447,10 +447,10 @@ class HttpPostPublisher(BasePublisher):
         return self._make_request()
 
 
+@implementer(IBodyProducer)
 class StringProducer(object):
-    implements(IBodyProducer)
     """
-    Implements twisted interface for writing a string to HTTP output stream
+    Implements twisted interface for writing a string to HTTP output stream.
     """
 
     def __init__(self, postBody):

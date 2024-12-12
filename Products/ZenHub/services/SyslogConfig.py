@@ -1,51 +1,59 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2011, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2011, 2023 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
 
-from __future__ import print_function
-
 """SyslogConfig
 
 Provides configuration for syslog message to Zenoss event conversions.
 """
 
+from __future__ import absolute_import, print_function
+
 import logging
 
-from Products.ZenCollector.services.config import CollectorConfigService
+from hashlib import md5
 
-log = logging.getLogger("zen.HubService.SyslogConfig")
+from Products.ZenHub.HubService import HubService
+from Products.ZenEvents.zensyslog.config import ConfigUpdates
 
-
-class FakeDevice(object):
-    id = "Syslog payload"
-
-
-class SyslogConfig(CollectorConfigService):
-    def _filterDevices(self, deviceList):
-        return [FakeDevice()]
-
-    def _createDeviceProxy(self, device):
-        proxy = CollectorConfigService._createDeviceProxy(self, device)
-        proxy.configCycleInterval = 3600
-        proxy.name = "Syslog Configuration"
-        proxy.device = device.id
-
-        proxy.defaultPriority = self.zem.defaultPriority
-        return proxy
+log = logging.getLogger("zen.hub.services.syslogconfig")
 
 
-if __name__ == "__main__":
-    from Products.ZenHub.ServiceTester import ServiceTester
+class SyslogConfig(HubService):
+    def remote_getConfig(self, checksums):
+        result = ConfigUpdates()
 
-    tester = ServiceTester(SyslogConfig)
+        priority = self.zem.defaultPriority
+        priority_checksum = _checksum(priority)
+        if checksums.priority != priority_checksum:
+            result.priority = priority
+            result.checksums.priority = priority_checksum
 
-    def printer(config):
-        print("Default syslog priority = ", config.defaultPriority)
+        use_summary = self.zem.syslogSummaryToMessage
+        use_summary_checksum = _checksum(use_summary)
+        if checksums.use_summary != use_summary_checksum:
+            result.use_summary = use_summary
+            result.checksums.use_summary = use_summary_checksum
 
-    tester.printDeviceProxy = printer
-    tester.showDeviceInfo()
+        parsers = self.zem.syslogParsers
+        parsers_checksum = _checksum(parsers)
+        if checksums.parsers != parsers_checksum:
+            result.parsers = parsers
+            result.checksums.parsers = parsers_checksum
+
+        rules = self.zem.syslogMsgEvtFieldFilterRules
+        rules_checksum = _checksum(rules)
+        if checksums.rules != rules_checksum:
+            result.rules = rules
+            result.checksums.rules = rules_checksum
+
+        return result
+
+
+def _checksum(value):
+    return md5(str(value)).hexdigest()  # noqa: S324

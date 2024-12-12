@@ -7,12 +7,6 @@
 #
 ##############################################################################
 
-__doc__ = """__init__
-
-Initialize the RelationshipManager Product
-
-"""
-
 import logging
 
 from .RelationshipManager import (
@@ -20,20 +14,20 @@ from .RelationshipManager import (
     manage_addRelationshipManager,
     RelationshipManager,
 )
-from .ToOneRelationship import (
-    addToOneRelationship,
-    manage_addToOneRelationship,
-    ToOneRelationship,
+from .ToManyContRelationship import (
+    addToManyContRelationship,
+    manage_addToManyContRelationship,
+    ToManyContRelationship,
 )
 from .ToManyRelationship import (
     addToManyRelationship,
     manage_addToManyRelationship,
     ToManyRelationship,
 )
-from .ToManyContRelationship import (
-    addToManyContRelationship,
-    manage_addToManyContRelationship,
-    ToManyContRelationship,
+from .ToOneRelationship import (
+    addToOneRelationship,
+    manage_addToOneRelationship,
+    ToOneRelationship,
 )
 from .ZenPropertyManager import setDescriptors
 
