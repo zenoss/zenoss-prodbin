@@ -24,7 +24,6 @@ from servicemigration.graphrange import GraphRange
 from servicemigration.graphconfig import GraphConfig
 from servicemigration.graphdatapoint import GraphDatapoint
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 log = logging.getLogger("zen.migrate")
@@ -37,7 +36,7 @@ class ZentrapSvcDevForMsgParsing(Migrate.Step):
     add 'Filter Dropped Events' to zentrap 'Events' graph
     '''
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 7, 0)
 
     def cutover(self, dmd):
         try:
