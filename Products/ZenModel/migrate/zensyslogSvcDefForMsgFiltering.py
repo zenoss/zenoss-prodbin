@@ -21,7 +21,6 @@ import servicemigration as sm
 from servicemigration.metrics import Metric
 from servicemigration.graphdatapoint import GraphDatapoint
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 log = logging.getLogger("zen.migrate")
@@ -34,7 +33,7 @@ class ZensyslogSvcDevForMsgParsing(Migrate.Step):
     add 'Filter Dropped Events' to zensyslog 'Events' graph
     '''
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 7, 0)
 
     def cutover(self, dmd):
         try:
