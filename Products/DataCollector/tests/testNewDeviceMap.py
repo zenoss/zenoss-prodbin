@@ -11,6 +11,8 @@ import logging
 
 from cPickle import loads
 
+import mock
+
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 from Products.DataCollector.plugins.zenoss.snmp.NewDeviceMap import (
     NewDeviceMap,
@@ -26,6 +28,15 @@ class TestNewDeviceMap(BaseTestCase):
         self.adm = ApplyDataMap()
         self.ndmap = NewDeviceMap()
         self.device = self.dmd.Devices.createInstance("testDevice")
+        self.__enterprise_oids_patcher = mock.patch(
+            "Products.DataCollector.plugins.zenoss.snmp.NewDeviceMap.EnterpriseOIDs",
+            new={
+                ".1.3.6.1.4.1.311": "Microsoft",
+                ".1.3.6.1.4.1.8072": "net snmp",
+            }
+        )
+        self.__enterprise_oids_patcher.start()
+        self.addCleanup(self.__enterprise_oids_patcher.stop)
 
     def testWin2003Server(self):
         results = loads(
