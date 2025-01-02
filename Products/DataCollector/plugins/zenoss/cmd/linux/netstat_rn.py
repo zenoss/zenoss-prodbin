@@ -29,9 +29,9 @@ IP_GATEWAY_PROTO = re.compile(r"proto (\S+)")
 # 10.111.23.0/24 dev eth0  proto kernel  scope link  src 10.111.23.72
 #          192.168.99.0/24 dev eth0  scope link
 IP_ROUTE_RECORD = re.compile(
-    r"^(\S+)\s+dev\s+(\S+)\s+proto\s+(\S+)\s+scope\s+link\s+"
+    r"^(\S+/\d+)\s+dev\s+(\S+)\s+proto\s+(\S+)\s+scope\s+link\s+"
 )
-IP_ROUTE_RECORD_SHORT = re.compile(r"^(\S+)\s+dev\s+(\S+)\s+scope\s+link\s+")
+IP_ROUTE_RECORD_SHORT = re.compile(r"^(\S+/\d+)\s+dev\s+(\S+)\s+scope\s+link\s+")
 
 
 class BaseParser(object):
