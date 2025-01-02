@@ -75,6 +75,7 @@ setup(
         "console_scripts": [
             "configcache=Products.ZenCollector.configcache.__main__:main",
             "zenjobs=Products.Jobber.bin:main",
+            "buildenterpriseoids=Products.DataCollector.EnterpriseOIDs:build_enterprise_oids",
         ],
         "celery.commands": [
             "monitor=Products.Jobber.monitor:MonitorCommand",
