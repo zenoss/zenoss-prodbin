@@ -107,6 +107,16 @@ class ZodbPackMonkeyHelper(object):
         count = cursor.executemany(sql, batch)
         return count
 
+    def delete_orphaned_references(self, cursor, batch):
+        """ Deletes identified orphaned references. """
+        sql = """DELETE FROM {0}
+            WHERE zoid = %s
+            AND to_zoid = %s
+            AND tid = %s""".format(self.REF_TABLE_NAME)
+        count = cursor.executemany(sql, batch)
+
+        return count
+
     def log_exception(self, e, info=''):
         log.error("Monkey patch for zodbpack raised and exception: %s: %s", info, e)
 
@@ -130,9 +140,33 @@ class ZodbPackMonkeyHelper(object):
         Returns all references where oid is in zoid or to_zoid
         """
         values = ','.join(str(zoid) for zoid, tid in batch)
-        sql = """ SELECT zoid, to_zoid FROM {0} WHERE zoid!=to_zoid AND (zoid IN ({1}) OR to_zoid IN ({1}))""".format(self.REF_TABLE_NAME, values)
+        sql = """ SELECT {0}.zoid, {0}.to_zoid FROM {0}
+            LEFT JOIN object_state on {0}.zoid = object_state.zoid
+            WHERE object_state.zoid is NOT NULL
+            AND {0}.zoid!={0}.to_zoid
+            AND ({0}.zoid IN ({1}) OR {0}.to_zoid IN ({1}))""".format(
+                self.REF_TABLE_NAME,
+                values
+                )
         cursor.execute(sql)
         result = cursor.fetchall()
+
+        return result
+
+    def _get_orphaned_references(self, cursor):
+        """
+        Returns all orphaned references in object_ref where zoid or to_zoid
+        do not have corresponding entries in object_state.
+        """
+        sql = """ SELECT {0}.zoid, {0}.to_zoid, {0}.tid from {0}
+        LEFT JOIN object_state as container ON {0}.zoid = container.zoid
+        LEFT JOIN object_state as contained ON {0}.to_zoid = contained.zoid
+        WHERE container.zoid IS NULL OR contained.zoid IS NULL;
+        """.format(self.REF_TABLE_NAME)
+
+        cursor.execute(sql)
+        result = cursor.fetchall()
+
         return result
 
     def _get_oid_references(self, cursor, oids):
@@ -384,8 +418,23 @@ try:
 
         load_connection = LoadConnection(self.connmanager)
         store_connection = PrePackConnection(self.connmanager)
+        cursor = store_connection.cursor
         try:
             try:
+                log.info("Searching for orphaned references.")
+                null_refs = MONKEY_HELPER._get_orphaned_references(cursor)
+
+                if null_refs:
+                    removed_refs = MONKEY_HELPER.delete_orphaned_references(
+                        cursor,
+                        null_refs
+                        )
+                    msg = "Removed %d orphaned references"
+                else:
+                    removed_refs = 0
+                    msg = "Identified %d orphaned references"
+
+                log.info(msg, removed_refs)
                 self._pre_pack_main(load_connection, store_connection, pack_tid, get_references)
             except Exception:
                 log.exception("pre_pack: failed")
