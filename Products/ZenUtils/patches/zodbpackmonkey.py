@@ -109,8 +109,10 @@ class ZodbPackMonkeyHelper(object):
 
     def delete_orphaned_references(self, cursor, batch):
         """ Deletes identified orphaned references. """
-        sql = """DELETE FROM {0} WHERE zoid = %s AND to_zoid = %s AND tid = %s
-            """.format(self.REF_TABLE_NAME)
+        sql = """DELETE FROM {0}
+            WHERE zoid = %s
+            AND to_zoid = %s
+            AND tid = %s""".format(self.REF_TABLE_NAME)
         count = cursor.executemany(sql, batch)
 
         return count
