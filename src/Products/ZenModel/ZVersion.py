@@ -9,5 +9,15 @@
 
 import os
 
-VERSION = os.environ.get("ZENOSS_VERSION", "DEV")
+
+def _load_version():
+    import importlib_metadata as metadata
+    import pkg_resources
+
+    version_str = metadata.version("zenoss")
+    version = pkg_resources.parse_version(version_str)
+    return version.base_version
+
+
+VERSION = _load_version()
 BUILD_NUMBER = os.environ.get("BUILD_NUMBER", "DEV")
