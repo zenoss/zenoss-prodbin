@@ -29,7 +29,7 @@ from .ZenossSecurity import ZEN_MANAGE_DMD, ZEN_ADD
 from .ZenPackable import ZenPackable
 
 log = logging.getLogger("zen.Mibs")
-_pathToMIB = "/var/ext/uploadedMIBs"
+_pathToMIB = "var/ext/uploadedMIBs"
 
 
 def manage_addMibOrganizer(context, id, REQUEST=None):

@@ -84,7 +84,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Dumping SQL..."
-$ZENHOME/bin/zendb --usedb=zodb --dump --dumpfile=zodb.sql 
+zendb --usedb=zodb --dump --dumpfile=zodb.sql 
 if [ $? -ne 0 ]; then
     echo "An error dumping database."
     rm -rf zodb.sql

@@ -26,7 +26,9 @@ from AccessControl import ClassSecurityInfo
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.ZenossSecurity import ZEN_COMMON
-from Products.ZenUtils.Utils import importClass, zenPath
+from Products.ZenUtils.Utils import importClass
+
+from . import plugins
 
 log = logging.getLogger('zen.reportserver')
 
@@ -37,16 +39,15 @@ class ReportServer(ZenModelRM):
 
     def _getPluginDirectories(self):
         directories = []
-        for p in self.ZenPackManager.packs():
-            if p.id == 'broken':
+        for p in self.dmd.ZenPackManager.packs():
+            if p.id == "broken":
                 continue
             try:
                 pluginpath = p.path('reports', 'plugins')
                 directories.append(pluginpath)
             except AttributeError:
-                log.warn("Unable to load report plugins for ZenPack %s",
-                          p.id)
-        directories.append(zenPath('Products/ZenReports/plugins'))
+                log.warn("Unable to load report plugins for ZenPack %s", p.id)
+        directories.append(plugins.__path__[0])
         return directories
 
     def listPlugins(self):
@@ -104,14 +105,14 @@ class ReportServer(ZenModelRM):
         try:
             if templateArgs is None:
                 return instance.run(dmd, args)
-            result = instance.run(dmd, args, templateArgs)
-            # abort the current transaction so long running reports do not
-            # cause a conflict
-            self._p_jar.sync()
-            return result
+            return instance.run(dmd, args, templateArgs)
         except Exception:
             log.exception("Failed to run plugin %s (%s)", name, instance)
             return []
+        finally:
+            # abort the current transaction so long running reports do not
+            # cause a conflict
+            self._p_jar.sync()
 
 
 def manage_addReportServer(context, id, REQUEST=None):

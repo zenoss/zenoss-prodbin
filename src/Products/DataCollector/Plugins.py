@@ -40,9 +40,10 @@ import logging
 import os
 import sys
 
+from importlib_resources import files as getFilePathOf
 from twisted.spread import pb
 
-from Products.ZenUtils.Utils import importClass, zenPath
+from Products.ZenUtils.Utils import importClass
 
 log = logging.getLogger("zen.Plugins")
 
@@ -124,7 +125,7 @@ pb.setUnjellyableForClass(PluginLoader, PluginLoader)
 
 def _coreModPaths(walker, package):
     "generates modPath strings for the modules in a core directory"
-    for absolutePath, dirname, filenames in walker.walk(package):
+    for absolutePath, _, filenames in walker.walk(package):
         if absolutePath == package:
             modPathBase = []
         elif absolutePath.startswith(package):
@@ -243,12 +244,12 @@ class PluginManager(object):
         Adds PluginLoaders for plugins in productsPaths to the pluginLoaders
         dictionary.
 
-        lastModName - the directory name where the plugins are found.
-            This name is appended to the following paths.
-        packPath - path to the directory that holds the plugin modules
-            inside a zenpack. this path is relative to the zenpack root
-        productsPaths - list of paths to directories that hold plugin
-            modules. these paths are relative to $ZENHOME/Products
+        lastModName - The directory name where the plugins are found.
+            This name is appended to the following paths
+        packPath - Path to the directory that holds the plugin modules inside
+            a zenpack. This path is relative to the zenpack root
+        productsPaths - List of paths to directories that hold plugin
+            modules. These paths are relative to Products
 
         A 'path', as used here, is a tuple of directory names
         """
@@ -257,7 +258,9 @@ class PluginManager(object):
         self.lastModName = lastModName
         self.packPath = packPath
         for path in productsPaths:
-            package = zenPath(*("Products",) + path + (lastModName,))
+            package = getFilePathOf(
+                "Products.{}.{}".format(path, lastModName)
+            ).as_posix()
             self._addPluginLoaders(CoreLoaderFactory(OsWalker()), package)
 
     def getPluginLoader(self, packs, modPath):
@@ -330,7 +333,7 @@ class ModelingManager(object):
             cls.instance = PluginManager(
                 lastModName="plugins",
                 packPath=("modeler",),
-                productsPaths=[("DataCollector",)],
+                productsPaths=("DataCollector",),
             )
         return cls.instance
 
@@ -348,7 +351,7 @@ class MonitoringManager(object):
     def getInstance(cls):
         if cls.instance is None:
             cls.instance = PluginManager(
-                lastModName="parsers", packPath=(), productsPaths=[("ZenRRD",)]
+                lastModName="parsers", packPath=(), productsPaths=("ZenRRD",)
             )
         return cls.instance
 

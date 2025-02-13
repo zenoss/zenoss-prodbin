@@ -28,7 +28,7 @@ import gzip
 from itertools import imap
 
 from ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath, binPath, readable_time, unused
+from Products.ZenUtils.Utils import zenPath, binPath, readable_time
 from ZenBackupBase import *
 from zope.interface import implements
 from Products.Zuul.interfaces import IPreBackupEvent, IPostBackupEvent

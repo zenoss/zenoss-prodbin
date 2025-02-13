@@ -129,9 +129,16 @@ class GetDoc(BrowserView):
                 break
 
         if serveFile:
-            filename = os.path.join(zenPath("Products"), 'ZenUI3', 'docs', bundle)
-            self.request.RESPONSE.setHeader('Content-Type', 'application/x-gzip')
-            self.request.RESPONSE.setHeader('Content-Disposition', 'attachment;filename=' + os.path.basename(filename))
+            import Products.ZenUI3
+
+            filename = os.path.join(Products.ZenUI3.__file__, "docs", bundle)
+            self.request.RESPONSE.setHeader(
+                "Content-Type", "application/x-gzip"
+            )
+            self.request.RESPONSE.setHeader(
+                "Content-Disposition",
+                "attachment;filename=" + os.path.basename(filename),
+            )
             with open(filename) as f:
                 return f.read()
 

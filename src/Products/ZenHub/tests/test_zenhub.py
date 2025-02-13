@@ -292,7 +292,7 @@ class ZenHubTest(TestCase):
         t.zh._metric_writer = sentinel.metric_writer
         t.zh.profiler = Mock(name="profiler", spec_set=["stop"])
 
-        t.zh.main()
+        t.zh.run()
 
         # convert to a looping call
         t.reactor.callLater.assert_called_with(0, t.zh.heartbeat)

@@ -7,28 +7,58 @@
 # 
 ##############################################################################
 
-
+import io
+import json
 import os
 import re
-import json
-import logging
-from zope.interface import implements
+
+import six
+
+from OFS.interfaces import IApplication
 from Products.Five.browser import BrowserView
 from Products.Five.viewlet.manager import ViewletManagerBase
-from Products.ZenUI3.browser.interfaces import IHeadExtraManager
-from Products.ZenUtils.CSEUtils import getCSEConf
-from zope.publisher.interfaces.browser import IDefaultBrowserLayer
-from OFS.interfaces import IApplication
-from zope.interface import Interface
 from zope.component import getGlobalSiteManager
+from zope.interface import implementer, Interface
+from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 
-def _checkForCompiledJSFile():
-    COMPILED_JS_FILE = os.path.join(os.path.dirname(__file__), 
-                                'resources/js/deploy/zenoss-compiled.js')
-    return os.path.exists(COMPILED_JS_FILE)
+from Products.ZenUtils.CSEUtils import getCSEConf
 
-JSBFILE = os.path.join(os.path.dirname(__file__), 'zenoss.jsb2')
-COMPILED_JS_EXISTS = _checkForCompiledJSFile()
+from .interfaces import IHeadExtraManager
+
+_JSB_SPEC = None
+_RESOURCE_ROOT_PATH = os.path.join(os.path.dirname(__file__), "resources")
+
+
+def hasCompiledJavascript():
+    spec = _get_jsb_spec()
+    deployDir = spec["deployDir"]
+    filename = os.path.join(
+        _RESOURCE_ROOT_PATH, deployDir, spec["pkgs"][0]["file"]
+    )
+    return os.path.exists(filename)
+
+
+def _get_jsb_spec():
+    global _JSB_SPEC
+
+    if _JSB_SPEC is None:
+        filename = os.path.join(_RESOURCE_ROOT_PATH, "builder.jsb2")
+        with open(filename, "r") as fp:
+            _JSB_SPEC = json.load(fp, object_hook=_as_bytes)
+
+    return _JSB_SPEC
+
+
+def _as_bytes(data):
+    if isinstance(data, dict):
+        return {str(k): _as_bytes(v) for k, v in data.iteritems()}
+    elif isinstance(data, list):
+        return [_as_bytes(v) for v in data]
+    elif isinstance(data, six.text_type):
+        return bytes(data)
+    else:
+        return data
+
 
 class ExtJSShortcut(BrowserView):
     def __getitem__(self, name):
@@ -46,29 +76,29 @@ class CSEShortcut(BrowserView):
             return self.context.dmd
         return self.context[name]
 
+
 czID = getCSEConf().get('virtualroot', '')
 if czID:
     czID = czID.replace('/','') #remove slash
     gsm = getGlobalSiteManager()
-    gsm.registerAdapter(CSEShortcut, (IApplication, IDefaultBrowserLayer), Interface, czID)
+    gsm.registerAdapter(
+        CSEShortcut, (IApplication, IDefaultBrowserLayer), Interface, czID
+    )
+
 
 def get_js_file_list(pkg='Zenoss Application'):
     """
     Parse the JSBuilder2 config file to get a list of file names in the same
     order as that used by JSBuilder to generate its version.
     """
-    jsb = open(JSBFILE)
     paths = []
-    try:
-        cfg = json.load(jsb)
-        for p in cfg['pkgs']:
-            if p['name']==pkg:
-                for f in p['fileIncludes']:
-                    path = re.sub('^resources', 'zenui', f['path'])
-                    paths.append(path + f['text'])
-    finally:
-        jsb.close()
-    return [ str(path) for path in paths ]
+    spec = _get_jsb_spec()
+    for p in spec["pkgs"]:
+        if p["name"] == pkg:
+            for f in p["fileIncludes"]:
+                newpath = re.sub("^resources", "zenui", f["path"])
+                paths.append(newpath + f["text"])
+    return [str(path) for path in paths]
 
 
 class PIEdotHTC(BrowserView):
@@ -85,16 +115,20 @@ class ZenossJavaScript(BrowserView):
     the output.
     """
     def __call__(self):
-        self.request.response.setHeader('Content-Type', 'text/javascript')
-        src = []
+        self.request.response.setHeader("Content-Type", "text/javascript")
+        sink = io.BytesIO()
         for p in get_js_file_list():
-            fob = self.context.unrestrictedTraverse(p)
-            src.append(fob.GET())
-        return '\n'.join(src)
+            fn = os.path.join(_RESOURCE_ROOT_PATH, p)
+            with open(fn) as fp:
+                sink.write(fp.read())
+        try:
+            return sink.getvalue()
+        finally:
+            sink.close()
 
 
+@implementer(IHeadExtraManager)
 class HeadExtraManager(ViewletManagerBase):
     """
     Simple viewlet manager allowing people to plug into <head>.
     """
-    implements(IHeadExtraManager)

@@ -7,21 +7,23 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import
 
 from cgi import escape
-from itertools import ifilterfalse, chain
+
+from collections import defaultdict
+from contextlib import contextmanager
 
 import zExceptions
-from collections import defaultdict
-from zope.interface import ro, implements
-from Products.Zuul.catalog.interfaces import IGlobalCatalogFactory
-from decorator import decorator
-from contextlib import contextmanager
-from zope.component import adapts, getUtility
+
 from Acquisition import aq_base
 from AccessControl import getSecurityManager
-from ZODB.POSException import ConflictError
+from decorator import decorator
 from Products.ZCatalog.ZCatalog import ZCatalog
+from ZODB.POSException import ConflictError
+from zope.component import adapts, getUtility
+from zope.interface import ro, implements
+
 from Products.ZenModel.IpNetwork import IpNetwork
 from Products.ZenModel.IpInterface import IpInterface
 from Products.ZenUtils.IpUtil import ipToDecimal
@@ -39,24 +41,33 @@ from Products.ZenModel.FileSystem import FileSystem
 from Products.ZenModel.Software import Software
 from Products.ZenModel.OperatingSystem import OperatingSystem
 from Products.Zuul.utils import getZProperties, allowedRolesAndUsers
-from interfaces import IGloballyIndexed, IPathReporter, IIndexableWrapper
+
+from .interfaces import (
+    IGlobalCatalogFactory,
+    IGloballyIndexed,
+    IPathReporter,
+    IIndexableWrapper,
+)
 
 _MARKER = object()
 _CACHE = defaultdict(dict)
 _CACHE_RESULTS = []
 
-globalCatalogId = 'global_catalog'
+globalCatalogId = "global_catalog"
 
 
 def _allowedRoles(user):
     roles = list(user.getRoles())
-    roles.append('Anonymous')
-    roles.append('user:%s' % user.getId())
+    roles.append("Anonymous")
+    roles.append("user:%s" % user.getId())
     return roles
 
 
 def _escape(s, quote=None):
-    """Wrapper around `cgi.escape` to return empty string on `None` or empty string"""
+    """
+    Wrapper around `cgi.escape` to return empty string on `None` or
+    empty string.
+    """
     return escape(s, quote=quote) if s else ""
 
 
@@ -136,8 +147,10 @@ class IndexableWrapper(object):
         for kls in ro.ro(self._context.__class__):
             # @TODO review. had some issues with picking only the top 5
             # instead we get anything from Products or Zenpacks
-            if kls.__module__.startswith("Products") or kls.__module__.startswith("ZenPacks"):
-                dottednames.add('%s.%s' % (kls.__module__, kls.__name__))
+            if kls.__module__.startswith(
+                "Products"
+            ) or kls.__module__.startswith("ZenPacks"):
+                dottednames.add("%s.%s" % (kls.__module__, kls.__name__))
         return list(dottednames)
 
     @property
@@ -148,14 +161,16 @@ class IndexableWrapper(object):
 
         This is a FieldIndex on the catalog.
         """
-        if isinstance(self._context, IpNetwork): return
-        getter = getattr(self._context, 'getIpAddress', None)
-        if getter is None:
-            getter = getattr(self._context, 'getManageIp', None)
-        if getter is None: return
-        ip = getter()
+        if isinstance(self._context, IpNetwork):
+            return
+        getIp = getattr(self._context, "getIpAddress", None)
+        if getIp is None:
+            getIp = getattr(self._context, "getManageIp", None)
+        if getIp is None:
+            return
+        ip = getIp()
         if ip:
-            ip = ip.partition('/')[0]
+            ip = ip.partition("/")[0]
             return str(ipToDecimal(ip))
 
     @property
@@ -210,12 +225,15 @@ class IndexableWrapper(object):
         Object's uuid. This is a metadata column.
         """
         try:
-            # We don't need create() to update the global catalog, because by definition
-            # this is only called when the object is going to be indexed.
-            return IGlobalIdentifier(self._context).create(update_global_catalog=False)
+            # We don't need create() to update the global catalog, because by
+            # definition this is only called when the object is going to be
+            # indexed.
+            return IGlobalIdentifier(self._context).create(
+                update_global_catalog=False
+            )
         except ConflictError:
             raise
-        except Exception:
+        except Exception:  # noqa: S110
             pass
 
     def productionState(self):
@@ -260,7 +278,6 @@ class IndexableWrapper(object):
 
 
 class SearchableMixin(object):
-
     def searchKeywordsForChildren(self):
         return (self._context.titleOrId(),)
 
@@ -272,32 +289,39 @@ class SearchableMixin(object):
         return _escape(self._context.titleOrId())
 
     def searchIcon(self):
-        return getUtility(IVirtualRoot).ensure_virtual_root(self._context.getIconPath())
+        return getUtility(IVirtualRoot).ensure_virtual_root(
+            self._context.getIconPath()
+        )
 
-class ComponentWrapper(SearchableMixin,IndexableWrapper):
+
+class ComponentWrapper(SearchableMixin, IndexableWrapper):
     adapts(DeviceComponent)
 
     def monitored(self):
         if self._context.monitored():
-            return '1'
-        return ''
+            return "1"
+        return ""
 
     def collectors(self):
         return self._context.getCollectors()
 
     def searchKeywordsForChildren(self):
         o = self._context
-        return (o.titleOrId(), o.name(),
-            o.monitored() and "monitored" or "unmonitored") + \
-            IIndexableWrapper(o.device()).searchKeywordsForChildren()
+        return (
+            o.titleOrId(),
+            o.name(),
+            o.monitored() and "monitored" or "unmonitored",
+        ) + IIndexableWrapper(o.device()).searchKeywordsForChildren()
 
     def searchExcerpt(self):
         o = self._context
         return '%s <span style="font-size:smaller">(%s)</span>' % (
-            _escape(o.name()), _escape(o.device().titleOrId()))
+            _escape(o.name()),
+            _escape(o.device().titleOrId()),
+        )
 
 
-class DeviceWrapper(SearchableMixin,IndexableWrapper):
+class DeviceWrapper(SearchableMixin, IndexableWrapper):
     adapts(Device)
 
     def macAddresses(self):
@@ -310,37 +334,37 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
     def searchKeywordsForChildren(self):
         o = self._context
         ipAddresses = []
-        # TODO: What to do about IP addresses?
-        # try:
-        #     # If we find an interface IP address, link it to a device
-        #     if hasattr(o, 'os') and hasattr(o.os, 'interfaces'):
-        #         ipAddresses = chain(*(iface.getIpAddresses()
-        #                                for iface in o.os.interfaces()))
-        #         # fliter out localhost-ish addresses
-        #         ipAddresses = ifilterfalse(lambda x: x.startswith('127.0.0.1/') or
-        #                                              x.startswith('::1/'),
-        #                                    ipAddresses)
-        # except Exception:
-        #     ipAddresses = []
 
-        return (o.titleOrId(),
-            o.manageIp, o.hw.serialNumber, o.hw.tag,
-            o.getHWManufacturerName(), o.getHWProductName(),
-            o.getOSProductName(), o.getOSManufacturerName(),
-            o.getHWSerialNumber(), o.getPerformanceServerName(),
-            o.getProductionStateString(), o.getPriorityString(),
-            o.getLocationName(),
-            o.monitorDevice() and "monitored" or "unmonitored",
-            ) \
-            + tuple(o.getSystemNames()) + tuple(o.getDeviceGroupNames()) \
-            + tuple(ipAddresses) \
+        return (
+            (
+                o.titleOrId(),
+                o.manageIp,
+                o.hw.serialNumber,
+                o.hw.tag,
+                o.getHWManufacturerName(),
+                o.getHWProductName(),
+                o.getOSProductName(),
+                o.getOSManufacturerName(),
+                o.getHWSerialNumber(),
+                o.getPerformanceServerName(),
+                o.getProductionStateString(),
+                o.getPriorityString(),
+                o.getLocationName(),
+                o.monitorDevice() and "monitored" or "unmonitored",
+            )
+            + tuple(o.getSystemNames())
+            + tuple(o.getDeviceGroupNames())
+            + tuple(ipAddresses)
             + (self._context.snmpSysName, self._context.snmpLocation)
+        )
 
     def searchExcerpt(self):
         o = self._context
         if o.manageIp:
             return '%s <span style="font-size:smaller">(%s)</span>' % (
-                _escape(o.titleOrId()), o.manageIp)
+                _escape(o.titleOrId()),
+                o.manageIp,
+            )
         else:
             return _escape(o.titleOrId())
 
@@ -349,6 +373,7 @@ class IpInterfaceWrapper(ComponentWrapper):
     """
     Allow searching by (from remote device) user-configured description
     """
+
     adapts(IpInterface)
 
     def macAddresses(self):
@@ -358,22 +383,31 @@ class IpInterfaceWrapper(ComponentWrapper):
         """
         When searching, what things to search on
         """
-        if self._context.titleOrId() in ('lo', 'sit0'):
+        if self._context.titleOrId() in ("lo", "sit0"):
             # Ignore noisy interfaces
             return ()
         # We don't need to include the ip addresses for this interface, because
         # all ips on a device are included in the keywords of every one of its
         # components.
         return super(IpInterfaceWrapper, self).searchKeywordsForChildren() + (
-               self._context.description,)
+            self._context.description,
+        )
 
     def searchExcerpt(self):
         """
         How the results are displayed in the search drop-down
         """
-        return super(IpInterfaceWrapper, self).searchExcerpt() + ' ' + _escape(' '.join([
-               self._context.description,
-               ]))
+        return (
+            super(IpInterfaceWrapper, self).searchExcerpt()
+            + " "
+            + _escape(
+                " ".join(
+                    [
+                        self._context.description,
+                    ]
+                )
+            )
+        )
 
 
 class FileSystemWrapper(ComponentWrapper):
@@ -398,7 +432,6 @@ class DeviceOrganizerWrapper(SearchableMixin, IndexableWrapper):
 
 
 class GlobalCatalog(ZCatalog):
-
     id = globalCatalogId
 
     def __init__(self):
@@ -406,7 +439,7 @@ class GlobalCatalog(ZCatalog):
 
     def searchResults(self, **kw):
         user = getSecurityManager().getUser()
-        kw['allowedRolesAndUsers'] = _allowedRoles(user)
+        kw["allowedRolesAndUsers"] = _allowedRoles(user)
         return ZCatalog.searchResults(self, **kw)
 
     def unrestrictedSearchResults(self, **kw):
@@ -415,12 +448,12 @@ class GlobalCatalog(ZCatalog):
     def catalog_object(self, obj, uid=None, **kwargs):
         if not isinstance(obj, self._get_forbidden_classes()):
             ob = IIndexableWrapper(obj)
-            if kwargs.get('idxs'):
+            if kwargs.get("idxs"):
                 # the first time we catalog an object we must catalog the
                 # entire object
                 uid = uid or "/".join(obj.getPhysicalPath())
-                if not uid in self._catalog.uids:
-                    del kwargs['idxs']
+                if uid not in self._catalog.uids:
+                    del kwargs["idxs"]
 
             ZCatalog.catalog_object(self, ob, uid, **kwargs)
 
@@ -439,17 +472,17 @@ class GlobalCatalog(ZCatalog):
 
     def index_object_under_paths(self, obj, paths):
         if not isinstance(obj, self._get_forbidden_classes()):
-            p = '/'.join(obj.getPrimaryPath())
+            p = "/".join(obj.getPrimaryPath())
             uid = self._catalog.uids.get(p, None)
             if uid:
-                idx = self._catalog.getIndex('path')
+                idx = self._catalog.getIndex("path")
                 idx.index_paths(uid, paths)
 
     def unindex_object_from_paths(self, obj, paths):
-        p = '/'.join(obj.getPrimaryPath())
+        p = "/".join(obj.getPrimaryPath())
         uid = self._catalog.uids.get(p, None)
         if uid:
-            idx = self._catalog.getIndex('path')
+            idx = self._catalog.getIndex("path")
             idx.unindex_paths(uid, paths)
 
     def getIndexes(self):
@@ -462,7 +495,8 @@ class GlobalCatalog(ZCatalog):
         """
         @param types: List of python types (unused)
         @param index: index we are inquiring if it exists
-        @return: boolean if have this index and can filter/sort on it without waking up the objects
+        @return: boolean if have this index and can filter/sort on it
+            without waking up the objects
         """
         cat = self._catalog
         return cat.indexes.get(index)
@@ -475,29 +509,40 @@ class GlobalCatalog(ZCatalog):
 
 
 def initializeGlobalCatalog(catalog):
-    catalog.addIndex('id', makeCaseSensitiveFieldIndex('id'))
-    catalog.addIndex('uid', makeCaseSensitiveFieldIndex('uid'))
-    catalog.addIndex('meta_type', makeCaseSensitiveFieldIndex('meta_type'))
-    catalog.addIndex('name', makeCaseInsensitiveFieldIndex('name'))
-    catalog.addIndex('ipAddress', makeCaseSensitiveFieldIndex('ipAddress'))
-    catalog.addIndex('objectImplements', makeCaseSensitiveKeywordIndex('objectImplements'))
-    catalog.addIndex('allowedRolesAndUsers', makeCaseSensitiveKeywordIndex('allowedRolesAndUsers'))
-    catalog.addIndex('monitored', makeCaseSensitiveFieldIndex('monitored'))
-    catalog.addIndex('path', makeMultiPathIndex('path'))
-    catalog.addIndex('collectors', makeCaseSensitiveKeywordIndex('collectors'))
-    catalog.addIndex('productKeys', makeCaseSensitiveKeywordIndex('productKeys'))
-    catalog.addIndex('searchKeywords', makeCaseInsensitiveKeywordIndex('searchKeywords'))
-    catalog.addIndex('macAddresses', makeCaseInsensitiveKeywordIndex('macAddresses'))
+    catalog.addIndex("id", makeCaseSensitiveFieldIndex("id"))
+    catalog.addIndex("uid", makeCaseSensitiveFieldIndex("uid"))
+    catalog.addIndex("meta_type", makeCaseSensitiveFieldIndex("meta_type"))
+    catalog.addIndex("name", makeCaseInsensitiveFieldIndex("name"))
+    catalog.addIndex("ipAddress", makeCaseSensitiveFieldIndex("ipAddress"))
+    catalog.addIndex(
+        "objectImplements", makeCaseSensitiveKeywordIndex("objectImplements")
+    )
+    catalog.addIndex(
+        "allowedRolesAndUsers",
+        makeCaseSensitiveKeywordIndex("allowedRolesAndUsers"),
+    )
+    catalog.addIndex("monitored", makeCaseSensitiveFieldIndex("monitored"))
+    catalog.addIndex("path", makeMultiPathIndex("path"))
+    catalog.addIndex("collectors", makeCaseSensitiveKeywordIndex("collectors"))
+    catalog.addIndex(
+        "productKeys", makeCaseSensitiveKeywordIndex("productKeys")
+    )
+    catalog.addIndex(
+        "searchKeywords", makeCaseInsensitiveKeywordIndex("searchKeywords")
+    )
+    catalog.addIndex(
+        "macAddresses", makeCaseInsensitiveKeywordIndex("macAddresses")
+    )
 
-    catalog.addColumn('id')
-    catalog.addColumn('uuid')
-    catalog.addColumn('name')
-    catalog.addColumn('meta_type')
-    catalog.addColumn('monitored')
-    catalog.addColumn('collectors')
-    catalog.addColumn('zProperties')
-    catalog.addColumn('searchIcon')
-    catalog.addColumn('searchExcerpt')
+    catalog.addColumn("id")
+    catalog.addColumn("uuid")
+    catalog.addColumn("name")
+    catalog.addColumn("meta_type")
+    catalog.addColumn("monitored")
+    catalog.addColumn("collectors")
+    catalog.addColumn("zProperties")
+    catalog.addColumn("searchIcon")
+    catalog.addColumn("searchExcerpt")
 
 
 class GlobalCatalogFactory(object):
@@ -505,6 +550,7 @@ class GlobalCatalogFactory(object):
 
     def create(self, portal):
         from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
+
         catalog = LegacyCatalogAdapter(portal.dmd, globalCatalogId)
         self.setupCatalog(portal, catalog)
 

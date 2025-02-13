@@ -196,7 +196,6 @@ class JobRecordTest(TestCase):
 
 
 class ComponentsLoadedLayer(object):
-
     includes = """
     <configure xmlns="http://namespaces.zope.org/zope">
         <include package="zope.component" file="meta.zcml"/>
@@ -207,6 +206,7 @@ class ComponentsLoadedLayer(object):
 
     @classmethod
     def setUp(cls):
+        import os.path
         from OFS.Application import import_products
         from zope.configuration import xmlconfig
         import Products.Jobber
@@ -214,7 +214,9 @@ class ComponentsLoadedLayer(object):
         import_products()
         cls._ctx = xmlconfig.string(cls.includes)
         cls._ctx = xmlconfig.file(
-            "/opt/zenoss/Products/Jobber/configure.zcml",
+            os.path.join(
+                os.path.dirname(Products.Jobber.__file__), "configure.zcml"
+            ),
             Products.Jobber,
             cls._ctx,
         )

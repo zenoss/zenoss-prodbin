@@ -11,11 +11,9 @@ import logging
 import os
 import subprocess
 
-from Products.ZenUtils.Utils import zenPath
-
 logger = logging.getLogger("zen.callhome")
 
-CRYPTPATH = zenPath("Products", "ZenCallHome", "transport", "crypt")
+CRYPTPATH = os.path.dirname(__file__)
 GPGCMD = "gpg --batch --no-tty --quiet --no-auto-check-trustdb "
 
 

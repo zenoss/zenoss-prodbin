@@ -7,16 +7,12 @@
 #
 ##############################################################################
 
+import os.path
+
+from mock import MagicMock, Mock, create_autospec, patch
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from mock import Mock, MagicMock, create_autospec, patch
-
-from Products.ZenReports.ReportLoader import (
-    zenPath,
-    transaction,
-    ReportLoader,
-    Report
-)
+from Products.ZenReports.ReportLoader import ReportLoader, Report
 
 
 class ReportLoaderTest(BaseTestCase):
@@ -34,8 +30,14 @@ class ReportLoaderTest(BaseTestCase):
         autospec=True, spec_set=True
     )
     def test_loadAllReports(self, commit):
-        repdir = zenPath('Products/ZenReports', self.rp_load.options.dir)
-        self.rp_load.loadDirectory = create_autospec(self.rp_load.loadDirectory)
+        import Products.ZenReports as _zr
+
+        repdir = os.path.join(
+            os.path.dirname(_zr.__file__), self.rp_load.options.dir
+        )
+        self.rp_load.loadDirectory = create_autospec(
+            self.rp_load.loadDirectory
+        )
         self.rp_load.loadAllReports()
         self.rp_load.loadDirectory.assert_called_once_with(repdir)
         commit.assert_called_once_with()
@@ -187,21 +189,21 @@ class ReportLoaderTest(BaseTestCase):
 
         rorg._delObject.assert_not_called()
         self.rp_load.loadFile.assert_not_called()
-    
-    @patch(
-        '__builtin__.file',
-        autospec=True, spec_set=True
-    )
-    def test_loadFile(self, file_mock):
-        rp_name = 'reportName'
-        full_rp_path = '/path/to/test_zp/Reports/SomeReports/reportName.rpt'
+
+    @patch("__builtin__.open")
+    def test_loadFile(self, _open):
+        rp_name = "reportName"
+        full_rp_path = "/path/to/test_zp/Reports/SomeReports/reportName.rpt"
         report_txt = "some report data"
-        #mock build in file method and its instance read method
-        file_read = Mock()
-        file_read.read = Mock(return_value=report_txt)
-        file_mock.return_value = file_read
+        file_obj = Mock()
+        file_obj.read.return_value = report_txt
+        ctx_mgr = MagicMock()
+        ctx_mgr.__enter__.return_value = file_obj
+        ctx_mgr.__exit__ = Mock(return_value=False)
+        _open.return_value = ctx_mgr
         root = Mock()
         root._setObject = Mock()
+
         rp = self.rp_load.loadFile(root, rp_name, full_rp_path)
         self.assertIsInstance(rp, Report)
         self.assertEqual(rp.id, rp_name)

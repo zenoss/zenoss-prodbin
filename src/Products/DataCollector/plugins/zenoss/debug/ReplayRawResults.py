@@ -45,7 +45,25 @@ class MissingModelerPluginSectionArgument(Exception):
 
 
 class ReplayRawResults(PythonPlugin):
-    configFile = zenPath("etc/ReplayRawResults.conf")
+    """
+    Replay captured data which is  modeler plugin input, where the filename
+    are specified via the configuration file
+    ($ZENHOME/etc/ReplayRawResults.conf)
+
+    File format
+    ==============
+
+    [section1]
+    modeler_plugin = zenoss.snmp.InterfaceMap
+    raw_data_file = path/to/file
+
+    Notes
+    =======
+    * The section names are ignored
+    * The raw data files may be gzip'd
+    """
+
+    configFile = zenPath("etc", "ReplayRawResults.conf")
     pluginPath = None
 
     def copyDataToProxy(self, dev, proxy):

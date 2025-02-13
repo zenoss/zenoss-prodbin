@@ -45,7 +45,7 @@ def _get_logger(self):
     log = logging.getLogger("origsyslog")
     log.setLevel(logging.INFO)
     log.propagate = False
-    filepath = zenPath("log/origsyslog.log")
+    filepath = zenPath("log', 'origsyslog.log")
     handler = logging.FileHandler(filepath)
     handler.setFormatter(logging.Formatter("%(message)s"))
     log.addHandler(handler)

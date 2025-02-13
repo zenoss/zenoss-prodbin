@@ -24,10 +24,9 @@ from Products.ZenUtils.extdirect.zope.metaconfigure import allDirectRouters
 from zope.publisher.browser import TestRequest
 from zope.component import getAdapter
 from Products.ZenUtils.Utils import monkeypatch
-from Products.ZenModel.ZVersion import VERSION
 from Products.Zuul.decorators import memoize
 
-from .resources import COMPILED_JS_EXISTS
+from .resources import hasCompiledJavascript
 
 
 dummyRequest = TestRequest()
@@ -58,7 +57,8 @@ def getAllZenPackResources():
 @memoize
 def getPathModifiedTime(path):
     """
-    This method takes a js request path such as /++resources++zenui/zenoss/file.js and
+    This method takes a js request path such as
+    /++resource++zenui/zenoss/file.js and
     returns the last time the file was modified.
     """
     if "++resource++" in path:
@@ -162,12 +162,12 @@ class ZenossAllJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
 
     def update(self):
-        if Globals.DevelopmentMode or not COMPILED_JS_EXISTS:
+        if Globals.DevelopmentMode or not hasCompiledJavascript():
             # Use the view that creates concatenated js on the fly from disk
             self.path = "/zport/dmd/zenoss-all.js"
         else:
             # Use the compiled javascript
-            self.path = "/++resource++zenui/js/deploy/zenoss-compiled.js"
+            self.path = "/++resource++zenui/deploy/zenoss-compiled.js"
 
 
 class ExtAllJs(JavaScriptSrcViewlet):
@@ -235,14 +235,16 @@ class ZenossData(JavaScriptSnippet):
         collectors = [[s] for s in self.context.dmd.Monitors.getPerformanceMonitorNames()]
 
         # priorities
-        priorities = [dict(name=s[0],
-                           value=int(s[1])) for s in
-                      self.context.dmd.getPriorityConversions()]
+        priorities = [
+            {"name": s[0], "value": int(s[1])}
+            for s in self.context.dmd.getPriorityConversions()
+        ]
 
         # production states
-        productionStates = [dict(name=s[0],
-                                 value=int(s[1])) for s in
-                            self.context.dmd.getProdStateConversions()]
+        productionStates = [
+            {"name": s[0], "value": int(s[1])}
+            for s in self.context.dmd.getProdStateConversions()
+        ]
 
         # timezone
         # to determine the timezone we look in the following order

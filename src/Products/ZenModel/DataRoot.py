@@ -650,7 +650,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         backupsDir = zenPath(path)
         fileInfo = []
         if os.path.isdir(backupsDir):
-            for dirPath, dirNames, fileNames in os.walk(backupsDir):
+            for _, dirNames, fileNames in os.walk(backupsDir):
                 dirNames[:] = []
                 for fileName in fileNames:
                     filePath = os.path.join(backupsDir, fileName)

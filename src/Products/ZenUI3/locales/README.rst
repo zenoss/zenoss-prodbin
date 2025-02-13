@@ -15,7 +15,7 @@ This example will use the Japanese locale (`ja`)
 #. Create the directory structure for the new locale domain
 ::
 
-   $ cd $ZENHOME/Products/ZenUI3/locales
+   $ cd src/Products/ZenUI3/locales
    $ mkdir ja/LC_MESSAGES
 
 Translate the Text

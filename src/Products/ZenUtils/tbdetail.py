@@ -11,24 +11,24 @@ import os
 import re
 import cgitb
 from cStringIO import StringIO
-from Products.ZenUtils.Utils import unused, zenPath
+from Products.ZenUtils.Utils import zenPath
 
 
 _PATTERN = re.compile(
-            r'(?P<message>.* contains the description of this error.)')
+    r"(?P<message>.* contains the description of this error.)"
+)
 
-_LOG_DIR = zenPath('log', 'tracebacks')
+_LOG_DIR = zenPath("log", "tracebacks")
 
 
 def log_tb(exc_info):
     """log a detailed traceback to $ZENHOME/log/tracebacks. This traceback
     include the value of parameters in addition to the call stack."""
     file_ = StringIO()
-    hook = cgitb.Hook(display=0, logdir=_LOG_DIR, file=file_, format='text')
+    hook = cgitb.Hook(display=0, logdir=_LOG_DIR, file=file_, format="text")
     if not os.path.isdir(hook.logdir):
         os.makedirs(hook.logdir)
     hook.handle(exc_info)
     output = file_.getvalue()
     match = _PATTERN.search(output)
-    return match.group('message')
-    
+    return match.group("message")

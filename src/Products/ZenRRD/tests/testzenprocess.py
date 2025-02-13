@@ -10,6 +10,7 @@
 from __future__ import print_function
 
 import logging
+import os.path
 import pprint
 
 from md5 import md5
@@ -17,7 +18,6 @@ from unittest import TestCase
 
 from Products.ZenHub.services.ProcessConfig import ProcessProxy
 from Products.ZenRRD.zenprocess import mapResultsToDicts, ZenProcessTask
-from Products.ZenUtils.Utils import zenPath
 
 log = logging.getLogger("zen.testzenprocess")
 
@@ -84,7 +84,7 @@ class ProcessResults(object):
 
 class TestZenprocess(TestCase):
     def getFileData(self, filename):
-        base = zenPath("Products/ZenRRD/tests/zenprocess_data")
+        base = os.path.join(os.path.dirname(__file__), "zenprocess_data")
         data = None
         name = base + "/" + filename
         try:
@@ -225,7 +225,7 @@ class TestZenprocess(TestCase):
                         ),
                     )
                 elif key in [ProcessResults.MISSING]:
-                    actualSet = set([each.name for each in actual[key]])
+                    actualSet = {each.name for each in actual[key]}
                     expectedSet = set(expected[key])
                     self.assert_(
                         0 == len(actualSet - expectedSet)
@@ -352,7 +352,7 @@ class TestZenprocess(TestCase):
         The file should be trimmed to remove any headers,
         and just contain config output.
         """
-        base = zenPath("Products/ZenRRD/tests/zenprocess_data")
+        base = os.path.join(os.path.dirname(__file__), "zenprocess_data")
         procDefs = {}
         name = base + "/" + procDefFile
         try:
@@ -798,9 +798,9 @@ class TestZenprocess(TestCase):
                 8470: "url_python",
             },
             BEFOREBYCONFIG={},
-            NEW=set([]),
+            NEW=set(),
             RESTARTED=0,
-            DEAD=set([]),
+            DEAD=set(),
             MISSING=[],
         )
 
@@ -846,9 +846,9 @@ class TestZenprocess(TestCase):
                 ],
                 "url_java": [31948],
             },
-            NEW=set([8478]),
+            NEW={8478},
             RESTARTED=0,
-            DEAD=set([6948, 8450, 8470]),
+            DEAD={6948, 8450, 8470},
             MISSING=[],
         )
         config = TaskConfig(procDefs=procDefs)
@@ -1384,22 +1384,6 @@ class TestZenprocess(TestCase):
             ".1.3.6.1.2.1.25.4.2.1.5": {
                 ".1.3.6.1.2.1.25.4.2.1.5.1": "arbitrary arguments",
                 ".1.3.6.1.2.1.25.4.2.1.5.2": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.1": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.2": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.1": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.2": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.1": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.2": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.1": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.2": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.1": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.2": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.1": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.2": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.1": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.2": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.1": "arbitrary arguments",
-                ".1.3.6.1.2.1.25.4.2.1.5.2": "arbitrary arguments",
             },
         }
         self.compareTestData(
@@ -1407,7 +1391,6 @@ class TestZenprocess(TestCase):
         )
 
     def testMapResultsToDicts(self):
-
         values = {
             ".1.3.6.1.2.1.25.4.2.1.2": {
                 ".1.3.6.1.2.1.25.4.2.1.2.1": "myapp",

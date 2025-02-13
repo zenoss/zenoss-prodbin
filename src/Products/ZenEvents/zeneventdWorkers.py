@@ -85,7 +85,7 @@ class EventDEventletWorker(ZCmdBase):
                     'probability that events will be processed out of order.')
         self.parser.add_option('--maxpickle', dest='maxpickle', default=100, type="int",
                     help='Sets the number of pickle files in var/zeneventd/failed_transformed_events.')
-        self.parser.add_option('--pickledir', dest='pickledir', default=zenPath('var/zeneventd/failed_transformed_events'),
+        self.parser.add_option('--pickledir', dest='pickledir', default=zenPath('var', 'zeneventd', 'failed_transformed_events'),
                     type="string", help='Sets the path to save pickle files.')
 
     def _sigterm(self, signum=None, frame=None):

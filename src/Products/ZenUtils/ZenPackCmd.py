@@ -1,67 +1,79 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
+"Manage ZenPacks"
 
-__doc__ = "Manage ZenPacks"
-
-from ZODB.transact import transact
-from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, getObjByPath,atomicWrite, varPath
-
-from Products.ZenModel import ZVersion
-from Products.ZenModel.ZenPack import ZenPackException, \
-                                        ZenPackNotFoundException, \
-                                        ZenPackNeedMigrateException
-from Products.ZenModel.ZenPack import ZenPackDependentsException
-from Products.ZenModel.ZenPack import ZenPack
-from Products.ZenUtils.PkgResources import pkg_resources
-from Products.ZenUtils.events import paused
-from Products.Zuul.utils import CatalogLoggingFilter
-from Products.Zuul.catalog.events import onIndexingEvent
-import Products.ZenModel.ZenPackLoader as ZPL
-from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_ERROR
-from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
-import zenpack as oldzenpack
-import transaction
-import os, sys
-import shutil
-import string
-import tempfile
-import subprocess
-import socket
-import logging
-import zExceptions
 import json
+import logging
+import os
+import shutil
+import socket
+import string
+import subprocess
+import sys
+import tempfile
+
+import transaction
 import pkg_resources
+import Products
+import zExceptions
 
 from urlparse import urlparse
+from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_ERROR
+from ZODB.transact import transact
+
+import Products.ZenModel.ZenPackLoader as ZPL
+
 from Products.ZenMessaging.audit import audit
+from Products.ZenModel import ZVersion
+from Products.ZenModel.ZenPack import (
+    ZenPack,
+    ZenPackDependentsException,
+    ZenPackException,
+    ZenPackNeedMigrateException,
+    ZenPackNotFoundException,
+)
+from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
+from Products.Zuul.catalog.events import onIndexingEvent
+from Products.Zuul.utils import CatalogLoggingFilter
 
+from . import zenpack as oldzenpack
+from .events import paused
+from .Utils import (
+    atomicWrite,
+    binPath,
+    cleanupSkins,
+    getObjByPath,
+    varPath,
+    zenPath,
+)
+from .ZenScriptBase import ZenScriptBase
 
-log = logging.getLogger('zen.ZenPackCMD')
+log = logging.getLogger("zen.ZenPackCMD")
 
 PACKS_DUMP = zenPath(".ZenPacks/packs.json")
 
-#import zenpacksupport
+# import zenpacksupport
 
 FQDN = socket.getfqdn()
 
-ZENPACKS_BASE_URL = 'http://zenpacks.zenoss.com/pypi'
+ZENPACKS_BASE_URL = "http://zenpacks.zenoss.com/pypi"
 
 # All ZenPack eggs have to define exactly one entry point in this group.
-ZENPACK_ENTRY_POINT = 'zenoss.zenpacks'
+ZENPACK_ENTRY_POINT = "zenoss.zenpacks"
 
 ########################################
 #   ZenPack Creation
 ########################################
 
-def CreateZenPack(zpId, prevZenPackName='', devDir=None):
+
+def CreateZenPack(zpId, prevZenPackName="", devDir=None):
     """
     Create the zenpack in the filesystem.
     The zenpack is not installed in Zenoss, it is simply created in
@@ -70,74 +82,74 @@ def CreateZenPack(zpId, prevZenPackName='', devDir=None):
     zpId should already be valid, scrubbed value.
     prevZenPackName is written to PREV_ZENPACK_NAME in setup.py.
     """
-    parts = zpId.split('.')
-    
+    import Products.ZenModel as _zm
+
+    parts = zpId.split(".")
+
     # Copy template to $ZENHOME/ZenPacks
-    srcDir = zenPath('Products', 'ZenModel', 'ZenPackTemplate')
+    srcDir = os.path.join(os.path.dirname(_zm.__file__), "ZenPackTemplate")
     if not devDir:
-        devDir = zenPath('ZenPacks')
+        devDir = zenPath("ZenPacks")
     if not os.path.exists(devDir):
         os.mkdir(devDir, 0o750)
     destDir = os.path.join(devDir, zpId)
     shutil.copytree(srcDir, destDir, symlinks=False)
-    os.system('find %s -name .svn | xargs rm -rf' % destDir)
 
     # Write setup.py
     packages = []
     for i in range(len(parts)):
-        packages.append('.'.join(parts[:i+1]))
+        packages.append(".".join(parts[: i + 1]))
     mapping = dict(
-        NAME = zpId,
-        VERSION = '1.0.0',
-        AUTHOR = '',
-        LICENSE = '',
-        NAMESPACE_PACKAGES = packages[:-1],
-        PACKAGES = packages,
-        INSTALL_REQUIRES = [],
-        COMPAT_ZENOSS_VERS = '',
-        PREV_ZENPACK_NAME = prevZenPackName,
-        )
-    WriteSetup(os.path.join(destDir, 'setup.py'), mapping)
+        NAME=zpId,
+        VERSION="1.0.0",
+        AUTHOR="",
+        LICENSE="",
+        NAMESPACE_PACKAGES=packages[:-1],
+        PACKAGES=packages,
+        INSTALL_REQUIRES=[],
+        COMPAT_ZENOSS_VERS="",
+        PREV_ZENPACK_NAME=prevZenPackName,
+    )
+    WriteSetup(os.path.join(destDir, "setup.py"), mapping)
 
     # Create subdirectories
     base = destDir
     for part in parts[:-1]:
         base = os.path.join(base, part)
         os.mkdir(base)
-        f = open(os.path.join(base, '__init__.py'), 'w')
+        f = open(os.path.join(base, "__init__.py"), "w")
         f.write("__import__('pkg_resources').declare_namespace(__name__)\n")
         f.close()
     base = os.path.join(base, parts[-1])
-    shutil.move(os.path.join(destDir, 'CONTENT'), base)
-    audit('Shell.ZenPack.Create', zpId)
+    shutil.move(os.path.join(destDir, "CONTENT"), base)
+    audit("Shell.ZenPack.Create", zpId)
 
     return destDir
 
 
 def WriteSetup(setupPath, values):
-    """
-    """
-    f = file(setupPath, 'r')
+    """ """
+    f = file(setupPath, "r")
     lines = f.readlines()
     f.close()
 
     newLines = []
     for i, line in enumerate(lines):
-        if line.startswith('STOP_REPLACEMENTS'):
+        if line.startswith("STOP_REPLACEMENTS"):
             newLines += lines[i:]
             break
-        key = line.split('=')[0].strip()
+        key = line.split("=")[0].strip()
         if key in values:
             value = values[key]
             if isinstance(value, basestring):
                 fmt = '%s = "%s"\n'
             else:
-                fmt = '%s = %s\n'
+                fmt = "%s = %s\n"
             newLines.append(fmt % (key, value))
         else:
             newLines.append(line)
-    
-    f = file(setupPath, 'w')
+
+    f = file(setupPath, "w")
     f.writelines(newLines)
     f.close()
 
@@ -160,17 +172,21 @@ def CanCreateZenPack(dmd, zpId):
     # Is the id already in use?
     if dmd:
         if zpId in dmd.ZenPackManager.packs.objectIds():
-            return (False, 'A ZenPack named %s already exists.' % zpId)
+            return (False, "A ZenPack named %s already exists." % zpId)
 
     # Is there another zenpack in the way?
-    # Now that zenpacks are created in $ZENHOME/ZenPacks instead of 
+    # Now that zenpacks are created in $ZENHOME/ZenPacks instead of
     # $ZENHOME/ZenPackDev this may no longer be necessary because a
     # zp in the way should be installed and caught by the already in use
     # check above.
-    if os.path.exists(zenPath('ZenPacks', zpId)):
-        return (False, 'A directory named %s already exists' % zpId +
-                        ' in $ZENHOME/ZenPacks.  Use a different name'
-                        ' or remove that directory.')
+    if os.path.exists(zenPath("ZenPacks", zpId)):
+        return (
+            False,
+            "A directory named %s already exists"
+            % zpId
+            + " in $ZENHOME/ZenPacks.  Use a different name"
+            " or remove that directory.",
+        )
 
     return (True, idOrMsg)
 
@@ -184,7 +200,7 @@ def ScrubZenPackId(name):
     then return (False, errorMsg) where errorMsg describes why name
     is unacceptable.
     """
-    parts = name.split('.')
+    parts = name.split(".")
 
     # Remove leading dots, trailing dots, adjacent dots and strip whitespace
     # from each part
@@ -192,46 +208,62 @@ def ScrubZenPackId(name):
     parts = [p for p in parts if p]
 
     # Add/fix leading 'ZenPacks'
-    if parts[0] != 'ZenPacks':
-        if parts[0].lower() == 'zenpacks':
-            parts[0] = 'ZenPacks'
+    if parts[0] != "ZenPacks":
+        if parts[0].lower() == "zenpacks":
+            parts[0] = "ZenPacks"
         else:
-            parts.insert(0, 'ZenPacks')
+            parts.insert(0, "ZenPacks")
 
     # Must be at least 3 parts
     if len(parts) < 3:
-        return (False, 'ZenPack names must contain at least three package '
-                'names separated by periods.')
+        return (
+            False,
+            "ZenPack names must contain at least three package "
+            "names separated by periods.",
+        )
 
     # Each part must start with a letter
     for p in parts:
         if p[0] not in string.letters:
-            return (False, 'Each package name must start with a letter.')
+            return (False, "Each package name must start with a letter.")
 
     # Only letters, numbers and underscores in each part
-    allowable = string.letters + string.digits + '_'
+    allowable = string.letters + string.digits + "_"
     for p in parts:
         for c in p:
             if c not in allowable:
-                return (False, 'Package names may only contain letters, '
-                        'numbers and underscores.')
+                return (
+                    False,
+                    "Package names may only contain letters, "
+                    "numbers and underscores.",
+                )
 
-    return (True, '.'.join(parts))
+    return (True, ".".join(parts))
 
 
 ########################################
 #   ZenPack Installation
 ########################################
 
+
 class NonCriticalInstallError(Exception):
     def __init__(self, message):
         Exception.__init__(self, message)
         self.message = message
 
-def InstallEggAndZenPack(dmd, eggPath, link=False,
-                            filesOnly=False, sendEvent=True,
-                            previousVersion=None, forceRunExternal=False,
-                            fromUI=False, serviceId=None, ignoreServiceInstall=False):
+
+def InstallEggAndZenPack(
+    dmd,
+    eggPath,
+    link=False,
+    filesOnly=False,
+    sendEvent=True,
+    previousVersion=None,
+    forceRunExternal=False,
+    fromUI=False,
+    serviceId=None,
+    ignoreServiceInstall=False,
+):
     """
     Installs the given egg, instantiates the ZenPack, installs in
     dmd.ZenPackManager.packs, and runs the zenpacks's install method.
@@ -244,18 +276,20 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
             zpDists = InstallEgg(dmd, eggPath, link=link)
             for d in zpDists:
                 try:
-                    zp = InstallDistAsZenPack(dmd,
-                                              d,
-                                              eggPath,
-                                              link,
-                                              filesOnly=filesOnly,
-                                              previousVersion=previousVersion,
-                                              forceRunExternal=forceRunExternal,
-                                              fromUI=fromUI,
-                                              serviceId=serviceId,
-                                              ignoreServiceInstall=ignoreServiceInstall)
+                    zp = InstallDistAsZenPack(
+                        dmd,
+                        d,
+                        eggPath,
+                        link,
+                        filesOnly=filesOnly,
+                        previousVersion=previousVersion,
+                        forceRunExternal=forceRunExternal,
+                        fromUI=fromUI,
+                        serviceId=serviceId,
+                        ignoreServiceInstall=ignoreServiceInstall,
+                    )
                     zenPacks.append(zp)
-                    audit('Shell.ZenPack.Install', zp.id)
+                    audit("Shell.ZenPack.Install", zp.id)
                 except NonCriticalInstallError as ex:
                     nonCriticalErrorEncountered = True
                     if sendEvent:
@@ -264,8 +298,12 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
             # Get that exception out there in case it gets blown away by ZPEvent
             log.exception("Error installing ZenPack %s", eggPath)
             if sendEvent:
-                ZPEvent(dmd, SEVERITY_ERROR, 'Error installing ZenPack %s' % eggPath,
-                    '%s: %s' % sys.exc_info()[:2])
+                ZPEvent(
+                    dmd,
+                    SEVERITY_ERROR,
+                    "Error installing ZenPack %s" % eggPath,
+                    "%s: %s" % sys.exc_info()[:2],
+                )
             # Don't just raise, because if ZPEvent blew away exception context
             # it'll be None, which is bad. This manipulates the stack to look like
             # this is the source of the exception, but we logged it above so no
@@ -275,9 +313,9 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
     if sendEvent:
         zenPackIds = [zp.id for zp in zenPacks]
         if zenPackIds:
-            ZPEvent(dmd, 2, 'Installed ZenPacks %s' % ','.join(zenPackIds))
+            ZPEvent(dmd, 2, "Installed ZenPacks %s" % ",".join(zenPackIds))
         elif not nonCriticalErrorEncountered:
-            ZPEvent(dmd, SEVERITY_ERROR, 'Unable to install %s' % eggPath)
+            ZPEvent(dmd, SEVERITY_ERROR, "Unable to install %s" % eggPath)
     return zenPacks
 
 
@@ -288,30 +326,33 @@ def InstallEgg(dmd, eggPath, link=False):
     Return a list of distributions that should be installed as ZenPacks.
     """
     eggPath = os.path.abspath(eggPath)
-    zenPackDir = zenPath('ZenPacks')
+    zenPackDir = zenPath("ZenPacks")
 
     # Make sure $ZENHOME/ZenPacks exists
     CreateZenPacksDir()
 
     # Install the egg
     if link:
-        zenPackDir = varPath('ZenPacks')
-        cmd = ('%s setup.py develop ' % binPath('python') +
-                '--site-dirs=%s ' % zenPackDir +
-                '-d %s' % zenPackDir)
-        returncode, out, err = None, '', ''
+        zenPackDir = varPath("ZenPacks")
+        cmd = (
+            "%s setup.py develop " % binPath("python")
+            + "--site-dirs=%s " % zenPackDir
+            + "-d %s" % zenPackDir
+        )
+        returncode, out, err = None, "", ""
         for attempt in range(3):
-            p = subprocess.Popen(cmd,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                shell=True,
-                                cwd=eggPath)
+            p = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True,
+                cwd=eggPath,
+            )
             out, err = p.communicate()
             p.wait()
             returncode = p.returncode
             if returncode:
-                log.info("Error installing the egg (%s): %s",
-                         returncode, err)
+                log.info("Error installing the egg (%s): %s", returncode, err)
                 try:
                     DoEasyUninstall(eggPath)
                 except Exception:
@@ -319,8 +360,9 @@ def InstallEgg(dmd, eggPath, link=False):
             else:
                 break
         if returncode:
-            raise ZenPackException('Error installing the egg (%s): %s' %
-                                   (returncode, err))
+            raise ZenPackException(
+                "Error installing the egg (%s): %s" % (returncode, err)
+            )
         zpDists = AddDistToWorkingSet(eggPath)
     else:
         try:
@@ -344,7 +386,7 @@ def InstallEgg(dmd, eggPath, link=False):
 
 # def GetZenPackNamesFromEggPath(eggPath):
 #     """
-#     Given a path to a ZenPack egg (installed or not) return the 
+#     Given a path to a ZenPack egg (installed or not) return the
 #     name of the ZenPack it contains.
 #     """
 #     zpNames = []
@@ -354,9 +396,18 @@ def InstallEgg(dmd, eggPath, link=False):
 #     return zpNames
 
 
-def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
-                         previousVersion=None, forceRunExternal=False,
-                         fromUI=False, serviceId=None, ignoreServiceInstall=False):
+def InstallDistAsZenPack(
+    dmd,
+    dist,
+    eggPath,
+    link=False,
+    filesOnly=False,
+    previousVersion=None,
+    forceRunExternal=False,
+    fromUI=False,
+    serviceId=None,
+    ignoreServiceInstall=False,
+):
     """
     Given an installed dist, install it into Zenoss as a ZenPack.
     Return the ZenPack instance.
@@ -367,36 +418,46 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
         # Instantiate ZenPack
         entryMap = pkg_resources.get_entry_map(dist, ZENPACK_ENTRY_POINT)
         if not entryMap or len(entryMap) > 1:
-            raise ZenPackException('A ZenPack egg must contain exactly one'
-                    ' zenoss.zenpacks entry point.  This egg appears to contain'
-                    ' %s such entry points.' % len(entryMap))
+            raise ZenPackException(
+                "A ZenPack egg must contain exactly one"
+                " zenoss.zenpacks entry point.  This egg appears to contain"
+                " %s such entry points." % len(entryMap)
+            )
         packName, packEntry = entryMap.items()[0]
         runExternalZenpack = True
-        #if zenpack with same name exists we can't load both modules
-        #installing new egg zenpack will be done in a sub process
+
+        # if zenpack with same name exists we can't load both modules
+        # installing new egg zenpack will be done in a sub process
         def doesExist():
             existing = dmd.ZenPackManager.packs._getOb(packName, None)
             if existing:
                 log.info("Previous ZenPack exists with same name %s", packName)
             return existing
+
         if filesOnly or not doesExist():
             if filesOnly:
                 log.info("ZenPack files only install: %s", packName)
-            #running files only or zenpack by same name doesn't already exists
+            # running files only or zenpack by same name doesn't already exists
             # so no need to install the zenpack in an external process
             runExternalZenpack = False
             module = packEntry.resolve()
-            if hasattr(module, 'ZenPack'):
+            if hasattr(module, "ZenPack"):
                 zenPack = module.ZenPack(packName)
             else:
                 zenPack = ZenPack(packName)
             zenPack.eggPack = True
             CopyMetaDataToZenPackObject(dist, zenPack)
             if filesOnly:
-                for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
+                for loader in (
+                    ZPL.ZPLDaemons(),
+                    ZPL.ZPLBin(),
+                    ZPL.ZPLLibExec(),
+                ):
                     loader.load(zenPack, None)
             if fromUI and not zenPack.installableFromUI:
-                raise ZenPackException("This ZenPack cannot be installed through the UI.")
+                raise ZenPackException(
+                    "This ZenPack cannot be installed through the UI."
+                )
 
         if not filesOnly:
             # Look for an installed ZenPack to be upgraded.  In this case
@@ -406,7 +467,8 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
             existing = dmd.ZenPackManager.packs._getOb(packName, None)
             if not existing and zenPack.prevZenPackName:
                 existing = dmd.ZenPackManager.packs._getOb(
-                                    zenPack.prevZenPackName, None)
+                    zenPack.prevZenPackName, None
+                )
 
             deferFileDeletion = False
             packables = []
@@ -418,49 +480,58 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                     existing.packables.removeRelation(p)
                 if existing.isEggPack():
                     forceNoFileDeletion = existing.eggPath() == dist.location
-                    RemoveZenPack(dmd, existing.id,
-                                    skipDepsCheck=True, leaveObjects=True,
-                                    forceNoFileDeletion=forceNoFileDeletion,
-                                    uninstallEgg=False)
+                    RemoveZenPack(
+                        dmd,
+                        existing.id,
+                        skipDepsCheck=True,
+                        leaveObjects=True,
+                        forceNoFileDeletion=forceNoFileDeletion,
+                        uninstallEgg=False,
+                    )
                 else:
                     # Don't delete files, might still be needed for
                     # migrate scripts to be run below.
                     deferFileDeletion = True
-                    oldzenpack.RemoveZenPack(dmd, existing.id,
-                                    skipDepsCheck=True, leaveObjects=True,
-                                    deleteFiles=False)
+                    oldzenpack.RemoveZenPack(
+                        dmd,
+                        existing.id,
+                        skipDepsCheck=True,
+                        leaveObjects=True,
+                        deleteFiles=False,
+                    )
 
             if runExternalZenpack or forceRunExternal:
                 log.info("installing zenpack %s; launching process", packName)
-                cmd = [binPath('zenpack')]
+                cmd = [binPath("zenpack")]
                 if link:
                     cmd += ["--link"]
                 cmd += ["--install", eggPath]
                 if upgradingFrom:
-                    cmd += ['--previousversion', upgradingFrom]
+                    cmd += ["--previousversion", upgradingFrom]
                 if fromUI:
                     cmd += ["--fromui"]
                 if serviceId:
-                    cmd += ['--service-id', serviceId]
+                    cmd += ["--service-id", serviceId]
                 if ignoreServiceInstall:
-                    cmd += ['--ignore-service-install']
+                    cmd += ["--ignore-service-install"]
 
                 cmdStr = " ".join(cmd)
                 log.debug("launching sub process command: %s", cmdStr)
-                p = subprocess.Popen(cmdStr,
-                                shell=True)
+                p = subprocess.Popen(cmdStr, shell=True)
                 out, err = p.communicate()
                 p.wait()
                 if p.returncode:
-                    raise ZenPackException('Error installing the egg (%s): %s' %
-                                           (p.returncode, err))
+                    raise ZenPackException(
+                        "Error installing the egg (%s): %s"
+                        % (p.returncode, err)
+                    )
                 dmd._p_jar.sync()
             else:
                 dmd.ZenPackManager.packs._setObject(packName, zenPack)
                 zenPack = dmd.ZenPackManager.packs._getOb(packName)
-                #hack because ZenPack.install is overridden by a lot of zenpacks
-                #so we can't change the signature of install to take the
-                #previousVerison
+                # hack because ZenPack.install is overridden by a lot of zenpacks
+                # so we can't change the signature of install to take the
+                # previousVerison
                 zenPack.prevZenPackVersion = previousVersion
                 if ignoreServiceInstall:
                     ZenPack.ignoreServiceInstall = True
@@ -478,7 +549,7 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                         log.debug("adding packable relation for id %s", pId)
                         zenPack.packables.addRelation(p)
                     except (KeyError, zExceptions.NotFound):
-                        log.debug('did not find packable %s',pId)
+                        log.debug("did not find packable %s", pId)
             except AttributeError as e:
                 # If this happens in the child process or during the non-upgrade
                 # flow, reraise the exception
@@ -494,13 +565,15 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                     # This is the signature error of class-loading issues
                     # during zenpack upgrade.  The final state should be okay,
                     # except that modified packables may be lost.
-                    message = "There has been an error during the post-" + \
-                              "installation steps for the zenpack %s.  In " + \
-                              "most cases, no further action is required.  If " + \
-                              "issues persist, please reinstall this zenpack."
+                    message = (
+                        "There has been an error during the post-"
+                        + "installation steps for the zenpack %s.  In "
+                        + "most cases, no further action is required.  If "
+                        + "issues persist, please reinstall this zenpack."
+                    )
                     message = message % packName
-                    log.warning( message )
-                    raise NonCriticalInstallError( message )
+                    log.warning(message)
+                    raise NonCriticalInstallError(message)
 
             cleanupSkins(dmd)
             return zenPack, deferFileDeletion, existing
@@ -508,16 +581,21 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
             return zenPack, False, True
 
     info = ReadZenPackInfo(dist)
-    if ('compatZenossVers' in info):
-        vers = info['compatZenossVers']
+    if "compatZenossVers" in info:
+        vers = info["compatZenossVers"]
         if vers[0] in string.digits:
-            vers = '==' + vers
+            vers = "==" + vers
         try:
-            req = pkg_resources.Requirement.parse('zenoss%s' % vers)
+            req = pkg_resources.Requirement.parse("zenoss%s" % vers)
         except ValueError:
-            raise ZenPackException("Couldn't parse requirement zenoss%s" % vers)
+            raise ZenPackException(
+                "Couldn't parse requirement zenoss%s" % vers
+            )
         if not req.__contains__(ZENOSS_VERSION):
-            raise ZenPackException("Incompatible Zenoss Version %s, need %s" % (ZENOSS_VERSION, vers))
+            raise ZenPackException(
+                "Incompatible Zenoss Version %s, need %s"
+                % (ZENOSS_VERSION, vers)
+            )
 
     ZenPack.currentServiceId = serviceId
     zenPack, deferFileDeletion, existing = transactional_actions()
@@ -545,7 +623,7 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
         # We skipped deleting the existing files from filesystem
         # because maybe they'd be needed in migrate scripts.
         # Delete them now
-        oldZpDir = zenPath('Products', existing.id)
+        oldZpDir = os.path.join(Products.__path__[-1], existing.id)
         if os.path.islink(oldZpDir):
             os.remove(oldZpDir)
         else:
@@ -553,12 +631,14 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
 
     return zenPack
 
+
 def getPacksDump():
     packs = {}
     if os.path.isfile(PACKS_DUMP):
         with open(PACKS_DUMP, "r") as f:
             return json.load(f)
     return packs
+
 
 def DiscoverEggs(dmd, zenPackId):
     """
@@ -602,8 +682,10 @@ def DiscoverEggs(dmd, zenPackId):
                 # We are just going to bail however.  This should be
                 # very unusual and the user can install deps first to work
                 # around.
-                raise ZenPackException('Unable to resolve ZenPack dependencies.'
-                    ' Try installing dependencies first.')
+                raise ZenPackException(
+                    "Unable to resolve ZenPack dependencies."
+                    " Try installing dependencies first."
+                )
             if name in entriesByName:
                 # The requirement is an entry that has not yet been processed
                 # here.  Add it to the list of entries to install/upgrade.
@@ -619,8 +701,9 @@ def DiscoverEggs(dmd, zenPackId):
         if zenPackId in dmd.ZenPackManager.packs.objectIds():
             return []
         else:
-            raise ZenPackException('Unable to discover ZenPack named %s' %
-                                    zenPackId)
+            raise ZenPackException(
+                "Unable to discover ZenPack named %s" % zenPackId
+            )
     AddEntryAndProcessDeps(entriesByName[zenPackId])
     orderedEntries.reverse()
     return [e.dist for e in orderedEntries]
@@ -638,7 +721,7 @@ def AddDistToWorkingSet(distPath):
     for d in pkg_resources.find_distributions(distPath):
         pkg_resources.working_set.add(d, replace=True)
         pkg_resources.require(d.project_name)
-        if d.project_name.startswith('ZenPacks.'):
+        if d.project_name.startswith("ZenPacks."):
             zpDists.append(d)
     return zpDists
 
@@ -648,15 +731,15 @@ def ReadZenPackInfo(dist):
     Return a dictionary containing the egg metadata
     """
     info = {}
-    if dist.has_metadata('PKG-INFO'):
-        lines = dist.get_metadata('PKG-INFO')
+    if dist.has_metadata("PKG-INFO"):
+        lines = dist.get_metadata("PKG-INFO")
         for line in pkg_resources.yield_lines(lines):
-            key, value = line.split(':', 1)
+            key, value = line.split(":", 1)
             info[key.strip()] = value.strip()
-    if dist.has_metadata('zenpack_info'):
-        lines = dist.get_metadata('zenpack_info')
+    if dist.has_metadata("zenpack_info"):
+        lines = dist.get_metadata("zenpack_info")
         for line in pkg_resources.yield_lines(lines):
-            key, value = line.split(':', 1)
+            key, value = line.split(":", 1)
             info[key.strip()] = value.strip()
     return info
 
@@ -670,22 +753,22 @@ def CopyMetaDataToZenPackObject(dist, pack):
 
     # Egg Info
     info = ReadZenPackInfo(dist)
-    pack.author = info.get('Author', '')
-    if pack.author == 'UNKNOWN':
-        pack.author = ''
+    pack.author = info.get("Author", "")
+    if pack.author == "UNKNOWN":
+        pack.author = ""
 
-    pack.license = info.get('License', '')
-    if pack.license == 'UNKNOWN':
-        pack.license = ''
+    pack.license = info.get("License", "")
+    if pack.license == "UNKNOWN":
+        pack.license = ""
 
-    pack.compatZenossVers = info.get('compatZenossVers', '')
-    pack.prevZenPackName = info.get('prevZenPackName', '')
+    pack.compatZenossVers = info.get("compatZenossVers", "")
+    pack.prevZenPackName = info.get("prevZenPackName", "")
 
     # Requires
     pack.dependencies = {}
     for r in dist.requires():
         name = r.project_name
-        spec = str(r)[len(name):]
+        spec = str(r)[len(name) :]
         pack.dependencies[name] = spec
 
 
@@ -693,7 +776,7 @@ def CreateZenPacksDir():
     """
     Make sure $ZENHOME/ZenPacks exists
     """
-    zpDir = zenPath('ZenPacks')
+    zpDir = zenPath("ZenPacks")
     if not os.path.isdir(zpDir):
         os.mkdir(zpDir, 0o750)
 
@@ -707,33 +790,39 @@ def DoEasyInstall(eggPath):
     to be ZenPacks.
     """
     from setuptools.command import easy_install
-    
+
     # Make sure $ZENHOME/ZenPacks exists
     CreateZenPacksDir()
-    
+
     # Create temp file for easy_install to write results to
-    _, tempPath = tempfile.mkstemp(prefix='zenpackcmd-easyinstall')
+    _, tempPath = tempfile.mkstemp(prefix="zenpackcmd-easyinstall")
     # eggPaths is a set of paths to eggs that were installed.  We need to
     # add them to the current workingset so we can discover their
     # entry points.
     eggPaths = set()
     try:
         # Execute the easy_install
-        args = ['--site-dirs', zenPath('ZenPacks'),
-            '-d', zenPath('ZenPacks'),
-            '--allow-hosts', 'None',
-            '--record', tempPath,
-            '--quiet',
-            eggPath]
+        args = [
+            "--site-dirs",
+            zenPath("ZenPacks"),
+            "-d",
+            zenPath("ZenPacks"),
+            "--allow-hosts",
+            "None",
+            "--record",
+            tempPath,
+            "--quiet",
+            eggPath,
+        ]
         easy_install.main(args)
         # Collect the paths for eggs that were installed
-        f = open(tempPath, 'r')
-        marker = '.egg/'
-        markerOffset = len(marker)-1
+        f = open(tempPath, "r")
+        marker = ".egg/"
+        markerOffset = len(marker) - 1
         for l in f.readlines():
             i = l.find(marker)
             if i > 0:
-                eggPaths.add(l[:i+markerOffset])
+                eggPaths.add(l[: i + markerOffset])
     finally:
         os.remove(tempPath)
     # Add any installed eggs to the current working set
@@ -743,17 +832,17 @@ def DoEasyInstall(eggPath):
     return zpDists
 
 
-
 def ExportZenPack(dmd, packName):
     """
     Export the zenpack to $ZENHOME/export
     """
     zp = dmd.ZenPackManager.packs._getOb(packName, None)
     if not zp:
-        raise ZenPackException('No ZenPack named %s' % packName)
+        raise ZenPackException("No ZenPack named %s" % packName)
 
     # Export the zenpack
     return zp.manage_exportPack()
+
 
 ########################################
 #   Zenoss.Net
@@ -773,16 +862,24 @@ def FetchAndInstallZenPack(dmd, zenPackName, sendEvent=True):
     except Exception as ex:
         log.exception("Error fetching ZenPack %s", zenPackName)
         if sendEvent:
-            ZPEvent(dmd, SEVERITY_ERROR, 'Failed to install ZenPack %s' % zenPackName,
-                '%s: %s' % sys.exc_info()[:2])
+            ZPEvent(
+                dmd,
+                SEVERITY_ERROR,
+                "Failed to install ZenPack %s" % zenPackName,
+                "%s: %s" % sys.exc_info()[:2],
+            )
 
         raise ex
     if sendEvent:
         zenPackIds = [z.id for z in zenPacks]
         if zenPackIds:
-            ZPEvent(dmd, 2, 'Installed ZenPacks: %s' % ', '.join(zenPackIds))
+            ZPEvent(dmd, 2, "Installed ZenPacks: %s" % ", ".join(zenPackIds))
         if zenPackName not in zenPackIds:
-            ZPEvent(dmd, SEVERITY_ERROR, 'Unable to install ZenPack %s' % zenPackName)
+            ZPEvent(
+                dmd,
+                SEVERITY_ERROR,
+                "Unable to install ZenPack %s" % zenPackName,
+            )
     return zenPacks
 
 
@@ -803,11 +900,10 @@ def FetchZenPack(dmd, zenPackName):
     CreateZenPacksDir()
 
     # Create the proper package index URL.
-    index_url = '%s/%s/%s/' % (
-        ZENPACKS_BASE_URL, dmd.uuid, ZVersion.VERSION)
+    index_url = "%s/%s/%s/" % (ZENPACKS_BASE_URL, dmd.uuid, ZVersion.VERSION)
 
     # Create temp file for easy_install to write results to
-    _, tempPath = tempfile.mkstemp(prefix='zenpackcmd-easyinstall')
+    _, tempPath = tempfile.mkstemp(prefix="zenpackcmd-easyinstall")
     # eggPaths is a set of paths to eggs that were installed.  We need to
     # add them to the current workingset so we can discover their
     # entry points.
@@ -815,22 +911,28 @@ def FetchZenPack(dmd, zenPackName):
     try:
         # Execute the easy_install
         args = [
-            '--site-dirs', zenPath('ZenPacks'),
-            '-d', zenPath('ZenPacks'),
-            '-i', index_url,
-            '--allow-hosts', urlparse(index_url).hostname,
-            '--record', tempPath,
-            '--quiet',
-            zenPackName]
+            "--site-dirs",
+            zenPath("ZenPacks"),
+            "-d",
+            zenPath("ZenPacks"),
+            "-i",
+            index_url,
+            "--allow-hosts",
+            urlparse(index_url).hostname,
+            "--record",
+            tempPath,
+            "--quiet",
+            zenPackName,
+        ]
         easy_install.main(args)
         # Collect the paths for eggs that were installed
-        f = open(tempPath, 'r')
-        marker = '.egg/'
+        f = open(tempPath, "r")
+        marker = ".egg/"
         markerOffset = len(marker) - 1
         for l in f.readlines():
             i = l.find(marker)
             if i > 0:
-                eggPaths.add(l[:i + markerOffset])
+                eggPaths.add(l[: i + markerOffset])
     finally:
         os.remove(tempPath)
     # Add any installed eggs to the current working set
@@ -848,31 +950,35 @@ def UploadZenPack(dmd, packName, project, description, znetUser, znetPass):
     """
     zp = dmd.ZenPackManager.packs._getOb(packName, None)
     if not zp:
-        raise ZenPackException('No ZenPack named %s' % packName)
+        raise ZenPackException("No ZenPack named %s" % packName)
 
     # Export the zenpack
     fileName = zp.manage_exportPack()
 
     # Login to Zenoss.net
     from DotNetCommunication import DotNetSession
+
     session = DotNetSession()
     session.login(znetUser, znetPass)
 
     # Upload
-    zpFile = open(zenPath('export', fileName), 'r')
+    zpFile = open(zenPath("export", fileName), "r")
     try:
-        response = session.open('%s/createRelease' % project.strip('/'), {
-                'description': description,
-                'fileStorage': zpFile,
-                })
+        response = session.open(
+            "%s/createRelease" % project.strip("/"),
+            {
+                "description": description,
+                "fileStorage": zpFile,
+            },
+        )
     finally:
         zpFile.close()
     if response:
         result = response.read()
         if "'success':true" not in result:
-            raise ZenPackException('Upload failed')
+            raise ZenPackException("Upload failed")
     else:
-        raise ZenPackException('Failed to connect to Zenoss.net')
+        raise ZenPackException("Failed to connect to Zenoss.net")
     return
 
 
@@ -881,9 +987,16 @@ def UploadZenPack(dmd, packName, project, description, znetUser, znetPass):
 ########################################
 
 
-def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
-                    leaveObjects=False, sendEvent=True, 
-                    forceNoFileDeletion=False, uninstallEgg=True):
+def RemoveZenPack(
+    dmd,
+    packName,
+    filesOnly=False,
+    skipDepsCheck=False,
+    leaveObjects=False,
+    sendEvent=True,
+    forceNoFileDeletion=False,
+    uninstallEgg=True,
+):
     """
     Remove the given ZenPack from Zenoss.
     Whether the ZenPack will be removed from the filesystem or not
@@ -897,8 +1010,10 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
         if not skipDepsCheck:
             deps = GetDependents(dmd, packName)
             if deps:
-                raise ZenPackDependentsException('%s cannot be removed ' % packName +
-                        'because it is required by %s' % ', '.join(deps))
+                raise ZenPackDependentsException(
+                    "%s cannot be removed " % packName
+                    + "because it is required by %s" % ", ".join(deps)
+                )
 
         if not filesOnly:
             # Fetch the zenpack, call its remove() and remove from packs
@@ -906,14 +1021,15 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
             try:
                 zp = dmd.ZenPackManager.packs._getOb(packName)
             except AttributeError as ex:
-                raise ZenPackNotFoundException('No ZenPack named %s is installed' %
-                                                packName)
+                raise ZenPackNotFoundException(
+                    "No ZenPack named %s is installed" % packName
+                )
             # If zencatalog hasn't finished yet, we get ugly messages that don't
             # mean anything. Hide them.
             logFilter = None
-            if not getattr(dmd.zport, '_zencatalog_completed', False):
+            if not getattr(dmd.zport, "_zencatalog_completed", False):
                 logFilter = CatalogLoggingFilter()
-                logging.getLogger('Zope.ZCatalog').addFilter(logFilter)
+                logging.getLogger("Zope.ZCatalog").addFilter(logFilter)
             try:
                 zp.remove(dmd, leaveObjects)
                 dmd.ZenPackManager.packs._delObject(packName)
@@ -921,7 +1037,7 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
             finally:
                 # Remove our logging filter so we don't hide anything important
                 if logFilter is not None:
-                    logging.getLogger('Zope.ZCatalog').removeFilter(logFilter)
+                    logging.getLogger("Zope.ZCatalog").removeFilter(logFilter)
 
         # Uninstall the egg and possibly delete it
         # If we can't find the distribution then apparently the zp egg itself is
@@ -937,16 +1053,19 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
             deleteFiles = zp.shouldDeleteFilesOnRemoval()
             if uninstallEgg:
                 if zp.isDevelopment():
-                    zenPackDir = varPath('ZenPacks')
-                    cmd = ('%s setup.py develop -u '
-                            % binPath('python') +
-                            '--site-dirs=%s ' % zenPackDir +
-                            '-d %s' % zenPackDir)
-                    p = subprocess.Popen(cmd,
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE,
-                                        shell=True,
-                                        cwd=zp.eggPath())
+                    zenPackDir = varPath("ZenPacks")
+                    cmd = (
+                        "%s setup.py develop -u " % binPath("python")
+                        + "--site-dirs=%s " % zenPackDir
+                        + "-d %s" % zenPackDir
+                    )
+                    p = subprocess.Popen(
+                        cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        shell=True,
+                        cwd=zp.eggPath(),
+                    )
                     out, err = p.communicate()
                     code = p.wait()
                     if code:
@@ -976,8 +1095,12 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
         # Get that exception out there in case it gets blown away by ZPEvent
         log.exception("Error removing ZenPack %s", packName)
         if sendEvent:
-            ZPEvent(dmd, SEVERITY_ERROR, 'Error removing ZenPack %s' % packName,
-                '%s: %s' % sys.exc_info()[:2])
+            ZPEvent(
+                dmd,
+                SEVERITY_ERROR,
+                "Error removing ZenPack %s" % packName,
+                "%s: %s" % sys.exc_info()[:2],
+            )
 
         # Don't just raise, because if ZPEvent blew away exception context
         # it'll be None, which is bad. This manipulates the stack to look like
@@ -985,9 +1108,10 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
         # info is lost.
         raise ex
     if sendEvent:
-        ZPEvent(dmd, 2, 'Removed ZenPack %s' % packName)
+        ZPEvent(dmd, 2, "Removed ZenPack %s" % packName)
 
-    audit('Shell.ZenPack.Remove', packName)
+    audit("Shell.ZenPack.Remove", packName)
+
 
 def DoEasyUninstall(name):
     """
@@ -998,16 +1122,21 @@ def DoEasyUninstall(name):
     http://peak.telecommunity.com/DevCenter/EasyInstall#uninstalling-packages
     """
     from setuptools.command import easy_install
-    args = ['--site-dirs', zenPath('ZenPacks'),
-        '-d', zenPath('ZenPacks'),
-        #'--record', tempPath,
-        '--quiet',
-        '-m',
-        name]
 
-    #Try to run the easy install command.  If this fails with an attribute
-    #error, then we know that easy_install doesn't know about this ZenPack and
-    #we can continue normally
+    args = [
+        "--site-dirs",
+        zenPath("ZenPacks"),
+        "-d",
+        zenPath("ZenPacks"),
+        #'--record', tempPath,
+        "--quiet",
+        "-m",
+        name,
+    ]
+
+    # Try to run the easy install command.  If this fails with an attribute
+    # error, then we know that easy_install doesn't know about this ZenPack and
+    # we can continue normally
 
     try:
         easy_install.main(args)
@@ -1033,7 +1162,7 @@ def CanRemoveZenPacks(dmd, packNames):
 
 # def CleanupEasyInstallPth(eggLink):
 #     """
-#     Remove the entry for the given egg from the 
+#     Remove the entry for the given egg from the
 #     $ZENHOME/ZenPacks/easy-install.pth file.  If this entry is left
 #     in place in can cause problems during the next install of the same
 #     egg.
@@ -1061,8 +1190,11 @@ def GetDependents(dmd, packName):
     """
     Return a list of installed ZenPack ids that list packName as a dependency
     """
-    return [zp.id for zp in dmd.ZenPackManager.packs()
-                if zp.id != packName and packName in zp.dependencies]
+    return [
+        zp.id
+        for zp in dmd.ZenPackManager.packs()
+        if zp.id != packName and packName in zp.dependencies
+    ]
 
 
 ########################################
@@ -1074,12 +1206,15 @@ def ZPEvent(dmd, severity, summary, message=None):
     """
     Send an event to Zenoss.
     """
-    dmd.ZenEventManager.sendEvent(dict(
-        device=FQDN,
-        eventClass='/Unknown',
-        severity=severity,
-        summary=summary,
-        message=message))
+    dmd.ZenEventManager.sendEvent(
+        dict(
+            device=FQDN,
+            eventClass="/Unknown",
+            severity=severity,
+            summary=summary,
+            message=message,
+        )
+    )
 
 
 class ZenPackCmd(ZenScriptBase):
@@ -1102,35 +1237,42 @@ class ZenPackCmd(ZenScriptBase):
         """
 
         self.connect()
+
         def PrintInstalled(installed, eggOnly=False):
             if installed:
                 if eggOnly:
-                    names = [i['id'] for i in installed]
-                    what = 'ZenPack egg'
+                    names = [i["id"] for i in installed]
+                    what = "ZenPack egg"
                 else:
                     names = [i.id for i in installed]
-                    what = 'ZenPack'
-                print('Installed %s%s: %s' % (
-                        what,
-                        len(names) != 1 and 's' or '',
-                        ', '.join(names)))
+                    what = "ZenPack"
+                print(
+                    "Installed %s%s: %s"
+                    % (what, len(names) != 1 and "s" or "", ", ".join(names))
+                )
             else:
-                print('No ZenPacks installed.')
+                print("No ZenPacks installed.")
 
-        if not getattr(self.dmd, 'ZenPackManager', None):
-            raise ZenPackNeedMigrateException('Your Zenoss database appears'
-                ' to be out of date. Try running zenmigrate to update.')
+        if not getattr(self.dmd, "ZenPackManager", None):
+            raise ZenPackNeedMigrateException(
+                "Your Zenoss database appears"
+                " to be out of date. Try running zenmigrate to update."
+            )
         if self.options.eggOnly and self.options.eggPath:
-            zpDists = InstallEgg(self.dmd, self.options.eggPath, 
-                                            link=self.options.link)
-            PrintInstalled([{'id':d.project_name} for d in zpDists], 
-                            eggOnly=True)
+            zpDists = InstallEgg(
+                self.dmd, self.options.eggPath, link=self.options.link
+            )
+            PrintInstalled(
+                [{"id": d.project_name} for d in zpDists], eggOnly=True
+            )
         if self.options.eggPath:
             installed = InstallEggAndZenPack(
-                                self.dmd, self.options.eggPath,
-                                link=self.options.link,
-                                filesOnly=self.options.filesOnly,
-                                previousVersion= self.options.previousVersion)
+                self.dmd,
+                self.options.eggPath,
+                link=self.options.link,
+                filesOnly=self.options.filesOnly,
+                previousVersion=self.options.previousVersion,
+            )
             PrintInstalled(installed)
 
         elif self.options.exportPack:
@@ -1140,111 +1282,125 @@ class ZenPackCmd(ZenScriptBase):
             installed = FetchAndInstallZenPack(self.dmd, self.options.fetch)
             PrintInstalled(installed)
         elif self.options.upload:
-            return UploadZenPack(self.dmd, self.options.upload,
-                                    self.options.znetProject,
-                                    self.options.uploadDesc,
-                                    self.options.znetUser,
-                                    self.options.znetPass)
+            return UploadZenPack(
+                self.dmd,
+                self.options.upload,
+                self.options.znetProject,
+                self.options.uploadDesc,
+                self.options.znetUser,
+                self.options.znetPass,
+            )
         elif self.options.removePackName:
             try:
                 RemoveZenPack(self.dmd, self.options.removePackName)
-                print('Removed ZenPack: %s' % self.options.removePackName)
+                print("Removed ZenPack: %s" % self.options.removePackName)
             except ZenPackNotFoundException as e:
-                sys.stderr.write(str(e) + '\n')
+                sys.stderr.write(str(e) + "\n")
         elif self.options.list:
             self.list()
         else:
             self.parser.print_help()
 
-
     def buildOptions(self):
-        self.parser.add_option('--export',
-                               dest='exportPack',
-                               default=None,
-                               help="name of the pack to export")
-        self.parser.add_option('--install',
-                               dest='eggPath',
-                               default=None,
-                               help="name of the pack to install")
-#        self.parser.add_option('--fetch',
-#                               dest='fetch',
-#                               default=None,
-#                               help='Name of ZenPack to retrieve from '
-#                                    'Zenoss.net and install.')
-#        self.parser.add_option('--fetch-vers',
-#                               dest='fetchVers',
-#                               default=None,
-#                               help='Use with --fetch to specify a version'
-#                                    ' for the ZenPack to download and install.')
-#        self.parser.add_option('--znet-user',
-#                               dest='znetUser',
-#                               default=None,
-#                               help='Use with --fetch or --upload to specify'
-#                                    ' your Zenoss.net username.')
-#        self.parser.add_option('--znet-pass',
-#                               dest='znetPass',
-#                               default=None,
-#                               help='Use with --fetch or --upload to specify'
-#                                    ' your Zenoss.net password.')
-#        self.parser.add_option('--upload',
-#                               dest='upload',
-#                               default=None,
-#                               help='Name of ZenPack to upload to '
-#                                    'Zenoss.net')
-#        self.parser.add_option('--znet-project',
-#                               dest='znetProject',
-#                               default=None,
-#                               help='Use with --upload to specify'
-#                                    ' which Zenoss.net project to create'
-#                                    ' a release on.')
-#        self.parser.add_option('--upload-desc',
-#                               dest='uploadDesc',
-#                               default=None,
-#                               help='Use with --upload to provide'
-#                                    ' a description for the new release.')
-        self.parser.add_option('--link',
-                               dest='link',
-                               action='store_true',
-                               default=False,
-                               help='Install the ZenPack in its current '
-                                'location, do not copy to $ZENHOME/ZenPacks. '
-                                'Also mark ZenPack as editable. '
-                                'This only works with source directories '
-                                'containing setup.py files, not '
-                                'egg files.')
-        self.parser.add_option('--remove',
-                               dest='removePackName',
-                               default=None,
-                               help="name of the pack to remove")
-        self.parser.add_option('--leave-objects',
-                               dest='leaveObjects',
-                               default=False,
-                               action='store_true',
-                               help="When specified with --remove then objects"
-                                    ' provided by the ZenPack and those'
-                                    ' depending on the ZenPack are not deleted.'
-                                    ' This may result in broken objects in your'
-                                    ' database unless the ZenPack is'
-                                    ' reinstalled.')
-        self.parser.add_option('--files-only',
-                               dest='filesOnly',
-                               action="store_true",
-                               default=False,
-                               help='install onto filesystem but not into '
-                                        'zenoss')
-        self.parser.add_option('--previousversion',
-                               dest='previousVersion',
-                               default=None,
-                               help="Previous version of the zenpack;"
-                                    ' used during upgrades')
+        self.parser.add_option(
+            "--export",
+            dest="exportPack",
+            default=None,
+            help="name of the pack to export",
+        )
+        self.parser.add_option(
+            "--install",
+            dest="eggPath",
+            default=None,
+            help="name of the pack to install",
+        )
+        #        self.parser.add_option('--fetch',
+        #                               dest='fetch',
+        #                               default=None,
+        #                               help='Name of ZenPack to retrieve from '
+        #                                    'Zenoss.net and install.')
+        #        self.parser.add_option('--fetch-vers',
+        #                               dest='fetchVers',
+        #                               default=None,
+        #                               help='Use with --fetch to specify a version'
+        #                                    ' for the ZenPack to download and install.')
+        #        self.parser.add_option('--znet-user',
+        #                               dest='znetUser',
+        #                               default=None,
+        #                               help='Use with --fetch or --upload to specify'
+        #                                    ' your Zenoss.net username.')
+        #        self.parser.add_option('--znet-pass',
+        #                               dest='znetPass',
+        #                               default=None,
+        #                               help='Use with --fetch or --upload to specify'
+        #                                    ' your Zenoss.net password.')
+        #        self.parser.add_option('--upload',
+        #                               dest='upload',
+        #                               default=None,
+        #                               help='Name of ZenPack to upload to '
+        #                                    'Zenoss.net')
+        #        self.parser.add_option('--znet-project',
+        #                               dest='znetProject',
+        #                               default=None,
+        #                               help='Use with --upload to specify'
+        #                                    ' which Zenoss.net project to create'
+        #                                    ' a release on.')
+        #        self.parser.add_option('--upload-desc',
+        #                               dest='uploadDesc',
+        #                               default=None,
+        #                               help='Use with --upload to provide'
+        #                                    ' a description for the new release.')
+        self.parser.add_option(
+            "--link",
+            dest="link",
+            action="store_true",
+            default=False,
+            help="Install the ZenPack in its current "
+            "location, do not copy to $ZENHOME/ZenPacks. "
+            "Also mark ZenPack as editable. "
+            "This only works with source directories "
+            "containing setup.py files, not "
+            "egg files.",
+        )
+        self.parser.add_option(
+            "--remove",
+            dest="removePackName",
+            default=None,
+            help="name of the pack to remove",
+        )
+        self.parser.add_option(
+            "--leave-objects",
+            dest="leaveObjects",
+            default=False,
+            action="store_true",
+            help="When specified with --remove then objects"
+            " provided by the ZenPack and those"
+            " depending on the ZenPack are not deleted."
+            " This may result in broken objects in your"
+            " database unless the ZenPack is"
+            " reinstalled.",
+        )
+        self.parser.add_option(
+            "--files-only",
+            dest="filesOnly",
+            action="store_true",
+            default=False,
+            help="install onto filesystem but not into " "zenoss",
+        )
+        self.parser.add_option(
+            "--previousversion",
+            dest="previousVersion",
+            default=None,
+            help="Previous version of the zenpack;" " used during upgrades",
+        )
         self.parser.prog = "zenpack"
         ZenScriptBase.buildOptions(self)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         zp = ZenPackCmd()
         zp.run()
     except ZenPackException as e:
-        sys.stderr.write('%s\n' % str(e))
+        sys.stderr.write("%s\n" % str(e))
         sys.exit(-1)

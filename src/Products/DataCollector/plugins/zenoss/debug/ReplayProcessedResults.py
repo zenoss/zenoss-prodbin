@@ -35,7 +35,24 @@ from Products.ZenUtils.Utils import zenPath
 
 
 class ReplayProcessedResults(PythonPlugin):
-    configFile = zenPath("etc/ReplayProcessedResults.conf")
+    """
+    Replay captured and processed modeler plugin output, where the filenames
+    are specified via comma-separated entries in the configuration file
+    ($ZENHOME/etc/ReplayProcessedResults.conf)
+
+    File format
+    ==============
+
+    [section1]
+    processed_files = path/to/file
+
+    Notes
+    =======
+    * The section names are ignored
+    * The processesd files may be gzip'd
+    """
+
+    configFile = zenPath("etc", "ReplayProcessedResults.conf")
 
     def collect(self, device, log):
         settings = RawConfigParser()

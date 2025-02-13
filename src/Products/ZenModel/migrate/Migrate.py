@@ -7,58 +7,64 @@
 #
 ##############################################################################
 
-'''Migrate
+"""Migrate
 
 A small framework for data migration.
 
-'''
+"""
 
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
+import logging
 import re
+import sys
+
+from textwrap import wrap
 
 import transaction
-from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.Version import Version as VersionBase
-from Products.ZenReports.ReportLoader import ReportLoader
-from Products.ZenUtils.Utils import zenPath
-from Products.ZenModel.ZVersion import VERSION
-from Products.ZenUtils.terminal_size import get_terminal_size
 
-import sys
-from textwrap import wrap
-import logging
-log = logging.getLogger('zen.migrate')
+from Products.ZenModel.ZVersion import VERSION
+from Products.ZenReports.ReportLoader import ReportLoader
+from Products.ZenUtils.terminal_size import get_terminal_size
+from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Version import Version as VersionBase
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+
+log = logging.getLogger("zen.migrate")
 HIGHER_THAN_CRITICAL = 100
 allSteps = []
 
-class MigrationFailed(Exception): pass
+
+class MigrationFailed(Exception):
+    pass
+
 
 class Version(VersionBase):
     def __init__(self, *args, **kw):
-        VersionBase.__init__(self, 'Zenoss', *args, **kw)
+        VersionBase.__init__(self, "Zenoss", *args, **kw)
 
 
 def cleanup():
-    "recursively remove all files ending with .pyc"
+    """recursively remove all files ending with .pyc"""
     import os
+    import Products
+
     count = 0
-    for p, d, fs in os.walk(zenPath('Products')):
-        for f in fs:
-            if f.endswith('.pyc'):
-                fullPath = os.path.join(p, f)
+    for dirname, _, filenames in os.walk(Products.__path__[-1]):
+        for fn in filenames:
+            if fn.endswith(".pyc"):
+                fullPath = os.path.join(dirname, fn)
                 os.remove(fullPath)
                 count += 1
-    log.debug('removed %d .pyc files from Products' % count)
+    log.debug("removed %d .pyc files from Products" % count)
 
 
 class Step(object):
-    'A single migration step, to be subclassed for each new change'
+    "A single migration step, to be subclassed for each new change"
 
     # Every subclass should set this so we know when to run it
     version = -1
     dependencies = None
-
 
     def __init__(self):
         "self insert ourselves in the list of all steps"
@@ -110,9 +116,12 @@ class Step(object):
                 result.append(d)
                 result.extend(d.getDependencies())
             else:
-                log.error("Circular dependency among migration Steps: "
-                          "%s is listed as a dependency of %s ",
-                          self.name(), d.name())
+                log.error(
+                    "Circular dependency among migration Steps: "
+                    "%s is listed as a dependency of %s ",
+                    self.name(),
+                    d.name(),
+                )
         return result
 
     def prepare(self):
@@ -150,21 +159,26 @@ class Migration(ZenScriptBase):
         ZenScriptBase.__init__(self, noopts=noopts, connect=False)
         self.connect()
         self.allSteps = allSteps[:]
-        self.allSteps.sort() # _must_ sort the dependencies
+        self.allSteps.sort()  # _must_ sort the dependencies
 
         # Log output to a file
         # self.setupLogging() does *NOT* do what we want.
-        logFilename = zenPath('log', 'zenmigrate.log')
+        logFilename = zenPath("log", "zenmigrate.log")
         import logging.handlers
+
         maxBytes = self.options.maxLogKiloBytes * 1024
         backupCount = self.options.maxBackupLogs
         file_handler = logging.handlers.RotatingFileHandler(
-              logFilename, maxBytes=maxBytes, backupCount=backupCount)
+            logFilename, maxBytes=maxBytes, backupCount=backupCount
+        )
         stdout_handler = logging.StreamHandler(stream=sys.stdout)
         for handler in file_handler, stdout_handler:
-            handler.setFormatter(logging.Formatter(
+            handler.setFormatter(
+                logging.Formatter(
                     "%(asctime)s %(levelname)s %(name)s: %(message)s",
-                    "%Y-%m-%d %H:%M:%S"))
+                    "%Y-%m-%d %H:%M:%S",
+                )
+            )
             log.addHandler(handler)
 
     def message(self, msg):
@@ -176,12 +190,12 @@ class Migration(ZenScriptBase):
         This also does some cleanup of dmd.version in case in is
         nonexistant, empty or set to a float value.
         """
-        if not hasattr(self.dmd, 'version') or not self.dmd.version:
-            self.dmd.version = 'Zenoss ' + VERSION
-        if type(self.dmd.version) == type(1.0):
+        if not hasattr(self.dmd, "version") or not self.dmd.version:
+            self.dmd.version = "Zenoss " + VERSION
+        if type(self.dmd.version) is type(1.0):
             self.dmd.version = "Zenoss 0.%f" % self.dmd.version
         v = VersionBase.parse(self.dmd.version)
-        v.name = 'Zenoss'
+        v.name = "Zenoss"
         return v
 
     def getEarliestAppropriateStepVersion(self, codeVers=None):
@@ -194,7 +208,7 @@ class Migration(ZenScriptBase):
         for testing purposes and should usually not be passed in.
         """
         if codeVers is None:
-            codeVers = VersionBase.parse('Zenoss %s' % VERSION)
+            codeVers = VersionBase.parse("Zenoss %s" % VERSION)
         if codeVers.micro >= 70:
             # We are in a dev/beta release.  Anything back through the start
             # of this dev/beta cycle is appropriate.
@@ -203,7 +217,9 @@ class Migration(ZenScriptBase):
             # We are in a regular release that is not a  N.0 version.
             # Anything back through the previous dev/beta cycle is
             # appropriate
-            earliestAppropriate = Version(codeVers.major, codeVers.minor-1, 70)
+            earliestAppropriate = Version(
+                codeVers.major, codeVers.minor - 1, 70
+            )
         else:
             # This is a X.0.Y release.  This is tough because we don't know
             # what the minor version was for the last release of version X-1.
@@ -220,16 +236,19 @@ class Migration(ZenScriptBase):
             else:
                 # We couldn't find any migrate step that predates codeVers.
                 # Something is wrong, this should never happen.
-                raise MigrationFailed('Unable to determine the appropriate '
-                    'migrate script versions.')
+                raise MigrationFailed(
+                    "Unable to determine the appropriate "
+                    "migrate script versions."
+                )
             if lastPrevious.micro >= 70:
-                earliestAppropriate = Version(lastPrevious.major,
-                        lastPrevious.minor, 70)
+                earliestAppropriate = Version(
+                    lastPrevious.major, lastPrevious.minor, 70
+                )
             else:
-                earliestAppropriate = Version(lastPrevious.major,
-                        lastPrevious.minor-1, 70)
+                earliestAppropriate = Version(
+                    lastPrevious.major, lastPrevious.minor - 1, 70
+                )
         return earliestAppropriate
-
 
     def determineSteps(self):
         """
@@ -239,38 +258,43 @@ class Migration(ZenScriptBase):
         # Ensure all steps have version numbers
         for step in self.allSteps:
             if step.version == -1:
-                raise MigrationFailed("Migration %s does not set "
-                                      "the version number" %
-                                      step.__class__.__name__)
+                raise MigrationFailed(
+                    "Migration %s does not set "
+                    "the version number" % step.__class__.__name__
+                )
 
         # Level was specified
         if self.options.level is not None:
-            levelVers = VersionBase.parse('Zenoss ' + self.options.level)
-            steps = [s for s in self.allSteps
-                        if s.version >= levelVers]
+            levelVers = VersionBase.parse("Zenoss " + self.options.level)
+            steps = [s for s in self.allSteps if s.version >= levelVers]
 
         # Step was specified
         elif self.options.steps:
             import re
+
             def matches(name):
                 for step in self.options.steps:
-                    if re.match('.*' + step + '.*', name):
+                    if re.match(".*" + step + ".*", name):
                         return True
                 return False
+
             steps = [s for s in self.allSteps if matches(s.name())]
             if not steps:
-                log.error("No steps found that matched '%s'",
-                           ', '.join(self.options.steps))
+                log.error(
+                    "No steps found that matched '%s'",
+                    ", ".join(self.options.steps),
+                )
                 log.error("Aborting")
                 sys.exit(1)
-            log.info("Will execute these steps: %s",
-                     ', '.join(self.options.steps))
+            log.info(
+                "Will execute these steps: %s", ", ".join(self.options.steps)
+            )
 
         else:
             currentDbVers = self._currentVersion()
             # The user did not specify steps to be run, so we run the default
             # steps.
-            newDbVers = max(self.allSteps, key = lambda x:x.version).version
+            newDbVers = max(self.allSteps, key=lambda x: x.version).version
             if currentDbVers == newDbVers:
                 # There are no steps newer than the current db version.
                 # By default we rerun the steps for the current version.
@@ -278,16 +302,15 @@ class Migration(ZenScriptBase):
                 if self.options.newer:
                     steps = []
                 else:
-                    steps = [s for s in self.allSteps
-                                if s.version == currentDbVers]
+                    steps = [
+                        s for s in self.allSteps if s.version == currentDbVers
+                    ]
             else:
                 # There are steps newer than the current db version.
                 # Run the newer steps.
-                steps = [s for s in self.allSteps
-                            if s.version > currentDbVers]
+                steps = [s for s in self.allSteps if s.version > currentDbVers]
 
         return steps
-
 
     def migrate(self, steps, executed):
         """
@@ -297,17 +320,21 @@ class Migration(ZenScriptBase):
             for m in steps:
                 m.prepare()
             currentDbVers = self._currentVersion()
-            if steps[-1].version > currentDbVers and not self.options.dont_bump:
-                self.message('Database going to version %s'
-                                               % steps[-1].version.long())
+            if (
+                steps[-1].version > currentDbVers
+                and not self.options.dont_bump
+            ):
+                self.message(
+                    "Database going to version %s" % steps[-1].version.long()
+                )
             # hide uncatalog error messages since they do not do any harm
-            log = logging.getLogger('Zope.ZCatalog')
+            log = logging.getLogger("Zope.ZCatalog")
             oldLevel = log.getEffectiveLevel()
             log.setLevel(HIGHER_THAN_CRITICAL)
             for m in steps:
-
-                self.message('Installing %s (%s)'
-                                % (m.name(), m.version.short()))
+                self.message(
+                    "Installing %s (%s)" % (m.name(), m.version.short())
+                )
 
                 m.cutover(self.dmd)
                 executed.append(m)
@@ -319,7 +346,7 @@ class Migration(ZenScriptBase):
         cleanup()
 
         if not self.options.steps:
-            self.message('Loading Reports')
+            self.message("Loading Reports")
             rl = ReportLoader(noopts=True, app=self.app)
             # when reports change make sure the new version is loaded during the migrate
             rl.options.force = True
@@ -331,10 +358,10 @@ class Migration(ZenScriptBase):
             self.dmd.ZenPortletManager.update_source()
 
     def cutover(self):
-        '''perform the migration, applying all the new steps,
-        recovering on error'''
+        """perform the migration, applying all the new steps,
+        recovering on error"""
         if not self.allSteps:
-            self.message('There are no migrate scripts.')
+            self.message("There are no migrate scripts.")
             return
         self.backup()
         steps = self.determineSteps()
@@ -354,7 +381,10 @@ class Migration(ZenScriptBase):
 
     def disableTimeout(self):
         try:
-            from ZenPacks.zenoss.CatalogService.service import disableTransactionTimeout
+            from ZenPacks.zenoss.CatalogService.service import (
+                disableTransactionTimeout,
+            )
+
             disableTransactionTimeout()
         except ImportError:
             pass
@@ -363,10 +393,8 @@ class Migration(ZenScriptBase):
         "Deprecated"
         log.error(msg)
 
-
     def backup(self):
         pass
-
 
     def recover(self):
         transaction.abort()
@@ -377,73 +405,82 @@ class Migration(ZenScriptBase):
         for m in steps:
             m.revert()
 
-
     def success(self):
         if self.options.commit:
-            self.message('Committing changes')
+            self.message("Committing changes")
             transaction.commit()
         else:
-            self.message('Rolling back changes')
+            self.message("Rolling back changes")
             self.recover()
         self.message("Migration successful")
-
 
     def parseOptions(self):
         ZenScriptBase.parseOptions(self)
         if self.args:
-            if self.args == ['run']:
+            if self.args == ["run"]:
                 sys.stderr.write('Use of "run" is deprecated.\n')
-            elif self.args == ['help']:
-                sys.stderr.write('Use of "help" is deprecated,'
-                                    'use --help instead.\n')
+            elif self.args == ["help"]:
+                sys.stderr.write(
+                    'Use of "help" is deprecated,' "use --help instead.\n"
+                )
                 self.parser.print_help()
                 self.parser.exit()
             elif self.args[0]:
-                self.parser.error('Unrecognized option(s): %s\n' %
-                    ', '.join(self.args) +
-                    'Use --help for list of options.\n')
-
+                self.parser.error(
+                    "Unrecognized option(s): %s\n" % ", ".join(self.args)
+                    + "Use --help for list of options.\n"
+                )
 
     def buildOptions(self):
-        self.parser.add_option('--step',
-                               action='append',
-                               dest="steps",
-                               help="Run the specified step.  This option "
-                                    'can be specified multiple times to run '
-                                    'more than one step.')
+        self.parser.add_option(
+            "--step",
+            action="append",
+            dest="steps",
+            help="Run the specified step.  This option "
+            "can be specified multiple times to run "
+            "more than one step.",
+        )
         # NB: The flag for this setting indicates a false value for the setting.
-        self.parser.add_option('--dont-commit',
-                               dest="commit",
-                               action='store_false',
-                               default=True,
-                               help="Don't commit changes to the database")
-        self.parser.add_option('--list',
-                               action='store_true',
-                               default=False,
-                               dest="list",
-                               help="List all the steps")
-        self.parser.add_option('--level',
-                               dest="level",
-                               type='string',
-                               default=None,
-                               help="Run the steps for the specified level "
-                                    ' and above.')
-        self.parser.add_option('--newer',
-                                dest='newer',
-                                action='store_true',
-                                default=False,
-                                help='Only run steps with versions higher '
-                                        'than the current database version.'
-                                        'Usually if there are no newer '
-                                        'migrate steps the current steps '
-                                        'are rerun.')
-        self.parser.add_option('--dont-bump',
-                               action='store_true',
-                               default=False,
-                               dest="dont_bump",
-                               help="Don't bump database version.")
+        self.parser.add_option(
+            "--dont-commit",
+            dest="commit",
+            action="store_false",
+            default=True,
+            help="Don't commit changes to the database",
+        )
+        self.parser.add_option(
+            "--list",
+            action="store_true",
+            default=False,
+            dest="list",
+            help="List all the steps",
+        )
+        self.parser.add_option(
+            "--level",
+            dest="level",
+            type="string",
+            default=None,
+            help="Run the steps for the specified level " " and above.",
+        )
+        self.parser.add_option(
+            "--newer",
+            dest="newer",
+            action="store_true",
+            default=False,
+            help="Only run steps with versions higher "
+            "than the current database version."
+            "Usually if there are no newer "
+            "migrate steps the current steps "
+            "are rerun.",
+        )
+        self.parser.add_option(
+            "--dont-bump",
+            action="store_true",
+            default=False,
+            dest="dont_bump",
+            help="Don't bump database version.",
+        )
         ZenScriptBase.buildOptions(self)
-
 
     def orderedSteps(self):
         return self.allSteps
@@ -456,36 +493,56 @@ class Migration(ZenScriptBase):
 
         def switch(inp):
             switcher = {
-                1: ((" Ver     Name" + " "*(nameWidth-3) + "Status\n"
-                       "--------+" + "-"*nameWidth +"+-------"),
-                    "%-8s %-{}s %-8s".format(nameWidth+1)),
-                0: ((" Ver     Name" + " "*(nameWidth-2) + "Description\n"
-                        "--------+" + "-"*(nameWidth+1) +"+-----------"
-                        + "-"*(maxwidth - indentSize - 3)),
-                    "%-8s %-{}s %s".format(nameWidth+1))
+                1: (
+                    (
+                        " Ver     Name" + " " * (nameWidth - 3) + "Status\n"
+                        "--------+" + "-" * nameWidth + "+-------"
+                    ),
+                    "%-8s %-{}s %-8s".format(nameWidth + 1),
+                ),
+                0: (
+                    (
+                        " Ver     Name"
+                        + " " * (nameWidth - 2)
+                        + "Description\n"
+                        "--------+"
+                        + "-" * (nameWidth + 1)
+                        + "+-----------"
+                        + "-" * (maxwidth - indentSize - 3)
+                    ),
+                    "%-8s %-{}s %s".format(nameWidth + 1),
+                ),
             }
             return switcher.get(inp)
+
         header, outputTemplate = switch(1 if inputSteps else 0)
         print(header)
 
         def printState(tpl, version, name, doc=None, status=None):
             if status:
-                print(tpl%(version, name, status))
+                print(tpl % (version, name, status))
             else:
-                print(tpl%(version, name, doc))
+                print(tpl % (version, name, doc))
 
-        indent = ' ' * indentSize
+        indent = " " * indentSize
         docWidth = maxwidth
         for s in steps:
             doc = s.__doc__
             if not doc:
-                doc = sys.modules[s.__class__.__module__].__doc__ \
-                                                        or 'Not Documented'
+                doc = (
+                    sys.modules[s.__class__.__module__].__doc__
+                    or "Not Documented"
+                )
             doc.strip()
             doc = re.sub("\s+", " ", doc)
-            doc = '\n'.join(wrap(doc, width=docWidth,
-                                 initial_indent=indent,
-                                 subsequent_indent=indent))
+            doc = "\n".join(
+                wrap(
+                    doc,
+                    width=docWidth,
+                    initial_indent=indent,
+                    subsequent_indent=indent,
+                )
+            )
             doc = doc.lstrip()
             if inputSteps:
                 if s.name() in (x.name() for x in execSteps):
@@ -495,7 +552,6 @@ class Migration(ZenScriptBase):
                 printState(outputTemplate, s.version.short(), s.name(), status)
             else:
                 printState(outputTemplate, s.version.short(), s.name(), doc)
-
 
     def main(self):
         if self.options.list:
