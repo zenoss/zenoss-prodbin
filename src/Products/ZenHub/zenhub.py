@@ -71,7 +71,15 @@ def _import_modules():
     from Products.DataCollector.plugins.DataMaps import ObjectMap  # noqa: F401
 
     #  2nd: get DataMaps.ObjectMap
-    sys.path.insert(0, zenPath("Products", "DataCollector", "plugins"))
+    import os.path
+    import Products.DataCollector
+
+    sys.path.insert(
+        0,
+        os.path.join(
+            os.path.dirname(Products.DataCollector.__file__), "plugins"
+        ),
+    )
     import DataMaps  # noqa: F401
 
 
@@ -186,7 +194,7 @@ class ZenHub(ZCmdBase):
         # before signaling a worker process
         self.SIGUSR_TIMEOUT = 5
 
-    def main(self):
+    def run(self):
         """Start the main event loop."""
         if self.options.cycle:
             reactor.callLater(0, self.heartbeat)
@@ -454,4 +462,4 @@ def report_reactor_delayed_calls(monitor, name):
 if __name__ == "__main__":
     from Products.ZenHub.zenhub import ZenHub
 
-    ZenHub().main()
+    ZenHub().run()

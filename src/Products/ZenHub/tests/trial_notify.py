@@ -10,11 +10,11 @@
 """Twisted Trial unittests for the ZenHub/notify.py module. Run this
 test with
 
-  $ trial $ZENHOME/Products/ZenHub/tests/trial_notify.py
+  $ trial src/Products/ZenHub/tests/trial_notify.py
 
 or with more detailed logging...
 
-  $ DEBUG=1 trial $ZENHOME/Products/ZenHub/tests/trial_notify.py
+  $ DEBUG=1 trial src/Products/ZenHub/tests/trial_notify.py
 
 """
 

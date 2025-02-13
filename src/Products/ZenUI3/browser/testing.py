@@ -13,8 +13,6 @@ import os
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
 
-from Products.ZenUtils.Utils import zenPath
-
 from .javascript import getAllZenPackResources
 
 log = logging.getLogger("zen.UITests")
@@ -46,18 +44,19 @@ class UserInterfaceTests(BrowserView):
             resource,
             path.split("resources")[1],
         )
-        for root, dirs, files in os.walk(path):
-            for f in files:
-                if f.lower().startswith("test") and f.lower().endswith(".js"):
-                    testPath = os.path.join(root, f)
+        for dirname, _, filenames in os.walk(path):
+            for fn in filenames:
+                fn = fn.lower()
+                if fn.startswith("test") and fn.endswith(".js"):
+                    testPath = os.path.join(dirname, fn)
                     tests.append(testPath.replace(path, resourcePath))
         return tests
 
     def getAllCoreJSTestFiles(self):
-        resource = "zenui"
-        path = zenPath(
-            "Products", "ZenUI3", "browser", "resources", "js", "zenoss"
+        path = os.path.join(
+            os.path.dirname(__file__), "resources", "js", "zenoss"
         )
+        resource = "zenui"
         test = self.getTestFilesFromResource(resource, path)
         log.info("Got the following tests %s", test)
         return test

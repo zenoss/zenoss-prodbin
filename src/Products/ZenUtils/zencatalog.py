@@ -12,6 +12,7 @@ import signal
 import sys
 
 from multiprocessing import Process, Event
+
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.Zuul.catalog.model_catalog_init import (
     run as run_model_catalog_init,
@@ -205,8 +206,7 @@ class ZenCatalogBase(ZenDaemon):
         if clearmemcached:
             if not self.options.zodb_cacheservers:
                 log.error(
-                    "Unable to clear memcached:  No cache_servers set, "
-                    "please specify with --zodb-cacheservers, "
+                    "Unable to clear memcached:  No cache_servers set, please specify with --zodb-cacheservers, "
                     "or add to %s",
                     self.options.configfile,
                 )
@@ -253,7 +253,7 @@ class ZenCatalogBase(ZenDaemon):
         return collection_exists()
 
 
-def main():
+if __name__ == "__main__":
     zc = ZenCatalogBase()
     try:
         signal.signal(signal.SIGTERM, raiseKeyboardInterrupt)

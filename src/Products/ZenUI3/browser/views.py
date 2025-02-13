@@ -132,7 +132,7 @@ class GetDoc(BrowserView):
                 break
 
         if serveFile:
-            filename = os.path.join(zenPath("docs"), bundle)
+            filename = zenPath("docs", bundle)
             self.request.RESPONSE.setHeader(
                 "Content-Type", "application/x-gzip"
             )

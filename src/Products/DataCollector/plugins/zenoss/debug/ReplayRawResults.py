@@ -44,7 +44,7 @@ class ReplayRawResults(PythonPlugin):
     * The raw data files may be gzip'd
     """
 
-    configFile = zenPath("etc/ReplayRawResults.conf")
+    configFile = zenPath("etc", "ReplayRawResults.conf")
     pluginPath = None
 
     def copyDataToProxy(self, dev, proxy):

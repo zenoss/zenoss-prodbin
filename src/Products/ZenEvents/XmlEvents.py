@@ -15,7 +15,7 @@ This command can be put on any machine with Python installed, and
 does not need Zope or Zenoss.
 
 Sending events from a XML file requires either:
- * called from Zenoss box that has $ZENHOME/Products/ZenEvents/XmlEvents.py
+ * called from Zenoss box that has Products/ZenEvents/XmlEvents.py
  * a copy of XmlEvents.py in the same directory as this file
 '''
 

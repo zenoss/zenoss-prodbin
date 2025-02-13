@@ -8,16 +8,19 @@
 ##############################################################################
 
 import logging
+import os.path
 
-log = logging.getLogger("zen.migrate")
+import servicemigration as sm
 
 import Migrate
-from Products.ZenUtils.Utils import zenPath
-import servicemigration as sm
+
+log = logging.getLogger("zen.migrate")
 sm.require("1.0.0")
 
+
 class addOpenTSDBLogbackConfig(Migrate.Step):
-    """ Set Editable Logback configuration file for OpenTSDB. See ZEN-27916 """
+    """Set Editable Logback configuration file for OpenTSDB. See ZEN-27916"""
+
     version = Migrate.Version(116, 0, 0)
 
     def cutover(self, dmd):
@@ -28,19 +31,43 @@ class addOpenTSDBLogbackConfig(Migrate.Step):
             return
 
         commit = False
-        services = filter(lambda s: "opentsdb" in ctx.getServicePath(s), ctx.services)
-        log.info("Found %i services with 'opentsdb' in their service path." % len(services))
-        services = filter(lambda s: "/opt/zenoss/etc/opentsdb/opentsdb.conf" in [i.name for i in s.originalConfigs], services)
-        log.info("Of those, %i services use /opt/zenoss/etc/opentsdb/opentsdb.conf." % len(services))
-        with open(zenPath('Products/ZenModel/migrate/data/opentsdb-logback.xml')) as fcontent:
+        services = filter(
+            lambda s: "opentsdb" in ctx.getServicePath(s), ctx.services
+        )
+        log.info(
+            "Found %i services with 'opentsdb' in their service path."
+            % len(services)
+        )
+        services = filter(
+            lambda s: "/opt/zenoss/etc/opentsdb/opentsdb.conf"
+            in [i.name for i in s.originalConfigs],
+            services,
+        )
+        log.info(
+            "Of those, %i services use /opt/zenoss/etc/opentsdb/opentsdb.conf."
+            % len(services)
+        )
+        with open(
+            os.path.join(
+                os.path.dirname(__file__), "data/opentsdb-logback.xml"
+            )
+        ) as fcontent:
             try:
                 content = fcontent.read()
             except Exception as e:
-                log.error("Error reading logback configuration file: {}".format(e))
+                log.error(
+                    "Error reading logback configuration file: {}".format(e)
+                )
                 return
 
         def equal(this, that):
-            return this.name == that.name and this.filename == that.filename and this.owner == that.owner and this.permissions == that.permissions and this.content == that.content
+            return (
+                this.name == that.name
+                and this.filename == that.filename
+                and this.owner == that.owner
+                and this.permissions == that.permissions
+                and this.content == that.content
+            )
 
         for service in services:
             newConfig = sm.ConfigFile(
@@ -48,25 +75,36 @@ class addOpenTSDBLogbackConfig(Migrate.Step):
                 filename="/opt/opentsdb/src/logback.xml",
                 owner="root:root",
                 permissions="0664",
-                 content=content
+                content=content,
             )
 
             # If there's a config with the same name but is different from
             # the new config, overwrite it.
-            if all(not equal(config, newConfig) for config in service.originalConfigs):
+            if all(
+                not equal(config, newConfig)
+                for config in service.originalConfigs
+            ):
                 service.originalConfigs.append(newConfig)
-                log.info("Adding a configuration to OriginalConfigs of %s", service.name)
+                log.info(
+                    "Adding a configuration to OriginalConfigs of %s",
+                    service.name,
+                )
                 commit = True
 
             # Add this config only if there's no config with the same name.
             # If there is such config, honor it.
-            if all(not equal(config, newConfig) for config in service.configFiles):
+            if all(
+                not equal(config, newConfig) for config in service.configFiles
+            ):
                 service.configFiles.append(newConfig)
-                log.info("Adding a configuration to ConfigFiles of %s", service.name)
+                log.info(
+                    "Adding a configuration to ConfigFiles of %s", service.name
+                )
                 commit = True
 
         log.info("Configuration added for OpenTSDB services")
         if commit:
             ctx.commit()
+
 
 addOpenTSDBLogbackConfig()

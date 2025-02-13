@@ -7,14 +7,11 @@
 #
 ##############################################################################
 
-
-__doc__ = """ZenPack
+"""ZenPack
 ZenPacks base definitions
 """
 
 import logging
-log = logging.getLogger('zen.ZenPack')
-
 import datetime
 import glob
 import json
@@ -22,14 +19,15 @@ import string
 import subprocess
 import os
 import os.path
-import posixpath
 import sys
 import shutil
 import zipfile
+
 from collections import defaultdict
 from StringIO import StringIO
 
 import pkg_resources
+import Products
 
 from Acquisition import aq_base
 from AccessControl.class_init import InitializeClass
@@ -53,6 +51,8 @@ from Products.ZenMessaging.audit import audit
 
 import servicemigration
 servicemigration.require("1.0.0")
+
+log = logging.getLogger('zen.ZenPack')
 
 class ZenPackException(Exception):
     pass
@@ -824,7 +824,7 @@ registerDirectory("skins", globals())
             from zipfile import ZipFile, ZIP_DEFLATED
             zipFilePath = os.path.join(path, '%s.zip' % self.id)
             zf = ZipFile(zipFilePath, 'w', ZIP_DEFLATED)
-            base = zenPath('Products')
+            base = Products.__path__[-1]
             for p, ds, fd in os.walk(self.path()):
                 if p.split('/')[-1].startswith('.'): continue
                 for f in fd:
@@ -976,7 +976,7 @@ registerDirectory("skins", globals())
         if self.isEggPack():
             module = self.getModule()
             return os.path.join(module.__path__[0], *[p.strip('/') for p in parts])
-        return zenPath('Products', self.id, *parts)
+        return os.path.join(Products.__path__[-1], self.id, *parts)
 
 
     def isDevelopment(self):
@@ -1305,8 +1305,12 @@ registerDirectory("skins", globals())
             configFileMaps = [DirectoryConfigContents(toConfigPath(i)) for i in sdFiles]
             self.installServicesFromFiles(sdFiles, configFileMaps, self.getServiceTag())
         elif self.getDaemonNames():
-            templateLocation = zenPath('Products/ZenModel/data/default_service.json')
-            template = open(templateLocation, 'r').read()
+            import Products.ZenModel as _zm
+            templatefile = os.path.join(
+                os.path.dirname(_zm.__file__), "data", "default_service.json"
+            )
+            with open(templatefile) as tf:
+                template = tf.read()
             daemonPaths = glob.glob(os.path.join(self.getDaemonPath(), '*'))
             self.installDefaultCollectorServices(daemonPaths,
                                                  template,
@@ -1325,6 +1329,8 @@ registerDirectory("skins", globals())
         @type tag: string
         @return:
         """
+        import Products.ZenModel as _zm
+
         service.setdefault('Tags', []).append(tag)
         if 'ImageID' in service and service['ImageID'] == '':
             service['ImageID'] = os.environ['SERVICED_SERVICE_IMAGE']
@@ -1335,8 +1341,13 @@ registerDirectory("skins", globals())
                 except KeyError:
                     pass
 
-        defaultLogConfigsPath = zenPath('Products/ZenModel/data/default_service_logconfigs.json')
-        defaultLogConfigsTemplate = open(defaultLogConfigsPath, 'r').read()
+        defaultLogConfigsTemplateFile = os.path.join(
+            os.path.dirname(_zm.__file__),
+            "data",
+            "default_service_logconfigs.json"
+        )
+        with open(defaultLogConfigsTemplateFile) as tf:
+            defaultLogConfigsTemplate = tf.read()
         defaultLogConfigs = json.loads(defaultLogConfigsTemplate % {'zenhome': zenPath()})
         logConfigs = service.setdefault('LogConfigs', [])
         logConfigs.extend(lc for lc in defaultLogConfigs if lc not in logConfigs)

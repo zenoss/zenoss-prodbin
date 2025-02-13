@@ -40,7 +40,7 @@ class MissingModelerPluginSectionArgument(Exception):
 
 
 class FakeComponents(PythonPlugin):
-    configFile = zenPath("etc/FakeComponent.conf")
+    configFile = zenPath("etc", "FakeComponent.conf")
 
     def collect(self, device, log):
         settings = RawConfigParser()

@@ -29,7 +29,6 @@ from twisted.spread import pb
 from zope.component import queryUtility
 from zope.interface import implementer
 
-
 from Products.DataCollector.SshClient import SshClient
 from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import (

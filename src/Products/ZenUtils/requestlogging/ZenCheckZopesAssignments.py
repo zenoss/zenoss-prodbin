@@ -161,7 +161,3 @@ def main():
             summary = True
         print_all_not_finished_assigments(redis_client, summary)
     sys.exit(0)
-
-
-if __name__ == "__main__":
-    main()

@@ -32,14 +32,15 @@ def mod_from_path(path):
     The module path is the path to a file with a ".py" extension.
     The package path is rooted at "Products" or "ZenPacks".
 
-    >>> mod_from_path("/opt/zenoss/Products/ZenHub/services/ProcessConfig.py")
+    >>> from pathlib2 import Path
+    >>> mod_from_path(Path("/mnt/src/zenoss-prodbin/src/Products/ZenHub/services/ProcessConfig.py"))
     Products.ZenHub.services.ProcessConfig
 
     :param path: The module path
     :type path: pathlib.Path
     :returns: The package path
     :rtype: pathlib.Path
-    """
+    """  # noqa: E501
     rpath = path.parts[::-1]  # reverse the path
     if "Products" in rpath:
         offset = rpath.index("Products")

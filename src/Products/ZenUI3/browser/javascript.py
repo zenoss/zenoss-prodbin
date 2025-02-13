@@ -13,6 +13,7 @@ import os
 from urlparse import urljoin
 
 import Globals
+import six
 import zope.interface
 
 from Products.Five.viewlet.viewlet import ViewletBase
@@ -38,7 +39,7 @@ from Products.ZenUtils.Utils import monkeypatch
 from Products.Zuul.decorators import memoize
 
 from .interfaces import IMainSnippetManager
-from .resources import COMPILED_JS_EXISTS
+from .resources import hasCompiledJavascript
 
 
 dummyRequest = TestRequest()
@@ -73,7 +74,7 @@ def getAllZenPackResources():
 def getPathModifiedTime(path):
     """
     This method takes a js request path such as
-    /++resources++zenui/zenoss/file.js and
+    /++resource++zenui/zenoss/file.js and
     returns the last time the file was modified.
     """
     if "++resource++" in path:
@@ -191,12 +192,12 @@ class ZenossAllJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
 
     def update(self):
-        if Globals.DevelopmentMode or not COMPILED_JS_EXISTS:
+        if Globals.DevelopmentMode or not hasCompiledJavascript():
             # Use the view that creates concatenated js on the fly from disk
             self.path = "/zport/dmd/zenoss-all.js"
         else:
             # Use the compiled javascript
-            self.path = "/++resource++zenui/js/deploy/zenoss-compiled.js"
+            self.path = "/++resource++zenui/deploy/zenoss-compiled.js"
 
 
 class ExtAllJs(JavaScriptSrcViewlet):
@@ -269,13 +270,13 @@ class ZenossData(JavaScriptSnippet):
 
         # priorities
         priorities = [
-            dict(name=s[0], value=int(s[1]))
+            {"name": s[0], "value": int(s[1])}
             for s in self.context.dmd.getPriorityConversions()
         ]
 
         # production states
         productionStates = [
-            dict(name=s[0], value=int(s[1]))
+            {"name": s[0], "value": int(s[1])}
             for s in self.context.dmd.getProdStateConversions()
         ]
 
@@ -323,7 +324,7 @@ class BrowserState(JavaScriptSnippet):
             # anyway. Move on.
             return ""
         state_container = getattr(userSettings, "_browser_state", {})
-        if isinstance(state_container, basestring):
+        if isinstance(state_container, six.string_types):
             state_container = {}
         state = state_container.get("state", "{}")
         return "Ext.state.Manager.getProvider().setState(%r);" % state

@@ -79,7 +79,8 @@ def _getZenPackSchemas():
     return schemas
 
 
-def _parseMessagingConf(path=zenPath("etc", "messaging.conf")):
+def _parseMessagingConf(path=None):
+    path = path if path else zenPath("etc", "messaging.conf")
     s = StringIO()
     try:
         # Need a fake section to parse with ConfigParser
@@ -142,7 +143,7 @@ def removeZenPackQueuesExchanges(path):
     log = logging.getLogger("zen.ZenMessaging")
 
     # queues
-    for identifier, queue in queues.iteritems():
+    for queue in queues.itervalues():
         name = queue["name"]
         try:
             substitute_replacements(name, None)
@@ -159,7 +160,7 @@ def removeZenPackQueuesExchanges(path):
             log.info("Unable to remove queue %s", name)
 
     # exchanges
-    for identifier, exchange in exchanges.iteritems():
+    for exchange in exchanges.itervalues():
         name = exchange["name"]
         try:
             log.info("Removing exchange %s", name)

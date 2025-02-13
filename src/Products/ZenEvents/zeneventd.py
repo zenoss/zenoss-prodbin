@@ -423,7 +423,7 @@ class ZenEventD(ZCmdBase):
         self.parser.add_option(
             "--pickledir",
             dest="pickledir",
-            default=zenPath("var/zeneventd/failed_transformed_events"),
+            default=zenPath("var", "zeneventd", "failed_transformed_events"),
             type="string",
             help="Sets the path to save pickle files.",
         )

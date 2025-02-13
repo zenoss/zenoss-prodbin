@@ -7,32 +7,25 @@
 # 
 ##############################################################################
 
+from __future__ import absolute_import
 
-__doc__="""ZenModelBase
-
-$Id: ZenModelBase.py,v 1.17 2004/04/23 19:11:58 edahl Exp $"""
-
-__version__ = "$Revision: 1.17 $"[11:-2]
-
-import re
-import time
 import sys
+import time
 
 from xml.sax import saxutils
 from urllib import unquote
 from cgi import escape
+from datetime import datetime
+
+import pytz
 import zope.component
 import zope.interface
-from datetime import datetime
-import pytz
-
-from OFS.ObjectManager import checkValidId as globalCheckValidId
 
 from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
 from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base, aq_chain
+from OFS.ObjectManager import checkValidId as globalCheckValidId
 
-from Products.ZenModel.interfaces import IZenDocProvider
 from Products.ZenRelations.ZenPropertyManager import iscustprop
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin, getDisplayType
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
@@ -41,10 +34,12 @@ from Products.ZenUtils.Utils import getObjByPath, unpublished
 from Products.ZenUtils.csrf import get_csrf_token
 from Products.ZenUtils.Utils import prepId as globalPrepId, isXmlRpc
 from Products.ZenWidgets import messaging
-from Products.ZenUtils.Time import convertTimestampToTimeZone, isoDateTime, convertJsTimeFormatToPy
+from Products.ZenUtils.Time import isoDateTime, convertJsTimeFormatToPy
 from Products.ZenUI3.browser.interfaces import INewPath
 from Products.ZenMessaging.audit import audit as auditFn
-from ZenossSecurity import *
+
+from .interfaces import IZenDocProvider
+from .ZenossSecurity import *
 
 _MARKER = object()
 

@@ -9,7 +9,7 @@
 
 from __future__ import absolute_import, print_function
 
-from Products.ZenEvents.zentrap.app import TrapDaemon
-
 if __name__ == "__main__":
-    TrapDaemon().run()
+    from Products.ZenEvents.zentrap import main
+
+    main()

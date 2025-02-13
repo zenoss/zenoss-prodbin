@@ -11,6 +11,7 @@
 __doc__ = "Manage ZenPacks"
 
 import pkg_resources
+import Products
 
 from ZODB.transact import transact
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
@@ -70,17 +71,18 @@ def CreateZenPack(zpId, prevZenPackName='', devDir=None):
     zpId should already be valid, scrubbed value.
     prevZenPackName is written to PREV_ZENPACK_NAME in setup.py.
     """
+    import Products.ZenModel as _zm
+
     parts = zpId.split('.')
     
     # Copy template to $ZENHOME/ZenPacks
-    srcDir = zenPath('Products', 'ZenModel', 'ZenPackTemplate')
+    srcDir = os.path.join(os.path.dirname(_zm.__file__), 'ZenPackTemplate')
     if not devDir:
         devDir = zenPath('ZenPacks')
     if not os.path.exists(devDir):
         os.mkdir(devDir, 0o750)
     destDir = os.path.join(devDir, zpId)
     shutil.copytree(srcDir, destDir, symlinks=False)
-    os.system('find %s -name .svn | xargs rm -rf' % destDir)
 
     # Write setup.py
     packages = []
@@ -545,7 +547,7 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
         # We skipped deleting the existing files from filesystem
         # because maybe they'd be needed in migrate scripts.
         # Delete them now
-        oldZpDir = zenPath('Products', existing.id)
+        oldZpDir = os.path.join(Products.__path__[-1], existing.id)
         if os.path.islink(oldZpDir):
             os.remove(oldZpDir)
         else:

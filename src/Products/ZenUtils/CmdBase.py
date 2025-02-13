@@ -116,6 +116,7 @@ class CmdBase(object):
     """
 
     doesLogging = True
+    version = None
 
     def __init__(self, noopts=0, args=None, should_log=None):
         zope.component.provideAdapter(DefaultTraversable, (None,))
@@ -168,7 +169,7 @@ class CmdBase(object):
         Create the options parser.
         """
         if not self.parser:
-            self.parser = _build_parser()
+            self.parser = _build_parser(self.version)
 
     def buildOptions(self):
         """
@@ -760,20 +761,10 @@ class CmdBase(object):
         sys.exit(0)
 
 
-def _build_parser(cls=OptionParser):
-    from Products.ZenModel.ZenossInfo import ZenossInfo
-
-    try:
-        zinfo = ZenossInfo("")
-        version = str(zinfo.getZenossVersion())
-    except Exception:
-        from Products.ZenModel.ZVersion import VERSION
-
-        version = VERSION
-    return cls(
-        version="%prog " + version,
-        option_class=CmdBaseOption,
-    )
+def _build_parser(version=None, cls=OptionParser):
+    if version:
+        return cls(version=version, option_class=CmdBaseOption)
+    return cls(option_class=CmdBaseOption)
 
 
 def _get_defaults_from_config(args):

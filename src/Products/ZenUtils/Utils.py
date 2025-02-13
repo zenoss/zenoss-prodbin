@@ -1152,9 +1152,9 @@ def zenPath(*args):
     >>> zenHome = os.environ['ZENHOME']
     >>> zenPath() == zenHome
     True
-    >>> zenPath( '' ) == zenHome
+    >>> zenPath('') == zenHome
     True
-    >>> zenPath('Products') == os.path.join(zenHome, 'Products')
+    >>> zenPath('var') == os.path.join(zenHome, 'var')
     True
     >>> zenPath('/Products/') == zenPath('Products')
     True
@@ -1181,18 +1181,13 @@ def zenPath(*args):
     @todo: determine what the correct behaviour should be if $ZENHOME
         is a symlink!
     """
-    zenhome = os.environ.get("ZENHOME", "")
+    rootpath = os.environ.get("ZENHOME", "/opt/zenoss")
+    if args and "Products" in args[0]:
+        import Products
 
-    path = sane_pathjoin(zenhome, *args)
+        rootpath = os.path.dirname(Products.__path__[-1])
 
-    # test if ZENHOME based path exists and if not try bitrock-style path.
-    # if neither exists return the ZENHOME-based path
-    if not os.path.exists(path):
-        brPath = os.path.realpath(os.path.join(zenhome, "..", "common"))
-        testPath = sane_pathjoin(brPath, *args)
-        if os.path.exists(testPath):
-            path = testPath
-    return path
+    return sane_pathjoin(rootpath, *args)
 
 
 def zopePath(*args):
@@ -1222,7 +1217,7 @@ def binPath(fileName):
     Search for the given file in a list of possible locations.  Return
     either the full path to the file or '' if the file was not found.
 
-    >>> len(binPath('zenoss')) > 0
+    >>> len(binPath('dumpstats')) > 0
     True
     >>> len(binPath('zeoup.py')) > 0 # This doesn't exist in Zope 2.12
     False

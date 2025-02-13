@@ -26,9 +26,12 @@ Below is an example migration script:
 ``` python
 # addAttribute.py
 
+from __future__ import absolute_import
+
 import logging
-import Migrate
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
+
+from ..ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
+from . import Migrate
 
 log = logging.getLogger("zen.migrate")
 
@@ -87,7 +90,7 @@ Each new migration script added for that release should set `Migrate.Version()`
 as follows:
 
 ```
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
+from ..ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 ...
     version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 ```
@@ -106,7 +109,7 @@ the toplevel makefile in each release should define the values unique to that re
 ### Release Process
 
 As one of the final steps in the release process, someone must run `make replace-zmigrateversion`
-which will edit all of the files in Products/ZenModel/migrate, replacing the variables
+which will edit all of the files in src/model/migrate, replacing the variables
 SCHEMA_MAJOR, SCHEMA_MINOR, & SCHEMA_REVISION with the versions defined in the makefile.
 
 Those changes can be verified with `make verify-explicit-zmigrateversion:` which will fail

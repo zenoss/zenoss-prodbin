@@ -17,7 +17,6 @@ from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.task import LoopingCall
 
-from Products.ZenUtils.Utils import zenPath
 from Products.Zuul.utils import safe_hasattr
 
 from ..CallHomeStatus import CallHomeStatus
@@ -35,7 +34,7 @@ class CallHomeCycler(object):
         self.dmd = dmd
         if not safe_hasattr(dmd, "callHome") or dmd.callHome is None:
             dmd._p_jar.sync()
-            CallHome(dmd).callHome
+            _ = CallHome(dmd).callHome  # modifies dmd.  should refactor.
             transaction.commit()
         self.callhome = dmd.callHome
         self.gatherProtocol = None
@@ -89,11 +88,13 @@ class CallHomeCycler(object):
 
 class GatherMetricsProtocol(ProcessProtocol):
     def __init__(self):
+        import Products.ZenCallHome as _zch
+
         self.data = None
         self.failed = False
         self.output = []
         self.error = []
-        chPath = zenPath("Products", "ZenCallHome", "callhome.py")
+        chPath = os.path.join(os.path.dirname(_zch.__file__), "callhome.py")
         reactor.spawnProcess(
             self, "python", args=["python", chPath, "-M"], env=os.environ
         )

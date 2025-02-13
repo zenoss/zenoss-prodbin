@@ -34,7 +34,7 @@ class ReplayProcessedResults(PythonPlugin):
     * The processesd files may be gzip'd
     """
 
-    configFile = zenPath("etc/ReplayProcessedResults.conf")
+    configFile = zenPath("etc", "ReplayProcessedResults.conf")
 
     def collect(self, device, log):
         settings = RawConfigParser()

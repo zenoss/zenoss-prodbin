@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 """
@@ -68,21 +68,26 @@ def getVersionTupleFromString(versionString):
     (5, 2, 25)
     """
     versionString = str(versionString)
-    versions = re.split('[^0-9]+', versionString.strip())[:3]
+    versions = re.split("[^0-9]+", versionString.strip())[:3]
     versions = [int(x or 0) for x in versions] + [0, 0, 0]
     return tuple(versions[:3])
+
 
 class VersionError(Exception):
     pass
 
+
 class IncomparableVersions(VersionError):
     pass
+
 
 class ComponentVersionError(VersionError):
     pass
 
+
 class VersionNotSupported(VersionError):
     pass
+
 
 class Version(object):
     """
@@ -153,8 +158,10 @@ class Version(object):
     >>> v10.full()
     'Zenoss 1.0.3 r15729 (A super-secret squirrel release)'
     """
-    def __init__(self, name, major=0, minor=0, micro=0, revision=0,
-        comment=''):
+
+    def __init__(
+        self, name, major=0, minor=0, micro=0, revision=0, comment=""
+    ):
         self.name = name
         self.major = major
         self.minor = minor
@@ -166,7 +173,7 @@ class Version(object):
         """
         Returns a string of just the version number.
         """
-        return '%d.%d.%d' % (self.major, self.minor, self.micro)
+        return "%d.%d.%d" % (self.major, self.minor, self.micro)
 
     def long(self):
         """
@@ -179,9 +186,9 @@ class Version(object):
         Returns a string with the software name, the version number, and the
         subversion revision number, if defined.
         """
-        comment = ''
+        comment = ""
         if self.comment:
-            comment = ' (' + self.comment + ')'
+            comment = " (" + self.comment + ")"
         return "%s%s%s" % (self.long(), self._formatSVNRevision(), comment)
 
     def tuple(self):
@@ -237,34 +244,36 @@ class Version(object):
     def _formatSVNRevision(self):
         svnrev = self.revision
         if svnrev:
-            svnrev = ' r%s' % svnrev
+            svnrev = " r%s" % svnrev
         else:
-            svnrev = ''
+            svnrev = ""
         return svnrev
 
     def __repr__(self):
-        return '%s(%s, %d, %d, %d,%s)' % (
+        return "%s(%s, %d, %d, %d,%s)" % (
             self.__class__.__name__,
             self.name,
             self.major,
             self.minor,
             self.micro,
-            self._formatSVNRevision())
+            self._formatSVNRevision(),
+        )
 
     def __str__(self):
-        return '[%s, version %d.%d.%d%s]' % (
+        return "[%s, version %d.%d.%d%s]" % (
             self.name,
             self.major,
             self.minor,
             self.micro,
-            self._formatSVNRevision())
+            self._formatSVNRevision(),
+        )
 
     @classmethod
     def make(cls, name, obj):
         if isinstance(obj, cls):
             return obj
         if isinstance(obj, (tuple, list)):
-            version = '.'.join(str(x) for x in obj)
+            version = ".".join(str(x) for x in obj)
             return cls.parse("%s %s" % (name, version))
         if any(
             isinstance(obj, x)
@@ -331,21 +340,24 @@ class Version(object):
             # we want to always have a tuple of the right size returned,
             # regardless of the number of elements in the 'versions' iterable
             major, minor, micro = getVersionTupleFromString(
-                versionParts.pop(0))
+                versionParts.pop(0)
+            )
             try:
-                revision = versionParts.pop(0).strip('r')
+                revision = versionParts.pop(0).strip("r")
             except IndexError:
-                revision = ''
+                revision = ""
         except IndexError:
             major = minor = micro = 0
-            revision = ''
+            revision = ""
         self = Version(name, major, minor, micro, revision)
         return self
 
 
 def _test():
     import doctest
+
     doctest.testmod()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     _test()
