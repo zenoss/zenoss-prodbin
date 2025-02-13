@@ -128,6 +128,5 @@ class ExportRM(ZCmdBase):
         self.outfile.write("</objects>\n")
 
 
-if __name__ == "__main__":
-    ex = ExportRM()
-    ex.export()
+def main():
+    ExportRM().export()

@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 ##############################################################################
 #
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
@@ -18,12 +17,15 @@ parse and construct an XML document.
 Descriptions of the XML document format can be found in the Developers Guide.
 """
 
+from __future__ import absolute_import
+
 import os
 import sys
 
 from xml.sax import make_parser, saxutils, SAXParseException
 from xml.sax.handler import ContentHandler
 
+import six
 import transaction
 import zope.component
 
@@ -110,7 +112,7 @@ class ImportRM(ZCmdBase, ContentHandler):
         @rtype: list
         """
         myattrs = {}
-        for (key, val) in attrs.items():
+        for key, val in attrs.items():
             myattrs[key] = str(val)
         return myattrs
 
@@ -449,7 +451,7 @@ class ImportRM(ZCmdBase, ContentHandler):
         if proptype == "selection":
             try:
                 firstElement = getattr(obj, name)[0]
-                if isinstance(firstElement, basestring):
+                if isinstance(firstElement, six.string_types):
                     proptype = "string"
             except (TypeError, IndexError) as ex:
                 self.log.warn(
@@ -472,7 +474,7 @@ class ImportRM(ZCmdBase, ContentHandler):
 
         elif proptype not in _STRING_PROPERTY_TYPES:
             try:
-                value = eval(value)
+                value = eval(value)  # noqa: S307
             except NameError:
                 self.log.warn(
                     "Error trying to evaluate %s at line %s", value, linenum
@@ -506,7 +508,7 @@ class ImportRM(ZCmdBase, ContentHandler):
         """
         Walk through all the links that we saved and link them up
         """
-        for (relid, objid) in self.links:
+        for relid, objid in self.links:
             try:
                 self.log.debug(
                     "Linking relation %s to object %s", relid, objid
@@ -575,7 +577,7 @@ class ImportRM(ZCmdBase, ContentHandler):
         self.objectnumber = 0
         self.uncommittedObjects = 0
         self.charvalue = ""
-        if xmlfile and isinstance(xmlfile, basestring):
+        if xmlfile and isinstance(xmlfile, six.string_types):
             self.infile = open(xmlfile)
         elif hasattr(xmlfile, "read"):
             self.infile = xmlfile
@@ -658,6 +660,5 @@ class NoLoginImportRM(ImportRM):
         self.getDataRoot()
 
 
-if __name__ == "__main__":
-    im = ImportRM()
-    im.loadDatabase()
+def main():
+    ImportRM().loadDatabase()

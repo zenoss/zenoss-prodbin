@@ -504,7 +504,7 @@ def reindex_model_catalog(dmd, root="/zport", idxs=None, types=()):
     log.info("Reindexing took %s seconds.", time.time() - start)
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Reindex Solr against ZODB.")
     parser.add_argument("-f", "--hard", action="store_true",
                         help="wipe Solr data and traverse the entire ZODB tree")

@@ -100,19 +100,20 @@ def checkRelationshipSchema(cls, baseModule):
             )
 
 
-baseModule = None
-if len(sys.argv) > 1:
-    baseModule = sys.argv[1].strip()
+def main():
+    baseModule = None
+    if len(sys.argv) > 1:
+        baseModule = sys.argv[1].strip()
 
-if not baseModule:
-    print("An argument is required", file=sys.stderr)
-    sys.exit(1)
+    if not baseModule:
+        print("An argument is required", file=sys.stderr)
+        sys.exit(1)
 
-classList = importClasses(
-    basemodule=baseModule, skipnames=("ZentinelPortal", "ZDeviceLoader")
-)
+    classList = importClasses(
+        basemodule=baseModule, skipnames=("ZentinelPortal", "ZDeviceLoader")
+    )
 
-for classdef in classList:
-    if hasattr(classdef, "_relations"):
-        logging.info("checking class %s...", classdef.__name__)
-        checkRelationshipSchema(classdef, baseModule)
+    for classdef in classList:
+        if hasattr(classdef, "_relations"):
+            logging.info("checking class %s...", classdef.__name__)
+            checkRelationshipSchema(classdef, baseModule)

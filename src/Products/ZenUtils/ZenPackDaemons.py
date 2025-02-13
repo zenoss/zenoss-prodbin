@@ -1,25 +1,25 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-__doc__ = """zenpackdaemons
+"""zenpackdaemons
 Manage ZenPack-provided daemons
 """
+
+from __future__ import absolute_import, print_function
 
 import os
 
 from Products.ZenUtils.PkgResources import pkg_resources
 
-from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.ZenPackCmd import ZENPACK_ENTRY_POINT
 from Products.ZenModel.ZenPackLoader import ZPLDaemons
-from Products.ZenUtils.Utils import zenPath
+
+from .ZenScriptBase import ZenScriptBase
 
 
 class ZenPackDaemons(ZenScriptBase):
@@ -29,9 +29,11 @@ class ZenPackDaemons(ZenScriptBase):
 
     def nameZenPackDaemons(self, zenPackId=None):
         """
-        Return a list of the names of the daemons provided by the given ZenPack.  
-        If no ZenPack is specified then list all daemons provided by all ZenPacks.
+        Return a list of the names of the daemons provided by the given
+        ZenPack.  If no ZenPack is specified then list all daemons provided
+        by all ZenPacks.
         """
+        from Products.ZenUtils.ZenPackCmd import ZENPACK_ENTRY_POINT
         dList = []
         zpl = ZPLDaemons()
         # Get daemons from egg-based ZenPacks
@@ -39,42 +41,34 @@ class ZenPackDaemons(ZenScriptBase):
             try:
                 module = entry.load()
                 dList += zpl.list(os.path.dirname(module.__file__), None)
-            except Exception as ex:
+            except Exception:
                 self.log.exception(
-                    "The ZenPack %s cannot be imported -- skipping.", entry.name
+                    "The ZenPack %s cannot be imported -- skipping.",
+                    entry.name,
                 )
-
-        # Get daemons from non-egg ZenPacks
-        prodDir = zenPath('Products')
-        for item in os.listdir(prodDir):
-            if not item.startswith('.'):
-                dList += zpl.list(os.path.join(prodDir, item), None)
         return dList
-
 
     def run(self):
         """
         Execute the user's request.
         """
-
         if self.options.list:
             dList = self.nameZenPackDaemons()
             if dList:
-                print '\n'.join(dList)
+                print("\n".join(dList))
         else:
             self.parser.print_help()
 
-
     def buildOptions(self):
-        self.parser.add_option('--list',
-                               dest='list',
-                               default=False,
-                               action='store_true',
-                               help='List the names of ZenPack-supplied daemons'
-                               )
+        self.parser.add_option(
+            "--list",
+            dest="list",
+            default=False,
+            action="store_true",
+            help="List the names of ZenPack-supplied daemons",
+        )
         ZenScriptBase.buildOptions(self)
 
 
-if __name__ == '__main__':
-    zp = ZenPackDaemons()
-    zp.run()
+def main():
+    ZenPackDaemons().run()

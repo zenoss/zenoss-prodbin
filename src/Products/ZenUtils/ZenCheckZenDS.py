@@ -1,4 +1,3 @@
-#!/opt/zenoss/bin/python
 ##############################################################################
 #
 # Copyright (C) Zenoss, Inc. 2014, all rights reserved.
@@ -8,38 +7,45 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import, print_function
+
 import argparse
 import atexit
 import logging
 import os
 import re
 import subprocess
-from subprocess import Popen, PIPE
 import sys
 
-from Products.ZenUtils.config import ConfigFile
-from Products.ZenUtils.configlog import ZenRotatingFileHandler
-from Products.ZenUtils.Utils import zenPath
+from subprocess import Popen, PIPE
+
+from .config import ConfigFile
+from .configlog import ZenRotatingFileHandler
+from .Utils import zenPath
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("zen.zencheckzends")
-LOG.addHandler(ZenRotatingFileHandler("zencheckzends.log",
-                                      maxBytes=10 * 1024 * 1024,
-                                      backupCount=3))
+LOG.addHandler(
+    ZenRotatingFileHandler(
+        "zencheckzends.log", maxBytes=10 * 1024 * 1024, backupCount=3
+    )
+)
 
 
 class Main(object):
-
     def __init__(self, options):
         self.options = options
 
     def install(self, silent=False):
         databases = self.options.databases
-        if not databases: databases = self._zodb_databases()
-        script = zenPath("Products", "ZenUtils", "relstorage", "mysql", "003.sql")
-        with open(script, 'r') as f: sql = f.read()
+        if not databases:
+            databases = self._zodb_databases()
+        script = zenPath(
+            "Products", "ZenUtils", "relstorage", "mysql", "003.sql"
+        )
+        with open(script, "r") as f:
+            sql = f.read()
         for database in databases:
-
             check_sql = """
             SELECT COUNT(*)
             FROM information_schema.columns
@@ -51,14 +57,24 @@ class Main(object):
             try:
                 if int(stdout) > 0:
                     if not silent:
-                        LOG.info("Database already has %s.connection_info table. No action required." % (database,))
+                        LOG.info(
+                            "Database already has %s.connection_info table. "
+                            "No action required." % (database,)
+                        )
                 else:
                     stdout, stderr = self._zendb(database, sql)
                     if not silent:
-                        LOG.warn("Created %s.connection_info table in database. PLEASE RESTART ALL DEPENDENT SERVICES." % (database,))
+                        LOG.warn(
+                            "Created %s.connection_info table in database. "
+                            "PLEASE RESTART ALL DEPENDENT SERVICES."
+                            % (database,)
+                        )
             except ValueError:
                 if not silent:
-                    LOG.error("Unable to determine if %s.connection_info table exists in database!" % (database,))
+                    LOG.error(
+                        "Unable to determine if %s.connection_info table "
+                        "exists in database!" % (database,)
+                    )
                 exit(1)
 
         check_sql = """
@@ -200,49 +216,62 @@ class Main(object):
         DROP EVENT IF EXISTS kill_long_running_txns;
         """
 
-        stdout, stderr = self._zendb('mysql', check_sql)
+        stdout, stderr = self._zendb("mysql", check_sql)
         try:
             if int(stdout) > 0:
                 if not silent:
-                    LOG.info("Database already has mysql.KillTransactions stored procedure. No action required.")
+                    LOG.info(
+                        "Database already has mysql.KillTransactions "
+                        "stored procedure. No action required."
+                    )
             else:
-                stdout, stderr = self._zendb('mysql', sql)
+                stdout, stderr = self._zendb("mysql", sql)
                 if not silent:
-                    LOG.info("Created mysql.KillTransactions stored procedure.")
+                    LOG.info(
+                        "Created mysql.KillTransactions stored procedure."
+                    )
         except ValueError:
             if not silent:
-                LOG.error("Unable to determine if mysql.KillTransactions stored procedure exists in database!")
+                LOG.error(
+                    "Unable to determine if mysql.KillTransactions "
+                    "stored procedure exists in database!"
+                )
             exit(1)
 
     def check(self):
-        sql = "call mysql.KillTransactions(%d,'DRYRUN');" % (self.options.minutes * 60,)
-        stdout, stderr = self._zendb('mysql', sql)
+        sql = "call mysql.KillTransactions(%d,'DRYRUN');" % (
+            self.options.minutes * 60,
+        )
+        stdout, stderr = self._zendb("mysql", sql)
         stdout = stdout.strip()
         if stdout != "None":
-            lines = re.split("\\\\n",stdout)
+            lines = re.split("\\\\n", stdout)
             for line in lines:
                 LOG.info("FOUND: %s", line)
 
     def truncate(self):
         databases = self.options.databases
-        if not databases: databases = self._zodb_databases()
+        if not databases:
+            databases = self._zodb_databases()
         for database in databases:
-            sql = "truncate {0}.{1}".format(database, 'connection_info')
+            sql = "truncate {0}.{1}".format(database, "connection_info")
             stdout, stderr = self._zendb(database, sql)
 
     def kill(self):
-        sql = "call mysql.KillTransactions(%d,'KILL');" % (self.options.minutes * 60,)
-        stdout, stderr = self._zendb('mysql', sql)
+        sql = "call mysql.KillTransactions(%d,'KILL');" % (
+            self.options.minutes * 60,
+        )
+        stdout, stderr = self._zendb("mysql", sql)
         stdout = stdout.strip()
         if stdout != "None":
-            lines = re.split("\\\\n",stdout)
+            lines = re.split("\\\\n", stdout)
             for line in lines:
                 LOG.warn("KILLED: %s", line)
 
     def _globalConfSettings(self):
-        zenhome = os.environ.get('ZENHOME')
+        zenhome = os.environ.get("ZENHOME")
         if zenhome:
-            with open(os.path.join(zenhome, 'etc/global.conf'), 'r') as fp:
+            with open(os.path.join(zenhome, "etc/global.conf"), "r") as fp:
                 globalConf = ConfigFile(fp)
                 settings = {}
                 for line in globalConf.parse():
@@ -253,102 +282,148 @@ class Main(object):
 
     def _zodb_databases(self):
         settings = self._globalConfSettings()
-        zodb = settings.get('zodb-db','zodb')
+        zodb = settings.get("zodb-db", "zodb")
         zodb_session = zodb + "_session"
         return [zodb, zodb_session]
 
     def _zendb(self, db_name, sql):
         settings = self._globalConfSettings()
-        db_type = settings.get('zodb-db-type','mysql')
-        if not db_type == 'mysql':
-            LOG.error('%s is not a valid database type.' % dbType)
+        db_type = settings.get("zodb-db-type", "mysql")
+        if not db_type == "mysql":
+            LOG.error("%s is not a valid database type." % db_type)
             sys.exit(1)
-        db_host = self.options.hostname or settings.get('zodb-host',None) or settings.get('host',None)
+        db_host = (
+            self.options.hostname
+            or settings.get("zodb-host", None)
+            or settings.get("host", None)
+        )
         if not db_host:
-            LOG.error('ZODB database hostname not found in global.conf nor on the command line')
+            LOG.error(
+                "ZODB database hostname not found in global.conf "
+                "nor on the command line"
+            )
             sys.exit(1)
-        db_port = self.options.port or settings.get('zodb-port',None) or settings.get('port',None)
+        db_port = (
+            self.options.port
+            or settings.get("zodb-port", None)
+            or settings.get("port", None)
+        )
         if not db_port:
-            LOG.error('ZODB database port not found in global.conf nor on the command line')
+            LOG.error(
+                "ZODB database port not found in global.conf "
+                "nor on the command line"
+            )
             sys.exit(1)
         env = os.environ.copy()
-        db_user = self.options.username or settings.get('zodb-admin-user',None) or 'root'
-        db_pass = env.get('MYSQL_PWD',None) or settings.get('zodb-admin-password',None) or ''
-        env['MYSQL_PWD'] = db_pass
-        cmd = ['mysql',
-               '--batch',
-               '--skip-column-names',
-               '--user=%s' % db_user,
-               '--host=%s' % db_host,
-               '--port=%s' % db_port,
-               '--database=%s' % db_name]
-        s = Popen(cmd, env=env, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        db_user = (
+            self.options.username
+            or settings.get("zodb-admin-user", None)
+            or "root"
+        )
+        db_pass = (
+            env.get("MYSQL_PWD", None)
+            or settings.get("zodb-admin-password", None)
+            or ""
+        )
+        env["MYSQL_PWD"] = db_pass
+        cmd = [
+            "mysql",
+            "--batch",
+            "--skip-column-names",
+            "--user=%s" % db_user,
+            "--host=%s" % db_host,
+            "--port=%s" % db_port,
+            "--database=%s" % db_name,
+        ]
+        s = Popen(cmd, env=env, stdin=PIPE, stdout=PIPE, stderr=PIPE)  # noqa: S603
         try:
-          stdout, stderr = s.communicate(sql)
-          rc = s.wait()
-          if rc:
-              LOG.error("Error executing mysql: %s %s\n" % (stdout, stderr))
-              sys.exit(1)
-          else:
-              return (stdout, stderr)
+            stdout, stderr = s.communicate(sql)
+            rc = s.wait()
+            if rc:
+                LOG.error("Error executing mysql: %s %s\n" % (stdout, stderr))
+                sys.exit(1)
+            else:
+                return (stdout, stderr)
         except KeyboardInterrupt:
-          subprocess.call('stty sane', shell=True)
-          s.kill()
+            subprocess.call("stty sane", shell=True)  # noqa: S602 S607
+            s.kill()
 
 
 def _get_lock(process_name):
-
     # Should we find a better place for lock?
     lock_name = "%s.lock" % process_name
-    lock_path = os.path.join('/tmp', lock_name)
+    lock_path = os.path.join("/tmp", lock_name)  # noqa: S108
 
     if os.path.isfile(lock_path):
         LOG.error("'%s' lock already exists - exiting" % (process_name))
         return False
     else:
-        file(lock_path, "w+").close()
+        open(lock_path, "w+").close()
         atexit.register(os.remove, lock_path)
         LOG.debug("Acquired '%s' execution lock" % (process_name))
         return True
 
 
-if __name__ == "__main__":
-
-    if not _get_lock('zencheckzends'):
+def main():
+    if not _get_lock("zencheckzends"):
         sys.exit(1)
 
     epilog = "Checks for (or kills) long-running database transactions."
     parser = argparse.ArgumentParser(epilog=epilog)
-    parser.add_argument("action", type=str,
+    parser.add_argument(
+        "action",
+        type=str,
         choices=["install", "install-silent", "check", "kill", "truncate"],
-        help="user action to operate with long-running database transactions.")
-    parser.add_argument("-m", "--minutes",
-        dest="minutes", default=360, type=int,
-        help='minutes before a transaction is considered "long-running"')
-    parser.add_argument("-d", "--database",
-        dest="databases", default=[], action="append",
-        help='which database to use. ("-d foo -d bar" for multiple databases)')
-    parser.add_argument("-u", "--username",
-        dest="username", default=None,
-        help='username of admin user for database server (probably "root")')
-    parser.add_argument("--hostname",
-        dest="hostname", default=None,
-        help='hostname of database server')
-    parser.add_argument("-p", "--port",
-        dest="port", default=None,
-        help='port that database server listens on')
+        help="user action to operate with long-running database transactions.",
+    )
+    parser.add_argument(
+        "-m",
+        "--minutes",
+        dest="minutes",
+        default=360,
+        type=int,
+        help='minutes before a transaction is considered "long-running"',
+    )
+    parser.add_argument(
+        "-d",
+        "--database",
+        dest="databases",
+        default=[],
+        action="append",
+        help='which database to use. ("-d foo -d bar" for multiple databases)',
+    )
+    parser.add_argument(
+        "-u",
+        "--username",
+        dest="username",
+        default=None,
+        help='username of admin user for database server (probably "root")',
+    )
+    parser.add_argument(
+        "--hostname",
+        dest="hostname",
+        default=None,
+        help="hostname of database server",
+    )
+    parser.add_argument(
+        "-p",
+        "--port",
+        dest="port",
+        default=None,
+        help="port that database server listens on",
+    )
     args = parser.parse_args()
 
     action = args.action
-    if action == 'install':
+    if action == "install":
         Main(options=args).install()
-    elif action == 'install-silent':
+    elif action == "install-silent":
         Main(options=args).install(silent=True)
-    elif action == 'check':
+    elif action == "check":
         Main(options=args).check()
-    elif action == 'kill':
+    elif action == "kill":
         Main(options=args).kill()
-    elif action == 'truncate':
+    elif action == "truncate":
         Main(options=args).truncate()
     else:
         # Something DEFINELY went wrong

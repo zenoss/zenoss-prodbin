@@ -1,41 +1,48 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-__doc__ = """ReportLoader
-Load Zope reports into the ZODB.
-"""
+from __future__ import absolute_import
 
 import os
 import sys
 import re
 import transaction
-import logging
 
-from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath
 from Products.ZenModel.Report import Report
+from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 
 class ReportLoader(ZCmdBase):
-
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
-        self.parser.add_option('-f', '--force', dest='force', 
-                               action='store_true', default=0,
-                               help="Load all reports, overwriting any existing reports.")
-        self.parser.add_option('-d', '--dir', dest='dir',
-                               default="reports",
-                               help="Directory from which to load reports: default '%default'")
-        self.parser.add_option('-p', '--zenpack', dest='zenpack',
-                               default='',
-                               help="ZenPack from which to load reports")
+        self.parser.add_option(
+            "-f",
+            "--force",
+            dest="force",
+            action="store_true",
+            default=0,
+            help="Load all reports, overwriting any existing reports.",
+        )
+        self.parser.add_option(
+            "-d",
+            "--dir",
+            dest="dir",
+            default="reports",
+            help="Directory from which to load reports: default '%default'",
+        )
+        self.parser.add_option(
+            "-p",
+            "--zenpack",
+            dest="zenpack",
+            default="",
+            help="ZenPack from which to load reports",
+        )
 
     # FIXME: This call is deprecated, look for all instances of this
     def loadDatabase(self):
@@ -45,10 +52,10 @@ class ReportLoader(ZCmdBase):
         """
         Load reports from the directories into the ZODB
         """
-        repdirs = [zenPath('Products/ZenReports', self.options.dir)]
+        repdirs = [os.path.join(__file__.rsplit("/", 1)[0], self.options.dir)]
         if self.options.zenpack:
             repdirs = self.getZenPackDirs(self.options.zenpack)
-        
+
         for repdir in repdirs:
             if os.path.isdir(repdir):
                 self.loadDirectory(repdir)
@@ -62,31 +69,37 @@ class ReportLoader(ZCmdBase):
                 matches.append(path)
 
         if not matches:
-            self.log.error("No ZenPack named '%s' was found -- exiting",
-                           self.options.zenpack)
+            self.log.error(
+                "No ZenPack named '%s' was found -- exiting",
+                self.options.zenpack,
+            )
             sys.exit(1)
         return matches
 
     def reports(self, directory):
         def normalize(f):
             return f.replace("_", " ")
+
         def toOrg(path):
             path = normalize(path).split("/")
-            path = path[path.index("reports") + 1:]
+            path = path[path.index("reports") + 1 :]
             return "/" + "/".join(path)
-        return [(toOrg(p), normalize(f[:-4]), os.path.join(p, f))
-                for p, ds, fs in os.walk(directory)
-                for f in fs
-                if f.endswith(".rpt")]
+
+        return [
+            (toOrg(p), normalize(f[:-4]), os.path.join(p, f))
+            for p, ds, fs in os.walk(directory)
+            for f in fs
+            if f.endswith(".rpt")
+        ]
 
     def unloadDirectory(self, repdir):
         self.log.info("Removing reports from %s", repdir)
         reproot = self.dmd.Reports
-        for orgpath, fid, fullname in self.reports(repdir):
+        for orgpath, fid, _ in self.reports(repdir):
             rorg = reproot.createOrganizer(orgpath)
             if getattr(rorg, fid, False):
                 rorg._delObject(fid)
-            while rorg.id != 'Reports':
+            while rorg.id != "Reports":
                 if not rorg.objectValues():
                     id = rorg.id
                     rorg = rorg.getPrimaryParent()
@@ -107,12 +120,12 @@ class ReportLoader(ZCmdBase):
             self.loadFile(rorg, fid, fullname)
 
     def loadFile(self, root, id, fullname):
-        fdata = file(fullname).read()
+        with open(fullname, "r") as fp:
+            fdata = fp.read()
         rpt = Report(id, text=fdata)
         root._setObject(id, rpt)
         return rpt
 
 
-if __name__ == "__main__":
-    rl = ReportLoader()
-    rl.loadAllReports()
+def main():
+    ReportLoader().loadAllReports()
