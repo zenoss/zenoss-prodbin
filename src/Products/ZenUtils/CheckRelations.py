@@ -67,6 +67,5 @@ class CheckRelations(ZenScriptBase):
         )
 
 
-if __name__ == "__main__":
-    tmbk = CheckRelations(connect=True)
-    tmbk.rebuild()
+def main():
+    CheckRelations(connect=True).rebuild()

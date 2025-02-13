@@ -139,14 +139,15 @@ class HtmlGenerator(object):
         self.of.write("<td>%s</td>" % value)
 
 
-baseModule = None
-if len(sys.argv) > 1:
-    baseModule = sys.argv[1]
-docdir = zenPath("zendocs/schema")
-classList = importClasses(
-    basemodule=baseModule, skipnames=("ZentinelPortal", "ZDeviceLoader")
-)
-htmlGen = HtmlGenerator(baseModule, classList, docdir)
-htmlGen.generate()
-cssfile = os.path.join(os.path.dirname(__file__), "schemadoc.css")
-shutil.copy2(cssfile, docdir)
+def main():
+    baseModule = None
+    if len(sys.argv) > 1:
+        baseModule = sys.argv[1]
+    docdir = zenPath("zendocs/schema")
+    classList = importClasses(
+        basemodule=baseModule, skipnames=("ZentinelPortal", "ZDeviceLoader")
+    )
+    htmlGen = HtmlGenerator(baseModule, classList, docdir)
+    htmlGen.generate()
+    cssfile = os.path.join(os.path.dirname(__file__), "schemadoc.css")
+    shutil.copy2(cssfile, docdir)

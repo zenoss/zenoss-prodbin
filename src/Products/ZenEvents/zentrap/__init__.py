@@ -6,3 +6,11 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
+
+from __future__ import absolute_import, print_function
+
+
+def main():
+    from .app import TrapDaemon
+
+    TrapDaemon().run()

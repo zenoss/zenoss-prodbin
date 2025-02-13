@@ -56,14 +56,19 @@ import sys
 import tempfile
 import transaction
 
-
-from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.mib import (
-    PackageManager, SMIConfigFile, SMIDump, SMIDumpTool, ModuleManager,
-    MibOrganizerPath, getMibModuleMap, MIBLoader
+    getMibModuleMap,
+    MIBLoader,
+    MibOrganizerPath,
+    ModuleManager,
+    PackageManager,
+    SMIConfigFile,
+    SMIDump,
+    SMIDumpTool,
 )
-from Products.ZenUtils.Utils import zenPath, unused
-
+from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from zenoss.app.command import Command
 
 
 def _logException(log, mesg, *args):
@@ -85,12 +90,10 @@ def _unique(iterable):
 
 
 class BaseProcessor(object):
-    """Base class.
-    """
+    """Base class."""
 
     def __init__(self, log, dmd, options):
-        """
-        """
+        """ """
         self._log = log
         self._organizer = MibOrganizerPath(options.path)
         moduleRegistry = getMibModuleMap(dmd)
@@ -98,16 +101,15 @@ class BaseProcessor(object):
 
 
 class MIBFileProcessor(BaseProcessor):
-    """Load MIB files and add them to the DMD.
-    """
+    """Load MIB files and add them to the DMD."""
 
     def __init__(self, log, dmd, options, mibfiles):
-        """
-        """
+        """ """
         super(MIBFileProcessor, self).__init__(log, dmd, options)
         self._pkgmgr = PackageManager(options.downloaddir, options.extractdir)
-        self._savepath = \
+        self._savepath = (
             options.pythoncodedir if options.keeppythoncode else None
+        )
         self._mibdepsdir = options.mibdepsdir
         self._mibsdir = options.mibsdir
         self._mibfiles = mibfiles
@@ -122,8 +124,9 @@ class MIBFileProcessor(BaseProcessor):
 
         loaderArgs = (self._moduleMgr, self._organizer)
 
-        with SMIConfigFile(path=paths) as cfg, \
-                MIBLoader(*loaderArgs, savepath=self._savepath) as loader:
+        with SMIConfigFile(path=paths) as cfg, MIBLoader(
+            *loaderArgs, savepath=self._savepath
+        ) as loader:
             tool = SMIDumpTool(config=cfg)
             # returns string containing all the MIB definitions found
             # in the provided set of MIBFile objects.
@@ -146,34 +149,29 @@ class MIBFileProcessor(BaseProcessor):
                 pkg = self._pkgmgr.get(source)
                 mibfiles.extend(pkg.extract())
             except Exception as ex:
-                _logException(
-                    self._log, "Invalid argument %s: %s", source, ex
-                )
+                _logException(self._log, "Invalid argument %s: %s", source, ex)
 
         mibfiles = list(_unique(mibfiles))
 
         if mibfiles:
             self._log.debug(
                 "Found MIB files to load: %s",
-                ', '.join(str(f) for f in mibfiles)
+                ", ".join(str(f) for f in mibfiles),
             )
 
         return mibfiles
 
 
 class DumpFileProcessor(BaseProcessor):
-    """Load previously saved MIB dump files and add them to the DMD.
-    """
+    """Load previously saved MIB dump files and add them to the DMD."""
 
     def __init__(self, log, dmd, options, dumpfiles):
-        """
-        """
+        """ """
         super(DumpFileProcessor, self).__init__(log, dmd, options)
         self._dumpfiles = dumpfiles
 
     def run(self):
-        """
-        """
+        """ """
         with MIBLoader(self._moduleMgr, self._organizer) as loader:
             for filename in _unique(self._dumpfiles):
                 try:
@@ -187,19 +185,22 @@ class DumpFileProcessor(BaseProcessor):
                         loader.load(dump)
 
 
-class ZenMib(ZCmdBase):
-    """
-    """
+class ZenMib(ZenScriptBase):
+    """ """
+
+    def __init__(self, *args, **kw):
+        super(ZenMib, self).__init__(*args, connect=True, **kw)
 
     def run(self):
-        """
-        """
+        """ """
         self.verifyOptions()
         try:
             if self.options.evalSavedPython:
                 processor = DumpFileProcessor(
-                    self.log, self.dmd, self.options,
-                    self.options.evalSavedPython
+                    self.log,
+                    self.dmd,
+                    self.options,
+                    self.options.evalSavedPython,
                 )
             else:
                 processor = MIBFileProcessor(
@@ -216,8 +217,7 @@ class ZenMib(ZCmdBase):
             _logException(self.log, "Failure: %s", ex)
 
     def verifyOptions(self):
-        """
-        """
+        """ """
         # Verify MIB dependency search directory is valid. Fail if not.
         if not os.path.exists(self.options.mibdepsdir):
             self.log.error(
@@ -235,14 +235,14 @@ class ZenMib(ZCmdBase):
                 sys.exit(1)
 
         # Verify that the target MIB organizer exists
-        if self.options.path and self.options.path[0] != '/':
-            self.options.path = '/' + self.options.path
+        if self.options.path and self.options.path[0] != "/":
+            self.options.path = "/" + self.options.path
         miborgpath = "/zport/dmd/Mibs" + self.options.path
         miborg = self.dmd.unrestrictedTraverse(miborgpath, None)
         if miborg is None:
             self.log.error(
                 "MIB organizer path option ('path') not found: %s",
-                self.options.path
+                self.options.path,
             )
             sys.exit(1)
 
@@ -252,56 +252,73 @@ class ZenMib(ZCmdBase):
         """
         super(ZenMib, self).buildOptions()
         self.parser.add_option(
-            '--mibsdir', dest='mibsdir', default=zenPath('share/mibs/site'),
-            help="Directory of input MIB files [default: %default]"
+            "--mibsdir",
+            dest="mibsdir",
+            default=zenPath("share", "mibs", "site"),
+            help="Directory of input MIB files [default: %default]",
         )
         self.parser.add_option(
-            '--mibdepsdir', dest='mibdepsdir', default=zenPath('share/mibs'),
-            help="Directory of input MIB files [default: %default]"
+            "--mibdepsdir",
+            dest="mibdepsdir",
+            default=zenPath("share", "mibs"),
+            help="Directory of input MIB files [default: %default]",
         )
         self.parser.add_option(
-            '--path', dest='path', default="",
-            help="Path to load MIB into the DMD [default: %default]"
+            "--path",
+            dest="path",
+            default="",
+            help="Path to load MIB into the DMD [default: %default]",
         )
         self.parser.add_option(
-            '--nocommit', dest='nocommit', action='store_true', default=False,
-            help="Don't commit the MIB to the DMD after loading"
+            "--nocommit",
+            dest="nocommit",
+            action="store_true",
+            default=False,
+            help="Don't commit the MIB to the DMD after loading",
         )
         self.parser.add_option(
-            '--keeppythoncode', dest='keeppythoncode',
-            action='store_true', default=False,
-            help="Save the generated Python code"
+            "--keeppythoncode",
+            dest="keeppythoncode",
+            action="store_true",
+            default=False,
+            help="Save the generated Python code",
         )
         self.parser.add_option(
-            '--pythoncodedir', dest='pythoncodedir',
+            "--pythoncodedir",
+            dest="pythoncodedir",
             default=tempfile.gettempdir() + "/mib_pythoncode/",
             help="This is the directory where the converted MIB will be "
-            "output [default: %default]"
+            "output [default: %default]",
         )
         self.parser.add_option(
-            '--downloaddir', dest='downloaddir',
+            "--downloaddir",
+            dest="downloaddir",
             default=tempfile.gettempdir() + "/mib_downloads/",
             help="This is the directory where the MIB will be downloaded "
-            "[default: %default]"
+            "[default: %default]",
         )
         self.parser.add_option(
-            '--extractdir', dest='extractdir',
+            "--extractdir",
+            dest="extractdir",
             default=tempfile.gettempdir() + "/mib_extract/",
             help="This is the directory where unzipped MIB files will be "
-            "stored [default: %default]"
+            "stored [default: %default]",
         )
         self.parser.add_option(
-            '--evalSavedPython', dest='evalSavedPython',
-            action='append', default=[],
-            help="Execute the Python code previously generated and saved"
+            "--evalSavedPython",
+            dest="evalSavedPython",
+            action="append",
+            default=[],
+            help="Execute the Python code previously generated and saved",
         )
         self.parser.add_option(
-            '--removemiddlezeros', dest='removemiddlezeros',
-            action='store_true', default=False,
-            help="Remove zeros found in the middle of the OID"
+            "--removemiddlezeros",
+            dest="removemiddlezeros",
+            action="store_true",
+            default=False,
+            help="Remove zeros found in the middle of the OID",
         )
 
 
-if __name__ == '__main__':
-    zm = ZenMib()
-    zm.run()
+def main():
+    Command(ZenMib, configfile=zenPath("etc", "zenmib.conf")).main()

@@ -46,7 +46,7 @@ class Page(HTMLParser):
     ):
         command = [
             "/opt/zenoss/bin/phantomjs",
-            "/opt/zenoss/Products/ZenReports/rasterize.js",
+            "/opt/zenoss/bin/rasterize.js",
             url,
             self.user,
             self.passwd,
@@ -61,7 +61,7 @@ class Page(HTMLParser):
             command.insert(1, "--debug=true")
 
         print("Running: %s" % " ".join(command))
-        phanomjsProcess = subprocess.Popen(command)
+        phanomjsProcess = subprocess.Popen(command)  # noqa: S603
         phanomjsProcessRC = phanomjsProcess.wait()
         if phanomjsProcessRC:
             sys.stderr.write(
@@ -202,7 +202,7 @@ class ReportMail(ZenScriptBase):
             "--outputFilePath",
             "-o",
             dest="outputFilePath",
-            default="/tmp/report_screenshot",
+            default="/tmp/report_screenshot",  # noqa: S108
             help="Path for generated report. For example, "
             "/tmp/report_screenshot",
         )
@@ -257,5 +257,5 @@ class ReportMail(ZenScriptBase):
         )
 
 
-if __name__ == "__main__":
+def main():
     ReportMail().run()

@@ -7,12 +7,12 @@
 #
 ##############################################################################
 
-from __future__ import print_function
-
-__doc__ = """ExportRM
+"""ExportRM
 
 Export RelationshipManager objects from a Zope database
 """
+
+from __future__ import print_function
 
 import datetime
 import sys
@@ -127,6 +127,5 @@ class ExportRM(ZCmdBase):
         self.outfile.write("</objects>\n")
 
 
-if __name__ == "__main__":
-    ex = ExportRM()
-    ex.export()
+def main():
+    ExportRM().export()

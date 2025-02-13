@@ -7,7 +7,8 @@
 #
 ##############################################################################
 
-import logging
+from __future__ import absolute_import
+
 import os
 import re
 import sys
@@ -15,7 +16,6 @@ import sys
 import transaction
 
 from Products.ZenModel.Report import Report
-from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 
@@ -55,7 +55,7 @@ class ReportLoader(ZCmdBase):
         """
         Load reports from the directories into the ZODB
         """
-        repdirs = [zenPath("Products/ZenReports", self.options.dir)]
+        repdirs = [os.path.join(__file__.rsplit("/", 1)[0], self.options.dir)]
         if self.options.zenpack:
             repdirs = self.getZenPackDirs(self.options.zenpack)
 
@@ -98,7 +98,7 @@ class ReportLoader(ZCmdBase):
     def unloadDirectory(self, repdir):
         self.log.info("Removing reports from %s", repdir)
         reproot = self.dmd.Reports
-        for orgpath, fid, fullname in self.reports(repdir):
+        for orgpath, fid, _ in self.reports(repdir):
             rorg = reproot.createOrganizer(orgpath)
             if getattr(rorg, fid, False):
                 rorg._delObject(fid)
@@ -123,12 +123,12 @@ class ReportLoader(ZCmdBase):
             self.loadFile(rorg, fid, fullname)
 
     def loadFile(self, root, id, fullname):
-        fdata = file(fullname).read()
+        with open(fullname, "r") as fp:
+            fdata = fp.read()
         rpt = Report(id, text=fdata)
         root._setObject(id, rpt)
         return rpt
 
 
-if __name__ == "__main__":
-    rl = ReportLoader()
-    rl.loadAllReports()
+def main():
+    ReportLoader().loadAllReports()
