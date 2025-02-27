@@ -70,13 +70,12 @@ class SnmpConfig(object):
         )
 
     def getAgentProxy(self):
-        return AgentProxy(
-            ip=self._ip,
-            port=self._port,
+        sec = usm.Community(self.community, version=self.version)
+        return AgentProxy.create(
+            (self._ip, self._port),
+            security=sec,
             timeout=self._timeout,
-            tries=self._retries,
-            snmpVersion=self.version,
-            community=self._community,
+            retries=self._retries
         )
 
     def test(self, oid=".1.3.6.1.2.1.1.5.0"):
@@ -87,6 +86,8 @@ class SnmpConfig(object):
 
     def enrichResult(self, result):
         self._proxy.close()
+        _LOG.info("SnmpConfig.test: result=%s" % str(result))
+
         if isinstance(result, dict) and bool(result):
             # one and only one key/value pair _should_ be available in result,
             # and we only need the value (the device name)
@@ -125,6 +126,8 @@ class SnmpV3Config(SnmpConfig):
         authPassphrase=None,
         privType=None,
         privPassphrase=None,
+        engine=None,
+        context=None
     ):
         super(SnmpV3Config, self).__init__(
             ip, weight, port, timeout, retries, community
@@ -135,6 +138,8 @@ class SnmpV3Config(SnmpConfig):
         self._authPassphrase = authPassphrase
         self._privType = privType
         self._privPassphrase = privPassphrase
+        self._engine = engine
+        self._context = context
 
     def __str__(self):
         v3string = "securityName=%s" % self._securityName
@@ -161,33 +166,20 @@ class SnmpV3Config(SnmpConfig):
         )
 
     def getAgentProxy(self):
-        cmdLineArgs = ["-u", self._securityName]
-
-        if self._privType:
-            cmdLineArgs += [
-                "-l",
-                "authPriv",
-                "-x",
-                self._privType,
-                "-X",
-                self._privPassphrase,
-            ]
-        elif self._authType:
-            cmdLineArgs += ["-l", "authNoPriv"]
-        else:
-            cmdLineArgs += ["-l", "noAuthNoPriv"]
-
-        if self._authType:
-            cmdLineArgs += ["-a", self._authType, "-A", self._authPassphrase]
-
-        return AgentProxy(
-            ip=self._ip,
-            port=self._port,
+        sec = usm.User(
+            self._securityName,
+            auth=usm.Authentication(
+                self._authType, self._authPassphrase
+            ),
+            priv=usm.Privacy(self._privType, self._privPassphrase),
+            engine=self._engine,
+            context=self._context
+        )
+        return AgentProxy.create(
+            (self._ip, self._port),
+            security=sec,
             timeout=self._timeout,
-            tries=self._retries,
-            snmpVersion=self.version,
-            community=self._community,
-            cmdLineArgs=cmdLineArgs,
+            retries=self._retries,
         )
 
     def enrichResult(self, result):
@@ -258,7 +250,7 @@ class SnmpAgentDiscoverer(object):
 if __name__ == "__main__":
     """
     The following snmpd.conf is a good one to run the following tests on.
-    
+
     rocommunity zenosszenoss
     rouser noauthtest noauth
     createUser noauthtest MD5 "zenosszenoss"
