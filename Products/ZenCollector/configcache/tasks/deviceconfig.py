@@ -18,6 +18,7 @@ from zope.dottedname.resolve import resolve
 from Products.ZenUtils.RedisUtils import getRedisClient, getRedisUrl
 
 from Products.Jobber.task import requires, DMD
+from Products.Jobber.task.event import send_event
 from Products.Jobber.zenjobs import app
 
 from ..cache import DeviceKey, DeviceRecord, ConfigStatus
@@ -30,7 +31,7 @@ from ..utils import DeviceProperties
     base=requires(DMD),
     name="configcache.build_device_config",
     summary="Create Device Configuration Task",
-    description_template="Create the configuration for device {2}.",
+    description_template="Create the {2} configuration for device {1}.",
     ignore_result=True,
     dmd_read_only=True,
 )
@@ -51,9 +52,35 @@ def build_device_config(
     @param submitted: timestamp of when the job was submitted
     @type submitted: float
     """
-    buildDeviceConfig(
-        self.dmd, self.log, monitorname, deviceid, configclassname, submitted
-    )
+    try:
+        buildDeviceConfig(
+            self.dmd,
+            self.log,
+            monitorname,
+            deviceid,
+            configclassname,
+            submitted,
+        )
+    except Exception as exc:
+        self.log.exception(
+            "unexpected error building device config  "
+            "monitor=%s device=%s configclass=%s",
+            monitorname,
+            deviceid,
+            configclassname,
+        )
+        try:
+            send_event(
+                self,
+                exc,
+                self.request.task_id,
+                (monitorname, deviceid, configclassname),
+                {"submitted": submitted},
+            )
+        except Exception:
+            self.log.exception(
+                "error while sending event about previous error"
+            )
 
 
 # NOTE: the buildDeviceConfig function exists so that it can be tested
