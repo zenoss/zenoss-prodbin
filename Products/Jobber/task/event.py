@@ -35,12 +35,12 @@ class SendZenossEventMixin(object):
             )
         finally:
             try:
-                _send_event(self, exc, task_id, args, kwargs)
+                send_event(self, exc, task_id, args, kwargs)
             except Exception:
                 mlog.exception("Failed to send event")
 
 
-def _send_event(task, exc, task_id, args, kwargs):
+def send_event(task, exc, task_id, args, kwargs):
     classkey, summary = _getErrorInfo(task, exc)
     name = task.getJobType() if hasattr(task, "getJobType") else task.name
     publisher = getUtility(IEventPublisher)
