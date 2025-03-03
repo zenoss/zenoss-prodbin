@@ -16,6 +16,7 @@ Run unit and Selenium (functional) tests for Zenoss
 from __future__ import print_function
 
 import glob
+import importlib
 import optparse
 import os
 import os.path
@@ -47,7 +48,11 @@ def zenpackdir(*args):
 PYTHON = zenhome("bin", "python")
 CONFIG = zenhome("etc", "zope.conf")
 SOFTWARE_HOME = zenhome("lib", "python")
-PRODUCTS = zenhome("Products")
+
+# if prodbin was installed in 'develop' mode, then __path__[-1] will return
+# the path to the local zenoss-prodbin repository.  Otherwise, it will
+# return the standard library (site-packages) path.
+PRODUCTS = importlib.import_module("Products").__path__[-1]
 
 # add SOFTWARE_HOME to sys.path, but only if Zope isn't available
 try:

@@ -1,0 +1,22 @@
+#!/usr/bin/env python2
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2010, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
+import os.path
+
+from zenoss.jsbuilder import build
+
+
+if __name__ == "__main__":
+    import Products.ZenUI3.browser
+
+    projectdir = os.path.join(
+        os.path.dirname(Products.ZenUI3.browser.__file__), "resources"
+    )
+    build(projectdir)

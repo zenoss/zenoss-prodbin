@@ -10,8 +10,7 @@
 
 . $ZENHOME/bin/zenfunctions
 
-PRGHOME=$ZENHOME/Products/ZenEvents
-PRGNAME=zentrap
+PRGMODULE=Products.ZenEvents.zentrap
 CFGFILE=$CFGDIR/zentrap.conf
 
 generic "$@"
