@@ -20,6 +20,7 @@ endif
 REV_SUFFIX = $(or\
 	$(if $(findstring master,$(BRANCH)),""),\
 	$(if $(findstring develop,$(BRANCH)),.dev$(COUNT)),\
+	$(if $(findstring support/6.x,$(BRANCH)),.dev$(COUNT)),\
 	$(if $(findstring release/,$(BRANCH)),rc$(COUNT)),\
 	$(if $(findstring hotfix/,$(BRANCH)),rc$(COUNT)),\
 	$(if $(findstring feature/,$(BRANCH)),.dev$(COUNT)+$(VERSION_BRANCH)),\
