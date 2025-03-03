@@ -1,15 +1,9 @@
-Products/LDAPMultiPlugins/
-Products/LDAPUserFolder/
-Products/MemcachedManager/
-Products/ZenModel/ZMigrateVersion.py
-Products/ZenUI3/browser/resources/js/deploy/
-Products/ZenUI3/node_modules
+package_version
+src/Products/ZenModel/ZMigrateVersion.py
+src/zenoss.egg-info
+src/Products/ZenUI3/browser/resources/deploy/
 
 dist
-build
-Zenoss.egg-info
-lib/python2.7/site-packages/Zenoss-nspkg.pth
-lib/python2.7/site-packages/Zenoss.egg-link
 
 .idea/
 *.iml
@@ -17,4 +11,3 @@ lib/python2.7/site-packages/Zenoss.egg-link
 *~
 *.tar.gz
 *.sw?
-*.run
