@@ -759,7 +759,7 @@ class ZenModelZenDocProvider(object):
         if not value:
             return
         ofile.write("<property id='zendoc' type='string'>\n")
-        if not isinstance(value, six.string_type):
+        if not isinstance(value, six.string_types):
             value = six.text_type(value)
         elif isinstance(value, str):
             value = value.decode("latin-1")
