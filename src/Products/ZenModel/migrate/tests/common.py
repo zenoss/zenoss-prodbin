@@ -2,15 +2,142 @@ import logging
 import importlib
 import difflib
 import json
-import mock
 import os
 
 from collections import namedtuple, OrderedDict
 from itertools import chain, tee
 
+import mock
 import six
 
 from servicemigration import context, service
+
+
+class ServiceMigrationTestCase(object):
+    """
+    Superclass of service migration tests.
+    Supply the migration module and class, the input servicedef file,
+    and the output servicedef file.
+    """
+
+    initial_servicedef = ""
+    expected_servicedef = ""
+    migration_module_name = ""
+    migration_class_name = ""
+    expected_log_filters = {}
+
+    def setUp(self):
+        logging._handlers.clear()
+        logging._handlerList[:] = []
+        logging.disable(logging.CRITICAL)
+        # logging.getLogger().setLevel(logging.CRITICAL)
+        # logging.getLogger("zen").setLevel(logging.CRITICAL)
+        # logging.getLogger("zen.migrate").setLevel(logging.CRITICAL)
+        self._fakeContext = None
+
+    def tearDown(self):
+        self._fakeContext = None
+        logging.disable(logging.NOTSET)
+        # logging.getLogger("zen.migrate").setLevel(logging.NOTSET)
+        # logging.getLogger("zen").setLevel(logging.INFO)
+        # logging.getLogger().setLevel(logging.NOTSET)
+
+    def test_cutover_correctness(self):
+        self._test_cutover(self.initial_servicedef, self.expected_servicedef)
+
+        if len(self.expected_log_filters) != len(self._fakeContext.logFilters):
+            self.fail(
+                "Migration failed: Expected %d log filters; found %d"
+                % (
+                    len(self.expected_log_filters),
+                    len(self._fakeContext.logFilters),
+                )
+            )
+
+        elif len(self.expected_log_filters) > 0:
+            for name, value in self.expected_log_filters.iteritems():
+                if name not in self._fakeContext.logFilters:
+                    self.fail(
+                        "Migration failed: Did not find expected log "
+                        "filter '%s'" % name
+                    )
+                else:
+                    actual = self._fakeContext.logFilters[name]["Filter"]
+                    if value != actual:
+                        self.fail(
+                            "Migration failed: for log filter '%s', "
+                            "Expected:\n%s\n\nGot:\n%s\n\n"
+                            % (name, value, actual)
+                        )
+
+        self.assertEqual(self._fakeContext.committed, True)
+
+    def test_cutover_idempotence(self):
+        self._test_cutover(self.expected_servicedef, self.expected_servicedef)
+
+    def _test_cutover(self, svcdef_before, svcdef_after):
+        self.setUp()
+        try:
+            self._run_test_cutover(svcdef_before, svcdef_after)
+        finally:
+            self.tearDown()
+
+    def _run_test_cutover(self, svcdef_before, svcdef_after):
+        self._fakeContext = fakeContextFromFile(svcdef_before)
+        module_name = (
+            "Products.ZenModel.migrate.%s" % self.migration_module_name
+        )
+        sm_context = "%s.sm.ServiceContext" % module_name
+        migration = importlib.import_module(module_name)
+        if hasattr(self, "dmd"):
+            dmd = self.dmd
+        else:
+            dmd = FakeDmd()
+        with mock.patch(sm_context, new=lambda: self._fakeContext):
+            with mock.patch.dict(
+                "os.environ",
+                {
+                    "SERVICED_SERVICE_IMAGE": (
+                        "67nh3y829fh3dsemstmfjpg11/resmgr_5.0:latest"
+                    )
+                },
+            ):
+                # mock out the logging library
+                if hasattr(migration, "log"):
+                    target = "log"
+                else:
+                    target = "logging"
+                with mock.patch.object(migration, target):
+                    getattr(
+                        migration, self.migration_class_name
+                    )().cutover(dmd)
+        actual = self._fakeContext.servicedef()
+        expected = fakeContextFromFile(svcdef_after).servicedef()
+        failures = 0
+        differences = []
+        for rpath, rdiff in compare(actual, expected):
+            failures += 1
+            if isinstance(rdiff, compare.Diff):
+                differences.append(
+                    (
+                        "Difference found: Expected\n"
+                        "\n%s\n"
+                        "\n  at %s, got\n"
+                        "\n%s\n"
+                        "\n  instead."
+                    )
+                    % (rdiff.expected, rpath, rdiff.actual)
+                )
+            else:
+                differences.append(
+                    "Difference found: Unified Diff at %s:\n\n%s\n"
+                    % (rpath, "\n".join(rdiff))
+                )
+        if failures:
+            self.fail(
+                "Migration failed: %s differences found\n\n%s"
+                % (failures, "\n\n".join(differences))
+            )
 
 
 def fakeContextFromFile(jsonfile):
@@ -165,109 +292,3 @@ def _compare_string(this, that, path):
 
 compare.Diff = namedtuple("Diff", ["actual", "expected"])
 compare.missingKey = "<<KEY NOT PRESENT>>"
-
-
-class ServiceMigrationTestCase(object):
-    """
-    Superclass of service migration tests.
-    Supply the migration module and class, the input servicedef file,
-    and the output servicedef file.
-    """
-
-    initial_servicedef = ""
-    expected_servicedef = ""
-    migration_module_name = ""
-    migration_class_name = ""
-    expected_log_filters = {}
-
-    def setUp(self):
-        logging.getLogger().setLevel(logging.CRITICAL)
-        logging.getLogger("zen").setLevel(logging.ERROR)
-        self._fakeContext = None
-
-    def tearDown(self):
-        self._fakeContext = None
-        logging.getLogger("zen").setLevel(logging.INFO)
-        logging.getLogger().setLevel(logging.NOTSET)
-
-    def _test_cutover(self, svcdef_before, svcdef_after):
-        self._fakeContext = fakeContextFromFile(svcdef_before)
-        module_name = (
-            "Products.ZenModel.migrate.%s" % self.migration_module_name
-        )
-        sm_context = "%s.sm.ServiceContext" % module_name
-        migration = importlib.import_module(module_name)
-        if hasattr(self, "dmd"):
-            dmd = self.dmd
-        else:
-            dmd = FakeDmd()
-        with mock.patch(sm_context, new=lambda: self._fakeContext):
-            with mock.patch.dict(
-                "os.environ",
-                {
-                    "SERVICED_SERVICE_IMAGE": (
-                        "67nh3y829fh3dsemstmfjpg11/resmgr_5.0:latest"
-                    )
-                },
-            ):
-                getattr(migration, self.migration_class_name)().cutover(dmd)
-        actual = self._fakeContext.servicedef()
-        expected = fakeContextFromFile(svcdef_after).servicedef()
-        failures = 0
-        differences = []
-        for rpath, rdiff in compare(actual, expected):
-            failures += 1
-            if isinstance(rdiff, compare.Diff):
-                differences.append(
-                    (
-                        "Difference found: Expected\n"
-                        "\n%s\n"
-                        "\n  at %s, got\n"
-                        "\n%s\n"
-                        "\n  instead."
-                    )
-                    % (rdiff.expected, rpath, rdiff.actual)
-                )
-            else:
-                differences.append(
-                    "Difference found: Unified Diff at %s:\n\n%s\n"
-                    % (rpath, "\n".join(rdiff))
-                )
-        if failures:
-            self.fail(
-                "Migration failed: %s differences found\n\n%s"
-                % (failures, "\n\n".join(differences))
-            )
-
-    def test_cutover_correctness(self):
-        self._test_cutover(self.initial_servicedef, self.expected_servicedef)
-
-        if len(self.expected_log_filters) != len(self._fakeContext.logFilters):
-            self.fail(
-                "Migration failed: Expected %d log filters; found %d"
-                % (
-                    len(self.expected_log_filters),
-                    len(self._fakeContext.logFilters),
-                )
-            )
-
-        elif len(self.expected_log_filters) > 0:
-            for name, value in self.expected_log_filters.iteritems():
-                if name not in self._fakeContext.logFilters:
-                    self.fail(
-                        "Migration failed: Did not find expected log "
-                        "filter '%s'" % name
-                    )
-                else:
-                    actual = self._fakeContext.logFilters[name]["Filter"]
-                    if value != actual:
-                        self.fail(
-                            "Migration failed: for log filter '%s', "
-                            "Expected:\n%s\n\nGot:\n%s\n\n"
-                            % (name, value, actual)
-                        )
-
-        self.assertEqual(self._fakeContext.committed, True)
-
-    def test_cutover_idempotence(self):
-        self._test_cutover(self.expected_servicedef, self.expected_servicedef)

@@ -79,56 +79,56 @@ realVersionSteps = [
 
 
 class TestMigrate(BaseTestCase):
-    def afterSetUp(self):
-        super(TestMigrate, self).afterSetUp()
+    def afterSetUp(t):
+        super(TestMigrate, t).afterSetUp()
 
-        self.version = Version(9, 9, 9)
-        self.migration = Migration()
-        self.oldCurrentVersion = self.migration._currentVersion
-        self.migration._currentVersion = self.getTestVersion
+        t.version = Version(9, 9, 9)
+        t.migration = Migration(app=t.app)
+        t.oldCurrentVersion = t.migration._currentVersion
+        t.migration._currentVersion = t.getTestVersion
 
-    def getTestVersion(self):
-        return self.version
+    def getTestVersion(t):
+        return t.version
 
-    def assertIncludesVersions(self, steps, versions):
-        includedVersions = map(lambda x: x.version, steps)
+    def assertIncludesVersions(t, steps, versions):
+        includedVersions = [step.version for step in steps]
         for version in versions:
             if version not in includedVersions:
-                self.assert_(
+                t.assert_(
                     False,
                     "Version %s not included in steps: %s"
-                    % (version.short(), map(lambda x: x.name, steps)),
+                    % (version.short(), [step.name for step in steps]),
                 )
 
-    def testStepDeterminationUpgrades(self):
-        self.migration.allSteps = allsteps
+    def testStepDeterminationUpgrades(t):
+        t.migration.allSteps = allsteps
 
-        self.version = Version(99, 99, 99)
-        steps = self.migration.determineSteps()
-        self.assertEqual(len(steps), 0)
+        t.version = Version(99, 99, 99)
+        steps = t.migration.determineSteps()
+        t.assertEqual(len(steps), 0)
 
-        self.version = Version(0, 0, 0)
-        steps = self.migration.determineSteps()
-        self.assertEqual(len(steps), len(allsteps))
+        t.version = Version(0, 0, 0)
+        steps = t.migration.determineSteps()
+        t.assertEqual(len(steps), len(allsteps))
 
-        self.version = Version(4, 1, 1)
-        steps = self.migration.determineSteps()
-        self.assertEqual(len(steps), 2)
-        self.assertIncludesVersions(
+        t.version = Version(4, 1, 1)
+        steps = t.migration.determineSteps()
+        t.assertEqual(len(steps), 2)
+        t.assertIncludesVersions(
             steps, [x.version for x in (step420, step41_70)]
         )
 
-        self.version = Version(4, 1, 0)
-        steps = self.migration.determineSteps()
-        self.assertEqual(len(steps), 3)
-        self.assertIncludesVersions(
+        t.version = Version(4, 1, 0)
+        steps = t.migration.determineSteps()
+        t.assertEqual(len(steps), 3)
+        t.assertIncludesVersions(
             steps, [x.version for x in (step420, step41_70, step411)]
         )
 
-        self.version = Version(4, 0, 2)
-        steps = self.migration.determineSteps()
-        self.assertEqual(len(steps), 5)
-        self.assertIncludesVersions(
+        t.version = Version(4, 0, 2)
+        steps = t.migration.determineSteps()
+        t.assertEqual(len(steps), 5)
+        t.assertIncludesVersions(
             steps,
             [
                 x.version
@@ -136,10 +136,10 @@ class TestMigrate(BaseTestCase):
             ],
         )
 
-        self.version = Version(4, 0, 1)
-        steps = self.migration.determineSteps()
-        self.assertEqual(len(steps), 6)
-        self.assertIncludesVersions(
+        t.version = Version(4, 0, 1)
+        steps = t.migration.determineSteps()
+        t.assertEqual(len(steps), 6)
+        t.assertIncludesVersions(
             steps,
             [
                 x.version
@@ -154,10 +154,10 @@ class TestMigrate(BaseTestCase):
             ],
         )
 
-        self.version = Version(4, 0, 0)
-        steps = self.migration.determineSteps()
-        self.assertEqual(len(steps), 7)
-        self.assertIncludesVersions(
+        t.version = Version(4, 0, 0)
+        steps = t.migration.determineSteps()
+        t.assertEqual(len(steps), 7)
+        t.assertIncludesVersions(
             steps,
             [
                 x.version
@@ -173,53 +173,53 @@ class TestMigrate(BaseTestCase):
             ],
         )
 
-    def testStepDeterminationInPlace(self):
-        self.migration.allSteps = realVersionSteps
+    def testStepDeterminationInPlace(t):
+        t.migration.allSteps = realVersionSteps
 
-        self.version = Version(4, 2, 0)
-        steps = self.migration.determineSteps()
-        self.assertEqual(len(steps), 1)
-        self.assertIncludesVersions(steps, [step420.version])
+        t.version = Version(4, 2, 0)
+        steps = t.migration.determineSteps()
+        t.assertEqual(len(steps), 1)
+        t.assertIncludesVersions(steps, [step420.version])
 
-    def testGetEarliestAppropriateStepVersion(self):
-        m = Migration(noopts=True)
-        self.assertEquals(
+    def testGetEarliestAppropriateStepVersion(t):
+        m = t.migration
+        t.assertEquals(
             Version(1, 0, 70),
             m.getEarliestAppropriateStepVersion(codeVers=Version(1, 1, 50)),
         )
-        self.assertEquals(
+        t.assertEquals(
             Version(1, 1, 70),
             m.getEarliestAppropriateStepVersion(codeVers=Version(1, 1, 70)),
         )
-        self.assertEquals(
+        t.assertEquals(
             Version(1, 1, 70),
             m.getEarliestAppropriateStepVersion(codeVers=Version(1, 1, 99)),
         )
-        self.assertEquals(
+        t.assertEquals(
             Version(1, 1, 70),
             m.getEarliestAppropriateStepVersion(codeVers=Version(1, 2, 0)),
         )
         m.allSteps.append(MyTestStep(98, 3, 71))
-        self.assertEquals(
+        t.assertEquals(
             Version(98, 3, 70),
             m.getEarliestAppropriateStepVersion(codeVers=Version(99, 0, 1)),
         )
 
-    def testDetermineSteps(self):
-        m = Migration(noopts=True)
+    def testDetermineSteps(t):
+        m = t.migration
         m.allSteps = [
             MyTestStep(1, 0, 0),
             MyTestStep(1, 1, 0),
             MyTestStep(1, 2, 0),
         ]
         m.options.level = "1.1.0"
-        self.assertEquals(m.determineSteps(), m.allSteps[1:])
+        t.assertEquals(m.determineSteps(), m.allSteps[1:])
         m.options.level = None
         m.options.steps = ["MyTestStep_1.1.0"]
-        self.assertEquals(m.determineSteps(), m.allSteps[1:2])
+        t.assertEquals(m.determineSteps(), m.allSteps[1:2])
 
     def testDependencies(t):
-        m = Migration(noopts=True)
+        m = t.migration
         s1 = MyTestStep(1, 0, 0, name="StepA")
         s2 = MyTestStep(1, 0, 0, name="StepB")
         s3 = MyTestStep(1, 1, 0, name="StepC")
