@@ -82,7 +82,7 @@
       manager=".interfaces.IJavaScriptSrcManager"
       class=".javascript.ExtDirectViewlet"
       permission="zope2.Public"
-      paths="/zport/dmd/extdirect.js"
+      path="/zport/dmd/extdirect.js"
       />
 
    <browser:viewlet
