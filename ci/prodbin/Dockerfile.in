@@ -1,0 +1,239 @@
+# syntax=docker/dockerfile:1
+FROM ubuntu:22.04 AS base
+
+ENV LC_ALL="C.UTF-8" LANG="C.UTF-8" LANGUAGE="C.UTF-8"
+
+SHELL ["/bin/bash", "-c"]
+
+WORKDIR /
+
+RUN echo "export TERM=xterm" >> /root/.bashrc
+
+RUN <<EOT
+set -eux
+
+# Set the 'locale' configuration
+{ for k in LANG LANGUAGE LC_ALL; do echo ${k}="C.UTF-8"; done } > /etc/default/locale
+
+# Edit default PATH
+sed -i -e 's|:/usr/games:/usr/local/games:/snap/bin||' /etc/environment
+EOT
+
+RUN <<EOT
+set -eux
+
+# Mark all currently installed packages as 'auto-installed'.
+# Unrequired auto-installed packages are 'auto' removed during cleanup.
+apt-mark auto '.*' > /dev/null
+
+# Prevent packages from the 'multiverse' repositories from being installed.
+# Packages from the 'multiverse' repository may have incompatible licenses.
+sed -i '/^dev.*multiverse/s/^/#\ /' /etc/apt/sources.list
+
+# Refresh the package catalog
+apt-get -q update
+
+# Install the packages (this is a 'manual' install)
+DEBIAN_FRONTEND=noninteractive apt-get -q install --yes --no-install-recommends %PACKAGES%
+
+# Download and activate snmp mibs
+download-mibs
+sed -i 's/mibs :/# mibs :/g' /etc/snmp/snmp.conf
+
+# Remove the unnecessary packages.  Manually installed packages are not removed.
+apt-get -q purge -y --autoremove -o APT::AutoRemove::RecommendsImportant=false
+
+# Configure the python command (python2 becomes default python)
+# update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+update-alternatives --install /usr/bin/python python /usr/bin/python2 2
+
+# Delete the package catalog files.
+rm -rf /var/lib/apt/lists/*
+
+# Add capabilities to Nmap for an unprivileged users
+setcap cap_net_raw+ep /usr/bin/nmap cap_net_raw+ep /usr/bin/ping
+
+# Rewrite /etc/bash.bashrc so it does not exit early for non-interactive sessions.
+# Instead, it will optionally execute additional code for interactive sessions.
+# This change is necessary to meet expectations of the Zenoss system.
+mv /etc/bash.bashrc /etc/bash.bashrc_interactive
+cat <<EOF > /etc/bash.bashrc
+# If running interactively, source in interactive settings
+case \$- in
+	*i*) source /etc/bash.bashrc_interactive
+esac
+EOF
+
+rm -rf /tmp/*
+find /var/log -type f -name '*log*' -exec rm {} '+'
+EOT
+
+# Install version script.  This script will execute to export the ZENOSS_VERSION
+# and BUILD_NUMBER variables into the environment for all shell sessions.
+COPY --link <<EOT /etc/profile.d/zenoss.sh
+export ZENOSS_VERSION=%VERSION%
+export BUILD_NUMBER=DEV
+EOT
+
+RUN <<EOT
+set -eux -o pipefail
+# Add users and groups
+groupadd zenoss -g %GID%
+useradd zenoss -u %UID% -g zenoss -m -s /bin/bash -c "Zenoss Account"
+
+# Rewrite ~zenoss/.bashrc so it does not exit early for non-interactive sessions.
+# Instead, it will optionally execute additional code for interactive sessions.
+# This change is necessary to meet expectations of the Zenoss system.
+sed -e '1,/esac/d' /home/zenoss/.bashrc > /home/zenoss/.bashrc_interactive
+chown zenoss:zenoss /home/zenoss/.bashrc_interactive
+sed -i -n -e '1,/esac/p' /home/zenoss/.bashrc 
+sed -i -e 's/If not running interactively/If running interactively/' /home/zenoss/.bashrc
+sed -i -e "s/don't do anything/source in interactive settings/" /home/zenoss/.bashrc
+sed -i -e 's/\(\*i\*)\) ;;/\1 source ~\/.bashrc_interactive;;/' /home/zenoss/.bashrc
+sed -i -e '/\*) return;;/d' /home/zenoss/.bashrc
+
+# Setup deployment directories
+mkdir -p /opt/zenoss /var/zenoss
+chown -R zenoss:zenoss /opt/zenoss /var/zenoss
+EOT
+
+USER zenoss
+
+# Install pip and the Zenoss virtual environment.
+RUN <<EOT
+export PATH="/home/zenoss/.local/bin:$PATH"
+set -eux -o pipefail
+
+# Install pip
+wget -qO- https://bootstrap.pypa.io/pip/2.7/get-pip.py | python2 -W ignore::Warning - --no-python-version-warning --no-color --no-cache-dir --user
+sed -i -e 's|#!/usr/bin/python|#!/bin/env python|' /home/zenoss/.local/bin/pip
+
+# Install virtualenv
+python2 -m pip --no-python-version-warning --no-color --no-cache-dir install --user "virtualenv<20"
+
+# Configure /opt/zenoss as a virtual environment
+virtualenv /opt/zenoss
+
+# Remove unnecessary directory
+rm -rf /opt/zenoss/local
+
+# Update .bashrc to auto-activate the virtual environment
+cat <<END >> /home/zenoss/.bashrc
+export ZENHOME=/opt/zenoss
+export INSTANCE_HOME=/opt/zenoss
+export PATH=/opt/zenoss/var/ext/bin:\$PATH
+source /opt/zenoss/bin/activate
+END
+
+python2 -m pip --no-python-version-warning cache purge 
+
+# Don't need the packages installed into ~/.local anymore
+rm -rf /home/zenoss/.local
+EOT
+
+USER root
+
+RUN --mount=type=bind,source=components,target=/components --mount=type=bind,source=python_patches,target=/patches <<EOT
+set -eux
+
+# Apply patches for Python
+for patch_file in /patches/*.patch; do
+	patch -p1 < ${patch_file}
+done
+
+# Test applied patches
+python2 /patches/test.py
+
+# Install the protoc and libsmi packages
+dpkg -i --force-overwrite /components/libsmi.deb
+EOT
+
+USER zenoss
+
+# Install Python config customization
+COPY --link sitecustomize.py /opt/zenoss/lib/python2.7/
+
+RUN --mount=type=bind,source=components,target=/components <<EOT
+source /home/zenoss/.bashrc
+set -eux
+
+# Setup ZENHOME directories
+pushd /opt/zenoss
+mkdir -p var/ext/bin log share lib/python libexec
+popd
+
+# Install py-deps
+mkdir -p /tmp/pydeps
+tar -xz --strip-components=1 -C /tmp/pydeps -f /components/pydeps.tgz
+pushd /tmp/pydeps
+./install.sh
+popd
+# Remove unnecessary folders installed by the ConcurrentLogHandler package.
+rm -rf /opt/zenoss/docs /opt/zenoss/tests
+
+# Setup the zopehome directory
+mkdir -p ${ZENHOME}/zopehome
+for script in addzope2user mkzopeinstance runzope zopectl zpasswd; do
+	mv ${ZENHOME}/bin/${script} ${ZENHOME}/zopehome/
+done
+# Initializes zope scripts
+${ZENHOME}/zopehome/mkzopeinstance --dir="${ZENHOME}" --user="admin:zenoss"
+# Remove the unnecessary files/directories mkzopeinstance creates.
+rm -rf ${ZENHOME}/Products ${ZENHOME}/README.txt ${ZENHOME}/import
+EOT
+
+RUN --mount=type=bind,source=components,target=/components <<EOT
+source /home/zenoss/.bashrc
+set -eux
+
+pip_install() {
+	python2 -m pip --no-python-version-warning --no-cache-dir install --no-index --no-deps "$@"
+}
+
+# Install penparser
+pip_install /components/penparser-0-py2-none-any.whl
+
+# Install the private enterprise number OID map file (default values)
+mkdir -p /opt/zenoss/share/iana
+/opt/zenoss/bin/parsepen
+
+# Install pynetsnmp
+pip_install /components/pynetsnmp-0-py2-none-any.whl
+
+# Install extjs
+pip_install /components/extjs.tgz
+
+# Install servicemigration SDK
+pip_install /components/service-migration-0-py2-none-any.whl
+
+# Install zenoss.protocols
+pip_install /components/zenoss.protocols-0-py2-none-any.whl
+
+# Install zenoss.toolbox
+pip_install /components/zenoss.toolbox-0-py2-none-any.whl
+
+# Install modelindex
+pip_install /components/zenoss.modelindex-0-py2-none-any.whl
+
+# Install zenoss (prodbin)
+pip_install /components/zenoss-0-py2-none-any.whl
+
+# Clean up
+python2 -m pip cache purge 2>/dev/null || true
+EOT
+
+USER root
+
+RUN --mount=type=bind,source=components,target=/components <<EOT
+set -eux
+
+# Install zensocket
+tar -xz -C /opt/zenoss/ --no-overwrite-dir -f /components/zensocket.tgz
+chown root:zenoss /opt/zenoss/bin/zensocket
+chmod 04750 /opt/zenoss/bin/zensocket
+EOT
+
+USER zenoss
+
+COPY --link hubpasswd /opt/zenoss/etc/
+COPY --link ZENOSS-MIB.txt /opt/zenoss/share/mibs/site/

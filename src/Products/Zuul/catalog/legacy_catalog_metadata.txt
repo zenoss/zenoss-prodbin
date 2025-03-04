@@ -1,0 +1,122 @@
+#===================================================
+#                 GLOBAL CATALOG
+#===================================================
+
+#--------------------------
+#          INDEXES        #
+#--------------------------
+
+monitored   
+name                    u'performance'
+collectors  
+searchKeywords  
+allowedRolesAndUsers    OOSet([u'Manager', u'ZenManager', u'ZenOperator', u'ZenUser'])
+meta_type               u'MonitorClass'
+macAddresses    
+path                    OOSet(['/zport/dmd/Monitors/Performance'])
+objectImplements        OOSet([u'Products.ZenModel.MonitorClass.MonitorClass', ... ])
+ipAddress   
+id                      u'Performance'
+productKeys 
+uid                     u'Monitors/Performance'
+
+#--------------------------
+#         METADATA        #
+#--------------------------
+
+zProperties             {}
+monitored               None
+name                    Performance
+collectors              None
+searchIcon              None
+searchExcerpt           None
+meta_type               MonitorClass
+id                      Performance
+uuid                    None
+
+#===================================================
+#                 DEVICE CATALOG
+#===================================================
+
+#--------------------------
+#          INDEXES        #
+#--------------------------
+
+"getDeviceIp"        : "text_ipAddress"       # u'10.171.51.2'
+"getPhysicalPath"    : "uid",                 # /zport/dmd/Devices/Server/Linux/devices/10.171.51.2
+"path"               : "path"                 # OOSet(['/zport/dmd/Devices/Server/Linux/10.171.51.2', '/zport/dmd/Systems/hola/10.171.51.2'])
+"titleOrId"          : "name"                 # u'10.171.51.2'
+"id"                 : "id"                   # u'10.171.51.2'
+"getDeviceClassPath" :                 # u'/server/linux'
+"getAdminUserIds"    :                 # OOSet([u'admin'])  # Added by ZenPacks.zenoss.ZenDeviceACL
+
+#--------------------------
+#         METADATA        #
+#--------------------------
+
+"getPrimaryId": "uid"                   # /zport/dmd/Devices/Server/Linux/devices/10.171.51.2
+"id"          : "id"                    # 10.171.51.2
+"path"        : "path"  POSTPROCESS     # [('', 'zport', 'dmd', 'Systems', 'hola', '10.171.51.2'), ('', 'zport', 'dmd', 'Devices', 'Server', 'Linux', '10.171.51.2')]
+
+#===================================================
+#                 LAYER 2 CATALOG
+#===================================================
+
+#--------------------------
+#          INDEXES        #
+#--------------------------
+
+macaddress          u'00:11:93:3a:9e:c1'
+interfaceId         u'/zport/dmd/devices/http/devices/10.171.51.2/os/interfaces/gigabitethernet1_10'
+deviceId            u'/zport/dmd/devices/http/devices/10.171.51.2'
+lanId               u'none'
+
+#--------------------------
+#         METADATA        #
+#--------------------------
+
+macaddress     00:11:93:3A:9E:C1
+interfaceId    /zport/dmd/Devices/HTTP/devices/10.171.51.2/os/interfaces/GigabitEthernet1_10
+deviceId       /zport/dmd/Devices/HTTP/devices/10.171.51.2
+lanId          None
+
+#===================================================
+#                 LAYER 3 CATALOG
+#===================================================
+
+#--------------------------
+#          INDEXES        #
+#--------------------------
+
+networkId       u'/zport/dmd/networks/10.104.85.0'
+interfaceId     u'vlan800'
+ipAddressId     u'/zport/dmd/networks/10.104.85.0/ipaddresses/10.104.85.248'
+deviceId        u'10.171.51.2'
+
+#--------------------------
+#         METADATA        #
+#--------------------------
+
+networkId       /zport/dmd/Networks/10.104.85.0
+interfaceId     Vlan800
+ipAddressId     /zport/dmd/Networks/10.104.85.0/ipaddresses/10.104.85.248
+deviceId        10.171.51.2
+
+
+#===================================================
+#       IP SEARCH CATALOG  (1 per network tree)
+#===================================================
+
+#--------------------------
+#          INDEXES        #
+#--------------------------
+
+path             OOSet(['/zport/dmd/Networks/10.104.108.0/ipaddresses/10.104.108.1'])
+ipAddressAsInt   u'174615553'
+id               u'10.104.108.1'
+
+#--------------------------
+#         METADATA        #
+#--------------------------
+
+NADA
