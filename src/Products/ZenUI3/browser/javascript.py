@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import
+
 import md5
 import os
 
@@ -14,11 +16,11 @@ from urlparse import urljoin
 
 import Globals
 import six
-import zope.interface
 
 from Products.Five.viewlet.viewlet import ViewletBase
 from zope.publisher.browser import TestRequest
 from zope.component import getAdapter
+from zope.interface import implementer
 
 from Products.ZenUI3.browser.interfaces import (
     ICSSBundleViewlet,
@@ -99,28 +101,30 @@ def absolutifyPath(path):
 getVersionedPath = absolutifyPath
 
 
+@implementer(IMainSnippetManager)
 class MainSnippetManager(JavaScriptSnippetManager):
     """
     A viewlet manager to handle Ext.Direct API definitions.
     """
 
-    zope.interface.implements(IMainSnippetManager)
 
-
+@implementer(ICSSSrcManager)
 class CSSSrcManager(WeightOrderedViewletManager):
-    zope.interface.implements(ICSSSrcManager)
+    pass
 
 
+@implementer(IJavaScriptSrcManager)
 class JavaScriptSrcManager(WeightOrderedViewletManager):
-    zope.interface.implements(IJavaScriptSrcManager)
+    pass
 
 
+@implementer(IXTraceSrcManager)
 class XTraceSrcManager(WeightOrderedViewletManager):
-    zope.interface.implements(IXTraceSrcManager)
+    pass
 
 
+@implementer(ICSSBundleViewlet)
 class CSSSrcBundleViewlet(ViewletBase):
-    zope.interface.implements(ICSSBundleViewlet)
     # space delimited string of src paths
     paths = ""
 
@@ -135,9 +139,9 @@ class CSSSrcBundleViewlet(ViewletBase):
         return js
 
 
+@implementer(IJavaScriptSrcViewlet)
 class JavaScriptSrcViewlet(ViewletBase):
-    zope.interface.implements(IJavaScriptSrcViewlet)
-    path = None
+    path = ""
 
     def render(self):
         if not self.path:
@@ -145,8 +149,8 @@ class JavaScriptSrcViewlet(ViewletBase):
         return SCRIPT_TAG_SRC_TEMPLATE % absolutifyPath(self.path)
 
 
+@implementer(IJavaScriptBundleViewlet)
 class JavaScriptSrcBundleViewlet(ViewletBase):
-    zope.interface.implements(IJavaScriptBundleViewlet)
     # space delimited string of src paths
     paths = ""
 
@@ -181,6 +185,7 @@ class ExtDirectViewlet(JavaScriptSrcViewlet):
         return SCRIPT_TAG_SRC_TEMPLATE % path
 
 
+@implementer(IJavaScriptSrcViewlet)
 class ZenossAllJs(JavaScriptSrcViewlet):
     """
     When Zope is in debug mode, we want to use the development JavaScript
@@ -188,8 +193,6 @@ class ZenossAllJs(JavaScriptSrcViewlet):
     If Zope is in production mode and the compressed file is not available,
     we will use the source files instead of just giving up.
     """
-
-    zope.interface.implements(IJavaScriptSrcViewlet)
 
     def update(self):
         if Globals.DevelopmentMode or not hasCompiledJavascript():
@@ -200,10 +203,8 @@ class ZenossAllJs(JavaScriptSrcViewlet):
             self.path = "/++resource++zenui/deploy/zenoss-compiled.js"
 
 
+@implementer(IJavaScriptSrcViewlet)
 class ExtAllJs(JavaScriptSrcViewlet):
-    zope.interface.implements(IJavaScriptSrcViewlet)
-    path = None
-
     def update(self):
         if Globals.DevelopmentMode:
             self.path = "/++resource++extjs/ext-all-dev.js"
@@ -214,7 +215,7 @@ class ExtAllJs(JavaScriptSrcViewlet):
 class FireFoxExtCompat(JavaScriptSnippet):
     def snippet(self):
         js = """
-         (function() {
+        (function() {
             var ua = navigator.userAgent.toLowerCase();
             if (ua.indexOf("firefox/3.6") > -1) {
                 Ext.toArray = function(a, i, j, res) {
@@ -290,8 +291,8 @@ class ZenossData(JavaScriptSnippet):
         date_fmt = user.dateFormat
         time_fmt = user.timeFormat
         snippet = """
-          (function(){
-            Ext.namespace('Zenoss.env');
+        (function(){
+          Ext.namespace('Zenoss.env');
 
             Zenoss.env.COLLECTORS = %r;
             Zenoss.env.priorities = %r;
@@ -316,6 +317,8 @@ class BrowserState(JavaScriptSnippet):
     Restores the browser state.
     """
 
+    # return the js snippet that will make a request for browser state
+    # and than set it
     def snippet(self):
         try:
             userSettings = self.context.ZenUsers.getUserSettings()

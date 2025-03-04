@@ -7,12 +7,14 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import
+
 import zope.component
 import zope.interface
 
 from Products.Five.viewlet.manager import ViewletManagerBase
 
-from interfaces import IPrimaryNavigationMenu, ISecondaryNavigationMenu
+from .interfaces import IPrimaryNavigationMenu, ISecondaryNavigationMenu
 
 
 def viewletSortKey(args):
@@ -34,8 +36,9 @@ class WeightOrderedViewletManager(ViewletManagerBase):
         return sorted(viewlets, key=viewletSortKey)
 
 
+@zope.interface.implementer(IPrimaryNavigationMenu)
 class PrimaryNavigationManager(WeightOrderedViewletManager):
-    zope.interface.implements(IPrimaryNavigationMenu)
+    pass
 
 
 @zope.interface.implementer(ISecondaryNavigationMenu)
