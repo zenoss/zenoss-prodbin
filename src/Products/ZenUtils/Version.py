@@ -167,7 +167,7 @@ class Version(object):
         self.minor = minor
         self.micro = micro
         self.revision = revision
-        self.comment = str(comment)
+        self.comment = str(comment) if comment else ""
 
     def short(self):
         """
@@ -186,9 +186,7 @@ class Version(object):
         Returns a string with the software name, the version number, and the
         subversion revision number, if defined.
         """
-        comment = ""
-        if self.comment:
-            comment = " (" + self.comment + ")"
+        comment = "({})".format(self.comment) if self.comment else ""
         return "%s%s%s" % (self.long(), self._formatSVNRevision(), comment)
 
     def tuple(self):
@@ -242,12 +240,7 @@ class Version(object):
         return other
 
     def _formatSVNRevision(self):
-        svnrev = self.revision
-        if svnrev:
-            svnrev = " r%s" % svnrev
-        else:
-            svnrev = ""
-        return svnrev
+        return " r{}".format(self.revision) if self.revision else ""
 
     def __repr__(self):
         return "%s(%s, %d, %d, %d,%s)" % (
