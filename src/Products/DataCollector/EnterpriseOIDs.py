@@ -14,7 +14,21 @@ import json
 import re
 import unicodedata
 
-from zenoss.pen import PEN_ORG_FILE
+try:
+    from zenoss.pen import PEN_ORG_FILE
+except ImportError:
+    # This can be removed in next release that includes the penparser package.
+    def _get_file_path():
+        import os
+
+        try:
+            import pathlib
+        except ImportError:
+            import pathlib2 as pathlib
+        _zenhome = pathlib.Path(os.environ.get("ZENHOME"))
+        return _zenhome / "share" / "iana" / "pen_map.json"
+
+    PEN_ORG_FILE = _get_file_path()
 
 
 class _EnterpriseOIDs(collections.Mapping):
