@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<configure xmlns="http://namespaces.zope.org/meta">
+   <provides feature="eventPlugins"/>
+   <directives namespace="http://namespaces.zope.org/zope">
+
+      <directive
+         name="preEventPlugin"
+         schema=".metadirectives.IPreEventPluginDirective"
+         handler=".metaconfigure.preEventPlugin"
+         />
+
+      <directive
+         name="postEventPlugin"
+         schema=".metadirectives.IPostEventPluginDirective"
+         handler=".metaconfigure.postEventPlugin"
+         />
+
+      <directive
+         name="eventIdentifierPlugin"
+         schema=".metadirectives.IEventIdentifierPluginDirective"
+         handler=".metaconfigure.eventIdentifierPlugin"
+         />
+
+   </directives>
+</configure>

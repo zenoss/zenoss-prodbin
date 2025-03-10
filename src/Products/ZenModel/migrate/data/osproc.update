@@ -1,0 +1,205 @@
+<?xml version="1.0"?>
+<objects>
+<object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<tomanycont id='rrdTemplates'>
+<object id='OSProcess' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type='text' id='description' mode='w' >
+Monitors for OSProcess object
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.OSProcess
+</property>
+<tomanycont id='datasources'>
+<object id='cpu' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
+COUNTER
+</property>
+<property type='boolean' id='isrow' mode='w' >
+True
+</property>
+<property type='long' id='rrdmax' mode='w' >
+-1
+</property>
+<property type='long' id='limit' mode='w' >
+-1
+</property>
+<property type='string' id='format' mode='w' >
+%0.2lf%s
+</property>
+</object>
+<object id='mem' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
+GAUGE
+</property>
+<property type='boolean' id='isrow' mode='w' >
+True
+</property>
+<property type='long' id='rrdmax' mode='w' >
+-1
+</property>
+<property type='long' id='limit' mode='w' >
+-1
+</property>
+<property type='string' id='format' mode='w' >
+%0.2lf%s
+</property>
+</object>
+</tomanycont>
+<tomanycont id='graphs'>
+<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<property type='lines' id='dsnames' mode='w' >
+['cpu']
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='int' id='height' mode='w' >
+100
+</property>
+<property type='int' id='width' mode='w' >
+500
+</property>
+<property type='string' id='units' mode='w' >
+percentage
+</property>
+<property type='int' id='linewidth' mode='w' >
+1
+</property>
+<property type='boolean' id='log' mode='w' >
+False
+</property>
+<property type='boolean' id='base' mode='w' >
+False
+</property>
+<property type='boolean' id='stacked' mode='w' >
+False
+</property>
+<property type='boolean' id='summary' mode='w' >
+True
+</property>
+<property type='int' id='miny' mode='w' >
+-1
+</property>
+<property type='int' id='maxy' mode='w' >
+-1
+</property>
+<property type='lines' id='colors' mode='w' >
+('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
+</property>
+</object>
+<object id='Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<property type='lines' id='dsnames' mode='w' >
+['mem']
+</property>
+<property type='int' id='sequence' mode='w' >
+1
+</property>
+<property type='int' id='height' mode='w' >
+100
+</property>
+<property type='int' id='width' mode='w' >
+500
+</property>
+<property type='string' id='units' mode='w' >
+bytes
+</property>
+<property type='int' id='linewidth' mode='w' >
+1
+</property>
+<property type='boolean' id='log' mode='w' >
+False
+</property>
+<property type='boolean' id='base' mode='w' >
+False
+</property>
+<property type='boolean' id='stacked' mode='w' >
+False
+</property>
+<property type='boolean' id='summary' mode='w' >
+True
+</property>
+<property type='int' id='miny' mode='w' >
+0
+</property>
+<property type='int' id='maxy' mode='w' >
+-1
+</property>
+<property type='lines' id='colors' mode='w' >
+('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='OSProcessCount' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type='text' id='description' mode='w' >
+Template used when counting processes
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.OSProcess
+</property>
+<tomanycont id='datasources'>
+<object id='count' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
+GAUGE
+</property>
+<property type='boolean' id='isrow' mode='w' >
+True
+</property>
+<property type='long' id='rrdmax' mode='w' >
+-1
+</property>
+<property type='long' id='limit' mode='w' >
+-1
+</property>
+<property type='string' id='format' mode='w' >
+%0.2lf%s
+</property>
+</object>
+</tomanycont>
+<tomanycont id='graphs'>
+<object id='Process Count' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<property type='lines' id='dsnames' mode='w' >
+['count']
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='int' id='height' mode='w' >
+100
+</property>
+<property type='int' id='width' mode='w' >
+500
+</property>
+<property type='string' id='units' mode='w' >
+number
+</property>
+<property type='int' id='linewidth' mode='w' >
+1
+</property>
+<property type='boolean' id='log' mode='w' >
+False
+</property>
+<property type='boolean' id='base' mode='w' >
+False
+</property>
+<property type='boolean' id='stacked' mode='w' >
+False
+</property>
+<property type='boolean' id='summary' mode='w' >
+True
+</property>
+<property type='int' id='miny' mode='w' >
+-1
+</property>
+<property type='int' id='maxy' mode='w' >
+-1
+</property>
+<property type='lines' id='colors' mode='w' >
+('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
+</property>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
+</object>
+</objects>

@@ -1,0 +1,261 @@
+<?xml version="1.0"?>
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:meta="http://namespaces.zope.org/meta"
+           i18n_domain="Five">
+
+  <!-- Permissions here should parallel ZenModel.ZenossSecurity -->
+
+  <permission
+      id="zenoss.Common"
+      title="ZenCommon"
+      />
+
+  <permission
+      id="zenoss.ManageDMD"
+      title="Manage DMD"
+      />
+
+  <permission
+      id="zenoss.Update"
+      title="ZenUpdate"
+      />
+
+  <permission
+      id="zenoss.Delete"
+      title="Delete objects"
+      />
+
+  <permission
+      id="zenoss.Add"
+      title="Add DMD Objects"
+      />
+
+  <permission
+      id="zenoss.View"
+      title="View"
+      />
+
+  <permission
+      id="zenoss.ViewHistory"
+      title="View History"
+      />
+
+  <permission
+      id="zenoss.ChangeSettings"
+      title="Change Settings"
+      />
+
+  <permission
+      id="zenoss.ChangeAlertingRules"
+      title="Change Alerting Rules"
+      />
+
+  <permission
+      id="zenoss.ManageEventManager"
+      title="Manage EventManager"
+      />
+
+  <permission
+      id="zenoss.ManageEvents"
+      title="Manage Events"
+      />
+
+  <permission
+      id="zenoss.SendEvents"
+      title="Send Events"
+      />
+
+  <permission
+      id="zenoss.ChangeEventViews"
+      title="Change Event Views"
+      />
+
+  <permission
+      id="zenoss.ChangeAdminObjects"
+      title="Change Admin Objects"
+      />
+
+  <permission
+      id="zenoss.EditUser"
+      title="Edit Users"
+      />
+
+  <permission
+      id="zenoss.EditUserGroup"
+      title="Edit User Groups"
+      />
+
+  <permission
+      id="zenoss.ChangeDevice"
+      title="Change Device"
+      />
+
+  <permission
+      id="zenoss.ChangeDeviceProductionState"
+      title="Change Device Production State"
+      />
+
+  <permission
+      id="zenoss.AdminDevice"
+      title="Admin Device"
+      />
+
+  <permission
+      id="zenoss.DeleteDevice"
+      title="Delete Device"
+      />
+
+  <permission
+      id="zenoss.ManageDevice"
+      title="Manage Device"
+      />
+
+  <permission
+      id="zenoss.ManageDeviceStatus"
+      title="Manage Device Status"
+      />
+
+  <permission
+      id="zenoss.zPropertiesEdit"
+      title="zProperties Edit"
+      />
+
+  <permission
+      id="zenoss.zPropertiesView"
+      title="zProperties View"
+      />
+
+  <permission
+      id="zenoss.EditLocalTemplates"
+      title="Edit Local Templates"
+      />
+
+  <permission
+      id="zenoss.RunCommands"
+      title="Run Commands"
+      />
+
+  <permission
+      id="zenoss.DefineCommandsEdit"
+      title="Define Commands Edit"
+      />
+
+  <permission
+      id="zenoss.DefineCommandsView"
+      title="Define Commands View"
+      />
+
+  <permission
+      id="zenoss.MaintenanceWindowEdit"
+      title="Maintenance Windows Edit"
+      />
+
+  <permission
+      id="zenoss.MaintenanceWindowView"
+      title="Maintenance Windows View"
+      />
+
+  <permission
+      id="zenoss.AdministratorsEdit"
+      title="Administrators Edit"
+      />
+
+  <permission
+      id="zenoss.AdministratorsView"
+      title="Administrators View"
+      />
+
+  <permission
+      id="zenoss.NotificationView"
+      title="View Notification"
+      />
+  <permission
+      id="zenoss.NotificationUpdate"
+      title="Update Notification"
+      />
+  <permission
+      id="zenoss.ManageNotificationSubscriptions"
+      title="Manage Notification Subscriptions"
+      />
+
+  <permission
+      id="zenoss.TriggerView"
+      title="View Trigger"
+      />
+  <permission
+      id="zenoss.TriggerUpdate"
+      title="Update Trigger"
+      />
+  <permission
+      id="zenoss.ManageTrigger"
+      title="Manage Trigger"
+      />
+
+  <meta:provides feature="czadmin-perms"/>
+
+  <permission
+      id="zenoss.ManageGlobalSettings"
+      title="Manage Global Settings"
+      />
+
+  <permission
+      id="zenoss.ManageGlobalCommands"
+      title="Manage Global Commands"
+      />
+
+  <permission
+      id="zenoss.ManageControlCenter"
+      title="Manage Control Center"
+      />
+
+  <permission
+      id="zenoss.ViewUsers"
+      title="View Users"
+      />
+
+  <permission
+      id="zenoss.ManageUsers"
+      title="Manage Users"
+      />
+
+  <permission
+      id="zenoss.ManageGroups"
+      title="Manage Groups"
+      />
+
+  <permission
+      id="zenoss.ManageZenPacks"
+      title="Manage ZenPacks"
+      />
+
+  <permission
+      id="zenoss.ViewSoftwareVersions"
+      title="View Software Versions"
+      />
+
+  <permission
+      id="zenoss.ManageEventConfig"
+      title="Manage Event Configuration"
+      />
+
+  <permission
+      id="zenoss.ManageUISettings"
+      title="Manage UI Settings"
+      />
+
+  <permission
+      id="zenoss.ManageLDAPSettings"
+      title="Manage LDAP Settings"
+      />
+
+  <permission
+      id="zenoss.ViewLicensing"
+      title="View Licensing"
+      />
+
+  <permission
+      id="zenoss.ManageImpactSettings"
+      title="Manage Impact Settings"
+      />
+
+</configure>
