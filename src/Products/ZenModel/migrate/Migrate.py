@@ -16,6 +16,7 @@ A small framework for data migration.
 from __future__ import absolute_import, print_function
 
 import logging
+import logging.handlers
 import re
 import sys
 
@@ -155,16 +156,15 @@ class Migration(ZenScriptBase):
 
     useDatabaseVersion = True
 
-    def __init__(self, noopts=0):
-        ZenScriptBase.__init__(self, noopts=noopts, connect=False)
+    def __init__(self, noopts=0, app=None):
+        ZenScriptBase.__init__(self, noopts=noopts, app=app, connect=False)
         self.connect()
         self.allSteps = allSteps[:]
         self.allSteps.sort()  # _must_ sort the dependencies
 
+    def setupLogging(self):
         # Log output to a file
-        # self.setupLogging() does *NOT* do what we want.
         logFilename = zenPath("log", "zenmigrate.log")
-        import logging.handlers
 
         maxBytes = self.options.maxLogKiloBytes * 1024
         backupCount = self.options.maxBackupLogs
