@@ -186,7 +186,7 @@ class Version(object):
         Returns a string with the software name, the version number, and the
         subversion revision number, if defined.
         """
-        comment = "({})".format(self.comment) if self.comment else ""
+        comment = " ({})".format(self.comment) if self.comment else ""
         return "%s%s%s" % (self.long(), self._formatSVNRevision(), comment)
 
     def tuple(self):
