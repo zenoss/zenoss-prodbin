@@ -2,46 +2,45 @@ services:
   rabbitmq:
     image: zenoss/rabbitmq:5ccc9e3
     command: ["/bin/supervisord", "-n", "-c", "/etc/rabbitmq/supervisord.conf"]
-    configs:
-      - source: rabbitmq
+    volumes:
+      - type: bind
+        source: ./rabbitmq/rabbitmq.conf
         target: /etc/rabbitmq/rabbitmq.conf
-      - source: rabbitmq-advanced
+      - type: bind
+        source: ./rabbitmq/advanced.config
         target: /etc/rabbitmq/advanced.config
-      - source: rabbitmq-env
+      - type: bind
+        source: ./rabbitmq/rabbitmq-env.conf
         target: /etc/rabbitmq/rabbitmq-env.conf
-      - source: rabbitmq-supervisor
+      - type: bind
+        source: ./rabbitmq/supervisord.conf
         target: /etc/rabbitmq/supervisord.conf
-    # ports:
-    #   - "15672:15672"
-    #   - "5672:5672"
-    #   - "4369:4369"
-    #   - "44001:44001"
     networks:
       - infra
 
   redis:
     image: zenoss/redis:760f98c
     command: ["/bin/supervisord", "-n", "-c", "/etc/redis/supervisord.conf"]
-    configs:
-      - source: redis
+    volumes:
+      - type: bind
+        source: ./redis/redis.conf
         target: /etc/redis/redis.conf
-      - source: redis-supervisor
+      - type: bind
+        source: ./redis/supervisord.conf
         target: /etc/redis/supervisord.conf
-    # ports:
-    #   - "6379:6379"
     networks:
       - infra
 
   memcached:
     image: zenoss/memcached:cc38f31
     command: ["/bin/supervisord", "-n", "-c", "/etc/memcached/supervisord.conf"]
-    configs:
-      - source: memcached
+    volumes:
+      - type: bind
+        source: ./memcached/memcached.conf
         target: /etc/memcached/memcached.conf
-      - source: memcached-supervisor
+      - type: bind
+        source: ./memcached/supervisord.conf
         target: /etc/memcached/supervisord.conf
-    # ports:
-    #   - "11211:11211"
     networks:
       - infra
 
@@ -54,19 +53,13 @@ services:
       - MARIADB_DATABASE=zodb
     volumes:
       - type: bind
-        source: ./mariadb
+        source: ./mariadb/initdb.d
         target: /docker-entrypoint-initdb.d
-    # image: zenoss/mariadb-base:dev
-    # command:
-    #   - "/usr/bin/mysqld_safe"
-    #   - "--skip-syslog"
-    #   - "--log-error=/var/log/mysql/load.log"
     networks:
       - infra
 
   solr:
     image: solr:9.6
-    # command: ["solr-precreate", "zenoss_model"]
     command:
       - "solr"
       - "start"
@@ -83,25 +76,13 @@ services:
       timeout: 10s
       start_period: 30s
       start_interval: 5s
-    # environment:
-    #   ZK_HOST: "zoo:2181"
     volumes:
       - type: bind
-        source: ./solr/zenoss_model
+        source: ./solr/zenoss_model/
         target: /opt/solr/server/solr/configsets/zenoss_model
-    configs:
-      # - source: solr
-      #   target: /opt/solr/server/solr/solr.xml
-      - source: solr-etc
+      - type: bind
+        source: ./solr/solr.in.sh
         target: /etc/default/solr.in.sh
-      # - source: solr-supervisor
-      #   target: /opt/solr/zenoss/etc/supervisord.conf
-      # - source: solr-log4j2
-      #   target: /var/solr/log4j2.xml
-    # ports:
-    #   - "8983:8983"
-    # depends_on:
-    #   - zoo
     networks:
       - infra
 
@@ -124,7 +105,7 @@ services:
         restart: true
     volumes:
       - type: bind
-        source: ./solr/zenoss_model
+        source: ./solr/zenoss_model/
         target: /opt/solr/server/solr/configsets/zenoss_model
       - type: bind
         source: ./solr-init/solr.in.sh
@@ -132,50 +113,21 @@ services:
     networks:
       - infra
 
-#  zoo:
-#    image: zookeeper:3.9
-#    networks:
-#      - infra
-#    environment:
-#      ZOO_4LW_COMMANDS_WHITELIST: "mntr,conf,ruok"
-
   prodbin-test:
     build:
       context: prodbin
+    volumes:
+      - type: bind
+        source: ./prodbin/etc/global.conf
+        target: /opt/zenoss/etc/global.conf
+      - type: bind
+        source: ./prodbin/etc/zope.conf
+        target: /opt/zenoss/etc/zope.conf
+      - type: bind
+        source: ./prodbin/etc/zodb_db_main.conf
+        target: /opt/zenoss/etc/zodb_db_main.conf
     networks:
       - infra
-
-configs:
-  rabbitmq:
-    file: rabbitmq/rabbitmq.conf
-  rabbitmq-advanced:
-    file: rabbitmq/advanced.config
-  rabbitmq-env:
-    file: rabbitmq/rabbitmq-env.conf
-  rabbitmq-supervisor:
-    file: rabbitmq/supervisord.conf
-  redis:
-    file: redis/redis.conf
-  redis-supervisor:
-    file: redis/supervisord.conf
-  memcached:
-    file: memcached/memcached.conf
-  memcached-supervisor:
-    file: memcached/supervisord.conf
-  solr-configset:
-    file: solr/solrconfig.xml
-  solr-coreprops:
-    file: solr/core.properties
-  # solr:
-  #   file: solr/opt/solr/server/solr/solr.xml
-  # solr-zoo:
-  #   file: solr/opt/solr/zenoss/bin/zoo.cfg
-  solr-etc:
-    file: solr/solr.in.sh
-  # solr-supervisor:
-  #   file: solr/opt/solr/zenoss/etc/supervisord.conf
-  # solr-log4j2:
-  #   file: solr/var/solr/log4j2.xml
 
 networks:
   infra: {}
