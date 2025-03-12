@@ -73,7 +73,7 @@ def build_device_config(
             send_event(
                 self,
                 exc,
-                self.request.task_id,
+                self.request.id,
                 (monitorname, deviceid, configclassname),
                 {"submitted": submitted},
             )
