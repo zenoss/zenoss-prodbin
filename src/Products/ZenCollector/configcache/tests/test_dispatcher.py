@@ -13,7 +13,11 @@ from unittest import TestCase
 
 from mock import call, patch
 
-from ..dispatcher import DeviceConfigTaskDispatcher, build_device_config
+from ..dispatcher import (
+    DeviceConfigTaskDispatcher,
+    build_device_config,
+    UnknownServiceError,
+)
 
 
 PATH = {"src": "Products.ZenCollector.configcache.dispatcher"}
@@ -85,5 +89,5 @@ class DeviceConfigTaskDispatcherTest(TestCase):
         device = "linux"
         submitted = 1111.0
 
-        with t.assertRaises(ValueError):
+        with t.assertRaises(UnknownServiceError):
             t.bctd.dispatch("unknown", monitor, device, timeout, submitted)

@@ -68,6 +68,32 @@ class TestBuildDeviceConfig(TestCase):
         status = t.store.get_status(key)
         t.assertIsNone(status)
 
+    @mock.patch("{task}.time".format(**PATH), autospec=True)
+    @mock.patch("{task}.createObject".format(**PATH), autospec=True)
+    @mock.patch("{task}.resolve".format(**PATH), autospec=True)
+    def test_bad_serviceclass(t, _resolve, _createObject, _time):
+        monitor = "localhost"
+        clsname = "Products.ZenHub.services.Blah.Blah"
+        svcname = clsname.rsplit(".", 1)[0]
+        submitted = 123456.34
+        dmd = mock.Mock()
+        log = mock.Mock()
+        dvc = mock.Mock()
+        key = DeviceKey(svcname, monitor, t.device_name)
+
+        _createObject.return_value = t.store
+        _resolve.side_effect = ImportError
+        _time.return_value = submitted + 10
+        dvc.getZ.return_value = 1000
+        dmd.Devices.findDeviceByIdExact.return_value = dvc
+
+        t.store.set_pending((key, submitted))
+
+        buildDeviceConfig(dmd, log, monitor, t.device_name, clsname, submitted)
+
+        status = t.store.get_status(key)
+        t.assertIsNone(status)
+
     @mock.patch("{task}.createObject".format(**PATH), autospec=True)
     @mock.patch("{task}.resolve".format(**PATH), autospec=True)
     def test_device_not_found(t, _resolve, _createObject):
