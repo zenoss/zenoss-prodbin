@@ -28,7 +28,11 @@ from .app.args import get_subparser
 from .cache import ConfigStatus
 from .constants import Constants
 from .debug import Debug as DebugCommand
-from .dispatcher import DeviceConfigTaskDispatcher, OidMapTaskDispatcher
+from .dispatcher import (
+    DeviceConfigTaskDispatcher,
+    OidMapTaskDispatcher,
+    UnknownServiceError,
+)
 from .propertymap import DevicePropertyMap
 from .utils import getDeviceConfigServices, OidMapProperties
 
@@ -302,43 +306,55 @@ class Manager(object):
             timeout = buildlimitmap.get(uid)
             now = time()
             self.stores.device.set_pending((status.key, now))
-            self.dispatchers.device.dispatch(
-                status.key.service,
-                status.key.monitor,
-                status.key.device,
-                timeout,
-                now,
-            )
-            if isinstance(status, ConfigStatus.Expired):
-                self.log.info(
-                    "submitted job to rebuild expired config  "
-                    "service=%s collector=%s device=%s",
+            try:
+                self.dispatchers.device.dispatch(
                     status.key.service,
                     status.key.monitor,
                     status.key.device,
-                )
-            elif isinstance(status, ConfigStatus.Retired):
-                self.log.info(
-                    "submitted job to rebuild retired config  "
-                    "service=%s collector=%s device=%s",
-                    status.key.service,
-                    status.key.monitor,
-                    status.key.device,
-                )
-            else:
-                self.log.info(
-                    "submitted job to rebuild old config  "
-                    "updated=%s %s=%s service=%s collector=%s device=%s",
-                    datetime.fromtimestamp(status.updated).strftime(
-                        "%Y-%m-%d %H:%M:%S"
-                    ),
-                    Constants.device_build_timeout_id,
                     timeout,
+                    now,
+                )
+            except UnknownServiceError:
+                self.log.warning(
+                    "removing invalid config found in the cache  "
+                    "service=%s collector=%s device=%s",
                     status.key.service,
                     status.key.monitor,
                     status.key.device,
                 )
-            count += 1
+                self.stores.device.remove(status.key)
+            else:
+                if isinstance(status, ConfigStatus.Expired):
+                    self.log.info(
+                        "submitted job to rebuild expired config  "
+                        "service=%s collector=%s device=%s",
+                        status.key.service,
+                        status.key.monitor,
+                        status.key.device,
+                    )
+                elif isinstance(status, ConfigStatus.Retired):
+                    self.log.info(
+                        "submitted job to rebuild retired config  "
+                        "service=%s collector=%s device=%s",
+                        status.key.service,
+                        status.key.monitor,
+                        status.key.device,
+                    )
+                else:
+                    self.log.info(
+                        "submitted job to rebuild old config  "
+                        "updated=%s %s=%s service=%s collector=%s device=%s",
+                        datetime.fromtimestamp(status.updated).strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        ),
+                        Constants.device_build_timeout_id,
+                        timeout,
+                        status.key.service,
+                        status.key.monitor,
+                        status.key.device,
+                    )
+                count += 1
+
         if count == 0:
             self.log.debug("found no expired or old configurations to rebuild")
 
