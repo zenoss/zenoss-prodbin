@@ -1,4 +1,4 @@
-BRANCH_NAME = $(shell git symbolic-ref --short HEAD)
+BRANCH_NAME = $(shell git name-rev --name-only HEAD)
 UPSTREAM = $(shell git config --get branch.$(BRANCH_NAME).merge)
 ifeq ($(UPSTREAM),)
 BRANCH ?= $(BRANCH_NAME)

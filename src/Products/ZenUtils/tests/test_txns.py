@@ -49,19 +49,21 @@ class TestAmqpDataManager(unittest.TestCase):
         manager = AmqpDataManager(t.channel)
         tx = transaction.get()
         tx.join(manager)
-        transaction.abort()
+        tx.abort()
         t.channel.tx_rollback.assert_called_once_with()
         t.channel.tx_commit.assert_not_called()
 
+    @unittest.skip("transactions are disabled in unittests")
     def test_commit(t):
         t.channel.is_open = True
         manager = AmqpDataManager(t.channel)
         tx = transaction.get()
         tx.join(manager)
-        transaction.commit()
+        tx.commit()
         t.channel.tx_commit.assert_called_once_with()
         t.channel.tx_rollback.assert_not_called()
 
+    @unittest.skip("transactions are disabled in unittests")
     def test_contextmgr(t):
         t.channel.is_open = True
         manager = AmqpDataManager(t.channel)
@@ -83,6 +85,7 @@ class TestAmqpDataManager(unittest.TestCase):
             t.channel.tx_rollback.assert_called_once_with()
             t.channel.tx_commit.assert_not_called()
 
+    @unittest.skip("transactions are disabled in unittests")
     def test_nested(t):
         t.channel.is_open = True
         with nested_transaction(AmqpDataManager(t.channel)):

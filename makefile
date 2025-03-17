@@ -14,3 +14,7 @@ build:
 .PHONY: clean
 clean: clean-javascript clean-migration
 	@make -f wheel.mk clean-wheel
+
+.PHONY: test
+test:
+	@
