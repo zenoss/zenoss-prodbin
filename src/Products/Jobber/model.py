@@ -62,7 +62,7 @@ class JobRecord(object):
         # Clever hack for backward compatibility.
         # Users of JobRecord added arbitrary attributes.
         if name not in self.__slots__:
-            details = getattr(self, "details", {}) or {}
+            details = getattr(self, "details", None) or {}
             if name not in details:
                 raise AttributeError(name)
             return details[name]
@@ -74,7 +74,7 @@ class JobRecord(object):
         return sorted(
             set(
                 tuple(dir(JobRecord))
-                + tuple((getattr(self, "details") or {}).keys())
+                + tuple((getattr(self, "details", None) or {}).keys())
             )
         )
 
@@ -89,7 +89,7 @@ class JobRecord(object):
             for k in self.__slots__ + ("uuid", "duration", "complete")
             if k != "details"
         }
-        details = getattr(self, "details") or {}
+        details = getattr(self, "details", None) or {}
         base.update(**details)
         return base
 
@@ -242,7 +242,12 @@ class RedisRecord(dict):
             raise ValueError("Invalid job ID: '%s'" % (jobid,))
         description = fields.get("description", None)
         if not description:
-            description = task.description_from(*args, **kwargs)
+            try:
+                description = task.description_from(*args, **kwargs)
+            except Exception:
+                _mlog.exception(
+                    "unable to get job description  job=%s", task.name
+                )
         record = cls(
             jobid=jobid,
             name=task.name,
