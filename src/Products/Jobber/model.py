@@ -74,7 +74,7 @@ class JobRecord(object):
         return sorted(
             set(
                 tuple(dir(JobRecord))
-                + tuple((getattr(self, "details") or {}).keys())
+                + tuple(getattr(self, "details", {}).keys())
             )
         )
 
@@ -89,7 +89,7 @@ class JobRecord(object):
             for k in self.__slots__ + ("uuid", "duration", "complete")
             if k != "details"
         }
-        details = getattr(self, "details") or {}
+        details = getattr(self, "details", {})
         base.update(**details)
         return base
 
@@ -242,7 +242,12 @@ class RedisRecord(dict):
             raise ValueError("Invalid job ID: '%s'" % (jobid,))
         description = fields.get("description", None)
         if not description:
-            description = task.description_from(*args, **kwargs)
+            try:
+                description = task.description_from(*args, **kwargs)
+            except Exception:
+                _mlog.exception(
+                    "unable to get job description  job=%s", task.name
+                )
         record = cls(
             jobid=jobid,
             name=task.name,
@@ -395,7 +400,7 @@ def save_scheduled_jobrecord(log, task_id=None, task=None, *args, **kwargs):
     signal.
     """
 
-    is_scheduled = kwargs.get('kwargs', {}).pop('is_scheduled', None)
+    is_scheduled = kwargs.get("kwargs", {}).pop("is_scheduled", None)
 
     if is_scheduled:
         task = get_app().tasks.get(task.name)
@@ -409,7 +414,7 @@ def save_scheduled_jobrecord(log, task_id=None, task=None, *args, **kwargs):
 
         storage = getUtility(IJobStore, "redis")
 
-        record = RedisRecord.from_task(task, task_id,  args, kwargs)
+        record = RedisRecord.from_task(task, task_id, args, kwargs)
         record.update(
             {
                 "status": states.PENDING,
@@ -421,6 +426,7 @@ def save_scheduled_jobrecord(log, task_id=None, task=None, *args, **kwargs):
             _save_record(log, storage, record)
         else:
             log.debug("Record already exists for job %s", task_id)
+
 
 @inject_logger(log=_mlog)
 def stage_jobrecord(log, storage, sig):
