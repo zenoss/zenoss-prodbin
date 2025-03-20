@@ -253,7 +253,7 @@ class ZenCatalogBase(ZenDaemon):
         return collection_exists()
 
 
-if __name__ == "__main__":
+def main():
     zc = ZenCatalogBase()
     try:
         signal.signal(signal.SIGTERM, raiseKeyboardInterrupt)

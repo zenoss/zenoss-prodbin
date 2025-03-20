@@ -858,7 +858,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
                            name, ex)
 
 
-if __name__ == '__main__':
+def main():
     batchLoader = BatchDeviceLoader()
     if batchLoader.options.show_options:
         print "Options = %s" % sorted(batchLoader.loader_args.keys())
