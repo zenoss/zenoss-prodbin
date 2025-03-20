@@ -94,15 +94,14 @@ class MetricReporter(Reporter):
 
 class TwistedMetricReporter(object):
     def __init__(
-        self, interval=30, metricWriter=None, tags={}, *args, **options
+        self, interval=30, metricWriter=None, tags=None, *args, **options
     ):
         super(TwistedMetricReporter, self).__init__()
         self.registry = options.get("registry", registry)
         self.prefix = options.get("prefix", "")
         self.metricWriter = metricWriter
         self.interval = interval
-        self.tags = {}
-        self.tags.update(tags)
+        self.tags = dict(tags) if tags else {}
         self._stopped = False
         self._loop = task.LoopingCall(self.postMetrics)
 
@@ -234,7 +233,8 @@ def _log_queue_gauge(name, metric, tags, prefix):
     whole_metric_name = "{}.value".format(metric_name)
     try:
         while metric.queue:
-            # each stat should be a tuple with 1 more member than metric.tagKeys
+            # Each stat should be a tuple with 1 more member
+            # than metric.tagKeys
             stat = metric.queue.pop()
             qtags = tags.copy()
             qtags.update(izip(metric.tagKeys, stat))
