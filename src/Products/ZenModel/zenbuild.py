@@ -287,6 +287,5 @@ class zenbuild(CmdBase):
                 self.storage = None
 
 
-if __name__ == "__main__":
-    zb = zenbuild(args=sys.argv)
-    zb.build()
+def main():
+    zenbuild(args=sys.argv).build()
