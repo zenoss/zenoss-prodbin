@@ -448,7 +448,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         )
         self.__eventclient.start()
         self.__eventclient.sendEvent(self.startEvent)
-        self.__recordQueuedEventsCountLoop.start(2.0, now=False)
+        self.__recordQueuedEventsCountLoop.start(
+            self.options.writeStatistics, now=False
+        )
         self.log.info("started event client")
 
     def _start_internal_metrics_task(self):
