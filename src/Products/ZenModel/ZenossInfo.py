@@ -185,12 +185,21 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
     @versionmeta("Docker Image", "http://www.zenoss.com")
     def getZenossImageBuild(self):
+        import pkgutil
+
         build = os.environ.get("BUILD_NUMBER", "DEV")
         version = os.environ.get("ZENOSS_VERSION", "0.0.0").split(".")
 
+        # Differentiate between CZ and ZSD based on whether the
+        # Products.Zing package exists.
+        if pkgutil.find_loader("Products.Zing") is not None:
+            image_name = "cse"
+        else:
+            image_name = "resmgr"
+
         return Version.parse(
-            "resmgr_{0[0]}.{0[1]} {0[0]}.{0[1]}.{0[2]} {1}".format(
-                version, build
+            "{0}_{1[0]}.{1[1]} {1[0]}.{1[1]}.{1[2]} {2}".format(
+                image_name, version, build
             )
         )
 
