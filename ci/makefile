@@ -3,7 +3,15 @@ ZENOSS_UID = $(shell id -u)
 ZENOSS_GID = $(shell id -g)
 
 DOCKERFILE = prodbin/Dockerfile
+
+# The location of the product-assembly repo will vary depending
+# on where this makefile runs.  In a zendev environment, it'll
+# be a sibling directory with zenoss-prodbin.  On a Jenkins node,
+# it'll be a subdirectory of zenoss-prodbin.
+ASSEMBLY_PATH = $(shell find ../ -name product-assembly -type d)
+ifeq ($(ASSEMBLY_PATH),)
 ASSEMBLY_PATH = ../../product-assembly
+endif
 
 # Returns the component name, e.g. ctx/components/phantomjs.tar.bz2 -> phantomjs
 get_component_name = $(subst .tar,,$(subst -0-py2-none-any,,$(notdir $(basename $(1)))))
@@ -95,4 +103,4 @@ $(COMPONENTS): $(COMPONENTS_DIR)/%:
 
 $(PYTHON_PATCHES): | prodbin/python_patches
 $(PYTHON_PATCHES): prodbin/%: $(ASSEMBLY_PATH)/product-base/%
-	@cp $(ASSEMBLY_PATH)/product-base/$< $@
+	@cp $< $@

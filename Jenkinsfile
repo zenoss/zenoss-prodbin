@@ -1,18 +1,9 @@
 #!groovy
 pipeline {
 	agent { label 'build-zenoss-product' }
-    // parameters {
-    //     credentials(
-    //         credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl',
-    //         defaultValue: '59439429-e8f4-442a-ace7-122701c36e2b',
-    //         description: '',
-    //         name: 'GIT_CREDENTIAL_ID',
-    //         required: false
-    //     )
-    // }
     environment {
         GIT_CREDENTIAL_ID = '59439429-e8f4-442a-ace7-122701c36e2b'
-        BRANCH = "${sh(returnStdout: true, script: "git name-rev --name-only HEAD").trim()}"
+        // BRANCH = "${sh(returnStdout: true, script: "git name-rev --name-only HEAD").trim()}"
         ASSEMBLY_BRANCH = "${sh(returnStdout: true, script: "cat ASSEMBLY").trim()}"
     }
 	stages {
@@ -20,18 +11,18 @@ pipeline {
 			steps {
                 echo "Using BRANCH=${env.BRANCH}"
                 echo "Using ASSEMBLY_BRANCH=${env.ASSEMBLY_BRANCH}"
-				deleteDir()
-                dir("zenoss-prodbin") {
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: BRANCH]],
-                        extensions: [[$class: 'LocalBranch', localBranch: BRANCH]],
-                        userRemoteConfigs: [[
-                            credentialsId: GIT_CREDENTIAL_ID,
-                            url: 'https://github.com/zenoss/zenoss-prodbin'
-                        ]]
-                    ])
-                }
+				// deleteDir()
+                // dir("zenoss-prodbin") {
+                //     checkout([
+                //         $class: 'GitSCM',
+                //         branches: [[name: BRANCH]],
+                //         extensions: [[$class: 'LocalBranch', localBranch: BRANCH]],
+                //         userRemoteConfigs: [[
+                //             credentialsId: GIT_CREDENTIAL_ID,
+                //             url: 'https://github.com/zenoss/zenoss-prodbin'
+                //         ]]
+                //     ])
+                // }
                 dir("product-assembly") {
                     checkout([
                         $class: 'GitSCM',
@@ -47,14 +38,12 @@ pipeline {
 		}
 		stage("Build") {
 			steps {
-				dir("zenoss-prodbin") {
-					sh("make")
-				}
+                sh("make")
 			}
 		}
 		stage("Test") {
 			steps {
-				dir("zenoss-prodbin/ci") {
+				dir("ci") {
 					sh("make")
 				}
 			}
