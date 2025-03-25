@@ -10,6 +10,7 @@
 
 SOLR_TEST_PORT="8993"
 ZK_TEST_PORT="9993"  # embedded ZK port is SOLR_TEST_PORT + 1000
+INSTANCE_HOME="/opt/zenoss"
 
 start_solr() {
 	echo "Preparing configuration files..."
