@@ -28,12 +28,10 @@ class TestGetStorage(TestCase):
     """Test the _get_storage function."""
 
     def setUp(t):
-        log = logging.getLogger()
-        log.setLevel(logging.FATAL + 1)
+        logging.disable(logging.FATAL + 1)
 
     def tearDown(t):
-        log = logging.getLogger()
-        log.setLevel(logging.NOTSET)
+        logging.disable(logging.NOTSET)
 
     @patch("{src}.relstorage.storage.RelStorage".format(**PATH), autospec=True)
     def test_nominal(t, relstorage_):
