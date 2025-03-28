@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<configure xmlns="http://namespaces.zope.org/zope">
+
+   <include package="Products.ZenModel" file="permissions.zcml"/>
+
+   <include package=".browser"/>
+
+   <subscriber handler=".zeneventdEvents.onSigTerm"/>
+   <subscriber handler=".zeneventdEvents.onSigUsr1"/>
+   <subscriber handler=".zeneventdEvents.onBuildOptions"/>
+   <subscriber handler=".zeneventdEvents.onDaemonCreated"/>
+   <subscriber handler=".zeneventdEvents.onDaemonStartRun"/>
+
+   <adapter
+      for=".NotificationDao.NotificationDao"
+      factory=".zenactiond.ProcessSignalTask"
+      provides=".interfaces.ISignalProcessorTask"
+      />
+
+   <include package="Products.ZenEvents" file="meta.zcml"/>
+
+   <eventIdentifierPlugin
+      plugin=".events2.processing.BaseEventIdentifierPlugin"
+      name="default"
+      />
+
+</configure>

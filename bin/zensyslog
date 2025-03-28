@@ -8,11 +8,9 @@
 # 
 ##############################################################################
 
-
 . $ZENHOME/bin/zenfunctions
 
-PRGHOME=$ZENHOME/Products/ZenEvents
-PRGNAME=zensyslog.py
+PRGMODULE=Products.ZenEvents.zensyslog
 CFGFILE=$CFGDIR/zensyslog.conf
 
 generic "$@"
