@@ -73,7 +73,7 @@ def build_device_config(
             send_event(
                 self,
                 exc,
-                self.request.task_id,
+                self.request.id,
                 (monitorname, deviceid, configclassname),
                 {"submitted": submitted},
             )
@@ -90,7 +90,6 @@ def build_device_config(
 def buildDeviceConfig(
     dmd, log, monitorname, deviceid, configclassname, submitted
 ):
-    svcconfigclass = resolve(configclassname)
     svcname = configclassname.rsplit(".", 1)[0]
     store = _getStore()
     key = DeviceKey(svcname, monitorname, deviceid)
@@ -157,6 +156,13 @@ def buildDeviceConfig(
         monitorname,
         svcname,
     )
+
+    try:
+        svcconfigclass = resolve(configclassname)
+    except Exception:
+        log.warn("could not load config service  service=%s", configclassname)
+        _delete_config(key, store, log)
+        return
 
     service = svcconfigclass(dmd, monitorname)
     method = getattr(service, "remote_getDeviceConfigs", None)

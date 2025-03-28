@@ -9,6 +9,7 @@
 
 from __future__ import absolute_import
 
+from .errors import UnknownServiceError
 from .tasks import build_device_config, build_oidmap
 
 
@@ -57,7 +58,9 @@ class DeviceConfigTaskDispatcher(object):
         """
         name = self._classnames.get(servicename)
         if name is None:
-            raise ValueError("service name '%s' not found" % servicename)
+            raise UnknownServiceError(
+                "service name '%s' not found" % servicename
+            )
         soft_limit, hard_limit = _get_limits(timeout)
         build_device_config.apply_async(
             args=(monitorid, deviceid, name),

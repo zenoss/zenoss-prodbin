@@ -44,6 +44,14 @@ def send_event(task, exc, task_id, args, kwargs):
     classkey, summary = _getErrorInfo(task, exc)
     name = task.getJobType() if hasattr(task, "getJobType") else task.name
     publisher = getUtility(IEventPublisher)
+    try:
+        description = task.description_from(*args, **kwargs)
+    except Exception as ex:
+        errormsg = "unable to get job description  job=%s"
+        task.log.error(errormsg, task.name)
+        mlog.exception(errormsg, task.name)
+        description = "No job description due to error: {}".format(ex)
+
     event = Event.Event(
         **{
             "evid": guid.generate(1),
@@ -52,7 +60,7 @@ def send_event(task, exc, task_id, args, kwargs):
             "component": "zenjobs",
             "eventClassKey": classkey,
             "eventKey": "{}|{}".format(classkey, name),
-            "message": task.description_from(*args, **kwargs),
+            "message": description,
             "summary": summary,
             "jobid": str(task_id),
         }

@@ -37,6 +37,6 @@ class UnPickledEvent(ZCmdBase):
         self.parser.set_defaults(logseverity=logging.DEBUG)
 
 
-if __name__ == "__main__":
+def main():
     unpickled = UnPickledEvent()
     unpickled.sendToRawEventQueue()
