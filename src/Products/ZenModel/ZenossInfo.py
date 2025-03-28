@@ -178,6 +178,8 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             rev = version.public[len(version.base_version) :].translate(
                 None, string.ascii_letters + "."
             )
+        else:
+            rev = ""
         major, minor, micro = [int(v) for v in version.base_version.split(".")]
         return Version("Zenoss", major, minor, micro, rev, version.local)
 
