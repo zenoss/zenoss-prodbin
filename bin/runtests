@@ -72,8 +72,14 @@ run_tests() {
 	return $exit_code
 }
 
+nosolr=0
+
 if [ "$1" == "--no-solr" ]; then
 	shift
+	nosolr=1
+fi
+
+if [ ${nosolr} -eq 1 ] || $(ping -c 1 solr >/dev/null 2>&1); then
 	run_tests $@
 	EXIT_CODE=$?
 elif [ "$1" == "--help" ]; then
@@ -81,9 +87,9 @@ elif [ "$1" == "--help" ]; then
 	EXIT_CODE=$?
 else
 	start_solr
+	trap stop_solr EXIT
 	run_tests $@
 	EXIT_CODE=$?
-	stop_solr
 fi
 
 exit $EXIT_CODE
