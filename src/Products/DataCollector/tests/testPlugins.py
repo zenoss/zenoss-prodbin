@@ -11,7 +11,11 @@ import unittest
 
 from os.path import join
 
-from Products.DataCollector.Plugins import CoreLoaderFactory, PackLoaderFactory
+from Products.DataCollector.Plugins import (
+    CoreLoaderFactory,
+    PackLoaderFactory,
+    _getModulePath,
+)
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 
@@ -31,7 +35,7 @@ class TestWalker(object):
         yield join(package, self.path), [], [self.filename]
 
 
-class BasePluginTest(BaseTestCase):
+class MixinPluginTest(object):
     def runTest(self):
         loaders = list(self.factory.genLoaders(self.package, "plugins"))
         self.assertEqual(1, len(loaders))
@@ -40,8 +44,8 @@ class BasePluginTest(BaseTestCase):
         self.assertEqual(self.pluginName, loaders[0].pluginName)
 
 
-class CorePluginTest(BasePluginTest):
-    "test the conventions used for core plugins"
+class CorePluginTest(BaseTestCase, MixinPluginTest):
+    """Test the conventions used for core plugins"""
 
     def afterSetUp(self):
         super(CorePluginTest, self).afterSetUp()
@@ -52,7 +56,7 @@ class CorePluginTest(BasePluginTest):
         self.modPath = self.pluginName
 
 
-class EggPackPluginTest(BasePluginTest):
+class EggPackPluginTest(BaseTestCase, MixinPluginTest):
     """
     test the conventions used for zenpack plugins against a simulated
     egg-installed zenpack
@@ -72,7 +76,7 @@ class EggPackPluginTest(BasePluginTest):
         self.modPath = ".".join([modPathPrefix, self.pluginName])
 
 
-class LinkPackPluginTest(BasePluginTest):
+class LinkPackPluginTest(BaseTestCase, MixinPluginTest):
     """
     test the conventions used for zenpack plugins against a simulated
     link-installed zenpack
@@ -93,9 +97,27 @@ class LinkPackPluginTest(BasePluginTest):
         self.lastModName = "plugins"
 
 
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(CorePluginTest))
-    suite.addTest(unittest.makeSuite(EggPackPluginTest))
-    suite.addTest(unittest.makeSuite(LinkPackPluginTest))
-    return suite
+class GetModulePathTest(unittest.TestCase):
+    def test_core(t):
+        package = (
+            "/opt/zenoss/lib/python2.7/site-packages"
+            "/Products/DataCollector/plugins"
+        )
+        modpath = "zenoss.cmd.linux.memory"
+        expected = "Products.DataCollector.plugins.zenoss.cmd.linux.memory"
+        actual = _getModulePath(package, modpath)
+        t.assertEqual(actual, expected)
+
+    def test_zenpack(t):
+        package = (
+            "/opt/zenoss/ZenPacks/"
+            "/ZenPacks.zenoss.LinuxMonitor-2.3.4-py2.7.egg/"
+            "/ZenPacks/zenoss/LinuxMonitor/modeler/plugins"
+        )
+        modpath = (
+            "ZenPacks.zenoss.LinuxMonitor.modeler.plugins."
+            "zenoss.cmd.linux.interfaces"
+        )
+        expected = modpath
+        actual = _getModulePath(package, modpath)
+        t.assertEqual(actual, expected)
