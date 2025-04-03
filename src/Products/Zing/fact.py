@@ -37,6 +37,7 @@ DELETION_FACT_PLUGIN = "zen_deletion"
 DYNAMIC_SERVICE_FACT_PLUGIN = "zen_impact_dynamic_service"
 LOGICAL_NODE_FACT_PLUGIN = "zen_impact_logical_node"
 LOGICAL_NODE_ORGANIZER_FACT_PLUGIN = "zen_impact_logical_node_organizer"
+IMPACT_METATYPE_CONFIG_FACT_PLUGIN = "zen_impact_metatype_config"
 
 
 class DimensionKeys(object):
@@ -69,6 +70,7 @@ class MetadataKeys(object):
     IMPACT_LN_CRITERIA_KEY = "logical_node_criteria"
     IMPACT_AVAILABILITY_MAP = "impact_availability_map"
     IMPACT_PERFORMANCE_MAP = "impact_performance_map"
+    IMPACT_ZP_METATYPE_CONFIG_MAP = "impact_zp_metatype_config_map"
     ZEN_SCHEMA_TAGS_KEY = "zen_schema_tags"
     ID_KEY = "id"
     TITLE_KEY = "title"
