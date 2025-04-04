@@ -9,7 +9,7 @@
 
 import re
 
-from Products.DataCollector.tests.plugins.CollectorPlugin import TestPlugin
+from ..CollectorPlugin import TestPlugin
 
 
 class withimports(TestPlugin):

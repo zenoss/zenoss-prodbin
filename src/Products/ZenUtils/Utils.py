@@ -21,6 +21,7 @@ import copy
 import ctypes
 import fcntl
 import httplib
+import importlib
 import logging
 import math
 import os
@@ -514,12 +515,7 @@ def importClass(modulePath, classname=""):
     try:
         if not classname:
             classname = modulePath.split(".")[-1]
-        try:
-            __import__(modulePath, globals(), locals(), classname)
-            mod = sys.modules[modulePath]
-        except (ValueError, ImportError, KeyError) as ex:
-            raise ex
-
+        mod = importlib.import_module(modulePath)
         return getattr(mod, classname)
     except AttributeError:
         raise ImportError(

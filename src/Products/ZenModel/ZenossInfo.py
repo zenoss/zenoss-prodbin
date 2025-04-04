@@ -162,8 +162,9 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         version_str = metadata.version("zenoss")
         version = pkg_resources.parse_version(version_str)
         if version.base_version != version.public:
-            rev = version.public[len(version.base_version) :].translate(
-                None, string.ascii_letters + "."
+            debased_version = version.public[len(version.base_version) :]
+            rev = debased_version.split(".")[-1].translate(
+                None, string.ascii_letters
             )
         major, minor, micro = [int(v) for v in version.base_version.split(".")]
         return Version("Zenoss", major, minor, micro, rev, version.local)
