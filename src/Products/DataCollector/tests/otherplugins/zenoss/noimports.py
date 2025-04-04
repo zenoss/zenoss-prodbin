@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from CollectorPlugin import TestPlugin
+from ..CollectorPlugin import TestPlugin
 
 
 class noimports(TestPlugin):
