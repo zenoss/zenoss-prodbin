@@ -35,15 +35,12 @@ Note that modPath uses a different convention for core versus zenpack plugins.
 """
 
 import exceptions
-import imp
+import importlib
 import logging
 import os
-import sys
 
 from importlib_resources import files as getFilePathOf
 from twisted.spread import pb
-
-from Products.ZenUtils.Utils import importClass
 
 log = logging.getLogger("zen.Plugins")
 
@@ -96,28 +93,18 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
         Load and compile the code contained in the given plugin
         """
         try:
-            try:
-                # Modify sys.path (some plugins depend on this to import other
-                # modules from the plugins root)
-                sys.path.insert(0, self.package)
-                pluginClass = self.importer.importPlugin(
-                    self.package, self.modPath
-                )
-                return pluginClass()
-            except Exception:
-                import traceback
+            pluginClass = self.importer.importPlugin(
+                self.package, self.modPath
+            )
+            return pluginClass()
+        except Exception:
+            import traceback
 
-                log.debug(traceback.format_exc())
-                raise PluginImportError(
-                    plugin=self.modPath,
-                    traceback=traceback.format_exc().splitlines(),
-                )
-        finally:
-            try:
-                sys.path.remove(self.package)
-            except ValueError:
-                # It's already been removed
-                pass
+            log.debug(traceback.format_exc())
+            raise PluginImportError(
+                plugin=self.modPath,
+                traceback=traceback.format_exc().splitlines(),
+            )
 
 
 pb.setUnjellyableForClass(PluginLoader, PluginLoader)
@@ -155,22 +142,8 @@ class OsWalker(object):
 
 class CoreImporter(pb.Copyable, pb.RemoteCopy):
     def importModule(self, package, modPath):
-        fp = None
-        # Load the plugins package using its path as the name to
-        # avoid conflicts. slashes in the name are OK when using
-        # the imp module.
-        parts = modPath.split(".")
-        path = package
-        try:
-            for partNo in range(1, len(parts) + 1):
-                part = parts[partNo - 1]
-                fp, path, description = imp.find_module(part, [path])
-                modSubPath = ".".join(parts[:partNo])
-                mod = imp.load_module(modSubPath, fp, path, description)
-        finally:
-            if fp:
-                fp.close()
-        return mod
+        modulepath = _getModulePath(package, modPath)
+        return importlib.import_module(modulepath)
 
     def importPlugin(self, package, modPath):
         parts = modPath.split(".")
@@ -185,28 +158,31 @@ pb.setUnjellyableForClass(CoreImporter, CoreImporter)
 
 class PackImporter(pb.Copyable, pb.RemoteCopy):
     def importModule(self, package, modPath):
-        modulePath = modPath
-        try:
-            classname = modulePath.split(".")[-1]
-            try:
-                __import__(modulePath, globals(), locals(), classname)
-                mod = sys.modules[modulePath]
-            except (ValueError, ImportError, KeyError) as ex:
-                raise ex
-
-            return mod
-        except AttributeError:
-            raise ImportError(
-                "Failed while importing module %s" % (modulePath)
-            )
+        # ZenPack plugins are specified absolutely
+        return importlib.import_module(modPath)
 
     def importPlugin(self, package, modPath):
         # ZenPack plugins are specified absolutely; we can import
         # them using the old method
-        return importClass(modPath)
+        classname = modPath.split(".")[-1]
+        module = importlib.import_module(modPath)
+        return getattr(module, classname)
 
 
 pb.setUnjellyableForClass(PackImporter, PackImporter)
+
+
+def _getModulePath(package, modpath):
+    parts = package.split("/")
+    parts.reverse()  # for indexing from the end of the list
+    try:
+        offset = parts.index("Products")
+    except ValueError:
+        offset = parts.index("ZenPacks")
+    parentmodpath = ".".join(reversed(parts[: offset + 1]))
+    if modpath.startswith(parentmodpath):
+        return modpath
+    return ".".join((parentmodpath, modpath))
 
 
 class BaseLoaderFactory(object):
