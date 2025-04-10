@@ -7,57 +7,16 @@
 #
 ##############################################################################
 
+import json
 import re
 import pkg_resources
-from pkg_resources import Requirement
+from datetime import datetime, timedelta
 
-OVERRIDE_ENTITY_TYPE = {
-    # meta_type -> entity type
-    # VSphere
-    "vSphereDistributedVirtualPortgroup": "DistributedVirtualPortgroup",
-    "vSphereDistributedVirtualSwitch": "DistributedVirtualSwitch",
-    "vSphereEndpoint": "Endpoint",
-    "vSphereHostSystem": "HostSystem",
-    "vSphereStandalone": "Standalone",
-    "vSphereVnic": "Vnic",
-    # CiscoUCS
-    "UCSStorageLocalDisk": "LocalDisk",
-    "UCSStorageVirtualDrive": "VirtualDrive",
-    "UCSVnicEther": "VirtualNic",
-    "UCSAdaptorUnit": "NetworkAdaptor",
-    "UCSCommonPort": "CommonPort",
-}
 
-OVERRIDE_ZENPACK_ENTITY_DOMAIN = {
-    # zenpack id -> entity domain
-    "ZenPacks.zenoss.AixMonitor": "AIX"
-}
+from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.controlplane import configuration as cc_config
 
-OVERRIDE_ZENPACK_ENTITY_TYPE_SOURCE = {
-    # by default, entity type names are derived from the class label, or its
-    # name if that is not available.
-    #
-    # In some cases, we may wish to have it use the meta type or class name
-    # preferentially.
-    # entity domain -> "meta_type_direct", "meta_type" | "class_name" | "default"
-    # - meta_type_direct means to use the meta_type as the entity type, as is.
-    # - meta_type means to use the meta_type, but normalize its capitalization.
-    "ZenPacks.zenoss.Kubernetes": "meta_type_direct"
-}
-
-DEFAULT_DEVICE_CLASS_DOMAIN = {
-    '/Network': "Network",
-    '/Ping': "Ping",
-    '/Power/UPS': "UPS",
-    '/Printer': "Printer",
-    '/Server/IBM': "AIX",
-    '/Server/Linux': "Linux",
-    '/Server/SSH/AIX': "AIX",
-    '/Server/Scan': "Scanner",
-    '/Server/VMware': "VSphere",
-    '/Server/Windows': "Microsoft.Windows",
-    '/Storage/EMC': "EMC"
-}
+_default_interval = 86400.0  # seconds
 
 def zenpack_names():
     for pkg in pkg_resources.iter_entry_points("zenoss.zenpacks"):
@@ -82,8 +41,9 @@ def get_class_zenpack(cls):
 
 
 def get_zenpack_domain(zpname):
-    if zpname in OVERRIDE_ZENPACK_ENTITY_DOMAIN:
-        return OVERRIDE_ZENPACK_ENTITY_DOMAIN[zpname]
+    has_it, override = entity_overrider.hasGetOverRideZenPackEntityDomains(zpname)
+    if has_it:
+        return override
 
     domain = re.sub(r"ZenPacks.zenoss\.PS\.", "", zpname)
     domain = re.sub(r"ZenPacks\.[^\.]+\.", "", domain)
@@ -136,8 +96,9 @@ def get_device_class_zenpack(dc):
 
 
 def get_class_entity_type(cls):
-    if cls.meta_type in OVERRIDE_ENTITY_TYPE:
-        return OVERRIDE_ENTITY_TYPE[cls.meta_type]
+    has_it, entity_type = entity_overrider.hasGetOverRideEntityTypes(cls.meta_type)
+    if has_it:
+        return entity_type
 
     zenpack = get_class_zenpack(cls)
     domain = None
@@ -145,8 +106,8 @@ def get_class_entity_type(cls):
         domain = get_zenpack_domain(zenpack)
 
         # Support specification of the entity type source attribute on a per-zenpack basis
-        if zenpack in OVERRIDE_ZENPACK_ENTITY_TYPE_SOURCE:
-            source = OVERRIDE_ZENPACK_ENTITY_TYPE_SOURCE[zenpack]
+        has_it, source = entity_overrider.hasGetOverRideZenPackEntityTypeSources(zenpack)
+        if has_it:
             if source == "meta_type_direct":
                 return cls.meta_type
             if source == "meta_type":
@@ -195,8 +156,9 @@ def get_object_entity_domain(obj):
         dcName = dc.getOrganizerName()
         if dcName == "/":
             break
-        if dcName in DEFAULT_DEVICE_CLASS_DOMAIN:
-            return DEFAULT_DEVICE_CLASS_DOMAIN[dcName]
+        has_it, domain = entity_overrider.hasGetDefaultDeviceClassDomains(dcName)
+        if has_it:
+            return domain
         dc = dc.getPrimaryParent()
 
     # Otherwise, we have no identifiable domain.
@@ -212,3 +174,64 @@ def get_object_entity_zenpack(obj):
     if zenpack:
         return zenpack
     zenpack = get_device_class_zenpack(obj.deviceClass())
+
+class EntityOverrider:
+    def __init__(self, ttl=_default_interval):
+        self.cache = {}
+        self.ttl = timedelta(seconds=ttl)
+        self.key = cc_config.tenant_id + "_override_timestamp"
+        self.entity_type_overrides = {
+            "overRideEntityTypes": [],
+            "overRideZenPackEntityDomains": [],
+            "overRideZenPackEntityTypeSources": [],
+            "defaultDeviceClassDomains": []
+        }
+
+    def get_cache(self):
+        if self.key in self.cache:
+            value = self.cache[self.key]
+            diff = datetime.now() - value
+            if diff.days * 86400 + diff.seconds < self.ttl.days * 86400 + self.ttl.seconds:
+                return value
+            else:
+                del self.cache[self.key]
+                return None
+        else:
+            return None
+
+    def set_cache(self):
+        self.cache[self.key] = datetime.now()
+
+    def load_overrides(self):
+        # TODO: determine actual location
+        defaultOverridesPath = zenPath('Products/Zing/entity_overrides.json')
+        with open(defaultOverridesPath, 'r') as f:
+            self.entity_type_overrides = json.loads(f.read())
+
+    def get_overrides(self):
+        if self.get_cache() is None:
+            self.load_overrides()
+            self.set_cache()
+        return self.entity_type_overrides
+
+    def _hasGetOverRide(self, key, override):
+        self.get_overrides()
+        if key in self.entity_type_overrides[override]:
+            return True, self.entity_type_overrides[override][key]
+        return False, None
+
+    def hasGetOverRideEntityTypes(self, entity_type):
+        return self._hasGetOverRide(entity_type, 'overRideEntityTypes')
+
+    def hasGetOverRideZenPackEntityDomains(self, zpname):
+        return self._hasGetOverRide(zpname, 'overRideZenPackEntityDomains')
+
+    def hasGetOverRideZenPackEntityTypeSources(self, zpname):
+        return self._hasGetOverRide(zpname, 'overRideZenPackEntityTypeSources')
+
+    def hasGetDefaultDeviceClassDomains(self, domain):
+        return self._hasGetOverRide(domain, 'defaultDeviceClassDomains')
+
+
+# singleton for keeping overrides in cache and convenience methods
+entity_overrider = EntityOverrider()
