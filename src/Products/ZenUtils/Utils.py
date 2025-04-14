@@ -69,6 +69,7 @@ from .Threading import (  # noqa: F401
     LineReader,
     ThreadInterrupt,
 )
+import threading
 
 log = logging.getLogger("zen.Utils")
 DEFAULT_SOCKET_TIMEOUT = 30
@@ -1334,15 +1335,27 @@ def executeCommand(cmd, REQUEST, write=None):
 
             write = _write
         log.info("Executing command: %s", " ".join(cmd))
-        f = Popen4(cmd)
-        while 1:
-            s = f.fromchild.readline()
-            if not s:
-                break
-            elif write:
-                write(s)
+
+        f = Popen(cmd, stdout=PIPE, stderr=STDOUT)
+        stdout = LineReader(f.stdout)
+        stdout.start()
+
+        _sleeper = threading.Event()
+
+        exitcode = None
+        while exitcode is None:
+            line = stdout.readline()
+            if line:
+                line = line.rstrip()
+                if write:
+                    write(line)
+                else:
+                    log.info(line)
             else:
-                log.info(s)
+                exitcode = f.poll()
+                _sleeper.wait(0.1)
+        stdout.join(timeout=1.0)
+
     except ZentinelException as e:
         if xmlrpc:
             return 1
@@ -1352,8 +1365,7 @@ def executeCommand(cmd, REQUEST, write=None):
             return 1
         raise
     else:
-        result = f.wait()
-        result = int(hex(result)[:-2], 16)
+        result = f.returncode
     return result
 
 
