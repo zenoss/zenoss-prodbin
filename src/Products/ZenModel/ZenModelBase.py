@@ -32,11 +32,12 @@ from Products.ZenMessaging.audit import audit as auditFn
 from Products.ZenRelations.ZenPropertyManager import iscustprop
 from Products.ZenUI3.browser.interfaces import INewPath
 from Products.ZenUtils.csrf import get_csrf_token
+from Products.ZenUtils.path import zenpathjoin, zenpathsplit
 from Products.ZenUtils.Time import isoDateTime, convertJsTimeFormatToPy
+from Products.ZenUtils.Utils import getDisplayType
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 from Products.ZenUtils.Utils import getObjByPath, unpublished
 from Products.ZenUtils.Utils import prepId as globalPrepId, isXmlRpc
-from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin, getDisplayType
 from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenWidgets import messaging
 

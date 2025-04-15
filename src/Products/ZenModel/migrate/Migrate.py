@@ -24,12 +24,12 @@ from textwrap import wrap
 
 import transaction
 
-from Products.ZenModel.ZVersion import VERSION
-from Products.ZenReports.ReportLoader import ReportLoader
-from Products.ZenUtils.terminal_size import get_terminal_size
-from Products.ZenUtils.Utils import zenPath
-from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.Version import Version as VersionBase
+from Products.ZenReports.ReportLoader import ReportLoader
+from Products.ZenUtils.path import zenPath
+from Products.ZenModel.ZVersion import VERSION
+from Products.ZenUtils.terminal_size import get_terminal_size
 
 log = logging.getLogger("zen.migrate")
 HIGHER_THAN_CRITICAL = 100

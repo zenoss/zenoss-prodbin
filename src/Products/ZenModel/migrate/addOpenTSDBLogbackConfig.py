@@ -12,7 +12,7 @@ import os.path
 
 import servicemigration as sm
 
-import Migrate
+from . import Migrate
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.0.0")
