@@ -1,0 +1,6 @@
+#!/opt/zenoss/bin/python2
+import sys
+from Products.ZenUtils.ZenDB import main
+
+if __name__ == "__main__":
+    sys.exit(main())
