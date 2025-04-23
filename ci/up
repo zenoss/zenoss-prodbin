@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Configure the environment to run compose
+make deps
+
+# Create/build the compose services
+docker compose up --remove-orphans --build --wait rabbitmq redis mariadb solr
