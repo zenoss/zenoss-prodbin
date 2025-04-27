@@ -8,7 +8,7 @@
 ##############################################################################
 import os
 import logging
-log = logging.getLogger('zen.UITests')
+
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
 
