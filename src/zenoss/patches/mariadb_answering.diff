@@ -1,0 +1,29 @@
+--- a/opt/zenoss/bin/healthchecks/mariadb_answering
++++ b/opt/zenoss/bin/healthchecks/mariadb_answering
+@@ -8,4 +8,25 @@
+ #
+ ##############################################################################
+ 
+-su - zenoss -c '/opt/zenoss/bin/python /opt/zenoss/bin/zendb --usedb zodb --execsql=";"'
++set -e
++
++FILE=/opt/zenoss/etc/global.conf
++
++_PREFIX=$1
++prefix=${_PREFIX:-zodb}
++
++getprop() {
++	grep "$1" $FILE | awk '{print $2}'
++}
++
++_USER=$(getprop "${prefix}-user")
++_PASS=$(getprop "${prefix}-password")
++_HOST=$(getprop "${prefix}-host")
++_PORT=$(getprop "${prefix}-port")
++
++USER=${_USER:-zenoss}
++PASS=${_PASS:-zenoss}
++HOST=${_HOST:-127.0.0.1}
++PORT=${_PORT:-3306}
++
++/usr/bin/mysql --protocol TCP -u${USER} -h${HOST} -P${PORT} -p${PASS} -e ';' > /dev/null
