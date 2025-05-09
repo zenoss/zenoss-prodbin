@@ -69,8 +69,7 @@ class DeviceUpdateHandler(object):
             if not isinstance(
                 status,
                 (
-                    # These statuses won't get 'stuck' in a wait period
-                    # before manager handles them.
+                    ConfigStatus.Pending,
                     ConfigStatus.Expired,
                     ConfigStatus.Retired,
                 ),
