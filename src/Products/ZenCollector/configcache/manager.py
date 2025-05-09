@@ -265,6 +265,12 @@ class Manager(object):
             limitValue,
         )
 
+
+    _log_text = {
+        ConfigStatus.Pending: "scheduled for rebuild",
+        ConfigStatus.Building: "rebuilding"
+    }
+
     def _get_device_configs_to_rebuild(self):
         minttl_map = DevicePropertyMap.make_minimum_ttl_map(
             self.ctx.dmd.Devices
@@ -275,24 +281,37 @@ class Manager(object):
         ready_to_rebuild = []
 
         # Retrieve the 'retired' configs
-        for status in self.stores.device.get_retired():
-            built = self.stores.device.get_updated(status.key)
-            uid = self.stores.device.get_uid(status.key.device)
+        for retired in self.stores.device.get_retired():
+            built = self.stores.device.get_updated(retired.key)
+            uid = self.stores.device.get_uid(retired.key.device)
             if built is None or built < now - minttl_map.get(uid):
-                ready_to_rebuild.append(status)
+                ready_to_rebuild.append(retired)
 
         # Append the 'expired' configs
         ready_to_rebuild.extend(self.stores.device.get_expired())
 
         # Append the 'older' configs.
         min_age = now - ttl_map.smallest_value()
-        for status in self.stores.device.get_older(min_age):
+        for aged in self.stores.device.get_older(min_age):
             # Select the min ttl if the ttl is a smaller value
-            uid = self.stores.device.get_uid(status.key.device)
+            uid = self.stores.device.get_uid(aged.key.device)
             limit = max(minttl_map.get(uid), ttl_map.get(uid))
             expiration_threshold = now - limit
-            if status.updated <= expiration_threshold:
-                ready_to_rebuild.append(status)
+            if aged.updated <= expiration_threshold:
+                status = self.stores.device.get_status(aged.key)
+                if isinstance(
+                    status, (ConfigStatus.Pending, ConfigStatus.Building)
+                ):
+                    self.log.debug(
+                        "old config already %s  "
+                        "service=%s collector=%s device=%s",
+                        self._log_text[type(status)],
+                        aged.key.service,
+                        aged.key.monitor,
+                        aged.key.device,
+                    )
+                else:
+                    ready_to_rebuild.append(aged)
 
         return ready_to_rebuild
 

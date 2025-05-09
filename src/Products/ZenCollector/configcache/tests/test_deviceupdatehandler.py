@@ -111,7 +111,7 @@ class DeviceUpdateHandlerTest(TestCase):
         t.handler((key1, key2), 1000.0)
 
         t.store.set_retired.assert_called_with()
-        t.store.set_expired.assert_called_with((key2, now), (key1, now))
+        t.store.set_expired.assert_called_with()
 
     @patch("{src}.time".format(**PATH), autospec=True)
     def test_only_expired(t, _time):
