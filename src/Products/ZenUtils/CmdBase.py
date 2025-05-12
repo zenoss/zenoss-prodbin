@@ -153,8 +153,8 @@ class CmdBase(object):
         self.buildParser()
         self.buildOptions()
         # Update the defaults from the config files
-        self.parser.defaults.update(
-            _get_defaults_from_config([] if self.noopts else self.inputArgs)
+        _apply_config_to_parser(
+            self.parser, _get_config([] if self.noopts else self.inputArgs)
         )
         self.parseOptions()
 
@@ -767,8 +767,16 @@ def _build_parser(version=None, cls=OptionParser):
     return cls(option_class=CmdBaseOption)
 
 
-def _get_defaults_from_config(args):
-    overrides = dict(getGlobalConfiguration())
+def _apply_config_to_parser(parser, config):
+    for name, raw_value in config.iteritems():
+        option = parser.get_option("--{}".format(name))
+        if not option:
+            continue
+        parser.defaults[option.dest] = option.convert_value(name, raw_value)
+
+
+def _get_config(args):
+    config = dict(getGlobalConfiguration())
 
     cparser = _build_parser(cls=_KnownOptionsParser)
     cparser.add_option(
@@ -781,13 +789,13 @@ def _get_defaults_from_config(args):
     if opts.configfile:
         try:
             appcfg = ConfigLoader(opts.configfile)()
-            overrides.update(appcfg)
+            config.update(appcfg)
         except Exception as ex:  # noqa: F841 S110
             # Restore this code when the wrapper scripts no longer
             # add the -C option all the time.
             # print("warning: {}".format(ex), file=sys.stderr)
             pass
-    return {key.replace("-", "_"): value for key, value in overrides.items()}
+    return config
 
 
 class _KnownOptionsParser(OptionParser):
