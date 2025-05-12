@@ -18,7 +18,6 @@ import Products.ZenModel as _zm
 
 from . import Migrate
 
-
 class BetterStandardErrorMessage(Migrate.Step):
     version = Migrate.Version(1, 1, 0)
 

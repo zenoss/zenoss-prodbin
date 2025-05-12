@@ -8,8 +8,7 @@
 # 
 ##############################################################################
 
-
-__doc__='''zenbackup
+'''zenbackup
 
 Creates backup of Zope data files, Zenoss conf files and the events database.
 '''
@@ -27,13 +26,15 @@ import re
 import gzip
 from itertools import imap
 
-from ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath, binPath, readable_time
-from ZenBackupBase import *
 from zope.interface import implements
-from Products.Zuul.interfaces import IPreBackupEvent, IPostBackupEvent
 from zope.event import notify
-from ZenDB import ZenDB
+
+from Products.ZenUtils.path import zenPath, binPath
+from Products.ZenUtils.Utils import readable_time
+from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.ZenBackupBase import *
+from Products.ZenUtils.ZenDB import ZenDB
+from Products.Zuul.interfaces import IPreBackupEvent, IPostBackupEvent
 
 
 MAX_UNIQUE_NAME_ATTEMPTS = 1000

@@ -10,8 +10,8 @@
 import socket
 import time
 
-from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.CmdBase import CmdBase
+from Products.ZenUtils.path import zenPath
 
 defaultInfile = zenPath("log", "origsyslog.log")
 SYSLOG_PORT = socket.getservbyname("syslog", "udp")
