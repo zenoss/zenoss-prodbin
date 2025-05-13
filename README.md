@@ -7,9 +7,9 @@ Zenoss Prodbin is a standard Python package.  It installs into the site-packages
 
 The included makefile provides the following targets:
 
-   build - (default) Build the distribution artifact, a .whl file, and place it in the dist/ folder
-   clean - Remove all build artifacts
-   test - Configure the testing environment and run the tests
+   * build - (default) Build the distribution artifact, a .whl file, and place it in the dist/ folder
+   * clean - Remove all build artifacts
+   * test - Configure the testing environment and run the tests
 
 
 ## Developmemt
