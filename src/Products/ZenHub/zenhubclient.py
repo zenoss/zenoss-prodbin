@@ -231,6 +231,7 @@ class ZenHubClient(object):
             else:
                 log.warning("broker.transport.socket attribute is missing")
 
+            self._reset()
             self._zenhubref = yield self._login(broker)
 
             self._instanceId = yield self._zenhubref.callRemote(
