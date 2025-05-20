@@ -1,68 +1,12 @@
 #!/bin/bash
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2018, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2018, 2025 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
-
-SOLR_TEST_PORT="8993"
-ZK_TEST_PORT="9993"  # embedded ZK port is SOLR_TEST_PORT + 1000
-INSTANCE_HOME="/opt/zenoss"
-
-start_solr() {
-	echo "Preparing configuration files..."
-	mkdir -p /tmp/testing/solr/configsets /tmp/testing/solr/data
-	cp -rf /opt/solr/server/solr/configsets/zenoss_model/ /tmp/testing/solr/configsets
-	cp -f /opt/solr/server/solr/solr.xml /tmp/testing/solr/data
-	cp -f /opt/solr/server/solr/zoo.cfg /tmp/testing/solr/data
-	echo "name=zenoss_model" > /tmp/testing/solr/configsets/zenoss_model/core.properties
-
-	echo "Starting Solr for testing purposes..."
-	/opt/solr/bin/solr start \
-		-f \
-		-p $SOLR_TEST_PORT \
-		-s /tmp/testing/solr/data \
-		-v \
-		-cloud \
-		-Dsolr.log.muteconsole \
-		-DzkRun \
-		-DnumShards=1 \
-		-Dbootstrap_confdir=/tmp/testing/solr/configsets/zenoss_model/conf \
-		-Dcollection.configName=zenoss_model \
-		-Dsolr.jetty.request.header.size=1000000 \
-		> "/tmp/testing/solr-console.log" \
-		2>&1 \
-		&
-	export SOLR_TEST_PID=$!
-	echo "SOLR_TEST_PID=$SOLR_TEST_PID"
-	echo "SOLR_TEST_PORT=$SOLR_TEST_PORT"
-	echo "Waiting for Solr to start..."
-	until $(curl -A 'Solr answering healthcheck' -sI http://localhost:$SOLR_TEST_PORT/solr/admin/cores | grep -q 200); do
-	sleep 5
-	done
-	echo "Solr is running"
-
-	echo "Creating zenoss_model collection"
-	/opt/solr/bin/solr create_collection \
-		-c zenoss_model \
-		-d /tmp/testing/solr/configsets/zenoss_model/conf \
-		-n zenoss_model \
-		-p $SOLR_TEST_PORT 1> "/tmp/testing/solr-console.log" \
-		2>&1 \
-		&
-	until $(/opt/solr/bin/solr healthcheck -c zenoss_model -z localhost:$ZK_TEST_PORT | grep -q "zenoss_model"); do
-	sleep 5
-	done
-	echo "Collection is created"
-}
-
-stop_solr() {
-	echo "Stopping Solr (up to 180 sec)..."
-	/opt/solr/bin/solr stop -p $SOLR_TEST_PORT 1> /dev/null
-}
 
 run_tests() {
 	echo "Starting runtest.py"
@@ -72,24 +16,5 @@ run_tests() {
 	return $exit_code
 }
 
-nosolr=0
-
-if [ "$1" == "--no-solr" ]; then
-	shift
-	nosolr=1
-fi
-
-if [ ${nosolr} -eq 1 ] || $(ping -c 1 solr >/dev/null 2>&1); then
-	run_tests $@
-	EXIT_CODE=$?
-elif [ "$1" == "--help" ]; then
-	run_tests $@
-	EXIT_CODE=$?
-else
-	start_solr
-	trap stop_solr EXIT
-	run_tests $@
-	EXIT_CODE=$?
-fi
-
-exit $EXIT_CODE
+run_tests $@
+exit $?
