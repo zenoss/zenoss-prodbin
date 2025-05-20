@@ -107,29 +107,30 @@ class Receiver(object):
         """
         A SNMP trap can request that the trap recipient return back a response.
         """
-        try:
-            reply = netsnmp.lib.snmp_clone_pdu(ctypes.byref(pdu))
-            if not reply:
-                log.error("could not clone PDU for INFORM response")
-                return
-            reply.contents.command = netsnmp.CONSTANTS.SNMP_MSG_RESPONSE
-            reply.contents.errstat = 0
-            reply.contents.errindex = 0
+        reply = netsnmp.lib.snmp_clone_pdu(ctypes.byref(pdu))
+        if not reply:
+            log.error("could not clone PDU for INFORM response")
+            return
+        reply.contents.command = netsnmp.CONSTANTS.SNMP_MSG_RESPONSE
+        reply.contents.errstat = 0
+        reply.contents.errindex = 0
 
-            # FIXME: might need to add udp6 for IPv6 addresses
-            sess = netsnmp.Session(
-                peername="%s:%d" % tuple(addr), version=pdu.version
-            )
-            sess.open()
-            try:
-                if not netsnmp.lib.snmp_send(sess.sess, reply):
-                    netsnmp.lib.snmp_sess_perror(
-                        "unable to send inform PDU", self._session.sess
-                    )
-            finally:
-                sess.close()
+        # FIXME: might need to add udp6 for IPv6 addresses
+        sess = netsnmp.Session(
+            peername="%s:%d" % tuple(addr), version=pdu.version
+        )
+        sess.open()
+        try:
+            if not netsnmp.lib.snmp_send(sess.sess, reply):
+                netsnmp.lib.snmp_sess_perror(
+                    "unable to send PDU for INFORM response",
+                    self._session.sess,
+                )
+                netsnmp.lib.snmp_free_pdu(reply)
+            else:
+                log.debug("sent INFORM response  host=%s", addr[0])
         finally:
-            netsnmp.lib.snmp_free_pdu(reply)
+            sess.close()
 
 
 def _pre_parse(session, transport, transport_data, transport_data_length):

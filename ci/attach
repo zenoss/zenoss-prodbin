@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo
+echo Run \"pip install -e .\" to install prodbin as an editable package.
+echo
+
+docker compose run --remove-orphans --quiet --build -i -u root -w /mnt runtests /bin/bash

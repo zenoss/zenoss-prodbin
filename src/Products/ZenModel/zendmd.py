@@ -42,10 +42,10 @@ parser = OptionParser(
     usage="usage: %prog [options] -- [ipthon_options] [ipython_args]"
 )
 parser.add_option(
-    "--host", dest="host", default=None, help="Hostname of ZEO server"
+    "--host", dest="host", default=None, help="Hostname of ZODB server"
 )
 parser.add_option(
-    "--port", dest="port", type="int", default=None, help="Port of ZEO server"
+    "--port", dest="port", type="int", default=None, help="Port of ZODB server"
 )
 parser.add_option(
     "--script", dest="script", default=None, help="Name of file to execute."
@@ -138,13 +138,6 @@ def set_db_config(host=None, port=None):
 def _search_super(obj, pattern, s, seen):
     vars_ = vars(obj)
     mro = tuple(reversed(obj.__class__.mro()))
-
-    def search_mro(dct, attr_name, attr=None):
-        for cls in mro:
-            if safe_hasattr(cls, attr_name):
-                dct[cls].append((attr_name, attr))
-                break
-
     attrs = defaultdict(lambda: [])
     methods = defaultdict(lambda: [])
     for attr_name in dir(obj):
@@ -160,15 +153,22 @@ def _search_super(obj, pattern, s, seen):
             vars_[attr_name] if attr_name in vars_ else getattr(obj, attr_name)
         )
         if not inspect.ismethod(attr):
-            search_mro(attrs, attr_name, attr)
+            _search_mro(mro, attrs, attr_name, attr)
             continue
-        search_mro(methods, attr_name, attr)
+        _search_mro(mro, methods, attr_name, attr)
     mro_slice = mro if s is None else mro[-s - 1 :]
     new_seen = set()
     for _, attr_infos in attrs.items() + methods.items():
         for attr_name, _ in attr_infos:
             new_seen.add(attr_name)
     return new_seen, (mro_slice, attrs, methods)
+
+
+def _search_mro(mro, dct, attr_name, attr=None):
+    for cls in mro:
+        if safe_hasattr(cls, attr_name):
+            dct[cls].append((attr_name, attr))
+            break
 
 
 def _search_print(mro_slice, attrs, methods):
@@ -202,11 +202,10 @@ def _search_print(mro_slice, attrs, methods):
             print("\n ", signature, "\n ", fileinfo)
 
 
-def _customStuff():
+def _customStuff():  # noqa: C901
     """
     Everything available in the console is defined here.
     """
-
     import socket
     from pprint import pprint
 
@@ -256,6 +255,7 @@ def _customStuff():
         noSecurityManager()
 
     def zhelp():
+        global _CUSTOMSTUFF
         cmds = sorted(filter(lambda x: not x.startswith("_"), _CUSTOMSTUFF))
         for cmd in cmds:
             print(cmd)
@@ -408,6 +408,7 @@ def _customStuff():
         output, errors = proc.communicate()
         proc.wait()
         if not interactive:
+            global _CUSTOMSTUFF
             output = output.split("\n")[:-1]
             errors = errors.split("\n")[:-1]
             _CUSTOMSTUFF["shell_stdout"] = output
@@ -453,10 +454,21 @@ def _customStuff():
             fp.close()
 
         sh("%s %s" % (editor, file))
+        global _CUSTOMSTUFF
         six.exec_(compile(open(file).read()), globals(), _CUSTOMSTUFF)  # noqa: S102
         if isTmpName:
             os.unlink(file)
 
+    def _get_functions():
+        from Products.ZenUtils.Utils import setLogLevel
+        from Products.Zuul import getFacade, listFacades
+
+        return setLogLevel, getFacade, listFacades
+
+    setLogLevel, getFacade, listFacades = _get_functions()
+    del _get_functions
+
+    global _CUSTOMSTUFF
     _CUSTOMSTUFF = locals()
     return _CUSTOMSTUFF
 
@@ -638,35 +650,44 @@ def main():
             break
     notify(ZenDMDStartedEvent())
     if opts.script:
-        if not os.path.exists(opts.script):
-            print("Unable to open script file '%s' -- exiting" % opts.script)
-            sys.exit(1)
-        # copy globals() to temporary dict
-        allVars = dict(globals().iteritems())
-        allVars.update(vars_)
-        oldKeys = set(allVars.keys())
-        six.exec_(open(opts.script).read(), allVars, allVars)
-        if opts.shell:
-            newKeys = set(allVars.keys()).difference(oldKeys)
-            vars_.update({k: allVars[k] for k in newKeys})
+        _run_script(vars_)
+    _run_interactive(vars_)
+
+
+def _run_script(vars_):
+    if not os.path.exists(opts.script):
+        print("Unable to open script file '%s' -- exiting" % opts.script)
+        sys.exit(1)
+    # copy globals() to temporary dict
+    allVars = dict(globals().iteritems())
+    allVars.update(vars_)
+    oldKeys = set(allVars.keys())
+    six.exec_(open(opts.script).read(), allVars, allVars)
+    if opts.shell:
+        newKeys = set(allVars.keys()).difference(oldKeys)
+        vars_.update({k: allVars[k] for k in newKeys})
+    else:
+        if opts.commit:
+            audit.audit("Shell.Script.Commit")
+            from transaction import commit
+
+            commit()
         else:
-            if opts.commit:
-                audit.audit("Shell.Script.Commit")
-                from transaction import commit
+            try:
+                transaction.abort()
+            except Exception:  # noqa: S110
+                pass
+        sys.exit(0)
 
-                commit()
-            else:
-                try:
-                    transaction.abort()
-                except Exception:  # noqa: S110
-                    pass
-            sys.exit(0)
 
-    _banner = (
-        "Welcome to the Zenoss dmd command shell!\n"
-        "'dmd' is bound to the DataRoot. 'zhelp()' to get a list of "
-        "commands."
-    )
+_banner = (
+    "Welcome to the Zenoss dmd command shell!\n"
+    "'dmd' is bound to the DataRoot. 'zhelp()' to get a list of commands."
+)
+
+
+def _run_interactive(vars_):
+    global _banner
     try:
         if IPShellEmbed:
             sys.argv[1:] = args
