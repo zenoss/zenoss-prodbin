@@ -91,15 +91,12 @@ def buildDeviceConfig(
     dmd, log, monitorname, deviceid, configclassname, submitted
 ):
     svcname = configclassname.rsplit(".", 1)[0]
-    store = _getStore()
     key = DeviceKey(svcname, monitorname, deviceid)
 
-    # record when this build starts
+    # Record when this build starts
     started = time()
 
-    # Check whether this is an old job, i.e. job pending timeout.
-    # If it is an old job, skip it, manager already sent another one.
-    status = store.get_status(key)
+    # Skip this job if the device is not found in ZODB
     device = dmd.Devices.findDeviceByIdExact(deviceid)
     if device is None:
         log.warn(
@@ -113,39 +110,12 @@ def buildDeviceConfig(
         # Speculatively delete the config because this device may have been
         # re-identified under a new ID so the config keyed by the old ID
         # should be removed.
-        _delete_config(key, store, log)
+        _delete_config(key, _getStore(), log)
         return
 
-    if _job_is_old(status, submitted, started, device, log):
-        return
+    store = _getStore()
 
-    # If the status is Expired, another job is coming, so skip this job.
-    if isinstance(status, ConfigStatus.Expired):
-        log.warn(
-            "skipped this job because another job is coming  "
-            "device=%s collector=%s service=%s submitted=%f",
-            key.device,
-            key.monitor,
-            key.service,
-            submitted,
-        )
-        return
-
-    # If the status is Pending, verify whether it's for this job, and if not,
-    # skip this job.
-    if isinstance(status, ConfigStatus.Pending):
-        s1 = int(submitted * 1000)
-        s2 = int(status.submitted * 1000)
-        if s1 != s2:
-            log.warn(
-                "skipped this job in favor of newer job  "
-                "device=%s collector=%s service=%s submitted=%f",
-                key.device,
-                key.monitor,
-                key.service,
-                submitted,
-            )
-            return
+    original_status = store.get_status(key)  # this may return None
 
     # Change the configuration's status to 'building' to indicate that
     # a config is now building.
@@ -202,14 +172,12 @@ def buildDeviceConfig(
         # Get the current status of the configuration.
         recent_status = store.get_status(key)
 
-        # Test whether the status should be updated
+        # Determine whether the status should be updated
         update_status = _should_update_status(
             recent_status, started, deviceid, monitorname, svcname, log
         )
 
         if not update_status:
-            # recent_status is not ConfigStatus.Building, so another job
-            # will be submitted or has already been submitted.
             store.put_config(record)
             log.info(
                 "saved config without changing status  "
@@ -220,7 +188,7 @@ def buildDeviceConfig(
                 svcname,
             )
         else:
-            verb = "replaced" if status is not None else "added"
+            verb = "replaced" if original_status is not None else "added"
             store.add(record)
             log.info(
                 "%s config  updated=%s device=%s collector=%s service=%s",

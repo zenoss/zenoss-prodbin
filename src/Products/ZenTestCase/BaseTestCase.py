@@ -92,7 +92,7 @@ def reset_model_catalog():
     Deletes temporary documents from previous tests.
     They should be cleaned by abort() but just in case
     """
-    model_index = zope.component.createObject('ModelIndex', get_solr_config(test=True))
+    model_index = zope.component.createObject('ModelIndex', get_solr_config())
     model_index.unindex_search(SearchParams(query="NOT tx_state:0"))
 
 
@@ -100,7 +100,7 @@ def init_model_catalog_for_tests():
     from Products.Zuul.catalog.model_catalog import register_model_catalog, register_data_manager_factory
     from zenoss.modelindex.api import _register_factories, reregister_subscriptions
     _register_factories()
-    register_model_catalog(test=True)
+    register_model_catalog()
     register_data_manager_factory(test=True)
     reregister_subscriptions()
     reset_model_catalog()
