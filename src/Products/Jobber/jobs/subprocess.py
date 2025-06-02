@@ -66,7 +66,6 @@ class SubprocessJob(Job):
                     cmd,
                     bufsize=1,
                     env=environ,
-                    close_fds=True,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                 )
