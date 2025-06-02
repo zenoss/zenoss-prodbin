@@ -35,7 +35,7 @@ class TestModelCatalogTransactions(BaseTestCase):
         # Lets change the ModelCatalogTestDataManager with
         # ModelCatalogDataManager.
         self.model_catalog = IModelCatalogTool(self.dmd)
-        solr_url = get_solr_config(test=True)
+        solr_url = get_solr_config()
         self.data_manager = ModelCatalogDataManager(solr_url, self.dmd)
         self.model_catalog.model_catalog_client._data_manager = (
             self.data_manager
