@@ -399,7 +399,7 @@ class EmailAction(IActionBase, TargetableAction):
             plain_body = MIMEText(body.decode('ascii', 'ignore'))
         return plain_body
 
-    def _targetsByTz(self, notification, signal, targets):
+    def _targetsByTz(self, notification, targets):
         """
         Take timezone from user property to convert a event time in
         notification and also group targets emails by those timezones.
@@ -430,7 +430,7 @@ class EmailAction(IActionBase, TargetableAction):
     def executeBatch(self, notification, signal, targets):
         log.debug("Executing %s action for targets: %s", self.name, targets)
         self.setupAction(notification.dmd)
-        tz_targets = self._targetsByTz(notification, signal, targets)
+        tz_targets = self._targetsByTz(notification, targets)
         original_lst = signal.event.last_seen_time
         original_fst = signal.event.first_seen_time
         original_sct = signal.event.status_change_time
