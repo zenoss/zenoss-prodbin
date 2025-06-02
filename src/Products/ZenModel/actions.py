@@ -406,10 +406,14 @@ class EmailAction(IActionBase, TargetableAction):
         """
         tz_targets = {}
         targetsCopy = set(targets)
-        for recipient in self._get_recipients_from_signal(notification, signal):
-            if recipient.email in targets:
-                tz_targets.setdefault(recipient.timezone, set()).add(recipient.email)
-                targetsCopy.discard(recipient.email)
+        for recipient in notification.recipients:
+            if recipient['type'] in ['group', 'user']:
+                guid = recipient['value']
+                target_obj = self.guidManager.getObject(guid)
+                if target_obj:
+                    if target_obj.email in targets and target_obj.timezone:
+                        tz_targets.setdefault(target_obj.timezone, set()).add(target_obj.email)
+                        targetsCopy.discard(target_obj.email)
         if targetsCopy: #some emails are not from users in the system
             tz = time.tzname[time.daylight] # get current timezone factoring in daylight saving
             tz_targets.setdefault(tz, set()).update(targetsCopy)
