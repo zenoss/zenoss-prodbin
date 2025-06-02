@@ -21,6 +21,7 @@ import socket
 import rfc822
 import calendar
 from datetime import tzinfo, timedelta, datetime
+from email import header
 
 
 from Products.ZenEvents.Event import Event
@@ -120,7 +121,8 @@ class MessageProcessor(object):
             fromIp = None
             log.info('Hostname lookup failed for host: %s', fromHost)
 
-        subject = message.get('Subject').replace("\r","").replace("\n", "")
+        raw_subject = message.get('Subject').replace("\r","").replace("\n", "")
+        subject = header.decode_header(raw_subject)[0][0]
 
         secs = self.getReceiveTime(message)
 
@@ -132,7 +134,12 @@ class MessageProcessor(object):
         payload = 'This is the default message'
         if message.is_multipart():
             for msg in message.get_payload():
-                if msg.get_content_maintype() == 'text' or msg.get_content_type() == 'message/rfc822':
+                if msg.is_multipart():
+                    for m in msg.get_payload():
+                        if m.get_content_maintype() == 'text' or m.get_content_type() == 'message/rfc822':
+                            payload = m.get_payload(decode=True)
+                            break
+                elif msg.get_content_maintype() == 'text' or msg.get_content_type() == 'message/rfc822':
                     payload = msg.get_payload(decode=True)
                     break
         else:
