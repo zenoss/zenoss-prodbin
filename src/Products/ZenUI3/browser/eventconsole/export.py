@@ -176,6 +176,13 @@ class EventsExporter(BrowserView):
                 elif not (val or val == 0) and details:
                     # ZEN-27617: fill in value for requested field in details
                     val = details.get(field, "")
+                    if not (val or val is 0): # SVC-1583
+                        strfield = re.sub('[_.]', '', field)
+                        for detail in details:
+                            strdetail = re.sub('[_.]', '', detail)
+                            if strdetail == strfield:
+                                val = details.get(detail, '')
+                                break
                 data.append(
                     str(val).replace("\n", " ").strip()
                     if (val or val == 0)
