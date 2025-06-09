@@ -110,7 +110,8 @@ sys.argv = _argv  # restore normality
 
 # Now we have the right paths, so we can do the rest of the imports
 from Products.ZenMessaging import audit  # noqa: E402
-from Products.ZenUtils.Utils import zenPath, set_context  # noqa: E402
+from Products.ZenUtils.path import zenPath  # noqa: E402
+from Products.ZenUtils.Utils import set_context  # noqa: E402
 from Products.Zuul.catalog.events import IndexingEvent  # noqa: E402
 from Products.Zuul.utils import safe_hasattr  # noqa: E402
 

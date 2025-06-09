@@ -21,7 +21,7 @@ from subprocess import Popen, PIPE
 
 from .config import ConfigFile
 from .configlog import ZenRotatingFileHandler
-from .Utils import zenPath
+from .path import zenPath
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger("zen.zencheckzends")

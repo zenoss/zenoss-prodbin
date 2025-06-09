@@ -17,7 +17,7 @@ from Products.ZCatalog.ZCatalog import ZCatalog
 
 from Products.ZenModel.interfaces import IZenDocProvider
 from Products.ZenRelations.RelationshipBase import RelationshipBase
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.path import zenPath
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 
 
